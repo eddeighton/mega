@@ -1,4 +1,4 @@
-//  Copyright (c) Deighton Systems Limited. 2019. All Rights Reserved.
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
 
@@ -17,11 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-//#include "eg_compiler/sessions/parser_session.hpp"
-//#include "eg_compiler/sessions/interface_session.hpp"
-//#include "eg_compiler/sessions/operations_session.hpp"
-//#include "eg_compiler/sessions/implementation_session.hpp"
-//#include "eg_compiler/codegen/codegen.hpp"
+//#include "compiler/stages/parser_stage.hpp"
+//#include "compiler/stages/interface_stage.hpp"
+//#include "compiler/stages/operations_stage.hpp"
+//#include "compiler/stages/implementation_stage.hpp"
+//#include "compiler/codegen/codegen.hpp"
 
 /*
 #pragma warning( push )
