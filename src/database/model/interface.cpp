@@ -25,10 +25,10 @@ namespace eg
 {
 namespace interface
 {
-    std::vector< Element* > getPath( Element* pNode, Element* pFrom /*= nullptr*/ )
+    std::vector< const Element* > getPath( const Element* pNode, const Element* pFrom /*= nullptr*/ )
     {
-        std::vector< Element* > path;
-        if( Element* pNodeIter = pNode )
+        std::vector< const Element* > path;
+        if( const Element* pNodeIter = pNode )
         {
             do
             {   
@@ -39,11 +39,11 @@ namespace interface
         }
         return path;
     }
-    
-    std::vector< const Element* > getPath( const Element* pNode, const Element* pFrom /*= nullptr*/ )
+
+    std::vector< Element* > getPath( Element* pNode, Element* pFrom /*= nullptr*/ )
     {
-        std::vector< const Element* > path;
-        if( const Element* pNodeIter = pNode )
+        std::vector< Element* > path;
+        if( Element* pNodeIter = pNode )
         {
             do
             {   

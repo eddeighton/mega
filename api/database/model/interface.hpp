@@ -38,14 +38,13 @@ namespace eg
 {
     class Parser;
 
-    namespace Stages
-    {
-        class Interface;
-    }
+namespace Stages
+{
+    class Interface;
+}
 
 namespace interface
 {
-
     class Element : public IndexedObject
     {
         friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
@@ -176,8 +175,8 @@ namespace interface
         std::vector< Element* > m_children;
     };
     
-    inline std::vector< Element* > getPath( Element* pNode, Element* pFrom = nullptr );
     inline std::vector< const Element* > getPath( const Element* pNode, const Element* pFrom = nullptr );
+    inline std::vector< Element* > getPath( Element* pNode, Element* pFrom = nullptr );
 
     class Opaque : public Element
     {

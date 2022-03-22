@@ -36,6 +36,7 @@
 namespace eg
 {
     class ObjectFactoryImpl;
+    class Parser;
 
     namespace Stages
     {
@@ -46,6 +47,8 @@ namespace eg
     {
         class Element : public IndexedObject
         {
+            friend class ::eg::ObjectFactoryImpl;
+            friend class ::eg::Parser;
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
         protected:
             Element( const IndexedObject& object );
@@ -56,7 +59,7 @@ namespace eg
         class Opaque : public Element
         {
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
-            friend class ::eg::Stages::Parser;
+            friend class ::eg::Parser;
             friend class ::eg::Stages::Parser;
         public:
             static const ObjectType Type = eInputOpaque;
@@ -91,6 +94,7 @@ namespace eg
         //Utility classes
         class HasIdentifier
         {
+            friend class ::eg::Parser;
         public:
             const std::string& getIdentifier() const { return m_strIdentifier; }
             
@@ -103,6 +107,7 @@ namespace eg
         
         class HasConst
         {
+            friend class ::eg::Parser;
         public:
             bool isConst() const { return m_bIsConst; }
             
@@ -115,6 +120,7 @@ namespace eg
         
         class HasChildren
         {
+            friend class ::eg::Parser;
         public:
             const std::vector< Element* >& getElements() const { return m_elements; }
             
@@ -127,6 +133,7 @@ namespace eg
         
         class HasDomain
         {
+            friend class ::eg::Parser;
         public:
             const Opaque* getSize() const { return m_pSize; }
             
@@ -139,6 +146,7 @@ namespace eg
         
         class HasParameters
         {
+            friend class ::eg::Parser;
         public:
             const Opaque* getReturnType() const { return m_pReturnType; }
             const Opaque* getParams() const { return m_pParams; }
@@ -153,6 +161,7 @@ namespace eg
         
         class HasDefinition
         {
+            friend class ::eg::Parser;
         public:
             std::optional< boost::filesystem::path > getSourceFile() const { return m_sourceFile; }
             std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
@@ -167,6 +176,7 @@ namespace eg
         
         class HasInheritance
         {
+            friend class ::eg::Parser;
         public:
             const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
             
@@ -179,6 +189,7 @@ namespace eg
         
         class HasVisibility
         {
+            friend class ::eg::Parser;
         public:
             VisibilityType getVisibility() const { return m_visibility; }
         protected:
@@ -204,7 +215,7 @@ namespace eg
         class Dimension : public Element, public HasIdentifier, public HasConst
         {
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
-            friend class ::eg::Stages::Parser;
+            friend class ::eg::Parser;
             friend class ::eg::Stages::Parser;
         public:
             static const ObjectType Type = eInputDimension;
@@ -224,7 +235,7 @@ namespace eg
         class Include : public Element, public HasIdentifier
         {
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
-            friend class ::eg::Stages::Parser;
+            friend class ::eg::Parser;
             friend class ::eg::Stages::Parser;
         public:
             static const ObjectType Type = eInputInclude;
@@ -253,7 +264,7 @@ namespace eg
         class Using : public Element, public HasIdentifier
         {
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
-            friend class ::eg::Stages::Parser;
+            friend class ::eg::Parser;
             friend class ::eg::Stages::Parser;
         public:
             static const ObjectType Type = eInputUsing;
@@ -277,7 +288,7 @@ namespace eg
         class Export : public Element, public HasIdentifier
         {
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
-            friend class ::eg::Stages::Parser;
+            friend class ::eg::Parser;
             friend class ::eg::Stages::Parser;
         public:
             static const ObjectType Type = eInputExport;
@@ -299,7 +310,7 @@ namespace eg
         class Visibility : public Element, public HasVisibility
         {
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
-            friend class ::eg::Stages::Parser;
+            friend class ::eg::Parser;
             friend class ::eg::Stages::Parser;
         public:
             static const ObjectType Type = eInputVisibility;
@@ -322,7 +333,7 @@ namespace eg
                             public HasInheritance
         {
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
-            friend class ::eg::Stages::Parser;
+            friend class ::eg::Parser;
             friend class ::eg::Stages::Parser;
         public:
             static const ObjectType Type = eInputContext;
@@ -355,6 +366,7 @@ namespace eg
         class Root : public Context
         {
             friend IndexedObject* ::eg::ObjectFactoryImpl::create( const IndexedObject& );
+            friend class ::eg::Parser;
             friend class ::eg::Stages::Parser;
         public:
             static const ObjectType Type = eInputRoot;
