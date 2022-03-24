@@ -37,19 +37,25 @@
 #include <iomanip>
 #include <bitset>
 
-extern void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args );
-//extern void command_create( bool bHelp, const std::vector< std::string >& args );
-//extern void command_run( bool bHelp, const std::vector< std::string >& args );
-//extern void command_log( bool bHelp, const std::vector< std::string >& args );
-//extern void command_clean( bool bHelp, const std::vector< std::string >& args );
-//extern void command_info( bool bHelp, const std::vector< std::string >& args );
+namespace driver
+{
+    namespace parse
+    {
+        extern void command( bool bHelp, const std::vector< std::string >& args );
+    }
+    //extern void command_create( bool bHelp, const std::vector< std::string >& args );
+    //extern void command_run( bool bHelp, const std::vector< std::string >& args );
+    //extern void command_log( bool bHelp, const std::vector< std::string >& args );
+    //extern void command_clean( bool bHelp, const std::vector< std::string >& args );
+    //extern void command_info( bool bHelp, const std::vector< std::string >& args );
 
-//extern void command_cmake( bool bHelp, const std::vector< std::string >& args );
-//extern void command_debug( bool bHelp, const std::vector< std::string >& args );
+    //extern void command_cmake( bool bHelp, const std::vector< std::string >& args );
+    //extern void command_debug( bool bHelp, const std::vector< std::string >& args );
+}
 
 enum MainCommand
 {
-    eCmd_Build,
+    eCmd_Parse,
     //eCmd_Create,
     //eCmd_Run,
     //eCmd_Log,
@@ -60,7 +66,7 @@ enum MainCommand
     TOTAL_MAIN_COMMANDS
 };
 
-extern std::string stacktraceUtil();
+//extern std::string stacktraceUtil();
 
 int main( int argc, const char* argv[] )
 {
@@ -83,6 +89,7 @@ int main( int argc, const char* argv[] )
         {
             bool bGeneralWait = false;
             
+            bool bCmdParse = false;
             //bool bCmdCreate = false;
             //bool bCmdRun    = false;
             //bool bCmdLog    = false;
@@ -105,8 +112,8 @@ int main( int argc, const char* argv[] )
                 
                 commandOptions.add_options()
                         
-                    ("build", po::value< std::string >( &strBuildCommand )->implicit_value("release"), 
-                        "Issue Megastructure build commands" )
+                    ("parse", po::bool_switch( &bCmdParse ),
+                        "Parse mega source code" )
 
                     //("create",  po::bool_switch( &bCmdCreate ),
                     //    "Start a new eg project" )
@@ -170,10 +177,10 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
             
-            if( !strBuildCommand.empty() )
+            if( bCmdParse)
             {
-                cmds.set( eCmd_Build );
-                cmd = eCmd_Build;
+                cmds.set( eCmd_Parse );
+                cmd = eCmd_Parse;
             }
             //if( bCmdCreate )
             //{
@@ -207,10 +214,10 @@ int main( int argc, const char* argv[] )
             
             std::vector< std::string > commandArguments = 
                 po::collect_unrecognized( parsedOptions.options, po::include_positional );
-				                
+
             switch( cmd )
             {                
-                case eCmd_Build           : command_build(  bShowHelp, strBuildCommand, commandArguments );  break;
+                case eCmd_Parse           : driver::parse::command( bShowHelp, commandArguments );  break;
               //  case eCmd_Create          : command_create( bShowHelp, commandArguments );                   break;
               //  case eCmd_Run             : command_run(    bShowHelp, commandArguments );                   break;
               //  case eCmd_Log             : command_log(    bShowHelp, commandArguments );                   break;
