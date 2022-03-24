@@ -11,7 +11,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
 set( DRIVER_SOURCES
-	#${DRIVER_SOURCE_DIR}/command_build.cpp
+	${DRIVER_SOURCE_DIR}/command_build.cpp
 	#${DRIVER_SOURCE_DIR}/command_clean.cpp
 	#${DRIVER_SOURCE_DIR}/command_create.cpp
 	#${DRIVER_SOURCE_DIR}/command_info.cpp

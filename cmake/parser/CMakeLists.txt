@@ -20,8 +20,7 @@ add_definitions(-DEG_DATABASE_SHARED_MODULE)
 
 add_library( parser SHARED
                     ${CLANG_PLUGIN_API}
-                    ${CLANG_PLUGIN_SOURCES}
-				)
+                    ${CLANG_PLUGIN_SOURCES} )
 
 set_target_properties( parser PROPERTIES FOLDER parser )
 

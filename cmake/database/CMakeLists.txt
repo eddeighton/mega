@@ -101,6 +101,7 @@ add_library( database
 				)
 
 set_target_properties( database PROPERTIES FOLDER database )
+set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 link_boost( database filesystem )
 link_boost( database iostreams )

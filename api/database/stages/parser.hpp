@@ -41,7 +41,7 @@ namespace clang
 namespace eg
 {
     class Identifiers;
-    
+
     namespace interface
     {
         class Element;
@@ -53,19 +53,19 @@ namespace eg
         class Element;
         class Root;
     }
-    
+
     class EG_PARSER_CALLBACK;
-	
+
     namespace Stages
     {
         class Parser : public Creating
         {
         public:
             Parser(  EG_PARSER_CALLBACK* pParserCallback,
-                            const boost::filesystem::path& parserDLLPath, 
-                            const boost::filesystem::path& currentPath, 
+                            const boost::filesystem::path& parserDLLPath,
+                            const boost::filesystem::path& currentPath,
                             std::ostream& os );
-            
+
             struct SourceCodeTree
             {
                 using RootFolder = boost::filesystem::path;
@@ -75,31 +75,30 @@ namespace eg
                 RootFolder root;
                 FileMap files;
             };
-            
+
             void parse( const SourceCodeTree& egSourceCodeFiles );
-            
+
             void parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles );
-                
+
             void buildAbstractTree();
-            
+
             const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
-            
+
             const Identifiers* getIdentifiers() const { return eg::one_cst< eg::Identifiers >( getMaster() ); }
         private:
-        
-            input::Root* getMegaRoot( 
+
+            input::Root* getMegaRoot(
                 input::Root* pMegaStructureRoot,
                 const SourceCodeTree::RootFolder& rootFolder,
                 const SourceCodeTree::ProjectNameFolder& projectNameFolder,
                 std::map< boost::filesystem::path, input::Root* >& rootTree );
-                
+
             void handleInputIncludes( std::set< boost::filesystem::path >& includePaths );
-        
+
             using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
-            void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*, 
+            void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*,
                 std::optional< boost::filesystem::path > , bool bInIncludeTree, VisibilityType visibility );
-                
-                
+
             void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
                         Parser& stage, input::Root* pRoot );
         private:

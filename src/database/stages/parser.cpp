@@ -35,8 +35,8 @@ namespace eg
 namespace Stages
 {
     Parser::Parser( EG_PARSER_CALLBACK* pParserCallback,
-                const boost::filesystem::path& parserDLLPath, 
-                const boost::filesystem::path& currentPath, 
+                const boost::filesystem::path& parserDLLPath,
+                const boost::filesystem::path& currentPath,
                 std::ostream& os )
         :   Creating( IndexedFile::FileIDtoPathMap{}, IndexedObject::MASTER_FILE ),
             m_pParserCallback( pParserCallback ),
@@ -46,29 +46,29 @@ namespace Stages
     {
         VERIFY_RTE( m_pParserCallback );
     }
-    
+
     void Parser::parseEGSourceFile( const boost::filesystem::path& egSourceFile,
                 Parser& stage, input::Root* pRoot )
     {
         static boost::shared_ptr< eg::EG_PARSER_INTERFACE > pParserInterface;
-        
+
         if( !pParserInterface )
         {
             pParserInterface =
-                boost::dll::import_symbol< eg::EG_PARSER_INTERFACE >( 
+                boost::dll::import_symbol< eg::EG_PARSER_INTERFACE >(
                     m_parserDllPath, "g_parserSymbol" );
         }
-        
+
         VERIFY_RTE_MSG( pParserInterface, "Failed to locate eg parser at: " << m_parserDllPath.string() );
-            
+
         //record the source file parsed for this root
         pRoot->m_sourceFile = egSourceFile;
-        
+
         pParserInterface->parseEGSourceFile( m_pParserCallback, egSourceFile, m_currentPath, m_errorOS, stage, pRoot );
-        
+
     }
-	
-	input::Root* Parser::getMegaRoot( 
+
+	input::Root* Parser::getMegaRoot(
 		input::Root* pMegaStructureRoot,
 		const SourceCodeTree::RootFolder& rootFolder,
 		const SourceCodeTree::ProjectNameFolder& projectNameFolder,
@@ -77,14 +77,14 @@ namespace Stages
 		boost::filesystem::path::const_iterator
 			i = rootFolder.begin(), iEnd = rootFolder.end(),
 			j = projectNameFolder.begin(), jEnd = projectNameFolder.end();
-			
+
 		//iterate until they become different
 		for( ; i!=iEnd && j!=jEnd && *i == *j; ++i, ++j ){}
-		
-		VERIFY_RTE_MSG( i == iEnd, 
-			"Project name folder: " << projectNameFolder.string() << 
+
+		VERIFY_RTE_MSG( i == iEnd,
+			"Project name folder: " << projectNameFolder.string() <<
 			" does NOT exist within mega structure root folder: " << rootFolder.string() );
-			
+
 		input::Root* pRoot = pMegaStructureRoot;
 		{
 			boost::filesystem::path treePath = rootFolder;
@@ -92,10 +92,10 @@ namespace Stages
 			for( ; j!=jEnd; ++j, ++iFolderDepth )
 			{
 				treePath = treePath / *j;
-		
+
 				input::Root* pNestedRoot = nullptr;
-		
-				std::map< boost::filesystem::path, input::Root* >::iterator 
+
+				std::map< boost::filesystem::path, input::Root* >::iterator
 					iFind = rootTree.find( treePath );
 				if( iFind != rootTree.end() )
 				{
@@ -124,68 +124,68 @@ namespace Stages
 						}
 					}
 					pRoot->m_elements.push_back( pNestedRoot );
-					
+
 					rootTree.insert( std::make_pair( treePath, pNestedRoot ) );
 				}
-				
+
 				pRoot = pNestedRoot;
 			}
 		}
-		
+
 		return pRoot;
 	}
-	
+
 	void Parser::parse( const SourceCodeTree& egSourceCodeFiles )
 	{
 		input::Root* pMegaStructureRoot = construct< input::Root >();
 		{
 			pMegaStructureRoot->m_rootType = eMegaRoot;
 		}
-			
+
         std::set< boost::filesystem::path > includePaths;
 		std::map< boost::filesystem::path, input::Root* > rootTree;
-		
-		for( SourceCodeTree::FileMap::const_iterator 
+
+		for( SourceCodeTree::FileMap::const_iterator
 			i = egSourceCodeFiles.files.begin(),
 			iEnd = egSourceCodeFiles.files.end();
 			i != iEnd; ++i )
 		{
 			const SourceCodeTree::ProjectNameFolder& projectNameFolder = i->first;
 			const SourceCodeTree::EGSourceFile& egSourceFile = i->second;
-			
+
 			boost::filesystem::path sourceFile = projectNameFolder / egSourceFile;
-			
+
 			input::Root* pRoot = getMegaRoot( pMegaStructureRoot, egSourceCodeFiles.root, projectNameFolder, rootTree );
-			
+
             parseEGSourceFile( sourceFile, *this, pRoot ); //parse main root
             includePaths.insert( sourceFile );
 		}
-		
+
 		handleInputIncludes( includePaths );
 	}
-	
+
     void Parser::parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles )
     {
 		input::Root* pRoot = construct< input::Root >();
 		{
 			pRoot->m_rootType = eFileRoot;
 		}
-		
+
         std::set< boost::filesystem::path > includePaths;
         for( const boost::filesystem::path& filePath : egSourceCodeFiles )
         {
             parseEGSourceFile( filePath, *this, pRoot ); //parse main root
             includePaths.insert( filePath );
         }
-        
+
 		handleInputIncludes( includePaths );
     }
-    
+
 	void Parser::handleInputIncludes( std::set< boost::filesystem::path >& includePaths )
 	{
         std::set< boost::filesystem::path > newIncludePaths;
-        
-        //greedy parse all includes 
+
+        //greedy parse all includes
         do
         {
             for( const boost::filesystem::path& includePath : newIncludePaths )
@@ -195,12 +195,12 @@ namespace Stages
 					pIncludeRoot->m_includePath = includePath;
 					pIncludeRoot->m_rootType = eFile;
 				}
-				
+
                 parseEGSourceFile( includePath, *this, pIncludeRoot ); //parse include - non-main root
                 includePaths.insert( includePath );
             }
             newIncludePaths.clear();
-            
+
             std::vector< input::Include* > includes = many< input::Include >( getMaster() );
             for( input::Include* pInclude : includes )
             {
@@ -213,7 +213,7 @@ namespace Stages
             }
         }while( !newIncludePaths.empty() );
 	}
-    
+
     interface::Element* addChild( Parser& stage, interface::Element* pParent, input::Element* pElement, VisibilityType visibility )
     {
         interface::Element* pNewNode = nullptr;
@@ -237,7 +237,7 @@ namespace Stages
                     case input::Context::eAction   : pNewNode = stage.construct< interface::Action >   ( pParent, pElement, visibility ); break;
                     case input::Context::eLink     : pNewNode = stage.construct< interface::Link >     ( pParent, pElement, visibility ); break;
                     case input::Context::eObject   : pNewNode = stage.construct< interface::Object >   ( pParent, pElement, visibility ); break;
-                    case input::Context::eUnknown  : 
+                    case input::Context::eUnknown  :
                     default:
                     {
                         THROW_RTE( "Undefined context type for: " << pParent->getFriendlyName() << "::" << pContext->getIdentifier() );
@@ -245,7 +245,7 @@ namespace Stages
                 }
                 break;
             }
-            case eInputRoot:           
+            case eInputRoot:
                 pNewNode = stage.construct< interface::Root >( pParent, pElement, visibility ); break;
             default:
                 THROW_RTE( "Unsupported type" );
@@ -254,11 +254,11 @@ namespace Stages
         VERIFY_RTE( pNewNode );
         return pNewNode;
     }
-    
-    void Parser::buildTree( const FileElementMap& fileMap, interface::Element* pParentNode, 
+
+    void Parser::buildTree( const FileElementMap& fileMap, interface::Element* pParentNode,
         input::Element* pElement,
-		std::optional< boost::filesystem::path > includeDefinitionFile, 
-		bool bInIncludeTree, 
+		std::optional< boost::filesystem::path > includeDefinitionFile,
+		bool bInIncludeTree,
         VisibilityType visibility )
     {
         switch( pElement->getType() )
@@ -294,20 +294,20 @@ namespace Stages
                 {
                     input::Context* pContext = dynamic_cast< input::Context* >( pElement );
                     VERIFY_RTE( pContext );
-                    
+
                     for( input::Element* pChildElement : pContext->getElements() )
                     {
                         if( input::Include* pInclude = dynamic_cast< input::Include* >( pChildElement ) )
                         {
                             if( pInclude->isEGInclude() )
                             {
-                                FileElementMap::const_iterator iFind = 
+                                FileElementMap::const_iterator iFind =
                                     fileMap.find( pInclude->getIncludeFilePath() );
-                                VERIFY_RTE_MSG( iFind != fileMap.end(), "Failed to find include file: " << 
-                                    pInclude->getIncludeFilePath().string() << 
+                                VERIFY_RTE_MSG( iFind != fileMap.end(), "Failed to find include file: " <<
+                                    pInclude->getIncludeFilePath().string() <<
                                     " NOTE: you may have put include .eg file in root folder" );
                                 input::Root* pIncludedRoot = iFind->second;
-                                
+
                                 if( pInclude->getIdentifier().empty() )
                                 {
                                     //if the include has no identifier then insert the included root elements
@@ -319,7 +319,7 @@ namespace Stages
                                     interface::Element* pChild = addChild( *this, pParentNode, pIncludedRoot, visibility );
                                     pChild->pIncludeIdentifier = pInclude;
                                     buildTree( fileMap, pChild, pIncludedRoot, includeDefinitionFile, true, visibility );
-                                } 
+                                }
                             }
                             else
                             {
@@ -329,7 +329,7 @@ namespace Stages
                         else if( input::Context* pElementAction = dynamic_cast< input::Context* >( pChildElement ) )
                         {
                             interface::Element* pChild = addChild( *this, pParentNode, pChildElement, visibility );
-                            
+
                             if( bInIncludeTree )
                             {
                                 //if the action is defined then set the definition file to the include definition file
@@ -380,23 +380,23 @@ namespace Stages
                 break;
         }
     }
-    
+
     void Parser::buildAbstractTree()
     {
         interface::Root* pMasterRoot = construct< interface::Root >(); //eTreeRoot
-		
+
         std::vector< input::Root* > roots = many< input::Root >( getMaster() );
         VERIFY_RTE( !roots.empty() );
-        
+
         input::Root* pInputMainRoot = nullptr;
-        
+
         FileElementMap fileMap;
         for( input::Root* pRootElement : roots )
         {
-			std::optional< boost::filesystem::path > includePathOpt = 
+			std::optional< boost::filesystem::path > includePathOpt =
 				pRootElement->getIncludePath();
-			
-			if( eMegaRoot == pRootElement->getRootType() || 
+
+            if( eMegaRoot == pRootElement->getRootType() ||
 				eFileRoot == pRootElement->getRootType() )
 			{
 				VERIFY_RTE( !includePathOpt );
@@ -408,18 +408,18 @@ namespace Stages
                 fileMap.insert( std::make_pair( includePathOpt.value(), pRootElement ) );
             }
         }
-        
+
         VERIFY_RTE( pInputMainRoot );
         interface::Element* pInterfaceRoot = addChild( *this, pMasterRoot, pInputMainRoot, eVisPublic );
         ( (interface::Context*)pInterfaceRoot )->setDefinitionFile( pInputMainRoot->getDefinitionFile() );
-        
+
         buildTree( fileMap, pInterfaceRoot, pInputMainRoot, pInputMainRoot->getSourceFile(), false, eVisPublic );
-                
+
         //create the identifiers object
         Identifiers* pIdentifiers = construct< Identifiers >();
         pIdentifiers->populate( getMaster() );
     }
-    
-    
+
+
 } //namespace stages
 } //namespace eg

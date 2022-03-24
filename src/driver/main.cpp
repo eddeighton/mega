@@ -17,25 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-//#include "compiler/stages/parser_stage.hpp"
-//#include "compiler/stages/interface_stage.hpp"
-//#include "compiler/stages/operations_stage.hpp"
-//#include "compiler/stages/implementation_stage.hpp"
-//#include "compiler/codegen/codegen.hpp"
-
-/*
-#pragma warning( push )
-#include "common/clang_warnings.hpp"
-
-#include "clang/Basic/FileSystemOptions.h"
-#include "clang/Basic/FileManager.h"
-#include "clang/Basic/DiagnosticIDs.h"
-#include "clang/Basic/DiagnosticOptions.h"
-#include "clang/Basic/Diagnostic.h"
-
-#pragma warning( pop ) 
-*/
-
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
@@ -56,8 +37,8 @@
 #include <iomanip>
 #include <bitset>
 
+extern void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args );
 //extern void command_create( bool bHelp, const std::vector< std::string >& args );
-//extern void command_build( bool bHelp, const std::string& strBuildCommand, const std::vector< std::string >& args );
 //extern void command_run( bool bHelp, const std::vector< std::string >& args );
 //extern void command_log( bool bHelp, const std::vector< std::string >& args );
 //extern void command_clean( bool bHelp, const std::vector< std::string >& args );
@@ -68,12 +49,12 @@
 
 enum MainCommand
 {
-    eCmd_Create,
     eCmd_Build,
-    eCmd_Run,
-    eCmd_Log,
-    eCmd_Clean,
-    eCmd_Info,
+    //eCmd_Create,
+    //eCmd_Run,
+    //eCmd_Log,
+    //eCmd_Clean,
+    //eCmd_Info,
     //eCmd_CMake,
     //eCmd_Debug,
     TOTAL_MAIN_COMMANDS
@@ -102,11 +83,11 @@ int main( int argc, const char* argv[] )
         {
             bool bGeneralWait = false;
             
-            bool bCmdCreate = false;
-            bool bCmdRun    = false;
-            bool bCmdLog    = false;
-            bool bCmdClean  = false;
-            bool bCmdInfo   = false;
+            //bool bCmdCreate = false;
+            //bool bCmdRun    = false;
+            //bool bCmdLog    = false;
+            //bool bCmdClean  = false;
+            //bool bCmdInfo   = false;
             //bool bCmdCMake  = false;
             //bool bCmdDebug  = false;
             
@@ -124,23 +105,23 @@ int main( int argc, const char* argv[] )
                 
                 commandOptions.add_options()
                         
-                    ("create",  po::bool_switch( &bCmdCreate ),
-                        "Start a new eg project" )
-                        
                     ("build", po::value< std::string >( &strBuildCommand )->implicit_value("release"), 
-                        "Build an eg project" )
+                        "Issue Megastructure build commands" )
+
+                    //("create",  po::bool_switch( &bCmdCreate ),
+                    //    "Start a new eg project" )
                         
-                    ("run",   po::bool_switch( &bCmdRun ),
-                        "Run an eg project" )
-                        
-                    ("log",   po::bool_switch( &bCmdLog ),
-                        "Run an eg project" )
-                        
-                    ("clean",   po::bool_switch( &bCmdClean ),
-                        "Removing all build and log files" )
-                        
-                    ("info",   po::bool_switch( &bCmdInfo ),
-                        "Report info about an eg project" )
+                    //("run",   po::bool_switch( &bCmdRun ),
+                    //    "Run an eg project" )
+                    //    
+                    //("log",   po::bool_switch( &bCmdLog ),
+                    //    "Run an eg project" )
+                    //    
+                    //("clean",   po::bool_switch( &bCmdClean ),
+                    //    "Removing all build and log files" )
+                    //    
+                    //("info",   po::bool_switch( &bCmdInfo ),
+                    //    "Report info about an eg project" )
                         
                     //("cmake",   po::bool_switch( &bCmdCMake ),
                     //    "Generate a cmake build for an eg project" )
@@ -189,36 +170,36 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
             
-            if( bCmdCreate )
-            {
-                cmds.set( eCmd_Create );
-                cmd = eCmd_Create;
-            }
             if( !strBuildCommand.empty() )
             {
                 cmds.set( eCmd_Build );
                 cmd = eCmd_Build;
             }
-            if( bCmdRun )
-            {
-                cmds.set( eCmd_Run );
-                cmd = eCmd_Run;
-            }
-            if( bCmdLog )
-            {
-                cmds.set( eCmd_Log );
-                cmd = eCmd_Log;
-            }
-            if( bCmdClean ) 
-            {
-                cmds.set( eCmd_Clean );
-                cmd = eCmd_Clean;
-            }
-            if( bCmdInfo ) 
-            {
-                cmds.set( eCmd_Info );
-                cmd = eCmd_Info;
-            }
+            //if( bCmdCreate )
+            //{
+            //    cmds.set( eCmd_Create );
+            //    cmd = eCmd_Create;
+            //}
+            //if( bCmdRun )
+            //{
+            //    cmds.set( eCmd_Run );
+            //    cmd = eCmd_Run;
+            //}
+            //if( bCmdLog )
+            //{
+            //    cmds.set( eCmd_Log );
+            //    cmd = eCmd_Log;
+            //}
+            //if( bCmdClean ) 
+            //{
+            //    cmds.set( eCmd_Clean );
+            //    cmd = eCmd_Clean;
+            //}
+            //if( bCmdInfo ) 
+            //{
+            //    cmds.set( eCmd_Info );
+            //    cmd = eCmd_Info;
+            //}
             //if( bCmdCMake )                 cmds.set( eCmd_Create );
             //if( bCmdDebug )                 cmds.set( eCmd_Create );
             
@@ -229,8 +210,8 @@ int main( int argc, const char* argv[] )
 				                
             switch( cmd )
             {                
+                case eCmd_Build           : command_build(  bShowHelp, strBuildCommand, commandArguments );  break;
               //  case eCmd_Create          : command_create( bShowHelp, commandArguments );                   break;
-              //  case eCmd_Build           : command_build(  bShowHelp, strBuildCommand, commandArguments );  break;
               //  case eCmd_Run             : command_run(    bShowHelp, commandArguments );                   break;
               //  case eCmd_Log             : command_log(    bShowHelp, commandArguments );                   break;
               //  case eCmd_Clean           : command_clean(  bShowHelp, commandArguments );                   break;

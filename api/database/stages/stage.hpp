@@ -43,7 +43,7 @@ namespace eg
                 return iFind->second->getObjects();
             }
             
-            const IndexedObject::Array& getMaster() const 
+            const IndexedObject::Array& getMaster() const
             { 
                 return getObjects( IndexedObject::MASTER_FILE );
             }
