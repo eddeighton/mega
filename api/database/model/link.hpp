@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef LINKANALYSIS_09_JUNE_2020
 #define LINKANALYSIS_09_JUNE_2020
 
@@ -37,102 +36,106 @@
 #include <vector>
 #include <tuple>
 
-namespace eg
+namespace mega
 {
-	class LinkGroup : public IndexedObject
-	{
-        friend class ObjectFactoryImpl;
-		friend class LinkAnalysis;
-        friend class Stages::Interface;
-    public:
-        static const ObjectType Type = eLinkGroup;
-    protected:
-        LinkGroup( const IndexedObject& object )
-            :   IndexedObject( object )
-        {
-        }
-		
-    public:
-		using Vector = std::vector< LinkGroup* >;
-        using LinkRefMap = std::map< 
-            const concrete::Action*, 
-            const concrete::Dimension_Generated*, 
-            CompareIndexedObjects >;
-		
-        virtual void load( Loader& loader );
-        virtual void store( Storer& storer ) const;
-		
-		const std::string& getLinkName() const { return m_name; }
-		const std::vector< interface::Link* >& getLinks() const { return m_links; }
-		const std::vector< interface::Context* >& getInterfaceTargets() const { return m_interfaceTargets; }
-		const std::vector< concrete::Action* >& getTargets() const { return m_concreteTargets; }
-        const std::vector< concrete::Action* >& getConcreteLinks() const { return m_concreteLinks; }
-        const LinkRefMap& getDimensionMap() const { return m_dimensionMap; }
-        
-        static const interface::Context* getLinkTarget( const interface::Link* pLink );
-        static interface::Context* getLinkTarget( interface::Link* pLink );
-		
-	private:
-		std::string m_name;
-		std::vector< interface::Link* > m_links;
-		std::vector< interface::Context* > m_interfaceTargets;
-		std::vector< concrete::Action* > m_concreteTargets;
-		std::vector< concrete::Action* > m_concreteLinks;
-        LinkRefMap m_dimensionMap;
-	};
-	
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////
-    class LinkAnalysis : public IndexedObject
-    {
-        friend class ObjectFactoryImpl;
-    public:
-        static const ObjectType Type = eLinkAnalysis;
-    protected:
-        LinkAnalysis( const IndexedObject& object )
-            :   IndexedObject( object )
-        {
-        }
-        
-    public:
-        template< typename T >
-        struct CompareNodePath
-        {
-            inline bool operator()( const T* pLeft, const T* pRight ) const
-            {
-                return pLeft->getIndex() < pRight->getIndex();
-            }
-        };
-        
-		using ContextSet = std::set< interface::Context*, CompareNodePath< interface::Context > >;
-		using ContextSetPtr = std::shared_ptr< ContextSet >;
-		using ContextSetPtrSet = std::set< ContextSetPtr >;
-		
-		ContextSetPtrSet calculateSets( const std::vector< interface::Context* >& actions );
-		ContextSetPtr find( const ContextSetPtrSet& sets, interface::Context* pAction );
-		void addAction( ContextSetPtrSet& sets, interface::Context* pAction );
-        
-		using LinkSet = std::pair< std::string, ContextSetPtr >;
-		using LinkGroupMap = std::multimap< LinkSet, interface::Link* >;
-		
-		void calculateGroups( const ContextSetPtrSet& sets,
-            const std::vector< interface::Context* >& actions, 
-			const DerivationAnalysis& derivationAnalysis, 
-			Stages::Appending& stage );
-		
-		const LinkGroup::Vector& getLinkGroups() const { return m_groups; }
-        
-        const LinkGroup* getLinkGroup( const interface::Link* pLink ) const; 
-        const LinkGroup* getLinkGroup( const std::string& strName ) const;
-		
-    public:
-        virtual void load( Loader& loader );
-        virtual void store( Storer& storer ) const;
-		
-	private:
-		LinkGroup::Vector m_groups;
-    };
-    
-}
+class LinkGroup : public io::Object
+{
+    friend class ObjectFactoryImpl;
+    friend class LinkAnalysis;
+    friend class Stages::Interface;
 
-#endif //LINKANALYSIS_09_JUNE_2020
+public:
+    static const ObjectType Type = eLinkGroup;
+
+protected:
+    LinkGroup( const io::Object& object )
+        : io::Object( object )
+    {
+    }
+
+public:
+    using Vector = std::vector< LinkGroup* >;
+    using LinkRefMap = std::map<
+        const concrete::Action*,
+        const concrete::Dimension_Generated*,
+        io::CompareIndexedObjects >;
+
+    virtual void load( io::Loader& loader );
+    virtual void store( io::Storer& storer ) const;
+
+    const std::string&                        getLinkName() const { return m_name; }
+    const std::vector< interface::Link* >&    getLinks() const { return m_links; }
+    const std::vector< interface::Context* >& getInterfaceTargets() const { return m_interfaceTargets; }
+    const std::vector< concrete::Action* >&   getTargets() const { return m_concreteTargets; }
+    const std::vector< concrete::Action* >&   getConcreteLinks() const { return m_concreteLinks; }
+    const LinkRefMap&                         getDimensionMap() const { return m_dimensionMap; }
+
+    static const interface::Context* getLinkTarget( const interface::Link* pLink );
+    static interface::Context*       getLinkTarget( interface::Link* pLink );
+
+private:
+    std::string                        m_name;
+    std::vector< interface::Link* >    m_links;
+    std::vector< interface::Context* > m_interfaceTargets;
+    std::vector< concrete::Action* >   m_concreteTargets;
+    std::vector< concrete::Action* >   m_concreteLinks;
+    LinkRefMap                         m_dimensionMap;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+class LinkAnalysis : public io::Object
+{
+    friend class ObjectFactoryImpl;
+
+public:
+    static const ObjectType Type = eLinkAnalysis;
+
+protected:
+    LinkAnalysis( const io::Object& object )
+        : io::Object( object )
+    {
+    }
+
+public:
+    template < typename T >
+    struct CompareNodePath
+    {
+        inline bool operator()( const T* pLeft, const T* pRight ) const
+        {
+            return pLeft->getIndex() < pRight->getIndex();
+        }
+    };
+
+    using ContextSet = std::set< interface::Context*, CompareNodePath< interface::Context > >;
+    using ContextSetPtr = std::shared_ptr< ContextSet >;
+    using ContextSetPtrSet = std::set< ContextSetPtr >;
+
+    ContextSetPtrSet calculateSets( const std::vector< interface::Context* >& actions );
+    ContextSetPtr    find( const ContextSetPtrSet& sets, interface::Context* pAction );
+    void             addAction( ContextSetPtrSet& sets, interface::Context* pAction );
+
+    using LinkSet = std::pair< std::string, ContextSetPtr >;
+    using LinkGroupMap = std::multimap< LinkSet, interface::Link* >;
+
+    void calculateGroups( const ContextSetPtrSet&                   sets,
+                          const std::vector< interface::Context* >& actions,
+                          const DerivationAnalysis&                 derivationAnalysis,
+                          Stages::Appending&                        stage );
+
+    const LinkGroup::Vector& getLinkGroups() const { return m_groups; }
+
+    const LinkGroup* getLinkGroup( const interface::Link* pLink ) const;
+    const LinkGroup* getLinkGroup( const std::string& strName ) const;
+
+public:
+    virtual void load( io::Loader& loader );
+    virtual void store( io::Storer& storer ) const;
+
+private:
+    LinkGroup::Vector m_groups;
+};
+
+} // namespace mega
+
+#endif // LINKANALYSIS_09_JUNE_2020

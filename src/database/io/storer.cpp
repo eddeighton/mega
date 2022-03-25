@@ -17,46 +17,43 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/io/storer.hpp"
 
 #include "common/file.hpp"
 
-namespace eg
+namespace mega
 {
-
+namespace io
+{
     Storer::Storer( const boost::filesystem::path& filePath )
-        :   m_targetFilePath( filePath ),
-            m_pFileStream( boost::filesystem::createBinaryOutputFileStream( filePath ) ),
-            m_archive( *m_pFileStream )
+        : m_targetFilePath( filePath )
+        , m_pFileStream( boost::filesystem::createBinaryOutputFileStream( filePath ) )
+        , m_archive( *m_pFileStream )
     {
-        
     }
-    
+
     Storer::~Storer()
     {
-        
     }
-    
-    void Storer::storeObject( const IndexedObject* pObject )
+
+    void Storer::storeObject( const Object* pObject )
     {
         VERIFY_RTE( pObject );
-        pObject->IndexedObject::store( *this );
+        pObject->Object::store( *this );
     }
-    
-    void Storer::storeObjectRef( const IndexedObject* pObject )
+
+    void Storer::storeObjectRef( const Object* pObject )
     {
-        if( pObject )
+        if ( pObject )
         {
             store( pObject->getFileID() );
             store( pObject->getIndex() );
         }
         else
         {
-            store( IndexedObject::NO_FILE );
+            store( Object::NO_FILE );
         }
     }
 
-
-
-}
+} // namespace io
+} // namespace mega

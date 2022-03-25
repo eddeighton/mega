@@ -17,117 +17,121 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef ALLOCATOR_23_JUNE_2020
 #define ALLOCATOR_23_JUNE_2020
 
-
 #include "database/model/objects.hpp"
 
-namespace eg
+namespace mega
 {
-    namespace Stages
-    {
-        class Interface;
-    }
-    
-    namespace concrete
-    {
-        class Action;
-        class Dimension_Generated;
+namespace Stages
+{
+    class Interface;
+}
 
-        class Allocator : public IndexedObject
-        {
-            friend class ::eg::ObjectFactoryImpl;
-            friend class ::eg::Stages::Interface;
-        protected:
-            Allocator( const IndexedObject& indexedObject )
-                :   IndexedObject( indexedObject )
-            {
-            }
-            
-            virtual void load( Loader& loader );
-            virtual void store( Storer& storer ) const;
-            
-            virtual void constructDimensions( Stages::Interface& stage ) = 0;
-            
-        public:
-            const Action* getAllocated() const { return m_pContext_Allocated; }
-            const Action* getAllocating() const { return m_pContext_Allocating; }
-            
-        protected:
-            Action* m_pContext_Allocated = nullptr;
-            Action* m_pContext_Allocating = nullptr;
-        };
-    
-        class NothingAllocator : public Allocator
-        {
-            friend class ::eg::ObjectFactoryImpl;
-            friend class ::eg::Stages::Interface;
-            friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
-        public:
-            static const ObjectType Type = eConcreteAllocator_Nothing;
-        protected:
-            NothingAllocator( const IndexedObject& indexedObject )
-                :   Allocator( indexedObject )
-            {
-            }
-            
-            virtual void load( Loader& loader );
-            virtual void store( Storer& storer ) const;
-            
-            virtual void constructDimensions( Stages::Interface& stage );
-        };
-        
-        class SingletonAllocator : public Allocator
-        {
-            friend class ::eg::ObjectFactoryImpl;
-            friend class ::eg::Stages::Interface;
-            friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
-        public:
-            static const ObjectType Type = eConcreteAllocator_Singleton;
-        protected:
-            SingletonAllocator( const IndexedObject& indexedObject )
-                :   Allocator( indexedObject )
-            {
-            }
-            
-            virtual void load( Loader& loader );
-            virtual void store( Storer& storer ) const;
-            
-            virtual void constructDimensions( Stages::Interface& stage );
-        };
-        
-        class RangeAllocator : public Allocator
-        {
-            friend class ::eg::ObjectFactoryImpl;
-            friend class ::eg::Stages::Interface;
-            friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
-        public:
-            static const ObjectType Type = eConcreteAllocator_Range;
-        protected:
-            RangeAllocator( const IndexedObject& indexedObject )
-                :   Allocator( indexedObject )
-            {
-            }
-            
-            virtual void load( Loader& loader );
-            virtual void store( Storer& storer ) const;
-            
-        public:
-            const Dimension_Generated* getAllocatorData() const { return m_pAllocatorData ; }
-            std::string getAllocatorType() const;
-        
-        protected:
-            virtual void constructDimensions( Stages::Interface& stage );
-            
-            Dimension_Generated* m_pAllocatorData = nullptr;
-        };
-        
-        Allocator* chooseAllocator( Stages::Interface& stage, Action* pParent, Action* pChild );
-        
-    
-    } //namespace concrete
-} //namespace eg
+namespace concrete
+{
+    class Action;
+    class Dimension_Generated;
 
-#endif //ALLOCATOR_23_JUNE_2020
+    class Allocator : public io::Object
+    {
+        friend class mega::ObjectFactoryImpl;
+        friend class mega::Stages::Interface;
+
+    protected:
+        Allocator( const io::Object& indexedObject )
+            : io::Object( indexedObject )
+        {
+        }
+
+        virtual void load( io::Loader& loader );
+        virtual void store( io::Storer& storer ) const;
+
+        virtual void constructDimensions( Stages::Interface& stage ) = 0;
+
+    public:
+        const Action* getAllocated() const { return m_pContext_Allocated; }
+        const Action* getAllocating() const { return m_pContext_Allocating; }
+
+    protected:
+        Action* m_pContext_Allocated = nullptr;
+        Action* m_pContext_Allocating = nullptr;
+    };
+
+    class NothingAllocator : public Allocator
+    {
+        friend class mega::ObjectFactoryImpl;
+        friend class mega::Stages::Interface;
+        friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
+
+    public:
+        static const ObjectType Type = eConcreteAllocator_Nothing;
+
+    protected:
+        NothingAllocator( const io::Object& indexedObject )
+            : Allocator( indexedObject )
+        {
+        }
+
+        virtual void load( io::Loader& loader );
+        virtual void store( io::Storer& storer ) const;
+
+        virtual void constructDimensions( Stages::Interface& stage );
+    };
+
+    class SingletonAllocator : public Allocator
+    {
+        friend class mega::ObjectFactoryImpl;
+        friend class mega::Stages::Interface;
+        friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
+
+    public:
+        static const ObjectType Type = eConcreteAllocator_Singleton;
+
+    protected:
+        SingletonAllocator( const io::Object& indexedObject )
+            : Allocator( indexedObject )
+        {
+        }
+
+        virtual void load( io::Loader& loader );
+        virtual void store( io::Storer& storer ) const;
+
+        virtual void constructDimensions( Stages::Interface& stage );
+    };
+
+    class RangeAllocator : public Allocator
+    {
+        friend class mega::ObjectFactoryImpl;
+        friend class mega::Stages::Interface;
+        friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
+
+    public:
+        static const ObjectType Type = eConcreteAllocator_Range;
+
+    protected:
+        RangeAllocator( const io::Object& indexedObject )
+            : Allocator( indexedObject )
+        {
+        }
+
+        virtual void load( io::Loader& loader );
+        virtual void store( io::Storer& storer ) const;
+
+    public:
+        const Dimension_Generated* getAllocatorData() const { return m_pAllocatorData; }
+        std::string                getAllocatorType() const;
+
+    protected:
+        virtual void constructDimensions( Stages::Interface& stage );
+
+        Dimension_Generated* m_pAllocatorData = nullptr;
+    };
+
+    Allocator* chooseAllocator( Stages::Interface& stage, Action* pParent, Action* pChild );
+
+} // namespace concrete
+} // namespace mega
+
+#endif // ALLOCATOR_23_JUNE_2020

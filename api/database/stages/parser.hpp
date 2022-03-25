@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef EG_PARSER_18_04_2019
 #define EG_PARSER_18_04_2019
 
@@ -34,81 +33,93 @@
 
 namespace clang
 {
-    class DiagnosticsEngine;
-    class FileManager;
-}
+class DiagnosticsEngine;
+class FileManager;
+} // namespace clang
 
-namespace eg
+namespace mega
 {
-    class Identifiers;
+class Identifiers;
 
-    namespace interface
+namespace interface
+{
+    class Element;
+    class Root;
+} // namespace interface
+
+namespace input
+{
+    class Element;
+    class Root;
+} // namespace input
+
+// class EG_PARSER_CALLBACK;
+
+namespace Stages
+{
+    class Parser : public Creating
     {
-        class Element;
-        class Root;
-    }
+    public:
+        Parser( const boost::filesystem::path& parserDLL,
+                const boost::filesystem::path& inputMegaSourceFile,
+                const boost::filesystem::path& parserASTFile,
+                const boost::filesystem::path& parserBodyFile );
 
-    namespace input
-    {
-        class Element;
-        class Root;
-    }
+    private:
+        boost::filesystem::path m_parserDLL;
+        boost::filesystem::path m_inputMegaSourceFile;
+        boost::filesystem::path m_parserASTFile;
+        boost::filesystem::path m_parserBodyFile;
 
-    class EG_PARSER_CALLBACK;
+        /*
+    public:
+        Parser(  EG_PARSER_CALLBACK* pParserCallback,
+                        const boost::filesystem::path& parserDLLPath,
+                        const boost::filesystem::path& currentPath,
+                        std::ostream& os );
 
-    namespace Stages
-    {
-        class Parser : public Creating
+        struct SourceCodeTree
         {
-        public:
-            Parser(  EG_PARSER_CALLBACK* pParserCallback,
-                            const boost::filesystem::path& parserDLLPath,
-                            const boost::filesystem::path& currentPath,
-                            std::ostream& os );
-
-            struct SourceCodeTree
-            {
-                using RootFolder = boost::filesystem::path;
-                using ProjectNameFolder = boost::filesystem::path;
-                using EGSourceFile = boost::filesystem::path;
-                using FileMap = std::multimap< ProjectNameFolder, EGSourceFile >;
-                RootFolder root;
-                FileMap files;
-            };
-
-            void parse( const SourceCodeTree& egSourceCodeFiles );
-
-            void parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles );
-
-            void buildAbstractTree();
-
-            const interface::Root* getTreeRoot() const { return eg::root_cst< eg::interface::Root >( getMaster() ); }
-
-            const Identifiers* getIdentifiers() const { return eg::one_cst< eg::Identifiers >( getMaster() ); }
-        private:
-
-            input::Root* getMegaRoot(
-                input::Root* pMegaStructureRoot,
-                const SourceCodeTree::RootFolder& rootFolder,
-                const SourceCodeTree::ProjectNameFolder& projectNameFolder,
-                std::map< boost::filesystem::path, input::Root* >& rootTree );
-
-            void handleInputIncludes( std::set< boost::filesystem::path >& includePaths );
-
-            using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
-            void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*,
-                std::optional< boost::filesystem::path > , bool bInIncludeTree, VisibilityType visibility );
-
-            void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
-                        Parser& stage, input::Root* pRoot );
-        private:
-            EG_PARSER_CALLBACK* m_pParserCallback;
-            const boost::filesystem::path m_parserDllPath;
-            const boost::filesystem::path m_currentPath;
-            std::ostream& m_errorOS;
+            using RootFolder = boost::filesystem::path;
+            using ProjectNameFolder = boost::filesystem::path;
+            using EGSourceFile = boost::filesystem::path;
+            using FileMap = std::multimap< ProjectNameFolder, EGSourceFile >;
+            RootFolder root;
+            FileMap files;
         };
-    }
-}
 
+        void parse( const SourceCodeTree& egSourceCodeFiles );
 
-#endif //EG_PARSER_18_04_2019
+        void parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles );
+
+        void buildAbstractTree();
+
+        const interface::Root* getTreeRoot() const { return io::root_cst< mega::interface::Root >( getMaster() ); }
+
+        const Identifiers* getIdentifiers() const { return io::one_cst< mega::Identifiers >( getMaster() ); }
+    private:
+
+        input::Root* getMegaRoot(
+            input::Root* pMegaStructureRoot,
+            const SourceCodeTree::RootFolder& rootFolder,
+            const SourceCodeTree::ProjectNameFolder& projectNameFolder,
+            std::map< boost::filesystem::path, input::Root* >& rootTree );
+
+        void handleInputIncludes( std::set< boost::filesystem::path >& includePaths );
+
+        using FileElementMap = std::map< boost::filesystem::path, input::Root* >;
+        void buildTree( const FileElementMap& fileMap, interface::Element*, input::Element*,
+            std::optional< boost::filesystem::path > , bool bInIncludeTree, VisibilityType visibility );
+
+        void parseEGSourceFile( const boost::filesystem::path& egSourceFile,
+                    Parser& stage, input::Root* pRoot );
+    private:
+        EG_PARSER_CALLBACK* m_pParserCallback;
+        const boost::filesystem::path m_parserDllPath;
+        const boost::filesystem::path m_currentPath;
+        std::ostream& m_errorOS;*/
+    };
+} // namespace Stages
+} // namespace mega
+
+#endif // EG_PARSER_18_04_2019

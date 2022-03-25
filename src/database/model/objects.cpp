@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/model/objects.hpp"
 #include "database/model/input.hpp"
 #include "database/model/interface.hpp"
@@ -31,64 +30,137 @@
 #include "database/model/invocation.hpp"
 #include "database/model/instruction.hpp"
 
-namespace eg
+namespace mega
 {
-    IndexedObject* ObjectFactoryImpl::create( const IndexedObject& object )
+io::Object* ObjectFactoryImpl::create( const io::Object& object )
+{
+    io::Object* pObject = nullptr;
+
+    switch ( object.getType() )
     {
-        IndexedObject* pObject = nullptr;
+    case eInputOpaque:
+        pObject = new input::Opaque( object );
+        break;
+    case eInputDimension:
+        pObject = new input::Dimension( object );
+        break;
+    case eInputInclude:
+        pObject = new input::Include( object );
+        break;
+    case eInputUsing:
+        pObject = new input::Using( object );
+        break;
+    case eInputExport:
+        pObject = new input::Export( object );
+        break;
+    case eInputVisibility:
+        pObject = new input::Visibility( object );
+        break;
+    case eInputContext:
+        pObject = new input::Context( object );
+        break;
+    case eInputRoot:
+        pObject = new input::Root( object );
+        break;
 
-        switch( object.getType() )
-        {
-            case eInputOpaque                : pObject = new input::Opaque                  ( object );  break;
-            case eInputDimension             : pObject = new input::Dimension               ( object );  break;
-            case eInputInclude               : pObject = new input::Include                 ( object );  break;
-            case eInputUsing                 : pObject = new input::Using                   ( object );  break;
-            case eInputExport                : pObject = new input::Export                  ( object );  break;
-            case eInputVisibility            : pObject = new input::Visibility              ( object );  break;
-            case eInputContext               : pObject = new input::Context                 ( object );  break;
-            case eInputRoot                  : pObject = new input::Root                    ( object );  break;
-                                                                                           
-            case eAbstractOpaque             : pObject = new interface::Opaque              ( object );  break;
-            case eAbstractDimension          : pObject = new interface::Dimension           ( object );  break;
-            case eAbstractInclude            : pObject = new interface::Include             ( object );  break;
-            case eAbstractUsing              : pObject = new interface::Using               ( object );  break;
-            case eAbstractExport             : pObject = new interface::Export              ( object );  break;
-            case eAbstractAbstract           : pObject = new interface::Abstract            ( object );  break;
-            case eAbstractEvent              : pObject = new interface::Event               ( object );  break;
-            case eAbstractFunction           : pObject = new interface::Function            ( object );  break;
-            case eAbstractAction             : pObject = new interface::Action              ( object );  break;
-            case eAbstractObject             : pObject = new interface::Object              ( object );  break;
-            case eAbstractLink               : pObject = new interface::Link                ( object );  break;
-            case eAbstractRoot               : pObject = new interface::Root                ( object );  break;
-                                
-            case eInheritanceNode            : pObject = new concrete::Inheritance_Node     ( object );  break;
-                                                                                            
-            case eConcreteAction             : pObject = new concrete::Action               ( object );  break;
-            case eConcreteDimensionUser      : pObject = new concrete::Dimension_User       ( object );  break;
-            case eConcreteDimensionGenerated : pObject = new concrete::Dimension_Generated  ( object );  break;
-            case eConcreteAllocator_Nothing  : pObject = new concrete::NothingAllocator     ( object );  break;
-            case eConcreteAllocator_Singleton: pObject = new concrete::SingletonAllocator   ( object );  break;
-            case eConcreteAllocator_Range    : pObject = new concrete::RangeAllocator       ( object );  break;
-                                                                                            
-            case eIdentifiers                : pObject = new Identifiers                    ( object );  break;
-            case eDerivationAnalysis         : pObject = new DerivationAnalysis             ( object );  break;
-            case eLinkGroup                  : pObject = new LinkGroup             	        ( object );  break;
-            case eLinkAnalysis               : pObject = new LinkAnalysis             	    ( object );  break;
-            case eTranslationUnit            : pObject = new TranslationUnit                ( object );  break;
-            case eTranslationUnitAnalysis    : pObject = new TranslationUnitAnalysis        ( object );  break;
-            case eInvocationSolution         : pObject = new InvocationSolution             ( object );  break;
-                                                                                            
-            case eDataMember                 : pObject = new DataMember                     ( object );  break;
-            case eBuffer                     : pObject = new Buffer                         ( object );  break;
-            case eLayout                     : pObject = new Layout                         ( object );  break;
+    case eAbstractOpaque:
+        pObject = new interface::Opaque( object );
+        break;
+    case eAbstractDimension:
+        pObject = new interface::Dimension( object );
+        break;
+    case eAbstractInclude:
+        pObject = new interface::Include( object );
+        break;
+    case eAbstractUsing:
+        pObject = new interface::Using( object );
+        break;
+    case eAbstractExport:
+        pObject = new interface::Export( object );
+        break;
+    case eAbstractAbstract:
+        pObject = new interface::Abstract( object );
+        break;
+    case eAbstractEvent:
+        pObject = new interface::Event( object );
+        break;
+    case eAbstractFunction:
+        pObject = new interface::Function( object );
+        break;
+    case eAbstractAction:
+        pObject = new interface::Action( object );
+        break;
+    case eAbstractObject:
+        pObject = new interface::Object( object );
+        break;
+    case eAbstractLink:
+        pObject = new interface::Link( object );
+        break;
+    case eAbstractRoot:
+        pObject = new interface::Root( object );
+        break;
 
-            case TOTAL_OBJECT_TYPES:
-            default:
-                THROW_RTE( "Unknown object type" );
-                break;
-        }
-        return pObject;
+    case eInheritanceNode:
+        pObject = new concrete::Inheritance_Node( object );
+        break;
+
+    case eConcreteAction:
+        pObject = new concrete::Action( object );
+        break;
+    case eConcreteDimensionUser:
+        pObject = new concrete::Dimension_User( object );
+        break;
+    case eConcreteDimensionGenerated:
+        pObject = new concrete::Dimension_Generated( object );
+        break;
+    case eConcreteAllocator_Nothing:
+        pObject = new concrete::NothingAllocator( object );
+        break;
+    case eConcreteAllocator_Singleton:
+        pObject = new concrete::SingletonAllocator( object );
+        break;
+    case eConcreteAllocator_Range:
+        pObject = new concrete::RangeAllocator( object );
+        break;
+
+    case eIdentifiers:
+        pObject = new Identifiers( object );
+        break;
+    case eDerivationAnalysis:
+        pObject = new DerivationAnalysis( object );
+        break;
+    case eLinkGroup:
+        pObject = new LinkGroup( object );
+        break;
+    case eLinkAnalysis:
+        pObject = new LinkAnalysis( object );
+        break;
+    case eTranslationUnit:
+        pObject = new TranslationUnit( object );
+        break;
+    case eTranslationUnitAnalysis:
+        pObject = new TranslationUnitAnalysis( object );
+        break;
+    case eInvocationSolution:
+        pObject = new InvocationSolution( object );
+        break;
+
+    case eDataMember:
+        pObject = new DataMember( object );
+        break;
+    case eBuffer:
+        pObject = new Buffer( object );
+        break;
+    case eLayout:
+        pObject = new Layout( object );
+        break;
+
+    case TOTAL_OBJECT_TYPES:
+    default:
+        THROW_RTE( "Unknown object type" );
+        break;
     }
-
-
+    return pObject;
 }
+
+} // namespace mega

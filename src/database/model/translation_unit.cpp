@@ -17,88 +17,86 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/model/translation_unit.hpp"
 
-namespace eg
+namespace mega
 {
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////
-    void TranslationUnit::load( Loader& loader )
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+void TranslationUnit::load( io::Loader& loader )
+{
+    m_chd.pCoordinator = loader.loadObjectRef< interface::Root >();
+    m_chd.pHostName = loader.loadObjectRef< interface::Root >();
+    loader.loadOptional( m_chd.definitionFile );
+    //loader.load( m_strName );
+    loader.load( m_databaseFileID );
+    loader.loadObjectSet( m_actions );
+}
+
+void TranslationUnit::store( io::Storer& storer ) const
+{
+    storer.storeObjectRef( m_chd.pCoordinator );
+    storer.storeObjectRef( m_chd.pHostName );
+    storer.storeOptional( m_chd.definitionFile );
+    //storer.store( m_strName );
+    storer.store( m_databaseFileID );
+    storer.storeObjectSet( m_actions );
+}
+
+void TranslationUnit::print( std::ostream& os ) const
+{
+    //os << "Translation Unit: " << m_strName << " : " << m_databaseFileID << " : " << m_chd.getHostDefine();
+    if ( m_chd.definitionFile )
     {
-        m_chd.pCoordinator = loader.loadObjectRef< interface::Root >();
-        m_chd.pHostName = loader.loadObjectRef< interface::Root >();
-        loader.loadOptional( m_chd.definitionFile );
-        loader.load( m_strName );
-        loader.load( m_databaseFileID );
-        loader.loadObjectSet( m_actions );
+        os << " " << m_chd.definitionFile.value();
     }
-    
-    void TranslationUnit::store( Storer& storer ) const
+    os << "\n";
+
+    for ( const interface::Context* pContext : m_actions )
     {
-        storer.storeObjectRef( m_chd.pCoordinator );
-        storer.storeObjectRef( m_chd.pHostName );
-        storer.storeOptional( m_chd.definitionFile );
-        storer.store( m_strName );
-        storer.store( m_databaseFileID );
-        storer.storeObjectSet( m_actions );
+        os << pContext->getFriendlyName() << "\n";
     }
-    
-    void TranslationUnit::print( std::ostream& os ) const
+}
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+void TranslationUnitAnalysis::load( io::Loader& loader )
+{
+    loader.loadObjectVector( m_translationUnits );
+    loader.loadObjectMap( m_actionTUMap );
+}
+void TranslationUnitAnalysis::store( io::Storer& storer ) const
+{
+    storer.storeObjectVector( m_translationUnits );
+    storer.storeObjectMap( m_actionTUMap );
+}
+
+const TranslationUnit* TranslationUnitAnalysis::getActionTU( const interface::Context* pAction ) const
+{
+    ActionTUMap::const_iterator iFind = m_actionTUMap.find( pAction );
+    if ( iFind != m_actionTUMap.end() )
+        return iFind->second;
+    return nullptr;
+}
+
+const TranslationUnit* TranslationUnitAnalysis::getTU( const boost::filesystem::path& sourceFile ) const
+{
+    const boost::filesystem::path pathCannon = boost::filesystem::edsCannonicalise(
+        boost::filesystem::absolute( sourceFile ) );
+
+    for ( const TranslationUnit* pTranslationUnit : m_translationUnits )
     {
-        os << "Translation Unit: " << m_strName << " : " << m_databaseFileID << " : " << m_chd.getHostDefine();
-        if( m_chd.definitionFile )
+        std::optional< boost::filesystem::path > optFile = pTranslationUnit->getDefinitionFile();
+        if ( optFile )
         {
-            os << " " << m_chd.definitionFile.value();
-        }
-        os << "\n";
-        
-        for( const interface::Context* pContext : m_actions )
-        {
-            os << pContext->getFriendlyName() << "\n";
-        }
-    }
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////
-    void TranslationUnitAnalysis::load( Loader& loader )
-    {
-        loader.loadObjectVector( m_translationUnits );
-		loader.loadObjectMap( m_actionTUMap );
-    }
-    void TranslationUnitAnalysis::store( Storer& storer ) const
-    {
-        storer.storeObjectVector( m_translationUnits );
-		storer.storeObjectMap( m_actionTUMap );
-    }
-    
-	const TranslationUnit* TranslationUnitAnalysis::getActionTU( const interface::Context* pAction ) const
-	{
-		ActionTUMap::const_iterator iFind = m_actionTUMap.find( pAction );
-		if( iFind != m_actionTUMap.end() )
-			return iFind->second;
-		return nullptr;
-	}
-    
-    const TranslationUnit* TranslationUnitAnalysis::getTU( const boost::filesystem::path& sourceFile ) const
-    {
-        const boost::filesystem::path pathCannon =
-            boost::filesystem::edsCannonicalise(
-                boost::filesystem::absolute( sourceFile ) );
-                            
-        for( const TranslationUnit* pTranslationUnit : m_translationUnits )
-        {
-            std::optional< boost::filesystem::path > optFile = pTranslationUnit->getDefinitionFile();
-            if( optFile )
+            if ( boost::filesystem::edsCannonicalise(
+                     boost::filesystem::absolute( optFile.value() ) )
+                 == pathCannon )
             {
-                if( boost::filesystem::edsCannonicalise(
-                        boost::filesystem::absolute( optFile.value() ) ) == pathCannon )
-                {
-                    return pTranslationUnit;
-                }
+                return pTranslationUnit;
             }
         }
-        return nullptr;
     }
+    return nullptr;
+}
 
-} //namespace eg
+} // namespace mega

@@ -17,55 +17,57 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef IDENTIFIERS_19_04_2019
 #define IDENTIFIERS_19_04_2019
 
 #include "interface.hpp"
 
-#include "database/io/indexed_object.hpp"
+#include "database/io/object.hpp"
 
 #include <map>
 
-namespace eg
+namespace mega
 {
 
+class Identifiers : public io::Object
+{
+    friend class ObjectFactoryImpl;
 
-    class Identifiers : public IndexedObject
+public:
+    static const ObjectType Type = eIdentifiers;
+
+protected:
+    Identifiers( const io::Object& object );
+
+    virtual void load( io::Loader& loader );
+    virtual void store( io::Storer& storer ) const;
+
+public:
+    void populate( const io::Object::Array& objects );
+
+    using IdentifierMap = std::map< std::string, const interface::Element* >;
+    const IdentifierMap& getIdentifiersMap() const { return m_identifierMap; }
+
+    const interface::Element*                isElement( const std::string& strIdentifier ) const;
+    std::vector< const interface::Element* > getGroup( const interface::Element* pElement ) const;
+    std::vector< const interface::Element* > getGroupBack( const interface::Element* pElement ) const;
+
+private:
+    struct CompareIdentifiers
     {
-        friend class ObjectFactoryImpl;
-    public:
-        static const ObjectType Type = eIdentifiers;
-    protected:
-        Identifiers( const IndexedObject& object );
-        
-        virtual void load( Loader& loader );
-        virtual void store( Storer& storer ) const;
-    public:
-        void populate( const IndexedObject::Array& objects );
-        
-        using IdentifierMap = std::map< std::string, const interface::Element* >;
-        const IdentifierMap& getIdentifiersMap() const { return m_identifierMap; }
-        
-        const interface::Element* isElement( const std::string& strIdentifier ) const;
-        std::vector< const interface::Element* > getGroup( const interface::Element* pElement ) const;
-        std::vector< const interface::Element* > getGroupBack( const interface::Element* pElement ) const;
-    private:
-        struct CompareIdentifiers
+        bool operator()( const interface::Element* pLeft, const interface::Element* pRight ) const
         {
-            bool operator()( const interface::Element* pLeft, const interface::Element* pRight ) const
-            {
-                return pLeft->getIdentifier() < pRight->getIdentifier();
-            }
-        };
-        std::map< std::string, const interface::Element* > m_identifierMap;
-        using GroupMap = std::multimap< const interface::Element*, const interface::Element*, CompareIdentifiers >;
-        GroupMap m_identifierGroups;
-        
-        using GroupBackMap = std::map< const interface::Element*, const interface::Element*, CompareIdentifiers >;
-        GroupBackMap m_identifierGroupsBack;
+            return pLeft->getIdentifier() < pRight->getIdentifier();
+        }
     };
+    std::map< std::string, const interface::Element* > m_identifierMap;
+    using GroupMap = std::multimap< const interface::Element*, const interface::Element*, CompareIdentifiers >;
+    GroupMap m_identifierGroups;
 
-}
+    using GroupBackMap = std::map< const interface::Element*, const interface::Element*, CompareIdentifiers >;
+    GroupBackMap m_identifierGroupsBack;
+};
 
-#endif //IDENTIFIERS_19_04_2019
+} // namespace mega
+
+#endif // IDENTIFIERS_19_04_2019

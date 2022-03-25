@@ -26,7 +26,7 @@
 
 #define DO_STUFF_AND_REQUIRE_SEMI_COLON( stuff ) do{ stuff } while( (void)0,0 )
     
-namespace eg
+namespace mega
 {
     using Instance    = std::uint32_t; //32bit only for now
     using TypeID      = std::int32_t;
@@ -44,9 +44,9 @@ namespace eg
     {
         switch( state )
         {
-            case action_running  : return "::eg::action_running"; 
-            case action_paused   : return "::eg::action_paused";  
-            case action_stopped  : return "::eg::action_stopped";
+            case action_running  : return "::mega::action_running"; 
+            case action_paused   : return "::mega::action_paused";  
+            case action_stopped  : return "::mega::action_stopped";
             case TOTAL_ACTION_STATES :
             default:               return "";
         }

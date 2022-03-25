@@ -7,31 +7,31 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
-set( MEGA_LIBRARY
-	${MEGA_API_DIR}/mega/allocator.hpp
-	${MEGA_API_DIR}/mega/backtrace.hpp
-	${MEGA_API_DIR}/mega/clock.cpp
-	${MEGA_API_DIR}/mega/clock.hpp
-	${MEGA_API_DIR}/mega/common.hpp
-	${MEGA_API_DIR}/mega/coroutine.hpp
-	${MEGA_API_DIR}/mega/default_traits.hpp
-	${MEGA_API_DIR}/mega/eg_common_strings.hpp
-	${MEGA_API_DIR}/mega/event.hpp
-	${MEGA_API_DIR}/mega/event_log.cpp
-	${MEGA_API_DIR}/mega/frame.hpp
-	${MEGA_API_DIR}/mega/frame.cpp
-	${MEGA_API_DIR}/mega/include.hpp
-	${MEGA_API_DIR}/mega/iterators.hpp
-	${MEGA_API_DIR}/mega/macros.hpp
-	${MEGA_API_DIR}/mega/operations.hpp
-	${MEGA_API_DIR}/mega/resource.cpp
-	${MEGA_API_DIR}/mega/resource.hpp
-	${MEGA_API_DIR}/mega/result_type.hpp
-	${MEGA_API_DIR}/mega/scheduler.hpp
-	${MEGA_API_DIR}/mega/basic_scheduler.cpp
-	${MEGA_API_DIR}/mega/type_path.hpp
-	${MEGA_API_DIR}/mega/variant.hpp
-	)
+#set( MEGA_LIBRARY
+#	${MEGA_API_DIR}/mega/allocator.hpp
+#	${MEGA_API_DIR}/mega/backtrace.hpp
+#	${MEGA_API_DIR}/mega/clock.cpp
+#	${MEGA_API_DIR}/mega/clock.hpp
+#	${MEGA_API_DIR}/mega/common.hpp
+#	${MEGA_API_DIR}/mega/coroutine.hpp
+#	${MEGA_API_DIR}/mega/default_traits.hpp
+#	${MEGA_API_DIR}/mega/eg_common_strings.hpp
+#	${MEGA_API_DIR}/mega/event.hpp
+#	${MEGA_API_DIR}/mega/event_log.cpp
+#	${MEGA_API_DIR}/mega/frame.hpp
+#	${MEGA_API_DIR}/mega/frame.cpp
+#	${MEGA_API_DIR}/mega/include.hpp
+#	${MEGA_API_DIR}/mega/iterators.hpp
+#	${MEGA_API_DIR}/mega/macros.hpp
+#	${MEGA_API_DIR}/mega/operations.hpp
+#	${MEGA_API_DIR}/mega/resource.cpp
+#	${MEGA_API_DIR}/mega/resource.hpp
+#	${MEGA_API_DIR}/mega/result_type.hpp
+#	${MEGA_API_DIR}/mega/scheduler.hpp
+#	${MEGA_API_DIR}/mega/basic_scheduler.cpp
+#	${MEGA_API_DIR}/mega/type_path.hpp
+#	${MEGA_API_DIR}/mega/variant.hpp
+#	)
 	
 set( MEGA_DATABASE_MODEL
     ${MEGA_API_DIR}/database/model/eg.hpp
@@ -60,13 +60,17 @@ set( MEGA_DATABASE_SESSIONS
 	
 set( MEGA_DATABASE_IO
     ${MEGA_API_DIR}/database/io/archive.hpp
-    ${MEGA_API_DIR}/database/io/indexed_object.hpp
+    ${MEGA_API_DIR}/database/io/factory.hpp
+    ${MEGA_API_DIR}/database/io/file.hpp
+    ${MEGA_API_DIR}/database/io/generics.hpp
     ${MEGA_API_DIR}/database/io/loader.hpp
+    ${MEGA_API_DIR}/database/io/object.hpp
     ${MEGA_API_DIR}/database/io/storer.hpp
 	)
 	
 set( MEGA_DATABASE_SOURCES
-    ${MEGA_SRC_DIR}/database/io/indexed_object.cpp
+    ${MEGA_SRC_DIR}/database/io/file.cpp
+    ${MEGA_SRC_DIR}/database/io/object.cpp
     ${MEGA_SRC_DIR}/database/io/loader.cpp
     ${MEGA_SRC_DIR}/database/io/storer.cpp
     
@@ -108,7 +112,7 @@ link_boost( database iostreams )
 link_boost( database serialization )
 link_common( database )
 
-install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
+#install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
 install( FILES ${MEGA_DATABASE_IO} DESTINATION include/database/io )
 install( FILES ${MEGA_DATABASE_MODEL} DESTINATION include/database/model )
 install( FILES ${MEGA_DATABASE_STAGES} DESTINATION include/database/stages )

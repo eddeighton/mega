@@ -54,7 +54,7 @@ namespace clang
 }
 
 //EG Database Interface
-namespace eg
+namespace mega
 {
     using EGChar = char;
     

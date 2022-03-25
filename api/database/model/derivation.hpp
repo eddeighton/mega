@@ -17,13 +17,14 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef DERIVATION_18_04_2019
 #define DERIVATION_18_04_2019
 
 #include "eg.hpp"
 #include "objects.hpp"
 #include "concrete.hpp"
+
+#include "database/io/generics.hpp"
 #include "database/stages/stage.hpp"
 
 #include "mega/common.hpp"
@@ -35,84 +36,85 @@
 #include <vector>
 #include <tuple>
 
-namespace eg
+namespace mega
 {
-    template< class T >
-    inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
-    {
-        /*
-        not this...
-        std::sort( ids.begin(), ids.end() );
-        auto last = std::unique( ids.begin(), ids.end() );
-        ids.erase( last, ids.end() );
-        */
-        
-        std::vector< T > result;
-        std::set< T > uniq;
-        for( const T& value : ids )
-        {
-            if( uniq.count( value ) == 0 )
-            {
-                result.push_back( value );
-                uniq.insert( value );
-            }
-        }
-        return result;
-    }
+template < class T >
+inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
+{
+    /*
+    not this...
+    std::sort( ids.begin(), ids.end() );
+    auto last = std::unique( ids.begin(), ids.end() );
+    ids.erase( last, ids.end() );
+    */
 
-    class LinkGroup;
-    /////////////////////////////////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////
-    class DerivationAnalysis : public IndexedObject
+    std::vector< T > result;
+    std::set< T >    uniq;
+    for ( const T& value : ids )
     {
-        friend class ObjectFactoryImpl;
-    public:
-        static const ObjectType Type = eDerivationAnalysis;
-    protected:
-        DerivationAnalysis( const IndexedObject& object )
-            :   IndexedObject( object )
+        if ( uniq.count( value ) == 0 )
         {
-    
+            result.push_back( value );
+            uniq.insert( value );
         }
-        
-    public:
-        struct Compatibility
-        {
-            using StaticCompatibilitySet = std::set< const interface::Context*, CompareIndexedObjects >;
-            using DynamicCompatibilitySet = std::set< const concrete::Action*, CompareIndexedObjects >;
-            StaticCompatibilitySet staticCompatibleTypes;
-            StaticCompatibilitySet staticLinkCompatibleTypes;
-            DynamicCompatibilitySet dynamicCompatibleTypes;
-            DynamicCompatibilitySet dynamicCompatibleFromLinkTypes;
-            DynamicCompatibilitySet dynamicCompatibleToLinkTypes;
-        };
-        
-        using CompatibilityMap = std::map< const interface::Context*, Compatibility, CompareIndexedObjects >;
-        CompatibilityMap m_compatibility;
-        
-        void analyseCompatibility( 
-            const std::vector< const interface::Context* >& interfaceActions,
-            const std::vector< const concrete::Inheritance_Node* >& iNodes );
-            
-        void analyseLinkCompatibility( 
-            const std::vector< const interface::Context* >& interfaceActions,
-            const std::vector< LinkGroup* >& links );
-            
-        const Compatibility& getCompatibility( const interface::Context* pAction ) const;
-    
-        using InstanceMap = std::multimap< const interface::Element*, const concrete::Element*, CompareIndexedObjects >;
-        InstanceMap m_instanceMap;
-        
-        using InheritanceNodeMap = std::multimap< const interface::Context*, const concrete::Inheritance_Node*, CompareIndexedObjects >;
-        InheritanceNodeMap m_inheritanceMap;
-        
-        void getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const;
-                
-    public:
-        virtual void load( Loader& loader );
-        virtual void store( Storer& storer ) const;
-    };
-    
+    }
+    return result;
 }
 
-#endif //DERIVATION_18_04_2019
+class LinkGroup;
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+class DerivationAnalysis : public io::Object
+{
+    friend class ObjectFactoryImpl;
+
+public:
+    static const ObjectType Type = eDerivationAnalysis;
+
+protected:
+    DerivationAnalysis( const io::Object& object )
+        : io::Object( object )
+    {
+    }
+
+public:
+    struct Compatibility
+    {
+        using StaticCompatibilitySet = std::set< const interface::Context*, io::CompareIndexedObjects >;
+        using DynamicCompatibilitySet = std::set< const concrete::Action*, io::CompareIndexedObjects >;
+        StaticCompatibilitySet  staticCompatibleTypes;
+        StaticCompatibilitySet  staticLinkCompatibleTypes;
+        DynamicCompatibilitySet dynamicCompatibleTypes;
+        DynamicCompatibilitySet dynamicCompatibleFromLinkTypes;
+        DynamicCompatibilitySet dynamicCompatibleToLinkTypes;
+    };
+
+    using CompatibilityMap = std::map< const interface::Context*, Compatibility, io::CompareIndexedObjects >;
+    CompatibilityMap m_compatibility;
+
+    void analyseCompatibility(
+        const std::vector< const interface::Context* >&         interfaceActions,
+        const std::vector< const concrete::Inheritance_Node* >& iNodes );
+
+    void analyseLinkCompatibility(
+        const std::vector< const interface::Context* >& interfaceActions,
+        const std::vector< LinkGroup* >&                links );
+
+    const Compatibility& getCompatibility( const interface::Context* pAction ) const;
+
+    using InstanceMap = std::multimap< const interface::Element*, const concrete::Element*, io::CompareIndexedObjects >;
+    InstanceMap m_instanceMap;
+
+    using InheritanceNodeMap = std::multimap< const interface::Context*, const concrete::Inheritance_Node*, io::CompareIndexedObjects >;
+    InheritanceNodeMap m_inheritanceMap;
+
+    void getInstances( const interface::Element* pElement, std::vector< const concrete::Element* >& instances, bool bDeriving ) const;
+
+public:
+    virtual void load( io::Loader& loader );
+    virtual void store( io::Storer& storer ) const;
+};
+
+} // namespace mega
+
+#endif // DERIVATION_18_04_2019

@@ -17,46 +17,31 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-namespace
+#include "database/io/object.hpp"
+#include "database/io/loader.hpp"
+#include "database/io/storer.hpp"
+
+namespace mega
 {
-
-std::unique_ptr< eg::EventLogServer > g_eventLogServer( eg::EventLogServer::create( "log" ) );
-
-}
-
-eg::event_iterator events::getIterator()
+namespace io
 {
-    return g_eventLogServer->head();
-}
-
-bool events::get( eg::event_iterator& iterator, Event& event )
-{
-    const char* type;
-    eg::TimeStamp timestamp;
-    const void* value;
-    std::size_t size;
-    while( g_eventLogServer->read( iterator, type, timestamp, value, size ) )
+    void Object::load( Loader& loader )
     {
-        if( 0U == strcmp( type, "stop" ) )
-        {
-            event.data = *reinterpret_cast< const eg::reference* >( value );
-            return true;
-        }
-    }  
-    return false;
-}
+        loader.load( m_type );
+        loader.load( m_fileID );
+        loader.load( m_index );
+    }
 
-bool events::get( eg::event_iterator& iterator, RawEvent& event )
-{
-    return g_eventLogServer->read( iterator, event.type, event.timestamp, event.value, event.size );
-}
+    void Object::store( Storer& storer ) const
+    {
+        storer.store( m_type );
+        storer.store( m_fileID );
+        storer.store( m_index );
+    }
 
-void events::put( const char* type, eg::TimeStamp timestamp, const void* value, std::size_t size )
-{
-    g_eventLogServer->write( type, strlen( type ), timestamp, value, size );
-}
-    
-bool events::update()
-{
-    return g_eventLogServer->updateHead();
-}
+    Factory::~Factory()
+    {
+    }
+
+} // namespace io
+} // namespace mega

@@ -17,210 +17,205 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/model/name_resolution.hpp"
 
-namespace eg
+namespace mega
 {
 
-    Name* NameResolution::add( std::size_t iParent, InvocationSolution::ElementPair element, bool bIsMember, bool bIsReference )
-    {
-        ASSERT( iParent < m_nodes.size() );
-        m_nodes.emplace_back( Name( element, bIsMember, bIsReference ) );
-        Name* pNewNode = &m_nodes.back();
-        m_nodes[ iParent ].m_children.push_back( m_nodes.size() - 1U );
-        return pNewNode;
-    }
-    
-    void NameResolution::expandReferences()
-    {
-        bool bContinue = true;
-        while( bContinue )
-        {
-            bContinue = false;
+Name* NameResolution::add( std::size_t iParent, InvocationSolution::ElementPair element, bool bIsMember, bool bIsReference )
+{
+    ASSERT( iParent < m_nodes.size() );
+    m_nodes.emplace_back( Name( element, bIsMember, bIsReference ) );
+    Name* pNewNode = &m_nodes.back();
+    m_nodes[ iParent ].m_children.push_back( m_nodes.size() - 1U );
+    return pNewNode;
+}
 
-            const std::size_t szSize = m_nodes.size();
-            for( std::size_t iNodeID = 0U; iNodeID < szSize; ++iNodeID )
-            {
-                //is node a leaf node?
-                Name& node = m_nodes[ iNodeID ];
-                if( node.getChildren().empty() )
-                {
-                    if( const concrete::Dimension_User* pUserDim = 
-                        dynamic_cast< const concrete::Dimension_User* >( node.getConcrete() ) )
-                    {
-                        if( pUserDim->isEGType() )
-                        {
-                            node.m_bIsReference = true;
-                            bContinue = true;
-                            
-                            InvocationSolution::ElementPairVector elements =
-                                InvocationSolution::getElementVector( m_analysis, pUserDim->getContextTypes(), true );
-                            
-                            for( const InvocationSolution::ElementPair& element : elements )
-                                add( iNodeID, element, false, false );
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    void NameResolution::addType( const InvocationSolution::ElementPairVector& pathElement )
+void NameResolution::expandReferences()
+{
+    bool bContinue = true;
+    while ( bContinue )
     {
+        bContinue = false;
+
         const std::size_t szSize = m_nodes.size();
-        for( std::size_t iNodeID = 0U; iNodeID < szSize; ++iNodeID )
+        for ( std::size_t iNodeID = 0U; iNodeID < szSize; ++iNodeID )
         {
+            // is node a leaf node?
             Name& node = m_nodes[ iNodeID ];
-        
-            //is node a leaf node?
-            if( node.m_children.empty() )
+            if ( node.getChildren().empty() )
             {
-                const concrete::Action* pAction = 
-                    dynamic_cast< const concrete::Action* >( node.getConcrete() );
-                if( !pAction )
+                if ( const concrete::Dimension_User* pUserDim = dynamic_cast< const concrete::Dimension_User* >( node.getConcrete() ) )
                 {
-                    THROW_NAMERESOLUTION_EXCEPTION( 
-                        "Cannot resolve futher element in type path after a dimension. " << m_invocationID );
-                }
-                
-                std::set< InvocationSolution::ElementPair > results;
-                for( const InvocationSolution::ElementPair& element : pathElement )
-                {
-                    if( pAction->isMember( element.second ) )
+                    if ( pUserDim->isEGType() )
                     {
-                        results.insert( element );
-                    }
-                }
-                
-                if( !results.empty() )
-                {
-                    for( const InvocationSolution::ElementPair& element : results )
-                    {
-                        add( iNodeID, element, true, false );
-                    }
-                }
-                else
-                {
-                    for( const InvocationSolution::ElementPair& element : pathElement )
-                    {
-                        add( iNodeID, element, false, false );
+                        node.m_bIsReference = true;
+                        bContinue = true;
+
+                        InvocationSolution::ElementPairVector elements = InvocationSolution::getElementVector( m_analysis, pUserDim->getContextTypes(), true );
+
+                        for ( const InvocationSolution::ElementPair& element : elements )
+                            add( iNodeID, element, false, false );
                     }
                 }
             }
         }
     }
-    
-    void NameResolution::pruneBranches( Name* pNode )
+}
+
+void NameResolution::addType( const InvocationSolution::ElementPairVector& pathElement )
+{
+    const std::size_t szSize = m_nodes.size();
+    for ( std::size_t iNodeID = 0U; iNodeID < szSize; ++iNodeID )
     {
-        if( !pNode->m_children.empty() )
+        Name& node = m_nodes[ iNodeID ];
+
+        // is node a leaf node?
+        if ( node.m_children.empty() )
         {
-            if( pNode->m_bIsReference )
+            const concrete::Action* pAction = dynamic_cast< const concrete::Action* >( node.getConcrete() );
+            if ( !pAction )
             {
-                if( !pNode->m_bIsMember )
+                THROW_NAMERESOLUTION_EXCEPTION(
+                    "Cannot resolve futher element in type path after a dimension. " << m_invocationID );
+            }
+
+            std::set< InvocationSolution::ElementPair > results;
+            for ( const InvocationSolution::ElementPair& element : pathElement )
+            {
+                if ( pAction->isMember( element.second ) )
                 {
-                    for( int index : pNode->getChildren() )
-                    {
-                        Name* pChild = &( m_nodes[ index ] );
-                        pruneBranches( pChild );
-                        if( pChild->m_bIsMember )
-                        {
-                            pNode->m_bIsMember = true;
-                        }
-                    }
+                    results.insert( element );
+                }
+            }
+
+            if ( !results.empty() )
+            {
+                for ( const InvocationSolution::ElementPair& element : results )
+                {
+                    add( iNodeID, element, true, false );
                 }
             }
             else
             {
-                std::vector< std::size_t > best;
-                bool bRemovedChild = false;
-                for( std::size_t index : pNode->getChildren() )
+                for ( const InvocationSolution::ElementPair& element : pathElement )
                 {
-                    Name* pChild = &( m_nodes[ index ] );
-                    pruneBranches( pChild );
-                    if( pChild->m_bIsMember )
-                        best.push_back( index );
-                    else
-                        bRemovedChild = true;
-                }
-                if( !best.empty() )
-                {
-                    pNode->m_bIsMember = true;
-                    if( bRemovedChild )
-                        pNode->m_children = best;
+                    add( iNodeID, element, false, false );
                 }
             }
         }
     }
-    
-    void NameResolution::resolve( 
-                const InvocationSolution::ElementPairVector& context,
-                const InvocationSolution::ElementPairVectorVector& typePath,
-                bool bExpandFinalReferences )
+}
+
+void NameResolution::pruneBranches( Name* pNode )
+{
+    if ( !pNode->m_children.empty() )
     {
-        m_nodes.emplace_back( Name( false, true ) );
-        
-        for( const InvocationSolution::ElementPair& element : context )
+        if ( pNode->m_bIsReference )
         {
-            add( 0, element, false, false );
+            if ( !pNode->m_bIsMember )
+            {
+                for ( int index : pNode->getChildren() )
+                {
+                    Name* pChild = &( m_nodes[ index ] );
+                    pruneBranches( pChild );
+                    if ( pChild->m_bIsMember )
+                    {
+                        pNode->m_bIsMember = true;
+                    }
+                }
+            }
         }
-        
-        for( const InvocationSolution::ElementPairVector& pathElement : typePath )
+        else
         {
-            expandReferences();
-            
-            addType( pathElement );
-            
-            pruneBranches( &m_nodes[ 0 ] );
-        }
-        
-        if( bExpandFinalReferences )
-        {
-            expandReferences();
-            pruneBranches( &m_nodes[ 0 ] );
+            std::vector< std::size_t > best;
+            bool                       bRemovedChild = false;
+            for ( std::size_t index : pNode->getChildren() )
+            {
+                Name* pChild = &( m_nodes[ index ] );
+                pruneBranches( pChild );
+                if ( pChild->m_bIsMember )
+                    best.push_back( index );
+                else
+                    bRemovedChild = true;
+            }
+            if ( !best.empty() )
+            {
+                pNode->m_bIsMember = true;
+                if ( bRemovedChild )
+                    pNode->m_children = best;
+            }
         }
     }
-    
-    NameResolution::NameResolution( const DerivationAnalysis& analysis, 
-                const InvocationSolution::InvocationID& invocationID,
-                const InvocationSolution::ElementPairVector& context,
-                const InvocationSolution::ElementPairVectorVector& typePath  ) 
-        :   m_analysis( analysis ),
-            m_invocationID( invocationID )
+}
+
+void NameResolution::resolve(
+    const InvocationSolution::ElementPairVector&       context,
+    const InvocationSolution::ElementPairVectorVector& typePath,
+    bool                                               bExpandFinalReferences )
+{
+    m_nodes.emplace_back( Name( false, true ) );
+
+    for ( const InvocationSolution::ElementPair& element : context )
     {
-        if( context.empty() )
-        {
-            THROW_NAMERESOLUTION_EXCEPTION( "no invocation context. " << m_invocationID );
-        }
-        
-        bool bExpandFinalReferences = false;
-        switch( std::get< OperationID >( invocationID ) )
-        {
-            case id_Imp_NoParams          :
-            case id_Imp_Params            :
-                break;
-            case id_Start                 :
-            case id_Stop                  :
-            case id_Pause                 :
-            case id_Resume                :
-            case id_Wait                  :
-                break;
-            case id_Get                   :
-                break;
-            case id_Done                  :
-                bExpandFinalReferences = true;
-                break;
-            case id_Range                 :
-                break;
-            case id_Raw                   :
-                break;
-            case HIGHEST_OPERATION_TYPE   :
-            default                       :
-                THROW_RTE( "Invalid operation type" );
-        }
-            
-        
-        resolve( context, typePath, bExpandFinalReferences );
+        add( 0, element, false, false );
     }
 
+    for ( const InvocationSolution::ElementPairVector& pathElement : typePath )
+    {
+        expandReferences();
+
+        addType( pathElement );
+
+        pruneBranches( &m_nodes[ 0 ] );
+    }
+
+    if ( bExpandFinalReferences )
+    {
+        expandReferences();
+        pruneBranches( &m_nodes[ 0 ] );
+    }
 }
+
+NameResolution::NameResolution( const DerivationAnalysis&                          analysis,
+                                const InvocationSolution::InvocationID&            invocationID,
+                                const InvocationSolution::ElementPairVector&       context,
+                                const InvocationSolution::ElementPairVectorVector& typePath )
+    : m_analysis( analysis )
+    , m_invocationID( invocationID )
+{
+    if ( context.empty() )
+    {
+        THROW_NAMERESOLUTION_EXCEPTION( "no invocation context. " << m_invocationID );
+    }
+
+    bool bExpandFinalReferences = false;
+    switch ( std::get< OperationID >( invocationID ) )
+    {
+    case id_Imp_NoParams:
+    case id_Imp_Params:
+        break;
+    case id_Start:
+    case id_Stop:
+    case id_Pause:
+    case id_Resume:
+    case id_Wait:
+        break;
+    case id_Get:
+        break;
+    case id_Done:
+        bExpandFinalReferences = true;
+        break;
+    case id_Range:
+        break;
+    case id_Raw:
+        break;
+    case HIGHEST_OPERATION_TYPE:
+    default:
+        THROW_RTE( "Invalid operation type" );
+    }
+
+    resolve( context, typePath, bExpandFinalReferences );
+}
+
+} // namespace mega

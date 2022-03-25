@@ -19,47 +19,46 @@
 
 
 #include "database/stages/implementation.hpp"
-//#include "database/codegen/codegen.hpp"
 
-namespace eg
+namespace mega
 {
 namespace Stages
 {
-    Implementation::Implementation( const IndexedFile::FileIDtoPathMap& files )
-        :   Creating( files, IndexedObject::ANALYSIS_FILE )
+    Implementation::Implementation( const io::File::FileIDtoPathMap& files )
+        :   Creating( files, io::Object::NO_FILE )
     {
     }
     
     const interface::Root* Implementation::getTreeRoot() const
     {
-        return root< interface::Root >( getObjects( IndexedObject::MASTER_FILE ) );
+        return io::root< interface::Root >( getObjects( io::Object::NO_FILE ) );
     }
     const concrete::Action* Implementation::getInstanceRoot() const
     {
-        return root< concrete::Action >( getObjects( IndexedObject::MASTER_FILE ) );
+        return io::root< concrete::Action >( getObjects( io::Object::NO_FILE ) );
     }
     const DerivationAnalysis& Implementation::getDerivationAnalysis() const
     {
-        return *one< DerivationAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
+        return *io::one< DerivationAnalysis >( getObjects( io::Object::NO_FILE ) );
     }
     const LinkAnalysis& Implementation::getLinkAnalysis() const
     {
-        return *one< LinkAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
+        return *io::one< LinkAnalysis >( getObjects( io::Object::NO_FILE ) );
     }
         
     const Layout& Implementation::getLayout() const
     {
-        return *one< Layout >( getObjects( IndexedObject::ANALYSIS_FILE ) );
+        return *io::one< Layout >( getObjects( io::Object::NO_FILE ) );
     }
         
     const TranslationUnitAnalysis& Implementation::getTranslationUnitAnalysis() const
     {
-        return *one< TranslationUnitAnalysis >( getObjects( IndexedObject::ANALYSIS_FILE ) );
+        return *io::one< TranslationUnitAnalysis >( getObjects( io::Object::NO_FILE ) );
     }
 	
     void Implementation::getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const
     {
-        invocations = many_cst< InvocationSolution >( getObjects( szTranslationUnitID ) );
+        invocations = io::many_cst< InvocationSolution >( getObjects( szTranslationUnitID ) );
     }
         
     void Implementation::recurseInstances( std::vector< Buffer* >& buffers, 
@@ -271,41 +270,41 @@ namespace Stages
     }
 
     Read::Read( const boost::filesystem::path& filePath )
-        :   Stage( filePath, IndexedObject::ANALYSIS_FILE )
+        :   Stage( filePath, io::Object::NO_FILE )
     {
     }
     
     const interface::Root* Read::getTreeRoot() const
     {
-        return root< interface::Root >( getObjects( IndexedObject::MASTER_FILE ) );
+        return io::root< interface::Root >( getObjects( io::Object::NO_FILE ) );
     }
     const concrete::Action* Read::getInstanceRoot() const
     {
-        return root< concrete::Action >( getObjects( IndexedObject::MASTER_FILE ) );
+        return io::root< concrete::Action >( getObjects( io::Object::NO_FILE ) );
     }
     const DerivationAnalysis& Read::getDerivationAnalysis() const
     {
-        return *one< DerivationAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
+        return *io::one< DerivationAnalysis >( getObjects( io::Object::NO_FILE ) );
     }
     const LinkAnalysis& Read::getLinkAnalysis() const
     {
-        return *one< LinkAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
+        return *io::one< LinkAnalysis >( getObjects( io::Object::NO_FILE ) );
     }
     const Identifiers& Read::getIdentifiers() const
     {
-        return *one< Identifiers >( getObjects( IndexedObject::MASTER_FILE ) );
+        return *io::one< Identifiers >( getObjects( io::Object::NO_FILE ) );
     }
     const Layout& Read::getLayout() const
     {
-        return *one< Layout >( getObjects( IndexedObject::ANALYSIS_FILE ) );
+        return *io::one< Layout >( getObjects( io::Object::NO_FILE ) );
     }
     const TranslationUnitAnalysis& Read::getTranslationUnitAnalysis() const
     {
-        return *one< TranslationUnitAnalysis >( getObjects( IndexedObject::MASTER_FILE ) );
+        return *io::one< TranslationUnitAnalysis >( getObjects( io::Object::NO_FILE ) );
     }
     const concrete::Action* Read::getConcreteAction( TypeID id ) const
     {
-        const IndexedObject::Array& tree = getObjects( IndexedObject::MASTER_FILE );
+        const io::Object::Array& tree = getObjects( io::Object::NO_FILE );
         if( id >=0 && id < static_cast< TypeID >( tree.size() ) )
         {
             return dynamic_cast< const concrete::Action* >( tree[ id ] );
@@ -315,7 +314,7 @@ namespace Stages
 
     void Read::getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const
     {
-        invocations = many_cst< InvocationSolution >( getObjects( szTranslationUnitID ) );
+        invocations = io::many_cst< InvocationSolution >( getObjects( szTranslationUnitID ) );
     }
 }
 }

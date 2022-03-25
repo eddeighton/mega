@@ -17,111 +17,122 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef LAYOUT_18_02_2019
 #define LAYOUT_18_02_2019
 
 #include "concrete.hpp"
 
-namespace eg
+namespace mega
 {
-    class AnalysisStage;
-    class Buffer;
-    class Layout;
+class AnalysisStage;
+class Buffer;
+class Layout;
 
-    namespace Stages
+namespace Stages
+{
+    class Implementation;
+}
+
+class DataMember : public io::Object
+{
+    friend class ObjectFactoryImpl;
+    friend class Stages::Implementation;
+
+public:
+    static const ObjectType Type = eDataMember;
+
+protected:
+    DataMember( const io::Object& object )
+        : io::Object( object )
     {
-        class Implementation;
     }
-    
-    class DataMember : public IndexedObject
-    {
-        friend class ObjectFactoryImpl;
-        friend class Stages::Implementation;
-    public:
-        static const ObjectType Type = eDataMember;
-    protected:
-        DataMember( const IndexedObject& object )
-            :  IndexedObject( object )
-        {
-        }
-    public:
-        virtual void load( Loader& loader );
-        virtual void store( Storer& storer ) const;
-        
-        const concrete::Dimension* getInstanceDimension() const { return m_pDimension; }
-        
-        const std::string& getName() const { return m_name; }
-        const Buffer* getBuffer() const { return m_pBuffer; }
-    private:
-        const concrete::Dimension* m_pDimension;
-        std::string m_name;
-        Buffer* m_pBuffer;
-    };
-    
-    class Buffer : public IndexedObject
-    {
-        friend class ObjectFactoryImpl;
-        friend class Stages::Implementation;
-    public:
-        static const ObjectType Type = eBuffer;
-    protected:
-        Buffer( const IndexedObject& object )
-            :  IndexedObject( object )
-        {
-        }
-    public:
-        virtual void load( Loader& loader );
-        virtual void store( Storer& storer ) const;
 
-        std::size_t getSize() const                 { return m_size; }
-        const std::string& getTypeName() const      { return m_name; }
-        const std::string& getVariableName() const  { return m_variable; }
-        bool isSimple() const                       { return m_simple; }
-        const concrete::Action* getAction() const   { return m_pContext; }
-        
-        const std::vector< const DataMember* >& getDataMembers() const { return m_dataMembers; }
-    private:
-        std::size_t m_size;
-        std::string m_name, m_variable;
-        bool m_simple;
-        const concrete::Action* m_pContext = nullptr;
-        
-        std::vector< const DataMember* > m_dataMembers;
-    };
-    
-    class Layout : public IndexedObject
+public:
+    virtual void load( io::Loader& loader );
+    virtual void store( io::Storer& storer ) const;
+
+    const concrete::Dimension* getInstanceDimension() const { return m_pDimension; }
+
+    const std::string& getName() const { return m_name; }
+    const Buffer*      getBuffer() const { return m_pBuffer; }
+
+private:
+    const concrete::Dimension* m_pDimension;
+    std::string                m_name;
+    Buffer*                    m_pBuffer;
+};
+
+class Buffer : public io::Object
+{
+    friend class ObjectFactoryImpl;
+    friend class Stages::Implementation;
+
+public:
+    static const ObjectType Type = eBuffer;
+
+protected:
+    Buffer( const io::Object& object )
+        : io::Object( object )
     {
-        friend class ObjectFactoryImpl;
-        friend class Stages::Implementation;
-    public:
-        static const ObjectType Type = eLayout;
-    protected:
-        Layout( const IndexedObject& object )
-            :  IndexedObject( object )
-        {
-        }
-    private:
-        using DimensionMap = std::map< const concrete::Dimension*, DataMember*, CompareIndexedObjects >;
-        using DimensionMapCst = std::map< const concrete::Dimension*, const DataMember*, CompareIndexedObjects >;
-    public:
-        virtual void load( Loader& loader );
-        virtual void store( Storer& storer ) const;
-        
-        const std::vector< Buffer* > getBuffers() const { return m_buffers; }
-        
-        inline const DataMember* getDataMember( const concrete::Dimension* pDimension ) const
-        {
-            DimensionMapCst::const_iterator iFind = m_dimensionMap.find( pDimension );
-            VERIFY_RTE( iFind != m_dimensionMap.end() );
-            return iFind->second;
-        }
-    private:
-        std::vector< Buffer* > m_buffers;
-        DimensionMapCst m_dimensionMap;
-        
-    };
+    }
 
-} //namespace eg
+public:
+    virtual void load( io::Loader& loader );
+    virtual void store( io::Storer& storer ) const;
 
-#endif //LAYOUT_18_02_2019
+    std::size_t             getSize() const { return m_size; }
+    const std::string&      getTypeName() const { return m_name; }
+    const std::string&      getVariableName() const { return m_variable; }
+    bool                    isSimple() const { return m_simple; }
+    const concrete::Action* getAction() const { return m_pContext; }
+
+    const std::vector< const DataMember* >& getDataMembers() const { return m_dataMembers; }
+
+private:
+    std::size_t             m_size;
+    std::string             m_name, m_variable;
+    bool                    m_simple;
+    const concrete::Action* m_pContext = nullptr;
+
+    std::vector< const DataMember* > m_dataMembers;
+};
+
+class Layout : public io::Object
+{
+    friend class ObjectFactoryImpl;
+    friend class Stages::Implementation;
+
+public:
+    static const ObjectType Type = eLayout;
+
+protected:
+    Layout( const io::Object& object )
+        : io::Object( object )
+    {
+    }
+
+private:
+    using DimensionMap = std::map< const concrete::Dimension*, DataMember*, io::CompareIndexedObjects >;
+    using DimensionMapCst = std::map< const concrete::Dimension*, const DataMember*, io::CompareIndexedObjects >;
+
+public:
+    virtual void load( io::Loader& loader );
+    virtual void store( io::Storer& storer ) const;
+
+    const std::vector< Buffer* > getBuffers() const { return m_buffers; }
+
+    inline const DataMember* getDataMember( const concrete::Dimension* pDimension ) const
+    {
+        DimensionMapCst::const_iterator iFind = m_dimensionMap.find( pDimension );
+        VERIFY_RTE( iFind != m_dimensionMap.end() );
+        return iFind->second;
+    }
+
+private:
+    std::vector< Buffer* > m_buffers;
+    DimensionMapCst        m_dimensionMap;
+};
+
+} // namespace mega
+
+#endif // LAYOUT_18_02_2019

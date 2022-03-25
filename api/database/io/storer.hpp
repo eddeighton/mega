@@ -17,12 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef STORER_18_04_2019
 #define STORER_18_04_2019
 
 #include "archive.hpp"
-#include "indexed_object.hpp"
+#include "object.hpp"
+#include "file.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -36,28 +36,29 @@
 #include <map>
 #include <vector>
 
-namespace eg
+namespace mega
 {
-
+namespace io
+{
     class Storer
     {
     public:
         Storer( const boost::filesystem::path& filePath );
         ~Storer();
-        
-        void storeObject( const IndexedObject* pObject );
-        void storeObjectRef( const IndexedObject* pObject );
-        
-        template< class T >
+
+        void storeObject( const Object* pObject );
+        void storeObjectRef( const Object* pObject );
+
+        template < class T >
         inline void store( const T& value )
         {
             m_archive << value;
         }
-        
-        template< class T >
+
+        template < class T >
         inline void storeOptional( const std::optional< T >& value )
         {
-            if( value )
+            if ( value )
             {
                 m_archive << true;
                 store( value.value() );
@@ -67,92 +68,94 @@ namespace eg
                 m_archive << false;
             }
         }
-        
-        template< class T >
+
+        template < class T >
         inline void storeObjectVector( const std::vector< T* >& objects )
         {
             std::size_t szCount = objects.size();
             store( szCount );
-            for( std::size_t sz = 0U; sz < szCount; ++sz )
+            for ( std::size_t sz = 0U; sz < szCount; ++sz )
             {
                 storeObjectRef( objects[ sz ] );
             }
         }
-        
-        template< class T, class TPred >
+
+        template < class T, class TPred >
         inline void storeObjectSet( const std::set< T*, TPred >& objects )
         {
             std::size_t szCount = objects.size();
             store( szCount );
-            for( typename std::set< T* >::const_iterator 
-                i = objects.begin(), 
-                iEnd = objects.end(); i!=iEnd; ++i )
+            for ( typename std::set< T* >::const_iterator i = objects.begin(),
+                                                          iEnd = objects.end();
+                  i != iEnd;
+                  ++i )
             {
                 storeObjectRef( *i );
             }
         }
-        
-        template< class T >
+
+        template < class T >
         inline void storeObjectVectorVector( const std::vector< std::vector< T* > >& objects )
         {
             std::size_t szCount = objects.size();
             store( szCount );
-            for( std::size_t sz = 0U; sz < szCount; ++sz )
+            for ( std::size_t sz = 0U; sz < szCount; ++sz )
             {
                 storeObjectVector( objects[ sz ] );
             }
         }
-        
-        template< class T1, class T2, class TPred >
+
+        template < class T1, class T2, class TPred >
         inline void storeObjectMap( const std::map< T1*, T2*, TPred >& objects )
         {
             std::size_t szSize = objects.size();
             store( szSize );
-            for( typename std::map< T1*, T2* >::const_iterator 
-                i = objects.begin(), 
-                iEnd = objects.end(); i!=iEnd; ++i )
+            for ( typename std::map< T1*, T2* >::const_iterator i = objects.begin(),
+                                                                iEnd = objects.end();
+                  i != iEnd;
+                  ++i )
             {
                 storeObjectRef( i->first );
                 storeObjectRef( i->second );
             }
         }
-        
-        template< class T1, class T2 >
+
+        template < class T1, class T2 >
         inline void storeKeyObjectMap( const std::map< T1, T2* >& objects )
         {
             std::size_t szSize = objects.size();
             store( szSize );
-            for( typename std::map< T1, T2* >::const_iterator 
-                i = objects.begin(), 
-                iEnd = objects.end(); i!=iEnd; ++i )
+            for ( typename std::map< T1, T2* >::const_iterator i = objects.begin(),
+                                                               iEnd = objects.end();
+                  i != iEnd;
+                  ++i )
             {
                 store( i->first );
                 storeObjectRef( i->second );
             }
         }
-        
-        template< class T1, class T2, class TPred >
+
+        template < class T1, class T2, class TPred >
         inline void storeObjectMap( const std::multimap< T1*, T2*, TPred >& objects )
         {
             std::size_t szSize = objects.size();
             store( szSize );
-            for( typename std::multimap< T1*, T2* >::const_iterator 
-                i = objects.begin(), 
-                iEnd = objects.end(); i!=iEnd; ++i )
+            for ( typename std::multimap< T1*, T2* >::const_iterator i = objects.begin(),
+                                                                     iEnd = objects.end();
+                  i != iEnd;
+                  ++i )
             {
                 storeObjectRef( i->first );
                 storeObjectRef( i->second );
             }
         }
-        
+
     private:
-        const boost::filesystem::path m_targetFilePath;
+        const boost::filesystem::path                  m_targetFilePath;
         std::unique_ptr< boost::filesystem::ofstream > m_pFileStream;
-        boost::archive::binary_oarchive m_archive;
+        boost::archive::binary_oarchive                m_archive;
     };
-    
-    
+} // namespace io
+} // namespace mega
 
-}
-
-#endif //STORER_18_04_2019
+#endif // STORER_18_04_2019

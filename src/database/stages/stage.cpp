@@ -19,33 +19,33 @@
 
 #include "database/stages/stage.hpp"
 
-namespace eg
+namespace mega
 {
 namespace Stages
 {
-    Stage::Stage( const IndexedFile::FileIDtoPathMap& files )
+    Stage::Stage( const io::File::FileIDtoPathMap& files )
     {
         ObjectFactoryImpl objectFactory;
-        for( IndexedFile::FileIDtoPathMap::const_iterator i = files.begin(),
+        for( io::File::FileIDtoPathMap::const_iterator i = files.begin(),
             iEnd = files.end(); i!=iEnd; ++i )
         {
-            IndexedFile::load( objectFactory, m_fileMap, i->second, i->first );
+            io::File::load( objectFactory, m_fileMap, i->second, i->first );
         }
     }
     
-    Stage::Stage( const boost::filesystem::path& filePath, IndexedObject::FileID fileID )
+    Stage::Stage( const boost::filesystem::path& filePath, io::Object::FileID fileID )
     {
         ObjectFactoryImpl objectFactory;
-        IndexedFile::load( objectFactory, m_fileMap, filePath, fileID );
+        io::File::load( objectFactory, m_fileMap, filePath, fileID );
     }
     
     Stage::~Stage()
     {
-        for( IndexedFile::FileIDToFileMap::iterator 
+        for( io::File::FileIDToFileMap::iterator 
             i = m_fileMap.begin(), iEnd = m_fileMap.end();
             i!=iEnd; ++i )
         {
-            for( const IndexedObject* pObject : i->second->getObjects() )
+            for( const io::Object* pObject : i->second->getObjects() )
             {
                 delete pObject;
             }
@@ -53,7 +53,7 @@ namespace Stages
         }
     }
 
-    Appending::Appending( const boost::filesystem::path& filePath, IndexedObject::FileID fileID )
+    Appending::Appending( const boost::filesystem::path& filePath, io::Object::FileID fileID )
         :   Stage( filePath, fileID )
     {
         
@@ -61,24 +61,24 @@ namespace Stages
     
     void Appending::store() const
     {
-        IndexedFile::FileIDtoPathMap files;
-        for( IndexedFile::FileIDToFileMap::const_iterator 
+        io::File::FileIDtoPathMap files;
+        for( io::File::FileIDToFileMap::const_iterator 
             i = m_fileMap.begin(),
             iEnd = m_fileMap.end(); i!=iEnd; ++i )
         {
-            IndexedFile* pFile = i->second;
+            io::File* pFile = i->second;
             files.insert( std::make_pair( pFile->getFileID(), pFile->getPath() ) );
         }
-        for( IndexedFile::FileIDToFileMap::const_iterator 
+        for( io::File::FileIDToFileMap::const_iterator 
             i = m_fileMap.begin(),
             iEnd = m_fileMap.end(); i!=iEnd; ++i )
         {
-            IndexedFile* pFile = i->second;
-            IndexedFile::store( pFile->getPath(), pFile->getFileID(), files, pFile->getObjects() );
+            io::File* pFile = i->second;
+            io::File::store( pFile->getPath(), pFile->getFileID(), files, pFile->getObjects() );
         }
     }
     
-    Creating::Creating( const IndexedFile::FileIDtoPathMap& files, IndexedObject::FileID fileID )
+    Creating::Creating( const io::File::FileIDtoPathMap& files, io::Object::FileID fileID )
         :   Stage( files ),
             m_fileID( fileID )
     {
@@ -86,7 +86,7 @@ namespace Stages
     
     Creating::~Creating()
     {
-        for( IndexedObject* pObject : m_newObjects )
+        for( io::Object* pObject : m_newObjects )
         {
             delete pObject;
         }
@@ -94,16 +94,16 @@ namespace Stages
     
     void Creating::store( const boost::filesystem::path& filePath ) const
     {
-        IndexedFile::FileIDtoPathMap files;
-        for( IndexedFile::FileIDToFileMap::const_iterator 
+        io::File::FileIDtoPathMap files;
+        for( io::File::FileIDToFileMap::const_iterator 
             i = m_fileMap.begin(),
             iEnd = m_fileMap.end(); i!=iEnd; ++i )
         {
-            IndexedFile* pFile = i->second;
+            io::File* pFile = i->second;
             files.insert( std::make_pair( pFile->getFileID(), pFile->getPath() ) );
         }
         files.insert( std::make_pair( m_fileID, filePath ) );
-        IndexedFile::store( filePath, m_fileID, files, m_newObjects );
+        io::File::store( filePath, m_fileID, files, m_newObjects );
     }
 
 }

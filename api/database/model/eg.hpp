@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef EG_18_04_2019
 #define EG_18_04_2019
 
@@ -31,21 +30,21 @@
 #include <algorithm>
 #include <array>
 
-namespace eg
+namespace mega
 {
-    static const char* FILE_EXTENSION = ".eg";
-	static const char* EG_LINK_DIMENSION = "base";
-    
-    using TypeIDVector        = std::vector< TypeID >;
-    using TypeIDVectorVector  = std::vector< TypeIDVector >;
-    
-    using OperationIDStringArray = std::array< std::string, TOTAL_OPERATION_TYPES >;
-    
-    OperationID getOperationName( const std::string& strName );
-    
-    const std::string& getOperationString( OperationID op );
-    
-    const OperationIDStringArray& getOperationStrings();
-}
+static const char* FILE_EXTENSION = ".eg";
+static const char* EG_LINK_DIMENSION = "base";
 
-#endif //EG_18_04_2019
+using TypeIDVector = std::vector< TypeID >;
+using TypeIDVectorVector = std::vector< TypeIDVector >;
+
+using OperationIDStringArray = std::array< std::string, TOTAL_OPERATION_TYPES >;
+
+OperationID getOperationName( const std::string& strName );
+
+const std::string& getOperationString( OperationID op );
+
+const OperationIDStringArray& getOperationStrings();
+} // namespace mega
+
+#endif // EG_18_04_2019

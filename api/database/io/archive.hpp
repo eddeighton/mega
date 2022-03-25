@@ -17,11 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef ARCHIVE_18_04_2019
 #define ARCHIVE_18_04_2019
-
 
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -32,22 +29,22 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 
-namespace boost { namespace serialization {
-
-template<class Archive>
-inline void serialize( Archive& ar, boost::filesystem::path& p, const unsigned int version )
+namespace boost
 {
-     std::string s;
-     if( Archive::is_saving::value )
-         s = p.string();
-     ar & boost::serialization::make_nvp( "string", s );
-     if(Archive::is_loading::value)
-         p = s;
-}
+namespace serialization
+{
+    template < class Archive >
+    inline void serialize( Archive& ar, boost::filesystem::path& p, const unsigned int version )
+    {
+        std::string s;
+        if ( Archive::is_saving::value )
+            s = p.string();
+        ar& boost::serialization::make_nvp( "string", s );
+        if ( Archive::is_loading::value )
+            p = s;
+    }
 
-}} 
+} // namespace serialization
+} // namespace boost
 
-
-
-
-#endif //ARCHIVE_18_04_2019
+#endif // ARCHIVE_18_04_2019

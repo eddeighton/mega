@@ -17,44 +17,45 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/model/concrete.hpp"
 #include "database/model/allocator.hpp"
 #include "database/model/link.hpp"
 
-namespace eg
+namespace mega
 {
 namespace concrete
 {
     std::vector< Element* > getPath( Element* pNode, Element* pFrom /*= nullptr*/ )
     {
         std::vector< Element* > path;
-        Element* pNodeIter = pNode; 
+        Element*                pNodeIter = pNode;
         do
-        {   VERIFY_RTE( pNodeIter );
+        {
+            VERIFY_RTE( pNodeIter );
             path.push_back( pNodeIter );
             pNodeIter = pNodeIter->getParent();
-        }while( pNodeIter != pFrom );
-        
-        std::reverse( path.begin(), path.end() );
-        return path;
-    }
-    
-    std::vector< const Element* > getPath( const Element* pNode, const Element* pFrom /*= nullptr*/ )
-    {
-        std::vector< const Element* > path;
-        const Element* pNodeIter = pNode; 
-        do
-        {   VERIFY_RTE( pNodeIter );
-            path.push_back( pNodeIter );
-            pNodeIter = pNodeIter->getParent();
-        }while( pNodeIter != pFrom );
-        
+        } while ( pNodeIter != pFrom );
+
         std::reverse( path.begin(), path.end() );
         return path;
     }
 
-    void Inheritance_Node::load( Loader& loader )
+    std::vector< const Element* > getPath( const Element* pNode, const Element* pFrom /*= nullptr*/ )
+    {
+        std::vector< const Element* > path;
+        const Element*                pNodeIter = pNode;
+        do
+        {
+            VERIFY_RTE( pNodeIter );
+            path.push_back( pNodeIter );
+            pNodeIter = pNodeIter->getParent();
+        } while ( pNodeIter != pFrom );
+
+        std::reverse( path.begin(), path.end() );
+        return path;
+    }
+
+    void Inheritance_Node::load( io::Loader& loader )
     {
         m_pRootConcreteAction = loader.loadObjectRef< Action >();
         m_pContext = loader.loadObjectRef< interface::Context >();
@@ -63,8 +64,8 @@ namespace concrete
         loader.loadObjectVector( m_actions );
         loader.loadObjectVector( m_dimensions );
     }
-    
-    void Inheritance_Node::store( Storer& storer ) const
+
+    void Inheritance_Node::store( io::Storer& storer ) const
     {
         storer.storeObjectRef( m_pRootConcreteAction );
         storer.storeObjectRef( m_pContext );
@@ -73,70 +74,70 @@ namespace concrete
         storer.storeObjectVector( m_actions );
         storer.storeObjectVector( m_dimensions );
     }
-    
-    void Element::load( Loader& loader )
+
+    void Element::load( io::Loader& loader )
     {
         m_pParent = loader.loadObjectRef< Element >();
         m_pElement = loader.loadObjectRef< interface::Element >();
         loader.loadObjectVector( m_children );
     }
-    
-    void Element::store( Storer& storer ) const
+
+    void Element::store( io::Storer& storer ) const
     {
         storer.storeObjectRef( m_pParent );
         storer.storeObjectRef( m_pElement );
         storer.storeObjectVector( m_children );
     }
-    
-    void Dimension::load( Loader& loader )
+
+    void Dimension::load( io::Loader& loader )
     {
         Element::load( loader );
     }
-    
-    void Dimension::store( Storer& storer ) const
+
+    void Dimension::store( io::Storer& storer ) const
     {
         Element::store( storer );
     }
-    
-    void Dimension_User::load( Loader& loader )
+
+    void Dimension_User::load( io::Loader& loader )
     {
         Dimension::load( loader );
         m_pLinkGroup = loader.loadObjectRef< LinkGroup >();
     }
-    
-    void Dimension_User::store( Storer& storer ) const
+
+    void Dimension_User::store( io::Storer& storer ) const
     {
         Dimension::store( storer );
         storer.storeObjectRef( m_pLinkGroup );
     }
-    
+
     void Dimension_User::print( std::ostream& os, std::string& strIndent ) const
     {
         os << strIndent << "dim(" << getIndex() << "): " << getDimension()->getIdentifier() << "\n";
     }
-    
-    void Dimension_Generated::load( Loader& loader )
+
+    void Dimension_Generated::load( io::Loader& loader )
     {
         Dimension::load( loader );
         loader.load( m_type );
         m_pContext = loader.loadObjectRef< Action >();
         m_pLinkGroup = loader.loadObjectRef< LinkGroup >();
     }
-    
-    void Dimension_Generated::store( Storer& storer ) const
+
+    void Dimension_Generated::store( io::Storer& storer ) const
     {
         Dimension::store( storer );
         storer.store( m_type );
         storer.storeObjectRef( m_pContext );
         storer.storeObjectRef( m_pLinkGroup );
     }
-    
+
     void Dimension_Generated::print( std::ostream& os, std::string& strIndent ) const
     {
-        //do nothing
+        // do nothing
     }
-		
-    void Action::load( Loader& loader )
+
+    void Action::load( io::Loader& loader )
     {
         Element::load( loader );
         m_pObject = loader.loadObjectRef< Action >();
@@ -144,15 +145,15 @@ namespace concrete
         m_pAllocator = loader.loadObjectRef< Allocator >();
         loader.load( m_strName );
         loader.load( m_totalDomainSize );
-        m_pStopCycle        = loader.loadObjectRef< Dimension_Generated >();
-        m_pState            = loader.loadObjectRef< Dimension_Generated >();
-        m_pReference        = loader.loadObjectRef< Dimension_Generated >();
-        m_pLinkRefCount     = loader.loadObjectRef< Dimension_Generated >();
+        m_pStopCycle = loader.loadObjectRef< Dimension_Generated >();
+        m_pState = loader.loadObjectRef< Dimension_Generated >();
+        m_pReference = loader.loadObjectRef< Dimension_Generated >();
+        m_pLinkRefCount = loader.loadObjectRef< Dimension_Generated >();
         loader.loadObjectMap( m_allocators );
         loader.loadKeyObjectMap( m_links );
     }
-    
-    void Action::store( Storer& storer ) const
+
+    void Action::store( io::Storer& storer ) const
     {
         Element::store( storer );
         storer.storeObjectRef( m_pObject );
@@ -160,10 +161,10 @@ namespace concrete
         storer.storeObjectRef( m_pAllocator );
         storer.store( m_strName );
         storer.store( m_totalDomainSize );
-        storer.storeObjectRef( m_pStopCycle     );
-        storer.storeObjectRef( m_pState         );
-        storer.storeObjectRef( m_pReference     );
-        storer.storeObjectRef( m_pLinkRefCount  );
+        storer.storeObjectRef( m_pStopCycle );
+        storer.storeObjectRef( m_pState );
+        storer.storeObjectRef( m_pReference );
+        storer.storeObjectRef( m_pLinkRefCount );
         storer.storeObjectMap( m_allocators );
         storer.storeKeyObjectMap( m_links );
     }
@@ -172,29 +173,28 @@ namespace concrete
     {
         const interface::Context* pContext = getContext();
         VERIFY_RTE( pContext );
-        
-        os << strIndent << pContext->getContextType() << 
-            "(" << getIndex() << ") " << pContext->getIdentifier() << "[ " << getTotalDomainSize() << " ]";
-            
-        if( const interface::Root* pIsRoot = dynamic_cast< const interface::Root* >( getContext() ) )
+
+        os << strIndent << pContext->getContextType() << "(" << getIndex() << ") " << pContext->getIdentifier() << "[ " << getTotalDomainSize() << " ]";
+
+        if ( const interface::Root* pIsRoot = dynamic_cast< const interface::Root* >( getContext() ) )
         {
             os << " " << pIsRoot->getRootType();
         }
         os << "\n";
-        
-        if( !m_children.empty() )
+
+        if ( !m_children.empty() )
         {
             std::ostringstream osNested;
             strIndent.push_back( ' ' );
             strIndent.push_back( ' ' );
-            for( Element* pChild : m_children )
+            for ( Element* pChild : m_children )
             {
                 pChild->print( osNested, strIndent );
             }
             strIndent.pop_back();
             strIndent.pop_back();
             std::string strNested = osNested.str();
-            if( !strNested.empty() )
+            if ( !strNested.empty() )
             {
                 os << strIndent << "[\n";
                 os << strNested;
@@ -202,7 +202,7 @@ namespace concrete
             }
         }
     }
-    
+
     int Action::getLocalDomainSize() const
     {
         const interface::Context* pAction = getContext();
@@ -211,10 +211,9 @@ namespace concrete
     }
     int Action::getTotalDomainSize() const
     {
-        if( 0 == m_totalDomainSize )
+        if ( 0 == m_totalDomainSize )
         {
-            if( const Action* pParentAction = 
-                dynamic_cast< const Action* >( m_pParent ) )
+            if ( const Action* pParentAction = dynamic_cast< const Action* >( m_pParent ) )
             {
                 m_totalDomainSize = pParentAction->getTotalDomainSize() * getLocalDomainSize();
             }
@@ -229,65 +228,65 @@ namespace concrete
     int Action::getObjectDomainFactor() const
     {
         VERIFY_RTE( m_pObject );
-        
+
         int iDomainFactor = 1;
-        for( const concrete::Action* pIter = this; pIter != m_pObject; pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
+        for ( const concrete::Action* pIter = this; pIter != m_pObject; pIter = dynamic_cast< const concrete::Action* >( pIter->getParent() ) )
         {
             VERIFY_RTE( pIter );
             iDomainFactor *= pIter->getLocalDomainSize();
         }
-        
+
         return iDomainFactor;
     }
-    
+
     const Dimension_User* Action::getLinkBaseDimension() const
     {
         const Dimension_User* pDimension = nullptr;
-        
-        for( Element* pElement : m_children )
+
+        for ( Element* pElement : m_children )
         {
-            switch( pElement->getType() )
+            switch ( pElement->getType() )
             {
-                case eConcreteAction:
-                case eConcreteDimensionGenerated:
-                    break;
-                case eConcreteDimensionUser :  
-                    {
-                        Dimension_User* pDim = dynamic_cast< Dimension_User* >( pElement );
-                        if( pDim->getDimension()->getIdentifier() == EG_LINK_DIMENSION )
-                        {
-                            VERIFY_RTE( pDimension == nullptr );
-                            pDimension = pDim;
-                        }
-                    }
-                    break;
-                default:
-                    THROW_RTE( "Unsupported type" );
-                    break;
+            case eConcreteAction:
+            case eConcreteDimensionGenerated:
+                break;
+            case eConcreteDimensionUser:
+            {
+                Dimension_User* pDim = dynamic_cast< Dimension_User* >( pElement );
+                if ( pDim->getDimension()->getIdentifier() == EG_LINK_DIMENSION )
+                {
+                    VERIFY_RTE( pDimension == nullptr );
+                    pDimension = pDim;
+                }
+            }
+            break;
+            default:
+                THROW_RTE( "Unsupported type" );
+                break;
             }
         }
-        
+
         return pDimension;
     }
-    
+
     bool Action::hasUserDimensions() const
     {
-        for( Element* pElement : m_children )
+        for ( Element* pElement : m_children )
         {
-            switch( pElement->getType() )
+            switch ( pElement->getType() )
             {
-                case eConcreteAction:
-                case eConcreteDimensionGenerated:
-                    break;
-                case eConcreteDimensionUser :  
-                    return true;
-                default:
-                    THROW_RTE( "Unsupported type" );
-                    break;
+            case eConcreteAction:
+            case eConcreteDimensionGenerated:
+                break;
+            case eConcreteDimensionUser:
+                return true;
+            default:
+                THROW_RTE( "Unsupported type" );
+                break;
             }
         }
         return false;
     }
 
-} //namespace concrete
-} //namespace eg
+} // namespace concrete
+} // namespace mega

@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/stages/parser.hpp"
 #include "parser/parser.hpp"
 
@@ -30,15 +28,30 @@
 #include <boost/dll/import.hpp>
 #include <boost/algorithm/string.hpp>
 
-namespace eg
+namespace mega
 {
 namespace Stages
 {
+
+    Parser::Parser( const boost::filesystem::path& parserDLL,
+                    const boost::filesystem::path& inputMegaSourceFile,
+                    const boost::filesystem::path& parserASTFile,
+                    const boost::filesystem::path& parserBodyFile )
+
+        : Creating( io::File::FileIDtoPathMap{}, io::Object::NO_FILE )
+        , m_parserDLL( parserDLL )
+        , m_inputMegaSourceFile( inputMegaSourceFile )
+        , m_parserASTFile( parserASTFile )
+        , m_parserBodyFile( parserBodyFile )
+    {
+    }
+
+    /*
     Parser::Parser( EG_PARSER_CALLBACK* pParserCallback,
                 const boost::filesystem::path& parserDLLPath,
                 const boost::filesystem::path& currentPath,
                 std::ostream& os )
-        :   Creating( IndexedFile::FileIDtoPathMap{}, IndexedObject::MASTER_FILE ),
+        :   Creating( io::File::FileIDtoPathMap{}, io::Object::NO_FILE ),
             m_pParserCallback( pParserCallback ),
             m_parserDllPath( parserDLLPath ),
             m_currentPath( currentPath ),
@@ -50,12 +63,12 @@ namespace Stages
     void Parser::parseEGSourceFile( const boost::filesystem::path& egSourceFile,
                 Parser& stage, input::Root* pRoot )
     {
-        static boost::shared_ptr< eg::EG_PARSER_INTERFACE > pParserInterface;
+        static boost::shared_ptr< mega::EG_PARSER_INTERFACE > pParserInterface;
 
         if( !pParserInterface )
         {
             pParserInterface =
-                boost::dll::import_symbol< eg::EG_PARSER_INTERFACE >(
+                boost::dll::import_symbol< mega::EG_PARSER_INTERFACE >(
                     m_parserDllPath, "g_parserSymbol" );
         }
 
@@ -68,108 +81,108 @@ namespace Stages
 
     }
 
-	input::Root* Parser::getMegaRoot(
-		input::Root* pMegaStructureRoot,
-		const SourceCodeTree::RootFolder& rootFolder,
-		const SourceCodeTree::ProjectNameFolder& projectNameFolder,
-		std::map< boost::filesystem::path, input::Root* >& rootTree )
-	{
-		boost::filesystem::path::const_iterator
-			i = rootFolder.begin(), iEnd = rootFolder.end(),
-			j = projectNameFolder.begin(), jEnd = projectNameFolder.end();
+    input::Root* Parser::getMegaRoot(
+        input::Root* pMegaStructureRoot,
+        const SourceCodeTree::RootFolder& rootFolder,
+        const SourceCodeTree::ProjectNameFolder& projectNameFolder,
+        std::map< boost::filesystem::path, input::Root* >& rootTree )
+    {
+        boost::filesystem::path::const_iterator
+            i = rootFolder.begin(), iEnd = rootFolder.end(),
+            j = projectNameFolder.begin(), jEnd = projectNameFolder.end();
 
-		//iterate until they become different
-		for( ; i!=iEnd && j!=jEnd && *i == *j; ++i, ++j ){}
+        //iterate until they become different
+        for( ; i!=iEnd && j!=jEnd && *i == *j; ++i, ++j ){}
 
-		VERIFY_RTE_MSG( i == iEnd,
-			"Project name folder: " << projectNameFolder.string() <<
-			" does NOT exist within mega structure root folder: " << rootFolder.string() );
+        VERIFY_RTE_MSG( i == iEnd,
+            "Project name folder: " << projectNameFolder.string() <<
+            " does NOT exist within mega structure root folder: " << rootFolder.string() );
 
-		input::Root* pRoot = pMegaStructureRoot;
-		{
-			boost::filesystem::path treePath = rootFolder;
-			int iFolderDepth = 0;
-			for( ; j!=jEnd; ++j, ++iFolderDepth )
-			{
-				treePath = treePath / *j;
+        input::Root* pRoot = pMegaStructureRoot;
+        {
+            boost::filesystem::path treePath = rootFolder;
+            int iFolderDepth = 0;
+            for( ; j!=jEnd; ++j, ++iFolderDepth )
+            {
+                treePath = treePath / *j;
 
-				input::Root* pNestedRoot = nullptr;
+                input::Root* pNestedRoot = nullptr;
 
-				std::map< boost::filesystem::path, input::Root* >::iterator
-					iFind = rootTree.find( treePath );
-				if( iFind != rootTree.end() )
-				{
-					pNestedRoot = iFind->second;
-				}
-				else
-				{
-					pNestedRoot = construct< input::Root >();
-					{
-						pNestedRoot->m_strIdentifier = j->string();
-						switch( iFolderDepth )
-						{
-							case 0:
-								pNestedRoot->m_rootType = eCoordinator;
-								break;
-							case 1:
-								pNestedRoot->m_rootType = eHostName;
-								break;
-							case 2:
-								pNestedRoot->m_rootType = eProjectName;
-								break;
-							default:
+                std::map< boost::filesystem::path, input::Root* >::iterator
+                    iFind = rootTree.find( treePath );
+                if( iFind != rootTree.end() )
+                {
+                    pNestedRoot = iFind->second;
+                }
+                else
+                {
+                    pNestedRoot = construct< input::Root >();
+                    {
+                        pNestedRoot->m_strIdentifier = j->string();
+                        switch( iFolderDepth )
+                        {
+                            case 0:
+                                pNestedRoot->m_rootType = eCoordinator;
+                                break;
+                            case 1:
+                                pNestedRoot->m_rootType = eHostName;
+                                break;
+                            case 2:
+                                pNestedRoot->m_rootType = eProjectName;
+                                break;
+                            default:
                                 THROW_RTE( "TODO" );
-								pNestedRoot->m_rootType = eSubFolder;
-								break;
-						}
-					}
-					pRoot->m_elements.push_back( pNestedRoot );
+                                pNestedRoot->m_rootType = eSubFolder;
+                                break;
+                        }
+                    }
+                    pRoot->m_elements.push_back( pNestedRoot );
 
-					rootTree.insert( std::make_pair( treePath, pNestedRoot ) );
-				}
+                    rootTree.insert( std::make_pair( treePath, pNestedRoot ) );
+                }
 
-				pRoot = pNestedRoot;
-			}
-		}
+                pRoot = pNestedRoot;
+            }
+        }
 
-		return pRoot;
-	}
+        return pRoot;
+    }
 
-	void Parser::parse( const SourceCodeTree& egSourceCodeFiles )
-	{
-		input::Root* pMegaStructureRoot = construct< input::Root >();
-		{
-			pMegaStructureRoot->m_rootType = eMegaRoot;
-		}
+    void Parser::parse( const SourceCodeTree& egSourceCodeFiles )
+    {
+        input::Root* pMegaStructureRoot = construct< input::Root >();
+        {
+            pMegaStructureRoot->m_rootType = eMegaRoot;
+        }
 
         std::set< boost::filesystem::path > includePaths;
-		std::map< boost::filesystem::path, input::Root* > rootTree;
+        std::map< boost::filesystem::path, input::Root* > rootTree;
 
-		for( SourceCodeTree::FileMap::const_iterator
-			i = egSourceCodeFiles.files.begin(),
-			iEnd = egSourceCodeFiles.files.end();
-			i != iEnd; ++i )
-		{
-			const SourceCodeTree::ProjectNameFolder& projectNameFolder = i->first;
-			const SourceCodeTree::EGSourceFile& egSourceFile = i->second;
+        for( SourceCodeTree::FileMap::const_iterator
+            i = egSourceCodeFiles.files.begin(),
+            iEnd = egSourceCodeFiles.files.end();
+            i != iEnd; ++i )
+        {
+            const SourceCodeTree::ProjectNameFolder& projectNameFolder = i->first;
+            const SourceCodeTree::EGSourceFile& egSourceFile = i->second;
 
-			boost::filesystem::path sourceFile = projectNameFolder / egSourceFile;
+            boost::filesystem::path sourceFile = projectNameFolder / egSourceFile;
 
-			input::Root* pRoot = getMegaRoot( pMegaStructureRoot, egSourceCodeFiles.root, projectNameFolder, rootTree );
+            input::Root* pRoot = getMegaRoot( pMegaStructureRoot, egSourceCodeFiles.root, projectNameFolder, rootTree );
 
             parseEGSourceFile( sourceFile, *this, pRoot ); //parse main root
             includePaths.insert( sourceFile );
-		}
+        }
 
-		handleInputIncludes( includePaths );
-	}
+        handleInputIncludes( includePaths );
+    }
 
     void Parser::parse( const std::vector< boost::filesystem::path >& egSourceCodeFiles )
     {
-		input::Root* pRoot = construct< input::Root >();
-		{
-			pRoot->m_rootType = eFileRoot;
-		}
+        input::Root* pRoot = construct< input::Root >();
+        {
+            pRoot->m_rootType = eFileRoot;
+        }
 
         std::set< boost::filesystem::path > includePaths;
         for( const boost::filesystem::path& filePath : egSourceCodeFiles )
@@ -178,11 +191,11 @@ namespace Stages
             includePaths.insert( filePath );
         }
 
-		handleInputIncludes( includePaths );
+        handleInputIncludes( includePaths );
     }
 
-	void Parser::handleInputIncludes( std::set< boost::filesystem::path >& includePaths )
-	{
+    void Parser::handleInputIncludes( std::set< boost::filesystem::path >& includePaths )
+    {
         std::set< boost::filesystem::path > newIncludePaths;
 
         //greedy parse all includes
@@ -190,11 +203,11 @@ namespace Stages
         {
             for( const boost::filesystem::path& includePath : newIncludePaths )
             {
-				input::Root* pIncludeRoot = construct< input::Root >();
-				{
-					pIncludeRoot->m_includePath = includePath;
-					pIncludeRoot->m_rootType = eFile;
-				}
+                input::Root* pIncludeRoot = construct< input::Root >();
+                {
+                    pIncludeRoot->m_includePath = includePath;
+                    pIncludeRoot->m_rootType = eFile;
+                }
 
                 parseEGSourceFile( includePath, *this, pIncludeRoot ); //parse include - non-main root
                 includePaths.insert( includePath );
@@ -212,7 +225,7 @@ namespace Stages
                 }
             }
         }while( !newIncludePaths.empty() );
-	}
+    }
 
     interface::Element* addChild( Parser& stage, interface::Element* pParent, input::Element* pElement, VisibilityType visibility )
     {
@@ -257,8 +270,8 @@ namespace Stages
 
     void Parser::buildTree( const FileElementMap& fileMap, interface::Element* pParentNode,
         input::Element* pElement,
-		std::optional< boost::filesystem::path > includeDefinitionFile,
-		bool bInIncludeTree,
+        std::optional< boost::filesystem::path > includeDefinitionFile,
+        bool bInIncludeTree,
         VisibilityType visibility )
     {
         switch( pElement->getType() )
@@ -346,7 +359,7 @@ namespace Stages
                                 {
                                     THROW_RTE( "Include file problem" );
                                 }
-								buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true, visibility );
+                                buildTree( fileMap, pChild, pChildElement, includeDefinitionFile, true, visibility );
                             }
                             else
                             {
@@ -393,16 +406,16 @@ namespace Stages
         FileElementMap fileMap;
         for( input::Root* pRootElement : roots )
         {
-			std::optional< boost::filesystem::path > includePathOpt =
-				pRootElement->getIncludePath();
+            std::optional< boost::filesystem::path > includePathOpt =
+                pRootElement->getIncludePath();
 
             if( eMegaRoot == pRootElement->getRootType() ||
-				eFileRoot == pRootElement->getRootType() )
-			{
-				VERIFY_RTE( !includePathOpt );
-				VERIFY_RTE( !pInputMainRoot );
-				pInputMainRoot = pRootElement;
-			}
+                eFileRoot == pRootElement->getRootType() )
+            {
+                VERIFY_RTE( !includePathOpt );
+                VERIFY_RTE( !pInputMainRoot );
+                pInputMainRoot = pRootElement;
+            }
             else if( includePathOpt )
             {
                 fileMap.insert( std::make_pair( includePathOpt.value(), pRootElement ) );
@@ -419,7 +432,7 @@ namespace Stages
         Identifiers* pIdentifiers = construct< Identifiers >();
         pIdentifiers->populate( getMaster() );
     }
+*/
 
-
-} //namespace stages
-} //namespace eg
+} // namespace Stages
+} // namespace mega

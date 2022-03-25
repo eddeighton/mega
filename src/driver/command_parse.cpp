@@ -19,6 +19,8 @@
 
 #include "environment.hpp"
 
+#include "database/stages/parser.hpp"
+
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
@@ -49,21 +51,35 @@ namespace parse
         const Environment& m_environment;
     };
 
-    class Task_ParseObjectSource : public BaseTask
+    class Task_ObjectSourceToInputAST : public BaseTask
     {
     public:
-        Task_ParseObjectSource( const Environment& environment, const boost::filesystem::path& megaSourceFilePath )
+        Task_ObjectSourceToInputAST( const Environment& environment, const boost::filesystem::path& megaSourceFilePath )
             : BaseTask( environment, {} )
             , m_megaSourceFilePath( megaSourceFilePath )
         {
         }
         virtual void run( task::Progress& taskProgress )
         {
-            const Environment::Path parseFile = m_environment.parseFilePath( m_megaSourceFilePath );
+            const Environment::Path parserAST  = m_environment.parserAST( m_megaSourceFilePath );
+            const Environment::Path parserBody = m_environment.parserBody( m_megaSourceFilePath );
 
-            taskProgress.start( "ParseObjectSource",
+            taskProgress.start( "ObjectSourceToInputAST",
                                 m_megaSourceFilePath,
-                                parseFile );
+                                parserAST );
+
+
+
+
+            std::unique_ptr< mega::Stages::Parser > parserSession = 
+                std::make_unique< mega::Stages::Parser >( 
+                    m_environment.parserDLL(),
+                    m_megaSourceFilePath,
+                    parserAST,
+                    parserBody );
+
+
+
 
             taskProgress.succeeded();
         }
@@ -74,7 +90,7 @@ namespace parse
 
     void command( bool bHelp, const std::vector< std::string >& args )
     {
-        boost::filesystem::path rootSourceDir, rootBuildDir, sourceDir, buildDIr;
+        boost::filesystem::path rootSourceDir, rootBuildDir, sourceDir, buildDir, parserDLL;
         std::string             objectSourceFiles;
 
         namespace po = boost::program_options;
@@ -85,7 +101,8 @@ namespace parse
                 ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),     "Root source directory" )
                 ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),      "Root build directory" )
                 ( "src_dir",        po::value< boost::filesystem::path >( &sourceDir ),         "Source directory" )
-                ( "build_dir",      po::value< boost::filesystem::path >( &buildDIr ),          "Build Directory" )
+                ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),          "Build Directory" )
+                ( "parser_dll",     po::value< boost::filesystem::path >( &parserDLL ),         "Mega Parser DLL" )
                 ( "names",          po::value< std::string >( &objectSourceFiles ),             "eg source file names ( no extension, semicolon delimited )" );
             // clang-format on
         }
@@ -96,7 +113,7 @@ namespace parse
         po::variables_map vm;
         po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
         po::notify( vm );
-                                                                    
+
         if ( bHelp )
         {
             std::cout << commandOptions << "\n";
@@ -113,7 +130,7 @@ namespace parse
                     megaFileNames.push_back( *i );
             }
 
-            Environment environment( rootSourceDir, rootBuildDir, sourceDir, buildDIr );
+            Environment environment( rootSourceDir, rootBuildDir, sourceDir, buildDir, parserDLL );
 
             task::Task::PtrVector tasks;
             for ( const std::string& strFileName : megaFileNames )
@@ -122,7 +139,7 @@ namespace parse
                     boost::filesystem::absolute( sourceDir / strFileName ) );
                 VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
 
-                Task_ParseObjectSource* pTask = new Task_ParseObjectSource( environment, sourceFilePath );
+                Task_ObjectSourceToInputAST* pTask = new Task_ObjectSourceToInputAST( environment, sourceFilePath );
                 tasks.push_back( task::Task::Ptr( pTask ) );
             }
 

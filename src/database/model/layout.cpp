@@ -17,28 +17,27 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/model/layout.hpp"
 #include "database/model/concrete.hpp"
 
-namespace eg
+namespace mega
 {
 
-void DataMember::load( Loader& loader )
+void DataMember::load( io::Loader& loader )
 {
     m_pDimension = loader.loadObjectRef< concrete::Dimension >();
     loader.load( m_name );
     m_pBuffer = loader.loadObjectRef< Buffer >();
 }
 
-void DataMember::store( Storer& storer ) const
+void DataMember::store( io::Storer& storer ) const
 {
     storer.storeObjectRef( m_pDimension );
     storer.store( m_name );
     storer.storeObjectRef( m_pBuffer );
 }
-   
-void Buffer::load( Loader& loader )
+
+void Buffer::load( io::Loader& loader )
 {
     m_pContext = loader.loadObjectRef< concrete::Action >();
     loader.load( m_size );
@@ -48,7 +47,7 @@ void Buffer::load( Loader& loader )
     loader.loadObjectVector( m_dataMembers );
 }
 
-void Buffer::store( Storer& storer ) const
+void Buffer::store( io::Storer& storer ) const
 {
     storer.storeObjectRef( m_pContext );
     storer.store( m_size );
@@ -57,17 +56,17 @@ void Buffer::store( Storer& storer ) const
     storer.store( m_simple );
     storer.storeObjectVector( m_dataMembers );
 }
-    
-void Layout::load( Loader& loader )
+
+void Layout::load( io::Loader& loader )
 {
     loader.loadObjectVector( m_buffers );
     loader.loadObjectMap( m_dimensionMap );
 }
 
-void Layout::store( Storer& storer ) const
+void Layout::store( io::Storer& storer ) const
 {
     storer.storeObjectVector( m_buffers );
     storer.storeObjectMap( m_dimensionMap );
-}    
+}
 
-} //namespace eg
+} // namespace mega

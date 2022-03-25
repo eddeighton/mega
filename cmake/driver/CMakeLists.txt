@@ -21,6 +21,8 @@ source_group( src FILES ${DRIVER_SOURCES} )
 
 add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 
+target_link_libraries(mega database)
+
 set_target_properties( mega PROPERTIES FOLDER driver )
 
 link_boost( mega atomic )

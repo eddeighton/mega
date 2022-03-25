@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef OPERATIONS_SESSION_19_04_2019
 #define OPERATIONS_SESSION_19_04_2019
 
@@ -32,34 +31,32 @@
 
 #include <vector>
 
-namespace eg
+namespace mega
 {
-    namespace Stages
+namespace Stages
+{
+    class Operations : public Creating
     {
-        class Operations : public Creating
-        {
-        public:
-            Operations( const boost::filesystem::path& treePath,
-                const boost::filesystem::path& tuPath, 
-                IndexedObject::FileID fileID );
-            
-            void store() const;
-            
-            const Identifiers& getIdentifiers() const;
-            
-            const InvocationSolution* getInvocation( 
-                const InvocationSolution::InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath );
-            
-        private:
-            const boost::filesystem::path m_tuPath;
-            const DerivationAnalysis* m_pDerivationAnalysis;
-            InvocationSolutionMap m_invocations;
-            
-            
-            const Identifiers* m_pIdentifiers;
-            
-        };
-    }
-}
+    public:
+        Operations( const boost::filesystem::path& treePath,
+                    const boost::filesystem::path& tuPath,
+                    io::Object::FileID             fileID );
 
-#endif //OPERATIONS_SESSION_19_04_2019
+        void store() const;
+
+        const Identifiers& getIdentifiers() const;
+
+        const InvocationSolution* getInvocation(
+            const InvocationSolution::InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath );
+
+    private:
+        const boost::filesystem::path m_tuPath;
+        const DerivationAnalysis*     m_pDerivationAnalysis;
+        InvocationSolutionMap         m_invocations;
+
+        const Identifiers* m_pIdentifiers;
+    };
+} // namespace Stages
+} // namespace mega
+
+#endif // OPERATIONS_SESSION_19_04_2019

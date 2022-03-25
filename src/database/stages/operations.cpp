@@ -17,38 +17,37 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/stages/operations.hpp"
 
-namespace eg
+namespace mega
 {
 namespace Stages
 {
     Operations::Operations( const boost::filesystem::path& treePath,
-            const boost::filesystem::path& tuPath, 
-            IndexedObject::FileID fileID )
-        :   Creating( IndexedFile::FileIDtoPathMap{{ IndexedObject::MASTER_FILE, treePath }}, fileID ),
-            m_tuPath( tuPath ),
-            m_pDerivationAnalysis( one_cst< DerivationAnalysis >( getMaster() ) ),
-            m_invocations( *this, *m_pDerivationAnalysis )
+                            const boost::filesystem::path& tuPath,
+                            io::Object::FileID             fileID )
+        : Creating( io::File::FileIDtoPathMap{ { io::Object::NO_FILE, treePath } }, fileID )
+        , m_tuPath( tuPath )
+        , m_pDerivationAnalysis( io::one_cst< DerivationAnalysis >( getMaster() ) )
+        , m_invocations( *this, *m_pDerivationAnalysis )
     {
-        m_pIdentifiers = one_cst< Identifiers >( getMaster() );
+        m_pIdentifiers = io::one_cst< Identifiers >( getMaster() );
     }
 
     void Operations::store() const
     {
         Creating::store( m_tuPath );
     }
-    
+
     const Identifiers& Operations::getIdentifiers() const
     {
-        return *one< Identifiers >( getObjects( IndexedObject::MASTER_FILE ) );
+        return *io::one< Identifiers >( getObjects( io::Object::NO_FILE ) );
     }
-    
-    const InvocationSolution* Operations::getInvocation( 
-        const InvocationSolution::InvocationID& invocationID, const std::vector< eg::TypeID >& implicitTypePath )
+
+    const InvocationSolution* Operations::getInvocation(
+        const InvocationSolution::InvocationID& invocationID, const std::vector< mega::TypeID >& implicitTypePath )
     {
         return m_invocations.getInvocation( invocationID, implicitTypePath );
     }
-}
-}
+} // namespace Stages
+} // namespace mega

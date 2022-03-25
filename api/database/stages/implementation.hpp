@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef IMPLEMENTATION_SESSION_18_02_2019
 #define IMPLEMENTATION_SESSION_18_02_2019
 
@@ -31,52 +30,51 @@
 #include "database/model/invocation.hpp"
 #include "database/model/translation_unit.hpp"
 
-namespace eg
+namespace mega
 {
-    namespace Stages
+namespace Stages
+{
+    class Implementation : public Creating
     {
-        class Implementation : public Creating
-        {
-        public:
-            Implementation( const IndexedFile::FileIDtoPathMap& files );
-            
-            const interface::Root* getTreeRoot() const;
-            const concrete::Action* getInstanceRoot() const;
-            const DerivationAnalysis& getDerivationAnalysis() const;
-            const LinkAnalysis& getLinkAnalysis() const;
-            const Layout& getLayout() const;
-            const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;
-            
-            using Invocations = std::vector< const InvocationSolution* >;
-            void getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const;
-            
-            void fullProgramAnalysis();
-        private:
-            void recurseInstances( std::vector< Buffer* >& buffers, 
-                    Layout::DimensionMap& dimensionMap, std::size_t szSize, const concrete::Action* pAction );
-        };
-        
-        class Read : public Stage
-        {
-        public:
-            Read( const boost::filesystem::path& filePath );
-            
-            const interface::Root* getTreeRoot() const;
-            const concrete::Action* getInstanceRoot() const;
-            const DerivationAnalysis& getDerivationAnalysis() const;
-            const LinkAnalysis& getLinkAnalysis() const;
-            const Identifiers& getIdentifiers() const;
-            const Layout& getLayout() const;
-            const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;
-            
-            //const interface::Context* getAbstractAction( TypeID id ) const;
-            const concrete::Action* getConcreteAction( TypeID id ) const;
-            
-            using Invocations = std::vector< const InvocationSolution* >;
-            void getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const;
-        };
-    }
-}
+    public:
+        Implementation( const io::File::FileIDtoPathMap& files );
 
-#endif //IMPLEMENTATION_SESSION_18_02_2019
+        const interface::Root*         getTreeRoot() const;
+        const concrete::Action*        getInstanceRoot() const;
+        const DerivationAnalysis&      getDerivationAnalysis() const;
+        const LinkAnalysis&            getLinkAnalysis() const;
+        const Layout&                  getLayout() const;
+        const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;
 
+        using Invocations = std::vector< const InvocationSolution* >;
+        void getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const;
+
+        void fullProgramAnalysis();
+
+    private:
+        void recurseInstances( std::vector< Buffer* >& buffers,
+                               Layout::DimensionMap& dimensionMap, std::size_t szSize, const concrete::Action* pAction );
+    };
+
+    class Read : public Stage
+    {
+    public:
+        Read( const boost::filesystem::path& filePath );
+
+        const interface::Root*         getTreeRoot() const;
+        const concrete::Action*        getInstanceRoot() const;
+        const DerivationAnalysis&      getDerivationAnalysis() const;
+        const LinkAnalysis&            getLinkAnalysis() const;
+        const Identifiers&             getIdentifiers() const;
+        const Layout&                  getLayout() const;
+        const TranslationUnitAnalysis& getTranslationUnitAnalysis() const;
+
+        const concrete::Action* getConcreteAction( TypeID id ) const;
+
+        using Invocations = std::vector< const InvocationSolution* >;
+        void getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const;
+    };
+} // namespace Stages
+} // namespace mega
+
+#endif // IMPLEMENTATION_SESSION_18_02_2019

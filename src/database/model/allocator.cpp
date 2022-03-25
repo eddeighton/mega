@@ -4,203 +4,202 @@
 
 #include "database/stages/interface.hpp"
 
-namespace eg
+namespace mega
 {
 namespace concrete
 {
 
-
-void Allocator::load( Loader& loader )
-{
-    m_pContext_Allocated = loader.loadObjectRef< Action >();
-    m_pContext_Allocating = loader.loadObjectRef< Action >();
-}
-void Allocator::store( Storer& storer ) const
-{
-    storer.storeObjectRef( m_pContext_Allocated );
-    storer.storeObjectRef( m_pContext_Allocating );
-}
-
-void NothingAllocator::load( Loader& loader )
-{
-    Allocator::load( loader );
-}
-void NothingAllocator::store( Storer& storer ) const
-{
-    Allocator::store( storer );
-}
-
-void NothingAllocator::constructDimensions( Stages::Interface& stage )
-{
-    
-}
-
-void constructRuntimeDimensions( Stages::Interface& stage, Action* pContext )
-{
-    pContext->m_pStopCycle                     = stage.construct< concrete::Dimension_Generated >();
-    pContext->m_pStopCycle->m_type             = concrete::Dimension_Generated::eActionStopCycle;
-    pContext->m_pStopCycle->m_pContext         = pContext;
-    pContext->m_pStopCycle->m_pParent          = pContext;
-    pContext->m_children.push_back( pContext->m_pStopCycle );
-    
-    //NOTE - MUST always ensure the reference is constructed BEFORE the state as this ensures the
-    //order of serialisation over the network.
-    pContext->m_pReference                     = stage.construct< concrete::Dimension_Generated >();
-    pContext->m_pReference->m_type             = concrete::Dimension_Generated::eActionReference;
-    pContext->m_pReference->m_pContext         = pContext;
-    pContext->m_pReference->m_pParent          = pContext;
-    pContext->m_children.push_back( pContext->m_pReference );
-    
-    pContext->m_pState                         = stage.construct< concrete::Dimension_Generated >();
-    pContext->m_pState->m_type                 = concrete::Dimension_Generated::eActionState;
-    pContext->m_pState->m_pContext             = pContext;
-    pContext->m_pState->m_pParent              = pContext;
-    pContext->m_children.push_back( pContext->m_pState );
-    
-    if( dynamic_cast< const interface::Object* >( pContext->getContext() ) )
+    void Allocator::load( io::Loader& loader )
     {
-        pContext->m_pLinkRefCount                  = stage.construct< concrete::Dimension_Generated >();
-        pContext->m_pLinkRefCount->m_type          = concrete::Dimension_Generated::eLinkReferenceCount;
-        pContext->m_pLinkRefCount->m_pContext      = pContext;
-        pContext->m_pLinkRefCount->m_pParent       = pContext;
-        pContext->m_children.push_back( pContext->m_pLinkRefCount );
+        m_pContext_Allocated = loader.loadObjectRef< Action >();
+        m_pContext_Allocating = loader.loadObjectRef< Action >();
     }
-}
-
-void SingletonAllocator::load( Loader& loader )
-{
-    Allocator::load( loader );
-}
-void SingletonAllocator::store( Storer& storer ) const
-{
-    Allocator::store( storer );
-}
-
-void SingletonAllocator::constructDimensions( Stages::Interface& stage )
-{
-    constructRuntimeDimensions( stage, m_pContext_Allocated );
-}
-
-void RangeAllocator::load( Loader& loader )
-{
-    Allocator::load( loader );
-    m_pAllocatorData    = loader.loadObjectRef< Dimension_Generated >();
-}
-void RangeAllocator::store( Storer& storer ) const
-{
-    Allocator::store( storer );
-    storer.storeObjectRef( m_pAllocatorData );
-}
-
-void RangeAllocator::constructDimensions( Stages::Interface& stage )
-{
-    constructRuntimeDimensions( stage, m_pContext_Allocated );
-    
-    m_pAllocatorData                 = stage.construct< concrete::Dimension_Generated >();
-    m_pAllocatorData->m_type         = concrete::Dimension_Generated::eActionAllocator;
-    m_pAllocatorData->m_pContext     = m_pContext_Allocated;
-    m_pAllocatorData->m_pParent      = m_pContext_Allocated;
-    m_pContext_Allocating->m_children.push_back( m_pAllocatorData );
-}
-
-std::string RangeAllocator::getAllocatorType() const
-{
-    const std::size_t szSize = m_pContext_Allocated->getLocalDomainSize();
-    if( szSize <= 32U )
+    void Allocator::store( io::Storer& storer ) const
     {
-        std::ostringstream os;
-        os << "::eg::Bitmask32Allocator< " << szSize << " >";
-        return os.str();
+        storer.storeObjectRef( m_pContext_Allocated );
+        storer.storeObjectRef( m_pContext_Allocating );
     }
-    else if( szSize <= 64U )
+
+    void NothingAllocator::load( io::Loader& loader )
     {
-        std::ostringstream os;
-        os << "::eg::Bitmask64Allocator< " << szSize << " >";
-        return os.str();
+        Allocator::load( loader );
     }
-    else
+    void NothingAllocator::store( io::Storer& storer ) const
     {
-        std::ostringstream os;
-        os << "::eg::RingAllocator< " << szSize << " >";
-        return os.str();
+        Allocator::store( storer );
     }
-}
-            
-Allocator* chooseAllocator( Stages::Interface& stage, Action* pParent, Action* pChild )
-{
-    Allocator* pResult = nullptr;
-    
-    bool bGenerate = true;
-    if( pParent == nullptr )
+
+    void NothingAllocator::constructDimensions( Stages::Interface& stage )
     {
-        bGenerate = false;
     }
-    else if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pChild->getContext() ) )
+
+    void constructRuntimeDimensions( Stages::Interface& stage, Action* pContext )
     {
-        switch( pRoot->getRootType() )
+        pContext->m_pStopCycle = stage.construct< concrete::Dimension_Generated >();
+        pContext->m_pStopCycle->m_type = concrete::Dimension_Generated::eActionStopCycle;
+        pContext->m_pStopCycle->m_pContext = pContext;
+        pContext->m_pStopCycle->m_pParent = pContext;
+        pContext->m_children.push_back( pContext->m_pStopCycle );
+
+        // NOTE - MUST always ensure the reference is constructed BEFORE the state as this ensures the
+        // order of serialisation over the network.
+        pContext->m_pReference = stage.construct< concrete::Dimension_Generated >();
+        pContext->m_pReference->m_type = concrete::Dimension_Generated::eActionReference;
+        pContext->m_pReference->m_pContext = pContext;
+        pContext->m_pReference->m_pParent = pContext;
+        pContext->m_children.push_back( pContext->m_pReference );
+
+        pContext->m_pState = stage.construct< concrete::Dimension_Generated >();
+        pContext->m_pState->m_type = concrete::Dimension_Generated::eActionState;
+        pContext->m_pState->m_pContext = pContext;
+        pContext->m_pState->m_pParent = pContext;
+        pContext->m_children.push_back( pContext->m_pState );
+
+        if ( dynamic_cast< const interface::Object* >( pContext->getContext() ) )
         {
-            case eInterfaceRoot :
-            case eFile          :
-            case eFileRoot      :
-            case eProjectName   :
+            pContext->m_pLinkRefCount = stage.construct< concrete::Dimension_Generated >();
+            pContext->m_pLinkRefCount->m_type = concrete::Dimension_Generated::eLinkReferenceCount;
+            pContext->m_pLinkRefCount->m_pContext = pContext;
+            pContext->m_pLinkRefCount->m_pParent = pContext;
+            pContext->m_children.push_back( pContext->m_pLinkRefCount );
+        }
+    }
+
+    void SingletonAllocator::load( io::Loader& loader )
+    {
+        Allocator::load( loader );
+    }
+    void SingletonAllocator::store( io::Storer& storer ) const
+    {
+        Allocator::store( storer );
+    }
+
+    void SingletonAllocator::constructDimensions( Stages::Interface& stage )
+    {
+        constructRuntimeDimensions( stage, m_pContext_Allocated );
+    }
+
+    void RangeAllocator::load( io::Loader& loader )
+    {
+        Allocator::load( loader );
+        m_pAllocatorData = loader.loadObjectRef< Dimension_Generated >();
+    }
+
+    void RangeAllocator::store( io::Storer& storer ) const
+    {
+        Allocator::store( storer );
+        storer.storeObjectRef( m_pAllocatorData );
+    }
+
+    void RangeAllocator::constructDimensions( Stages::Interface& stage )
+    {
+        constructRuntimeDimensions( stage, m_pContext_Allocated );
+
+        m_pAllocatorData = stage.construct< concrete::Dimension_Generated >();
+        m_pAllocatorData->m_type = concrete::Dimension_Generated::eActionAllocator;
+        m_pAllocatorData->m_pContext = m_pContext_Allocated;
+        m_pAllocatorData->m_pParent = m_pContext_Allocated;
+        m_pContext_Allocating->m_children.push_back( m_pAllocatorData );
+    }
+
+    std::string RangeAllocator::getAllocatorType() const
+    {
+        const std::size_t szSize = m_pContext_Allocated->getLocalDomainSize();
+        if ( szSize <= 32U )
+        {
+            std::ostringstream os;
+            os << "::mega::Bitmask32Allocator< " << szSize << " >";
+            return os.str();
+        }
+        else if ( szSize <= 64U )
+        {
+            std::ostringstream os;
+            os << "::mega::Bitmask64Allocator< " << szSize << " >";
+            return os.str();
+        }
+        else
+        {
+            std::ostringstream os;
+            os << "::mega::RingAllocator< " << szSize << " >";
+            return os.str();
+        }
+    }
+
+    Allocator* chooseAllocator( Stages::Interface& stage, Action* pParent, Action* pChild )
+    {
+        Allocator* pResult = nullptr;
+
+        bool bGenerate = true;
+        if ( pParent == nullptr )
+        {
+            bGenerate = false;
+        }
+        else if ( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pChild->getContext() ) )
+        {
+            switch ( pRoot->getRootType() )
+            {
+            case eInterfaceRoot:
+            case eFile:
+            case eFileRoot:
+            case eProjectName:
                 break;
-            case eMegaRoot      :
-            case eCoordinator   :
-            case eHostName      :
-            case eSubFolder     :
+            case eMegaRoot:
+            case eCoordinator:
+            case eHostName:
+            case eSubFolder:
                 bGenerate = false;
                 break;
             default:
                 THROW_RTE( "Unknown root type" );
+            }
         }
-    }
-    else if( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pParent->getContext() ) )
-    {
-        switch( pRoot->getRootType() )
+        else if ( const interface::Root* pRoot = dynamic_cast< const interface::Root* >( pParent->getContext() ) )
         {
-            case eInterfaceRoot :
-            case eFile          :
-            case eFileRoot      :
-            case eProjectName   :
+            switch ( pRoot->getRootType() )
+            {
+            case eInterfaceRoot:
+            case eFile:
+            case eFileRoot:
+            case eProjectName:
                 break;
-            case eMegaRoot      :
-            case eCoordinator   :
-            case eHostName      :
-            case eSubFolder     :
+            case eMegaRoot:
+            case eCoordinator:
+            case eHostName:
+            case eSubFolder:
                 bGenerate = false;
                 break;
             default:
                 THROW_RTE( "Unknown root type" );
+            }
         }
-    }
-    
-    if( !bGenerate )
-    {
-        concrete::NothingAllocator* pAllocator = stage.construct< concrete::NothingAllocator >();
-        pAllocator->m_pContext_Allocating = pParent;
-        pAllocator->m_pContext_Allocated = pChild;
-        pResult = pAllocator;
-    }
-    else
-    {
-        if( pChild->getLocalDomainSize() == 1U )
-        {
-            SingletonAllocator* pAllocator = stage.construct< concrete::SingletonAllocator >();
-            pAllocator->m_pContext_Allocating = pParent;
-            pAllocator->m_pContext_Allocated = pChild;
-            pResult = pAllocator;
-        }
-        else 
-        {
-            RangeAllocator* pAllocator = stage.construct< concrete::RangeAllocator >();
-            pAllocator->m_pContext_Allocating = pParent;
-            pAllocator->m_pContext_Allocated = pChild;
-            pResult = pAllocator;
-        }
-    }
-    
-    return pResult;
-}
 
-}//namespace concrete
-}//namespace eg
+        if ( !bGenerate )
+        {
+            concrete::NothingAllocator* pAllocator = stage.construct< concrete::NothingAllocator >();
+            pAllocator->m_pContext_Allocating = pParent;
+            pAllocator->m_pContext_Allocated = pChild;
+            pResult = pAllocator;
+        }
+        else
+        {
+            if ( pChild->getLocalDomainSize() == 1U )
+            {
+                SingletonAllocator* pAllocator = stage.construct< concrete::SingletonAllocator >();
+                pAllocator->m_pContext_Allocating = pParent;
+                pAllocator->m_pContext_Allocated = pChild;
+                pResult = pAllocator;
+            }
+            else
+            {
+                RangeAllocator* pAllocator = stage.construct< concrete::RangeAllocator >();
+                pAllocator->m_pContext_Allocating = pParent;
+                pAllocator->m_pContext_Allocated = pChild;
+                pResult = pAllocator;
+            }
+        }
+
+        return pResult;
+    }
+
+} // namespace concrete
+} // namespace mega

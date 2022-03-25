@@ -20,16 +20,22 @@ public:
     Environment( const Path& rootSourceDir,
                  const Path& rootBuildDir,
                  const Path& sourceDir,
-                 const Path& buildDir );
+                 const Path& buildDir,
+                 const Path& parserDLL );
     ~Environment();
 
-    Path parseFilePath( const Path& megaSourcePath ) const;
+    Path parserDLL() const;
+
+    Path parserAST( const Path& megaSourcePath ) const;
+    Path parserBody( const Path& megaSourcePath ) const;
+
 
 private:
     const Path& m_rootSourceDir;
     const Path& m_rootBuildDir;
     const Path& m_sourceDir;
     const Path& m_buildDir;
+    const Path& m_parserDLL;
     task::Stash m_stash;
 };
 

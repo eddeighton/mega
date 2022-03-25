@@ -17,41 +17,41 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/io/loader.hpp"
 
 #include "common/file.hpp"
 
-namespace eg
+namespace mega
 {
-
-    Loader::Loader( const boost::filesystem::path& filePath, 
-        ObjectFactory& objectFactory, IndexedFile::FileIDToFileMap& files )
-        :   m_objectFactory( objectFactory ),
-            m_files( files ),
-            m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) ),
-            m_archive( *m_pFileStream )
+namespace io
+{
+    Loader::Loader( const boost::filesystem::path& filePath,
+                    Factory& objectFactory, File::FileIDToFileMap& files )
+        : m_objectFactory( objectFactory )
+        , m_files( files )
+        , m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
+        , m_archive( *m_pFileStream )
     {
     }
-        
+
     void Loader::loadObject()
     {
-        IndexedObject object;
+        Object object;
         object.load( *this );
-        
-        IndexedObject::FileID fileID = object.getFileID();
-        IndexedFile* pFile = m_files[ fileID ];
+
+        Object::FileID fileID = object.getFileID();
+        File*          pFile = m_files[ fileID ];
         VERIFY_RTE( pFile );
-        
+
         std::size_t szIndex = object.getIndex();
         VERIFY_RTE( szIndex < pFile->m_objects.size() );
-        IndexedObject* pObject = pFile->m_objects[ szIndex ];
+        Object* pObject = pFile->m_objects[ szIndex ];
         VERIFY_RTE( !pObject );
-        
+
         pObject = m_objectFactory.create( object );
-        
+
         pFile->m_objects[ szIndex ] = pObject;
     }
 
-
-}
+} // namespace io
+} // namespace mega
