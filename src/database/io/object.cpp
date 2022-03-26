@@ -39,9 +39,5 @@ namespace io
         storer.store( m_index );
     }
 
-    Factory::~Factory()
-    {
-    }
-
 } // namespace io
 } // namespace mega

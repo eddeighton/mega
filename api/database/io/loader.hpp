@@ -23,7 +23,7 @@
 #include "archive.hpp"
 #include "object.hpp"
 #include "factory.hpp"
-#include "file.hpp"
+#include "manifest.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -46,10 +46,7 @@ namespace io
     class Loader
     {
     public:
-        Loader( const boost::filesystem::path& filePath,
-                Factory& objectFactory, File::FileIDToFileMap& files );
-
-        void loadObject();
+        Loader( const boost::filesystem::path& filePath );
 
         template < class T >
         inline void load( T& value )
@@ -73,21 +70,21 @@ namespace io
         template < class T >
         T* loadObjectRef()
         {
-            T*                    p = nullptr;
+            T*             p = nullptr;
             Object::FileID fileID = Object::NO_FILE;
             load( fileID );
             if ( fileID != Object::NO_FILE )
             {
-                File* pFile = m_files[ fileID ];
-                VERIFY_RTE( pFile );
-
-                Object::Index szIndex = Object::NO_INDEX;
-                load( szIndex );
-                VERIFY_RTE( szIndex < pFile->m_objects.size() );
-
-                Object* pObject = pFile->m_objects[ szIndex ];
-                p = dynamic_cast< T* >( pObject );
-                VERIFY_RTE_MSG( p, "Failed to load indexed object" );
+                // File* pFile = m_files[ fileID ];
+                // VERIFY_RTE( pFile );
+                //
+                // Object::Index szIndex = Object::NO_INDEX;
+                // load( szIndex );
+                // VERIFY_RTE( szIndex < pFile->m_objects.size() );
+                //
+                // Object* pObject = pFile->m_objects[ szIndex ];
+                // p = dynamic_cast< T* >( pObject );
+                // VERIFY_RTE_MSG( p, "Failed to load indexed object" );
             }
             return p;
         }
@@ -168,10 +165,9 @@ namespace io
         }
 
     private:
-        Factory&                                        m_objectFactory;
-        File::FileIDToFileMap&                          m_files;
-        std::unique_ptr< boost::filesystem::ifstream >  m_pFileStream;
-        boost::archive::binary_iarchive                 m_archive;
+        std::unique_ptr< boost::filesystem::ifstream > m_pFileStream;
+        boost::archive::binary_iarchive                m_archive;
+        Manifest                                       m_manifest;
     };
 
 } // namespace io

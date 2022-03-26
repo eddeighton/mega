@@ -2,53 +2,104 @@
 #define INDEXED_FILE_25_MAR_2022
 
 #include "object.hpp"
-#include "factory.hpp"
+#include "loader.hpp"
+
+#include <memory>
 
 namespace mega
 {
 namespace io
 {
-    class File
+
+    namespace stage
     {
-        friend class Loader;
+        class Test
+        {
+        public:
+        };
+    } // namespace stage
 
-    public:
-        using FileEntry = std::pair< boost::filesystem::path, Object::FileID >;
-        using FileTable = std::vector< FileEntry >;
-        using FileIDToFileMap = std::map< Object::FileID, File* >;
-        using FileIDtoPathMap = std::map< Object::FileID, boost::filesystem::path >;
+    namespace file
+    {
+        class File
+        {
+        public:
+            using Ptr = std::shared_ptr< File >;
+            using PtrCst = std::shared_ptr< const File >;
 
-        File( const boost::filesystem::path& filePath, Object::FileID fileID );
+        private:
+            const boost::filesystem::path m_filePath;
+            const Object::FileID          m_fileID;
+            Object::Array                 m_objects;
 
-        static Object::FileID readFileID( const boost::filesystem::path& filePath );
+            std::unique_ptr< Loader > m_pLoader;
 
-        static void load( Factory& factory, FileIDToFileMap& fileMap,
-                          const boost::filesystem::path& filePath, Object::FileID fileID );
+        public:
+            File( const boost::filesystem::path& filePath,
+                  Object::FileID                 fileID )
+                : m_filePath( filePath )
+                , m_fileID( fileID )
+            {
+            }
 
-        static void store( const boost::filesystem::path& filePath, Object::FileID fileID,
-                           const FileIDtoPathMap& files, const Object::Array& objects );
+            Object::FileID                 getFileID() const { return m_fileID; }
+            const boost::filesystem::path& getFilePath() const { return m_filePath; }
 
-        const boost::filesystem::path& getPath() const { return m_filePath; }
-        const Object::FileID           getFileID() const { return m_fileID; }
-        const FileTable&               getFiles() const { return m_files; }
-        const Object::Array&           getObjects() const { return m_objects; }
+            void preload();
+            void load();
+            void store( const Manifest& manifest ) const;
 
-        Object::Array& getObjects() { return m_objects; }
+            template < typename T, typename... Args >
+            inline T* construct( Args... args )
+            {
+                T* pNewObject = new T( io::Object( T::Type, m_fileID, m_objects.size() ), args... );
+                m_objects.push_back( pNewObject );
+                return pNewObject;
+            }
 
-    private:
-        static void beginLoadingFile( Factory& factory, FileIDToFileMap& fileMap,
-                                      const boost::filesystem::path& filePath, Object::FileID fileID );
-        void        beginLoad( Factory& factory, FileIDToFileMap& fileMap );
-        void        endLoad();
+            template < typename T, typename TFunctor >
+            inline auto collect( const TFunctor& functor )
+            {
+                return functor( m_objects );
+            }
 
-    private:
-        const boost::filesystem::path m_filePath;
-        const Object::FileID          m_fileID;
-        FileTable                     m_files;
-        Object::Array                 m_objects;
+            template < typename T, typename TFunctor >
+            inline auto collect( const TFunctor& functor ) const
+            {
+                return functor( m_objects );
+            }
+        };
 
-        std::shared_ptr< Loader > m_pLoader;
-    };
+        class FileTypes
+        {
+        public:
+            enum
+            {
+                TestFile
+            };
+        };
+
+        template < class TCreatingStage >
+        class StagedFile : public File
+        {
+        public:
+            using CreatingStage = TCreatingStage;
+            StagedFile( const boost::filesystem::path& filePath, Object::FileID fileID )
+                : File( filePath, fileID )
+            {
+            }
+        };
+
+        class TestFile : public StagedFile< stage::Test >
+        {
+        public:
+            TestFile( const boost::filesystem::path& filePath, Object::FileID fileID )
+                : StagedFile( filePath, fileID )
+            {
+            }
+        };
+
+    } // namespace file
 
 } // namespace io
 } // namespace mega

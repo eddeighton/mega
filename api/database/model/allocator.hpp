@@ -33,10 +33,9 @@ namespace concrete
 {
     class Action;
     class Dimension_Generated;
-
+/*
     class Allocator : public io::Object
     {
-        friend class mega::ObjectFactoryImpl;
         friend class mega::Stages::Interface;
 
     protected:
@@ -61,7 +60,6 @@ namespace concrete
 
     class NothingAllocator : public Allocator
     {
-        friend class mega::ObjectFactoryImpl;
         friend class mega::Stages::Interface;
         friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
 
@@ -82,7 +80,6 @@ namespace concrete
 
     class SingletonAllocator : public Allocator
     {
-        friend class mega::ObjectFactoryImpl;
         friend class mega::Stages::Interface;
         friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
 
@@ -103,7 +100,6 @@ namespace concrete
 
     class RangeAllocator : public Allocator
     {
-        friend class mega::ObjectFactoryImpl;
         friend class mega::Stages::Interface;
         friend Allocator* chooseAllocator( Stages::Interface&, Action*, Action* );
 
@@ -130,7 +126,7 @@ namespace concrete
     };
 
     Allocator* chooseAllocator( Stages::Interface& stage, Action* pParent, Action* pChild );
-
+*/
 } // namespace concrete
 } // namespace mega
 

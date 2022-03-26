@@ -33,7 +33,7 @@
 namespace mega
 {
 namespace Stages
-{
+{/*
     class Implementation : public Creating
     {
     public:
@@ -73,7 +73,7 @@ namespace Stages
 
         using Invocations = std::vector< const InvocationSolution* >;
         void getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const;
-    };
+    };*/
 } // namespace Stages
 } // namespace mega
 

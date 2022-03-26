@@ -8,7 +8,7 @@ namespace mega
 {
 namespace concrete
 {
-
+/*
     void Allocator::load( io::Loader& loader )
     {
         m_pContext_Allocated = loader.loadObjectRef< Action >();
@@ -200,6 +200,6 @@ namespace concrete
 
         return pResult;
     }
-
+*/
 } // namespace concrete
 } // namespace mega

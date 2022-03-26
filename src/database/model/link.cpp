@@ -110,7 +110,7 @@ interface::Context* LinkGroup::getLinkTarget( interface::Link* pLink )
                     "Link does not have singular link target type: " << pLink->getFriendlyName() );
     return pLink->getBaseContexts().front();
 }
-
+/*
 // calculateSets called in the interface_stage linkAnalysis as the second step
 void LinkAnalysis::calculateGroups( const ContextSetPtrSet&                   sets,
                                     const std::vector< interface::Context* >& contexts,
@@ -215,6 +215,7 @@ void LinkAnalysis::calculateGroups( const ContextSetPtrSet&                   se
         m_groups.push_back( pGroup );
     }
 }
+*/
 
 const LinkGroup* LinkAnalysis::getLinkGroup( const interface::Link* pLink ) const
 {

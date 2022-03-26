@@ -25,33 +25,13 @@ namespace mega
 {
 namespace io
 {
-    Loader::Loader( const boost::filesystem::path& filePath,
-                    Factory& objectFactory, File::FileIDToFileMap& files )
-        : m_objectFactory( objectFactory )
-        , m_files( files )
-        , m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
+    Loader::Loader( const boost::filesystem::path& filePath )
+        : m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
         , m_archive( *m_pFileStream )
     {
+        m_manifest.load(*m_pFileStream);
     }
-
-    void Loader::loadObject()
-    {
-        Object object;
-        object.load( *this );
-
-        Object::FileID fileID = object.getFileID();
-        File*          pFile = m_files[ fileID ];
-        VERIFY_RTE( pFile );
-
-        std::size_t szIndex = object.getIndex();
-        VERIFY_RTE( szIndex < pFile->m_objects.size() );
-        Object* pObject = pFile->m_objects[ szIndex ];
-        VERIFY_RTE( !pObject );
-
-        pObject = m_objectFactory.create( object );
-
-        pFile->m_objects[ szIndex ] = pObject;
-    }
+    
 
 } // namespace io
 } // namespace mega

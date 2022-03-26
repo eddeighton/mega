@@ -19,11 +19,12 @@
 
 #include "environment.hpp"
 
-#include "database/stages/parser.hpp"
+#include "database/io/source_listing.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
+#include "common/terminal.hpp"
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
@@ -36,7 +37,7 @@
 
 namespace driver
 {
-namespace parse
+namespace list
 {
     class BaseTask : public task::Task
     {
@@ -51,50 +52,42 @@ namespace parse
         const Environment& m_environment;
     };
 
-    class Task_ObjectSourceToInputAST : public BaseTask
+    class Task_SourceListingToManifest : public BaseTask
     {
     public:
-        Task_ObjectSourceToInputAST( const Environment& environment, const boost::filesystem::path& megaSourceFilePath )
+        Task_SourceListingToManifest( const Environment&                            environment,
+                                      const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
+                                      bool                                          bIsComponent )
             : BaseTask( environment, {} )
-            , m_megaSourceFilePath( megaSourceFilePath )
+            , m_sourceListing( inputMegaSourceFiles, bIsComponent )
         {
         }
         virtual void run( task::Progress& taskProgress )
         {
-            const Environment::Path parserAST  = m_environment.parserAST( m_megaSourceFilePath );
-            const Environment::Path parserBody = m_environment.parserBody( m_megaSourceFilePath );
+            // inputMegaSourceFiles
+            const Environment::Path sourceListPath = m_environment.source_list();
 
-            taskProgress.start( "ObjectSourceToInputAST",
-                                m_megaSourceFilePath,
-                                parserAST );
+            taskProgress.start( "Task_SourceListingToManifest",
+                                m_environment.sourceDir(),
+                                sourceListPath );
 
-
-
-
-            std::unique_ptr< mega::Stages::Parser > parserSession = 
-                std::make_unique< mega::Stages::Parser >( 
-                    m_environment.parserDLL(),
-                    m_megaSourceFilePath,
-                    parserAST,
-                    parserBody );
-
-
-
+            m_sourceListing.save( sourceListPath );
 
             taskProgress.succeeded();
         }
 
     private:
-        const boost::filesystem::path m_megaSourceFilePath;
+        mega::io::SourceListing m_sourceListing;
     };
 
     void command( bool bHelp, const std::vector< std::string >& args )
     {
-        boost::filesystem::path rootSourceDir, rootBuildDir, sourceDir, buildDir, parserDLL;
+        boost::filesystem::path rootSourceDir, rootBuildDir, sourceDir, buildDir;
+        bool                    bIsComponent;
         std::string             objectSourceFiles;
 
         namespace po = boost::program_options;
-        po::options_description commandOptions( " Build Project Command" );
+        po::options_description commandOptions( " List input mega source files" );
         {
             // clang-format off
             commandOptions.add_options()
@@ -102,8 +95,9 @@ namespace parse
                 ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),      "Root build directory" )
                 ( "src_dir",        po::value< boost::filesystem::path >( &sourceDir ),         "Source directory" )
                 ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),          "Build Directory" )
-                ( "parser_dll",     po::value< boost::filesystem::path >( &parserDLL ),         "Mega Parser DLL" )
-                ( "names",          po::value< std::string >( &objectSourceFiles ),             "eg source file names ( no extension, semicolon delimited )" );
+                ( "is_component",   po::value< bool >( &bIsComponent ),                         "Is this the start of a mega component" )
+                ( "names",          po::value< std::string >( &objectSourceFiles ),             "Mega source file names ( semicolon delimited )" )
+                ;
             // clang-format on
         }
 
@@ -120,32 +114,37 @@ namespace parse
         }
         else
         {
-            // tokenize semi colon delimited names
-            std::vector< std::string > megaFileNames;
+            // tokenize semi colon delimited names into absolute mega source file paths
+            std::vector< boost::filesystem::path > inputSourceFiles;
             {
-                using Tokeniser = boost::tokenizer< boost::char_separator< char > >;
-                boost::char_separator< char > sep( ";" );
-                Tokeniser                     tokens( objectSourceFiles, sep );
-                for ( Tokeniser::iterator i = tokens.begin(); i != tokens.end(); ++i )
-                    megaFileNames.push_back( *i );
+                std::vector< std::string > megaFileNames;
+                {
+                    using Tokeniser = boost::tokenizer< boost::char_separator< char > >;
+                    boost::char_separator< char > sep( ";" );
+                    Tokeniser                     tokens( objectSourceFiles, sep );
+                    for ( Tokeniser::iterator i = tokens.begin(); i != tokens.end(); ++i )
+                        megaFileNames.push_back( *i );
+                }
+                for ( const std::string& strFileName : megaFileNames )
+                {
+                    const boost::filesystem::path sourceFilePath = boost::filesystem::edsCannonicalise(
+                        boost::filesystem::absolute( sourceDir / strFileName ) );
+                    VERIFY_RTE_MSG( boost::filesystem::exists( sourceFilePath ),
+                                    common::COLOUR_RED_BEGIN << "ERROR: Failed to locate: " << sourceFilePath.string() << common::COLOUR_END );
+                    inputSourceFiles.push_back( sourceFilePath );
+                }
             }
 
-            Environment environment( rootSourceDir, rootBuildDir, sourceDir, buildDir, parserDLL );
+            Environment environment( rootSourceDir, rootBuildDir, sourceDir, buildDir );
 
             task::Task::PtrVector tasks;
-            for ( const std::string& strFileName : megaFileNames )
-            {
-                const boost::filesystem::path sourceFilePath = boost::filesystem::edsCannonicalise(
-                    boost::filesystem::absolute( sourceDir / strFileName ) );
-                VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
 
-                Task_ObjectSourceToInputAST* pTask = new Task_ObjectSourceToInputAST( environment, sourceFilePath );
-                tasks.push_back( task::Task::Ptr( pTask ) );
-            }
+            Task_SourceListingToManifest* pTask = new Task_SourceListingToManifest( environment, inputSourceFiles, bIsComponent );
+            tasks.push_back( task::Task::Ptr( pTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
             task::run( pSchedule, std::cout );
         }
     }
-} // namespace parse
+} // namespace list
 } // namespace driver

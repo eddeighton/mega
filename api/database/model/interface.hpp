@@ -32,7 +32,6 @@
 namespace clang
 {
 class AbstractMutator;
-class ObjectFactoryImpl;
 } // namespace clang
 
 namespace mega
@@ -48,10 +47,7 @@ namespace interface
 {
     class Element : public io::Object
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
-        friend class mega::ObjectFactoryImpl;
         friend class mega::Stages::Parser;
-
     protected:
         Element( const io::Object& object, Element* pParent,
                  input::Element* pElement, VisibilityType visibility );
@@ -232,8 +228,7 @@ namespace interface
 
     class Opaque : public Element
     {
-        friend class mega::ObjectFactoryImpl;
-
+        friend class io::Factory;
     public:
         static const ObjectType Type = eAbstractOpaque;
 
@@ -255,11 +250,9 @@ namespace interface
 
     class Dimension : public Element
     {
+        friend class io::Factory;
         static const std::size_t SIZE_NOT_SET = std::numeric_limits< std::size_t >::max();
-
-        friend class mega::ObjectFactoryImpl;
         friend class ::clang::AbstractMutator;
-
     public:
         static const ObjectType Type = eAbstractDimension;
 
@@ -296,9 +289,8 @@ namespace interface
 
     class Using : public Element
     {
-        friend class mega::ObjectFactoryImpl;
+        friend class io::Factory;
         friend class ::clang::AbstractMutator;
-
     public:
         static const ObjectType Type = eAbstractUsing;
 
@@ -319,8 +311,7 @@ namespace interface
 
     class Export : public Element
     {
-        friend class mega::ObjectFactoryImpl;
-
+        friend class io::Factory;
     public:
         static const ObjectType Type = eAbstractExport;
 
@@ -340,8 +331,7 @@ namespace interface
 
     class Include : public Element
     {
-        friend class mega::ObjectFactoryImpl;
-
+        friend class io::Factory;
     public:
         static const ObjectType Type = eAbstractInclude;
 
@@ -359,7 +349,7 @@ namespace interface
     class Root;
     class Context : public Element
     {
-        friend class mega::ObjectFactoryImpl;
+        friend class io::Factory;
         friend class mega::Stages::Interface;
         friend class ::clang::AbstractMutator;
 
@@ -403,7 +393,7 @@ namespace interface
 
     class Abstract : public Context
     {
-        friend class mega::ObjectFactoryImpl;
+        friend class io::Factory;
         friend class mega::Stages::Interface;
         friend class ::clang::AbstractMutator;
 
@@ -420,7 +410,7 @@ namespace interface
 
     class Event : public Context
     {
-        friend class mega::ObjectFactoryImpl;
+        friend class io::Factory;
         friend class mega::Stages::Interface;
         friend class ::clang::AbstractMutator;
 
@@ -436,7 +426,7 @@ namespace interface
 
     class Function : public Context
     {
-        friend class mega::ObjectFactoryImpl;
+        friend class io::Factory;
         friend class mega::Stages::Interface;
         friend class ::clang::AbstractMutator;
 
@@ -458,7 +448,7 @@ namespace interface
 
     class Action : public Context
     {
-        friend class mega::ObjectFactoryImpl;
+        friend class io::Factory;
         friend class mega::Stages::Interface;
         friend class ::clang::AbstractMutator;
 
@@ -474,7 +464,7 @@ namespace interface
 
     class Object : public Context
     {
-        friend class mega::ObjectFactoryImpl;
+        friend class io::Factory;
         friend class mega::Stages::Interface;
         friend class ::clang::AbstractMutator;
 
@@ -490,7 +480,7 @@ namespace interface
 
     class Link : public Context
     {
-        friend class mega::ObjectFactoryImpl;
+        friend class io::Factory;
         friend class mega::Stages::Interface;
         friend class ::clang::AbstractMutator;
 
@@ -506,8 +496,7 @@ namespace interface
 
     class Root : public Object
     {
-        friend class mega::ObjectFactoryImpl;
-
+        friend class io::Factory;
     public:
         static const ObjectType Type = eAbstractRoot;
 

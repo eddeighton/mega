@@ -34,7 +34,6 @@
 
 namespace mega
 {
-class ObjectFactoryImpl;
 class Parser;
 
 namespace Stages
@@ -46,10 +45,7 @@ namespace input
 {
     class Element : public io::Object
     {
-        friend class mega::ObjectFactoryImpl;
         friend class mega::Parser;
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
-
     protected:
         Element( const io::Object& object );
 
@@ -59,10 +55,9 @@ namespace input
 
     class Opaque : public Element
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
+        friend class io::Factory;
         friend class mega::Parser;
         friend class mega::Stages::Parser;
-
     public:
         static const ObjectType Type = eInputOpaque;
 
@@ -100,7 +95,6 @@ namespace input
     class HasIdentifier
     {
         friend class mega::Parser;
-
     public:
         const std::string& getIdentifier() const { return m_strIdentifier; }
 
@@ -114,7 +108,6 @@ namespace input
     class HasConst
     {
         friend class mega::Parser;
-
     public:
         bool isConst() const { return m_bIsConst; }
 
@@ -128,7 +121,6 @@ namespace input
     class HasChildren
     {
         friend class mega::Parser;
-
     public:
         const std::vector< Element* >& getElements() const { return m_elements; }
 
@@ -226,7 +218,7 @@ namespace input
     // input tree
     class Dimension : public Element, public HasIdentifier, public HasConst
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
+        friend class io::Factory;
         friend class mega::Parser;
         friend class mega::Stages::Parser;
 
@@ -249,7 +241,7 @@ namespace input
 
     class Include : public Element, public HasIdentifier
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
+        friend class io::Factory;
         friend class mega::Parser;
         friend class mega::Stages::Parser;
 
@@ -277,7 +269,7 @@ namespace input
 
     class Using : public Element, public HasIdentifier
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
+        friend class io::Factory;
         friend class mega::Parser;
         friend class mega::Stages::Parser;
 
@@ -300,7 +292,7 @@ namespace input
 
     class Export : public Element, public HasIdentifier
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
+        friend class io::Factory;
         friend class mega::Parser;
         friend class mega::Stages::Parser;
 
@@ -325,7 +317,7 @@ namespace input
 
     class Visibility : public Element, public HasVisibility
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
+        friend class io::Factory;
         friend class mega::Parser;
         friend class mega::Stages::Parser;
 
@@ -349,7 +341,7 @@ namespace input
                     public HasParameters,
                     public HasInheritance
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
+        friend class io::Factory;
         friend class mega::Parser;
         friend class mega::Stages::Parser;
 
@@ -383,7 +375,7 @@ namespace input
 
     class Root : public Context
     {
-        friend io::Object* mega::ObjectFactoryImpl::create( const io::Object& );
+        friend class io::Factory;
         friend class mega::Parser;
         friend class mega::Stages::Parser;
 

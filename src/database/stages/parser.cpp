@@ -18,6 +18,9 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "database/stages/parser.hpp"
+#include "database/io/manifest.hpp"
+#include "database/io/database.hpp"
+#include "database/io/source_listing.hpp"
 #include "parser/parser.hpp"
 
 #include "database/model/eg.hpp"
@@ -27,6 +30,7 @@
 
 #include <boost/dll/import.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/operations.hpp>
 
 namespace mega
 {
@@ -34,18 +38,26 @@ namespace Stages
 {
 
     Parser::Parser( const boost::filesystem::path& parserDLL,
-                    const boost::filesystem::path& inputMegaSourceFile,
-                    const boost::filesystem::path& parserASTFile,
-                    const boost::filesystem::path& parserBodyFile )
+                    const boost::filesystem::path& sourceDir,
+                    const boost::filesystem::path& buildDir )
 
-        : Creating( io::File::FileIDtoPathMap{}, io::Object::NO_FILE )
-        , m_parserDLL( parserDLL )
-        , m_inputMegaSourceFile( inputMegaSourceFile )
-        , m_parserASTFile( parserASTFile )
-        , m_parserBodyFile( parserBodyFile )
+        //: Creating( io::File::FileIDtoPathMap{}, io::Object::NO_FILE )
+        : m_parserDLL( parserDLL )
+        , m_sourceDir( sourceDir )
+        , m_buildDir( buildDir )
     {
     }
 
+/*
+    void Parser::calculateManifest()
+    {
+        io::Manifest::PtrCst pManifest = std::make_shared< io::Manifest >( m_buildDir );
+
+        io::Database< io::stage::Test > database( m_sourceDir, m_buildDir, pManifest );
+
+        database.store();
+    }
+*/
     /*
     Parser::Parser( EG_PARSER_CALLBACK* pParserCallback,
                 const boost::filesystem::path& parserDLLPath,

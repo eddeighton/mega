@@ -34,7 +34,7 @@
 namespace mega
 {
 namespace Stages
-{
+{/*
     class Operations : public Creating
     {
     public:
@@ -55,7 +55,7 @@ namespace Stages
         InvocationSolutionMap         m_invocations;
 
         const Identifiers* m_pIdentifiers;
-    };
+    };*/
 } // namespace Stages
 } // namespace mega
 

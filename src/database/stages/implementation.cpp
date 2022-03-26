@@ -24,6 +24,7 @@ namespace mega
 {
 namespace Stages
 {
+    /*
     Implementation::Implementation( const io::File::FileIDtoPathMap& files )
         :   Creating( files, io::Object::NO_FILE )
     {
@@ -315,6 +316,6 @@ namespace Stages
     void Read::getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const
     {
         invocations = io::many_cst< InvocationSolution >( getObjects( szTranslationUnitID ) );
-    }
+    }*/
 }
 }

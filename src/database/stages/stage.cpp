@@ -23,6 +23,7 @@ namespace mega
 {
 namespace Stages
 {
+    /*
     Stage::Stage( const io::File::FileIDtoPathMap& files )
     {
         ObjectFactoryImpl objectFactory;
@@ -104,7 +105,7 @@ namespace Stages
         }
         files.insert( std::make_pair( m_fileID, filePath ) );
         io::File::store( filePath, m_fileID, files, m_newObjects );
-    }
+    }*/
 
 }
 }

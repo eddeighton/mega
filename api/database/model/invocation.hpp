@@ -52,7 +52,7 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////
 class InvocationSolution : public io::Object
 {
-    friend class ObjectFactoryImpl;
+    friend class io::Factory;
     friend class Operations;
     friend class EGRuntimeImpl;
     friend class InvocationSolutionMap;
@@ -147,9 +147,10 @@ std::ostream& operator<<( std::ostream& os, const InvocationSolution::Invocation
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
+/*
 class InvocationSolutionMap
 {
-    friend class ObjectFactoryImpl;
+    friend class io::Factory;
     friend class Operations;
     friend class EGRuntimeImpl;
 
@@ -173,7 +174,7 @@ private:
     Stages::Creating&                 m_stage;
     const DerivationAnalysis&         m_analysis;
     InvocationSolution::InvocationMap m_invocations;
-};
+};*/
 } // namespace mega
 
 #endif // INVOCATION_05_05_2019

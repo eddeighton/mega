@@ -10,8 +10,7 @@ namespace io
     class Factory
     {
     public:
-        virtual ~Factory();
-        virtual Object* create( const Object& objectSpec ) = 0;
+        static Object* create( const Object& objectSpec );
     };
 
 } // namespace io

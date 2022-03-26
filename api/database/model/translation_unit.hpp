@@ -43,7 +43,7 @@ extern std::string style_replace_non_alpha_numeric( const std::string& str, char
 
 class TranslationUnit : public io::Object
 {
-    friend class ObjectFactoryImpl;
+    friend class io::Factory;
     friend class Stages::Interface;
 
 public:
@@ -152,7 +152,7 @@ public:
 
 class TranslationUnitAnalysis : public io::Object
 {
-    friend class ObjectFactoryImpl;
+    friend class io::Factory;
     friend class Stages::Interface;
 
 public:

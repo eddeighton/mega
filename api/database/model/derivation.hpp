@@ -66,8 +66,7 @@ class LinkGroup;
 /////////////////////////////////////////////////////////////////////////////////////
 class DerivationAnalysis : public io::Object
 {
-    friend class ObjectFactoryImpl;
-
+    friend class io::Factory;
 public:
     static const ObjectType Type = eDerivationAnalysis;
 

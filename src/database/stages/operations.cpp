@@ -23,6 +23,7 @@ namespace mega
 {
 namespace Stages
 {
+    /*
     Operations::Operations( const boost::filesystem::path& treePath,
                             const boost::filesystem::path& tuPath,
                             io::Object::FileID             fileID )
@@ -48,6 +49,6 @@ namespace Stages
         const InvocationSolution::InvocationID& invocationID, const std::vector< mega::TypeID >& implicitTypePath )
     {
         return m_invocations.getInvocation( invocationID, implicitTypePath );
-    }
+    }*/
 } // namespace Stages
 } // namespace mega

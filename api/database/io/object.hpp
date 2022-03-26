@@ -83,6 +83,18 @@ namespace io
         FileID m_fileID = NO_FILE;
         Index  m_index = NO_INDEX;
     };
+
+    template< typename TFileType >
+    class FileObject : public Object
+    {
+    public:
+        using FileType = TFileType;
+        FileObject( const Object& object )
+            : Object( object )
+        {
+        }
+    };
+
 } // namespace io
 } // namespace mega
 

@@ -142,14 +142,14 @@ namespace concrete
         Element::load( loader );
         m_pObject = loader.loadObjectRef< Action >();
         m_inheritance = loader.loadObjectRef< Inheritance_Node >();
-        m_pAllocator = loader.loadObjectRef< Allocator >();
+        //m_pAllocator = loader.loadObjectRef< Allocator >();
         loader.load( m_strName );
         loader.load( m_totalDomainSize );
         m_pStopCycle = loader.loadObjectRef< Dimension_Generated >();
         m_pState = loader.loadObjectRef< Dimension_Generated >();
         m_pReference = loader.loadObjectRef< Dimension_Generated >();
         m_pLinkRefCount = loader.loadObjectRef< Dimension_Generated >();
-        loader.loadObjectMap( m_allocators );
+        //loader.loadObjectMap( m_allocators );
         loader.loadKeyObjectMap( m_links );
     }
 
@@ -158,14 +158,14 @@ namespace concrete
         Element::store( storer );
         storer.storeObjectRef( m_pObject );
         storer.storeObjectRef( m_inheritance );
-        storer.storeObjectRef( m_pAllocator );
+        //storer.storeObjectRef( m_pAllocator );
         storer.store( m_strName );
         storer.store( m_totalDomainSize );
         storer.storeObjectRef( m_pStopCycle );
         storer.storeObjectRef( m_pState );
         storer.storeObjectRef( m_pReference );
         storer.storeObjectRef( m_pLinkRefCount );
-        storer.storeObjectMap( m_allocators );
+        //storer.storeObjectMap( m_allocators );
         storer.storeKeyObjectMap( m_links );
     }
 

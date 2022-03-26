@@ -151,36 +151,6 @@ inline std::istream& operator<<( std::istream& is, ObjectType& type )
     return is;
 }
 
-class ObjectFactoryImpl : public io::Factory
-{
-public:
-    virtual io::Object* create( const io::Object& object );
-
-    template < class T >
-    static inline T* create( io::Object::FileID fileID, io::Object::Index index )
-    {
-        ObjectFactoryImpl factory;
-        io::Object*       pNewIndexedObject = factory.create( io::Object( T::Type, fileID, index ) );
-        VERIFY_RTE( pNewIndexedObject );
-        T* pNewObject = dynamic_cast< T* >( pNewIndexedObject );
-        VERIFY_RTE( pNewObject );
-        return pNewObject;
-    }
-
-    template < class T, class TElement, class TNestedElement >
-    static inline T* create( io::Object::FileID fileID, io::Object::Index index, TElement* pParent, TNestedElement* pElement, VisibilityType visibility )
-    {
-        T* pNewObject = new T( io::Object( T::Type, fileID, index ), pParent, pElement, visibility );
-        pParent->m_children.push_back( pNewObject );
-        return pNewObject;
-    }
-
-    template < class T, class... Args >
-    static inline T* create( io::Object::FileID fileID, io::Object::Index index, Args... args )
-    {
-        return new T( io::Object( T::Type, fileID, index ), args... );
-    }
-};
 } // namespace mega
 
 #endif // EG_OBJECTS_18_04_2019

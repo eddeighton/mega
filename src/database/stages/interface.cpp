@@ -29,6 +29,7 @@ namespace mega
 {
 namespace Stages
 {
+    /*
     Interface::Interface( const boost::filesystem::path& treePath )
         : Appending( treePath, io::Object::NO_FILE )
     {
@@ -557,10 +558,10 @@ namespace Stages
             // now determine if the file actually exists and get the File ID if it does
             if ( pTranslationUnit->m_databaseFileID != io::Object::NO_FILE )
             {
-                /*if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
-                {
-                    THROW_RTE( "Unreachable" );
-                }*/
+                //if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
+                //{
+                //    THROW_RTE( "Unreachable" );
+                //}
                 usedTUFileIDs.insert( pTranslationUnit->m_databaseFileID );
             }
             else
@@ -591,7 +592,7 @@ namespace Stages
                 ++nextLogicalID;
             }
         }
-    }
+    }*/
 
 } // namespace Stages
 } // namespace mega

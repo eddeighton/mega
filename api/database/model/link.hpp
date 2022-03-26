@@ -40,9 +40,8 @@ namespace mega
 {
 class LinkGroup : public io::Object
 {
-    friend class ObjectFactoryImpl;
+    friend class io::Factory;
     friend class LinkAnalysis;
-    friend class Stages::Interface;
 
 public:
     static const ObjectType Type = eLinkGroup;
@@ -86,8 +85,7 @@ private:
 /////////////////////////////////////////////////////////////////////////////////////
 class LinkAnalysis : public io::Object
 {
-    friend class ObjectFactoryImpl;
-
+    friend class io::Factory;
 public:
     static const ObjectType Type = eLinkAnalysis;
 
@@ -117,11 +115,11 @@ public:
 
     using LinkSet = std::pair< std::string, ContextSetPtr >;
     using LinkGroupMap = std::multimap< LinkSet, interface::Link* >;
-
+/*
     void calculateGroups( const ContextSetPtrSet&                   sets,
                           const std::vector< interface::Context* >& actions,
                           const DerivationAnalysis&                 derivationAnalysis,
-                          Stages::Appending&                        stage );
+                          Stages::Appending&                        stage );*/
 
     const LinkGroup::Vector& getLinkGroups() const { return m_groups; }
 

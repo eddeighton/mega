@@ -35,7 +35,7 @@ namespace Stages
 
 class DataMember : public io::Object
 {
-    friend class ObjectFactoryImpl;
+    friend class io::Factory;
     friend class Stages::Implementation;
 
 public:
@@ -64,7 +64,7 @@ private:
 
 class Buffer : public io::Object
 {
-    friend class ObjectFactoryImpl;
+    friend class io::Factory;
     friend class Stages::Implementation;
 
 public:
@@ -99,7 +99,7 @@ private:
 
 class Layout : public io::Object
 {
-    friend class ObjectFactoryImpl;
+    friend class io::Factory;
     friend class Stages::Implementation;
 
 public:

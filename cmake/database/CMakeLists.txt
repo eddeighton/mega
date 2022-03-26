@@ -59,23 +59,32 @@ set( MEGA_DATABASE_SESSIONS
 	)
 	
 set( MEGA_DATABASE_IO
+    ${MEGA_API_DIR}/database/io/manifest.hpp
+    ${MEGA_API_DIR}/database/io/file_system.hpp
     ${MEGA_API_DIR}/database/io/archive.hpp
+    ${MEGA_API_DIR}/database/io/component.hpp
+    ${MEGA_API_DIR}/database/io/database.hpp
     ${MEGA_API_DIR}/database/io/factory.hpp
     ${MEGA_API_DIR}/database/io/file.hpp
     ${MEGA_API_DIR}/database/io/generics.hpp
     ${MEGA_API_DIR}/database/io/loader.hpp
     ${MEGA_API_DIR}/database/io/object.hpp
+    ${MEGA_API_DIR}/database/io/source_listing.hpp
     ${MEGA_API_DIR}/database/io/storer.hpp
 	)
 	
 set( MEGA_DATABASE_SOURCES
+    ${MEGA_SRC_DIR}/database/io/manifest.cpp
+    ${MEGA_SRC_DIR}/database/io/component.cpp
+    ${MEGA_SRC_DIR}/database/io/database.cpp
+    ${MEGA_SRC_DIR}/database/io/factory.cpp
     ${MEGA_SRC_DIR}/database/io/file.cpp
-    ${MEGA_SRC_DIR}/database/io/object.cpp
     ${MEGA_SRC_DIR}/database/io/loader.cpp
+    ${MEGA_SRC_DIR}/database/io/object.cpp
+    ${MEGA_SRC_DIR}/database/io/source_listing.cpp
     ${MEGA_SRC_DIR}/database/io/storer.cpp
     
     ${MEGA_SRC_DIR}/database/model/eg.cpp
-    ${MEGA_SRC_DIR}/database/model/objects.cpp
     ${MEGA_SRC_DIR}/database/model/input.cpp
     ${MEGA_SRC_DIR}/database/model/interface.cpp
     ${MEGA_SRC_DIR}/database/model/allocator.cpp
@@ -116,5 +125,5 @@ link_common( database )
 install( FILES ${MEGA_DATABASE_IO} DESTINATION include/database/io )
 install( FILES ${MEGA_DATABASE_MODEL} DESTINATION include/database/model )
 install( FILES ${MEGA_DATABASE_STAGES} DESTINATION include/database/stages )
-install( TARGETS database EXPORT database DESTINATION lib)
+install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )

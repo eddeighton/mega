@@ -1,6 +1,9 @@
 
 #include "environment.hpp"
 
+#include "database/io/source_listing.hpp"
+#include "database/io/manifest.hpp"
+
 namespace driver
 {
 
@@ -12,20 +15,33 @@ const std::string Environment::CPP_SOURCE_EXTENSION( ".cpp" );
 Environment::Environment( const Path& rootSourceDir,
                           const Path& rootBuildDir,
                           const Path& sourceDir,
-                          const Path& buildDir,
-                          const Path& parserDLL )
+                          const Path& buildDir )
     : m_rootSourceDir( rootSourceDir )
     , m_rootBuildDir( rootBuildDir )
     , m_sourceDir( sourceDir )
     , m_buildDir( buildDir )
-    , m_parserDLL( parserDLL )
-    , m_stash( buildDir )
+    , m_stash( rootBuildDir / "stash" )
 {
 }
 
-Environment::Path Environment::parserDLL() const
+Environment::Path Environment::sourceDir() const
 {
-    return m_parserDLL;
+    return m_sourceDir;
+}
+
+Environment::Path Environment::buildDir() const
+{
+    return m_sourceDir;
+}
+
+Environment::Path Environment::project_manifest() const
+{
+    return mega::io::Manifest::filepath( m_buildDir );
+}
+
+Environment::Path Environment::source_list() const
+{
+    return mega::io::SourceListing::filepath( m_buildDir );
 }
 
 Environment::Path Environment::parserAST( const Path& megaSourcePath ) const

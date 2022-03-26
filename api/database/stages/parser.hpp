@@ -20,6 +20,7 @@
 #ifndef EG_PARSER_18_04_2019
 #define EG_PARSER_18_04_2019
 
+#include "database/io/database.hpp"
 #include "stage.hpp"
 
 #include <boost/filesystem.hpp>
@@ -40,6 +41,8 @@ class FileManager;
 namespace mega
 {
 class Identifiers;
+class Manifest;
+class Component;
 
 namespace interface
 {
@@ -57,19 +60,20 @@ namespace input
 
 namespace Stages
 {
-    class Parser : public Creating
+    class Parser //: public Creating
     {
     public:
         Parser( const boost::filesystem::path& parserDLL,
-                const boost::filesystem::path& inputMegaSourceFile,
-                const boost::filesystem::path& parserASTFile,
-                const boost::filesystem::path& parserBodyFile );
+                const boost::filesystem::path& sourceDir,
+                const boost::filesystem::path& buildDir );
+
+        //void calculateManifest();
+
 
     private:
         boost::filesystem::path m_parserDLL;
-        boost::filesystem::path m_inputMegaSourceFile;
-        boost::filesystem::path m_parserASTFile;
-        boost::filesystem::path m_parserBodyFile;
+        boost::filesystem::path m_sourceDir;
+        boost::filesystem::path m_buildDir;
 
         /*
     public:

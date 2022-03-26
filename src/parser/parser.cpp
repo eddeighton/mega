@@ -38,7 +38,7 @@
 
 namespace mega
 {
-
+/*
 class ParserDiagnosticSystem
 {
 public:
@@ -193,7 +193,7 @@ class Parser
             /// No space before the '<' token
             NoSpaceBeforeLess = 0x1,
 
-            LLVM_MARK_AS_BITMASK_ENUM( /*LargestValue*/ DependentName )
+            LLVM_MARK_AS_BITMASK_ENUM( DependentName )
         };
 
         struct Loc
@@ -534,17 +534,17 @@ public:
         clang::SourceLocation ( Parser::*Consumer )();
         clang::SourceLocation LOpen, LClose;
 
-        /*
-        unsigned short &getDepth()
-        {
-            switch( Kind )
-            {
-                case clang::tok::l_brace: return P.BraceCount;
-                case clang::tok::l_square: return P.BracketCount;
-                case clang::tok::l_paren: return P.ParenCount;
-                default: llvm_unreachable( "Wrong token kind" );
-            }
-        }*/
+        
+        //unsigned short &getDepth()
+        //{
+        //    switch( Kind )
+        //    {
+        //        case clang::tok::l_brace: return P.BraceCount;
+        //        case clang::tok::l_square: return P.BracketCount;
+        //        case clang::tok::l_paren: return P.ParenCount;
+        //        default: llvm_unreachable( "Wrong token kind" );
+        //    }
+        //}
 
         // bool diagnoseOverflow();
         bool diagnoseMissingClose()
@@ -1057,9 +1057,22 @@ public:
             const clang::DirectoryLookup* CurDir;
             if ( const clang::FileEntry* pIncludeFile = PP.LookupFile(
                      clang::SourceLocation(), strFile,
-                     /*isAngled=*/bIsAngled, /*FromDir=*/nullptr, /*FromFile=*/nullptr, CurDir,
-                     /*SearchPath=*/nullptr, /*RelativePath=*/nullptr,
-                     /*SuggestedModule=*/nullptr, /*IsMapped=*/nullptr ) )
+                     //isAngled
+                     bIsAngled, 
+                     //FromDir
+                     nullptr, 
+                     //FromFile
+                     nullptr, 
+                     CurDir,
+                     //SearchPath
+                     nullptr, 
+                     //RelativePath
+                     nullptr,
+                     //SuggestedModule
+                     nullptr, 
+                     //IsMapped
+                     nullptr 
+                     ) )
             {
                 pInclude->setIncludeFilePath( pIncludeFile->tryGetRealPathName() );
             }
@@ -1563,9 +1576,19 @@ struct Stuff
         ,
 
         pPreprocessor( std::make_shared< clang::Preprocessor >(
-            pPreprocessorOptions, *pDiagnosticsEngine, languageOptions,
-            *pSourceManager, *pPCMCache, *pHeaderSearch, *pModuleLoader, /*PTHMgr*/ nullptr,
-            /*OwnsHeaderSearch=*/false, clang::TU_Complete ) )
+            pPreprocessorOptions, 
+            *pDiagnosticsEngine, 
+            languageOptions,
+            *pSourceManager, 
+            *pPCMCache, 
+            *pHeaderSearch, 
+            *pModuleLoader, 
+            //PTHMgr
+            nullptr,
+            //OwnsHeaderSearch
+            false, 
+            clang::TU_Complete 
+            ) )
         ,
 
         pTargetOptions( getTargetOptions() )
@@ -1612,6 +1635,7 @@ void parseEGSourceFile( EG_PARSER_CALLBACK*            pCallback,
     parser.parse_file( session, pRoot, egSourceFile );
 }
 
+*/
 struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 {
     virtual void parseEGSourceFile( EG_PARSER_CALLBACK*            pCallback,
@@ -1619,12 +1643,11 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                                     const boost::filesystem::path& cwdPath, std::ostream& osError,
                                     Stages::Parser& session, input::Root* pRoot )
     {
-        VERIFY_RTE_MSG( pCallback, "Invalid parser callback" );
-        ParserDiagnosticSystem pds( cwdPath, osError );
-        mega::parseEGSourceFile( pCallback, egSourceFile, pds, session, pRoot );
+        //VERIFY_RTE_MSG( pCallback, "Invalid parser callback" );
+        //ParserDiagnosticSystem pds( cwdPath, osError );
+        //mega::parseEGSourceFile( pCallback, egSourceFile, pds, session, pRoot );
     }
 };
-
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;
 EG_PARSER_IMPL                                g_parserSymbol;
 

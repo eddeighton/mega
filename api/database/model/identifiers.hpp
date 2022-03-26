@@ -31,8 +31,7 @@ namespace mega
 
 class Identifiers : public io::Object
 {
-    friend class ObjectFactoryImpl;
-
+    friend class io::Factory;
 public:
     static const ObjectType Type = eIdentifiers;
 

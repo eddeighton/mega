@@ -25,8 +25,9 @@ namespace mega
 {
 namespace io
 {
-    Storer::Storer( const boost::filesystem::path& filePath )
+    Storer::Storer( const boost::filesystem::path& filePath, const Manifest& manifest )
         : m_targetFilePath( filePath )
+        , m_manifest( manifest )
         , m_pFileStream( boost::filesystem::createBinaryOutputFileStream( filePath ) )
         , m_archive( *m_pFileStream )
     {
@@ -35,13 +36,13 @@ namespace io
     Storer::~Storer()
     {
     }
-
-    void Storer::storeObject( const Object* pObject )
-    {
-        VERIFY_RTE( pObject );
-        pObject->Object::store( *this );
-    }
-
+    /*
+        void Storer::storeObject( const Object* pObject )
+        {
+            VERIFY_RTE( pObject );
+            pObject->Object::store( *this );
+        }
+    */
     void Storer::storeObjectRef( const Object* pObject )
     {
         if ( pObject )

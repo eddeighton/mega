@@ -28,6 +28,7 @@ namespace mega
 {
 namespace Stages
 {
+    /*
     class Stage
     {
     protected:
@@ -63,10 +64,10 @@ namespace Stages
         io::Object::Array& getAppendingObjects() const
         {
             THROW_RTE( "Cannot do this" );
-            /*io::File::FileIDToFileMap::const_iterator iFind = m_fileMap.find( io::Object::MASTER_FILE );
-            VERIFY_RTE( iFind != m_fileMap.end() );
-            io::File* pFile = iFind->second;
-            return pFile->getObjects();*/
+            //io::File::FileIDToFileMap::const_iterator iFind = m_fileMap.find( io::Object::MASTER_FILE );
+            //VERIFY_RTE( iFind != m_fileMap.end() );
+            //io::File* pFile = iFind->second;
+            //return pFile->getObjects();
         }
 
     public:
@@ -74,14 +75,14 @@ namespace Stages
         inline T* construct( Args... args )
         {
             THROW_RTE( "Cannot do this" );
-            /*typename io::File::FileIDToFileMap::const_iterator iFind = m_fileMap.find( io::Object::MASTER_FILE );
-            VERIFY_RTE( iFind != m_fileMap.end() );
-            io::File* pFile = iFind->second;
-            T* pNewObject = ObjectFactoryImpl::create< T >(
-                io::Object::MASTER_FILE, pFile->getObjects().size(), args... );
-            VERIFY_RTE( pNewObject );
-            pFile->getObjects().push_back( pNewObject );
-            return pNewObject;*/
+            //typename io::File::FileIDToFileMap::const_iterator iFind = m_fileMap.find( io::Object::MASTER_FILE );
+            //VERIFY_RTE( iFind != m_fileMap.end() );
+            //io::File* pFile = iFind->second;
+            //T* pNewObject = ObjectFactoryImpl::create< T >(
+            //    io::Object::MASTER_FILE, pFile->getObjects().size(), args... );
+            //VERIFY_RTE( pNewObject );
+            //pFile->getObjects().push_back( pNewObject );
+            //return pNewObject;
         }
     };
 
@@ -115,7 +116,7 @@ namespace Stages
     protected:
         io::Object::FileID m_fileID;
         io::Object::Array  m_newObjects;
-    };
+    };*/
 } // namespace Stages
 } // namespace mega
 

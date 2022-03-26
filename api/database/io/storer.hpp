@@ -22,7 +22,7 @@
 
 #include "archive.hpp"
 #include "object.hpp"
-#include "file.hpp"
+#include "manifest.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -43,10 +43,10 @@ namespace io
     class Storer
     {
     public:
-        Storer( const boost::filesystem::path& filePath );
+        Storer( const boost::filesystem::path& filePath, const Manifest& manifest );
         ~Storer();
 
-        void storeObject( const Object* pObject );
+        // void storeObject( const Object* pObject );
         void storeObjectRef( const Object* pObject );
 
         template < class T >
@@ -152,6 +152,7 @@ namespace io
 
     private:
         const boost::filesystem::path                  m_targetFilePath;
+        const Manifest&                                m_manifest;
         std::unique_ptr< boost::filesystem::ofstream > m_pFileStream;
         boost::archive::binary_oarchive                m_archive;
     };

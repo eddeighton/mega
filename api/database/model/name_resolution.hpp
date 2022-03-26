@@ -48,6 +48,7 @@ class NameResolution;
 
 class Name
 {
+    friend class io::Factory;
     friend class NameResolution;
 
     InvocationSolution::ElementPair m_element;
@@ -81,6 +82,7 @@ public:
 
 class NameResolution
 {
+    friend class io::Factory;
     const DerivationAnalysis&               m_analysis;
     const InvocationSolution::InvocationID& m_invocationID;
     std::vector< Name >                     m_nodes;

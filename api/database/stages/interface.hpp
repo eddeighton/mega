@@ -33,7 +33,7 @@
 namespace mega
 {
 namespace Stages
-{
+{/*
     class Interface : public Appending
     {
     public:
@@ -95,7 +95,7 @@ namespace Stages
         DerivationAnalysis*      m_pDerivationAnalysis;
         TranslationUnitAnalysis* m_pTranslationUnitAnalysis;
         LinkAnalysis*            m_pLinkAnalysis;
-    };
+    };*/
 } // namespace Stages
 } // namespace mega
 

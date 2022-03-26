@@ -29,7 +29,6 @@
 namespace mega
 {
 class Interface;
-class ObjectFactoryImpl;
 class LinkGroup;
 
 namespace concrete
@@ -40,8 +39,8 @@ namespace concrete
     class RangeAllocator;
     class Inheritance_Node : public io::Object
     {
+        friend class io::Factory;
         friend class mega::Stages::Interface;
-        friend class mega::ObjectFactoryImpl;
 
     public:
         static const ObjectType Type = eInheritanceNode;
@@ -98,8 +97,8 @@ namespace concrete
     /////////////////////////////////////////////////////////////////////////////////////
     class Element : public io::Object
     {
+        friend class io::Factory;
         friend class mega::Stages::Interface;
-        friend class mega::ObjectFactoryImpl;
 
     protected:
         Element( const io::Object& indexedObject )
@@ -135,8 +134,8 @@ namespace concrete
     /////////////////////////////////////////////////////////////////////////////////////
     class Dimension : public Element
     {
+        friend class io::Factory;
         friend class mega::Stages::Interface;
-        friend class mega::ObjectFactoryImpl;
 
     protected:
         Dimension( const io::Object& indexedObject )
@@ -157,8 +156,8 @@ namespace concrete
 
     class Dimension_User : public Dimension
     {
+        friend class io::Factory;
         friend class mega::Stages::Interface;
-        friend class mega::ObjectFactoryImpl;
 
     public:
         static const ObjectType Type = eConcreteDimensionUser;
@@ -201,8 +200,8 @@ namespace concrete
     class Action;
     class Dimension_Generated : public Dimension
     {
+        friend class io::Factory;
         friend class mega::Stages::Interface;
-        friend class mega::ObjectFactoryImpl;
         friend class mega::concrete::RangeAllocator;
         friend void constructRuntimeDimensions( Stages::Interface&, Action* );
 
@@ -257,9 +256,9 @@ namespace concrete
 
     class Action : public Element
     {
+        friend class io::Factory;
         friend class mega::Stages::Interface;
         friend class Inheritance_Node;
-        friend class mega::ObjectFactoryImpl;
         friend class mega::concrete::RangeAllocator;
         friend void constructRuntimeDimensions( Stages::Interface&, Action* );
 
@@ -289,14 +288,14 @@ namespace concrete
         const Dimension_Generated* getReference() const { return m_pReference; }
         const Dimension_Generated* getLinkRefCount() const { return m_pLinkRefCount; }
 
-        const Allocator* getAllocator() const { return m_pAllocator; }
-        const Allocator* getAllocator( const Action* pAction ) const
-        {
-            AllocatorMap::const_iterator iFind = m_allocators.find( pAction );
-            VERIFY_RTE( iFind != m_allocators.end() );
-            return iFind->second;
-        }
-        const AllocatorMap& getAllocators() const { return m_allocators; }
+        //const Allocator* getAllocator() const { return m_pAllocator; }
+        //const Allocator* getAllocator( const Action* pAction ) const
+        //{
+        //    AllocatorMap::const_iterator iFind = m_allocators.find( pAction );
+        //    VERIFY_RTE( iFind != m_allocators.end() );
+        //    return iFind->second;
+        //}
+        //const AllocatorMap& getAllocators() const { return m_allocators; }
 
         const Dimension_Generated* getLink( const std::string& strLinkName ) const
         {
@@ -318,7 +317,7 @@ namespace concrete
     private:
         Action*           m_pObject = nullptr;
         Inheritance_Node* m_inheritance;
-        Allocator*        m_pAllocator = nullptr;
+        //Allocator*        m_pAllocator = nullptr;
         std::string       m_strName;
         mutable int       m_totalDomainSize = 0;
 
@@ -326,7 +325,7 @@ namespace concrete
         Dimension_Generated* m_pState = nullptr;
         Dimension_Generated* m_pReference = nullptr;
         Dimension_Generated* m_pLinkRefCount = nullptr;
-        AllocatorMap         m_allocators;
+        //AllocatorMap         m_allocators;
         LinkMap              m_links;
     };
 

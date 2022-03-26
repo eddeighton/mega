@@ -1226,6 +1226,7 @@ InvocationSolution::ElementPairVector InvocationSolution::getElementVector( cons
     return getElementVector( analysis, elements, bIncludeInherited );
 }
 
+/*
 InvocationSolution* InvocationSolutionMap::constructInvocation(
     const InvocationSolution::InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath )
 {
@@ -1301,5 +1302,6 @@ const InvocationSolution* InvocationSolutionMap::getInvocation(
     m_invocations.insert( std::make_pair( invocationID, pInvocation ) );
 
     return pInvocation;
-}
+}*/
+
 } // namespace mega
