@@ -20,8 +20,6 @@ namespace io
 
         bool isComponent() const { return m_bIsComponent; }
         const PathArray& getSourceFiles() const { return m_sourceFiles; }
-
-        static boost::filesystem::path filepath( const boost::filesystem::path& buildDir );
     private:
         PathArray m_sourceFiles;
         bool      m_bIsComponent;

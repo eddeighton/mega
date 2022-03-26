@@ -17,7 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "environment.hpp"
+#include "database/io/manifest.hpp"
+#include "database/io/environment.hpp"
 
 #include "database/stages/parser.hpp"
 
@@ -27,6 +28,7 @@
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 #include "common/terminal.hpp"
+#include "common/stash.hpp"
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
@@ -44,57 +46,38 @@ namespace interface
     class BaseTask : public task::Task
     {
     public:
-        BaseTask( const Environment& environment, const RawPtrSet& dependencies )
+        BaseTask( const mega::io::Environment& environment, task::Stash& stash, const RawPtrSet& dependencies )
             : task::Task( dependencies )
             , m_environment( environment )
+            , m_stash( stash )
         {
         }
 
     protected:
-        const Environment& m_environment;
+        const mega::io::Environment& m_environment;
+        task::Stash&                 m_stash;
     };
 
-    class Task_CollateSourceFiles : public BaseTask
+    class Task_GenerateManifest : public BaseTask
     {
     public:
-        Task_CollateSourceFiles( const Environment& environment )
-            : BaseTask( environment, {} )
+        Task_GenerateManifest( const mega::io::Environment& environment, task::Stash& stash )
+            : BaseTask( environment, stash, {} )
         {
         }
         virtual void run( task::Progress& taskProgress )
         {
-            // inputMegaSourceFiles
-            const Environment::Path projectManifestPath = m_environment.project_manifest();
+            const mega::io::Environment::Path projectManifestPath = m_environment.project_manifest();
 
-            taskProgress.start( "Task_CollateSourceFiles",
-                                m_environment.sourceDir(),
+            taskProgress.start( "Task_GenerateManifest",
+                                m_environment.buildDir(),
                                 projectManifestPath );
 
-            using namespace mega::io;
-
-            mega::io::Manifest::PtrCst pManifest = std::make_shared< mega::io::Manifest >( m_environment.buildDir() );
-
-            mega::io::Database< mega::io::stage::Test > database( 
-                m_environment.sourceDir(), m_environment.buildDir(), pManifest );
-
-            database.store();
-
-            //Database< stage::Test > testStageDatabase( m_environment.sourceDir(), m_environment.buildDir() );
-
-            //mega::Stages::Parser parserStage( "", m_environment.sourceDir(), m_environment.buildDir() );
-
-            /*TestObject* pTestObject = testStageDatabase.construct<TestObject>();
-            
-            //mega::io::Database database( m_environment.sourceDir(), m_environment.buildDir() );
-            //database.saveProjectManifest();
-
-            TestObject* pAgain = testStageDatabase.one< TestObject >();
-            VERIFY_RTE(pAgain);*/
-
+            mega::io::Manifest manifest( m_environment.sourceDir(), m_environment.buildDir() );
+            manifest.save( projectManifestPath );
 
             taskProgress.succeeded();
         }
-
     };
 
     void command( bool bHelp, const std::vector< std::string >& args )
@@ -127,17 +110,18 @@ namespace interface
         }
         else
         {
+            mega::io::Environment environment( rootSourceDir, rootBuildDir, rootSourceDir, rootBuildDir );
 
-            Environment environment( rootSourceDir, rootBuildDir, rootSourceDir, rootBuildDir );
+            task::Stash stash( environment.stashDir() );
 
             task::Task::PtrVector tasks;
 
-            Task_CollateSourceFiles* pTask = new Task_CollateSourceFiles( environment );
+            Task_GenerateManifest* pTask = new Task_GenerateManifest( environment, stash );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
             task::run( pSchedule, std::cout );
         }
     }
-} // namespace list
+} // namespace interface
 } // namespace driver

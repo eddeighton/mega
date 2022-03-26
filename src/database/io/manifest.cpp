@@ -1,22 +1,27 @@
 #include "database/io/manifest.hpp"
+#include "database/io/component.hpp"
+#include "database/io/environment.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
 
 namespace mega
 {
 namespace io
 {
 
-    boost::filesystem::path Manifest::filepath( const boost::filesystem::path& buildDir )
+    void Manifest::constructRecurse( Component::Ptr                 pComponent,
+                                     const boost::filesystem::path& sourceDirectory,
+                                     const boost::filesystem::path& buildDirectory,
+                                     const boost::filesystem::path& iteratorDir )
     {
-        return buildDir / "project_manifest.db";
-    }
+        const Environment environment( sourceDirectory, buildDirectory,
+                                       sourceDirectory / boost::filesystem::relative( iteratorDir, buildDirectory ),
+                                       iteratorDir );
 
-    void Manifest::constructRecurse( Component::Ptr pComponent, const boost::filesystem::path& directory )
-    {
-        const boost::filesystem::path sourceListingPath = io::SourceListing::filepath( directory );
+        const boost::filesystem::path sourceListingPath = environment.source_list();
         if ( boost::filesystem::exists( sourceListingPath ) )
         {
             const io::SourceListing sourceListing = io::SourceListing::load( sourceListingPath );
@@ -28,17 +33,28 @@ namespace io
                 pParentComponent->addComponent( pComponent );
             }
 
-            pComponent->addSourceFiles( sourceListing.getSourceFiles() );
+            std::vector< File::Info > fileInfos;
+            for ( const boost::filesystem::path& sourceFilePath : sourceListing.getSourceFiles() )
+            {
+                File::Info fileInfo;
+                fileInfo.m_fileID = Object::NO_FILE;
+                fileInfo.m_fileType = File::Info::ObjectSourceFile;
+                fileInfo.m_filePath = sourceFilePath;
+                fileInfo.m_objectSourceFilePath = sourceFilePath;
+                fileInfos.push_back( fileInfo );
+            }
+
+            pComponent->addSourceFileInfos( fileInfos );
         }
 
-        for ( boost::filesystem::directory_iterator iter( directory );
+        for ( boost::filesystem::directory_iterator iter( iteratorDir );
               iter != boost::filesystem::directory_iterator();
               ++iter )
         {
             const boost::filesystem::path& filePath = *iter;
             if ( boost::filesystem::is_directory( filePath ) )
             {
-                constructRecurse( pComponent, filePath );
+                constructRecurse( pComponent, sourceDirectory, buildDirectory, filePath );
             }
         }
     }
@@ -48,10 +64,17 @@ namespace io
         m_pComponent = std::make_shared< Component >();
     }
 
-    Manifest::Manifest( const boost::filesystem::path& buildDirectory )
+    Manifest::Manifest( const boost::filesystem::path& sourceDirectory,
+                        const boost::filesystem::path& buildDirectory )
     {
+        const Environment environment( sourceDirectory, buildDirectory, sourceDirectory, buildDirectory );
+
         m_pComponent = std::make_shared< Component >();
-        constructRecurse( m_pComponent, buildDirectory );
+        constructRecurse( m_pComponent, sourceDirectory, buildDirectory, buildDirectory );
+
+        m_pComponent->addCompilationFiles( sourceDirectory, buildDirectory );
+        Object::FileID fileID = 0;
+        m_pComponent->labelFiles( fileID );
     }
 
     void Manifest::load( std::istream& is )

@@ -17,14 +17,14 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "environment.hpp"
-
 #include "database/io/source_listing.hpp"
+#include "database/io/environment.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 #include "common/terminal.hpp"
+#include "common/stash.hpp"
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
@@ -42,30 +42,33 @@ namespace list
     class BaseTask : public task::Task
     {
     public:
-        BaseTask( const Environment& environment, const RawPtrSet& dependencies )
+        BaseTask( const mega::io::Environment& environment, task::Stash& stash, const RawPtrSet& dependencies )
             : task::Task( dependencies )
             , m_environment( environment )
+            , m_stash( stash )
         {
         }
 
     protected:
-        const Environment& m_environment;
+        const mega::io::Environment& m_environment;
+        task::Stash&                 m_stash;
     };
 
     class Task_SourceListingToManifest : public BaseTask
     {
     public:
-        Task_SourceListingToManifest( const Environment&                            environment,
+        Task_SourceListingToManifest( const mega::io::Environment&                  environment,
+                                      task::Stash&                                  stash,
                                       const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
                                       bool                                          bIsComponent )
-            : BaseTask( environment, {} )
+            : BaseTask( environment, stash, {} )
             , m_sourceListing( inputMegaSourceFiles, bIsComponent )
         {
         }
         virtual void run( task::Progress& taskProgress )
         {
             // inputMegaSourceFiles
-            const Environment::Path sourceListPath = m_environment.source_list();
+            const mega::io::Environment::Path sourceListPath = m_environment.source_list();
 
             taskProgress.start( "Task_SourceListingToManifest",
                                 m_environment.sourceDir(),
@@ -135,11 +138,13 @@ namespace list
                 }
             }
 
-            Environment environment( rootSourceDir, rootBuildDir, sourceDir, buildDir );
+            mega::io::Environment environment( rootSourceDir, rootBuildDir, sourceDir, buildDir );
+
+            task::Stash stash( environment.stashDir() );
 
             task::Task::PtrVector tasks;
 
-            Task_SourceListingToManifest* pTask = new Task_SourceListingToManifest( environment, inputSourceFiles, bIsComponent );
+            Task_SourceListingToManifest* pTask = new Task_SourceListingToManifest( environment, stash, inputSourceFiles, bIsComponent );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

@@ -3,6 +3,8 @@
 
 #include "file.hpp"
 #include "manifest.hpp"
+#include "stages.hpp"
+#include "environment.hpp"
 
 #include <memory>
 #include <type_traits>
@@ -14,25 +16,16 @@ namespace io
     class FileSystem
     {
     public:
-        using FileMap = std::map< Object::FileID, file::File::Ptr >;
-        using FileMapCst = std::map< Object::FileID, file::File::PtrCst >;
+        using FileMap = std::map< Object::FileID, File::Ptr >;
+        using FileMapCst = std::map< Object::FileID, File::PtrCst >;
 
         FileSystem( const boost::filesystem::path& sourceDir, const boost::filesystem::path& buildDir )
             : m_sourceDir( sourceDir )
             , m_buildDir( buildDir )
         {
             // attempt to load the manifest file
-            const boost::filesystem::path manifestPath = Manifest::filepath( buildDir );
-            m_pManifest = Manifest::load( manifestPath );
-        }
-
-        FileSystem( const boost::filesystem::path& sourceDir, const boost::filesystem::path& buildDir, Manifest::PtrCst pManifest )
-            : m_sourceDir( sourceDir )
-            , m_buildDir( buildDir )
-            , m_pManifest( pManifest )
-        {
-            const boost::filesystem::path manifestPath = Manifest::filepath( buildDir );
-            m_pManifest->save( manifestPath );
+            const Environment environment( sourceDir, buildDir, sourceDir, buildDir );
+            m_pManifest = Manifest::load( environment.project_manifest() );
         }
 
         const Manifest& getManifest() const { VERIFY_RTE(m_pManifest); return *m_pManifest; }
@@ -56,15 +49,15 @@ namespace io
     };
 
     template <>
-    inline Object::FileID FileSystem::getFileID< file::TestFile >() const
+    inline Object::FileID FileSystem::getFileID< ObjectAST >() const
     {
         return m_testFileID;
     }
 
     template <>
-    inline FileSystem::FileMapCst FileSystem::getReadableFiles< stage::Test >() const
+    inline FileSystem::FileMapCst FileSystem::getReadableFiles< stage::ObjectParse >() const
     {
-        /*file::File::Ptr pManifestFile = std::make_shared< file::Manifest >( "manifest.txt", Object::MANIFEST_FILE );
+        /*File::Ptr pManifestFile = std::make_shared< Manifest >( "manifest.txt", Object::MANIFEST_FILE );
 
         // preload all files
         pManifestFile->preload();
@@ -79,13 +72,13 @@ namespace io
     }
 
     template <>
-    inline FileSystem::FileMap FileSystem::getWritableFiles< stage::Test >() const
+    inline FileSystem::FileMap FileSystem::getWritableFiles< stage::ObjectParse >() const
     {
         FileSystem::FileMap writableFiles;
 
-        file::File::Ptr pTestFile = std::make_shared< file::TestFile >( "foobar.txt", m_testFileID );
-
-        writableFiles.insert( std::make_pair( m_testFileID, pTestFile ) );
+        //File::Info fileInfo { File::Info::ObjectAST, 0U, 
+        //File::Ptr pTestFile = std::make_shared< TestFile >( "foobar.txt", m_testFileID );
+        //writableFiles.insert( std::make_pair( m_testFileID, pTestFile ) );
 
         return writableFiles;
     }

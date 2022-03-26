@@ -67,11 +67,6 @@ namespace io
             outputFileStream << sourceFilePath.generic_string() << std::endl;
         }
     }
-
-    boost::filesystem::path SourceListing::filepath( const boost::filesystem::path& buildDir )
-    {
-        return buildDir / "source_list.txt";
-    }
     
 } // namespace io
 } // namespace mega

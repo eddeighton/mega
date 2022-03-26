@@ -59,7 +59,9 @@ set( MEGA_DATABASE_SESSIONS
 	)
 	
 set( MEGA_DATABASE_IO
+    ${MEGA_API_DIR}/database/io/environment.hpp
     ${MEGA_API_DIR}/database/io/manifest.hpp
+    ${MEGA_API_DIR}/database/io/stages.hpp
     ${MEGA_API_DIR}/database/io/file_system.hpp
     ${MEGA_API_DIR}/database/io/archive.hpp
     ${MEGA_API_DIR}/database/io/component.hpp
@@ -74,6 +76,7 @@ set( MEGA_DATABASE_IO
 	)
 	
 set( MEGA_DATABASE_SOURCES
+    ${MEGA_SRC_DIR}/database/io/environment.cpp
     ${MEGA_SRC_DIR}/database/io/manifest.cpp
     ${MEGA_SRC_DIR}/database/io/component.cpp
     ${MEGA_SRC_DIR}/database/io/database.cpp
