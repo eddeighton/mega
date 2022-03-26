@@ -26,15 +26,20 @@ namespace io
         void load( std::istream& is );
         void save( std::ostream& os ) const;
 
+        static void             reset( const boost::filesystem::path& sourceDirectory,
+                                       const boost::filesystem::path& buildDirectory );
         static Manifest::PtrCst load( const boost::filesystem::path& filepath );
         void                    save( const boost::filesystem::path& filepath ) const;
 
     private:
-        void addComponent( std::shared_ptr< Component > pComponent );
-        void constructRecurse( std::shared_ptr< Component >   pComponent,
-                               const boost::filesystem::path& sourceDirectory,
-                               const boost::filesystem::path& buildDirectory,
-                               const boost::filesystem::path& iteratorDir );
+        void        addComponent( std::shared_ptr< Component > pComponent );
+        static void resetRecurse( const boost::filesystem::path& sourceDirectory,
+                                  const boost::filesystem::path& buildDirectory,
+                                  const boost::filesystem::path& iteratorDir );
+        void        constructRecurse( std::shared_ptr< Component >   pComponent,
+                                      const boost::filesystem::path& sourceDirectory,
+                                      const boost::filesystem::path& buildDirectory,
+                                      const boost::filesystem::path& iteratorDir );
 
     private:
         std::shared_ptr< Component > m_pComponent;

@@ -41,6 +41,10 @@
 
 namespace driver
 {
+namespace reset
+{
+    extern void command( bool bHelp, const std::vector< std::string >& args );
+}
 namespace list
 {
     extern void command( bool bHelp, const std::vector< std::string >& args );
@@ -49,31 +53,15 @@ namespace interface
 {
     extern void command( bool bHelp, const std::vector< std::string >& args );
 }
-// extern void command_create( bool bHelp, const std::vector< std::string >& args );
-// extern void command_run( bool bHelp, const std::vector< std::string >& args );
-// extern void command_log( bool bHelp, const std::vector< std::string >& args );
-// extern void command_clean( bool bHelp, const std::vector< std::string >& args );
-// extern void command_info( bool bHelp, const std::vector< std::string >& args );
-
-// extern void command_cmake( bool bHelp, const std::vector< std::string >& args );
-// extern void command_debug( bool bHelp, const std::vector< std::string >& args );
 } // namespace driver
 
 enum MainCommand
 {
+    eCmd_Reset,
     eCmd_List,
     eCmd_Interface,
-    // eCmd_Create,
-    // eCmd_Run,
-    // eCmd_Log,
-    // eCmd_Clean,
-    // eCmd_Info,
-    // eCmd_CMake,
-    // eCmd_Debug,
     TOTAL_MAIN_COMMANDS
 };
-
-// extern std::string stacktraceUtil();
 
 int main( int argc, const char* argv[] )
 {
@@ -96,15 +84,9 @@ int main( int argc, const char* argv[] )
         {
             bool bGeneralWait = false;
 
+            bool bCmdReset = false;
             bool bCmdList = false;
             bool bCmdInterface = false;
-            // bool bCmdCreate = false;
-            // bool bCmdRun    = false;
-            // bool bCmdLog    = false;
-            // bool bCmdClean  = false;
-            // bool bCmdInfo   = false;
-            // bool bCmdCMake  = false;
-            // bool bCmdDebug  = false;
 
             po::options_description genericOptions( " General" );
             {
@@ -118,30 +100,11 @@ int main( int argc, const char* argv[] )
                 // clang-format off
                 commandOptions.add_options()
 
+                    ( "reset",      po::bool_switch( &bCmdReset ),      "Reset source code listings" )
+
                     ( "list",       po::bool_switch( &bCmdList ),       "List mega source code" )
 
                     ( "interface",  po::bool_switch( &bCmdInterface ),  "Compile interface" )
-
-                    //("create",  po::bool_switch( &bCmdCreate ),
-                    //    "Start a new eg project" )
-
-                    //("run",   po::bool_switch( &bCmdRun ),
-                    //    "Run an eg project" )
-                    //
-                    //("log",   po::bool_switch( &bCmdLog ),
-                    //    "Run an eg project" )
-                    //
-                    //("clean",   po::bool_switch( &bCmdClean ),
-                    //    "Removing all build and log files" )
-                    //
-                    //("info",   po::bool_switch( &bCmdInfo ),
-                    //    "Report info about an eg project" )
-
-                    //("cmake",   po::bool_switch( &bCmdCMake ),
-                    //    "Generate a cmake build for an eg project" )
-
-                    //("debug",   po::bool_switch( &bCmdDebug ),
-                    //    "Debug an eg project using cmake based build system" )
                     ;
                 // clang-format on
             }
@@ -178,6 +141,11 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
 
+            if( bCmdReset )
+            {
+                cmds.set( eCmd_Reset );
+                cmd = eCmd_Reset;
+            }
             if ( bCmdList )
             {
                 cmds.set( eCmd_List );
@@ -188,31 +156,6 @@ int main( int argc, const char* argv[] )
                 cmds.set( eCmd_Interface );
                 cmd = eCmd_Interface;
             }
-            // if( bCmdCreate )
-            //{
-            //     cmds.set( eCmd_Create );
-            //     cmd = eCmd_Create;
-            // }
-            // if( bCmdRun )
-            //{
-            //     cmds.set( eCmd_Run );
-            //     cmd = eCmd_Run;
-            // }
-            // if( bCmdLog )
-            //{
-            //     cmds.set( eCmd_Log );
-            //     cmd = eCmd_Log;
-            // }
-            // if( bCmdClean )
-            //{
-            //     cmds.set( eCmd_Clean );
-            //     cmd = eCmd_Clean;
-            // }
-            // if( bCmdInfo )
-            //{
-            //     cmds.set( eCmd_Info );
-            //     cmd = eCmd_Info;
-            // }
             // if( bCmdCMake )                 cmds.set( eCmd_Create );
             // if( bCmdDebug )                 cmds.set( eCmd_Create );
 
@@ -222,18 +165,16 @@ int main( int argc, const char* argv[] )
 
             switch ( cmd )
             {
+            case eCmd_Reset:
+                driver::reset::command( bShowHelp, commandArguments );
+                break;
             case eCmd_List:
                 driver::list::command( bShowHelp, commandArguments );
                 break;
             case eCmd_Interface:
                 driver::interface::command( bShowHelp, commandArguments );
                 break;
-                //  case eCmd_Create          : command_create( bShowHelp, commandArguments );                   break;
-                //  case eCmd_Run             : command_run(    bShowHelp, commandArguments );                   break;
-                //  case eCmd_Log             : command_log(    bShowHelp, commandArguments );                   break;
-                //  case eCmd_Clean           : command_clean(  bShowHelp, commandArguments );                   break;
-                //  //case eCmd_CMake           : command_cmake(  bShowHelp, commandArguments );                   break;
-                //  //case eCmd_Debug           : command_debug(  bShowHelp, commandArguments );                   break;
+                //  case eCmd_Debug           : command_debug(  bShowHelp, commandArguments );                   break;
                 //  case eCmd_Info            : command_info(   bShowHelp, commandArguments );                   break;
             case TOTAL_MAIN_COMMANDS:
             default:

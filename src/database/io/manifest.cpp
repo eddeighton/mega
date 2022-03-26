@@ -12,6 +12,31 @@ namespace mega
 namespace io
 {
 
+    void Manifest::resetRecurse( const boost::filesystem::path& sourceDirectory,
+                                 const boost::filesystem::path& buildDirectory,
+                                 const boost::filesystem::path& iteratorDir )
+    {
+        const Environment environment( sourceDirectory, buildDirectory,
+                                       sourceDirectory / boost::filesystem::relative( iteratorDir, buildDirectory ),
+                                       iteratorDir );
+
+        const boost::filesystem::path sourceListingPath = environment.source_list();
+        if ( boost::filesystem::exists( sourceListingPath ) )
+        {
+            boost::filesystem::remove( sourceListingPath );
+        }
+        for ( boost::filesystem::directory_iterator iter( iteratorDir );
+              iter != boost::filesystem::directory_iterator();
+              ++iter )
+        {
+            const boost::filesystem::path& filePath = *iter;
+            if ( boost::filesystem::is_directory( filePath ) )
+            {
+                resetRecurse( sourceDirectory, buildDirectory, filePath );
+            }
+        }
+    }
+    
     void Manifest::constructRecurse( Component::Ptr                 pComponent,
                                      const boost::filesystem::path& sourceDirectory,
                                      const boost::filesystem::path& buildDirectory,
@@ -29,8 +54,11 @@ namespace io
             if ( sourceListing.isComponent() )
             {
                 Component::Ptr pParentComponent = pComponent;
-                Component::Ptr pComponent = std::make_shared< Component >();
-                pParentComponent->addComponent( pComponent );
+                pComponent = std::make_shared< Component >();
+                if( pParentComponent )
+                    pParentComponent->addComponent( pComponent );
+                else
+                    m_pComponent = pComponent;
             }
 
             std::vector< File::Info > fileInfos;
@@ -44,7 +72,10 @@ namespace io
                 fileInfos.push_back( fileInfo );
             }
 
-            pComponent->addSourceFileInfos( fileInfos );
+            if( pComponent )
+            {
+                pComponent->addSourceFileInfos( fileInfos );
+            }
         }
 
         for ( boost::filesystem::directory_iterator iter( iteratorDir );
@@ -69,8 +100,8 @@ namespace io
     {
         const Environment environment( sourceDirectory, buildDirectory, sourceDirectory, buildDirectory );
 
-        m_pComponent = std::make_shared< Component >();
-        constructRecurse( m_pComponent, sourceDirectory, buildDirectory, buildDirectory );
+        constructRecurse( Component::Ptr(), sourceDirectory, buildDirectory, buildDirectory );
+        VERIFY_RTE_MSG( m_pComponent, "Could not find component in source tree" );
 
         m_pComponent->addCompilationFiles( sourceDirectory, buildDirectory );
         Object::FileID fileID = 0;
@@ -87,6 +118,12 @@ namespace io
     {
         VERIFY_RTE( m_pComponent );
         m_pComponent->save( os );
+    }
+
+    void Manifest::reset( const boost::filesystem::path& sourceDirectory,
+                        const boost::filesystem::path& buildDirectory )
+    {
+        resetRecurse( sourceDirectory, buildDirectory, buildDirectory );
     }
 
     Manifest::PtrCst Manifest::load( const boost::filesystem::path& filepath )
