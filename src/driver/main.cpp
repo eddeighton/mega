@@ -41,25 +41,22 @@
 
 namespace driver
 {
-namespace reset
-{
-    extern void command( bool bHelp, const std::vector< std::string >& args );
-}
-namespace list
-{
-    extern void command( bool bHelp, const std::vector< std::string >& args );
-}
-namespace interface
-{
-    extern void command( bool bHelp, const std::vector< std::string >& args );
-}
+#define COMMAND( cmd, desc )                                                       \
+    namespace cmd                                                                  \
+    {                                                                              \
+        extern void command( bool bHelp, const std::vector< std::string >& args ); \
+    }
+#include "commands.hxx"
+#undef COMMAND
+
 } // namespace driver
 
 enum MainCommand
 {
-    eCmd_Reset,
-    eCmd_List,
-    eCmd_Interface,
+#define COMMAND( cmd, desc ) \
+    eCmd_##cmd,
+#include "commands.hxx"
+#undef COMMAND
     TOTAL_MAIN_COMMANDS
 };
 
@@ -70,7 +67,7 @@ int main( int argc, const char* argv[] )
     bool bWait = false;
 
     std::bitset< TOTAL_MAIN_COMMANDS > cmds;
-    MainCommand                        cmd = TOTAL_MAIN_COMMANDS;
+    MainCommand                        mainCmd = TOTAL_MAIN_COMMANDS;
 
     // commands
     std::string strBuildCommand;
@@ -84,9 +81,10 @@ int main( int argc, const char* argv[] )
         {
             bool bGeneralWait = false;
 
-            bool bCmdReset = false;
-            bool bCmdList = false;
-            bool bCmdInterface = false;
+#define COMMAND( cmd, desc ) \
+    bool bCmd_##cmd = false;
+#include "commands.hxx"
+#undef COMMAND
 
             po::options_description genericOptions( " General" );
             {
@@ -97,16 +95,12 @@ int main( int argc, const char* argv[] )
 
             po::options_description commandOptions( " Commands" );
             {
-                // clang-format off
                 commandOptions.add_options()
-
-                    ( "reset",      po::bool_switch( &bCmdReset ),      "Reset source code listings" )
-
-                    ( "list",       po::bool_switch( &bCmdList ),       "List mega source code" )
-
-                    ( "interface",  po::bool_switch( &bCmdInterface ),  "Compile interface" )
+#define COMMAND( cmd, desc ) \
+    ( #cmd, po::bool_switch( &bCmd_##cmd ), desc )
+#include "commands.hxx"
+#undef COMMAND
                     ;
-                // clang-format on
             }
 
             if ( cmds.count() > 1 )
@@ -141,39 +135,28 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
 
-            if( bCmdReset )
-            {
-                cmds.set( eCmd_Reset );
-                cmd = eCmd_Reset;
-            }
-            if ( bCmdList )
-            {
-                cmds.set( eCmd_List );
-                cmd = eCmd_List;
-            }
-            if ( bCmdInterface )
-            {
-                cmds.set( eCmd_Interface );
-                cmd = eCmd_Interface;
-            }
-            // if( bCmdCMake )                 cmds.set( eCmd_Create );
-            // if( bCmdDebug )                 cmds.set( eCmd_Create );
+#define COMMAND( cmd, desc )    \
+    if ( bCmd_##cmd )           \
+    {                           \
+        cmds.set( eCmd_##cmd ); \
+        mainCmd = eCmd_##cmd;   \
+    }
+#include "commands.hxx"
+#undef COMMAND
 
             const bool bShowHelp = vm.count( "help" );
 
             std::vector< std::string > commandArguments = po::collect_unrecognized( parsedOptions.options, po::include_positional );
 
-            switch ( cmd )
+            switch ( mainCmd )
             {
-            case eCmd_Reset:
-                driver::reset::command( bShowHelp, commandArguments );
-                break;
-            case eCmd_List:
-                driver::list::command( bShowHelp, commandArguments );
-                break;
-            case eCmd_Interface:
-                driver::interface::command( bShowHelp, commandArguments );
-                break;
+#define COMMAND( cmd, desc )                                 \
+    case eCmd_##cmd:                                         \
+        driver::cmd::command( bShowHelp, commandArguments ); \
+        break;
+#include "commands.hxx"
+#undef COMMAND
+
                 //  case eCmd_Debug           : command_debug(  bShowHelp, commandArguments );                   break;
                 //  case eCmd_Info            : command_info(   bShowHelp, commandArguments );                   break;
             case TOTAL_MAIN_COMMANDS:

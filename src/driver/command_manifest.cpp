@@ -41,7 +41,7 @@
 
 namespace driver
 {
-namespace interface
+namespace manifest
 {
     class BaseTask : public task::Task
     {
@@ -58,19 +58,23 @@ namespace interface
         task::Stash&                 m_stash;
     };
 
-    class Task_ParseAST : public BaseTask
+    class Task_GenerateManifest : public BaseTask
     {
     public:
-        Task_ParseAST( const mega::io::Environment& environment, task::Stash& stash )
+        Task_GenerateManifest( const mega::io::Environment& environment, task::Stash& stash )
             : BaseTask( environment, stash, {} )
         {
         }
         virtual void run( task::Progress& taskProgress )
         {
-            taskProgress.start( "Task_ParseAST",
-                                m_environment.sourceDir(),
-                                m_environment.sourceDir() );
+            const mega::io::Environment::Path projectManifestPath = m_environment.project_manifest();
 
+            taskProgress.start( "Task_GenerateManifest",
+                                m_environment.buildDir(),
+                                projectManifestPath );
+
+            mega::io::Manifest manifest( m_environment.sourceDir(), m_environment.buildDir() );
+            manifest.save( projectManifestPath );
 
             taskProgress.succeeded();
         }
@@ -112,7 +116,7 @@ namespace interface
 
             task::Task::PtrVector tasks;
 
-            Task_ParseAST* pTask = new Task_ParseAST( environment, stash );
+            Task_GenerateManifest* pTask = new Task_GenerateManifest( environment, stash );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

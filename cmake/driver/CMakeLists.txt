@@ -7,21 +7,30 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get handy function to preprocess files for the xmacros stuff
+include( ../preprocess_cpp.cmake )
+
 #get the source code
 set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
 set( DRIVER_SOURCES
-	${DRIVER_SOURCE_DIR}/command_reset.cpp
-	${DRIVER_SOURCE_DIR}/command_list.cpp
-	${DRIVER_SOURCE_DIR}/command_interface.cpp
-	${DRIVER_SOURCE_DIR}/main.cpp
+		${DRIVER_SOURCE_DIR}/command_reset.cpp
+		${DRIVER_SOURCE_DIR}/command_list.cpp
+		${DRIVER_SOURCE_DIR}/command_manifest.cpp
+		${DRIVER_SOURCE_DIR}/command_interface.cpp
+		${DRIVER_SOURCE_DIR}/main.cpp
 	)
 	
 source_group( src FILES ${DRIVER_SOURCES} )
 
+add_c_preprocessor_command( OUTPUT main.cpp.i SOURCE ${DRIVER_SOURCE_DIR}/main.cpp TARGET mega )
+add_custom_target( PreprocessMain 
+	SOURCES main.cpp.i 
+	COMMENT "Proprocessing main.cpp")
+
 add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 
-target_link_libraries(mega database)
+target_link_libraries( mega database )
 
 set_target_properties( mega PROPERTIES FOLDER driver )
 
