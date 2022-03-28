@@ -64,6 +64,10 @@ namespace io
         case eInputRoot:
             pObject = new input::Root( object );
             break;
+        
+        case eInputBody:
+            pObject = new input::Body( object );
+            break;
 
         case eAbstractOpaque:
             pObject = new interface::Opaque( object );

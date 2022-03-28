@@ -98,6 +98,8 @@ enum ObjectType : std::size_t
 
     eInputContext,
     eInputRoot,
+    
+    eInputBody,
 
     eAbstractOpaque,
     eAbstractDimension,

@@ -1,15 +1,21 @@
 
 #include "parser/parser.hpp"
 
-#include "database/stages/parser.hpp"
-
+#include "database/io/environment.hpp"
 #include "database/model/eg.hpp"
 #include "database/model/input.hpp"
 #include "database/model/interface.hpp"
 #include "database/model/identifiers.hpp"
 
+#include "database/io/stages.hpp"
+#include "database/io/file.hpp"
+#include "database/io/database.hpp"
+
 #include <boost/config.hpp> // for BOOST_SYMBOL_EXPORT
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/file_status.hpp>
 
 // disable clang warnings
 #pragma warning( push )
@@ -38,7 +44,6 @@
 
 namespace mega
 {
-/*
 class ParserDiagnosticSystem
 {
 public:
@@ -257,18 +262,14 @@ class Parser
     };
     AngleBracketTracker AngleBrackets;
 
-    EG_PARSER_CALLBACK* m_pCallback;
-
 public:
-    Parser( EG_PARSER_CALLBACK*   pCallback,
-            clang::Preprocessor&  PP,
+    Parser( clang::Preprocessor&  PP,
             clang::SourceManager& sourceManager,
             clang::LangOptions&   languageOptions,
             clang::HeaderSearch&  headerSearch,
             llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 Diags )
-        : m_pCallback( pCallback )
-        , PP( PP )
+        : PP( PP )
         , sm( sourceManager )
         , languageOptions( languageOptions )
         , headerSearch( headerSearch )
@@ -534,17 +535,16 @@ public:
         clang::SourceLocation ( Parser::*Consumer )();
         clang::SourceLocation LOpen, LClose;
 
-
-        //unsigned short &getDepth()
+        // unsigned short &getDepth()
         //{
-        //    switch( Kind )
-        //    {
-        //        case clang::tok::l_brace: return P.BraceCount;
-        //        case clang::tok::l_square: return P.BracketCount;
-        //        case clang::tok::l_paren: return P.ParenCount;
-        //        default: llvm_unreachable( "Wrong token kind" );
-        //    }
-        //}
+        //     switch( Kind )
+        //     {
+        //         case clang::tok::l_brace: return P.BraceCount;
+        //         case clang::tok::l_square: return P.BracketCount;
+        //         case clang::tok::l_paren: return P.ParenCount;
+        //         default: llvm_unreachable( "Wrong token kind" );
+        //     }
+        // }
 
         // bool diagnoseOverflow();
         bool diagnoseMissingClose()
@@ -787,6 +787,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
     // high level parsing utility functions
+    using Database = mega::io::Database< mega::io::stage::ObjectParse >;
 
     void parse_identifier( std::string& strIdentifier )
     {
@@ -802,7 +803,7 @@ public:
         }
     }
 
-    void parse_visibility( Stages::Parser& session, input::Visibility* pVisibility )
+    void parse_visibility( Database& session, input::Visibility* pVisibility )
     {
         if ( Tok.is( clang::tok::kw_public ) )
         {
@@ -834,7 +835,7 @@ public:
         }
     }
 
-    void parse_argumentList( Stages::Parser& session, input::Opaque*& pArguments )
+    void parse_argumentList( Database& session, input::Opaque*& pArguments )
     {
         if ( Tok.is( clang::tok::l_paren ) )
         {
@@ -876,7 +877,7 @@ public:
         }
     }
 
-    void parse_returnType( Stages::Parser& session, input::Opaque*& pReturnType )
+    void parse_returnType( Database& session, input::Opaque*& pReturnType )
     {
         if ( Tok.is( clang::tok::colon ) )
         {
@@ -902,7 +903,7 @@ public:
         }
     }
 
-    void parse_inheritance( Stages::Parser& session, std::vector< input::Opaque* >& inheritance )
+    void parse_inheritance( Database& session, std::vector< input::Opaque* >& inheritance )
     {
         if ( Tok.is( clang::tok::colon ) )
         {
@@ -937,7 +938,7 @@ public:
         }
     }
 
-    void parse_body( Stages::Parser& session, std::string& strBody )
+    void parse_body( Database& session, std::string& strBody )
     {
         if ( Tok.is( clang::tok::l_brace ) )
         {
@@ -971,7 +972,7 @@ public:
         }
     }
 
-    void parse_size( Stages::Parser& session, input::Opaque*& pSize )
+    void parse_size( Database& session, input::Opaque*& pSize )
     {
         // parse optional size specifier
         if ( Tok.is( clang::tok::l_square ) )
@@ -1002,7 +1003,7 @@ public:
     }
 
     // begin of actual parsing routines for eg grammar
-    void parse_dimension( Stages::Parser& session, input::Dimension* pDimension )
+    void parse_dimension( Database& session, input::Dimension* pDimension )
     {
         // dim type identifier;
         {
@@ -1026,7 +1027,7 @@ public:
         parse_semicolon();
     }
 
-    void parse_include( Stages::Parser& session, input::Include* pInclude )
+    void parse_include( Database& session, input::Include* pInclude )
     {
         // include name( file );
         // optional identifier
@@ -1057,22 +1058,21 @@ public:
             const clang::DirectoryLookup* CurDir;
             if ( const clang::FileEntry* pIncludeFile = PP.LookupFile(
                      clang::SourceLocation(), strFile,
-                     //isAngled
+                     // isAngled
                      bIsAngled,
-                     //FromDir
+                     // FromDir
                      nullptr,
-                     //FromFile
+                     // FromFile
                      nullptr,
                      CurDir,
-                     //SearchPath
+                     // SearchPath
                      nullptr,
-                     //RelativePath
+                     // RelativePath
                      nullptr,
-                     //SuggestedModule
+                     // SuggestedModule
                      nullptr,
-                     //IsMapped
-                     nullptr
-                     ) )
+                     // IsMapped
+                     nullptr ) )
             {
                 pInclude->setIncludeFilePath( pIncludeFile->tryGetRealPathName() );
             }
@@ -1091,7 +1091,7 @@ public:
         parse_semicolon();
     }
 
-    void parse_using( Stages::Parser& session, input::Using* pUsing )
+    void parse_using( Database& session, input::Using* pUsing )
     {
         // using T = expression;
         parse_identifier( pUsing->m_strIdentifier );
@@ -1130,7 +1130,7 @@ public:
         }
     }
 
-    void parse_export( Stages::Parser& session, input::Export* pExport )
+    void parse_export( Database& session, input::Export* pExport )
     {
         // export name( parameter list ) : returnType
         //{
@@ -1157,10 +1157,12 @@ public:
             EG_PARSER_ERROR( "Expected body for export" );
         }
 
-        m_pCallback->exportBody( pExport, strBody.c_str() );
+        input::Body* pBody = session.construct< input::Body >();
+        pBody->m_pContext = pExport;
+        pBody->m_str = strBody;
     }
 
-    input::Context* constructContext( Stages::Parser& session, input::Context* pParentAction )
+    input::Context* constructContext( Database& session, input::Context* pParentAction )
     {
         input::Context* pNewAction = session.construct< input::Context >();
         pParentAction->m_elements.push_back( pNewAction );
@@ -1168,7 +1170,7 @@ public:
         return pNewAction;
     }
 
-    void parse_context( Stages::Parser& session, input::Context* pContext,
+    void parse_context( Database& session, input::Context* pContext,
                         const boost::filesystem::path& egSourceFile, input::Context::ContextType contextType )
     {
         while ( Tok.is( clang::tok::coloncolon ) )
@@ -1297,7 +1299,7 @@ public:
         }
     }
 
-    void handle_function_return_type( Stages::Parser& session, input::Context* pContext )
+    void handle_function_return_type( Database& session, input::Context* pContext )
     {
         if ( pContext->m_inheritance.size() != 1U )
         {
@@ -1305,7 +1307,7 @@ public:
         }
     }
 
-    void add_link_base( Stages::Parser& session, input::Context* pContext )
+    void add_link_base( Database& session, input::Context* pContext )
     {
         if ( pContext->m_inheritance.size() != 1U )
         {
@@ -1336,7 +1338,7 @@ public:
         }
     }
 
-    void parse_context_body( Stages::Parser& session, input::Context* pContext, const boost::filesystem::path& egSourceFile )
+    void parse_context_body( Database& session, input::Context* pContext, const boost::filesystem::path& egSourceFile )
     {
         bool bActionDefinition = false;
 
@@ -1462,7 +1464,9 @@ public:
 
                     if ( !strBodyPart.empty() && bActionDefinition )
                     {
-                        m_pCallback->contextBody( pContext, strBodyPart.c_str() );
+                        input::Body* pBody = session.construct< input::Body >();
+                        pBody->m_pContext = pContext;
+                        pBody->m_str = strBodyPart;
                     }
                 }
             }
@@ -1488,9 +1492,10 @@ public:
         }
     }
 
-    void parse_file( Stages::Parser& session, input::Root* pRoot, const boost::filesystem::path& egSourceFile )
+    void parse_file( Database& database, const boost::filesystem::path& egSourceFile )
     {
-        parse_context_body( session, pRoot, egSourceFile );
+        mega::input::Root* pRoot = database.construct< mega::input::Root >( mega::eFile );
+        parse_context_body( database, pRoot, egSourceFile );
     }
 };
 
@@ -1551,52 +1556,33 @@ struct Stuff
     Stuff( std::shared_ptr< clang::FileManager > pFileManager,
            llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                           pDiagnosticsEngine,
-           const boost::filesystem::path& egSourceFile )
+           const boost::filesystem::path& sourceFile )
 
         : pSourceManager( std::make_unique< clang::SourceManager >( *pDiagnosticsEngine, *pFileManager ) )
-        ,
-
-        headerSearchOptions( std::make_shared< clang::HeaderSearchOptions >() )
-        ,
-
-        languageOptions( createEGLangOpts() )
-        ,
-
-        pHeaderSearch( std::make_unique< clang::HeaderSearch >(
-            headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions, nullptr ) )
-        ,
-
-        pModuleLoader( std::make_unique< clang::TrivialModuleLoader >() )
-        ,
-
-        pPreprocessorOptions( std::make_shared< clang::PreprocessorOptions >() )
-        ,
-
-        pPCMCache( new clang::MemoryBufferCache )
-        ,
-
-        pPreprocessor( std::make_shared< clang::Preprocessor >(
-            pPreprocessorOptions,
-            *pDiagnosticsEngine,
-            languageOptions,
-            *pSourceManager,
-            *pPCMCache,
-            *pHeaderSearch,
-            *pModuleLoader,
-            //PTHMgr
-            nullptr,
-            //OwnsHeaderSearch
-            false,
-            clang::TU_Complete
-            ) )
-        ,
-
-        pTargetOptions( getTargetOptions() )
-        ,
-
-        pTargetInfo( clang::TargetInfo::CreateTargetInfo( *pDiagnosticsEngine, pTargetOptions ) )
+        , headerSearchOptions( std::make_shared< clang::HeaderSearchOptions >() )
+        , languageOptions( createEGLangOpts() )
+        , pHeaderSearch( std::make_unique< clang::HeaderSearch >(
+              headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions, nullptr ) )
+        , pModuleLoader( std::make_unique< clang::TrivialModuleLoader >() )
+        , pPreprocessorOptions( std::make_shared< clang::PreprocessorOptions >() )
+        , pPCMCache( new clang::MemoryBufferCache )
+        , pPreprocessor( std::make_shared< clang::Preprocessor >(
+              pPreprocessorOptions,
+              *pDiagnosticsEngine,
+              languageOptions,
+              *pSourceManager,
+              *pPCMCache,
+              *pHeaderSearch,
+              *pModuleLoader,
+              // PTHMgr
+              nullptr,
+              // OwnsHeaderSearch
+              false,
+              clang::TU_Complete ) )
+        , pTargetOptions( getTargetOptions() )
+        , pTargetInfo( clang::TargetInfo::CreateTargetInfo( *pDiagnosticsEngine, pTargetOptions ) )
     {
-        const clang::FileEntry* pFileEntry = pFileManager->getFile( egSourceFile.string(), true, false );
+        const clang::FileEntry* pFileEntry = pFileManager->getFile( sourceFile.string(), true, false );
 
         clang::FileID fileID = pSourceManager->getOrCreateFileID( pFileEntry, clang::SrcMgr::C_User );
 
@@ -1607,36 +1593,6 @@ struct Stuff
     }
 };
 
-void parseEGSourceFile( EG_PARSER_CALLBACK*            pCallback,
-                        const boost::filesystem::path& egSourceFile,
-                        ParserDiagnosticSystem&        diagnosticSystem,
-                        Stages::Parser& session, input::Root* pRoot )
-{
-    std::shared_ptr< clang::FileManager > pFileManager = get_clang_fileManager( diagnosticSystem );
-
-    llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine = get_llvm_diagnosticEngine( diagnosticSystem );
-
-    // check file exists
-    if ( !boost::filesystem::exists( egSourceFile ) )
-    {
-        THROW_RTE( "File not found: " << egSourceFile );
-    }
-
-    Stuff stuff( pFileManager, pDiagnosticsEngine, egSourceFile );
-
-    Parser parser( pCallback,
-                   *stuff.pPreprocessor,
-                   *stuff.pSourceManager,
-                   stuff.languageOptions,
-                   *stuff.pHeaderSearch,
-                   pDiagnosticsEngine );
-    parser.ConsumeToken();
-
-    parser.parse_file( session, pRoot, egSourceFile );
-}
-
-*/
-
 struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 {
     virtual void parseEGSourceFile( const boost::filesystem::path& sourceDir,
@@ -1646,9 +1602,32 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                                     const mega::io::FileInfo&      objectBodyFile,
                                     std::ostream&                  osError )
     {
-        // VERIFY_RTE_MSG( pCallback, "Invalid parser callback" );
-        // ParserDiagnosticSystem pds( cwdPath, osError );
-        // mega::parseEGSourceFile( pCallback, egSourceFile, pds, session, pRoot );
+        mega::io::Environment                              environment( sourceDir, buildDir );
+        mega::io::Database< mega::io::stage::ObjectParse > database( environment, sourceFile.m_filePath );
+
+        ParserDiagnosticSystem pds( sourceDir, osError );
+
+        std::shared_ptr< clang::FileManager >                pFileManager = get_clang_fileManager( pds );
+        llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine = get_llvm_diagnosticEngine( pds );
+
+        // check file exists
+        if ( !boost::filesystem::exists( sourceFile.m_filePath ) )
+        {
+            THROW_RTE( "File not found: " << sourceFile.m_filePath.string() );
+        }
+
+        Stuff stuff( pFileManager, pDiagnosticsEngine, sourceFile.m_filePath );
+
+        Parser parser( *stuff.pPreprocessor,
+                       *stuff.pSourceManager,
+                       stuff.languageOptions,
+                       *stuff.pHeaderSearch,
+                       pDiagnosticsEngine );
+        parser.ConsumeToken();
+
+        parser.parse_file( database, sourceFile.m_filePath );
+
+        database.store();
     }
 };
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;

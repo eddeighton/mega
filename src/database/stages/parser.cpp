@@ -36,6 +36,7 @@ namespace mega
 {
 namespace Stages
 {
+/*
 
     Parser::Parser( const boost::filesystem::path& parserDLL,
                     const boost::filesystem::path& sourceDir,
@@ -48,7 +49,6 @@ namespace Stages
     {
     }
 
-/*
     void Parser::calculateManifest()
     {
         io::Manifest::PtrCst pManifest = std::make_shared< io::Manifest >( m_buildDir );

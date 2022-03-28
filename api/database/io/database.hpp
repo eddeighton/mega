@@ -19,8 +19,8 @@ namespace io
     public:
         using Stage = TStage;
 
-        Database( const Environment& environment )
-            : m_fileSystem( environment )
+        Database( const Environment& environment, std::optional< boost::filesystem::path > object = std::optional< boost::filesystem::path >() )
+            : m_fileSystem( environment, object )
         {
             m_readableFiles = m_fileSystem.getReadableFiles< Stage >();
             m_writableFiles = m_fileSystem.getWritableFiles< Stage >();

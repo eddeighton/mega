@@ -27,7 +27,9 @@ namespace io
 
     Path Environment::buildDirFromSrcDir( const Path& srcDir ) const
     {
-        return m_rootBuildDir / boost::filesystem::relative( m_rootSourceDir, srcDir );
+        VERIFY_RTE_MSG( boost::filesystem::is_directory( srcDir ),
+                        "Source path is not a directory: " << srcDir.string() );
+        return m_rootBuildDir / boost::filesystem::relative( srcDir, m_rootSourceDir );
     }
 
     Path Environment::stashDir() const
@@ -63,7 +65,7 @@ namespace io
                         "Mega Source File is not regular file: " << megaSourcePath.string() );
         std::ostringstream os;
         os << megaSourcePath.filename().string() << ".ast" << DB_EXTENSION;
-        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( megaSourcePath.parent_path() ) / os.str() );
+        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( Path(megaSourcePath).remove_filename() ) / os.str() );
     }
 
     Path Environment::objectBody( const Path& megaSourcePath ) const
@@ -72,7 +74,7 @@ namespace io
                         "Mega Source File is not regular file: " << megaSourcePath.string() );
         std::ostringstream os;
         os << megaSourcePath.filename().string() << ".body" << DB_EXTENSION;
-        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( megaSourcePath.parent_path() ) / os.str() );
+        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( Path(megaSourcePath).remove_filename() ) / os.str() );
     }
 
 } // namespace io

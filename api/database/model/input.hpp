@@ -22,6 +22,7 @@
 
 #include "objects.hpp"
 
+#include "database/io/stages.hpp"
 #include "database/io/object.hpp"
 #include "database/io/loader.hpp"
 #include "database/io/storer.hpp"
@@ -43,9 +44,12 @@ namespace Stages
 
 namespace input
 {
-    class Element : public io::Object
+
+    class Element : public io::FileObject< io::ObjectAST >
     {
-        friend class mega::Parser;
+        friend class io::File;
+        using Base = io::FileObject< io::ObjectAST >;
+
     protected:
         Element( const io::Object& object );
 
@@ -56,45 +60,32 @@ namespace input
     class Opaque : public Element
     {
         friend class io::Factory;
-        friend class mega::Parser;
-        friend class mega::Stages::Parser;
+        friend class io::File;
+
     public:
         static const ObjectType Type = eInputOpaque;
-
-        static bool equalNullablePtrs( const Opaque* pLeft, const Opaque* pRight )
-        {
-            if ( pLeft && pRight )
-            {
-                return pLeft->getStr() == pRight->getStr();
-            }
-            else
-            {
-                return ( pLeft == nullptr ) && ( pRight == nullptr );
-            }
-        }
 
     protected:
         Opaque( const io::Object& object );
 
     public:
         const std::string& getStr() const { return m_str; }
-        bool               isSemantic() const { return m_bSemantic; }
         virtual void       load( io::Loader& loader );
         virtual void       store( io::Storer& storer ) const;
         void               print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
-        void modify( const std::string& strNew ) { m_str = strNew; }
+        // void modify( const std::string& strNew ) { m_str = strNew; }
 
-    private:
+    public:
         std::string m_str;
-        bool        m_bSemantic;
     };
 
     //////////////////////////////////////////////////////////////////////////////
     // Utility classes
     class HasIdentifier
     {
-        friend class mega::Parser;
+        friend class io::File;
+
     public:
         const std::string& getIdentifier() const { return m_strIdentifier; }
 
@@ -102,12 +93,14 @@ namespace input
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
+    public:
         std::string m_strIdentifier;
     };
 
     class HasConst
     {
-        friend class mega::Parser;
+        friend class io::File;
+
     public:
         bool isConst() const { return m_bIsConst; }
 
@@ -115,12 +108,14 @@ namespace input
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
+    public:
         bool m_bIsConst = false;
     };
 
     class HasChildren
     {
-        friend class mega::Parser;
+        friend class io::File;
+
     public:
         const std::vector< Element* >& getElements() const { return m_elements; }
 
@@ -128,12 +123,13 @@ namespace input
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
+    public:
         std::vector< Element* > m_elements;
     };
 
     class HasDomain
     {
-        friend class mega::Parser;
+        friend class io::File;
 
     public:
         const Opaque* getSize() const { return m_pSize; }
@@ -142,12 +138,13 @@ namespace input
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
+    public:
         Opaque* m_pSize = nullptr;
     };
 
     class HasParameters
     {
-        friend class mega::Parser;
+        friend class io::File;
 
     public:
         const Opaque* getReturnType() const { return m_pReturnType; }
@@ -157,13 +154,14 @@ namespace input
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
+    public:
         Opaque* m_pReturnType = nullptr;
         Opaque* m_pParams = nullptr;
     };
 
     class HasDefinition
     {
-        friend class mega::Parser;
+        friend class io::File;
 
     public:
         std::optional< boost::filesystem::path > getSourceFile() const { return m_sourceFile; }
@@ -173,13 +171,14 @@ namespace input
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
+    public:
         std::optional< boost::filesystem::path > m_sourceFile;
         std::optional< boost::filesystem::path > m_definitionFile;
     };
 
     class HasInheritance
     {
-        friend class mega::Parser;
+        friend class io::File;
 
     public:
         const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
@@ -188,12 +187,13 @@ namespace input
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
+    public:
         std::vector< Opaque* > m_inheritance;
     };
 
     class HasVisibility
     {
-        friend class mega::Parser;
+        friend class io::File;
 
     public:
         VisibilityType getVisibility() const { return m_visibility; }
@@ -202,6 +202,7 @@ namespace input
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
+    public:
         VisibilityType m_visibility = TOTAL_VISIBILITY_TYPES;
     };
 
@@ -219,8 +220,7 @@ namespace input
     class Dimension : public Element, public HasIdentifier, public HasConst
     {
         friend class io::Factory;
-        friend class mega::Parser;
-        friend class mega::Stages::Parser;
+        friend class io::File;
 
     public:
         static const ObjectType Type = eInputDimension;
@@ -235,15 +235,14 @@ namespace input
         virtual void store( io::Storer& storer ) const;
         void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
-    private:
+    public:
         Opaque* m_pType;
     };
 
     class Include : public Element, public HasIdentifier
     {
         friend class io::Factory;
-        friend class mega::Parser;
-        friend class mega::Stages::Parser;
+        friend class io::File;
 
     public:
         static const ObjectType Type = eInputInclude;
@@ -261,7 +260,7 @@ namespace input
         void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
         void         setIncludeFilePath( const std::string& strIncludeFile );
 
-    private:
+    public:
         boost::filesystem::path m_path;
         bool                    m_bIsEGInclude;
         bool                    m_bIsSystemInclude;
@@ -270,8 +269,7 @@ namespace input
     class Using : public Element, public HasIdentifier
     {
         friend class io::Factory;
-        friend class mega::Parser;
-        friend class mega::Stages::Parser;
+        friend class io::File;
 
     public:
         static const ObjectType Type = eInputUsing;
@@ -286,15 +284,14 @@ namespace input
         virtual void store( io::Storer& storer ) const;
         void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
-    private:
+    public:
         Opaque* m_pType;
     };
 
     class Export : public Element, public HasIdentifier
     {
         friend class io::Factory;
-        friend class mega::Parser;
-        friend class mega::Stages::Parser;
+        friend class io::File;
 
     public:
         static const ObjectType Type = eInputExport;
@@ -310,7 +307,7 @@ namespace input
         virtual void store( io::Storer& storer ) const;
         void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
-    private:
+    public:
         Opaque* m_pReturnType;
         Opaque* m_pParameters;
     };
@@ -318,8 +315,7 @@ namespace input
     class Visibility : public Element, public HasVisibility
     {
         friend class io::Factory;
-        friend class mega::Parser;
-        friend class mega::Stages::Parser;
+        friend class io::File;
 
     public:
         static const ObjectType Type = eInputVisibility;
@@ -342,8 +338,7 @@ namespace input
                     public HasInheritance
     {
         friend class io::Factory;
-        friend class mega::Parser;
-        friend class mega::Stages::Parser;
+        friend class io::File;
 
     public:
         static const ObjectType Type = eInputContext;
@@ -376,8 +371,7 @@ namespace input
     class Root : public Context
     {
         friend class io::Factory;
-        friend class mega::Parser;
-        friend class mega::Stages::Parser;
+        friend class io::File;
 
     public:
         static const ObjectType  Type = eInputRoot;
@@ -385,6 +379,7 @@ namespace input
 
     protected:
         Root( const io::Object& object );
+        Root( const io::Object& object, RootType rootType );
 
     public:
         std::optional< boost::filesystem::path > getIncludePath() const { return m_includePath; }
@@ -395,9 +390,28 @@ namespace input
         virtual void store( io::Storer& storer ) const;
         void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
 
-    private:
+    public:
         std::optional< boost::filesystem::path > m_includePath; // null if main root
         RootType                                 m_rootType;
+    };
+
+    class Body : public io::FileObject< io::ObjectBody >
+    {
+        friend class io::Factory;
+        friend class io::File;
+        using Base = io::FileObject< io::ObjectBody >;
+
+    protected:
+        Body( const io::Object& object );
+
+    public:
+        static const ObjectType Type = eInputBody;
+        virtual void            load( io::Loader& loader );
+        virtual void            store( io::Storer& storer ) const;
+
+    public:
+        std::string m_str;
+        Element*    m_pContext;
     };
 
 } // namespace input

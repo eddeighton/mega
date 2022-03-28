@@ -150,25 +150,22 @@ namespace input
     }
 
     Element::Element( const io::Object& object )
-        : io::Object( object )
+        : Base( object )
     {
     }
 
     Opaque::Opaque( const io::Object& object )
         : Element( object )
-        , m_bSemantic( true )
     {
     }
 
     void Opaque::load( io::Loader& loader )
     {
-        loader.load( m_bSemantic );
         loader.load( m_str );
     }
 
     void Opaque::store( io::Storer& storer ) const
     {
-        storer.store( m_bSemantic );
         storer.store( m_str );
     }
 
@@ -419,6 +416,13 @@ namespace input
         m_strIdentifier = RootTypeName;
         m_rootType = eFile;
     }
+    Root::Root( const io::Object& object, RootType rootType )
+        : Context( object )
+    {
+        m_contextType = eObject;
+        m_strIdentifier = RootTypeName;
+        m_rootType = rootType;
+    }
 
     void Root::load( io::Loader& loader )
     {
@@ -439,5 +443,22 @@ namespace input
         printDeclaration( os, strIndent, "root", m_strIdentifier, nullptr, nullptr, m_pSize, m_inheritance, strAnnotation );
     }
 
+    Body::Body( const io::Object& object )
+        : Base( object )
+        , m_pContext( nullptr )
+    {
+    }
+    void Body::load( io::Loader& loader )
+    {
+        loader.load( m_str );
+        m_pContext = loader.loadObjectRef< Element >();
+        VERIFY_RTE( m_pContext );
+    }
+    void Body::store( io::Storer& storer ) const
+    {
+        VERIFY_RTE( m_pContext );
+        storer.store( m_str );
+        storer.storeObjectRef( m_pContext );
+    }
 } // namespace input
 } // namespace mega

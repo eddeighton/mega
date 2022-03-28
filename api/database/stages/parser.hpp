@@ -60,6 +60,7 @@ namespace input
 
 namespace Stages
 {
+        /*
     class Parser //: public Creating
     {
     public:
@@ -75,7 +76,6 @@ namespace Stages
         boost::filesystem::path m_sourceDir;
         boost::filesystem::path m_buildDir;
 
-        /*
     public:
         Parser(  EG_PARSER_CALLBACK* pParserCallback,
                         const boost::filesystem::path& parserDLLPath,
@@ -121,8 +121,8 @@ namespace Stages
         EG_PARSER_CALLBACK* m_pParserCallback;
         const boost::filesystem::path m_parserDllPath;
         const boost::filesystem::path m_currentPath;
-        std::ostream& m_errorOS;*/
-    };
+        std::ostream& m_errorOS;
+    };*/
 } // namespace Stages
 } // namespace mega
 

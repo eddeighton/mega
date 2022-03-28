@@ -239,8 +239,7 @@ namespace interface
         virtual void store( io::Storer& storer ) const;
 
     public:
-        bool isSemantic() const { return m_pOpaque->isSemantic(); }
-        void modify( const Opaque* pNew ) { m_pOpaque->modify( pNew->m_pOpaque->getStr() ); }
+        //void modify( const Opaque* pNew ) { m_pOpaque->modify( pNew->m_pOpaque->getStr() ); }
 
     private:
         input::Opaque* m_pOpaque = nullptr;

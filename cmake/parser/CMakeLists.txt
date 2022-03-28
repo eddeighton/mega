@@ -24,11 +24,18 @@ add_library( parser SHARED
 
 set_target_properties( parser PROPERTIES FOLDER parser )
 
+
 link_boost( parser filesystem )
 link_boost( parser iostreams )
 link_boost( parser serialization )
 link_clang( parser )
 link_common( parser )
+
+#if (NOT LLVM_ENABLE_RTTI)
+#  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fno-rtti")
+#endif()
+
+#target_compile_options( parser PRIVATE -fno-rtti)
 
 target_link_libraries( parser database )
 

@@ -65,6 +65,8 @@ void Identifiers::populate( const io::Object::Array& objects )
         case eInputContext:
         case eInputRoot:
 
+        case eInputBody:
+
         case eInheritanceNode:
 
         case eConcreteAction:
