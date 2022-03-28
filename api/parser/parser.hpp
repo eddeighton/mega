@@ -2,8 +2,6 @@
 #ifndef PARSER_14_SEPT_2020
 #define PARSER_14_SEPT_2020
 
-#include "database/stages/parser.hpp"
-
 #include "boost/filesystem/path.hpp"
 #include <ostream>
 
@@ -30,24 +28,20 @@
 // EG Database Interface
 namespace mega
 {
-namespace input
+namespace io
 {
-    class Context;
-    class Export;
-} // namespace input
-
-struct EG_PARSER_CALLBACK
-{
-    virtual void contextBody( const mega::input::Context* pContext, const char* pszBodyText ) = 0;
-    virtual void exportBody( const mega::input::Export* pExport, const char* pszBodyText ) = 0;
-};
+    class FileInfo;
+}
 
 struct EGDB_EXPORT EG_PARSER_INTERFACE
 {
-    virtual void parseEGSourceFile( EG_PARSER_CALLBACK*            pCallback,
-                                    const boost::filesystem::path& egSourceFile,
-                                    const boost::filesystem::path& cwdPath, std::ostream& osError,
-                                    Stages::Parser& session, input::Root* pRoot ) = 0;
+    virtual void parseEGSourceFile( const boost::filesystem::path& sourceDir,
+                                    const boost::filesystem::path& buildDir,
+                                    const mega::io::FileInfo&      sourceFile,
+                                    const mega::io::FileInfo&      objectASTFile,
+                                    const mega::io::FileInfo&      objectBodyFile,
+                                    std::ostream&                  osError )
+        = 0;
 };
 } // namespace mega
 

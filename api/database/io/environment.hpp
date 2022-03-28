@@ -20,26 +20,24 @@ namespace io
         static const std::string CPP_SOURCE_EXTENSION;
 
         Environment( const Path& rootSourceDir,
-                     const Path& rootBuildDir,
-                     const Path& sourceDir,
-                     const Path& buildDir );
+                     const Path& rootBuildDir );
 
         Path stashDir() const;
 
-        Path sourceDir() const;
-        Path buildDir() const;
+        Path rootSourceDir() const;
+        Path rootBuildDir() const;
 
         Path project_manifest() const;
-        Path source_list() const;
+        Path source_list( const Path& srcDir ) const;
 
         Path objectAST( const Path& megaSource ) const;
         Path objectBody( const Path& megaSource ) const;
 
     private:
+        Path buildDirFromSrcDir( const Path& srcDir ) const;
+
         const Path& m_rootSourceDir;
         const Path& m_rootBuildDir;
-        const Path& m_sourceDir;
-        const Path& m_buildDir;
     };
 } // namespace io
 } // namespace mega

@@ -69,8 +69,8 @@ namespace reset
         virtual void run( task::Progress& taskProgress )
         {
             taskProgress.start( "Task_ResetSourceListings",
-                                m_environment.buildDir(),
-                                m_environment.buildDir() );
+                                m_environment.rootSourceDir(),
+                                m_environment.rootBuildDir() );
 
             const boost::filesystem::path projectManifestFilePath = m_environment.project_manifest();
             if ( boost::filesystem::exists( projectManifestFilePath ) )
@@ -78,7 +78,9 @@ namespace reset
                 boost::filesystem::remove( projectManifestFilePath );
             }
 
-            mega::io::Manifest::reset( m_environment.sourceDir(), m_environment.buildDir() );
+            mega::io::Manifest::removeManifestAndSourceListingFiles(
+                m_environment.rootSourceDir(),
+                m_environment.rootBuildDir() );
 
             taskProgress.succeeded();
         }
@@ -114,7 +116,7 @@ namespace reset
         }
         else
         {
-            mega::io::Environment environment( rootSourceDir, rootBuildDir, rootSourceDir, rootBuildDir );
+            mega::io::Environment environment( rootSourceDir, rootBuildDir );
 
             task::Stash stash( environment.stashDir() );
 

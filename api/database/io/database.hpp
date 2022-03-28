@@ -3,6 +3,7 @@
 
 #include "object.hpp"
 #include "generics.hpp"
+#include "environment.hpp"
 #include "file_system.hpp"
 
 #include <memory>
@@ -18,10 +19,8 @@ namespace io
     public:
         using Stage = TStage;
 
-        Database( const boost::filesystem::path& sourceDir, const boost::filesystem::path& buildDir )
-            : m_fileSystem( sourceDir, buildDir )
-            , m_sourceDir( sourceDir )
-            , m_buildDir( buildDir )
+        Database( const Environment& environment )
+            : m_fileSystem( environment )
         {
             m_readableFiles = m_fileSystem.getReadableFiles< Stage >();
             m_writableFiles = m_fileSystem.getWritableFiles< Stage >();
@@ -141,9 +140,6 @@ namespace io
         }
 
     private:
-        const boost::filesystem::path m_sourceDir;
-        const boost::filesystem::path m_buildDir;
-
         FileSystem m_fileSystem;
 
         FileSystem::FileMapCst m_readableFiles;

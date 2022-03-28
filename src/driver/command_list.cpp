@@ -59,19 +59,23 @@ namespace list
     public:
         Task_SourceListingToManifest( const mega::io::Environment&                  environment,
                                       task::Stash&                                  stash,
+                                      const boost::filesystem::path&                srcDir,
+                                      const boost::filesystem::path&                buildDir,
                                       const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
                                       bool                                          bIsComponent )
             : BaseTask( environment, stash, {} )
+            , m_srcDir( srcDir )
+            , m_buildDir( buildDir )
             , m_sourceListing( inputMegaSourceFiles, bIsComponent )
         {
         }
         virtual void run( task::Progress& taskProgress )
         {
             // inputMegaSourceFiles
-            const mega::io::Environment::Path sourceListPath = m_environment.source_list();
+            const mega::io::Environment::Path sourceListPath = m_environment.source_list( m_buildDir );
 
             taskProgress.start( "Task_SourceListingToManifest",
-                                m_environment.sourceDir(),
+                                m_srcDir,
                                 sourceListPath );
 
             m_sourceListing.save( sourceListPath );
@@ -80,7 +84,9 @@ namespace list
         }
 
     private:
-        mega::io::SourceListing m_sourceListing;
+        const boost::filesystem::path m_srcDir;
+        const boost::filesystem::path m_buildDir;
+        mega::io::SourceListing       m_sourceListing;
     };
 
     void command( bool bHelp, const std::vector< std::string >& args )
@@ -138,13 +144,19 @@ namespace list
                 }
             }
 
-            mega::io::Environment environment( rootSourceDir, rootBuildDir, sourceDir, buildDir );
+            mega::io::Environment environment( rootSourceDir, rootBuildDir );
 
             task::Stash stash( environment.stashDir() );
 
             task::Task::PtrVector tasks;
 
-            Task_SourceListingToManifest* pTask = new Task_SourceListingToManifest( environment, stash, inputSourceFiles, bIsComponent );
+            Task_SourceListingToManifest* pTask = new Task_SourceListingToManifest(
+                environment,
+                stash,
+                sourceDir,
+                buildDir,
+                inputSourceFiles,
+                bIsComponent );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

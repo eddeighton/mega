@@ -534,7 +534,7 @@ public:
         clang::SourceLocation ( Parser::*Consumer )();
         clang::SourceLocation LOpen, LClose;
 
-        
+
         //unsigned short &getDepth()
         //{
         //    switch( Kind )
@@ -1058,20 +1058,20 @@ public:
             if ( const clang::FileEntry* pIncludeFile = PP.LookupFile(
                      clang::SourceLocation(), strFile,
                      //isAngled
-                     bIsAngled, 
+                     bIsAngled,
                      //FromDir
-                     nullptr, 
+                     nullptr,
                      //FromFile
-                     nullptr, 
+                     nullptr,
                      CurDir,
                      //SearchPath
-                     nullptr, 
+                     nullptr,
                      //RelativePath
                      nullptr,
                      //SuggestedModule
-                     nullptr, 
+                     nullptr,
                      //IsMapped
-                     nullptr 
+                     nullptr
                      ) )
             {
                 pInclude->setIncludeFilePath( pIncludeFile->tryGetRealPathName() );
@@ -1576,18 +1576,18 @@ struct Stuff
         ,
 
         pPreprocessor( std::make_shared< clang::Preprocessor >(
-            pPreprocessorOptions, 
-            *pDiagnosticsEngine, 
+            pPreprocessorOptions,
+            *pDiagnosticsEngine,
             languageOptions,
-            *pSourceManager, 
-            *pPCMCache, 
-            *pHeaderSearch, 
-            *pModuleLoader, 
+            *pSourceManager,
+            *pPCMCache,
+            *pHeaderSearch,
+            *pModuleLoader,
             //PTHMgr
             nullptr,
             //OwnsHeaderSearch
-            false, 
-            clang::TU_Complete 
+            false,
+            clang::TU_Complete
             ) )
         ,
 
@@ -1636,16 +1636,19 @@ void parseEGSourceFile( EG_PARSER_CALLBACK*            pCallback,
 }
 
 */
+
 struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 {
-    virtual void parseEGSourceFile( EG_PARSER_CALLBACK*            pCallback,
-                                    const boost::filesystem::path& egSourceFile,
-                                    const boost::filesystem::path& cwdPath, std::ostream& osError,
-                                    Stages::Parser& session, input::Root* pRoot )
+    virtual void parseEGSourceFile( const boost::filesystem::path& sourceDir,
+                                    const boost::filesystem::path& buildDir,
+                                    const mega::io::FileInfo&      sourceFile,
+                                    const mega::io::FileInfo&      objectASTFile,
+                                    const mega::io::FileInfo&      objectBodyFile,
+                                    std::ostream&                  osError )
     {
-        //VERIFY_RTE_MSG( pCallback, "Invalid parser callback" );
-        //ParserDiagnosticSystem pds( cwdPath, osError );
-        //mega::parseEGSourceFile( pCallback, egSourceFile, pds, session, pRoot );
+        // VERIFY_RTE_MSG( pCallback, "Invalid parser callback" );
+        // ParserDiagnosticSystem pds( cwdPath, osError );
+        // mega::parseEGSourceFile( pCallback, egSourceFile, pds, session, pRoot );
     }
 };
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;

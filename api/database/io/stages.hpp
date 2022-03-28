@@ -42,7 +42,7 @@ namespace io
     {
     public:
         using CreatingStage = TCreatingStage;
-        StagedFile( const File::Info& fileInfo )
+        StagedFile( const FileInfo& fileInfo )
             : File( fileInfo )
         {
         }
@@ -51,7 +51,7 @@ namespace io
     class ObjectAST : public StagedFile< stage::ObjectParse >
     {
     public:
-        ObjectAST( const File::Info& fileInfo )
+        ObjectAST( const FileInfo& fileInfo )
             : StagedFile( fileInfo )
         {
         }
@@ -60,7 +60,7 @@ namespace io
     class ObjectBody : public StagedFile< stage::ObjectParse >
     {
     public:
-        ObjectBody( const File::Info& fileInfo )
+        ObjectBody( const FileInfo& fileInfo )
             : StagedFile( fileInfo )
         {
         }

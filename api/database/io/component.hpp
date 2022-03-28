@@ -2,6 +2,7 @@
 #define IO_COMPONENT_25_MARCH_2022
 
 #include "source_listing.hpp"
+#include "file_info.hpp"
 #include "file.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -19,20 +20,21 @@ namespace io
 
         Component();
 
-        void addSourceFileInfos( const std::vector< File::Info >& sourceFileInfos );
+        void collectFileInfos( std::vector< FileInfo >& fileInfos ) const;
+
+        void addSourceFileInfos( const std::vector< FileInfo >& sourceFileInfos );
         void addComponent( Ptr pComponent );
-        void addCompilationFiles( const boost::filesystem::path& sourceDirectory,
-                                  const boost::filesystem::path& buildDirectory );
+        void addCompilationFiles( const Environment& environment );
         void labelFiles( Object::FileID& fileID );
 
-        const std::vector< File::Info >&     getSourceFileInfos() const { return m_fileInfos; }
+        const std::vector< FileInfo >&       getSourceFileInfos() const { return m_fileInfos; }
         const std::vector< Component::Ptr >& getComponents() const { return m_components; }
 
         void load( std::istream& is );
         void save( std::ostream& os ) const;
 
     private:
-        std::vector< File::Info >     m_fileInfos;
+        std::vector< FileInfo >       m_fileInfos;
         std::vector< Component::Ptr > m_components;
     };
 } // namespace io

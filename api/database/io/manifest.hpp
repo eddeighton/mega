@@ -2,6 +2,8 @@
 #define IO_MANIFEST_26_MAR_2022
 
 #include "object.hpp"
+#include "file_info.hpp"
+#include "environment.hpp"
 
 #include <boost/filesystem/path.hpp>
 
@@ -18,32 +20,48 @@ namespace io
         using PtrCst = std::shared_ptr< const Manifest >;
 
         Manifest();
-        Manifest( const boost::filesystem::path& sourceDirectory,
-                  const boost::filesystem::path& buildDirectory );
+
+        // Load an existing manifest from the specified file.
+        Manifest( const boost::filesystem::path& filepath );
+
+        // Construct a manifest from the source and build directory by
+        // recursively analysing existing source listing files.
+        Manifest( const Environment& environment );
 
         std::shared_ptr< Component > getComponent() const { return m_pComponent; }
+        void                         collectFileInfos( std::vector< FileInfo >& fileInfos ) const;
 
         void load( std::istream& is );
         void save( std::ostream& os ) const;
+        void load( const boost::filesystem::path& filepath );
+        void save( const boost::filesystem::path& filepath ) const;
 
-        static void             reset( const boost::filesystem::path& sourceDirectory,
-                                       const boost::filesystem::path& buildDirectory );
-        static Manifest::PtrCst load( const boost::filesystem::path& filepath );
-        void                    save( const boost::filesystem::path& filepath ) const;
+        // remove all source listing and manifest files from the source and build directories
+        static void removeManifestAndSourceListingFiles( const boost::filesystem::path& sourceDirectory,
+                                                         const boost::filesystem::path& buildDirectory );
 
     private:
         void        addComponent( std::shared_ptr< Component > pComponent );
-        static void resetRecurse( const boost::filesystem::path& sourceDirectory,
-                                  const boost::filesystem::path& buildDirectory,
-                                  const boost::filesystem::path& iteratorDir );
         void        constructRecurse( std::shared_ptr< Component >   pComponent,
-                                      const boost::filesystem::path& sourceDirectory,
-                                      const boost::filesystem::path& buildDirectory,
-                                      const boost::filesystem::path& iteratorDir );
+                                      const Environment&             environment,
+                                      const boost::filesystem::path& buildDirIter );
+        static void removeManifestAndSourceListingFilesRecurse( const Environment&             environment,
+                                                                const boost::filesystem::path& iteratorDir );
 
     private:
         std::shared_ptr< Component > m_pComponent;
     };
+
+    inline std::istream& operator>>( std::istream& is, Manifest& manifest )
+    {
+        manifest.load( is );
+        return is;
+    }
+    inline std::ostream& operator<<( std::ostream& os, const Manifest& manifest )
+    {
+        manifest.save( os );
+        return os;
+    }
 } // namespace io
 } // namespace mega
 

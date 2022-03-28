@@ -10,6 +10,10 @@ namespace mega
 {
 namespace io
 {
+    SourceListing::SourceListing()
+        :   m_bIsComponent( false )
+    {
+    }
 
     SourceListing::SourceListing( const SourceListing::PathArray& sourceFiles, bool bIsComponent )
         : m_sourceFiles( sourceFiles )
@@ -28,28 +32,9 @@ namespace io
             THROW_RTE( "Failed to open file: " << manifestFilePath.string() );
         }
 
-        std::string str;
-        while ( std::getline( inputFileStream, str ) )
-        {
-            if ( !bIsComponentOpt.has_value() )
-            {
-                std::istringstream is( str );
-                bool               bIsComponent = false;
-                is >> bIsComponent;
-                bIsComponentOpt = bIsComponent;
-            }
-            else
-            {
-                std::istringstream is( str );
-
-                boost::filesystem::path sourcePath;
-                is >> sourcePath;
-
-                sourceFiles.push_back( sourcePath );
-            }
-        }
-
-        return SourceListing( sourceFiles, bIsComponentOpt.value_or( false ) );
+        SourceListing sourceListing;
+        inputFileStream >> sourceListing;
+        return sourceListing;
     }
 
     void SourceListing::save( const boost::filesystem::path& manifestFilePath ) const
@@ -59,14 +44,41 @@ namespace io
         {
             THROW_RTE( "Failed to write to file: " << manifestFilePath.string() );
         }
-
-        outputFileStream << m_bIsComponent << std::endl;
-
-        for ( const boost::filesystem::path& sourceFilePath : m_sourceFiles )
-        {
-            outputFileStream << sourceFilePath.generic_string() << std::endl;
-        }
+        outputFileStream << *this;
     }
     
+    std::ostream& operator<<( std::ostream& os, const SourceListing& sourceListing )
+    {
+        os << sourceListing.m_bIsComponent << std::endl;
+        for ( const boost::filesystem::path& sourceFilePath : sourceListing.m_sourceFiles )
+        {
+            os << sourceFilePath.generic_string() << std::endl;
+        }
+        return os;
+    }
+
+    std::istream& operator>>( std::istream& is, SourceListing& sourceListing )
+    {
+        bool bIsComponentRead = false;
+        std::string str;
+        while ( std::getline( is, str ) )
+        {
+            if ( !bIsComponentRead )
+            {
+                std::istringstream is( str );
+                is >> sourceListing.m_bIsComponent;
+                bIsComponentRead = true;
+            }
+            else
+            {
+                std::istringstream is( str );
+                boost::filesystem::path sourcePath;
+                is >> sourcePath;
+                sourceListing.m_sourceFiles.push_back( sourcePath );
+            }
+        }
+        return is;
+    }
+
 } // namespace io
 } // namespace mega

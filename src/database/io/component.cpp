@@ -17,10 +17,21 @@ namespace io
     {
     }
 
-    void Component::addSourceFileInfos( const std::vector< File::Info >& sourceFileInfos )
+    void Component::addSourceFileInfos( const std::vector< FileInfo >& sourceFileInfos )
     {
         std::copy( sourceFileInfos.begin(), sourceFileInfos.end(),
                    std::back_inserter( m_fileInfos ) );
+    }
+
+    void Component::collectFileInfos( std::vector< FileInfo >& fileInfos ) const
+    {
+        std::copy( m_fileInfos.begin(), m_fileInfos.end(),
+                   std::back_inserter( fileInfos ) );
+
+        for ( Component::Ptr pComponent : m_components )
+        {
+            pComponent->collectFileInfos( fileInfos );
+        }
     }
 
     void Component::addComponent( Ptr pComponent )
@@ -28,29 +39,24 @@ namespace io
         m_components.push_back( pComponent );
     }
 
-    void Component::addCompilationFiles( const boost::filesystem::path& sourceDirectory,
-                                         const boost::filesystem::path& buildDirectory )
+    void Component::addCompilationFiles( const Environment& environment )
     {
-        std::vector< File::Info > compilationFileInfos;
-        for ( File::Info& fileInfo : m_fileInfos )
+        std::vector< FileInfo > compilationFileInfos;
+        for ( FileInfo& fileInfo : m_fileInfos )
         {
-            const boost::filesystem::path sourceFolder = fileInfo.m_filePath.parent_path();
-            const boost::filesystem::path buildPath = buildDirectory / boost::filesystem::relative( sourceFolder, sourceDirectory );
-            const Environment             environment( sourceDirectory, buildDirectory, sourceFolder, buildPath );
-
             {
-                File::Info compilationFile;
+                FileInfo compilationFile;
                 compilationFile.m_fileID = Object::NO_FILE;
-                compilationFile.m_fileType = File::Info::ObjectAST;
+                compilationFile.m_fileType = FileInfo::ObjectAST;
                 compilationFile.m_filePath = environment.objectAST( fileInfo.m_filePath );
                 compilationFile.m_objectSourceFilePath = fileInfo.m_filePath;
                 compilationFileInfos.push_back( compilationFile );
             }
 
             {
-                File::Info compilationFile;
+                FileInfo compilationFile;
                 compilationFile.m_fileID = Object::NO_FILE;
-                compilationFile.m_fileType = File::Info::ObjectBody;
+                compilationFile.m_fileType = FileInfo::ObjectBody;
                 compilationFile.m_filePath = environment.objectBody( fileInfo.m_filePath );
                 compilationFile.m_objectSourceFilePath = fileInfo.m_filePath;
                 compilationFileInfos.push_back( compilationFile );
@@ -60,13 +66,13 @@ namespace io
 
         for ( Component::Ptr pComponent : m_components )
         {
-            pComponent->addCompilationFiles( sourceDirectory, buildDirectory );
+            pComponent->addCompilationFiles( environment );
         }
     }
 
     void Component::labelFiles( Object::FileID& fileID )
     {
-        for ( File::Info& fileInfo : m_fileInfos )
+        for ( FileInfo& fileInfo : m_fileInfos )
         {
             fileInfo.m_fileID = fileID;
             ++fileID;
@@ -92,7 +98,7 @@ namespace io
             else
             {
                 std::istringstream iss( str );
-                File::Info         sourceFileInfo;
+                FileInfo           sourceFileInfo;
                 iss >> sourceFileInfo;
                 m_fileInfos.push_back( sourceFileInfo );
             }
@@ -102,7 +108,7 @@ namespace io
     void Component::save( std::ostream& os ) const
     {
         os << strComponentID << std::endl;
-        for ( const File::Info& sourceFileInfo : m_fileInfos )
+        for ( const FileInfo& sourceFileInfo : m_fileInfos )
         {
             os << sourceFileInfo << std::endl;
         }

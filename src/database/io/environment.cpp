@@ -5,6 +5,7 @@
 #include "database/io/manifest.hpp"
 
 #include "common/file.hpp"
+#include <boost/filesystem/directory.hpp>
 
 namespace mega
 {
@@ -15,56 +16,63 @@ namespace io
     const std::string Environment::CPP_HEADER_EXTENSION( ".hpp" );
     const std::string Environment::CPP_SOURCE_EXTENSION( ".cpp" );
 
+    using Path = Environment::Path;
+
     Environment::Environment( const Path& rootSourceDir,
-                              const Path& rootBuildDir,
-                              const Path& sourceDir,
-                              const Path& buildDir )
+                              const Path& rootBuildDir )
         : m_rootSourceDir( rootSourceDir )
         , m_rootBuildDir( rootBuildDir )
-        , m_sourceDir( sourceDir )
-        , m_buildDir( buildDir )
     {
     }
 
-    using Path = Environment::Path;
+    Path Environment::buildDirFromSrcDir( const Path& srcDir ) const
+    {
+        return m_rootBuildDir / boost::filesystem::relative( m_rootSourceDir, srcDir );
+    }
 
     Path Environment::stashDir() const
     {
-        return m_buildDir / "stash";
+        return m_rootBuildDir / "stash";
     }
 
-    Path Environment::sourceDir() const
+    Path Environment::rootSourceDir() const
     {
-        return m_sourceDir;
+        return m_rootSourceDir;
     }
 
-    Path Environment::buildDir() const
+    Path Environment::rootBuildDir() const
     {
-        return m_buildDir;
+        return m_rootBuildDir;
     }
 
     Path Environment::project_manifest() const
     {
-        return m_buildDir / "project_manifest.txt";
+        return m_rootBuildDir / "project_manifest.txt";
     }
 
-    Path Environment::source_list() const
+    Path Environment::source_list( const Path& buildDir ) const
     {
-        return m_buildDir / "source_list.txt";
+        VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDir ),
+                        "Source List path is not a directory: " << buildDir.string() );
+        return buildDir / "source_list.txt";
     }
 
     Path Environment::objectAST( const Path& megaSourcePath ) const
     {
+        VERIFY_RTE_MSG( boost::filesystem::is_regular_file( megaSourcePath ),
+                        "Mega Source File is not regular file: " << megaSourcePath.string() );
         std::ostringstream os;
         os << megaSourcePath.filename().string() << ".ast" << DB_EXTENSION;
-        return boost::filesystem::edsCannonicalise( m_buildDir / os.str() );
+        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( megaSourcePath.parent_path() ) / os.str() );
     }
 
     Path Environment::objectBody( const Path& megaSourcePath ) const
     {
+        VERIFY_RTE_MSG( boost::filesystem::is_regular_file( megaSourcePath ),
+                        "Mega Source File is not regular file: " << megaSourcePath.string() );
         std::ostringstream os;
         os << megaSourcePath.filename().string() << ".body" << DB_EXTENSION;
-        return boost::filesystem::edsCannonicalise( m_buildDir / os.str() );
+        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( megaSourcePath.parent_path() ) / os.str() );
     }
 
 } // namespace io

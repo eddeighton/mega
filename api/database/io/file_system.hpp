@@ -1,10 +1,10 @@
 #ifndef IO_FILE_SYSTEM_26_MAR_2022
 #define IO_FILE_SYSTEM_26_MAR_2022
 
+#include "environment.hpp"
 #include "file.hpp"
 #include "manifest.hpp"
 #include "stages.hpp"
-#include "environment.hpp"
 
 #include <memory>
 #include <type_traits>
@@ -19,16 +19,16 @@ namespace io
         using FileMap = std::map< Object::FileID, File::Ptr >;
         using FileMapCst = std::map< Object::FileID, File::PtrCst >;
 
-        FileSystem( const boost::filesystem::path& sourceDir, const boost::filesystem::path& buildDir )
-            : m_sourceDir( sourceDir )
-            , m_buildDir( buildDir )
+        FileSystem( const Environment& environment )
+            : m_environment( environment )
+            , m_manifest( m_environment.project_manifest() )
         {
-            // attempt to load the manifest file
-            const Environment environment( sourceDir, buildDir, sourceDir, buildDir );
-            m_pManifest = Manifest::load( environment.project_manifest() );
         }
 
-        const Manifest& getManifest() const { VERIFY_RTE(m_pManifest); return *m_pManifest; }
+        const Manifest& getManifest() const
+        {
+            return m_manifest;
+        }
 
         template < typename TFileType >
         inline Object::FileID getFileID() const;
@@ -40,10 +40,8 @@ namespace io
         inline FileMap getWritableFiles() const;
 
     private:
-        const boost::filesystem::path m_sourceDir;
-        const boost::filesystem::path m_buildDir;
-
-        Manifest::PtrCst m_pManifest;
+        const Environment&            m_environment;
+        const Manifest                m_manifest;
 
         Object::FileID m_testFileID;
     };
@@ -76,9 +74,9 @@ namespace io
     {
         FileSystem::FileMap writableFiles;
 
-        //File::Info fileInfo { File::Info::ObjectAST, 0U, 
-        //File::Ptr pTestFile = std::make_shared< TestFile >( "foobar.txt", m_testFileID );
-        //writableFiles.insert( std::make_pair( m_testFileID, pTestFile ) );
+        // FileInfo fileInfo { FileInfo::ObjectAST, 0U,
+        // File::Ptr pTestFile = std::make_shared< TestFile >( "foobar.txt", m_testFileID );
+        // writableFiles.insert( std::make_pair( m_testFileID, pTestFile ) );
 
         return writableFiles;
     }

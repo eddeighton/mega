@@ -70,11 +70,14 @@ namespace manifest
             const mega::io::Environment::Path projectManifestPath = m_environment.project_manifest();
 
             taskProgress.start( "Task_GenerateManifest",
-                                m_environment.buildDir(),
+                                m_environment.rootBuildDir(),
                                 projectManifestPath );
 
-            mega::io::Manifest manifest( m_environment.sourceDir(), m_environment.buildDir() );
+            const mega::io::Manifest manifest( m_environment );
             manifest.save( projectManifestPath );
+
+            VERIFY_RTE_MSG( boost::filesystem::exists( projectManifestPath ),
+                            "Failed to create manifest file: " << projectManifestPath.string() );
 
             taskProgress.succeeded();
         }
@@ -110,7 +113,7 @@ namespace manifest
         }
         else
         {
-            mega::io::Environment environment( rootSourceDir, rootBuildDir, rootSourceDir, rootBuildDir );
+            mega::io::Environment environment( rootSourceDir, rootBuildDir );
 
             task::Stash stash( environment.stashDir() );
 
@@ -123,5 +126,5 @@ namespace manifest
             task::run( pSchedule, std::cout );
         }
     }
-} // namespace interface
+} // namespace manifest
 } // namespace driver
