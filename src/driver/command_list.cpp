@@ -87,7 +87,7 @@ namespace list
                 THROW_RTE( "Failed to write to file: " << sourceListPath.string() );
             }
             mega::OutputArchiveType oa(outputFileStream);
-            oa << m_componentInfo;
+            oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
 
             taskProgress.succeeded();
         }

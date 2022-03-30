@@ -15,6 +15,8 @@ namespace io
 {
     class FileInfo
     {
+        using OptionalPath = std::optional< boost::filesystem::path >;
+
     public:
         // clang-format off
         enum Type
@@ -53,25 +55,25 @@ namespace io
             const boost::filesystem::path& filePath,
             const boost::filesystem::path& objectSourceFilePath );
 
-        Type                                            getFileType() const { return m_fileType; }
-        ObjectInfo::FileID                              getFileID() const { return m_fileID; }
-        const boost::filesystem::path&                  getFilePath() const { return m_filePath; }
-        const std::optional< boost::filesystem::path >& getObjectSourceFilePath() const { return m_objectSourceFilePath; }
+        Type                           getFileType() const { return m_fileType; }
+        ObjectInfo::FileID             getFileID() const { return m_fileID; }
+        const boost::filesystem::path& getFilePath() const { return m_filePath; }
+        const OptionalPath&            getObjectSourceFilePath() const { return m_objectSourceFilePath; }
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
-            archive& m_fileType;
-            archive& m_fileID;
-            archive& m_filePath;
-            archive& m_objectSourceFilePath;
+            archive& boost::serialization::make_nvp( "fileType", m_fileType );
+            archive& boost::serialization::make_nvp( "fileID", m_fileID );
+            archive& boost::serialization::make_nvp( "filePath", m_filePath );
+            archive& boost::serialization::make_nvp( "objectSourceFilePath", m_objectSourceFilePath );
         }
 
     private:
-        Type                                     m_fileType;
-        ObjectInfo::FileID                       m_fileID;
-        boost::filesystem::path                  m_filePath;
-        std::optional< boost::filesystem::path > m_objectSourceFilePath;
+        Type                    m_fileType;
+        ObjectInfo::FileID      m_fileID;
+        boost::filesystem::path m_filePath;
+        OptionalPath            m_objectSourceFilePath;
     };
 
 } // namespace io

@@ -46,7 +46,6 @@ namespace io
             }
         }
         m_fileIDLoadedToRuntime.resize( szHighest, ObjectInfo::NO_FILE );
-        m_fileIDRuntimeToLoaded.resize( szHighest, ObjectInfo::NO_FILE );
 
         for ( const FileInfo& fileInfo : loadedManifest.getFileInfos() )
         {
@@ -55,7 +54,6 @@ namespace io
                 if ( runtimeFileInfo.getFilePath() == fileInfo.getFilePath() )
                 {
                     m_fileIDLoadedToRuntime[ fileInfo.getFileID() ] = runtimeFileInfo.getFileID();
-                    m_fileIDRuntimeToLoaded[ runtimeFileInfo.getFileID() ] = fileInfo.getFileID();
                     break;
                 }
             }

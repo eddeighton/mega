@@ -55,8 +55,8 @@ namespace io
     Path Environment::component() const
     {
         std::ostringstream os;
-        os << m_rootBuildDir << "component" << DB_EXTENSION;
-        return os.str();
+        os << "component" << DB_EXTENSION;
+        return m_rootBuildDir / os.str();
     }
 
     Path Environment::source_list( const Path& buildDir ) const
@@ -72,7 +72,7 @@ namespace io
                         "Mega Source File is not regular file: " << megaSourcePath.string() );
         std::ostringstream os;
         os << megaSourcePath.filename().string() << ".ast" << DB_EXTENSION;
-        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( Path(megaSourcePath).remove_filename() ) / os.str() );
+        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( Path( megaSourcePath ).remove_filename() ) / os.str() );
     }
 
     Path Environment::objectBody( const Path& megaSourcePath ) const
@@ -81,7 +81,7 @@ namespace io
                         "Mega Source File is not regular file: " << megaSourcePath.string() );
         std::ostringstream os;
         os << megaSourcePath.filename().string() << ".body" << DB_EXTENSION;
-        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( Path(megaSourcePath).remove_filename() ) / os.str() );
+        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( Path( megaSourcePath ).remove_filename() ) / os.str() );
     }
 
 } // namespace io

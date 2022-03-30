@@ -125,17 +125,20 @@ get_llvm_diagnosticEngine( ParserDiagnosticSystem& diagnosticSystem )
         Diags->Report( Tok.getLocation(), clang::diag::err_eg_generic_error ) << _os.str(); \
         THROW_RTE( "Parser error: " << _os.str() ); )
 
+//#define EG_PARSER_WARNING( _msg )                                    \
+//    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                 \
+//        std::ostringstream _os;                                      \
+//        _os << Tok.getLocation().printToString( sm ) << " " << _msg; \
+//        Diags->Report( Tok.getLocation(), clang::diag::warn_eg_generic_warning ) << _os.str(); )
+
 // cannibalised version of clang parser for parsing eg source code
 class Parser
 {
-    clang::Preprocessor& PP;
-
-    clang::SourceManager& sm;
-
-    clang::LangOptions& languageOptions;
-
-    clang::HeaderSearch& headerSearch;
-
+    const clang::FileEntry&                              fileEntry;
+    clang::Preprocessor&                                 PP;
+    clang::SourceManager&                                sm;
+    clang::LangOptions&                                  languageOptions;
+    clang::HeaderSearch&                                 headerSearch;
     llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > Diags;
 
     clang::DiagnosticBuilder Diag( clang::SourceLocation Loc, unsigned DiagID )
@@ -263,13 +266,15 @@ class Parser
     AngleBracketTracker AngleBrackets;
 
 public:
-    Parser( clang::Preprocessor&  PP,
-            clang::SourceManager& sourceManager,
-            clang::LangOptions&   languageOptions,
-            clang::HeaderSearch&  headerSearch,
+    Parser( const clang::FileEntry& fileEntry,
+            clang::Preprocessor&    PP,
+            clang::SourceManager&   sourceManager,
+            clang::LangOptions&     languageOptions,
+            clang::HeaderSearch&    headerSearch,
             llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                 Diags )
-        : PP( PP )
+        : fileEntry( fileEntry )
+        , PP( PP )
         , sm( sourceManager )
         , languageOptions( languageOptions )
         , headerSearch( headerSearch )
@@ -1063,18 +1068,25 @@ public:
             }
 
             const clang::DirectoryLookup* CurDir;
+
+            // headerSearch.LookupFile
+
             if ( const clang::FileEntry* pIncludeFile = PP.LookupFile(
-                     clang::SourceLocation(), strFile,
+                     clang::SourceLocation(),
+                     // Filename
+                     strFile,
                      // isAngled
                      bIsAngled,
-                     // FromDir
+                     // DirectoryLookup *FromDir
                      nullptr,
-                     // FromFile
+                     // FileEntry *FromFile
+                     //&fileEntry,
                      nullptr,
+                     // DirectoryLookup *&CurDir
                      CurDir,
-                     // SearchPath
+                     // SmallVectorImpl<char> *SearchPath
                      nullptr,
-                     // RelativePath
+                     // SmallVectorImpl<char> *RelativePath
                      nullptr,
                      // SuggestedModule
                      nullptr,
@@ -1526,6 +1538,7 @@ public:
 
     mega::input::Root* parse_file( Database& database, const boost::filesystem::path& egSourceFile )
     {
+        // EG_PARSER_WARNING( "Parsing source file: " << egSourceFile.string() );
         mega::input::Root* pRoot = database.construct< mega::input::Root >( mega::eFile );
         parse_context_body( database, pRoot, egSourceFile );
         return pRoot;
@@ -1534,11 +1547,17 @@ public:
 
 struct Stuff
 {
-    std::unique_ptr< clang::SourceManager > pSourceManager;
-
-    std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions;
-
-    clang::LangOptions languageOptions;
+    std::unique_ptr< clang::SourceManager >              pSourceManager;
+    std::shared_ptr< clang::HeaderSearchOptions >        headerSearchOptions;
+    clang::LangOptions                                   languageOptions;
+    std::unique_ptr< clang::HeaderSearch >               pHeaderSearch;
+    std::unique_ptr< clang::TrivialModuleLoader >        pModuleLoader;
+    std::shared_ptr< clang::PreprocessorOptions >        pPreprocessorOptions;
+    llvm::IntrusiveRefCntPtr< clang::MemoryBufferCache > pPCMCache;
+    std::shared_ptr< clang::Preprocessor >               pPreprocessor;
+    std::shared_ptr< clang::TargetOptions >              pTargetOptions;
+    std::shared_ptr< clang::TargetInfo >                 pTargetInfo;
+    const clang::FileEntry*                              pFileEntry = nullptr;
 
     clang::LangOptions createEGLangOpts()
     {
@@ -1559,18 +1578,6 @@ struct Stuff
         return LangOpts;
     }
 
-    std::unique_ptr< clang::HeaderSearch > pHeaderSearch;
-
-    std::unique_ptr< clang::TrivialModuleLoader > pModuleLoader;
-
-    std::shared_ptr< clang::PreprocessorOptions > pPreprocessorOptions;
-
-    llvm::IntrusiveRefCntPtr< clang::MemoryBufferCache > pPCMCache;
-
-    std::shared_ptr< clang::Preprocessor > pPreprocessor;
-
-    std::shared_ptr< clang::TargetOptions > pTargetOptions;
-
     inline std::shared_ptr< clang::TargetOptions > getTargetOptions()
     {
         std::shared_ptr< clang::TargetOptions > pTargetOptions = std::make_shared< clang::TargetOptions >();
@@ -1578,15 +1585,14 @@ struct Stuff
         llvm::Triple triple;
         triple.setArch( llvm::Triple::x86 );
         triple.setVendor( llvm::Triple::PC );
-        triple.setOS( llvm::Triple::Win32 );
+        triple.setOS( llvm::Triple::Linux );
 
         pTargetOptions->Triple = triple.normalize();
         return pTargetOptions;
     }
 
-    std::shared_ptr< clang::TargetInfo > pTargetInfo;
-    
     Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
+           const std::vector< boost::filesystem::path >& includeDirectories,
            std::shared_ptr< clang::FileManager >
                pFileManager,
            llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
@@ -1613,18 +1619,23 @@ struct Stuff
               nullptr,
               // OwnsHeaderSearch
               false,
-              clang::TU_Complete ) )
+              clang::TU_Complete ) ) // U_Prefix
         , pTargetOptions( getTargetOptions() )
         , pTargetInfo( clang::TargetInfo::CreateTargetInfo( *pDiagnosticsEngine, pTargetOptions ) )
     {
-        const clang::FileEntry* pFileEntry = pFileManager->getFile( sourceFile.string(), true, false );
-
+        pFileEntry = pFileManager->getFile( sourceFile.string(), true, false );
         clang::FileID fileID = pSourceManager->getOrCreateFileID( pFileEntry, clang::SrcMgr::C_User );
-
         pSourceManager->setMainFileID( fileID );
-
         pPreprocessor->SetCommentRetentionState( true, true );
         pPreprocessor->Initialize( *pTargetInfo );
+
+        for ( const boost::filesystem::path& includeDir : includeDirectories )
+        {
+            pHeaderSearch->AddSearchPath(
+                clang::DirectoryLookup( pFileManager->getDirectory( includeDir.native() ),
+                                        clang::SrcMgr::C_System, false ),
+                true );
+        }
     }
 };
 
@@ -1634,7 +1645,8 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                                                   const boost::filesystem::path&                      sourceDir,
                                                   const boost::filesystem::path&                      sourceFile,
                                                   const std::vector< boost::filesystem::path >&       includeDirectories,
-                                                  std::ostream&                                       osError )
+                                                  std::ostream&                                       osError,
+                                                  std::ostream&                                       osWarn )
 
     {
         ParserDiagnosticSystem pds( sourceDir, osError );
@@ -1648,17 +1660,17 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
             THROW_RTE( "File not found: " << sourceFile.string() );
         }
 
-        std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions =
-            std::make_unique< clang::HeaderSearchOptions >();
-
-        for( const boost::filesystem::path& includeDir : includeDirectories )
+        std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions = std::make_shared< clang::HeaderSearchOptions >();
+        for ( const boost::filesystem::path& includeDir : includeDirectories )
         {
-            headerSearchOptions->AddPath(includeDir.native(), clang::frontend::Quoted, false, false);
+            headerSearchOptions->AddPath( includeDir.native(), clang::frontend::Quoted, false, false );
+            // osWarn << "include directory: " << includeDir.native() << std::endl;
         }
 
-        Stuff stuff( headerSearchOptions, pFileManager, pDiagnosticsEngine, sourceFile );
+        Stuff stuff( headerSearchOptions, includeDirectories, pFileManager, pDiagnosticsEngine, sourceFile );
 
-        Parser parser( *stuff.pPreprocessor,
+        Parser parser( *stuff.pFileEntry,
+                       *stuff.pPreprocessor,
                        *stuff.pSourceManager,
                        stuff.languageOptions,
                        *stuff.pHeaderSearch,

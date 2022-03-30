@@ -19,6 +19,7 @@ namespace io
     class Manifest
     {
         using FileInfoVector = std::vector< FileInfo >;
+
     public:
         using PtrCst = std::shared_ptr< const Manifest >;
 
@@ -39,10 +40,10 @@ namespace io
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
-            archive & m_fileInfos;
+            archive& boost::serialization::make_nvp( "fileInfos", m_fileInfos );
         }
 
-    private:
+    private: 
         FileInfoVector m_fileInfos;
     };
 

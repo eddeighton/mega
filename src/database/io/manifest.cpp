@@ -48,8 +48,8 @@ namespace io
                 {
                     THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
                 }
-                InputArchiveType ia(inputFileStream);
-                ia >> componentInfo;
+                InputArchiveType ia( inputFileStream );
+                ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
             }
 
             for ( const boost::filesystem::path& sourceFilePath : componentInfo.getSourceFiles() )
@@ -91,8 +91,8 @@ namespace io
         {
             THROW_RTE( "Failed to open file: " << filepath.string() );
         }
-        InputArchiveType ia(inputFileStream);
-        ia >> *this;
+        InputArchiveType ia( inputFileStream );
+        ia >> boost::serialization::make_nvp( "manifest", *this );
     }
 
     void Manifest::save( const boost::filesystem::path& filepath ) const
@@ -102,10 +102,11 @@ namespace io
         {
             THROW_RTE( "Failed to write to file: " << filepath.string() );
         }
-        OutputArchiveType oa(outputFileStream);
-        oa << *this;
+        OutputArchiveType oa( outputFileStream );
+        oa << boost::serialization::make_nvp( "manifest", *this );
     }
-
 
 } // namespace io
 } // namespace mega
+
+BOOST_CLASS_IMPLEMENTATION( mega::io::Manifest, object_serializable )

@@ -115,7 +115,7 @@ namespace manifest
 
             taskProgress.start( "Task_GenerateComponents",
                                 m_environment.rootBuildDir(),
-                                projectManifestPath );
+                                m_environment.component() );
 
             io::Database< io::stage::Component > database( m_environment );
 
@@ -131,7 +131,7 @@ namespace manifest
                         THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
                     }
                     InputArchiveType ia(inputFileStream);
-                    ia >> componentInfo;
+                    ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
                 }
 
                 database.construct< mega::Component >( componentInfo );

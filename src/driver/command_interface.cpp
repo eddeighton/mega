@@ -93,7 +93,7 @@ namespace interface
         {
         }
 
-        void parseInputFile( const mega::Component* pComponent, const boost::filesystem::path& sourceFilePath, std::ostream& osError )
+        void parseInputFile( const mega::Component* pComponent, const boost::filesystem::path& sourceFilePath, std::ostream& osError, std::ostream& osWarn )
         {
             static boost::shared_ptr< mega::EG_PARSER_INTERFACE > pParserInterface;
             if ( !pParserInterface )
@@ -101,25 +101,27 @@ namespace interface
                 pParserInterface = boost::dll::import_symbol< mega::EG_PARSER_INTERFACE >(
                     m_parserDLL, "g_parserSymbol" );
             }
+
+            boost::filesystem::path sourceFileFolder = sourceFilePath;
+            sourceFileFolder.remove_filename();
+
             mega::input::Root* pRoot = pParserInterface->parseEGSourceFile( m_database,
-                                                                            m_environment.rootSourceDir(),
+                                                                            sourceFileFolder,
                                                                             sourceFilePath,
                                                                             pComponent->getIncludeDirectories(),
-                                                                            osError );
+                                                                            osError,
+                                                                            osWarn );
 
             m_rootFiles.insert( std::make_pair( sourceFilePath, pRoot ) );
         }
 
         virtual void run( task::Progress& taskProgress )
         {
-            // const mega::io::FileInfo& objectAST = findFileInfo( m_environment.objectAST( m_fileInfo.getFilePath() ), m_fileInfos );
-            // const mega::io::FileInfo& objectBody = findFileInfo( m_environment.objectBody( m_fileInfo.getFilePath() ), m_fileInfos );
-
             taskProgress.start( "Task_ParseAST",
                                 m_fileInfo.getFilePath(),
                                 m_environment.objectAST( m_fileInfo.getFilePath() ) );
 
-            std::ostringstream osError;
+            std::ostringstream osError, osWarn;
 
             const mega::Component* pComponent = nullptr;
             {
@@ -134,48 +136,47 @@ namespace interface
                         }
                     }
                 }
+                VERIFY_RTE_MSG( pComponent, "Failed to locate component for source file: " << m_fileInfo.getFilePath() );
             }
-            VERIFY_RTE_MSG( pComponent, "Failed to locate component for source file: " << m_fileInfo.getFilePath() );
+
+            parseInputFile( pComponent, m_fileInfo.getFilePath(), osError, osWarn );
 
             // greedy algorithm to parse transitive closure of include files
-
-            parseInputFile( pComponent, m_fileInfo.getFilePath(), osError );
-
-            bool bExhaustedAll = false;
-            while ( !bExhaustedAll )
             {
-                bExhaustedAll = true;
-
-                for ( mega::input::MegaInclude* pInclude : m_database.many< mega::input::MegaInclude >() )
+                bool bExhaustedAll = false;
+                while ( !bExhaustedAll )
                 {
-                    FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->getIncludeFilePath() );
-                    if ( iFind == m_rootFiles.end() )
+                    bExhaustedAll = true;
+
+                    for ( mega::input::MegaInclude* pInclude : m_database.many< mega::input::MegaInclude >() )
                     {
-                        parseInputFile( pComponent, pInclude->getIncludeFilePath(), osError );
-                        bExhaustedAll = false;
-                        break;
+                        FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->getIncludeFilePath() );
+                        if ( iFind == m_rootFiles.end() )
+                        {
+                            parseInputFile( pComponent, pInclude->getIncludeFilePath(), osError, osWarn );
+                            bExhaustedAll = false;
+                            break;
+                        }
                     }
                 }
-            }
-
-            for ( FileRootMap::const_iterator i = m_rootFiles.begin(),
-                                              iEnd = m_rootFiles.end();
-                  i != iEnd;
-                  ++i )
-            {
-                std::ostringstream os;
-                os << "Parsed File: " << i->first.string();
-                taskProgress.msg( os.str() );
             }
 
             if ( !osError.str().empty() )
             {
                 // Error
+                taskProgress.msg( osError.str() );
+                taskProgress.failed();
             }
-
-            m_database.store();
-
-            taskProgress.succeeded();
+            else
+            {
+                if ( !osWarn.str().empty() )
+                {
+                    // Warning
+                    taskProgress.msg( osWarn.str() );
+                }
+                m_database.store();
+                taskProgress.succeeded();
+            }
         }
 
         const mega::io::FileInfo&                m_fileInfo;

@@ -30,10 +30,10 @@ namespace io
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
-            archive & m_strName;
-            archive & m_directory;
-            archive & m_sourceFiles;
-            archive & m_includeDirectories;
+            archive & boost::serialization::make_nvp( "strName", m_strName );
+            archive & boost::serialization::make_nvp( "directory", m_directory );
+            archive & boost::serialization::make_nvp( "sourceFiles", m_sourceFiles );
+            archive & boost::serialization::make_nvp( "includeDirectories", m_includeDirectories );
         }
 
     private:

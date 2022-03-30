@@ -49,7 +49,8 @@ struct EGDB_EXPORT EG_PARSER_INTERFACE
                                                   const boost::filesystem::path&                      sourceDir,
                                                   const boost::filesystem::path&                      sourceFile,
                                                   const std::vector< boost::filesystem::path >&       includeDirectories,
-                                                  std::ostream&                                       osError )
+                                                  std::ostream&                                       osError,
+                                                  std::ostream&                                       osWarn )
         = 0;
 };
 } // namespace mega

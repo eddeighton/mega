@@ -30,19 +30,19 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 
-//#include <boost/archive/xml_iarchive.hpp>
-//#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+//#include <boost/archive/text_oarchive.hpp>
+//#include <boost/archive/text_iarchive.hpp>
 
 #include <optional>
 
 namespace mega
 {
-    //using InputArchiveType = boost::archive::xml_iarchive;
-    //using OutputArchiveType = boost::archive::xml_oarchive;
-    using InputArchiveType = boost::archive::text_iarchive;
-    using OutputArchiveType = boost::archive::text_oarchive;
+    using InputArchiveType = boost::archive::xml_iarchive;
+    using OutputArchiveType = boost::archive::xml_oarchive;
+    //using InputArchiveType = boost::archive::text_iarchive;
+    //using OutputArchiveType = boost::archive::text_oarchive;
 }
 
 namespace boost

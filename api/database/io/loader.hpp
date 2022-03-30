@@ -167,7 +167,6 @@ namespace io
         std::unique_ptr< boost::filesystem::ifstream > m_pFileStream;
         boost::archive::binary_iarchive                m_archive;
         std::vector< ObjectInfo::FileID >              m_fileIDLoadedToRuntime;
-        std::vector< ObjectInfo::FileID >              m_fileIDRuntimeToLoaded;
     };
 
 } // namespace io
