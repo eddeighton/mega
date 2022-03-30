@@ -17,6 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "database/io/object_info.hpp"
+#include "database/io/object.hpp"
 #include "database/model/objects.hpp"
 #include "database/model/component.hpp"
 #include "database/model/input.hpp"
@@ -35,7 +37,7 @@ namespace mega
 {
 namespace io
 {
-    io::Object* Factory::create( const io::Object& object )
+    io::Object* Factory::create( const io::ObjectInfo& object )
     {
         io::Object* pObject = nullptr;
 

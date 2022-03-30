@@ -51,7 +51,7 @@ namespace input
         using Base = io::FileObject< io::file::ObjectAST >;
 
     protected:
-        Element( const io::Object& object );
+        Element( const io::ObjectInfo& object );
 
     public:
         virtual void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const {};
@@ -66,7 +66,7 @@ namespace input
         static const ObjectType Type = eInputOpaque;
 
     protected:
-        Opaque( const io::Object& object );
+        Opaque( const io::ObjectInfo& object );
 
     public:
         const std::string& getStr() const { return m_str; }
@@ -224,7 +224,7 @@ namespace input
         static const ObjectType Type = eInputDimension;
 
     protected:
-        Dimension( const io::Object& object );
+        Dimension( const io::ObjectInfo& object );
 
     public:
         const Opaque* getType() const { return m_pType; }
@@ -243,8 +243,8 @@ namespace input
         friend class io::File;
 
     protected:
-        Include( const io::Object& object );
-        Include( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        Include( const io::ObjectInfo& object );
+        Include( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
     public:
         const boost::filesystem::path& getIncludeFilePath() const { return m_path; }
@@ -267,8 +267,8 @@ namespace input
         static const ObjectType Type = eInputMegaInclude;
 
     protected:
-        MegaInclude( const io::Object& object );
-        MegaInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        MegaInclude( const io::ObjectInfo& object );
+        MegaInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
@@ -283,8 +283,8 @@ namespace input
         static const ObjectType Type = eInputCPPInclude;
 
     protected:
-        CPPInclude( const io::Object& object );
-        CPPInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        CPPInclude( const io::ObjectInfo& object );
+        CPPInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
@@ -299,8 +299,8 @@ namespace input
         static const ObjectType Type = eInputSystemInclude;
 
     protected:
-        SystemInclude( const io::Object& object );
-        SystemInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        SystemInclude( const io::ObjectInfo& object );
+        SystemInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
@@ -315,7 +315,7 @@ namespace input
         static const ObjectType Type = eInputUsing;
 
     protected:
-        Using( const io::Object& object );
+        Using( const io::ObjectInfo& object );
 
     public:
         const Opaque* getType() const { return m_pType; }
@@ -337,7 +337,7 @@ namespace input
         static const ObjectType Type = eInputExport;
 
     protected:
-        Export( const io::Object& object );
+        Export( const io::ObjectInfo& object );
 
     public:
         const Opaque* getReturnType() const { return m_pReturnType; }
@@ -361,7 +361,7 @@ namespace input
         static const ObjectType Type = eInputVisibility;
 
     protected:
-        Visibility( const io::Object& object );
+        Visibility( const io::ObjectInfo& object );
 
     public:
         virtual void load( io::Loader& loader );
@@ -384,7 +384,7 @@ namespace input
         static const ObjectType Type = eInputContext;
 
     protected:
-        Context( const io::Object& object );
+        Context( const io::ObjectInfo& object );
 
     public:
         virtual void load( io::Loader& loader );
@@ -418,8 +418,8 @@ namespace input
         static const std::string RootTypeName;
 
     protected:
-        Root( const io::Object& object );
-        Root( const io::Object& object, RootType rootType );
+        Root( const io::ObjectInfo& object );
+        Root( const io::ObjectInfo& object, RootType rootType );
 
     public:
         std::optional< boost::filesystem::path > getIncludePath() const { return m_includePath; }
@@ -442,7 +442,7 @@ namespace input
         using Base = io::FileObject< io::file::ObjectBody >;
 
     protected:
-        Body( const io::Object& object );
+        Body( const io::ObjectInfo& object );
 
     public:
         static const ObjectType Type = eInputBody;

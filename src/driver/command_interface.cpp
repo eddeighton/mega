@@ -234,8 +234,6 @@ namespace interface
             task::Task::PtrVector tasks;
             for ( const mega::io::FileInfo& fileInfo : manifest.getFileInfos() )
             {
-                std::cout << "Manifest file: " << fileInfo << std::endl;
-
                 switch ( fileInfo.getFileType() )
                 {
                 case mega::io::FileInfo::ObjectSourceFile:

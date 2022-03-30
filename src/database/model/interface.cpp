@@ -55,7 +55,7 @@ namespace interface
         return path;
     }
 
-    Element::Element( const io::Object& object, Element* pParent,
+    Element::Element( const io::ObjectInfo& object, Element* pParent,
                       input::Element* pElement, VisibilityType visibility )
         : io::Object( object )
         , m_pElement( pElement )
@@ -180,9 +180,9 @@ namespace interface
         return os.str();
     }
 
-    std::vector< io::Object::Index > Element::getIndexPath() const
+    std::vector< io::ObjectInfo::Index > Element::getIndexPath() const
     {
-        std::vector< io::Object::Index > indexPath;
+        std::vector< io::ObjectInfo::Index > indexPath;
 
         const std::vector< const Element* > path = getPath( this );
         for ( const Element* pElement : path )
@@ -193,11 +193,11 @@ namespace interface
         return indexPath;
     }
 
-    Opaque::Opaque( const io::Object& indexedObject )
+    Opaque::Opaque( const io::ObjectInfo& indexedObject )
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Opaque::Opaque( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Opaque::Opaque( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
         , m_pOpaque( dynamic_cast< input::Opaque* >( pElement ) )
     {
@@ -219,11 +219,11 @@ namespace interface
         Element::store( storer );
     }
 
-    Dimension::Dimension( const io::Object& indexedObject )
+    Dimension::Dimension( const io::ObjectInfo& indexedObject )
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Dimension::Dimension( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Dimension::Dimension( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
         , m_pDimension( dynamic_cast< input::Dimension* >( pElement ) )
     {
@@ -290,11 +290,11 @@ namespace interface
         return true;
     }
 
-    Using::Using( const io::Object& indexedObject )
+    Using::Using( const io::ObjectInfo& indexedObject )
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Using::Using( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Using::Using( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
         , m_pUsing( dynamic_cast< input::Using* >( pElement ) )
     {
@@ -322,11 +322,11 @@ namespace interface
         return m_pUsing->getType()->getStr();
     }
 
-    Export::Export( const io::Object& indexedObject )
+    Export::Export( const io::ObjectInfo& indexedObject )
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Export::Export( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Export::Export( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
         , m_pExport( dynamic_cast< input::Export* >( pElement ) )
     {
@@ -356,11 +356,11 @@ namespace interface
         return m_pExport->getParameters()->getStr();
     }
 
-    Include::Include( const io::Object& indexedObject )
+    Include::Include( const io::ObjectInfo& indexedObject )
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Include::Include( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Include::Include( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
         , m_pInclude( dynamic_cast< input::Include* >( pElement ) )
     {
@@ -386,11 +386,11 @@ namespace interface
     ////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
 
-    Context::Context( const io::Object& indexedObject )
+    Context::Context( const io::ObjectInfo& indexedObject )
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Context::Context( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Context::Context( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
         , m_pContext( dynamic_cast< input::Context* >( pElement ) )
     {
@@ -824,11 +824,11 @@ namespace interface
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    Abstract::Abstract( const io::Object& indexedObject )
+    Abstract::Abstract( const io::ObjectInfo& indexedObject )
         : Context( indexedObject )
     {
     }
-    Abstract::Abstract( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Abstract::Abstract( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -847,11 +847,11 @@ namespace interface
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    Event::Event( const io::Object& indexedObject )
+    Event::Event( const io::ObjectInfo& indexedObject )
         : Context( indexedObject )
     {
     }
-    Event::Event( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Event::Event( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -866,11 +866,11 @@ namespace interface
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    Function::Function( const io::Object& indexedObject )
+    Function::Function( const io::ObjectInfo& indexedObject )
         : Context( indexedObject )
     {
     }
-    Function::Function( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Function::Function( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -909,11 +909,11 @@ namespace interface
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    Action::Action( const io::Object& indexedObject )
+    Action::Action( const io::ObjectInfo& indexedObject )
         : Context( indexedObject )
     {
     }
-    Action::Action( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Action::Action( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -930,11 +930,11 @@ namespace interface
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    Object::Object( const io::Object& indexedObject )
+    Object::Object( const io::ObjectInfo& indexedObject )
         : Context( indexedObject )
     {
     }
-    Object::Object( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Object::Object( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -949,11 +949,11 @@ namespace interface
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    Link::Link( const io::Object& indexedObject )
+    Link::Link( const io::ObjectInfo& indexedObject )
         : Context( indexedObject )
     {
     }
-    Link::Link( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Link::Link( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -968,12 +968,12 @@ namespace interface
 
     /////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////
-    Root::Root( const io::Object& indexedObject )
+    Root::Root( const io::ObjectInfo& indexedObject )
         : Object( indexedObject )
         , m_rootType( eInterfaceRoot )
     {
     }
-    Root::Root( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Root::Root( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Object( indexedObject, pParent, pElement, visibility )
         , m_pRoot( dynamic_cast< input::Root* >( pElement ) )
         , m_rootType( m_pRoot->getRootType() )

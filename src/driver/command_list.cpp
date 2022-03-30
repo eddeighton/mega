@@ -21,6 +21,7 @@
 
 #include "database/io/component_info.hpp"
 #include "database/io/environment.hpp"
+#include "database/io/archive.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
@@ -29,6 +30,7 @@
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 #include <string>
 #include <vector>
@@ -84,7 +86,8 @@ namespace list
             {
                 THROW_RTE( "Failed to write to file: " << sourceListPath.string() );
             }
-            outputFileStream << m_componentInfo;
+            mega::OutputArchiveType oa(outputFileStream);
+            oa << m_componentInfo;
 
             taskProgress.succeeded();
         }

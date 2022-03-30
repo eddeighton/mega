@@ -4,12 +4,12 @@
 namespace mega
 {
 
-Component::Component( const io::Object& object )
+Component::Component( const io::ObjectInfo& object )
     : Base( object )
 {
 }
 
-Component::Component( const io::Object&        object,
+Component::Component( const io::ObjectInfo&        object,
                       const io::ComponentInfo& componentInfo )
     : Base( object )
     , m_info( componentInfo )

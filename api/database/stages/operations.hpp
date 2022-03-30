@@ -40,7 +40,7 @@ namespace Stages
     public:
         Operations( const boost::filesystem::path& treePath,
                     const boost::filesystem::path& tuPath,
-                    io::Object::FileID             fileID );
+                    io::ObjectInfo::FileID             fileID );
 
         void store() const;
 

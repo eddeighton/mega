@@ -42,7 +42,7 @@ public:
     static const ObjectType Type = eDataMember;
 
 protected:
-    DataMember( const io::Object& object )
+    DataMember( const io::ObjectInfo& object )
         : io::Object( object )
     {
     }
@@ -71,7 +71,7 @@ public:
     static const ObjectType Type = eBuffer;
 
 protected:
-    Buffer( const io::Object& object )
+    Buffer( const io::ObjectInfo& object )
         : io::Object( object )
     {
     }
@@ -106,7 +106,7 @@ public:
     static const ObjectType Type = eLayout;
 
 protected:
-    Layout( const io::Object& object )
+    Layout( const io::ObjectInfo& object )
         : io::Object( object )
     {
     }

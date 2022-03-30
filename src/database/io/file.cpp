@@ -2,6 +2,7 @@
 #include "database/io/file.hpp"
 #include "database/io/factory.hpp"
 #include "database/io/loader.hpp"
+#include "database/io/object_info.hpp"
 #include "database/io/storer.hpp"
 
 namespace mega
@@ -9,9 +10,10 @@ namespace mega
 namespace io
 {
 
-    void File::preload( const Manifest& manifest )
+    void File::preload( const FileAccess& fileAccess, const Manifest& manifest )
     {
-        m_pLoader = std::make_unique< Loader >( m_info.getFilePath() );
+        VERIFY_RTE( !m_pLoader );
+        m_pLoader = std::make_unique< Loader >( manifest, fileAccess, m_info.getFilePath() );
 
         {
             std::size_t szNumObjects = 0U;
@@ -19,21 +21,20 @@ namespace io
             m_objects.resize( szNumObjects );
             for ( std::size_t sz = 0U; sz < szNumObjects; ++sz )
             {
-                Object object;
-                object.load( *m_pLoader );
+                ObjectInfo objectInfo;
+                m_pLoader->load( objectInfo );
 
                 // test the stored index is valid
-                std::size_t szIndex = object.getIndex();
-                VERIFY_RTE( szIndex < m_objects.size() );
+                VERIFY_RTE( objectInfo.getIndex() < m_objects.size() );
 
                 // test the object NOT already created
-                Object* pObject = m_objects[ szIndex ];
+                Object* pObject = m_objects[ objectInfo.getIndex() ];
                 VERIFY_RTE( !pObject );
 
                 // create the object
-                pObject = Factory::create( object );
+                pObject = Factory::create( objectInfo );
 
-                m_objects[ szIndex ] = pObject;
+                m_objects[ objectInfo.getIndex() ] = pObject;
             }
         }
     }
@@ -54,10 +55,10 @@ namespace io
 
         Storer storer( m_info.getFilePath(), manifest );
 
+        storer.store( m_objects.size() );
         for ( Object* pObject : m_objects )
         {
-            Object object = *pObject;
-            object.store( storer );
+            storer.store( pObject->getObjectInfo() );
         }
         for ( Object* pObject : m_objects )
         {
@@ -66,19 +67,19 @@ namespace io
     }
 
     /*
-    File::File( const boost::filesystem::path& filePath, Object::FileID fileID )
+    File::File( const boost::filesystem::path& filePath, ObjectInfo::FileID fileID )
         : m_filePath( filePath )
         , m_fileID( fileID )
     {
     }
 
-    Object::FileID File::readFileID( const boost::filesystem::path& filePath )
+    ObjectInfo::FileID File::readFileID( const boost::filesystem::path& filePath )
     {
         FakeObjectFactory fakeFactory;
         FileIDToFileMap   fileMap;
         Loader            loader( filePath, fakeFactory, fileMap );
 
-        Object::FileID loadedFileID = Object::NO_FILE;
+        ObjectInfo::FileID loadedFileID = ObjectInfo::NO_FILE;
         loader.load( loadedFileID );
 
         return loadedFileID;
@@ -90,7 +91,7 @@ namespace io
         Loader& loader = *m_pLoader;
 
         // load and sanity check the file ID
-        Object::FileID loadedFileID = Object::NO_FILE;
+        ObjectInfo::FileID loadedFileID = ObjectInfo::NO_FILE;
         loader.load( loadedFileID );
 
         VERIFY_RTE_MSG( loadedFileID == m_fileID, "File corruption detected. File ID does not match for: " << m_filePath );
@@ -140,7 +141,7 @@ namespace io
     }
 
     void File::beginLoadingFile( Factory& factory, FileIDToFileMap& fileMap,
-                                 const boost::filesystem::path& filePath, Object::FileID fileID )
+                                 const boost::filesystem::path& filePath, ObjectInfo::FileID fileID )
     {
         File::FileIDToFileMap::iterator iFind = fileMap.find( fileID );
         if ( iFind == fileMap.end() )
@@ -152,7 +153,7 @@ namespace io
     }
 
     void File::load( Factory& factory, FileIDToFileMap& fileMap,
-                     const boost::filesystem::path& filePath, Object::FileID fileID )
+                     const boost::filesystem::path& filePath, ObjectInfo::FileID fileID )
     {
         beginLoadingFile( factory, fileMap, filePath, fileID );
         for ( FileIDToFileMap::iterator i = fileMap.begin(),
@@ -164,7 +165,7 @@ namespace io
         }
     }
 
-    void File::store( const boost::filesystem::path& filePath, Object::FileID fileID,
+    void File::store( const boost::filesystem::path& filePath, ObjectInfo::FileID fileID,
                       const FileIDtoPathMap& files, const Object::Array& objects )
     {
         Storer storer( filePath );

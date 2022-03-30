@@ -5,6 +5,8 @@
 #include "file_info.hpp"
 #include "environment.hpp"
 
+#include "database/io/archive.hpp"
+
 #include <boost/filesystem/path.hpp>
 
 #include <memory>
@@ -16,8 +18,6 @@ namespace io
     class Component;
     class Manifest
     {
-        friend std::istream& operator>>( std::istream& is, Manifest& manifest );
-        friend std::ostream& operator<<( std::ostream& os, const Manifest& manifest );
         using FileInfoVector = std::vector< FileInfo >;
     public:
         using PtrCst = std::shared_ptr< const Manifest >;
@@ -45,9 +45,6 @@ namespace io
     private:
         FileInfoVector m_fileInfos;
     };
-
-    std::istream& operator>>( std::istream& is, Manifest& manifest );
-    std::ostream& operator<<( std::ostream& os, const Manifest& manifest );
 
 } // namespace io
 } // namespace mega

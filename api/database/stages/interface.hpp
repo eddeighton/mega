@@ -39,7 +39,7 @@ namespace Stages
     public:
         Interface( const boost::filesystem::path& treePath );
 
-        using TUFileIDIfExistsFPtr = std::function< io::Object::FileID( const std::string& strName ) >;
+        using TUFileIDIfExistsFPtr = std::function< io::ObjectInfo::FileID( const std::string& strName ) >;
 
         void              linkAnalysis();
         concrete::Action* instanceAnalysis();

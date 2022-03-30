@@ -26,8 +26,8 @@ namespace Stages
     /*
     Operations::Operations( const boost::filesystem::path& treePath,
                             const boost::filesystem::path& tuPath,
-                            io::Object::FileID             fileID )
-        : Creating( io::File::FileIDtoPathMap{ { io::Object::NO_FILE, treePath } }, fileID )
+                            io::ObjectInfo::FileID             fileID )
+        : Creating( io::File::FileIDtoPathMap{ { io::ObjectInfo::NO_FILE, treePath } }, fileID )
         , m_tuPath( tuPath )
         , m_pDerivationAnalysis( io::one_cst< DerivationAnalysis >( getMaster() ) )
         , m_invocations( *this, *m_pDerivationAnalysis )
@@ -42,7 +42,7 @@ namespace Stages
 
     const Identifiers& Operations::getIdentifiers() const
     {
-        return *io::one< Identifiers >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< Identifiers >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
 
     const InvocationSolution* Operations::getInvocation(

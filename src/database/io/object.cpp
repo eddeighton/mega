@@ -25,19 +25,6 @@ namespace mega
 {
 namespace io
 {
-    void Object::load( Loader& loader )
-    {
-        loader.load( m_type );
-        loader.load( m_fileID );
-        loader.load( m_index );
-    }
-
-    void Object::store( Storer& storer ) const
-    {
-        storer.store( m_type );
-        storer.store( m_fileID );
-        storer.store( m_index );
-    }
-
+    Object::~Object(){};
 } // namespace io
 } // namespace mega

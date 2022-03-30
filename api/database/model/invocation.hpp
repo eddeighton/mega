@@ -69,14 +69,14 @@ public:
     using ElementPairVectorVector = std::vector< ElementPairVector >;
 
 protected:
-    InvocationSolution( const io::Object& object )
+    InvocationSolution( const io::ObjectInfo& object )
         : io::Object( object )
         , m_bDimensions( false )
         , m_bHomogeneousDimensions( false )
         , m_explicitOperation( HIGHEST_EXPLICIT_OPERATION_TYPE )
     {
     }
-    InvocationSolution( const io::Object& object, const InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath )
+    InvocationSolution( const io::ObjectInfo& object, const InvocationID& invocationID, const std::vector< TypeID >& implicitTypePath )
         : io::Object( object )
         , m_invocationID( invocationID )
         , m_implicitTypePath( implicitTypePath )

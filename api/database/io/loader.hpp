@@ -21,6 +21,7 @@
 #define LOADER_18_04_2019
 
 #include "archive.hpp"
+#include "database/io/object_info.hpp"
 #include "object.hpp"
 #include "factory.hpp"
 #include "manifest.hpp"
@@ -42,11 +43,19 @@ namespace mega
 namespace io
 {
     class Factory;
+    class File;
+
+    class FileAccess
+    {
+    public:
+        virtual ~FileAccess() {}
+        virtual std::shared_ptr< const File > getFile( ObjectInfo::FileID fileId ) const = 0;
+    };
 
     class Loader
     {
     public:
-        Loader( const boost::filesystem::path& filePath );
+        Loader( const Manifest& manifest, const FileAccess& fileAccess, const boost::filesystem::path& filePath );
 
         template < class T >
         inline void load( T& value )
@@ -67,26 +76,14 @@ namespace io
             }
         }
 
+        Object* loadObjectRef();
+
         template < class T >
         T* loadObjectRef()
         {
-            T*             p = nullptr;
-            Object::FileID fileID = Object::NO_FILE;
-            load( fileID );
-            if ( fileID != Object::NO_FILE )
-            {
-                // File* pFile = m_files[ fileID ];
-                // VERIFY_RTE( pFile );
-                //
-                // Object::Index szIndex = Object::NO_INDEX;
-                // load( szIndex );
-                // VERIFY_RTE( szIndex < pFile->m_objects.size() );
-                //
-                // Object* pObject = pFile->m_objects[ szIndex ];
-                // p = dynamic_cast< T* >( pObject );
-                // VERIFY_RTE_MSG( p, "Failed to load indexed object" );
-            }
-            return p;
+            T* pObject = dynamic_cast< T* >( loadObjectRef() );
+            VERIFY_RTE_MSG( pObject, "Failed to load indexed object" );
+            return pObject;
         }
 
         template < class T >
@@ -165,9 +162,12 @@ namespace io
         }
 
     private:
+        const Manifest&                                m_runtimeManifest;
+        const FileAccess&                              m_fileAccess;
         std::unique_ptr< boost::filesystem::ifstream > m_pFileStream;
         boost::archive::binary_iarchive                m_archive;
-        Manifest                                       m_manifest;
+        std::vector< ObjectInfo::FileID >              m_fileIDLoadedToRuntime;
+        std::vector< ObjectInfo::FileID >              m_fileIDRuntimeToLoaded;
     };
 
 } // namespace io

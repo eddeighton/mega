@@ -24,11 +24,12 @@
 
 #include <boost/filesystem/path.hpp>
 
-#include <cstddef>
 #include <utility>
 #include <vector>
 #include <map>
 #include <memory>
+
+#include "object_info.hpp"
 
 namespace mega
 {
@@ -42,55 +43,33 @@ namespace io
     public:
         using Array = std::vector< Object* >;
 
-        using Type = std::int32_t;
-        enum : Type
-        {
-            NO_TYPE = ( Type )-1
-        };
+        virtual ~Object();
 
-        using Index = std::int32_t;
-        enum : Index
-        {
-            NO_INDEX = ( Index )-1
-        };
+        virtual void load( Loader& loader ) = 0;
+        virtual void store( Storer& storer ) const = 0;
 
-        using FileID = std::int32_t;
-        enum : FileID
-        {
-            NO_FILE = ( FileID )-1
-        };
-
-        virtual ~Object(){};
-
-        virtual void load( Loader& loader );
-        virtual void store( Storer& storer ) const;
-
-        inline Type   getType() const { return m_type; }
-        inline FileID getFileID() const { return m_fileID; }
-        inline Index  getIndex() const { return m_index; }
-
-        Object() {}
-
-        Object( Type type, FileID fileID, Index index )
-            : m_type( type )
-            , m_fileID( fileID )
-            , m_index( index )
+        Object( const ObjectInfo& objectInfo )
+            : m_objectInfo( objectInfo )
         {
         }
 
+        inline ObjectInfo::Type   getType() const { return m_objectInfo.getType(); }
+        inline ObjectInfo::FileID getFileID() const { return m_objectInfo.getFileID(); }
+        inline ObjectInfo::Index  getIndex() const { return m_objectInfo.getIndex(); }
+
+        const ObjectInfo& getObjectInfo() const { return m_objectInfo; }
+
     private:
-        Type   m_type = NO_TYPE;
-        FileID m_fileID = NO_FILE;
-        Index  m_index = NO_INDEX;
+        ObjectInfo m_objectInfo;
     };
 
-    template< typename TFileType >
+    template < typename TFileType >
     class FileObject : public Object
     {
     public:
         using FileType = TFileType;
-        FileObject( const Object& object )
-            : Object( object )
+        FileObject( const ObjectInfo& objectInfo )
+            : Object( objectInfo )
         {
         }
     };

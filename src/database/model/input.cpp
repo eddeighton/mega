@@ -149,12 +149,12 @@ namespace input
         os << " //" << strAnnotation;
     }
 
-    Element::Element( const io::Object& object )
+    Element::Element( const io::ObjectInfo& object )
         : Base( object )
     {
     }
 
-    Opaque::Opaque( const io::Object& object )
+    Opaque::Opaque( const io::ObjectInfo& object )
         : Element( object )
     {
     }
@@ -174,7 +174,7 @@ namespace input
         os << strIndent << m_str << "\n"; // << "//" << szIndex;
     }
 
-    Dimension::Dimension( const io::Object& object )
+    Dimension::Dimension( const io::ObjectInfo& object )
         : Element( object )
         , m_pType( nullptr )
     {
@@ -203,11 +203,11 @@ namespace input
         os << "dim " << m_pType->getStr() << " " << m_strIdentifier << ";//" << strAnnotation << "\n";
     }
 
-    Include::Include( const io::Object& object )
+    Include::Include( const io::ObjectInfo& object )
         : Element( object )
     {
     }
-    Include::Include( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+    Include::Include( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
         : Element( object )
         , m_strOpaque( strOpaque )
         , m_path( includeFilePath )
@@ -236,11 +236,11 @@ namespace input
             os << strIndent << "include " << m_strIdentifier << "( " << m_strOpaque << " );//" << strAnnotation << "\n";
     }
 
-    MegaInclude::MegaInclude( const io::Object& object )
+    MegaInclude::MegaInclude( const io::ObjectInfo& object )
         : Include( object )
     {
     }
-    MegaInclude::MegaInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+    MegaInclude::MegaInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
         : Include( object, strOpaque, includeFilePath )
     {
     }
@@ -254,11 +254,11 @@ namespace input
         Include::store( storer );
     }
 
-    CPPInclude::CPPInclude( const io::Object& object )
+    CPPInclude::CPPInclude( const io::ObjectInfo& object )
         : Include( object )
     {
     }
-    CPPInclude::CPPInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+    CPPInclude::CPPInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
         : Include( object, strOpaque, includeFilePath )
     {
     }
@@ -272,11 +272,11 @@ namespace input
         Include::store( storer );
     }
 
-    SystemInclude::SystemInclude( const io::Object& object )
+    SystemInclude::SystemInclude( const io::ObjectInfo& object )
         : Include( object )
     {
     }
-    SystemInclude::SystemInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+    SystemInclude::SystemInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
         : Include( object, strOpaque, includeFilePath )
     {
     }
@@ -290,7 +290,7 @@ namespace input
         Include::store( storer );
     }
 
-    Using::Using( const io::Object& object )
+    Using::Using( const io::ObjectInfo& object )
         : Element( object )
         , m_pType( nullptr )
     {
@@ -314,7 +314,7 @@ namespace input
         os << strIndent << "using " << m_strIdentifier << " = " << m_pType->getStr() << ";//" << strAnnotation << "\n";
     }
 
-    Export::Export( const io::Object& object )
+    Export::Export( const io::ObjectInfo& object )
         : Element( object )
         , m_pReturnType( nullptr )
         , m_pParameters( nullptr )
@@ -343,7 +343,7 @@ namespace input
         os << strIndent << "export " << m_pReturnType->getStr() << " " << m_strIdentifier << "( " << m_pParameters->getStr() << " )//" << strAnnotation << "\n";
     }
 
-    Visibility::Visibility( const io::Object& object )
+    Visibility::Visibility( const io::ObjectInfo& object )
         : Element( object )
     {
     }
@@ -371,7 +371,7 @@ namespace input
         }
     }
 
-    Context::Context( const io::Object& object )
+    Context::Context( const io::ObjectInfo& object )
         : Element( object )
     {
     }
@@ -441,14 +441,14 @@ namespace input
 
     const std::string Root::RootTypeName = "root";
 
-    Root::Root( const io::Object& object )
+    Root::Root( const io::ObjectInfo& object )
         : Context( object )
     {
         m_contextType = eObject;
         m_strIdentifier = RootTypeName;
         m_rootType = eFile;
     }
-    Root::Root( const io::Object& object, RootType rootType )
+    Root::Root( const io::ObjectInfo& object, RootType rootType )
         : Context( object )
     {
         m_contextType = eObject;
@@ -475,7 +475,7 @@ namespace input
         printDeclaration( os, strIndent, "root", m_strIdentifier, nullptr, nullptr, m_pSize, m_inheritance, strAnnotation );
     }
 
-    Body::Body( const io::Object& object )
+    Body::Body( const io::ObjectInfo& object )
         : Base( object )
         , m_pContext( nullptr )
     {

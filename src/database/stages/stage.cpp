@@ -34,7 +34,7 @@ namespace Stages
         }
     }
     
-    Stage::Stage( const boost::filesystem::path& filePath, io::Object::FileID fileID )
+    Stage::Stage( const boost::filesystem::path& filePath, io::ObjectInfo::FileID fileID )
     {
         ObjectFactoryImpl objectFactory;
         io::File::load( objectFactory, m_fileMap, filePath, fileID );
@@ -54,7 +54,7 @@ namespace Stages
         }
     }
 
-    Appending::Appending( const boost::filesystem::path& filePath, io::Object::FileID fileID )
+    Appending::Appending( const boost::filesystem::path& filePath, io::ObjectInfo::FileID fileID )
         :   Stage( filePath, fileID )
     {
         
@@ -79,7 +79,7 @@ namespace Stages
         }
     }
     
-    Creating::Creating( const io::File::FileIDtoPathMap& files, io::Object::FileID fileID )
+    Creating::Creating( const io::File::FileIDtoPathMap& files, io::ObjectInfo::FileID fileID )
         :   Stage( files ),
             m_fileID( fileID )
     {

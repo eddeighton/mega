@@ -1,7 +1,9 @@
 #ifndef INDEXED_FILE_25_MAR_2022
 #define INDEXED_FILE_25_MAR_2022
 
+#include "database/io/object_info.hpp"
 #include "file_info.hpp"
+#include "object_info.hpp"
 #include "object.hpp"
 #include "loader.hpp"
 
@@ -13,6 +15,7 @@ namespace mega
 namespace io
 {
     class Manifest;
+    class File;
 
     class File
     {
@@ -31,19 +34,27 @@ namespace io
         {
         }
 
+        std::size_t getTotalObjects() const { return m_objects.size(); }
+        Object*     getObject( ObjectInfo::Index objectIndex ) const
+        {
+            VERIFY_RTE( objectIndex >= 0 );
+            VERIFY_RTE( objectIndex < m_objects.size() );
+            return m_objects[ objectIndex ];
+        }
+
         FileInfo::Type                                  getType() const { return m_info.getFileType(); }
-        Object::FileID                                  getFileID() const { return m_info.getFileID(); }
+        ObjectInfo::FileID                              getFileID() const { return m_info.getFileID(); }
         const boost::filesystem::path&                  getFilePath() const { return m_info.getFilePath(); }
         const std::optional< boost::filesystem::path >& getObjectSourceFilePath() const { return m_info.getObjectSourceFilePath(); }
 
-        void preload( const Manifest& manifest );
+        void preload( const FileAccess& fileAccess, const Manifest& manifest );
         void load( const Manifest& manifest );
         void store( const Manifest& manifest ) const;
 
         template < typename T, typename... Args >
         inline T* construct( Args... args )
         {
-            T* pNewObject = new T( io::Object( T::Type, m_info.getFileID(), m_objects.size() ), args... );
+            T* pNewObject = new T( io::ObjectInfo( T::Type, m_info.getFileID(), m_objects.size() ), args... );
             m_objects.push_back( pNewObject );
             return pNewObject;
         }

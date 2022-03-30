@@ -7,12 +7,12 @@ namespace io
 
     FileInfo::FileInfo()
         : m_fileType( TOTAL_FILE_TYPES )
-        , m_fileID( Object::NO_FILE )
+        , m_fileID( ObjectInfo::NO_FILE )
     {
     }
 
     FileInfo::FileInfo( Type                     fileType,
-                        Object::FileID           fileID,
+                        ObjectInfo::FileID           fileID,
                         const boost::filesystem::path& filePath )
         : m_fileType( fileType )
         , m_fileID( fileID )
@@ -21,7 +21,7 @@ namespace io
     }
 
     FileInfo::FileInfo( Type                           fileType,
-                        Object::FileID                 fileID,
+                        ObjectInfo::FileID                 fileID,
                         const boost::filesystem::path&       filePath,
                         const boost::filesystem::path& objectSourceFilePath )
         : m_fileType( fileType )
@@ -32,6 +32,7 @@ namespace io
     {
     }
 
+/*
     // clang-format off
     static const char* g_fileTypes[] = 
     {
@@ -123,7 +124,7 @@ namespace io
         }
 
         return is;
-    }
+    }*/
 
 } // namespace io
 } // namespace mega

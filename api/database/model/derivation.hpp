@@ -71,7 +71,7 @@ public:
     static const ObjectType Type = eDerivationAnalysis;
 
 protected:
-    DerivationAnalysis( const io::Object& object )
+    DerivationAnalysis( const io::ObjectInfo& object )
         : io::Object( object )
     {
     }

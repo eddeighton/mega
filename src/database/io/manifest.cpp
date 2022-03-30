@@ -2,11 +2,13 @@
 #include "database/io/environment.hpp"
 #include "database/io/file_info.hpp"
 #include "database/io/component_info.hpp"
+#include "database/io/archive.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
+
 #include <fstream>
 
 namespace mega
@@ -24,7 +26,7 @@ namespace io
     }
     Manifest::Manifest( const Environment& environment, const std::vector< boost::filesystem::path >& componentInfos )
     {
-        Object::FileID fileIDCounter = 0;
+        ObjectInfo::FileID fileIDCounter = 0;
 
         // generate the component compilation file
         {
@@ -46,7 +48,8 @@ namespace io
                 {
                     THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
                 }
-                inputFileStream >> componentInfo;
+                InputArchiveType ia(inputFileStream);
+                ia >> componentInfo;
             }
 
             for ( const boost::filesystem::path& sourceFilePath : componentInfo.getSourceFiles() )
@@ -88,7 +91,8 @@ namespace io
         {
             THROW_RTE( "Failed to open file: " << filepath.string() );
         }
-        inputFileStream >> *this;
+        InputArchiveType ia(inputFileStream);
+        ia >> *this;
     }
 
     void Manifest::save( const boost::filesystem::path& filepath ) const
@@ -98,34 +102,10 @@ namespace io
         {
             THROW_RTE( "Failed to write to file: " << filepath.string() );
         }
-        outputFileStream << *this;
+        OutputArchiveType oa(outputFileStream);
+        oa << *this;
     }
 
-    std::istream& operator>>( std::istream& is, Manifest& manifest )
-    {
-        std::size_t szTotalFileInfos = 0U;
-        is >> szTotalFileInfos;
-        for ( std::size_t sz = 0U; sz != szTotalFileInfos; ++sz )
-        {
-            FileInfo fileInfo;
-            is >> fileInfo;
-            manifest.m_fileInfos.push_back( fileInfo );
-        }
-        return is;
-    }
-
-    std::ostream& operator<<( std::ostream& os, const Manifest& manifest )
-    {
-        os << manifest.m_fileInfos.size();
-        for ( Manifest::FileInfoVector::const_iterator i = manifest.m_fileInfos.begin(),
-                                                       iEnd = manifest.m_fileInfos.end();
-              i != iEnd;
-              ++i )
-        {
-            os << *i;
-        }
-        return os;
-    }
 
 } // namespace io
 } // namespace mega

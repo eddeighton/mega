@@ -27,6 +27,7 @@
 #include "database/io/stages.hpp"
 #include "database/io/database.hpp"
 #include "database/io/component_info.hpp"
+#include "database/io/archive.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
@@ -129,7 +130,8 @@ namespace manifest
                     {
                         THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
                     }
-                    inputFileStream >> componentInfo;
+                    InputArchiveType ia(inputFileStream);
+                    ia >> componentInfo;
                 }
 
                 database.construct< mega::Component >( componentInfo );

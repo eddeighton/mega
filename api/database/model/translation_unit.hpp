@@ -50,7 +50,7 @@ public:
     static const ObjectType Type = eTranslationUnit;
 
 protected:
-    TranslationUnit( const io::Object& object )
+    TranslationUnit( const io::ObjectInfo& object )
         : io::Object( object )
     {
     }
@@ -107,7 +107,7 @@ public:
 protected:
     CoordinatorHostnameDefinitionFile m_chd;
     //std::string                       m_strName;
-    io::Object::FileID                m_databaseFileID;
+    io::ObjectInfo::FileID                m_databaseFileID;
     ActionSet                         m_actions;
 
 public:
@@ -135,7 +135,7 @@ public:
     const CoordinatorHostnameDefinitionFile& getCHD() const { return m_chd; }
     std::optional< boost::filesystem::path > getDefinitionFile() const { return m_chd.definitionFile; }
     //const std::string&                       getName() const { return m_strName; }
-    io::Object::FileID                       getDatabaseFileID() const { return m_databaseFileID; }
+    io::ObjectInfo::FileID                       getDatabaseFileID() const { return m_databaseFileID; }
     const ActionSet&                         getActions() const { return m_actions; }
 
     bool isAction( const interface::Context* pAction ) const
@@ -159,7 +159,7 @@ public:
     static const ObjectType Type = eTranslationUnitAnalysis;
 
 protected:
-    TranslationUnitAnalysis( const io::Object& object )
+    TranslationUnitAnalysis( const io::ObjectInfo& object )
         : io::Object( object )
     {
     }

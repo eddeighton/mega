@@ -18,10 +18,10 @@ class Component : public io::FileObject< io::file::Component >
     using Base = io::FileObject< io::file::Component >;
 
 protected:
-    Component( const io::Object& object );
+    Component( const io::ObjectInfo& object );
 
 public:
-    Component( const io::Object&        object,
+    Component( const io::ObjectInfo&        object,
                const io::ComponentInfo& componentInfo );
 
     static const ObjectType Type = eComponent;

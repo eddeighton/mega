@@ -63,6 +63,7 @@ set( MEGA_DATABASE_SESSIONS
 	)
 	
 set( MEGA_DATABASE_IO
+    ${MEGA_API_DIR}/database/io/object_info.hpp
     ${MEGA_API_DIR}/database/io/file_info.hpp
     ${MEGA_API_DIR}/database/io/component_info.hpp
     ${MEGA_API_DIR}/database/io/environment.hpp

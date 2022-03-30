@@ -26,8 +26,24 @@
 
 #include <boost/filesystem/path.hpp>
 
+#include <boost/filesystem/path_traits.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
+
+//#include <boost/archive/xml_iarchive.hpp>
+//#include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
+#include <optional>
+
+namespace mega
+{
+    //using InputArchiveType = boost::archive::xml_iarchive;
+    //using OutputArchiveType = boost::archive::xml_oarchive;
+    using InputArchiveType = boost::archive::text_iarchive;
+    using OutputArchiveType = boost::archive::text_oarchive;
+}
 
 namespace boost
 {
@@ -38,12 +54,32 @@ namespace serialization
     {
         std::string s;
         if ( Archive::is_saving::value )
-            s = p.string();
+            s = p.generic_string();
         ar& boost::serialization::make_nvp( "string", s );
         if ( Archive::is_loading::value )
             p = s;
     }
 
+    template < class Archive >
+    inline void serialize( Archive& ar, std::optional< boost::filesystem::path >& p, const unsigned int version )
+    {
+        std::string s;
+        if ( Archive::is_saving::value )
+        {
+            if ( p.has_value() )
+                s = p.value().generic_string();
+            else
+                s = "";
+        }
+        ar& boost::serialization::make_nvp( "string", s );
+        if ( Archive::is_loading::value )
+        {
+            if ( s.empty() )
+                p = std::optional< boost::filesystem::path >();
+            else
+                p = s;
+        }
+    }
 } // namespace serialization
 } // namespace boost
 

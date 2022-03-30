@@ -46,7 +46,7 @@ namespace concrete
         static const ObjectType Type = eInheritanceNode;
 
     protected:
-        Inheritance_Node( const io::Object& indexedObject )
+        Inheritance_Node( const io::ObjectInfo& indexedObject )
             : io::Object( indexedObject )
         {
         }
@@ -101,7 +101,7 @@ namespace concrete
         friend class mega::Stages::Interface;
 
     protected:
-        Element( const io::Object& indexedObject )
+        Element( const io::ObjectInfo& indexedObject )
             : io::Object( indexedObject )
         {
         }
@@ -138,7 +138,7 @@ namespace concrete
         friend class mega::Stages::Interface;
 
     protected:
-        Dimension( const io::Object& indexedObject )
+        Dimension( const io::ObjectInfo& indexedObject )
             : Element( indexedObject )
         {
         }
@@ -163,7 +163,7 @@ namespace concrete
         static const ObjectType Type = eConcreteDimensionUser;
 
     protected:
-        Dimension_User( const io::Object& indexedObject )
+        Dimension_User( const io::ObjectInfo& indexedObject )
             : Dimension( indexedObject )
         {
         }
@@ -219,7 +219,7 @@ namespace concrete
         };
 
     protected:
-        Dimension_Generated( const io::Object& indexedObject )
+        Dimension_Generated( const io::ObjectInfo& indexedObject )
             : Dimension( indexedObject )
         {
         }
@@ -266,7 +266,7 @@ namespace concrete
         static const ObjectType Type = eConcreteAction;
 
     protected:
-        Action( const io::Object& indexedObject )
+        Action( const io::ObjectInfo& indexedObject )
             : Element( indexedObject )
         {
         }

@@ -31,7 +31,7 @@ namespace Stages
 {
     /*
     Interface::Interface( const boost::filesystem::path& treePath )
-        : Appending( treePath, io::Object::NO_FILE )
+        : Appending( treePath, io::ObjectInfo::NO_FILE )
     {
         m_pDerivationAnalysis = io::oneOpt< DerivationAnalysis >( getMaster() );
         if ( !m_pDerivationAnalysis )
@@ -49,11 +49,11 @@ namespace Stages
     void Interface::store( const boost::filesystem::path& filePath ) const
     {
         VERIFY_RTE( m_fileMap.size() == 1U );
-        io::File* pFile = m_fileMap.find( io::Object::NO_FILE )->second;
+        io::File* pFile = m_fileMap.find( io::ObjectInfo::NO_FILE )->second;
         VERIFY_RTE( pFile );
         io::File::FileIDtoPathMap files;
-        files.insert( std::make_pair( io::Object::NO_FILE, filePath ) );
-        io::File::store( filePath, io::Object::NO_FILE, files, pFile->getObjects() );
+        files.insert( std::make_pair( io::ObjectInfo::NO_FILE, filePath ) );
+        io::File::store( filePath, io::ObjectInfo::NO_FILE, files, pFile->getObjects() );
     }
 
     void collateChildren( const interface::Context*                   pAction,
@@ -420,10 +420,10 @@ namespace Stages
         // calculate the compatibility between static and dynamic types
         {
             std::vector< const interface::Context* > interfaceActions = io::many_cst< const interface::Context >(
-                getObjects( io::Object::NO_FILE ) );
+                getObjects( io::ObjectInfo::NO_FILE ) );
 
             std::vector< const concrete::Inheritance_Node* > iNodes = io::many_cst< const concrete::Inheritance_Node >(
-                getObjects( io::Object::NO_FILE ) );
+                getObjects( io::ObjectInfo::NO_FILE ) );
 
             m_pDerivationAnalysis->analyseCompatibility( interfaceActions, iNodes );
         }
@@ -476,7 +476,7 @@ namespace Stages
         // final steps in derivation analysis
         {
             std::vector< const interface::Context* > interfaceActions = io::many_cst< const interface::Context >(
-                getObjects( mega::io::Object::NO_FILE ) );
+                getObjects( mega::io::ObjectInfo::NO_FILE ) );
             m_pDerivationAnalysis->analyseLinkCompatibility( interfaceActions, groups );
         }
     }
@@ -523,7 +523,7 @@ namespace Stages
         translationUnitAnalysis_recurse( pRoot, translationUnitMap );
 
         // first transform each eg source file to a fileName
-        std::set< io::Object::FileID > usedTUFileIDs;
+        std::set< io::ObjectInfo::FileID > usedTUFileIDs;
         std::set< TranslationUnit* >   unassignedTUs;
 
         for ( TranslationUnitMap::const_iterator
@@ -556,7 +556,7 @@ namespace Stages
             }
 
             // now determine if the file actually exists and get the File ID if it does
-            if ( pTranslationUnit->m_databaseFileID != io::Object::NO_FILE )
+            if ( pTranslationUnit->m_databaseFileID != io::ObjectInfo::NO_FILE )
             {
                 //if( usedTUFileIDs.find( pTranslationUnit->m_databaseFileID ) != usedTUFileIDs.end() )
                 //{
@@ -572,8 +572,8 @@ namespace Stages
 
         // assign FileIDs for unassigned
         {
-            std::set< io::Object::FileID >::iterator i = usedTUFileIDs.begin();
-            io::Object::FileID                       nextLogicalID = mega::io::Object::NO_FILE;
+            std::set< io::ObjectInfo::FileID >::iterator i = usedTUFileIDs.begin();
+            io::ObjectInfo::FileID                       nextLogicalID = mega::io::ObjectInfo::NO_FILE;
             for ( TranslationUnit* pTranslationUnit : unassignedTUs )
             {
                 while ( i != usedTUFileIDs.end() )

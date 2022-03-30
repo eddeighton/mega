@@ -49,7 +49,7 @@ namespace interface
     {
         friend class mega::Stages::Parser;
     protected:
-        Element( const io::Object& object, Element* pParent,
+        Element( const io::ObjectInfo& object, Element* pParent,
                  input::Element* pElement, VisibilityType visibility );
 
     public:
@@ -213,7 +213,7 @@ namespace interface
         const std::string&               getIdentifier() const;
         const std::vector< Element* >&   getChildren() const { return m_children; }
         std::string                      getFriendlyName() const;
-        std::vector< io::Object::Index > getIndexPath() const;
+        std::vector< io::ObjectInfo::Index > getIndexPath() const;
 
     protected:
         input::Element*         m_pElement;
@@ -233,8 +233,8 @@ namespace interface
         static const ObjectType Type = eAbstractOpaque;
 
     protected:
-        Opaque( const io::Object& indexedObject );
-        Opaque( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Opaque( const io::ObjectInfo& indexedObject );
+        Opaque( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -256,8 +256,8 @@ namespace interface
         static const ObjectType Type = eAbstractDimension;
 
     protected:
-        Dimension( const io::Object& indexedObject );
-        Dimension( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Dimension( const io::ObjectInfo& indexedObject );
+        Dimension( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -294,8 +294,8 @@ namespace interface
         static const ObjectType Type = eAbstractUsing;
 
     protected:
-        Using( const io::Object& indexedObject );
-        Using( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Using( const io::ObjectInfo& indexedObject );
+        Using( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -315,8 +315,8 @@ namespace interface
         static const ObjectType Type = eAbstractExport;
 
     protected:
-        Export( const io::Object& indexedObject );
-        Export( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Export( const io::ObjectInfo& indexedObject );
+        Export( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -335,8 +335,8 @@ namespace interface
         static const ObjectType Type = eAbstractInclude;
 
     protected:
-        Include( const io::Object& indexedObject );
-        Include( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Include( const io::ObjectInfo& indexedObject );
+        Include( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -377,8 +377,8 @@ namespace interface
         bool                        getCoordinatorHostname( const Root*& pCoordinator, const Root*& pHostname ) const;
 
     protected:
-        Context( const io::Object& indexedObject );
-        Context( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Context( const io::ObjectInfo& indexedObject );
+        Context( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -400,8 +400,8 @@ namespace interface
         static const ObjectType Type = eAbstractAbstract;
 
     protected:
-        Abstract( const io::Object& indexedObject );
-        Abstract( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Abstract( const io::ObjectInfo& indexedObject );
+        Abstract( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
         virtual bool isAbstract() const;
@@ -417,8 +417,8 @@ namespace interface
         static const ObjectType Type = eAbstractEvent;
 
     protected:
-        Event( const io::Object& indexedObject );
-        Event( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Event( const io::ObjectInfo& indexedObject );
+        Event( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
@@ -436,8 +436,8 @@ namespace interface
         void        setReturnType( const std::string& strReturnType ) { m_strReturnType = strReturnType; }
 
     protected:
-        Function( const io::Object& indexedObject );
-        Function( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Function( const io::ObjectInfo& indexedObject );
+        Function( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -455,8 +455,8 @@ namespace interface
         static const ObjectType Type = eAbstractAction;
 
     protected:
-        Action( const io::Object& indexedObject );
-        Action( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Action( const io::ObjectInfo& indexedObject );
+        Action( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
@@ -471,8 +471,8 @@ namespace interface
         static const ObjectType Type = eAbstractObject;
 
     protected:
-        Object( const io::Object& indexedObject );
-        Object( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Object( const io::ObjectInfo& indexedObject );
+        Object( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
@@ -487,8 +487,8 @@ namespace interface
         static const ObjectType Type = eAbstractLink;
 
     protected:
-        Link( const io::Object& indexedObject );
-        Link( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Link( const io::ObjectInfo& indexedObject );
+        Link( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
@@ -500,8 +500,8 @@ namespace interface
         static const ObjectType Type = eAbstractRoot;
 
     protected:
-        Root( const io::Object& indexedObject );
-        Root( const io::Object& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Root( const io::ObjectInfo& indexedObject );
+        Root( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 

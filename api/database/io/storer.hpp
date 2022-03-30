@@ -44,10 +44,20 @@ namespace io
     {
     public:
         Storer( const boost::filesystem::path& filePath, const Manifest& manifest );
-        ~Storer();
 
-        // void storeObject( const Object* pObject );
-        void storeObjectRef( const Object* pObject );
+        template< typename TObjectType >
+        void storeObjectRef( const TObjectType* pObject )
+        {
+            if ( pObject )
+            {
+                store( pObject->getIndex() );
+                store( pObject->getFileID() );
+            }
+            else
+            {
+                store( ObjectInfo::NO_INDEX );
+            }
+        }
 
         template < class T >
         inline void store( const T& value )

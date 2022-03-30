@@ -31,29 +31,7 @@ namespace io
         , m_pFileStream( boost::filesystem::createBinaryOutputFileStream( filePath ) )
         , m_archive( *m_pFileStream )
     {
-    }
-
-    Storer::~Storer()
-    {
-    }
-    /*
-        void Storer::storeObject( const Object* pObject )
-        {
-            VERIFY_RTE( pObject );
-            pObject->Object::store( *this );
-        }
-    */
-    void Storer::storeObjectRef( const Object* pObject )
-    {
-        if ( pObject )
-        {
-            store( pObject->getFileID() );
-            store( pObject->getIndex() );
-        }
-        else
-        {
-            store( Object::NO_FILE );
-        }
+        m_archive << m_manifest;
     }
 
 } // namespace io

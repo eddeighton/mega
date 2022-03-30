@@ -39,8 +39,8 @@ namespace concrete
         friend class mega::Stages::Interface;
 
     protected:
-        Allocator( const io::Object& indexedObject )
-            : io::Object( indexedObject )
+        Allocator( const io::ObjectInfo& objectInfo )
+            : io::Object( objectInfo )
         {
         }
 
@@ -67,8 +67,8 @@ namespace concrete
         static const ObjectType Type = eConcreteAllocator_Nothing;
 
     protected:
-        NothingAllocator( const io::Object& indexedObject )
-            : Allocator( indexedObject )
+        NothingAllocator( const io::ObjectInfo& objectInfo )
+            : Allocator( objectInfo )
         {
         }
 
@@ -87,8 +87,8 @@ namespace concrete
         static const ObjectType Type = eConcreteAllocator_Singleton;
 
     protected:
-        SingletonAllocator( const io::Object& indexedObject )
-            : Allocator( indexedObject )
+        SingletonAllocator( const io::ObjectInfo& objectInfo )
+            : Allocator( objectInfo )
         {
         }
 
@@ -107,8 +107,8 @@ namespace concrete
         static const ObjectType Type = eConcreteAllocator_Range;
 
     protected:
-        RangeAllocator( const io::Object& indexedObject )
-            : Allocator( indexedObject )
+        RangeAllocator( const io::ObjectInfo& objectInfo )
+            : Allocator( objectInfo )
         {
         }
 

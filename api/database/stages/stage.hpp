@@ -33,11 +33,11 @@ namespace Stages
     {
     protected:
         Stage( const io::File::FileIDtoPathMap& files );
-        Stage( const boost::filesystem::path& filePath, io::Object::FileID fileID );
+        Stage( const boost::filesystem::path& filePath, io::ObjectInfo::FileID fileID );
         virtual ~Stage();
 
     public:
-        virtual const io::Object::Array& getObjects( io::Object::FileID fileID ) const
+        virtual const io::Object::Array& getObjects( io::ObjectInfo::FileID fileID ) const
         {
             io::File::FileIDToFileMap::const_iterator iFind = m_fileMap.find( fileID );
             VERIFY_RTE( iFind != m_fileMap.end() );
@@ -57,7 +57,7 @@ namespace Stages
     class Appending : public Stage
     {
     public:
-        Appending( const boost::filesystem::path& filePath, io::Object::FileID fileID );
+        Appending( const boost::filesystem::path& filePath, io::ObjectInfo::FileID fileID );
 
         void store() const;
 
@@ -89,7 +89,7 @@ namespace Stages
     class Creating : public Stage
     {
     protected:
-        Creating( const io::File::FileIDtoPathMap& files, io::Object::FileID fileID );
+        Creating( const io::File::FileIDtoPathMap& files, io::ObjectInfo::FileID fileID );
         ~Creating();
 
     public:
@@ -105,7 +105,7 @@ namespace Stages
         }
         const io::Object::Array& getNewObjects() const { return m_newObjects; }
 
-        const io::Object::Array& getObjects( io::Object::FileID fileID ) const
+        const io::Object::Array& getObjects( io::ObjectInfo::FileID fileID ) const
         {
             if ( fileID == m_fileID )
                 return m_newObjects;
@@ -114,7 +114,7 @@ namespace Stages
         }
 
     protected:
-        io::Object::FileID m_fileID;
+        io::ObjectInfo::FileID m_fileID;
         io::Object::Array  m_newObjects;
     };*/
 } // namespace Stages

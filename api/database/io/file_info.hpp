@@ -1,7 +1,9 @@
 #ifndef IO_FILEINFO_28_MARCH_2022
 #define IO_FILEINFO_28_MARCH_2022
 
+#include "database/io/object_info.hpp"
 #include "object.hpp"
+#include "database/io/archive.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -13,9 +15,6 @@ namespace io
 {
     class FileInfo
     {
-        friend std::ostream& operator<<( std::ostream& os, const FileInfo& fileInfo );
-        friend std::istream& operator>>( std::istream& is, FileInfo& fileInfo );
-
     public:
         // clang-format off
         enum Type
@@ -45,37 +44,35 @@ namespace io
 
         FileInfo(
             Type                           fileType,
-            Object::FileID                 fileID,
+            ObjectInfo::FileID             fileID,
             const boost::filesystem::path& filePath );
 
         FileInfo(
             Type                           fileType,
-            Object::FileID                 fileID,
+            ObjectInfo::FileID             fileID,
             const boost::filesystem::path& filePath,
             const boost::filesystem::path& objectSourceFilePath );
 
         Type                                            getFileType() const { return m_fileType; }
-        Object::FileID                                  getFileID() const { return m_fileID; }
+        ObjectInfo::FileID                              getFileID() const { return m_fileID; }
         const boost::filesystem::path&                  getFilePath() const { return m_filePath; }
         const std::optional< boost::filesystem::path >& getObjectSourceFilePath() const { return m_objectSourceFilePath; }
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
-            archive & m_fileType;
-            archive & m_fileID;
-            archive & m_filePath;
-            archive & m_objectSourceFilePath;
+            archive& m_fileType;
+            archive& m_fileID;
+            archive& m_filePath;
+            archive& m_objectSourceFilePath;
         }
+
     private:
         Type                                     m_fileType;
-        Object::FileID                           m_fileID;
+        ObjectInfo::FileID                       m_fileID;
         boost::filesystem::path                  m_filePath;
         std::optional< boost::filesystem::path > m_objectSourceFilePath;
     };
-
-    std::ostream& operator<<( std::ostream& os, const FileInfo& fileInfo );
-    std::istream& operator>>( std::istream& is, FileInfo& fileInfo );
 
 } // namespace io
 } // namespace mega

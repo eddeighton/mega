@@ -53,6 +53,7 @@ namespace io
         outputFileStream << *this;
     }
 */
+/*
     std::ostream& operator<<( std::ostream& os, const ComponentInfo& ComponentInfo )
     {
         os << ComponentInfo.m_strName << std::endl;
@@ -100,7 +101,7 @@ namespace io
             }
         }
         return is;
-    }
+    }*/
 
 } // namespace io
 } // namespace mega

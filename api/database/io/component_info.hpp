@@ -1,10 +1,11 @@
 #ifndef IO_SOURCETREE_25_MARCH_2022
 #define IO_SOURCETREE_25_MARCH_2022
 
+#include "database/io/archive.hpp"
+
 #include <boost/filesystem/path.hpp>
 
 #include <vector>
-#include <iostream>
 
 namespace mega
 {
@@ -12,9 +13,6 @@ namespace io
 {
     class ComponentInfo
     {
-        friend std::istream& operator>>( std::istream& is, ComponentInfo& ComponentInfo );
-        friend std::ostream& operator<<( std::ostream& os, const ComponentInfo& ComponentInfo );
-
     public:
         using PathArray = std::vector< boost::filesystem::path >;
         ComponentInfo();
@@ -44,9 +42,6 @@ namespace io
         PathArray               m_sourceFiles;
         PathArray               m_includeDirectories;
     };
-
-    std::istream& operator>>( std::istream& is, ComponentInfo& ComponentInfo );
-    std::ostream& operator<<( std::ostream& os, const ComponentInfo& ComponentInfo );
 
 } // namespace io
 } // namespace mega

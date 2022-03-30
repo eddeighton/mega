@@ -26,35 +26,35 @@ namespace Stages
 {
     /*
     Implementation::Implementation( const io::File::FileIDtoPathMap& files )
-        :   Creating( files, io::Object::NO_FILE )
+        :   Creating( files, io::ObjectInfo::NO_FILE )
     {
     }
     
     const interface::Root* Implementation::getTreeRoot() const
     {
-        return io::root< interface::Root >( getObjects( io::Object::NO_FILE ) );
+        return io::root< interface::Root >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const concrete::Action* Implementation::getInstanceRoot() const
     {
-        return io::root< concrete::Action >( getObjects( io::Object::NO_FILE ) );
+        return io::root< concrete::Action >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const DerivationAnalysis& Implementation::getDerivationAnalysis() const
     {
-        return *io::one< DerivationAnalysis >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< DerivationAnalysis >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const LinkAnalysis& Implementation::getLinkAnalysis() const
     {
-        return *io::one< LinkAnalysis >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< LinkAnalysis >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
         
     const Layout& Implementation::getLayout() const
     {
-        return *io::one< Layout >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< Layout >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
         
     const TranslationUnitAnalysis& Implementation::getTranslationUnitAnalysis() const
     {
-        return *io::one< TranslationUnitAnalysis >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< TranslationUnitAnalysis >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
 	
     void Implementation::getInvocations( std::size_t szTranslationUnitID, Invocations& invocations ) const
@@ -271,41 +271,41 @@ namespace Stages
     }
 
     Read::Read( const boost::filesystem::path& filePath )
-        :   Stage( filePath, io::Object::NO_FILE )
+        :   Stage( filePath, io::ObjectInfo::NO_FILE )
     {
     }
     
     const interface::Root* Read::getTreeRoot() const
     {
-        return io::root< interface::Root >( getObjects( io::Object::NO_FILE ) );
+        return io::root< interface::Root >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const concrete::Action* Read::getInstanceRoot() const
     {
-        return io::root< concrete::Action >( getObjects( io::Object::NO_FILE ) );
+        return io::root< concrete::Action >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const DerivationAnalysis& Read::getDerivationAnalysis() const
     {
-        return *io::one< DerivationAnalysis >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< DerivationAnalysis >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const LinkAnalysis& Read::getLinkAnalysis() const
     {
-        return *io::one< LinkAnalysis >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< LinkAnalysis >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const Identifiers& Read::getIdentifiers() const
     {
-        return *io::one< Identifiers >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< Identifiers >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const Layout& Read::getLayout() const
     {
-        return *io::one< Layout >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< Layout >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const TranslationUnitAnalysis& Read::getTranslationUnitAnalysis() const
     {
-        return *io::one< TranslationUnitAnalysis >( getObjects( io::Object::NO_FILE ) );
+        return *io::one< TranslationUnitAnalysis >( getObjects( io::ObjectInfo::NO_FILE ) );
     }
     const concrete::Action* Read::getConcreteAction( TypeID id ) const
     {
-        const io::Object::Array& tree = getObjects( io::Object::NO_FILE );
+        const io::Object::Array& tree = getObjects( io::ObjectInfo::NO_FILE );
         if( id >=0 && id < static_cast< TypeID >( tree.size() ) )
         {
             return dynamic_cast< const concrete::Action* >( tree[ id ] );

@@ -42,7 +42,7 @@ namespace Stages
                     const boost::filesystem::path& sourceDir,
                     const boost::filesystem::path& buildDir )
 
-        //: Creating( io::File::FileIDtoPathMap{}, io::Object::NO_FILE )
+        //: Creating( io::File::FileIDtoPathMap{}, io::ObjectInfo::NO_FILE )
         : m_parserDLL( parserDLL )
         , m_sourceDir( sourceDir )
         , m_buildDir( buildDir )
@@ -63,7 +63,7 @@ namespace Stages
                 const boost::filesystem::path& parserDLLPath,
                 const boost::filesystem::path& currentPath,
                 std::ostream& os )
-        :   Creating( io::File::FileIDtoPathMap{}, io::Object::NO_FILE ),
+        :   Creating( io::File::FileIDtoPathMap{}, io::ObjectInfo::NO_FILE ),
             m_pParserCallback( pParserCallback ),
             m_parserDllPath( parserDLLPath ),
             m_currentPath( currentPath ),

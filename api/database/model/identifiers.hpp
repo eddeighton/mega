@@ -36,7 +36,7 @@ public:
     static const ObjectType Type = eIdentifiers;
 
 protected:
-    Identifiers( const io::Object& object );
+    Identifiers( const io::ObjectInfo& object );
 
     virtual void load( io::Loader& loader );
     virtual void store( io::Storer& storer ) const;

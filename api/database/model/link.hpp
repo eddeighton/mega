@@ -47,7 +47,7 @@ public:
     static const ObjectType Type = eLinkGroup;
 
 protected:
-    LinkGroup( const io::Object& object )
+    LinkGroup( const io::ObjectInfo& object )
         : io::Object( object )
     {
     }
@@ -90,7 +90,7 @@ public:
     static const ObjectType Type = eLinkAnalysis;
 
 protected:
-    LinkAnalysis( const io::Object& object )
+    LinkAnalysis( const io::ObjectInfo& object )
         : io::Object( object )
     {
     }

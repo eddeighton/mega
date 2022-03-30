@@ -22,7 +22,7 @@
 namespace mega
 {
 
-Identifiers::Identifiers( const io::Object& object )
+Identifiers::Identifiers( const io::ObjectInfo& object )
     : io::Object( object )
 {
 }

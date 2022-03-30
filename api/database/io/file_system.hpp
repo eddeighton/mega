@@ -14,11 +14,12 @@ namespace mega
 {
 namespace io
 {
-    class FileSystem
+
+    class FileSystem : public FileAccess
     {
+        using FileMap = std::map< ObjectInfo::FileID, File::Ptr >;
+        using FileMapCst = std::map< ObjectInfo::FileID, File::PtrCst >;
     public:
-        using FileMap = std::map< Object::FileID, File::Ptr >;
-        using FileMapCst = std::map< Object::FileID, File::PtrCst >;
 
         FileSystem( const Environment& environment, std::optional< boost::filesystem::path > object )
             : m_environment( environment )
@@ -44,9 +45,17 @@ namespace io
         template < typename TStage >
         inline void store() const;
 
+        virtual File::PtrCst getFile( ObjectInfo::FileID fileId ) const
+        {
+            File::PtrCst                        pFile;
+            FileMap::const_iterator iFind = m_readableFiles.find( fileId );
+            if ( iFind != m_readableFiles.end() )
+                pFile = iFind->second;
+            return pFile;
+        }
     private:
         template < typename TFileType >
-        inline Object::FileID getFileID() const;
+        inline ObjectInfo::FileID getFileID() const;
 
         template < typename TStage >
         inline void getReadableFiles();
@@ -59,17 +68,17 @@ namespace io
         std::optional< boost::filesystem::path > m_object;
         const Manifest                           m_manifest;
 
-        Object::FileID m_fileIDs[ FileInfo::TOTAL_FILE_TYPES ] = { Object::NO_FILE };
+        ObjectInfo::FileID m_fileIDs[ FileInfo::TOTAL_FILE_TYPES ] = { ObjectInfo::NO_FILE };
 
-        FileSystem::FileMap m_readableFiles;
-        FileSystem::FileMap m_writableFiles;
+        FileMap m_readableFiles;
+        FileMap m_writableFiles;
     };
 
     template < typename TFileType >
     inline File::PtrCst FileSystem::getReadableFile() const
     {
         File::PtrCst                        pFile;
-        FileSystem::FileMap::const_iterator iFind = m_readableFiles.find( getFileID< TFileType >() );
+        FileMap::const_iterator iFind = m_readableFiles.find( getFileID< TFileType >() );
         if ( iFind != m_readableFiles.end() )
             pFile = iFind->second;
         return pFile;
@@ -79,7 +88,7 @@ namespace io
     inline File::Ptr FileSystem::getWritableFile() const
     {
         File::Ptr                           pFile;
-        FileSystem::FileMap::const_iterator iFind = m_writableFiles.find( getFileID< TFileType >() );
+        FileMap::const_iterator iFind = m_writableFiles.find( getFileID< TFileType >() );
         if ( iFind != m_writableFiles.end() )
             pFile = iFind->second;
         return pFile;
@@ -92,14 +101,14 @@ namespace io
         getWritableFiles< TStage >();
 
         //load the readable files
-        for ( FileSystem::FileMap::const_iterator i = m_readableFiles.begin(),
+        for ( FileMap::const_iterator i = m_readableFiles.begin(),
                                                   iEnd = m_readableFiles.end();
               i != iEnd;
               ++i )
         {
-            i->second->preload( m_manifest );
+            i->second->preload( *this, m_manifest );
         }
-        for ( FileSystem::FileMap::const_iterator i = m_readableFiles.begin(),
+        for ( FileMap::const_iterator i = m_readableFiles.begin(),
                                                   iEnd = m_readableFiles.end();
               i != iEnd;
               ++i )
@@ -111,7 +120,7 @@ namespace io
     template < typename TStage >
     inline void FileSystem::store() const
     {
-        for ( FileSystem::FileMap::const_iterator i = m_writableFiles.begin(),
+        for ( FileMap::const_iterator i = m_writableFiles.begin(),
                                                   iEnd = m_writableFiles.end();
               i != iEnd;
               ++i )
@@ -195,19 +204,19 @@ namespace io
     }
 
     template <>
-    inline Object::FileID FileSystem::getFileID< file::Component >() const
+    inline ObjectInfo::FileID FileSystem::getFileID< file::Component >() const
     {
         return m_fileIDs[ FileInfo::Component ];
     }
 
     template <>
-    inline Object::FileID FileSystem::getFileID< file::ObjectAST >() const
+    inline ObjectInfo::FileID FileSystem::getFileID< file::ObjectAST >() const
     {
         return m_fileIDs[ FileInfo::ObjectAST ];
     }
 
     template <>
-    inline Object::FileID FileSystem::getFileID< file::ObjectBody >() const
+    inline ObjectInfo::FileID FileSystem::getFileID< file::ObjectBody >() const
     {
         return m_fileIDs[ FileInfo::ObjectBody ];
     }
