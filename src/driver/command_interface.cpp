@@ -17,6 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "database/model/component.hpp"
+#include "database/model/input.hpp"
 #include "parser/parser.hpp"
 
 #include "database/io/file.hpp"
@@ -68,7 +70,7 @@ namespace interface
     {
         for ( const mega::io::FileInfo& fileInfo : fileInfos )
         {
-            if ( fileInfo.m_filePath == filePath )
+            if ( fileInfo.getFilePath() == filePath )
             {
                 return fileInfo;
             }
@@ -87,9 +89,11 @@ namespace interface
             , m_parserDLL( parserDll )
             , m_fileInfo( fileInfo )
             , m_fileInfos( fileInfos )
+            , m_database( environment, m_fileInfo.getFilePath() )
         {
         }
-        virtual void run( task::Progress& taskProgress )
+
+        void parseInputFile( const mega::Component* pComponent, const boost::filesystem::path& sourceFilePath, std::ostream& osError )
         {
             static boost::shared_ptr< mega::EG_PARSER_INTERFACE > pParserInterface;
             if ( !pParserInterface )
@@ -97,27 +101,79 @@ namespace interface
                 pParserInterface = boost::dll::import_symbol< mega::EG_PARSER_INTERFACE >(
                     m_parserDLL, "g_parserSymbol" );
             }
+            mega::input::Root* pRoot = pParserInterface->parseEGSourceFile( m_database,
+                                                                            m_environment.rootSourceDir(),
+                                                                            sourceFilePath,
+                                                                            pComponent->getIncludeDirectories(),
+                                                                            osError );
 
-            const mega::io::FileInfo& objectAST = findFileInfo( m_environment.objectAST( m_fileInfo.m_filePath ), m_fileInfos );
-            const mega::io::FileInfo& objectBody = findFileInfo( m_environment.objectBody( m_fileInfo.m_filePath ), m_fileInfos );
+            m_rootFiles.insert( std::make_pair( sourceFilePath, pRoot ) );
+        }
+
+        virtual void run( task::Progress& taskProgress )
+        {
+            // const mega::io::FileInfo& objectAST = findFileInfo( m_environment.objectAST( m_fileInfo.getFilePath() ), m_fileInfos );
+            // const mega::io::FileInfo& objectBody = findFileInfo( m_environment.objectBody( m_fileInfo.getFilePath() ), m_fileInfos );
 
             taskProgress.start( "Task_ParseAST",
-                                m_fileInfo.m_filePath,
-                                objectAST.m_filePath );
+                                m_fileInfo.getFilePath(),
+                                m_environment.objectAST( m_fileInfo.getFilePath() ) );
 
             std::ostringstream osError;
 
-            pParserInterface->parseEGSourceFile( m_environment.rootSourceDir(),
-                                                 m_environment.rootBuildDir(),
-                                                 m_fileInfo,
-                                                 objectAST,
-                                                 objectBody,
-                                                 osError );
+            const mega::Component* pComponent = nullptr;
+            {
+                for ( const mega::Component* pIter : m_database.many_cst< mega::Component >() )
+                {
+                    for ( const boost::filesystem::path& sourceFile : pIter->getSourceFiles() )
+                    {
+                        if ( sourceFile == m_fileInfo.getFilePath() )
+                        {
+                            pComponent = pIter;
+                            break;
+                        }
+                    }
+                }
+            }
+            VERIFY_RTE_MSG( pComponent, "Failed to locate component for source file: " << m_fileInfo.getFilePath() );
+
+            // greedy algorithm to parse transitive closure of include files
+
+            parseInputFile( pComponent, m_fileInfo.getFilePath(), osError );
+
+            bool bExhaustedAll = false;
+            while ( !bExhaustedAll )
+            {
+                bExhaustedAll = true;
+
+                for ( mega::input::MegaInclude* pInclude : m_database.many< mega::input::MegaInclude >() )
+                {
+                    FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->getIncludeFilePath() );
+                    if ( iFind == m_rootFiles.end() )
+                    {
+                        parseInputFile( pComponent, pInclude->getIncludeFilePath(), osError );
+                        bExhaustedAll = false;
+                        break;
+                    }
+                }
+            }
+
+            for ( FileRootMap::const_iterator i = m_rootFiles.begin(),
+                                              iEnd = m_rootFiles.end();
+                  i != iEnd;
+                  ++i )
+            {
+                std::ostringstream os;
+                os << "Parsed File: " << i->first.string();
+                taskProgress.msg( os.str() );
+            }
 
             if ( !osError.str().empty() )
             {
                 // Error
             }
+
+            m_database.store();
 
             taskProgress.succeeded();
         }
@@ -125,6 +181,12 @@ namespace interface
         const mega::io::FileInfo&                m_fileInfo;
         const std::vector< mega::io::FileInfo >& m_fileInfos;
         const boost::filesystem::path            m_parserDLL;
+
+        mega::io::Database< mega::io::stage::ObjectParse > m_database;
+
+        using FileRootMap = std::map< boost::filesystem::path, mega::input::Root* >;
+
+        FileRootMap m_rootFiles;
     };
 
     void command( bool bHelp, const std::vector< std::string >& args )
@@ -169,30 +231,24 @@ namespace interface
             const mega::io::Environment::Path projectManifestPath = environment.project_manifest();
             mega::io::Manifest                manifest( projectManifestPath );
 
-            std::vector< mega::io::FileInfo > fileInfos;
-            manifest.collectFileInfos( fileInfos );
-
-            std::cout << "Project Manifest contains: " << fileInfos.size() << " files" << std::endl;
-
             task::Task::PtrVector tasks;
-
-            for ( const mega::io::FileInfo& fileInfo : fileInfos )
+            for ( const mega::io::FileInfo& fileInfo : manifest.getFileInfos() )
             {
                 std::cout << "Manifest file: " << fileInfo << std::endl;
 
-                switch ( fileInfo.m_fileType )
+                switch ( fileInfo.getFileType() )
                 {
                 case mega::io::FileInfo::ObjectSourceFile:
                 {
-                    Task_ParseAST* pTask = new Task_ParseAST( environment, stash, parserDll, fileInfo, fileInfos );
+                    Task_ParseAST* pTask = new Task_ParseAST( environment, stash, parserDll, fileInfo, manifest.getFileInfos() );
                     tasks.push_back( task::Task::Ptr( pTask ) );
                 }
                 break;
+                case mega::io::FileInfo::Component:
                 case mega::io::FileInfo::ObjectAST:
-                    break;
                 case mega::io::FileInfo::ObjectBody:
-                    break;
                 case mega::io::FileInfo::TOTAL_FILE_TYPES:
+                    break;
                 default:
                     THROW_RTE( "Unknown file type" );
                 }

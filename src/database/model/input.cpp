@@ -205,57 +205,89 @@ namespace input
 
     Include::Include( const io::Object& object )
         : Element( object )
-        , m_bIsEGInclude( false )
-        , m_bIsSystemInclude( false )
+    {
+    }
+    Include::Include( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+        : Element( object )
+        , m_strOpaque( strOpaque )
+        , m_path( includeFilePath )
     {
     }
 
     void Include::load( io::Loader& loader )
     {
         HasIdentifier::load( loader );
+        loader.load( m_strOpaque );
         loader.load( m_path );
-        loader.load( m_bIsEGInclude );
-        loader.load( m_bIsSystemInclude );
     }
 
     void Include::store( io::Storer& storer ) const
     {
         HasIdentifier::store( storer );
+        storer.store( m_strOpaque );
         storer.store( m_path );
-        storer.store( m_bIsEGInclude );
-        storer.store( m_bIsSystemInclude );
     }
 
     void Include::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
     {
         if ( m_strIdentifier.empty() )
-            os << strIndent << "include( " << m_path.string() << " );//" << strAnnotation << "\n";
+            os << strIndent << "include( " << m_strOpaque << " );//" << strAnnotation << "\n";
         else
-            os << strIndent << "include " << m_strIdentifier << "( " << m_path.string() << " );//" << strAnnotation << "\n";
+            os << strIndent << "include " << m_strIdentifier << "( " << m_strOpaque << " );//" << strAnnotation << "\n";
     }
 
-    void Include::setIncludeFilePath( const std::string& strIncludeFile )
+    MegaInclude::MegaInclude( const io::Object& object )
+        : Include( object )
     {
-        VERIFY_RTE( !strIncludeFile.empty() );
-        if ( strIncludeFile[ 0 ] == '<' )
-        {
-            m_bIsSystemInclude = true;
-            m_path = strIncludeFile;
-        }
-        else
-        {
-            m_path = strIncludeFile;
-            if ( boost::filesystem::extension( m_path ) == FILE_EXTENSION )
-            {
-                m_path = boost::filesystem::edsCannonicalise(
-                    boost::filesystem::absolute( m_path ) );
-                m_bIsEGInclude = true;
-            }
-            else
-            {
-                m_bIsEGInclude = false;
-            }
-        }
+    }
+    MegaInclude::MegaInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+        : Include( object, strOpaque, includeFilePath )
+    {
+    }
+    void MegaInclude::load( io::Loader& loader )
+    {
+        Include::load( loader );
+    }
+
+    void MegaInclude::store( io::Storer& storer ) const
+    {
+        Include::store( storer );
+    }
+
+    CPPInclude::CPPInclude( const io::Object& object )
+        : Include( object )
+    {
+    }
+    CPPInclude::CPPInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+        : Include( object, strOpaque, includeFilePath )
+    {
+    }
+    void CPPInclude::load( io::Loader& loader )
+    {
+        Include::load( loader );
+    }
+
+    void CPPInclude::store( io::Storer& storer ) const
+    {
+        Include::store( storer );
+    }
+
+    SystemInclude::SystemInclude( const io::Object& object )
+        : Include( object )
+    {
+    }
+    SystemInclude::SystemInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+        : Include( object, strOpaque, includeFilePath )
+    {
+    }
+    void SystemInclude::load( io::Loader& loader )
+    {
+        Include::load( loader );
+    }
+
+    void SystemInclude::store( io::Storer& storer ) const
+    {
+        Include::store( storer );
     }
 
     Using::Using( const io::Object& object )

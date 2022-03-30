@@ -31,19 +31,19 @@ namespace io
         {
         }
 
-        Object::FileID                                  getFileID() const { return m_info.m_fileID; }
-        const boost::filesystem::path&                  getFilePath() const { return m_info.m_filePath; }
-        FileInfo::Type                                  getType() const { return m_info.m_fileType; }
-        const std::optional< boost::filesystem::path >& getObjectSourceFilePath() const { return m_info.m_objectSourceFilePath; }
+        FileInfo::Type                                  getType() const { return m_info.getFileType(); }
+        Object::FileID                                  getFileID() const { return m_info.getFileID(); }
+        const boost::filesystem::path&                  getFilePath() const { return m_info.getFilePath(); }
+        const std::optional< boost::filesystem::path >& getObjectSourceFilePath() const { return m_info.getObjectSourceFilePath(); }
 
-        void preload();
-        void load();
+        void preload( const Manifest& manifest );
+        void load( const Manifest& manifest );
         void store( const Manifest& manifest ) const;
 
         template < typename T, typename... Args >
         inline T* construct( Args... args )
         {
-            T* pNewObject = new T( io::Object( T::Type, m_info.m_fileID, m_objects.size() ), args... );
+            T* pNewObject = new T( io::Object( T::Type, m_info.getFileID(), m_objects.size() ), args... );
             m_objects.push_back( pNewObject );
             return pNewObject;
         }

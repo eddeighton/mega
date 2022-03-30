@@ -1,5 +1,5 @@
 
-#include "database/io/source_listing.hpp"
+#include "database/io/component_info.hpp"
 
 #include <gtest/gtest.h>
 
@@ -7,45 +7,43 @@
 #include <sstream>
 
 using namespace mega::io;
-
+/*
 TEST( MegaIO, SourceListing_Empty )
 {
-    SourceListing::PathArray paths;
-    SourceListing sourceListingFrom( paths, false );
-    SourceListing sourceListingTo( SourceListing::PathArray{}, false );
+    ComponentInfo::PathArray paths;
+    ComponentInfo componentInfoFrom( paths, ComponentInfo::PathArray{} );
+    ComponentInfo componentInfoTo( ComponentInfo::PathArray{}, ComponentInfo::PathArray{} );
 
     std::stringstream ss;
-    ss << sourceListingFrom;
-    ss >> sourceListingTo;
+    ss << componentInfoFrom;
+    ss >> componentInfoTo;
 
-    ASSERT_EQ( sourceListingFrom.isComponent(), sourceListingTo.isComponent() );
-    ASSERT_EQ( sourceListingFrom.getSourceFiles(), sourceListingTo.getSourceFiles() );
+    ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
 }
 
 TEST( MegaIO, SourceListing_Single )
 {
-    SourceListing::PathArray paths = { "/a/b/c/test.txt" };
-    SourceListing sourceListingFrom( paths, true );
-    SourceListing sourceListingTo( SourceListing::PathArray{}, false );
+    ComponentInfo::PathArray paths = { "/a/b/c/test.txt" };
+    ComponentInfo componentInfoFrom( paths, ComponentInfo::PathArray{} );
+    ComponentInfo componentInfoTo( ComponentInfo::PathArray{}, ComponentInfo::PathArray{} );
 
     std::stringstream ss;
-    ss << sourceListingFrom;
-    ss >> sourceListingTo;
+    ss << componentInfoFrom;
+    ss >> componentInfoTo;
 
-    ASSERT_EQ( sourceListingFrom.isComponent(), sourceListingTo.isComponent() );
-    ASSERT_EQ( sourceListingFrom.getSourceFiles(), sourceListingTo.getSourceFiles() );
+    ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
 }
 
 TEST( MegaIO, SourceListing_Multi )
 {
-    SourceListing::PathArray paths = { "/a/b/c/test.txt", "/d/f/g/test.txt", "/c/foobar.txt" };
-    SourceListing sourceListingFrom( paths, true );
-    SourceListing sourceListingTo( SourceListing::PathArray{}, false );
+    ComponentInfo::PathArray paths = { "/a/b/c/test.txt", "/d/f/g/test.txt", "/c/foobar.txt" };
+    ComponentInfo componentInfoFrom( paths, ComponentInfo::PathArray{} );
+    ComponentInfo componentInfoTo( ComponentInfo::PathArray{}, ComponentInfo::PathArray{} );
 
     std::stringstream ss;
-    ss << sourceListingFrom;
-    ss >> sourceListingTo;
+    ss << componentInfoFrom;
+    ss >> componentInfoTo;
 
-    ASSERT_EQ( sourceListingFrom.isComponent(), sourceListingTo.isComponent() );
-    ASSERT_EQ( sourceListingFrom.getSourceFiles(), sourceListingTo.getSourceFiles() );
+    ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
 }
+*/

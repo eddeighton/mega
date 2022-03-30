@@ -5,10 +5,37 @@ namespace mega
 namespace io
 {
 
+    FileInfo::FileInfo()
+        : m_fileType( TOTAL_FILE_TYPES )
+        , m_fileID( Object::NO_FILE )
+    {
+    }
+
+    FileInfo::FileInfo( Type                     fileType,
+                        Object::FileID           fileID,
+                        const boost::filesystem::path& filePath )
+        : m_fileType( fileType )
+        , m_fileID( fileID )
+        , m_filePath( filePath )
+    {
+    }
+
+    FileInfo::FileInfo( Type                           fileType,
+                        Object::FileID                 fileID,
+                        const boost::filesystem::path&       filePath,
+                        const boost::filesystem::path& objectSourceFilePath )
+        : m_fileType( fileType )
+        , m_fileID( fileID )
+        , m_filePath( filePath )
+        , m_objectSourceFilePath( objectSourceFilePath )
+
+    {
+    }
+
     // clang-format off
     static const char* g_fileTypes[] = 
     {
-        #define FILE_TYPE(filetype) #filetype,
+        #define FILE_TYPE( filetype, stage ) #filetype,
         #include "database/io/file_types.hxx"
         #undef FILE_TYPE
     };

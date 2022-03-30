@@ -89,12 +89,16 @@ static const char* g_VisibilityTypeStrings[ TOTAL_VISIBILITY_TYPES ] = {
 
 enum ObjectType : std::size_t
 {
+    eComponent,
+    
     eInputOpaque,
     eInputDimension,
-    eInputInclude,
     eInputUsing,
     eInputExport,
     eInputVisibility,
+    eInputMegaInclude,
+    eInputCPPInclude,
+    eInputSystemInclude,
 
     eInputContext,
     eInputRoot,

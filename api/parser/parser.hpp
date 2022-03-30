@@ -31,16 +31,25 @@ namespace mega
 namespace io
 {
     class FileInfo;
+    namespace stage
+    {
+        class ObjectParse;
+    }
+    template < typename T >
+    class Database;
+} // namespace io
+namespace input
+{
+    class Root;
 }
 
 struct EGDB_EXPORT EG_PARSER_INTERFACE
 {
-    virtual void parseEGSourceFile( const boost::filesystem::path& sourceDir,
-                                    const boost::filesystem::path& buildDir,
-                                    const mega::io::FileInfo&      sourceFile,
-                                    const mega::io::FileInfo&      objectASTFile,
-                                    const mega::io::FileInfo&      objectBodyFile,
-                                    std::ostream&                  osError )
+    virtual mega::input::Root* parseEGSourceFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
+                                                  const boost::filesystem::path&                      sourceDir,
+                                                  const boost::filesystem::path&                      sourceFile,
+                                                  const std::vector< boost::filesystem::path >&       includeDirectories,
+                                                  std::ostream&                                       osError )
         = 0;
 };
 } // namespace mega

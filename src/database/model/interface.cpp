@@ -98,7 +98,9 @@ namespace interface
                 }
                 break;
             case eInputDimension:
-            case eInputInclude:
+            case eInputMegaInclude:
+            case eInputCPPInclude:
+            case eInputSystemInclude:
             case eInputUsing:
             case eInputExport:
             {
@@ -139,7 +141,9 @@ namespace interface
             {
             case eInputDimension:
                 return dynamic_cast< input::Dimension* >( m_pElement )->getIdentifier();
-            case eInputInclude:
+            case eInputMegaInclude:
+            case eInputCPPInclude:
+            case eInputSystemInclude:
                 return dynamic_cast< input::Include* >( m_pElement )->getIdentifier();
             case eInputUsing:
                 return dynamic_cast< input::Using* >( m_pElement )->getIdentifier();
@@ -745,10 +749,12 @@ namespace interface
             {
             case eInputOpaque:
             case eInputDimension:
-            case eInputInclude:
             case eInputUsing:
             case eInputExport:
             case eInputVisibility:
+            case eInputMegaInclude:
+            case eInputCPPInclude:
+            case eInputSystemInclude:
                 break;
             case eInputContext:
             case eInputRoot:

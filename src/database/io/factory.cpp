@@ -18,6 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "database/model/objects.hpp"
+#include "database/model/component.hpp"
 #include "database/model/input.hpp"
 #include "database/model/interface.hpp"
 #include "database/model/allocator.hpp"
@@ -40,14 +41,15 @@ namespace io
 
         switch ( object.getType() )
         {
+        case eComponent:
+            pObject = new mega::Component( object );
+            break;
+
         case eInputOpaque:
             pObject = new input::Opaque( object );
             break;
         case eInputDimension:
             pObject = new input::Dimension( object );
-            break;
-        case eInputInclude:
-            pObject = new input::Include( object );
             break;
         case eInputUsing:
             pObject = new input::Using( object );
@@ -63,6 +65,16 @@ namespace io
             break;
         case eInputRoot:
             pObject = new input::Root( object );
+            break;
+            
+        case eInputMegaInclude:
+            pObject = new input::MegaInclude( object );
+            break;
+        case eInputCPPInclude:
+            pObject = new input::CPPInclude( object );
+            break;
+        case eInputSystemInclude:
+            pObject = new input::MegaInclude( object );
             break;
         
         case eInputBody:

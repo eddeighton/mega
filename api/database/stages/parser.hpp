@@ -40,23 +40,6 @@ class FileManager;
 
 namespace mega
 {
-class Identifiers;
-class Manifest;
-class Component;
-
-namespace interface
-{
-    class Element;
-    class Root;
-} // namespace interface
-
-namespace input
-{
-    class Element;
-    class Root;
-} // namespace input
-
-// class EG_PARSER_CALLBACK;
 
 namespace Stages
 {

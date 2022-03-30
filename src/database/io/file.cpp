@@ -9,9 +9,9 @@ namespace mega
 namespace io
 {
 
-    void File::preload()
+    void File::preload( const Manifest& manifest )
     {
-        m_pLoader = std::make_unique< Loader >( m_info.m_filePath );
+        m_pLoader = std::make_unique< Loader >( m_info.getFilePath() );
 
         {
             std::size_t szNumObjects = 0U;
@@ -38,7 +38,7 @@ namespace io
         }
     }
 
-    void File::load()
+    void File::load( const Manifest& manifest )
     {
         VERIFY_RTE( m_pLoader );
         for ( Object* pObject : m_objects )
@@ -52,7 +52,7 @@ namespace io
     {
         VERIFY_RTE( !m_pLoader );
 
-        Storer storer( m_info.m_filePath, manifest );
+        Storer storer( m_info.getFilePath(), manifest );
 
         for ( Object* pObject : m_objects )
         {

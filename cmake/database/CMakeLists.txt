@@ -7,6 +7,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get handy function to preprocess files for the xmacros stuff
+include( ../preprocess_cpp.cmake )
+
 #set( MEGA_LIBRARY
 #	${MEGA_API_DIR}/mega/allocator.hpp
 #	${MEGA_API_DIR}/mega/backtrace.hpp
@@ -34,6 +37,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #	)
 	
 set( MEGA_DATABASE_MODEL
+    ${MEGA_API_DIR}/database/model/component.hpp
     ${MEGA_API_DIR}/database/model/eg.hpp
     ${MEGA_API_DIR}/database/model/objects.hpp
     ${MEGA_API_DIR}/database/model/input.hpp
@@ -60,35 +64,34 @@ set( MEGA_DATABASE_SESSIONS
 	
 set( MEGA_DATABASE_IO
     ${MEGA_API_DIR}/database/io/file_info.hpp
+    ${MEGA_API_DIR}/database/io/component_info.hpp
     ${MEGA_API_DIR}/database/io/environment.hpp
     ${MEGA_API_DIR}/database/io/manifest.hpp
     ${MEGA_API_DIR}/database/io/stages.hpp
     ${MEGA_API_DIR}/database/io/file_system.hpp
     ${MEGA_API_DIR}/database/io/archive.hpp
-    ${MEGA_API_DIR}/database/io/component.hpp
     ${MEGA_API_DIR}/database/io/database.hpp
     ${MEGA_API_DIR}/database/io/factory.hpp
     ${MEGA_API_DIR}/database/io/file.hpp
     ${MEGA_API_DIR}/database/io/generics.hpp
     ${MEGA_API_DIR}/database/io/loader.hpp
     ${MEGA_API_DIR}/database/io/object.hpp
-    ${MEGA_API_DIR}/database/io/source_listing.hpp
     ${MEGA_API_DIR}/database/io/storer.hpp
 	)
 	
 set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/io/file_info.cpp
+    ${MEGA_SRC_DIR}/database/io/component_info.cpp
     ${MEGA_SRC_DIR}/database/io/environment.cpp
     ${MEGA_SRC_DIR}/database/io/manifest.cpp
-    ${MEGA_SRC_DIR}/database/io/component.cpp
     ${MEGA_SRC_DIR}/database/io/database.cpp
     ${MEGA_SRC_DIR}/database/io/factory.cpp
     ${MEGA_SRC_DIR}/database/io/file.cpp
     ${MEGA_SRC_DIR}/database/io/loader.cpp
     ${MEGA_SRC_DIR}/database/io/object.cpp
-    ${MEGA_SRC_DIR}/database/io/source_listing.cpp
     ${MEGA_SRC_DIR}/database/io/storer.cpp
     
+    ${MEGA_SRC_DIR}/database/model/component.cpp
     ${MEGA_SRC_DIR}/database/model/eg.cpp
     ${MEGA_SRC_DIR}/database/model/input.cpp
     ${MEGA_SRC_DIR}/database/model/interface.cpp
@@ -124,7 +127,7 @@ set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 link_boost( database filesystem )
 link_boost( database iostreams )
 link_boost( database serialization )
-link_common( database )
+link_common( database ) 
 
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
 install( FILES ${MEGA_DATABASE_IO} DESTINATION include/database/io )
@@ -132,3 +135,9 @@ install( FILES ${MEGA_DATABASE_MODEL} DESTINATION include/database/model )
 install( FILES ${MEGA_DATABASE_STAGES} DESTINATION include/database/stages )
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )
+
+
+add_c_preprocessor_command( OUTPUT stages.hpp.i SOURCE ${MEGA_API_DIR}/database/io/stages.hpp TARGET database )
+add_custom_target( PreprocessXMacros
+	SOURCES stages.hpp.i
+	COMMENT "Proprocessing stages.hpp")

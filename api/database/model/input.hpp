@@ -45,10 +45,10 @@ namespace Stages
 namespace input
 {
 
-    class Element : public io::FileObject< io::ObjectAST >
+    class Element : public io::FileObject< io::file::ObjectAST >
     {
         friend class io::File;
-        using Base = io::FileObject< io::ObjectAST >;
+        using Base = io::FileObject< io::file::ObjectAST >;
 
     protected:
         Element( const io::Object& object );
@@ -73,8 +73,6 @@ namespace input
         virtual void       load( io::Loader& loader );
         virtual void       store( io::Storer& storer ) const;
         void               print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
-
-        // void modify( const std::string& strNew ) { m_str = strNew; }
 
     public:
         std::string m_str;
@@ -244,26 +242,68 @@ namespace input
         friend class io::Factory;
         friend class io::File;
 
-    public:
-        static const ObjectType Type = eInputInclude;
-
     protected:
         Include( const io::Object& object );
+        Include( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
     public:
         const boost::filesystem::path& getIncludeFilePath() const { return m_path; }
-        bool                           isEGInclude() const { return m_bIsEGInclude; }
-        bool                           isSystemInclude() const { return m_bIsSystemInclude; }
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
         void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
-        void         setIncludeFilePath( const std::string& strIncludeFile );
 
     public:
+        std::string             m_strOpaque;
         boost::filesystem::path m_path;
-        bool                    m_bIsEGInclude;
-        bool                    m_bIsSystemInclude;
+    };
+
+    class MegaInclude : public Include
+    {
+        friend class io::Factory;
+        friend class io::File;
+
+    public:
+        static const ObjectType Type = eInputMegaInclude;
+
+    protected:
+        MegaInclude( const io::Object& object );
+        MegaInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+
+        virtual void load( io::Loader& loader );
+        virtual void store( io::Storer& storer ) const;
+    };
+
+    class CPPInclude : public Include
+    {
+        friend class io::Factory;
+        friend class io::File;
+
+    public:
+        static const ObjectType Type = eInputCPPInclude;
+
+    protected:
+        CPPInclude( const io::Object& object );
+        CPPInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+
+        virtual void load( io::Loader& loader );
+        virtual void store( io::Storer& storer ) const;
+    };
+
+    class SystemInclude : public Include
+    {
+        friend class io::Factory;
+        friend class io::File;
+
+    public:
+        static const ObjectType Type = eInputSystemInclude;
+
+    protected:
+        SystemInclude( const io::Object& object );
+        SystemInclude( const io::Object& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+
+        virtual void load( io::Loader& loader );
+        virtual void store( io::Storer& storer ) const;
     };
 
     class Using : public Element, public HasIdentifier
@@ -395,11 +435,11 @@ namespace input
         RootType                                 m_rootType;
     };
 
-    class Body : public io::FileObject< io::ObjectBody >
+    class Body : public io::FileObject< io::file::ObjectBody >
     {
         friend class io::Factory;
         friend class io::File;
-        using Base = io::FileObject< io::ObjectBody >;
+        using Base = io::FileObject< io::file::ObjectBody >;
 
     protected:
         Body( const io::Object& object );

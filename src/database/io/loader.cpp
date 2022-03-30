@@ -29,7 +29,7 @@ namespace io
         : m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
         , m_archive( *m_pFileStream )
     {
-        m_manifest.load(*m_pFileStream);
+        //m_manifest.load(m_archive);
     }
     
 

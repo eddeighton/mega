@@ -5,6 +5,7 @@
 #include "generics.hpp"
 #include "environment.hpp"
 #include "file_system.hpp"
+#include "stages.hpp"
 
 #include <memory>
 #include <type_traits>
@@ -22,45 +23,19 @@ namespace io
         Database( const Environment& environment, std::optional< boost::filesystem::path > object = std::optional< boost::filesystem::path >() )
             : m_fileSystem( environment, object )
         {
-            m_readableFiles = m_fileSystem.getReadableFiles< Stage >();
-            m_writableFiles = m_fileSystem.getWritableFiles< Stage >();
+            m_fileSystem.load< Stage >();
         }
 
         void store() const
         {
-            for ( FileSystem::FileMap::const_iterator i = m_writableFiles.begin(),
-                                                      iEnd = m_writableFiles.end();
-                  i != iEnd;
-                  ++i )
-            {
-                i->second->store( m_fileSystem.getManifest() );
-            }
+            m_fileSystem.store< Stage >();
         }
-
-        File::PtrCst getReadableFile( Object::FileID fileID ) const
-        {
-            File::PtrCst                     pFile;
-            FileSystem::FileMapCst::const_iterator iFind = m_readableFiles.find( fileID );
-            if ( iFind != m_readableFiles.end() )
-                pFile = iFind->second;
-            return pFile;
-        }
-
-        File::Ptr getWritableFile( Object::FileID fileID ) const
-        {
-            File::Ptr                     pFile;
-            FileSystem::FileMap::const_iterator iFind = m_writableFiles.find( fileID );
-            if ( iFind != m_writableFiles.end() )
-                pFile = iFind->second;
-            return pFile;
-        }
-
+        
         template < typename T >
         File::PtrCst getReadableFile() const
         {
             static_assert( std::is_class< typename T::FileType >::value, "Type missing FileType" );
-            const Object::FileID fileID = m_fileSystem.getFileID< typename T::FileType >();
-            File::PtrCst   pFile = getReadableFile( fileID );
+            File::PtrCst   pFile = m_fileSystem.getReadableFile< typename T::FileType >();
             VERIFY_RTE_MSG( pFile,
                             "Failed to get compilation file for " << typeid( T ).name() << " in stage: " << typeid( Stage ).name() );
             return pFile;
@@ -70,8 +45,7 @@ namespace io
         File::Ptr getWritableFile() const
         {
             static_assert( std::is_class< typename T::FileType >::value, "Type missing FileType" );
-            const Object::FileID fileID = m_fileSystem.getFileID< typename T::FileType >();
-            File::Ptr      pFile = getWritableFile( fileID );
+            File::Ptr      pFile = m_fileSystem.getWritableFile< typename T::FileType >();
             VERIFY_RTE_MSG( pFile,
                             "Failed to get compilation file for " << typeid( T ).name() << " in stage: " << typeid( Stage ).name() );
             return pFile;
@@ -142,8 +116,6 @@ namespace io
     private:
         FileSystem m_fileSystem;
 
-        FileSystem::FileMapCst m_readableFiles;
-        FileSystem::FileMap    m_writableFiles;
     };
 
 } // namespace io

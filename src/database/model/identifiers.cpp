@@ -57,7 +57,9 @@ void Identifiers::populate( const io::Object::Array& objects )
 
         case eInputOpaque:
         case eInputDimension:
-        case eInputInclude:
+        case eInputMegaInclude:
+        case eInputCPPInclude:
+        case eInputSystemInclude:
         case eInputUsing:
         case eInputExport:
         case eInputVisibility:

@@ -1,126 +1,82 @@
 #include "database/io/manifest.hpp"
-#include "database/io/component.hpp"
 #include "database/io/environment.hpp"
+#include "database/io/file_info.hpp"
+#include "database/io/component_info.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <fstream>
 
 namespace mega
 {
 namespace io
 {
 
-    void Manifest::removeManifestAndSourceListingFilesRecurse( const Environment&             environment,
-                                                               const boost::filesystem::path& iteratorDir )
-    {
-        {
-            const boost::filesystem::path manifestPath = environment.project_manifest();
-            if ( boost::filesystem::exists( manifestPath ) )
-            {
-                boost::filesystem::remove( manifestPath );
-            }
-        }
-
-        {
-            const boost::filesystem::path sourceListingPath = environment.source_list( iteratorDir );
-            if ( boost::filesystem::exists( sourceListingPath ) )
-            {
-                boost::filesystem::remove( sourceListingPath );
-            }
-        }
-
-        for ( boost::filesystem::directory_iterator iter( iteratorDir );
-              iter != boost::filesystem::directory_iterator();
-              ++iter )
-        {
-            const boost::filesystem::path& filePath = *iter;
-            if ( boost::filesystem::is_directory( filePath ) )
-            {
-                removeManifestAndSourceListingFilesRecurse( environment, filePath );
-            }
-        }
-    }
-
-    void Manifest::constructRecurse( Component::Ptr                 pComponent,
-                                     const Environment&             environment,
-                                     const boost::filesystem::path& buildDirIter )
-    {
-        const boost::filesystem::path sourceListingPath = environment.source_list( buildDirIter );
-        if ( boost::filesystem::exists( sourceListingPath ) )
-        {
-            const io::SourceListing sourceListing = io::SourceListing::load( sourceListingPath );
-
-            if ( sourceListing.isComponent() )
-            {
-                Component::Ptr pParentComponent = pComponent;
-                pComponent = std::make_shared< Component >();
-                if ( pParentComponent )
-                    pParentComponent->addComponent( pComponent );
-                else
-                    m_pComponent = pComponent;
-            }
-
-            std::vector< FileInfo > fileInfos;
-            for ( const boost::filesystem::path& sourceFilePath : sourceListing.getSourceFiles() )
-            {
-                FileInfo fileInfo;
-                fileInfo.m_fileID = Object::NO_FILE;
-                fileInfo.m_fileType = FileInfo::ObjectSourceFile;
-                fileInfo.m_filePath = sourceFilePath;
-                fileInfo.m_objectSourceFilePath = sourceFilePath;
-                fileInfos.push_back( fileInfo );
-            }
-
-            if ( pComponent )
-            {
-                pComponent->addSourceFileInfos( fileInfos );
-            }
-        }
-
-        for ( boost::filesystem::directory_iterator iter( buildDirIter );
-              iter != boost::filesystem::directory_iterator();
-              ++iter )
-        {
-            const boost::filesystem::path& buildDirIterNested = *iter;
-            if ( boost::filesystem::is_directory( buildDirIterNested ) )
-            {
-                constructRecurse( pComponent, environment, buildDirIterNested );
-            }
-        }
-    }
-
     Manifest::Manifest()
     {
-        m_pComponent = std::make_shared< Component >();
     }
 
     Manifest::Manifest( const boost::filesystem::path& filepath )
     {
-        m_pComponent = std::make_shared< Component >();
         load( filepath );
     }
-    Manifest::Manifest( const Environment& environment )
+    Manifest::Manifest( const Environment& environment, const std::vector< boost::filesystem::path >& componentInfos )
     {
-        constructRecurse( Component::Ptr(), environment, environment.rootBuildDir() );
-        VERIFY_RTE_MSG( m_pComponent, "Could not find component in source tree" );
+        Object::FileID fileIDCounter = 0;
 
-        m_pComponent->addCompilationFiles( environment );
-        Object::FileID fileID = 0;
-        m_pComponent->labelFiles( fileID );
-    }
+        // generate the component compilation file
+        {
+            const FileInfo fileInfo(
+                FileInfo::Component,
+                fileIDCounter++,
+                environment.component() );
+            m_fileInfos.push_back( fileInfo );
+        }
 
-    void Manifest::collectFileInfos( std::vector< FileInfo >& fileInfos ) const
-    {
-        VERIFY_RTE( m_pComponent );
-        m_pComponent->collectFileInfos( fileInfos );
-    }
+        for ( const boost::filesystem::path& componentInfoPath : componentInfos )
+        {
+            ComponentInfo componentInfo;
+            {
+                VERIFY_RTE_MSG( boost::filesystem::exists( componentInfoPath ),
+                                "Failed to locate file: " << componentInfoPath.string() );
+                std::ifstream inputFileStream( componentInfoPath.native().c_str(), std::ios::in );
+                if ( !inputFileStream.good() )
+                {
+                    THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
+                }
+                inputFileStream >> componentInfo;
+            }
 
-    void Manifest::load( std::istream& is )
-    {
-        VERIFY_RTE( m_pComponent );
-        m_pComponent->load( is );
+            for ( const boost::filesystem::path& sourceFilePath : componentInfo.getSourceFiles() )
+            {
+                const FileInfo fileInfo(
+                    FileInfo::ObjectSourceFile,
+                    fileIDCounter++,
+                    sourceFilePath,
+                    sourceFilePath );
+                m_fileInfos.push_back( fileInfo );
+
+                {
+                    FileInfo compilationFile(
+                        FileInfo::ObjectAST,
+                        fileIDCounter++,
+                        environment.objectAST( fileInfo.getFilePath() ),
+                        fileInfo.getFilePath() );
+                    m_fileInfos.push_back( compilationFile );
+                }
+
+                {
+                    FileInfo compilationFile(
+                        FileInfo::ObjectBody,
+                        fileIDCounter++,
+                        environment.objectBody( fileInfo.getFilePath() ),
+                        fileInfo.getFilePath() );
+                    m_fileInfos.push_back( compilationFile );
+                }
+            }
+        }
     }
 
     void Manifest::load( const boost::filesystem::path& filepath )
@@ -132,13 +88,7 @@ namespace io
         {
             THROW_RTE( "Failed to open file: " << filepath.string() );
         }
-        load( inputFileStream );
-    }
-
-    void Manifest::save( std::ostream& os ) const
-    {
-        VERIFY_RTE( m_pComponent );
-        m_pComponent->save( os );
+        inputFileStream >> *this;
     }
 
     void Manifest::save( const boost::filesystem::path& filepath ) const
@@ -148,14 +98,34 @@ namespace io
         {
             THROW_RTE( "Failed to write to file: " << filepath.string() );
         }
-        save( outputFileStream );
+        outputFileStream << *this;
     }
 
-    void Manifest::removeManifestAndSourceListingFiles( const boost::filesystem::path& sourceDirectory,
-                                                        const boost::filesystem::path& buildDirectory )
+    std::istream& operator>>( std::istream& is, Manifest& manifest )
     {
-        const Environment environment( sourceDirectory, buildDirectory );
-        removeManifestAndSourceListingFilesRecurse( environment, buildDirectory );
+        std::size_t szTotalFileInfos = 0U;
+        is >> szTotalFileInfos;
+        for ( std::size_t sz = 0U; sz != szTotalFileInfos; ++sz )
+        {
+            FileInfo fileInfo;
+            is >> fileInfo;
+            manifest.m_fileInfos.push_back( fileInfo );
+        }
+        return is;
     }
+
+    std::ostream& operator<<( std::ostream& os, const Manifest& manifest )
+    {
+        os << manifest.m_fileInfos.size();
+        for ( Manifest::FileInfoVector::const_iterator i = manifest.m_fileInfos.begin(),
+                                                       iEnd = manifest.m_fileInfos.end();
+              i != iEnd;
+              ++i )
+        {
+            os << *i;
+        }
+        return os;
+    }
+
 } // namespace io
 } // namespace mega

@@ -17,19 +17,18 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/io/source_listing.hpp"
+#include "command_utils.hpp"
+
+#include "database/io/component_info.hpp"
 #include "database/io/environment.hpp"
 
 #include "common/scheduler.hpp"
-#include "common/file.hpp"
 #include "common/assert_verify.hpp"
-#include "common/terminal.hpp"
 #include "common/stash.hpp"
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/tokenizer.hpp>
 
 #include <string>
 #include <vector>
@@ -54,31 +53,38 @@ namespace list
         task::Stash&                 m_stash;
     };
 
-    class Task_SourceListingToManifest : public BaseTask
+    class Task_ComponentInfoToManifest : public BaseTask
     {
     public:
-        Task_SourceListingToManifest( const mega::io::Environment&                  environment,
+        Task_ComponentInfoToManifest( const mega::io::Environment&                  environment,
                                       task::Stash&                                  stash,
+                                      const std::string&                            strComponentName,
                                       const boost::filesystem::path&                srcDir,
                                       const boost::filesystem::path&                buildDir,
                                       const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
-                                      bool                                          bIsComponent )
+                                      const std::vector< boost::filesystem::path >& includeDirectories )
             : BaseTask( environment, stash, {} )
             , m_srcDir( srcDir )
             , m_buildDir( buildDir )
-            , m_sourceListing( inputMegaSourceFiles, bIsComponent )
+            , m_componentInfo( strComponentName, srcDir, inputMegaSourceFiles, includeDirectories )
         {
         }
+
         virtual void run( task::Progress& taskProgress )
         {
             // inputMegaSourceFiles
             const mega::io::Environment::Path sourceListPath = m_environment.source_list( m_buildDir );
 
-            taskProgress.start( "Task_SourceListingToManifest",
+            taskProgress.start( "Task_ComponentInfoToManifest",
                                 m_srcDir,
                                 sourceListPath );
 
-            m_sourceListing.save( sourceListPath );
+            std::ofstream outputFileStream( sourceListPath.native().c_str(), std::ios_base::trunc | std::ios_base::out );
+            if ( !outputFileStream.good() )
+            {
+                THROW_RTE( "Failed to write to file: " << sourceListPath.string() );
+            }
+            outputFileStream << m_componentInfo;
 
             taskProgress.succeeded();
         }
@@ -86,32 +92,33 @@ namespace list
     private:
         const boost::filesystem::path m_srcDir;
         const boost::filesystem::path m_buildDir;
-        mega::io::SourceListing       m_sourceListing;
+        mega::io::ComponentInfo       m_componentInfo;
     };
 
     void command( bool bHelp, const std::vector< std::string >& args )
     {
-        boost::filesystem::path rootSourceDir, rootBuildDir, sourceDir, buildDir;
-        bool                    bIsComponent;
-        std::string             objectSourceFiles;
+        boost::filesystem::path    rootSourceDir, rootBuildDir, sourceDir, buildDir;
+        std::string                strComponentName, strIncludeDirectories;
+        std::vector< std::string > objectSourceFileNames;
 
         namespace po = boost::program_options;
         po::options_description commandOptions( " List input mega source files" );
         {
             // clang-format off
             commandOptions.add_options()
-                ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),     "Root source directory" )
-                ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),      "Root build directory" )
-                ( "src_dir",        po::value< boost::filesystem::path >( &sourceDir ),         "Source directory" )
-                ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),          "Build Directory" )
-                ( "is_component",   po::value< bool >( &bIsComponent ),                         "Is this the start of a mega component" )
-                ( "names",          po::value< std::string >( &objectSourceFiles ),             "Mega source file names ( semicolon delimited )" )
+                ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),             "Root source directory" )
+                ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),              "Root build directory" )
+                ( "src_dir",        po::value< boost::filesystem::path >( &sourceDir ),                 "Source directory" )
+                ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),                  "Build Directory" )
+                ( "name",           po::value< std::string >( &strComponentName ),                      "Component name" )       
+                ( "include_dirs",   po::value< std::string >( &strIncludeDirectories ),                 "Include directories ( semicolon delimited )" )
+                ( "src",            po::value< std::vector< std::string > >( &objectSourceFileNames ),  "Mega source file names" )
                 ;
             // clang-format on
         }
 
         po::positional_options_description p;
-        p.add( "dir", -1 );
+        p.add( "src", -1 );
 
         po::variables_map vm;
         po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
@@ -124,25 +131,8 @@ namespace list
         else
         {
             // tokenize semi colon delimited names into absolute mega source file paths
-            std::vector< boost::filesystem::path > inputSourceFiles;
-            {
-                std::vector< std::string > megaFileNames;
-                {
-                    using Tokeniser = boost::tokenizer< boost::char_separator< char > >;
-                    boost::char_separator< char > sep( ";" );
-                    Tokeniser                     tokens( objectSourceFiles, sep );
-                    for ( Tokeniser::iterator i = tokens.begin(); i != tokens.end(); ++i )
-                        megaFileNames.push_back( *i );
-                }
-                for ( const std::string& strFileName : megaFileNames )
-                {
-                    const boost::filesystem::path sourceFilePath = boost::filesystem::edsCannonicalise(
-                        boost::filesystem::absolute( sourceDir / strFileName ) );
-                    VERIFY_RTE_MSG( boost::filesystem::exists( sourceFilePath ),
-                                    common::COLOUR_RED_BEGIN << "ERROR: Failed to locate: " << sourceFilePath.string() << common::COLOUR_END );
-                    inputSourceFiles.push_back( sourceFilePath );
-                }
-            }
+            const std::vector< boost::filesystem::path > inputSourceFiles = pathListToFiles( sourceDir, objectSourceFileNames );
+            const std::vector< boost::filesystem::path > includeDirectories = pathListToFolders( parsePathList( strIncludeDirectories ) );
 
             mega::io::Environment environment( rootSourceDir, rootBuildDir );
 
@@ -150,13 +140,14 @@ namespace list
 
             task::Task::PtrVector tasks;
 
-            Task_SourceListingToManifest* pTask = new Task_SourceListingToManifest(
+            Task_ComponentInfoToManifest* pTask = new Task_ComponentInfoToManifest(
                 environment,
                 stash,
+                strComponentName,
                 sourceDir,
                 buildDir,
                 inputSourceFiles,
-                bIsComponent );
+                includeDirectories );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

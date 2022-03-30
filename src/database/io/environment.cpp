@@ -1,7 +1,7 @@
 
 #include "database/io/environment.hpp"
 
-#include "database/io/source_listing.hpp"
+#include "database/io/component_info.hpp"
 #include "database/io/manifest.hpp"
 
 #include "common/file.hpp"
@@ -50,6 +50,13 @@ namespace io
     Path Environment::project_manifest() const
     {
         return m_rootBuildDir / "project_manifest.txt";
+    }
+
+    Path Environment::component() const
+    {
+        std::ostringstream os;
+        os << m_rootBuildDir << "component" << DB_EXTENSION;
+        return os.str();
     }
 
     Path Environment::source_list( const Path& buildDir ) const

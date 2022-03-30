@@ -1,15 +1,17 @@
 
 #include "parser/parser.hpp"
 
-#include "database/io/environment.hpp"
 #include "database/model/eg.hpp"
 #include "database/model/input.hpp"
-#include "database/model/interface.hpp"
-#include "database/model/identifiers.hpp"
 
+#include "database/io/environment.hpp"
 #include "database/io/stages.hpp"
 #include "database/io/file.hpp"
 #include "database/io/database.hpp"
+
+#include "common/file.hpp"
+
+#include "clang/Basic/LLVM.h"
 
 #include <boost/config.hpp> // for BOOST_SYMBOL_EXPORT
 #include <boost/algorithm/string.hpp>
@@ -88,9 +90,7 @@ public:
 
     Pimpl( const boost::filesystem::path& currentPath, std::ostream& os )
         : m_pFileManager( std::make_shared< clang::FileManager >( clang::FileSystemOptions{ currentPath.string() } ) )
-        ,
-
-        m_pDiagnosticOptions( new clang::DiagnosticOptions() )
+        , m_pDiagnosticOptions( new clang::DiagnosticOptions() )
         , m_pDiagnosticIDs( new clang::DiagnosticIDs() )
         , m_pDiagnosticsEngine(
               new clang::DiagnosticsEngine(
@@ -1027,13 +1027,14 @@ public:
         parse_semicolon();
     }
 
-    void parse_include( Database& session, input::Include* pInclude )
+    void parse_include( Database& session, input::Context* pContext )
     {
         // include name( file );
         // optional identifier
+        std::string strIdentifier;
         if ( Tok.is( clang::tok::identifier ) )
         {
-            parse_identifier( pInclude->m_strIdentifier );
+            parse_identifier( strIdentifier );
         }
 
         BalancedDelimiterTracker T( *this, clang::tok::l_paren );
@@ -1054,7 +1055,13 @@ public:
         strFile.erase( std::remove( strFile.begin(), strFile.end(), '\"' ), strFile.end() );
         if ( !strFile.empty() )
         {
-            const bool                    bIsAngled = strFile[ 0 ] == '<';
+            const bool bIsAngled = strFile[ 0 ] == '<';
+            if ( bIsAngled )
+            {
+                VERIFY_RTE( strFile.back() == '>' );
+                strFile = std::string( strFile.begin() + 1, strFile.end() - 1 );
+            }
+
             const clang::DirectoryLookup* CurDir;
             if ( const clang::FileEntry* pIncludeFile = PP.LookupFile(
                      clang::SourceLocation(), strFile,
@@ -1074,11 +1081,38 @@ public:
                      // IsMapped
                      nullptr ) )
             {
-                pInclude->setIncludeFilePath( pIncludeFile->tryGetRealPathName() );
+                // if a cpp system include then it must start with angled bracket
+                if ( bIsAngled )
+                {
+                    const boost::filesystem::path filePath = pIncludeFile->getName().str();
+                    input::SystemInclude*         pSystemInclude = session.construct< input::SystemInclude >( strFile, filePath );
+                    pContext->m_elements.push_back( pSystemInclude );
+                }
+                else
+                {
+                    // otherwise hte file should have normal file path and exist
+                    const boost::filesystem::path filePath = boost::filesystem::edsCannonicalise(
+                        boost::filesystem::absolute( pIncludeFile->tryGetRealPathName().str() ) );
+                    if ( !boost::filesystem::exists( filePath ) )
+                    {
+                        EG_PARSER_ERROR( "Cannot locate include file: " << filePath.string() );
+                    }
+
+                    if ( boost::filesystem::extension( filePath ) == FILE_EXTENSION )
+                    {
+                        input::MegaInclude* pMegaInclude = session.construct< input::MegaInclude >( strFile, filePath );
+                        pContext->m_elements.push_back( pMegaInclude );
+                    }
+                    else
+                    {
+                        input::CPPInclude* pCPPInclude = session.construct< input::CPPInclude >( strFile, filePath );
+                        pContext->m_elements.push_back( pCPPInclude );
+                    }
+                }
             }
             else
             {
-                pInclude->setIncludeFilePath( strFile );
+                EG_PARSER_ERROR( "Cannot locate include file: " << strFile );
             }
         }
         else
@@ -1410,9 +1444,7 @@ public:
             else if ( Tok.is( clang::tok::kw_include ) )
             {
                 ConsumeToken();
-                input::Include* pInclude = session.construct< input::Include >();
-                pContext->m_elements.push_back( pInclude );
-                parse_include( session, pInclude );
+                parse_include( session, pContext );
             }
             else if ( Tok.is( clang::tok::kw_using ) )
             {
@@ -1492,10 +1524,11 @@ public:
         }
     }
 
-    void parse_file( Database& database, const boost::filesystem::path& egSourceFile )
+    mega::input::Root* parse_file( Database& database, const boost::filesystem::path& egSourceFile )
     {
         mega::input::Root* pRoot = database.construct< mega::input::Root >( mega::eFile );
         parse_context_body( database, pRoot, egSourceFile );
+        return pRoot;
     }
 };
 
@@ -1552,14 +1585,16 @@ struct Stuff
     }
 
     std::shared_ptr< clang::TargetInfo > pTargetInfo;
-
-    Stuff( std::shared_ptr< clang::FileManager > pFileManager,
+    
+    Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
+           std::shared_ptr< clang::FileManager >
+               pFileManager,
            llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
                                           pDiagnosticsEngine,
            const boost::filesystem::path& sourceFile )
 
         : pSourceManager( std::make_unique< clang::SourceManager >( *pDiagnosticsEngine, *pFileManager ) )
-        , headerSearchOptions( std::make_shared< clang::HeaderSearchOptions >() )
+        , headerSearchOptions( headerSearchOptions )
         , languageOptions( createEGLangOpts() )
         , pHeaderSearch( std::make_unique< clang::HeaderSearch >(
               headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions, nullptr ) )
@@ -1595,28 +1630,33 @@ struct Stuff
 
 struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 {
-    virtual void parseEGSourceFile( const boost::filesystem::path& sourceDir,
-                                    const boost::filesystem::path& buildDir,
-                                    const mega::io::FileInfo&      sourceFile,
-                                    const mega::io::FileInfo&      objectASTFile,
-                                    const mega::io::FileInfo&      objectBodyFile,
-                                    std::ostream&                  osError )
-    {
-        mega::io::Environment                              environment( sourceDir, buildDir );
-        mega::io::Database< mega::io::stage::ObjectParse > database( environment, sourceFile.m_filePath );
+    virtual mega::input::Root* parseEGSourceFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
+                                                  const boost::filesystem::path&                      sourceDir,
+                                                  const boost::filesystem::path&                      sourceFile,
+                                                  const std::vector< boost::filesystem::path >&       includeDirectories,
+                                                  std::ostream&                                       osError )
 
+    {
         ParserDiagnosticSystem pds( sourceDir, osError );
 
         std::shared_ptr< clang::FileManager >                pFileManager = get_clang_fileManager( pds );
         llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine = get_llvm_diagnosticEngine( pds );
 
         // check file exists
-        if ( !boost::filesystem::exists( sourceFile.m_filePath ) )
+        if ( !boost::filesystem::exists( sourceFile ) )
         {
-            THROW_RTE( "File not found: " << sourceFile.m_filePath.string() );
+            THROW_RTE( "File not found: " << sourceFile.string() );
         }
 
-        Stuff stuff( pFileManager, pDiagnosticsEngine, sourceFile.m_filePath );
+        std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions =
+            std::make_unique< clang::HeaderSearchOptions >();
+
+        for( const boost::filesystem::path& includeDir : includeDirectories )
+        {
+            headerSearchOptions->AddPath(includeDir.native(), clang::frontend::Quoted, false, false);
+        }
+
+        Stuff stuff( headerSearchOptions, pFileManager, pDiagnosticsEngine, sourceFile );
 
         Parser parser( *stuff.pPreprocessor,
                        *stuff.pSourceManager,
@@ -1625,9 +1665,9 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                        pDiagnosticsEngine );
         parser.ConsumeToken();
 
-        parser.parse_file( database, sourceFile.m_filePath );
+        mega::input::Root* pRoot = parser.parse_file( database, sourceFile );
 
-        database.store();
+        return pRoot;
     }
 };
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;

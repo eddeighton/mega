@@ -55,7 +55,7 @@ namespace interface
     public:
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-
+/*
         template < class T >
         class Collector
         {
@@ -204,7 +204,7 @@ namespace interface
                 }
             }
         }
-
+*/
         VisibilityType  getVisibility() const { return m_visibility; }
         input::Element* getInputElement() const { return m_pElement; }
         Element*        getParent() const { return m_pParent; }

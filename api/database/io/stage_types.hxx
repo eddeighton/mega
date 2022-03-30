@@ -1,0 +1,6 @@
+STAGE_TYPE(Component)
+STAGE_TYPE(ObjectParse)
+STAGE_TYPE(ObjectInterface)
+STAGE_TYPE(ObjectInterfaceAnalysis)
+STAGE_TYPE(ProjectInterface)
+STAGE_TYPE(ObjectOperations)

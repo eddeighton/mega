@@ -20,7 +20,7 @@
 #include "database/stages/parser.hpp"
 #include "database/io/manifest.hpp"
 #include "database/io/database.hpp"
-#include "database/io/source_listing.hpp"
+#include "database/io/component_info.hpp"
 #include "parser/parser.hpp"
 
 #include "database/model/eg.hpp"

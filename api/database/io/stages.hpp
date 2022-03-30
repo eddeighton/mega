@@ -13,28 +13,17 @@ namespace mega
 {
 namespace io
 {
-
     namespace stage
     {
-        class ObjectParse
-        {
+        
+// clang-format off
+#define STAGE_TYPE( stage )     \
+        class stage            \
+        {                       \
         };
-
-        class ObjectInterface
-        {
-        };
-
-        class ObjectInterfaceAnalysis
-        {
-        };
-
-        class ProjectInterface
-        {
-        };
-
-        class ObjectOperations
-        {
-        };
+#include "stage_types.hxx"
+// clang-format on
+#undef STAGE_TYPE
     } // namespace stage
 
     template < class TCreatingStage >
@@ -48,23 +37,23 @@ namespace io
         }
     };
 
-    class ObjectAST : public StagedFile< stage::ObjectParse >
+    namespace file
     {
-    public:
-        ObjectAST( const FileInfo& fileInfo )
-            : StagedFile( fileInfo )
-        {
-        }
-    };
 
-    class ObjectBody : public StagedFile< stage::ObjectParse >
-    {
-    public:
-        ObjectBody( const FileInfo& fileInfo )
-            : StagedFile( fileInfo )
-        {
-        }
+// clang-format off
+#define FILE_TYPE( filetype, stage_name )                              \
+    class filetype : public StagedFile< stage::stage_name >            \
+    {                                                                  \
+    public:                                                            \
+        filetype( const FileInfo& fileInfo ) : StagedFile( fileInfo )  \
+        {                                                              \
+        }                                                              \
     };
+#include "file_types.hxx"
+// clang-format on
+#undef FILE_TYPE
+
+    }
 } // namespace io
 } // namespace mega
 
