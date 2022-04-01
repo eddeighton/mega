@@ -38,6 +38,7 @@ include( ../preprocess_cpp.cmake )
 	
 set( MEGA_DATABASE_MODEL
     ${MEGA_API_DIR}/database/model/component.hpp
+    ${MEGA_API_DIR}/database/model/dependencies.hpp
     ${MEGA_API_DIR}/database/model/eg.hpp
     ${MEGA_API_DIR}/database/model/objects.hpp
     ${MEGA_API_DIR}/database/model/input.hpp
@@ -93,6 +94,7 @@ set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/io/storer.cpp
     
     ${MEGA_SRC_DIR}/database/model/component.cpp
+    ${MEGA_SRC_DIR}/database/model/dependencies.cpp
     ${MEGA_SRC_DIR}/database/model/eg.cpp
     ${MEGA_SRC_DIR}/database/model/input.cpp
     ${MEGA_SRC_DIR}/database/model/interface.cpp

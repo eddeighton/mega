@@ -17,16 +17,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/model/component.hpp"
-#include "database/model/input.hpp"
 #include "parser/parser.hpp"
+
+#include "database/model/input.hpp"
+#include "database/model/component.hpp"
+#include "database/model/dependencies.hpp"
 
 #include "database/io/file.hpp"
 #include "database/io/manifest.hpp"
 #include "database/io/environment.hpp"
-
-#include "database/stages/parser.hpp"
-
 #include "database/io/database.hpp"
 
 #include "common/scheduler.hpp"
@@ -54,7 +53,9 @@ namespace interface
     class BaseTask : public task::Task
     {
     public:
-        BaseTask( const RawPtrSet& dependencies, const mega::io::Environment& environment, task::Stash& stash )
+        BaseTask( const RawPtrSet&             dependencies,
+                  const mega::io::Environment& environment,
+                  task::Stash&                 stash )
             : task::Task( dependencies )
             , m_environment( environment )
             , m_stash( stash )
@@ -66,7 +67,8 @@ namespace interface
         task::Stash&                 m_stash;
     };
 
-    const mega::io::FileInfo& findFileInfo( const boost::filesystem::path& filePath, const std::vector< mega::io::FileInfo >& fileInfos )
+    const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&           filePath,
+                                            const std::vector< mega::io::FileInfo >& fileInfos )
     {
         for ( const mega::io::FileInfo& fileInfo : fileInfos )
         {
@@ -94,10 +96,10 @@ namespace interface
         }
 
         void parseInputFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
-                const mega::Component* pComponent, 
-                const boost::filesystem::path& sourceFilePath, 
-                std::ostream& osError, 
-                std::ostream& osWarn )
+                             const mega::Component*                              pComponent,
+                             mega::input::Root*                                  pRoot,
+                             std::ostream&                                       osError,
+                             std::ostream&                                       osWarn )
         {
             static boost::shared_ptr< mega::EG_PARSER_INTERFACE > pParserInterface;
             if ( !pParserInterface )
@@ -106,22 +108,14 @@ namespace interface
                     m_parserDLL, "g_parserSymbol" );
             }
 
-            boost::filesystem::path sourceFileFolder = sourceFilePath;
-            sourceFileFolder.remove_filename();
-
-            mega::input::Root* pRoot = pParserInterface->parseEGSourceFile( database,
-                                                                            sourceFileFolder,
-                                                                            sourceFilePath,
-                                                                            pComponent->getIncludeDirectories(),
-                                                                            osError,
-                                                                            osWarn );
-
-            m_rootFiles.insert( std::make_pair( sourceFilePath, pRoot ) );
+            pParserInterface->parseEGSourceFile(
+                database, pRoot, pComponent->getIncludeDirectories(), osError, osWarn );
         }
 
         virtual void run( task::Progress& taskProgress )
         {
-            mega::io::Database< mega::io::stage::ObjectParse > database( m_environment, m_fileInfo.getFilePath() );
+            mega::io::Database< mega::io::stage::ObjectParse > database(
+                m_environment, m_fileInfo.getFilePath() );
 
             taskProgress.start( "Task_ParseAST",
                                 m_fileInfo.getFilePath(),
@@ -142,10 +136,15 @@ namespace interface
                         }
                     }
                 }
-                VERIFY_RTE_MSG( pComponent, "Failed to locate component for source file: " << m_fileInfo.getFilePath() );
+                VERIFY_RTE_MSG(
+                    pComponent,
+                    "Failed to locate component for source file: " << m_fileInfo.getFilePath() );
             }
 
-            parseInputFile( database, pComponent, m_fileInfo.getFilePath(), osError, osWarn );
+            mega::input::Root* pObjectSrcRoot = database.construct< mega::input::Root >(
+                pComponent, m_fileInfo.getFilePath(), mega::eObjectSrcRoot );
+            parseInputFile( database, pComponent, pObjectSrcRoot, osError, osWarn );
+            m_rootFiles.insert( std::make_pair( m_fileInfo.getFilePath(), pObjectSrcRoot ) );
 
             // greedy algorithm to parse transitive closure of include files
             {
@@ -154,14 +153,25 @@ namespace interface
                 {
                     bExhaustedAll = true;
 
-                    for ( mega::input::MegaInclude* pInclude : database.many< mega::input::MegaInclude >() )
+                    for ( mega::input::MegaInclude* pInclude :
+                          database.many< mega::input::MegaInclude >() )
                     {
-                        FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->getIncludeFilePath() );
+                        FileRootMap::const_iterator iFind
+                            = m_rootFiles.find( pInclude->getIncludeFilePath() );
                         if ( iFind == m_rootFiles.end() )
                         {
-                            parseInputFile( database, pComponent, pInclude->getIncludeFilePath(), osError, osWarn );
+                            pInclude->m_pIncludeRoot = database.construct< mega::input::Root >(
+                                pComponent, pInclude->getIncludeFilePath(), mega::eIncludeSrcRoot );
+                            parseInputFile(
+                                database, pComponent, pInclude->m_pIncludeRoot, osError, osWarn );
+                            m_rootFiles.insert( std::make_pair(
+                                pInclude->getIncludeFilePath(), pInclude->m_pIncludeRoot ) );
                             bExhaustedAll = false;
                             break;
+                        }
+                        else
+                        {
+                            pInclude->m_pIncludeRoot = iFind->second;
                         }
                     }
                 }
@@ -202,6 +212,123 @@ namespace interface
         {
         }
 
+        using DependencyMap = std::map< const mega::input::Dependency*, const mega::input::Root* >;
+
+        const mega::input::Root*
+        resolveDependency( const std::vector< const mega::input::Root* >& roots,
+                           const boost::filesystem::path&                 filepath )
+        {
+            struct FindRoot
+            {
+                const mega::input::Root*
+                operator()( const std::vector< const mega::input::Root* >& roots,
+                            const boost::filesystem::path&                 filepath ) const
+                {
+                    auto iFind = std::find_if( roots.begin(), roots.end(),
+                                               [ &filepath ]( const mega::input::Root* pRoot )
+                                               { return pRoot->getFilePath() == filepath; } );
+                    if ( iFind != roots.end() )
+                        return *iFind;
+                    else
+                        return nullptr;
+                }
+            };
+
+            if ( boost::filesystem::exists( filepath ) )
+            {
+                const mega::input::Root* pRoot = FindRoot()( roots, filepath );
+                VERIFY_RTE_MSG( pRoot, "Failed to locate dependency file: " << filepath.string() );
+                return pRoot;
+            }
+            return nullptr;
+        }
+
+        void resolveDependencies( const std::vector< const mega::input::Root* >& roots,
+                                  const mega::input::Root*                       pRoot,
+                                  const mega::input::Context*                    pContext,
+                                  DependencyMap&                                 dependencyMap )
+        {
+            using namespace mega::input;
+
+            for ( const Element* pChild : pContext->getElements() )
+            {
+                if ( const Dependency* pDependency = dynamic_cast< const Dependency* >( pChild ) )
+                {
+                    const boost::filesystem::path relativePath
+                        = m_environment.dependency( pDependency->getOpaque()->getStr() );
+
+                    // try current directory of root
+                    boost::filesystem::path curDir = pRoot->getFilePath();
+                    curDir.remove_filename();
+
+                    if ( const mega::input::Root* pDependencyRoot
+                         = resolveDependency( roots, curDir / relativePath ) )
+                    {
+                        dependencyMap.insert( std::make_pair( pDependency, pDependencyRoot ) );
+                    }
+                    else if ( const mega::input::Root* pDependencyRoot = resolveDependency(
+                                  roots, m_environment.rootSourceDir() / relativePath ) )
+                    {
+                        dependencyMap.insert( std::make_pair( pDependency, pDependencyRoot ) );
+                    }
+                    else
+                    {
+                        // try the include directories
+                        bool bFound = false;
+                        for ( const boost::filesystem::path& includeDir :
+                              pRoot->m_pComponent->getIncludeDirectories() )
+                        {
+                            if ( const mega::input::Root* pDependencyRoot
+                                 = resolveDependency( roots, includeDir / relativePath ) )
+                            {
+                                dependencyMap.insert(
+                                    std::make_pair( pDependency, pDependencyRoot ) );
+                                bFound = true;
+                                break;
+                            }
+                        }
+                        VERIFY_RTE_MSG(
+                            bFound, "Failed to locate dependency: "
+                                        << pDependency->getOpaque()->getStr()
+                                        << " in file: " << pRoot->getFilePath().string() );
+                    }
+                }
+                else if ( const Context* pChildContext = dynamic_cast< const Context* >( pChild ) )
+                {
+                    resolveDependencies( roots, pRoot, pChildContext, dependencyMap );
+                }
+            }
+        }
+
+        using DependenciesMap
+            = std::multimap< const mega::input::Root*, const mega::input::Dependency* >;
+
+        void collectDependencies( const std::vector< const mega::input::Root* >& roots,
+                                  const mega::input::Root*                       pRoot,
+                                  const mega::input::Context*                    pContext,
+                                  DependenciesMap&                               dependencies )
+        {
+            using namespace mega::input;
+
+            for ( const Element* pChild : pContext->getElements() )
+            {
+                if ( const Dependency* pDependency = dynamic_cast< const Dependency* >( pChild ) )
+                {
+                    dependencies.insert( std::make_pair( pRoot, pDependency ) );
+                }
+                else if ( const MegaInclude* pInclude
+                          = dynamic_cast< const MegaInclude* >( pChild ) )
+                {
+                    VERIFY_RTE( pInclude->m_pIncludeRoot );
+                    collectDependencies( roots, pRoot, pInclude->m_pIncludeRoot, dependencies );
+                }
+                else if ( const Context* pChildContext = dynamic_cast< const Context* >( pChild ) )
+                {
+                    collectDependencies( roots, pRoot, pChildContext, dependencies );
+                }
+            }
+        }
+
         virtual void run( task::Progress& taskProgress )
         {
             mega::io::Database< mega::io::stage::DependencyAnalysis > database( m_environment );
@@ -212,16 +339,49 @@ namespace interface
 
             using namespace mega;
 
-            std::vector< const mega::Component* > components = database.many_cst< mega::Component >();
+            mega::DependencyAnalysis* pDA = database.construct< mega::DependencyAnalysis >();
 
-            std::ostringstream os;
-            os << "Found " << components.size() << " components";
-            taskProgress.msg( os.str() );
+            const std::vector< const mega::input::Root* > roots
+                = database.many_cst< mega::input::Root >();
+
+            DependencyMap dependencyMap;
+            for ( const mega::input::Root* pRoot : roots )
+            {
+                resolveDependencies( roots, pRoot, pRoot, dependencyMap );
+            }
+
+            DependenciesMap dependenciesMap;
+            for ( const mega::input::Root* pRoot : roots )
+            {
+                if ( pRoot->getRootType() == eObjectSrcRoot )
+                {
+                    collectDependencies( roots, pRoot, pRoot, dependenciesMap );
+                }
+            }
+
+            for ( const mega::input::Root* pRoot : roots )
+            {
+                if ( pRoot->getRootType() == eObjectSrcRoot )
+                {
+                    for ( DependenciesMap::const_iterator i = dependenciesMap.lower_bound( pRoot ),
+                                                          iUpper
+                                                          = dependenciesMap.upper_bound( pRoot );
+                          i != iUpper;
+                          ++i )
+                    {
+                        auto iFind = dependencyMap.find( i->second );
+                        VERIFY_RTE( iFind != dependencyMap.end() );
+                        pDA->m_dependencies.insert( std::make_pair( pRoot, iFind->second ) );
+                        std::ostringstream os;
+                        os << pRoot->getFilePath() << "->" << iFind->second->getFilePath();
+                        taskProgress.msg( os.str() );
+                    }
+                }
+            }
 
             database.store();
             taskProgress.succeeded();
         }
-
     };
 
     void command( bool bHelp, const std::vector< std::string >& args )
@@ -246,7 +406,8 @@ namespace interface
         p.add( "dir", -1 );
 
         po::variables_map vm;
-        po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
+        po::store(
+            po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
         po::notify( vm );
 
         if ( bHelp )
@@ -256,8 +417,7 @@ namespace interface
         else
         {
             mega::io::Environment environment( rootSourceDir, rootBuildDir );
-
-            task::Stash stash( environment.stashDir() );
+            task::Stash           stash( environment.stashDir() );
 
             VERIFY_RTE_MSG( boost::filesystem::exists( parserDll ),
                             "Failed to locate parser DLL: " << parserDll );
@@ -272,21 +432,23 @@ namespace interface
             {
                 switch ( fileInfo.getFileType() )
                 {
-                case mega::io::FileInfo::ObjectSourceFile:
-                {
-                    Task_ParseAST* pTask = new Task_ParseAST( environment, stash, parserDll, fileInfo, manifest.getFileInfos() );
-                    parserTasks.insert( pTask );
-                    tasks.push_back( task::Task::Ptr( pTask ) );
-                }
-                break;
-                default:
+                    case mega::io::FileInfo::ObjectSourceFile:
+                    {
+                        Task_ParseAST* pTask = new Task_ParseAST(
+                            environment, stash, parserDll, fileInfo, manifest.getFileInfos() );
+                        parserTasks.insert( pTask );
+                        tasks.push_back( task::Task::Ptr( pTask ) );
+                    }
                     break;
+                    default:
+                        break;
                 }
             }
 
             VERIFY_RTE_MSG( !tasks.empty(), "No input source code found" );
 
-            Task_DependencyAnalysis* pDependencyAnalysisTask = new Task_DependencyAnalysis( parserTasks, environment, stash );
+            Task_DependencyAnalysis* pDependencyAnalysisTask
+                = new Task_DependencyAnalysis( parserTasks, environment, stash );
             tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

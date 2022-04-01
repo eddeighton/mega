@@ -178,7 +178,7 @@ namespace concrete
 
         if ( const interface::Root* pIsRoot = dynamic_cast< const interface::Root* >( getContext() ) )
         {
-            os << " " << pIsRoot->getRootType();
+            //os << " " << pIsRoot->getRootType();
         }
         os << "\n";
 

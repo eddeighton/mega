@@ -32,26 +32,14 @@ namespace mega
 
 enum RootType : std::size_t
 {
-    eInterfaceRoot,
-    eFile,
-    eFileRoot,
-    eMegaRoot,
-    eCoordinator,
-    eHostName,
-    eProjectName,
-    eSubFolder,
+    eObjectSrcRoot,
+    eIncludeSrcRoot,
     TOTAL_ROOT_TYPES
 };
 
 static const char* g_RootTypeStrings[ TOTAL_ROOT_TYPES ] = {
-    "InterfaceRoot",
-    "File",
-    "FileRoot",
-    "MegaRoot",
-    "Coordinator",
-    "HostName",
-    "ProjectName",
-    "SubFolder" };
+    "objectSrcRoot",
+    "includeSrcRoot"};
 
 inline std::ostream& operator<<( std::ostream& os, const RootType type )
 {
@@ -90,6 +78,7 @@ static const char* g_VisibilityTypeStrings[ TOTAL_VISIBILITY_TYPES ] = {
 enum ObjectType : std::size_t
 {
     eComponent,
+    eDependencyAnalysis,
     
     eInputOpaque,
     eInputDimension,
@@ -99,7 +88,7 @@ enum ObjectType : std::size_t
     eInputMegaInclude,
     eInputCPPInclude,
     eInputSystemInclude,
-    eImport,
+    eDependency,
 
     eInputContext,
     eInputRoot,

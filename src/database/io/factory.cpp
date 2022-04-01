@@ -21,6 +21,7 @@
 #include "database/io/object.hpp"
 #include "database/model/objects.hpp"
 #include "database/model/component.hpp"
+#include "database/model/dependencies.hpp"
 #include "database/model/input.hpp"
 #include "database/model/interface.hpp"
 #include "database/model/allocator.hpp"
@@ -45,6 +46,9 @@ namespace io
         {
         case eComponent:
             pObject = new mega::Component( object );
+            break;
+        case eDependencyAnalysis:
+            pObject = new mega::DependencyAnalysis( object );
             break;
 
         case eInputOpaque:
@@ -79,8 +83,8 @@ namespace io
             pObject = new input::MegaInclude( object );
             break;
 
-        case eImport:
-            pObject = new input::Import( object );
+        case eDependency:
+            pObject = new input::Dependency( object );
             break;
         
         case eInputBody:

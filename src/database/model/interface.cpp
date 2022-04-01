@@ -101,7 +101,7 @@ namespace interface
             case eInputMegaInclude:
             case eInputCPPInclude:
             case eInputSystemInclude:
-            case eImport:
+            case eDependency:
             case eInputUsing:
             case eInputExport:
             {
@@ -146,8 +146,8 @@ namespace interface
             case eInputCPPInclude:
             case eInputSystemInclude:
                 return dynamic_cast< input::Include* >( m_pElement )->getIdentifier();
-            case eImport:
-                return dynamic_cast< input::Import* >( m_pElement )->getIdentifier();
+            case eDependency:
+                return dynamic_cast< input::Dependency* >( m_pElement )->getIdentifier();
             case eInputUsing:
                 return dynamic_cast< input::Using* >( m_pElement )->getIdentifier();
             case eInputExport:
@@ -708,42 +708,6 @@ namespace interface
         return pDimension;
     }
 
-    bool Context::getCoordinatorHostname( const Root*& pCoordinator, const Root*& pHostname ) const
-    {
-        const Context* pIter = this;
-
-        pCoordinator = nullptr;
-        pHostname = nullptr;
-
-        while ( pIter && !( pCoordinator && pHostname ) )
-        {
-            if ( const Root* pRoot = dynamic_cast< const Root* >( pIter ) )
-            {
-                switch ( pRoot->getRootType() )
-                {
-                case eInterfaceRoot:
-                case eFileRoot:
-                case eFile:
-                case eMegaRoot:
-                    break;
-                case eCoordinator:
-                    pCoordinator = pRoot;
-                    break;
-                case eHostName:
-                    pHostname = pRoot;
-                    break;
-                case eProjectName:
-                case eSubFolder:
-                case TOTAL_ROOT_TYPES:
-                    break;
-                }
-            }
-
-            pIter = dynamic_cast< const Context* >( pIter->getParent() );
-        }
-        return pCoordinator && pHostname;
-    }
-
     void Context::print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const
     {
         if ( m_pElement )
@@ -758,7 +722,7 @@ namespace interface
             case eInputMegaInclude:
             case eInputCPPInclude:
             case eInputSystemInclude:
-            case eImport:
+            case eDependency:
                 break;
             case eInputContext:
             case eInputRoot:
@@ -774,7 +738,7 @@ namespace interface
                     }
                     if ( const Root* pIsRoot = dynamic_cast< const Root* >( this ) )
                     {
-                        osAnnotation << " " << pIsRoot->getRootType();
+                        //osAnnotation << " " << pIsRoot->getRootType();
                     }
 
                     input::printDeclaration( os, strIndent,
@@ -974,13 +938,11 @@ namespace interface
     /////////////////////////////////////////////////////////////////
     Root::Root( const io::ObjectInfo& indexedObject )
         : Object( indexedObject )
-        , m_rootType( eInterfaceRoot )
     {
     }
     Root::Root( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
         : Object( indexedObject, pParent, pElement, visibility )
         , m_pRoot( dynamic_cast< input::Root* >( pElement ) )
-        , m_rootType( m_pRoot->getRootType() )
     {
         VERIFY_RTE( m_pRoot );
     }
@@ -993,14 +955,12 @@ namespace interface
             m_pRoot = dynamic_cast< input::Root* >( m_pElement );
             VERIFY_RTE( m_pRoot );
         }
-        loader.load( m_rootType );
     }
     void Root::store( io::Storer& storer ) const
     {
         Object::store( storer );
-        storer.store( m_rootType );
     }
-
+/*
     bool Root::isExecutable() const
     {
         switch ( m_rootType )
@@ -1042,6 +1002,6 @@ namespace interface
             break;
         }
         return false;
-    }
+    }*/
 } // namespace interface
 } // namespace mega

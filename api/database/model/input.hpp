@@ -21,6 +21,7 @@
 #define INPUT_TREE_18_04_2019
 
 #include "objects.hpp"
+#include "component.hpp"
 
 #include "database/io/stages.hpp"
 #include "database/io/object.hpp"
@@ -54,7 +55,8 @@ namespace input
         Element( const io::ObjectInfo& object );
 
     public:
-        virtual void print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const {};
+        virtual void print( std::ostream& os, std::string& strIndent,
+                            const std::string& strAnnotation ) const {};
     };
 
     class Opaque : public Element
@@ -73,7 +75,8 @@ namespace input
         const std::string& getStr() const { return m_str; }
         virtual void       load( io::Loader& loader );
         virtual void       store( io::Storer& storer ) const;
-        void               print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void               print( std::ostream& os, std::string& strIndent,
+                                  const std::string& strAnnotation ) const;
 
     public:
         std::string m_str;
@@ -159,24 +162,27 @@ namespace input
         Opaque* m_pReturnType = nullptr;
         Opaque* m_pParams = nullptr;
     };
+    /*
+        class HasDefinition
+        {
+            friend class io::File;
 
-    class HasDefinition
-    {
-        friend class io::File;
+        public:
+            std::optional< boost::filesystem::path > getSourceFile() const { return m_sourceFile; }
+            std::optional< boost::filesystem::path > getDefinitionFile() const
+            {
+                return m_definitionFile;
+            }
 
-    public:
-        std::optional< boost::filesystem::path > getSourceFile() const { return m_sourceFile; }
-        std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
+        protected:
+            void load( io::Loader& loader );
+            void store( io::Storer& storer ) const;
 
-    protected:
-        void load( io::Loader& loader );
-        void store( io::Storer& storer ) const;
-
-    public:
-        std::optional< boost::filesystem::path > m_sourceFile;
-        std::optional< boost::filesystem::path > m_definitionFile;
-    };
-
+        public:
+            std::optional< boost::filesystem::path > m_sourceFile;
+            std::optional< boost::filesystem::path > m_definitionFile;
+        };
+    */
     class HasInheritance
     {
         friend class io::File;
@@ -208,11 +214,8 @@ namespace input
     };
 
     void printDeclaration( std::ostream& os, std::string& strIndent,
-                           const std::string&            strInputType,
-                           const std::string&            strIdentifier,
-                           const Opaque*                 pReturnType,
-                           const Opaque*                 pParams,
-                           const Opaque*                 pSize,
+                           const std::string& strInputType, const std::string& strIdentifier,
+                           const Opaque* pReturnType, const Opaque* pParams, const Opaque* pSize,
                            const std::vector< Opaque* >& inheritance,
                            const std::string&            strAnnotation );
 
@@ -234,7 +237,8 @@ namespace input
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-        void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void         print( std::ostream& os, std::string& strIndent,
+                            const std::string& strAnnotation ) const;
 
     public:
         Opaque* m_pType;
@@ -247,20 +251,23 @@ namespace input
 
     protected:
         Include( const io::ObjectInfo& object );
-    Include( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        Include( const io::ObjectInfo& object, const std::string& strIdenfier,
+                 const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
     public:
         const boost::filesystem::path& getIncludeFilePath() const { return m_path; }
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-        void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void         print( std::ostream& os, std::string& strIndent,
+                            const std::string& strAnnotation ) const;
 
     public:
         std::string             m_strOpaque;
         boost::filesystem::path m_path;
     };
 
+    class Root;
     class MegaInclude : public Include
     {
         friend class io::Factory;
@@ -271,10 +278,14 @@ namespace input
 
     protected:
         MegaInclude( const io::ObjectInfo& object );
-        MegaInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        MegaInclude( const io::ObjectInfo& object, const std::string& strIdenfier,
+                     const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
+
+    public:
+        Root* m_pIncludeRoot = nullptr;
     };
 
     class CPPInclude : public Include
@@ -287,7 +298,8 @@ namespace input
 
     protected:
         CPPInclude( const io::ObjectInfo& object );
-        CPPInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        CPPInclude( const io::ObjectInfo& object, const std::string& strIdenfier,
+                    const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
@@ -303,32 +315,37 @@ namespace input
 
     protected:
         SystemInclude( const io::ObjectInfo& object );
-        SystemInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        SystemInclude( const io::ObjectInfo& object, const std::string& strIdenfier,
+                       const std::string&             strOpaque,
+                       const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
 
-    class Import : public Element, public HasIdentifier
+    class Dependency : public Element, public HasIdentifier
     {
         friend class io::Factory;
         friend class io::File;
+
     public:
-        static const ObjectType Type = eImport;
+        static const ObjectType Type = eDependency;
 
     protected:
-        Import( const io::ObjectInfo& object );
-        Import( const io::ObjectInfo& object, const std::string& strIdenfier, const Opaque* pImport );
+        Dependency( const io::ObjectInfo& object );
+        Dependency( const io::ObjectInfo& object, const std::string& strIdenfier,
+                    const Opaque* pImport );
 
     public:
-        const Opaque* getImport() const { return m_pImport; }
+        const Opaque* getOpaque() const { return m_pDependency; }
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-        void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void         print( std::ostream& os, std::string& strIndent,
+                            const std::string& strAnnotation ) const;
 
     public:
-        const Opaque* m_pImport;
+        const Opaque* m_pDependency;
     };
 
     class Using : public Element, public HasIdentifier
@@ -347,7 +364,8 @@ namespace input
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-        void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void         print( std::ostream& os, std::string& strIndent,
+                            const std::string& strAnnotation ) const;
 
     public:
         Opaque* m_pType;
@@ -370,7 +388,8 @@ namespace input
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-        void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void         print( std::ostream& os, std::string& strIndent,
+                            const std::string& strAnnotation ) const;
 
     public:
         Opaque* m_pReturnType;
@@ -391,14 +410,15 @@ namespace input
     public:
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-        void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void         print( std::ostream& os, std::string& strIndent,
+                            const std::string& strAnnotation ) const;
     };
 
     class Context : public Element,
                     public HasIdentifier,
                     public HasChildren,
                     public HasDomain,
-                    public HasDefinition,
+                    // public HasDefinition,
                     public HasParameters,
                     public HasInheritance
     {
@@ -416,7 +436,8 @@ namespace input
         virtual void store( io::Storer& storer ) const;
 
         Context* findContext( const std::string& strIdentifier ) const;
-        void     print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void     print( std::ostream& os, std::string& strIndent,
+                        const std::string& strAnnotation ) const;
 
         const char* getContextType() const;
 
@@ -444,20 +465,23 @@ namespace input
 
     protected:
         Root( const io::ObjectInfo& object );
-        Root( const io::ObjectInfo& object, RootType rootType );
+        Root( const io::ObjectInfo& object, const mega::Component* pComponent,
+              const boost::filesystem::path& filePath, RootType rootType );
 
     public:
-        std::optional< boost::filesystem::path > getIncludePath() const { return m_includePath; }
+        const boost::filesystem::path& getFilePath() const { return m_filePath; }
 
         RootType getRootType() const { return m_rootType; }
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-        void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+        void         print( std::ostream& os, std::string& strIndent,
+                            const std::string& strAnnotation ) const;
 
     public:
-        std::optional< boost::filesystem::path > m_includePath; // null if main root
-        RootType                                 m_rootType;
+        const mega::Component*  m_pComponent;
+        boost::filesystem::path m_filePath;
+        RootType                m_rootType;
     };
 
     class Body : public io::FileObject< io::file::ObjectBody >

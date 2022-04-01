@@ -31,7 +31,7 @@ namespace io
         Path component() const;
         Path dependencyAnalysis() const;
         Path source_list( const Path& srcDir ) const;
-
+        Path dependency( const std::string& strOpaque ) const;
         Path objectAST( const Path& megaSource ) const;
         Path objectBody( const Path& megaSource ) const;
 

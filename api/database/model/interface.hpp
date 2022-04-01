@@ -374,7 +374,6 @@ namespace interface
         virtual bool                isExecutable() const;
         virtual bool                isMainExecutable() const;
         const interface::Dimension* getLinkBaseDimension() const;
-        bool                        getCoordinatorHostname( const Root*& pCoordinator, const Root*& pHostname ) const;
 
     protected:
         Context( const io::ObjectInfo& indexedObject );
@@ -506,16 +505,16 @@ namespace interface
         virtual void store( io::Storer& storer ) const;
 
     public:
-        RootType getRootType() const { return m_rootType; }
+        //RootType getRootType() const { return m_rootType; }
 
-        virtual bool isExecutable() const;
-        virtual bool isMainExecutable() const;
+        //virtual bool isExecutable() const;
+        //virtual bool isMainExecutable() const;
 
         mutable std::string m_strTemp;
 
     private:
         input::Root* m_pRoot = nullptr;
-        RootType     m_rootType;
+        //RootType     m_rootType;
     };
 
 } // namespace interface

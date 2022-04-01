@@ -60,7 +60,7 @@ void Identifiers::populate( const io::Object::Array& objects )
         case eInputMegaInclude:
         case eInputCPPInclude:
         case eInputSystemInclude:
-        case eImport:
+        case eDependency:
         case eInputUsing:
         case eInputExport:
         case eInputVisibility:

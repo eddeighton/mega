@@ -49,7 +49,8 @@ namespace mega
 class ParserDiagnosticSystem
 {
 public:
-    ParserDiagnosticSystem( const boost::filesystem::path& currentPath, std::ostream& osError, std::ostream& osWarn );
+    ParserDiagnosticSystem( const boost::filesystem::path& currentPath, std::ostream& osError,
+                            std::ostream& osWarn );
 
     class Pimpl;
     std::shared_ptr< Pimpl > m_pImpl;
@@ -69,9 +70,7 @@ class ParserDiagnosticSystem::Pimpl
         {
         }
 
-        virtual void anchor()
-        {
-        }
+        virtual void anchor() {}
 
         void HandleDiagnostic( clang::DiagnosticsEngine::Level DiagLevel,
                                const clang::Diagnostic&        Info ) override
@@ -80,24 +79,24 @@ class ParserDiagnosticSystem::Pimpl
             // llvm::SmallVectorImpl<char> msg( 256 );
             switch ( DiagLevel )
             {
-            case clang::DiagnosticsEngine::Ignored:
-            case clang::DiagnosticsEngine::Note:
-            case clang::DiagnosticsEngine::Remark:
-            case clang::DiagnosticsEngine::Warning:
-            {
-                Info.FormatDiagnostic( msg );
-                std::string str( msg.begin(), msg.end() );
-                m_warnStream << str << "\n";
-            }
-            break;
-            case clang::DiagnosticsEngine::Error:
-            case clang::DiagnosticsEngine::Fatal:
-            {
-                Info.FormatDiagnostic( msg );
-                std::string str( msg.begin(), msg.end() );
-                m_errorStream << str << "\n";
-            }
-            break;
+                case clang::DiagnosticsEngine::Ignored:
+                case clang::DiagnosticsEngine::Note:
+                case clang::DiagnosticsEngine::Remark:
+                case clang::DiagnosticsEngine::Warning:
+                {
+                    Info.FormatDiagnostic( msg );
+                    std::string str( msg.begin(), msg.end() );
+                    m_warnStream << str << "\n";
+                }
+                break;
+                case clang::DiagnosticsEngine::Error:
+                case clang::DiagnosticsEngine::Fatal:
+                {
+                    Info.FormatDiagnostic( msg );
+                    std::string str( msg.begin(), msg.end() );
+                    m_errorStream << str << "\n";
+                }
+                break;
             }
         }
     };
@@ -110,22 +109,19 @@ public:
     llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > m_pDiagnosticsEngine;
 
     Pimpl( const boost::filesystem::path& currentPath, std::ostream& osError, std::ostream& osWarn )
-        : m_pFileManager( std::make_shared< clang::FileManager >( clang::FileSystemOptions{ currentPath.string() } ) )
+        : m_pFileManager( std::make_shared< clang::FileManager >(
+            clang::FileSystemOptions{ currentPath.string() } ) )
         , m_pDiagnosticOptions( new clang::DiagnosticOptions() )
         , m_pDiagnosticIDs( new clang::DiagnosticIDs() )
-        , m_pDiagnosticsEngine(
-              new clang::DiagnosticsEngine(
-                  m_pDiagnosticIDs,
-                  m_pDiagnosticOptions,
-                  new EGDiagConsumer( osError, osWarn ) ) )
+        , m_pDiagnosticsEngine( new clang::DiagnosticsEngine(
+              m_pDiagnosticIDs, m_pDiagnosticOptions, new EGDiagConsumer( osError, osWarn ) ) )
     {
     }
 };
 
-ParserDiagnosticSystem::ParserDiagnosticSystem(
-    const boost::filesystem::path& currentPath,
-    std::ostream&                  osError,
-    std::ostream&                  osWarn )
+ParserDiagnosticSystem::ParserDiagnosticSystem( const boost::filesystem::path& currentPath,
+                                                std::ostream&                  osError,
+                                                std::ostream&                  osWarn )
     : m_pImpl( new Pimpl( currentPath, osError, osWarn ) )
 {
 }
@@ -144,15 +140,13 @@ get_llvm_diagnosticEngine( ParserDiagnosticSystem& diagnosticSystem )
 
 #define MEGA_PARSER_ERROR( _msg )                                                             \
     DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                          \
-        std::ostringstream _os;                                                               \
-        _os << Tok.getLocation().printToString( sm ) << " " << _msg;                          \
+        std::ostringstream _os; _os << Tok.getLocation().printToString( sm ) << " " << _msg;  \
         Diags->Report( Tok.getLocation(), clang::diag::err_mega_generic_error ) << _os.str(); \
         THROW_RTE( "Parser error: " << _os.str() ); )
 
-#define MEGA_PARSER_WARNING( _msg )                                  \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                 \
-        std::ostringstream _os;                                      \
-        _os << Tok.getLocation().printToString( sm ) << " " << _msg; \
+#define MEGA_PARSER_WARNING( _msg )                                                          \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON(                                                         \
+        std::ostringstream _os; _os << Tok.getLocation().printToString( sm ) << " " << _msg; \
         Diags->Report( Tok.getLocation(), clang::diag::warn_mega_generic_warning ) << _os.str(); )
 
 // cannibalised version of clang parser for parsing eg source code
@@ -173,12 +167,10 @@ class Parser
     {
         return Diag( Tok.getLocation(), DiagID );
     }
-    clang::DiagnosticBuilder Diag( unsigned DiagID )
-    {
-        return Diag( Tok, DiagID );
-    }
+    clang::DiagnosticBuilder Diag( unsigned DiagID ) { return Diag( Tok, DiagID ); }
 
-    bool getSourceText( clang::SourceLocation startLoc, clang::SourceLocation endLoc, std::string& str )
+    bool getSourceText( clang::SourceLocation startLoc, clang::SourceLocation endLoc,
+                        std::string& str )
     {
         bool                     bInvalid = false;
         const clang::SourceRange range( startLoc, endLoc );
@@ -236,12 +228,14 @@ class Parser
 
             bool isActive( Parser& P ) const
             {
-                return P.ParenCount == ParenCount && P.BracketCount == BracketCount && P.BraceCount == BraceCount;
+                return P.ParenCount == ParenCount && P.BracketCount == BracketCount
+                       && P.BraceCount == BraceCount;
             }
 
             bool isActiveOrNested( Parser& P ) const
             {
-                return isActive( P ) || P.ParenCount > ParenCount || P.BracketCount > BracketCount || P.BraceCount > BraceCount;
+                return isActive( P ) || P.ParenCount > ParenCount || P.BracketCount > BracketCount
+                       || P.BraceCount > BraceCount;
             }
         };
 
@@ -264,8 +258,7 @@ class Parser
             }
             else
             {
-                Locs.push_back( { LessLoc, Prio,
-                                  P.ParenCount, P.BracketCount, P.BraceCount } );
+                Locs.push_back( { LessLoc, Prio, P.ParenCount, P.BracketCount, P.BraceCount } );
             }
         }
 
@@ -309,10 +302,7 @@ public:
 
     const clang::Token& getCurToken() const { return Tok; }
 
-    const clang::Token& NextToken()
-    {
-        return PP.LookAhead( 0 );
-    }
+    const clang::Token& NextToken() { return PP.LookAhead( 0 ); }
 
     clang::SourceLocation ConsumeToken()
     {
@@ -350,29 +340,21 @@ public:
         return ConsumeToken();
     }
 
-    bool isTokenParen() const
-    {
-        return Tok.isOneOf( clang::tok::l_paren, clang::tok::r_paren );
-    }
+    bool isTokenParen() const { return Tok.isOneOf( clang::tok::l_paren, clang::tok::r_paren ); }
     /// isTokenBracket - Return true if the cur token is '[' or ']'.
     bool isTokenBracket() const
     {
         return Tok.isOneOf( clang::tok::l_square, clang::tok::r_square );
     }
     /// isTokenBrace - Return true if the cur token is '{' or '}'.
-    bool isTokenBrace() const
-    {
-        return Tok.isOneOf( clang::tok::l_brace, clang::tok::r_brace );
-    }
+    bool isTokenBrace() const { return Tok.isOneOf( clang::tok::l_brace, clang::tok::r_brace ); }
     /// isTokenStringLiteral - True if this token is a string-literal.
-    bool isTokenStringLiteral() const
-    {
-        return clang::tok::isStringLiteral( Tok.getKind() );
-    }
+    bool isTokenStringLiteral() const { return clang::tok::isStringLiteral( Tok.getKind() ); }
     /// isTokenSpecial - True if this token requires special consumption methods.
     bool isTokenSpecial() const
     {
-        return isTokenStringLiteral() || isTokenParen() || isTokenBracket() || isTokenBrace() || Tok.is( clang::tok::code_completion ) || Tok.isAnnotation();
+        return isTokenStringLiteral() || isTokenParen() || isTokenBracket() || isTokenBrace()
+               || Tok.is( clang::tok::code_completion ) || Tok.isAnnotation();
     }
 
     void UnconsumeToken( clang::Token& Consumed )
@@ -473,7 +455,8 @@ public:
     bool isEofOrEom()
     {
         clang::tok::TokenKind Kind = Tok.getKind();
-        return Kind == clang::tok::eof || Kind == clang::tok::annot_module_begin || Kind == clang::tok::annot_module_end || Kind == clang::tok::annot_module_include;
+        return Kind == clang::tok::eof || Kind == clang::tok::annot_module_begin
+               || Kind == clang::tok::annot_module_end || Kind == clang::tok::annot_module_include;
     }
 
     /// Identifiers which have been declared within a tentative parse.
@@ -502,8 +485,7 @@ public:
         void Commit()
         {
             assert( isActive && "Parsing action was finished!" );
-            P.TentativelyDeclaredIdentifiers.resize(
-                PrevTentativelyDeclaredIdentifierCount );
+            P.TentativelyDeclaredIdentifiers.resize( PrevTentativelyDeclaredIdentifierCount );
             P.PP.CommitBacktrackedTokens();
             isActive = false;
         }
@@ -512,22 +494,17 @@ public:
             assert( isActive && "Parsing action was finished!" );
             P.PP.Backtrack();
             P.Tok = PrevTok;
-            P.TentativelyDeclaredIdentifiers.resize(
-                PrevTentativelyDeclaredIdentifierCount );
+            P.TentativelyDeclaredIdentifiers.resize( PrevTentativelyDeclaredIdentifierCount );
             P.ParenCount = PrevParenCount;
             P.BracketCount = PrevBracketCount;
             P.BraceCount = PrevBraceCount;
             isActive = false;
         }
-        ~TentativeParsingAction()
-        {
-            assert( !isActive && "Forgot to call Commit or Revert!" );
-        }
+        ~TentativeParsingAction() { assert( !isActive && "Forgot to call Commit or Revert!" ); }
     };
     /// A TentativeParsingAction that automatically reverts in its destructor.
     /// Useful for disambiguation parses that will always be reverted.
-    class RevertingTentativeParsingAction
-        : private Parser::TentativeParsingAction
+    class RevertingTentativeParsingAction : private Parser::TentativeParsingAction
     {
     public:
         RevertingTentativeParsingAction( Parser& P )
@@ -550,10 +527,7 @@ public:
             GreaterThanIsOperator = Val;
         }
 
-        ~GreaterThanIsOperatorScope()
-        {
-            GreaterThanIsOperator = OldGreaterThanIsOperator;
-        }
+        ~GreaterThanIsOperatorScope() { GreaterThanIsOperator = OldGreaterThanIsOperator; }
     };
 
     bool GreaterThanIsOperator;
@@ -576,10 +550,7 @@ public:
         // }
 
         // bool diagnoseOverflow();
-        bool diagnoseMissingClose()
-        {
-            THROW_RTE( "diagnoseMissingClose" );
-        }
+        bool diagnoseMissingClose() { THROW_RTE( "diagnoseMissingClose" ); }
 
     public:
         BalancedDelimiterTracker( Parser& p, clang::tok::TokenKind k,
@@ -591,21 +562,21 @@ public:
         {
             switch ( Kind )
             {
-            default:
-                llvm_unreachable( "Unexpected balanced token" );
-            case clang::tok::l_brace:
-                Close = clang::tok::r_brace;
-                Consumer = &Parser::ConsumeBrace;
-                break;
-            case clang::tok::l_paren:
-                Close = clang::tok::r_paren;
-                Consumer = &Parser::ConsumeParen;
-                break;
+                default:
+                    llvm_unreachable( "Unexpected balanced token" );
+                case clang::tok::l_brace:
+                    Close = clang::tok::r_brace;
+                    Consumer = &Parser::ConsumeBrace;
+                    break;
+                case clang::tok::l_paren:
+                    Close = clang::tok::r_paren;
+                    Consumer = &Parser::ConsumeParen;
+                    break;
 
-            case clang::tok::l_square:
-                Close = clang::tok::r_square;
-                Consumer = &Parser::ConsumeBracket;
-                break;
+                case clang::tok::l_square:
+                    Close = clang::tok::r_square;
+                    Consumer = &Parser::ConsumeBracket;
+                    break;
             }
         }
 
@@ -641,7 +612,8 @@ public:
             {
                 clang::SourceLocation SemiLoc = P.ConsumeToken();
                 P.Diag( SemiLoc, clang::diag::err_unexpected_semi )
-                    << Close << clang::FixItHint::CreateRemoval( clang::SourceRange( SemiLoc, SemiLoc ) );
+                    << Close
+                    << clang::FixItHint::CreateRemoval( clang::SourceRange( SemiLoc, SemiLoc ) );
                 LClose = ( P.*Consumer )();
                 return false;
             }
@@ -660,10 +632,10 @@ public:
         StopAtCodeCompletion = 1 << 2 ///< Stop at code completion
     };
 
-    friend constexpr SkipUntilFlags operator|( SkipUntilFlags L,
-                                               SkipUntilFlags R )
+    friend constexpr SkipUntilFlags operator|( SkipUntilFlags L, SkipUntilFlags R )
     {
-        return static_cast< SkipUntilFlags >( static_cast< unsigned >( L ) | static_cast< unsigned >( R ) );
+        return static_cast< SkipUntilFlags >( static_cast< unsigned >( L )
+                                              | static_cast< unsigned >( R ) );
     }
 
     /// SkipUntil - Read tokens until we get to the specified token, then consume
@@ -697,7 +669,7 @@ public:
         return ( static_cast< unsigned >( L ) & static_cast< unsigned >( R ) ) != 0;
     }
     bool SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
-                    SkipUntilFlags                          Flags = static_cast< SkipUntilFlags >( 0 ) )
+                    SkipUntilFlags Flags = static_cast< SkipUntilFlags >( 0 ) )
     {
         using namespace clang;
         // We always want this function to skip at least one token if the first token
@@ -725,7 +697,8 @@ public:
             // Important special case: The caller has given up and just wants us to
             // skip the rest of the file. Do this without recursing, since we can
             // get here precisely because the caller detected too much recursion.
-            if ( Toks.size() == 1 && Toks[ 0 ] == tok::eof && !HasFlagsSet( Flags, StopAtSemi ) && !HasFlagsSet( Flags, StopAtCodeCompletion ) )
+            if ( Toks.size() == 1 && Toks[ 0 ] == tok::eof && !HasFlagsSet( Flags, StopAtSemi )
+                 && !HasFlagsSet( Flags, StopAtCodeCompletion ) )
             {
                 while ( Tok.isNot( tok::eof ) )
                     ConsumeAnyToken();
@@ -734,80 +707,80 @@ public:
 
             switch ( Tok.getKind() )
             {
-            case tok::eof:
-                // Ran out of tokens.
-                return false;
-
-            case tok::annot_pragma_openmp:
-            case tok::annot_pragma_openmp_end:
-                // Stop before an OpenMP pragma boundary.
-            case tok::annot_module_begin:
-            case tok::annot_module_end:
-            case tok::annot_module_include:
-                // Stop before we change submodules. They generally indicate a "good"
-                // place to pick up parsing again (except in the special case where
-                // we're trying to skip to EOF).
-                return false;
-
-                // case tok::code_completion:
-                //   if (!HasFlagsSet(Flags, StopAtCodeCompletion))
-                //     handleUnexpectedCodeCompletionToken();
-                //   return false;
-
-            case tok::l_paren:
-                // Recursively skip properly-nested parens.
-                ConsumeParen();
-                if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
-                    SkipUntil( tok::r_paren, StopAtCodeCompletion );
-                else
-                    SkipUntil( tok::r_paren );
-                break;
-            case tok::l_square:
-                // Recursively skip properly-nested square brackets.
-                ConsumeBracket();
-                if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
-                    SkipUntil( tok::r_square, StopAtCodeCompletion );
-                else
-                    SkipUntil( tok::r_square );
-                break;
-            case tok::l_brace:
-                // Recursively skip properly-nested braces.
-                ConsumeBrace();
-                if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
-                    SkipUntil( tok::r_brace, StopAtCodeCompletion );
-                else
-                    SkipUntil( tok::r_brace );
-                break;
-
-                // Okay, we found a ']' or '}' or ')', which we think should be balanced.
-                // Since the user wasn't looking for this token (if they were, it would
-                // already be handled), this isn't balanced.  If there is a LHS token at a
-                // higher level, we will assume that this matches the unbalanced token
-                // and return it.  Otherwise, this is a spurious RHS token, which we skip.
-            case tok::r_paren:
-                if ( ParenCount && !isFirstTokenSkipped )
-                    return false; // Matches something.
-                ConsumeParen();
-                break;
-            case tok::r_square:
-                if ( BracketCount && !isFirstTokenSkipped )
-                    return false; // Matches something.
-                ConsumeBracket();
-                break;
-            case tok::r_brace:
-                if ( BraceCount && !isFirstTokenSkipped )
-                    return false; // Matches something.
-                ConsumeBrace();
-                break;
-
-            case tok::semi:
-                if ( HasFlagsSet( Flags, StopAtSemi ) )
+                case tok::eof:
+                    // Ran out of tokens.
                     return false;
-                LLVM_FALLTHROUGH;
-            default:
-                // Skip this token.
-                ConsumeAnyToken();
-                break;
+
+                case tok::annot_pragma_openmp:
+                case tok::annot_pragma_openmp_end:
+                    // Stop before an OpenMP pragma boundary.
+                case tok::annot_module_begin:
+                case tok::annot_module_end:
+                case tok::annot_module_include:
+                    // Stop before we change submodules. They generally indicate a "good"
+                    // place to pick up parsing again (except in the special case where
+                    // we're trying to skip to EOF).
+                    return false;
+
+                    // case tok::code_completion:
+                    //   if (!HasFlagsSet(Flags, StopAtCodeCompletion))
+                    //     handleUnexpectedCodeCompletionToken();
+                    //   return false;
+
+                case tok::l_paren:
+                    // Recursively skip properly-nested parens.
+                    ConsumeParen();
+                    if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
+                        SkipUntil( tok::r_paren, StopAtCodeCompletion );
+                    else
+                        SkipUntil( tok::r_paren );
+                    break;
+                case tok::l_square:
+                    // Recursively skip properly-nested square brackets.
+                    ConsumeBracket();
+                    if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
+                        SkipUntil( tok::r_square, StopAtCodeCompletion );
+                    else
+                        SkipUntil( tok::r_square );
+                    break;
+                case tok::l_brace:
+                    // Recursively skip properly-nested braces.
+                    ConsumeBrace();
+                    if ( HasFlagsSet( Flags, StopAtCodeCompletion ) )
+                        SkipUntil( tok::r_brace, StopAtCodeCompletion );
+                    else
+                        SkipUntil( tok::r_brace );
+                    break;
+
+                    // Okay, we found a ']' or '}' or ')', which we think should be balanced.
+                    // Since the user wasn't looking for this token (if they were, it would
+                    // already be handled), this isn't balanced.  If there is a LHS token at a
+                    // higher level, we will assume that this matches the unbalanced token
+                    // and return it.  Otherwise, this is a spurious RHS token, which we skip.
+                case tok::r_paren:
+                    if ( ParenCount && !isFirstTokenSkipped )
+                        return false; // Matches something.
+                    ConsumeParen();
+                    break;
+                case tok::r_square:
+                    if ( BracketCount && !isFirstTokenSkipped )
+                        return false; // Matches something.
+                    ConsumeBracket();
+                    break;
+                case tok::r_brace:
+                    if ( BraceCount && !isFirstTokenSkipped )
+                        return false; // Matches something.
+                    ConsumeBrace();
+                    break;
+
+                case tok::semi:
+                    if ( HasFlagsSet( Flags, StopAtSemi ) )
+                        return false;
+                    LLVM_FALLTHROUGH;
+                default:
+                    // Skip this token.
+                    ConsumeAnyToken();
+                    break;
             }
             isFirstTokenSkipped = false;
         }
@@ -916,7 +889,8 @@ public:
             clang::SourceLocation endLoc = Tok.getEndLoc();
             ConsumeAnyToken();
 
-            while ( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
+            while ( !isEofOrEom()
+                    && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
             {
                 endLoc = Tok.getEndLoc();
                 ConsumeAnyToken();
@@ -946,7 +920,9 @@ public:
                 clang::SourceLocation endLoc = Tok.getEndLoc();
                 ConsumeAnyToken();
 
-                while ( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
+                while (
+                    !isEofOrEom()
+                    && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
                 {
                     endLoc = Tok.getEndLoc();
                     ConsumeAnyToken();
@@ -980,7 +956,8 @@ public:
             clang::SourceLocation endLoc = Tok.getEndLoc();
             ConsumeAnyToken();
 
-            while ( !isEofOrEom() && !( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) ) )
+            while ( !isEofOrEom()
+                    && !( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) ) )
             {
                 endLoc = Tok.getEndLoc();
                 ConsumeAnyToken();
@@ -1056,6 +1033,47 @@ public:
         parse_semicolon();
     }
 
+    boost::filesystem::path resolveFilePath( const std::string& strFile )
+    {
+        const clang::DirectoryLookup* CurDir;
+
+        if ( const clang::FileEntry* pIncludeFile
+             = PP.LookupFile( clang::SourceLocation(),
+                              // Filename
+                              strFile,
+                              // isAngled
+                              false,
+                              // DirectoryLookup *FromDir
+                              nullptr,
+                              // FileEntry *FromFile
+                              //&fileEntry,
+                              nullptr,
+                              // DirectoryLookup *&CurDir
+                              CurDir,
+                              // SmallVectorImpl<char> *SearchPath
+                              nullptr,
+                              // SmallVectorImpl<char> *RelativePath
+                              nullptr,
+                              // SuggestedModule
+                              nullptr,
+                              // IsMapped
+                              nullptr ) )
+        {
+            // otherwise hte file should have normal file path and exist
+            const boost::filesystem::path filePath = boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( pIncludeFile->tryGetRealPathName().str() ) );
+            if ( !boost::filesystem::exists( filePath ) )
+            {
+                MEGA_PARSER_ERROR( "Cannot locate include file: " << filePath.string() );
+            }
+            return filePath;
+        }
+        else
+        {
+            MEGA_PARSER_ERROR( "Cannot locate include file: " << strFile );
+        }
+    }
+
     void parse_include( Database& session, input::Context* pContext )
     {
         // include name( file );
@@ -1089,60 +1107,24 @@ public:
             {
                 VERIFY_RTE( strFile.back() == '>' );
                 strFile = std::string( strFile.begin() + 1, strFile.end() - 1 );
-
-                input::SystemInclude* pSystemInclude = session.construct< input::SystemInclude >( strIdentifier, strFile, strFile );
+                input::SystemInclude* pSystemInclude
+                    = session.construct< input::SystemInclude >( strIdentifier, strFile, strFile );
                 pContext->m_elements.push_back( pSystemInclude );
             }
             else
             {
-                const clang::DirectoryLookup* CurDir;
-
-                // headerSearch.LookupFile
-
-                if ( const clang::FileEntry* pIncludeFile = PP.LookupFile(
-                         clang::SourceLocation(),
-                         // Filename
-                         strFile,
-                         // isAngled
-                         bIsAngled,
-                         // DirectoryLookup *FromDir
-                         nullptr,
-                         // FileEntry *FromFile
-                         //&fileEntry,
-                         nullptr,
-                         // DirectoryLookup *&CurDir
-                         CurDir,
-                         // SmallVectorImpl<char> *SearchPath
-                         nullptr,
-                         // SmallVectorImpl<char> *RelativePath
-                         nullptr,
-                         // SuggestedModule
-                         nullptr,
-                         // IsMapped
-                         nullptr ) )
+                const boost::filesystem::path filePath = resolveFilePath( strFile );
+                if ( boost::filesystem::extension( filePath ) == FILE_EXTENSION )
                 {
-                    // otherwise hte file should have normal file path and exist
-                    const boost::filesystem::path filePath = boost::filesystem::edsCannonicalise(
-                        boost::filesystem::absolute( pIncludeFile->tryGetRealPathName().str() ) );
-                    if ( !boost::filesystem::exists( filePath ) )
-                    {
-                        MEGA_PARSER_ERROR( "Cannot locate include file: " << filePath.string() );
-                    }
-
-                    if ( boost::filesystem::extension( filePath ) == FILE_EXTENSION )
-                    {
-                        input::MegaInclude* pMegaInclude = session.construct< input::MegaInclude >( strIdentifier, strFile, filePath );
-                        pContext->m_elements.push_back( pMegaInclude );
-                    }
-                    else
-                    {
-                        input::CPPInclude* pCPPInclude = session.construct< input::CPPInclude >( strIdentifier, strFile, filePath );
-                        pContext->m_elements.push_back( pCPPInclude );
-                    }
+                    input::MegaInclude* pMegaInclude = session.construct< input::MegaInclude >(
+                        strIdentifier, strFile, filePath );
+                    pContext->m_elements.push_back( pMegaInclude );
                 }
                 else
                 {
-                    MEGA_PARSER_ERROR( "Cannot locate include file: " << strFile );
+                    input::CPPInclude* pCPPInclude = session.construct< input::CPPInclude >(
+                        strIdentifier, strFile, filePath );
+                    pContext->m_elements.push_back( pCPPInclude );
                 }
             }
         }
@@ -1156,7 +1138,7 @@ public:
         parse_semicolon();
     }
 
-    void parse_import( Database& session, input::Context* pContext )
+    void parse_dependency( Database& session, input::Context* pContext )
     {
         // include name( file );
         // optional identifier
@@ -1186,11 +1168,12 @@ public:
 
         parse_semicolon();
 
-        input::Opaque* pOpaque = session.construct< input::Opaque >( strImport );
-        input::Import* pImport = session.construct< input::Import >( strIdentifier, pOpaque );
-        pContext->m_elements.push_back( pImport );
+        //const boost::filesystem::path filePath = resolveFilePath( strImport );
 
-        MEGA_PARSER_WARNING( "Parsing import: " << strImport );
+        input::Opaque*     pOpaque = session.construct< input::Opaque >( strImport );
+        input::Dependency* pDependency
+            = session.construct< input::Dependency >( strIdentifier, pOpaque );
+        pContext->m_elements.push_back( pDependency );
     }
 
     void parse_using( Database& session, input::Using* pUsing )
@@ -1268,12 +1251,11 @@ public:
     {
         input::Context* pNewAction = session.construct< input::Context >();
         pParentAction->m_elements.push_back( pNewAction );
-        pNewAction->m_sourceFile = pParentAction->m_sourceFile;
         return pNewAction;
     }
 
     void parse_context( Database& session, input::Context* pContext,
-                        const boost::filesystem::path& egSourceFile, input::Context::ContextType contextType )
+                        input::Context::ContextType contextType )
     {
         while ( Tok.is( clang::tok::coloncolon ) )
         {
@@ -1351,18 +1333,18 @@ public:
 
         switch ( contextType )
         {
-        case input::Context::eAbstract:
-        case input::Context::eEvent:
-            break;
-        case input::Context::eFunction:
-            handle_function_return_type( session, pContext );
-            break;
-        case input::Context::eAction:
-        case input::Context::eLink:
-        case input::Context::eObject:
-            break;
-        default:
-            MEGA_PARSER_ERROR( "Unknown context type" );
+            case input::Context::eAbstract:
+            case input::Context::eEvent:
+                break;
+            case input::Context::eFunction:
+                handle_function_return_type( session, pContext );
+                break;
+            case input::Context::eAction:
+            case input::Context::eLink:
+            case input::Context::eObject:
+                break;
+            default:
+                MEGA_PARSER_ERROR( "Unknown context type" );
         }
 
         parse_comment();
@@ -1372,7 +1354,7 @@ public:
         {
             BalancedDelimiterTracker T( *this, clang::tok::l_brace );
             T.consumeOpen();
-            parse_context_body( session, pContext, egSourceFile );
+            parse_context_body( session, pContext );
             T.consumeClose();
         }
         else if ( Tok.is( clang::tok::semi ) )
@@ -1386,18 +1368,18 @@ public:
 
         switch ( contextType )
         {
-        case input::Context::eAbstract:
-        case input::Context::eEvent:
-        case input::Context::eFunction:
-        case input::Context::eAction:
-            break;
-        case input::Context::eLink:
-            add_link_base( session, pContext );
-            break;
-        case input::Context::eObject:
-            break;
-        default:
-            MEGA_PARSER_ERROR( "Unknown context type" );
+            case input::Context::eAbstract:
+            case input::Context::eEvent:
+            case input::Context::eFunction:
+            case input::Context::eAction:
+                break;
+            case input::Context::eLink:
+                add_link_base( session, pContext );
+                break;
+            case input::Context::eObject:
+                break;
+            default:
+                MEGA_PARSER_ERROR( "Unknown context type" );
         }
     }
 
@@ -1440,7 +1422,7 @@ public:
         }
     }
 
-    void parse_context_body( Database& session, input::Context* pContext, const boost::filesystem::path& egSourceFile )
+    void parse_context_body( Database& session, input::Context* pContext )
     {
         bool bActionDefinition = false;
 
@@ -1466,38 +1448,40 @@ public:
             {
                 switch ( contextType )
                 {
-                case input::Context::eAbstract:
-                case input::Context::eEvent:
-                case input::Context::eFunction:
-                case input::Context::eAction:
-                case input::Context::eLink:
-                case input::Context::eObject:
-                {
-                    ConsumeToken();
-
-                    if ( Tok.is( clang::tok::identifier ) )
+                    case input::Context::eAbstract:
+                    case input::Context::eEvent:
+                    case input::Context::eFunction:
+                    case input::Context::eAction:
+                    case input::Context::eLink:
+                    case input::Context::eObject:
                     {
-                        clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-                        input::Context*        pNestedContext = pContext->findContext( pIdentifier->getName() );
-                        if ( !pNestedContext )
-                        {
-                            pNestedContext = constructContext( session, pContext );
-                            pNestedContext->m_strIdentifier = pIdentifier->getName();
-                        }
                         ConsumeToken();
-                        parse_context( session, pNestedContext, egSourceFile, contextType );
+
+                        if ( Tok.is( clang::tok::identifier ) )
+                        {
+                            clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
+                            input::Context*        pNestedContext
+                                = pContext->findContext( pIdentifier->getName() );
+                            if ( !pNestedContext )
+                            {
+                                pNestedContext = constructContext( session, pContext );
+                                pNestedContext->m_strIdentifier = pIdentifier->getName();
+                            }
+                            ConsumeToken();
+                            parse_context( session, pNestedContext, contextType );
+                        }
+                        else
+                        {
+                            MEGA_PARSER_ERROR( "Expected identifier" );
+                        }
                     }
-                    else
-                    {
-                        MEGA_PARSER_ERROR( "Expected identifier" );
-                    }
-                }
-                break;
-                case input::Context::eUnknown:
                     break;
+                    case input::Context::eUnknown:
+                        break;
                 }
             }
-            else if ( ( Tok.is( clang::tok::kw_const ) && NextToken().is( clang::tok::kw_dim ) ) || Tok.is( clang::tok::kw_dim ) )
+            else if ( ( Tok.is( clang::tok::kw_const ) && NextToken().is( clang::tok::kw_dim ) )
+                      || Tok.is( clang::tok::kw_dim ) )
             {
                 bool bIsConst = false;
                 if ( Tok.is( clang::tok::kw_const ) )
@@ -1519,7 +1503,7 @@ public:
             else if ( Tok.is( clang::tok::kw_dependency ) )
             {
                 ConsumeToken();
-                parse_import( session, pContext );
+                parse_dependency( session, pContext );
             }
             else if ( Tok.is( clang::tok::kw_using ) )
             {
@@ -1586,7 +1570,8 @@ public:
                 )
                 // clang-format on
                 {
-                    if ( !Tok.isOneOf( clang::tok::comment, clang::tok::eof, clang::tok::eod, clang::tok::code_completion ) )
+                    if ( !Tok.isOneOf( clang::tok::comment, clang::tok::eof, clang::tok::eod,
+                                       clang::tok::code_completion ) )
                     {
                         bActionDefinition = true;
                     }
@@ -1607,18 +1592,20 @@ public:
                             case input::Context::eAbstract:
                             case input::Context::eFunction:
                             case input::Context::eAction:
-                                {
-                                    //avoid having pContext point to body for incremental compilation performance
-                                    input::Body* pBody = session.construct< input::Body >();
-                                    pBody->m_pContext = pContext;
-                                    pBody->m_str = strBodyPart;
-                                }
-                                break;
+                            {
+                                // avoid having pContext point to body for incremental compilation
+                                // performance
+                                input::Body* pBody = session.construct< input::Body >();
+                                pBody->m_pContext = pContext;
+                                pBody->m_str = strBodyPart;
+                            }
+                            break;
                             default:
-                                {
-                                    MEGA_PARSER_ERROR( "Context type does not allow body: " << strBodyPart );
-                                }
-                                break;
+                            {
+                                MEGA_PARSER_ERROR(
+                                    "Context type does not allow body: " << strBodyPart );
+                            }
+                            break;
                         }
                     }
                 }
@@ -1628,28 +1615,28 @@ public:
         VERIFY_RTE( BraceCount == braceStack.back() );
         braceStack.pop_back();
 
-        if ( bActionDefinition )
+        /*if ( bActionDefinition )
         {
             if ( pContext->m_definitionFile )
             {
                 if ( pContext->m_definitionFile == egSourceFile )
                 {
-                    MEGA_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined in: " << egSourceFile.string() );
+                    MEGA_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined
+        in: " << egSourceFile.string() );
                 }
                 else
                 {
-                    MEGA_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined in: " << pContext->m_definitionFile.value().string() << " and " << egSourceFile.string() );
+                    MEGA_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined
+        in: " << pContext->m_definitionFile.value().string() << " and " << egSourceFile.string() );
                 }
             }
             pContext->m_definitionFile = egSourceFile;
-        }
+        }*/
     }
 
-    mega::input::Root* parse_file( Database& database, const boost::filesystem::path& egSourceFile )
+    void parse_file( Database& database, mega::input::Root* pRoot )
     {
-        mega::input::Root* pRoot = database.construct< mega::input::Root >( mega::eFile );
-        parse_context_body( database, pRoot, egSourceFile );
-        return pRoot;
+        parse_context_body( database, pRoot );
     }
 };
 
@@ -1688,7 +1675,8 @@ struct Stuff
 
     inline std::shared_ptr< clang::TargetOptions > getTargetOptions()
     {
-        std::shared_ptr< clang::TargetOptions > pTargetOptions = std::make_shared< clang::TargetOptions >();
+        std::shared_ptr< clang::TargetOptions > pTargetOptions
+            = std::make_shared< clang::TargetOptions >();
 
         llvm::Triple triple;
         triple.setArch( llvm::Triple::x86 );
@@ -1707,32 +1695,34 @@ struct Stuff
                                           pDiagnosticsEngine,
            const boost::filesystem::path& sourceFile )
 
-        : pSourceManager( std::make_unique< clang::SourceManager >( *pDiagnosticsEngine, *pFileManager ) )
+        : pSourceManager(
+            std::make_unique< clang::SourceManager >( *pDiagnosticsEngine, *pFileManager ) )
         , headerSearchOptions( headerSearchOptions )
         , languageOptions( createEGLangOpts() )
         , pHeaderSearch( std::make_unique< clang::HeaderSearch >(
-              headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions, nullptr ) )
+              headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions,
+              nullptr ) )
         , pModuleLoader( std::make_unique< clang::TrivialModuleLoader >() )
         , pPreprocessorOptions( std::make_shared< clang::PreprocessorOptions >() )
         , pPCMCache( new clang::MemoryBufferCache )
-        , pPreprocessor( std::make_shared< clang::Preprocessor >(
-              pPreprocessorOptions,
-              *pDiagnosticsEngine,
-              languageOptions,
-              *pSourceManager,
-              *pPCMCache,
-              *pHeaderSearch,
-              *pModuleLoader,
-              // PTHMgr
-              nullptr,
-              // OwnsHeaderSearch
-              false,
-              clang::TU_Complete ) ) // U_Prefix
+        , pPreprocessor( std::make_shared< clang::Preprocessor >( pPreprocessorOptions,
+                                                                  *pDiagnosticsEngine,
+                                                                  languageOptions,
+                                                                  *pSourceManager,
+                                                                  *pPCMCache,
+                                                                  *pHeaderSearch,
+                                                                  *pModuleLoader,
+                                                                  // PTHMgr
+                                                                  nullptr,
+                                                                  // OwnsHeaderSearch
+                                                                  false,
+                                                                  clang::TU_Complete ) ) // U_Prefix
         , pTargetOptions( getTargetOptions() )
         , pTargetInfo( clang::TargetInfo::CreateTargetInfo( *pDiagnosticsEngine, pTargetOptions ) )
     {
         pFileEntry = pFileManager->getFile( sourceFile.string(), true, false );
-        clang::FileID fileID = pSourceManager->getOrCreateFileID( pFileEntry, clang::SrcMgr::C_User );
+        clang::FileID fileID
+            = pSourceManager->getOrCreateFileID( pFileEntry, clang::SrcMgr::C_User );
         pSourceManager->setMainFileID( fileID );
         pPreprocessor->SetCommentRetentionState( true, true );
         pPreprocessor->Initialize( *pTargetInfo );
@@ -1749,33 +1739,38 @@ struct Stuff
 
 struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 {
-    virtual mega::input::Root* parseEGSourceFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
-                                                  const boost::filesystem::path&                      sourceDir,
-                                                  const boost::filesystem::path&                      sourceFile,
-                                                  const std::vector< boost::filesystem::path >&       includeDirectories,
-                                                  std::ostream&                                       osError,
-                                                  std::ostream&                                       osWarn )
+    virtual void
+    parseEGSourceFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
+                       mega::input::Root*                                  pRoot,
+                       const std::vector< boost::filesystem::path >&       includeDirectories,
+                       std::ostream&                                       osError,
+                       std::ostream&                                       osWarn )
 
     {
-        ParserDiagnosticSystem pds( sourceDir, osError, osWarn );
+        boost::filesystem::path sourceDir = pRoot->getFilePath();
+        sourceDir.remove_filename();
 
-        std::shared_ptr< clang::FileManager >                pFileManager = get_clang_fileManager( pds );
-        llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine = get_llvm_diagnosticEngine( pds );
+        ParserDiagnosticSystem                pds( sourceDir, osError, osWarn );
+        std::shared_ptr< clang::FileManager > pFileManager = get_clang_fileManager( pds );
+        llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine
+            = get_llvm_diagnosticEngine( pds );
 
         // check file exists
-        if ( !boost::filesystem::exists( sourceFile ) )
+        if ( !boost::filesystem::exists( pRoot->getFilePath() ) )
         {
-            THROW_RTE( "File not found: " << sourceFile.string() );
+            THROW_RTE( "File not found: " << pRoot->getFilePath().string() );
         }
 
-        std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions = std::make_shared< clang::HeaderSearchOptions >();
+        std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions
+            = std::make_shared< clang::HeaderSearchOptions >();
         for ( const boost::filesystem::path& includeDir : includeDirectories )
         {
-            headerSearchOptions->AddPath( includeDir.native(), clang::frontend::Quoted, false, false );
-            // osWarn << "include directory: " << includeDir.native() << std::endl;
+            headerSearchOptions->AddPath(
+                includeDir.native(), clang::frontend::Quoted, false, false );
         }
 
-        Stuff stuff( headerSearchOptions, includeDirectories, pFileManager, pDiagnosticsEngine, sourceFile );
+        Stuff stuff( headerSearchOptions, includeDirectories, pFileManager, pDiagnosticsEngine,
+                     pRoot->getFilePath() );
 
         Parser parser( *stuff.pFileEntry,
                        *stuff.pPreprocessor,
@@ -1785,9 +1780,7 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                        pDiagnosticsEngine );
         parser.ConsumeToken();
 
-        mega::input::Root* pRoot = parser.parse_file( database, sourceFile );
-
-        return pRoot;
+        parser.parse_file( database, pRoot );
     }
 };
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;

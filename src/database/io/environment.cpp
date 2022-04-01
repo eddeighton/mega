@@ -18,8 +18,7 @@ namespace io
 
     using Path = Environment::Path;
 
-    Environment::Environment( const Path& rootSourceDir,
-                              const Path& rootBuildDir )
+    Environment::Environment( const Path& rootSourceDir, const Path& rootBuildDir )
         : m_rootSourceDir( rootSourceDir )
         , m_rootBuildDir( rootBuildDir )
     {
@@ -32,25 +31,13 @@ namespace io
         return m_rootBuildDir / boost::filesystem::relative( srcDir, m_rootSourceDir );
     }
 
-    Path Environment::stashDir() const
-    {
-        return m_rootBuildDir / "stash";
-    }
+    Path Environment::stashDir() const { return m_rootBuildDir / "stash"; }
 
-    Path Environment::rootSourceDir() const
-    {
-        return m_rootSourceDir;
-    }
+    Path Environment::rootSourceDir() const { return m_rootSourceDir; }
 
-    Path Environment::rootBuildDir() const
-    {
-        return m_rootBuildDir;
-    }
+    Path Environment::rootBuildDir() const { return m_rootBuildDir; }
 
-    Path Environment::project_manifest() const
-    {
-        return m_rootBuildDir / "project_manifest.txt";
-    }
+    Path Environment::project_manifest() const { return m_rootBuildDir / "project_manifest.txt"; }
 
     Path Environment::component() const
     {
@@ -73,13 +60,21 @@ namespace io
         return buildDir / "source_list.txt";
     }
 
+    Path Environment::dependency( const std::string& strOpaque ) const
+    {
+        std::ostringstream os;
+        os << strOpaque << MEGA_EXTENSION;
+        return Path( os.str() );
+    }
+
     Path Environment::objectAST( const Path& megaSourcePath ) const
     {
         VERIFY_RTE_MSG( boost::filesystem::is_regular_file( megaSourcePath ),
                         "Mega Source File is not regular file: " << megaSourcePath.string() );
         std::ostringstream os;
         os << megaSourcePath.filename().string() << ".ast" << DB_EXTENSION;
-        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( Path( megaSourcePath ).remove_filename() ) / os.str() );
+        return boost::filesystem::edsCannonicalise(
+            buildDirFromSrcDir( Path( megaSourcePath ).remove_filename() ) / os.str() );
     }
 
     Path Environment::objectBody( const Path& megaSourcePath ) const
@@ -88,7 +83,8 @@ namespace io
                         "Mega Source File is not regular file: " << megaSourcePath.string() );
         std::ostringstream os;
         os << megaSourcePath.filename().string() << ".body" << DB_EXTENSION;
-        return boost::filesystem::edsCannonicalise( buildDirFromSrcDir( Path( megaSourcePath ).remove_filename() ) / os.str() );
+        return boost::filesystem::edsCannonicalise(
+            buildDirFromSrcDir( Path( megaSourcePath ).remove_filename() ) / os.str() );
     }
 
 } // namespace io

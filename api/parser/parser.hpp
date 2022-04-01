@@ -45,12 +45,11 @@ namespace input
 
 struct EGDB_EXPORT EG_PARSER_INTERFACE
 {
-    virtual mega::input::Root* parseEGSourceFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
-                                                  const boost::filesystem::path&                      sourceDir,
-                                                  const boost::filesystem::path&                      sourceFile,
-                                                  const std::vector< boost::filesystem::path >&       includeDirectories,
-                                                  std::ostream&                                       osError,
-                                                  std::ostream&                                       osWarn )
+    virtual void parseEGSourceFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
+                                    mega::input::Root*                                  pRoot,
+                                    const std::vector< boost::filesystem::path >&       includeDirectories,
+                                    std::ostream&                                       osError,
+                                    std::ostream&                                       osWarn )
         = 0;
 };
 } // namespace mega
