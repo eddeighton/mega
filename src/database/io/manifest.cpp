@@ -80,6 +80,15 @@ namespace io
                 }
             }
         }
+
+        // generate the dependency analysis compilation file
+        {
+            const FileInfo fileInfo(
+                FileInfo::DependencyAnalysis,
+                fileIDCounter++,
+                environment.dependencyAnalysis() );
+            m_fileInfos.push_back( fileInfo );
+        }
     }
 
     void Manifest::load( const boost::filesystem::path& filepath )

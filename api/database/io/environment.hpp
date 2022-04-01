@@ -29,6 +29,7 @@ namespace io
 
         Path project_manifest() const;
         Path component() const;
+        Path dependencyAnalysis() const;
         Path source_list( const Path& srcDir ) const;
 
         Path objectAST( const Path& megaSource ) const;

@@ -54,7 +54,7 @@ namespace interface
     class BaseTask : public task::Task
     {
     public:
-        BaseTask( const mega::io::Environment& environment, task::Stash& stash, const RawPtrSet& dependencies )
+        BaseTask( const RawPtrSet& dependencies, const mega::io::Environment& environment, task::Stash& stash )
             : task::Task( dependencies )
             , m_environment( environment )
             , m_stash( stash )
@@ -81,19 +81,23 @@ namespace interface
     class Task_ParseAST : public BaseTask
     {
     public:
-        Task_ParseAST( const mega::io::Environment& environment, task::Stash& stash,
+        Task_ParseAST( const mega::io::Environment&             environment,
+                       task::Stash&                             stash,
                        const boost::filesystem::path&           parserDll,
                        const mega::io::FileInfo&                fileInfo,
                        const std::vector< mega::io::FileInfo >& fileInfos )
-            : BaseTask( environment, stash, {} )
+            : BaseTask( {}, environment, stash )
             , m_parserDLL( parserDll )
             , m_fileInfo( fileInfo )
             , m_fileInfos( fileInfos )
-            , m_database( environment, m_fileInfo.getFilePath() )
         {
         }
 
-        void parseInputFile( const mega::Component* pComponent, const boost::filesystem::path& sourceFilePath, std::ostream& osError, std::ostream& osWarn )
+        void parseInputFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
+                const mega::Component* pComponent, 
+                const boost::filesystem::path& sourceFilePath, 
+                std::ostream& osError, 
+                std::ostream& osWarn )
         {
             static boost::shared_ptr< mega::EG_PARSER_INTERFACE > pParserInterface;
             if ( !pParserInterface )
@@ -105,7 +109,7 @@ namespace interface
             boost::filesystem::path sourceFileFolder = sourceFilePath;
             sourceFileFolder.remove_filename();
 
-            mega::input::Root* pRoot = pParserInterface->parseEGSourceFile( m_database,
+            mega::input::Root* pRoot = pParserInterface->parseEGSourceFile( database,
                                                                             sourceFileFolder,
                                                                             sourceFilePath,
                                                                             pComponent->getIncludeDirectories(),
@@ -117,6 +121,8 @@ namespace interface
 
         virtual void run( task::Progress& taskProgress )
         {
+            mega::io::Database< mega::io::stage::ObjectParse > database( m_environment, m_fileInfo.getFilePath() );
+
             taskProgress.start( "Task_ParseAST",
                                 m_fileInfo.getFilePath(),
                                 m_environment.objectAST( m_fileInfo.getFilePath() ) );
@@ -125,7 +131,7 @@ namespace interface
 
             const mega::Component* pComponent = nullptr;
             {
-                for ( const mega::Component* pIter : m_database.many_cst< mega::Component >() )
+                for ( const mega::Component* pIter : database.many_cst< mega::Component >() )
                 {
                     for ( const boost::filesystem::path& sourceFile : pIter->getSourceFiles() )
                     {
@@ -139,7 +145,7 @@ namespace interface
                 VERIFY_RTE_MSG( pComponent, "Failed to locate component for source file: " << m_fileInfo.getFilePath() );
             }
 
-            parseInputFile( pComponent, m_fileInfo.getFilePath(), osError, osWarn );
+            parseInputFile( database, pComponent, m_fileInfo.getFilePath(), osError, osWarn );
 
             // greedy algorithm to parse transitive closure of include files
             {
@@ -148,12 +154,12 @@ namespace interface
                 {
                     bExhaustedAll = true;
 
-                    for ( mega::input::MegaInclude* pInclude : m_database.many< mega::input::MegaInclude >() )
+                    for ( mega::input::MegaInclude* pInclude : database.many< mega::input::MegaInclude >() )
                     {
                         FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->getIncludeFilePath() );
                         if ( iFind == m_rootFiles.end() )
                         {
-                            parseInputFile( pComponent, pInclude->getIncludeFilePath(), osError, osWarn );
+                            parseInputFile( database, pComponent, pInclude->getIncludeFilePath(), osError, osWarn );
                             bExhaustedAll = false;
                             break;
                         }
@@ -174,7 +180,7 @@ namespace interface
                     // Warning
                     taskProgress.msg( osWarn.str() );
                 }
-                m_database.store();
+                database.store();
                 taskProgress.succeeded();
             }
         }
@@ -182,12 +188,40 @@ namespace interface
         const mega::io::FileInfo&                m_fileInfo;
         const std::vector< mega::io::FileInfo >& m_fileInfos;
         const boost::filesystem::path            m_parserDLL;
-
-        mega::io::Database< mega::io::stage::ObjectParse > m_database;
-
         using FileRootMap = std::map< boost::filesystem::path, mega::input::Root* >;
-
         FileRootMap m_rootFiles;
+    };
+
+    class Task_DependencyAnalysis : public BaseTask
+    {
+    public:
+        Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks,
+                                 const mega::io::Environment& environment,
+                                 task::Stash&                 stash )
+            : BaseTask( parserTasks, environment, stash )
+        {
+        }
+
+        virtual void run( task::Progress& taskProgress )
+        {
+            mega::io::Database< mega::io::stage::DependencyAnalysis > database( m_environment );
+
+            taskProgress.start( "Task_DependencyAnalysis",
+                                m_environment.component(),
+                                m_environment.dependencyAnalysis() );
+
+            using namespace mega;
+
+            std::vector< const mega::Component* > components = database.many_cst< mega::Component >();
+
+            std::ostringstream os;
+            os << "Found " << components.size() << " components";
+            taskProgress.msg( os.str() );
+
+            database.store();
+            taskProgress.succeeded();
+        }
+
     };
 
     void command( bool bHelp, const std::vector< std::string >& args )
@@ -233,6 +267,7 @@ namespace interface
             mega::io::Manifest                manifest( projectManifestPath );
 
             task::Task::PtrVector tasks;
+            task::Task::RawPtrSet parserTasks;
             for ( const mega::io::FileInfo& fileInfo : manifest.getFileInfos() )
             {
                 switch ( fileInfo.getFileType() )
@@ -240,18 +275,19 @@ namespace interface
                 case mega::io::FileInfo::ObjectSourceFile:
                 {
                     Task_ParseAST* pTask = new Task_ParseAST( environment, stash, parserDll, fileInfo, manifest.getFileInfos() );
+                    parserTasks.insert( pTask );
                     tasks.push_back( task::Task::Ptr( pTask ) );
                 }
                 break;
-                case mega::io::FileInfo::Component:
-                case mega::io::FileInfo::ObjectAST:
-                case mega::io::FileInfo::ObjectBody:
-                case mega::io::FileInfo::TOTAL_FILE_TYPES:
-                    break;
                 default:
-                    THROW_RTE( "Unknown file type" );
+                    break;
                 }
             }
+
+            VERIFY_RTE_MSG( !tasks.empty(), "No input source code found" );
+
+            Task_DependencyAnalysis* pDependencyAnalysisTask = new Task_DependencyAnalysis( parserTasks, environment, stash );
+            tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
             task::run( pSchedule, std::cout );

@@ -101,6 +101,7 @@ namespace interface
             case eInputMegaInclude:
             case eInputCPPInclude:
             case eInputSystemInclude:
+            case eImport:
             case eInputUsing:
             case eInputExport:
             {
@@ -145,6 +146,8 @@ namespace interface
             case eInputCPPInclude:
             case eInputSystemInclude:
                 return dynamic_cast< input::Include* >( m_pElement )->getIdentifier();
+            case eImport:
+                return dynamic_cast< input::Import* >( m_pElement )->getIdentifier();
             case eInputUsing:
                 return dynamic_cast< input::Using* >( m_pElement )->getIdentifier();
             case eInputExport:
@@ -755,6 +758,7 @@ namespace interface
             case eInputMegaInclude:
             case eInputCPPInclude:
             case eInputSystemInclude:
+            case eImport:
                 break;
             case eInputContext:
             case eInputRoot:

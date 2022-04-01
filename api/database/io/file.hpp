@@ -1,9 +1,10 @@
 #ifndef INDEXED_FILE_25_MAR_2022
 #define INDEXED_FILE_25_MAR_2022
 
-#include "database/io/object_info.hpp"
+#include "object_info.hpp"
 #include "file_info.hpp"
 #include "object_info.hpp"
+#include "generics.hpp"
 #include "object.hpp"
 #include "loader.hpp"
 
@@ -59,16 +60,14 @@ namespace io
             return pNewObject;
         }
 
-        template < typename T, typename TFunctor >
-        inline auto collect( const TFunctor& functor )
+        inline Range< Object::Array::const_iterator > range() const
         {
-            return functor( m_objects );
+            return Range< Object::Array::const_iterator >( m_objects.cbegin(), m_objects.cend() );
         }
 
-        template < typename T, typename TFunctor >
-        inline auto collect( const TFunctor& functor ) const
+        inline Range< Object::Array::iterator > range()
         {
-            return functor( m_objects );
+            return Range< Object::Array::iterator >( m_objects.begin(), m_objects.end() );
         }
     };
 

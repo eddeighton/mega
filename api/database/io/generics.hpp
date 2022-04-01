@@ -3,130 +3,169 @@
 
 #include "object.hpp"
 
+#include <array>
+#include <iterator>
+
 namespace mega
 {
 namespace io
 {
-    template < typename T >
-    inline std::vector< T* > many( const Object::Array& objects )
+    template < typename Iterator >
+    struct Range
     {
-        std::vector< T* > found;
-        for ( Object* pObject : objects )
+        using iterator_type = Iterator;
+        Iterator _begin, _end;
+        Range( Iterator _begin, Iterator _end )
+            : _begin( _begin )
+            , _end( _end )
         {
-            if ( T* p = dynamic_cast< T* >( pObject ) )
-            {
-                found.push_back( p );
-            }
         }
-        return found;
-    }
+        Iterator begin() const { return _begin; }
+        Iterator end() const { return _end; }
 
-    template < typename T >
-    inline T* one( const Object::Array& objects )
-    {
-        std::vector< T* > found = many< T >( objects );
-        VERIFY_RTE( found.size() == 1U );
-        return found.front();
-    }
-
-    template < typename T >
-    inline T* oneOpt( const Object::Array& objects )
-    {
-        std::vector< T* > found = many< T >( objects );
-        if ( !found.empty() )
+        bool operator=( const Range& cmp ) const
         {
-            VERIFY_RTE( found.size() == 1U );
-            return found.front();
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
-
-    template < typename T >
-    inline T* root( const Object::Array& objects )
-    {
-        T* pFound = nullptr;
-        for ( Object* pObject : objects )
-        {
-            if ( T* p = dynamic_cast< T* >( pObject ) )
-            {
-                if ( p->getParent() == nullptr )
-                {
-                    VERIFY_RTE( pFound == nullptr );
-                    pFound = p;
-                }
-            }
-        }
-        VERIFY_RTE( pFound );
-        return pFound;
-    }
-
-    template < typename T >
-    inline std::vector< const T* > many_cst( const Object::Array& objects )
-    {
-        std::vector< const T* > found;
-        for ( Object* pObject : objects )
-        {
-            if ( const T* p = dynamic_cast< const T* >( pObject ) )
-            {
-                found.push_back( p );
-            }
-        }
-        return found;
-    }
-
-    template < typename T >
-    inline const T* one_cst( const Object::Array& objects )
-    {
-        std::vector< const T* > found = many< const T >( objects );
-        VERIFY_RTE( found.size() == 1U );
-        return found.front();
-    }
-
-    template < typename T >
-    inline const T* oneOpt_cst( const Object::Array& objects )
-    {
-        std::vector< const T* > found = many< const T >( objects );
-        if ( !found.empty() )
-        {
-            VERIFY_RTE( found.size() == 1U );
-            return found.front();
-        }
-        else
-        {
-            return nullptr;
-        }
-    }
-
-    template < typename T >
-    inline const T* root_cst( const Object::Array& objects )
-    {
-        const T* pFound = nullptr;
-        for ( const Object* pObject : objects )
-        {
-            if ( const T* p = dynamic_cast< const T* >( pObject ) )
-            {
-                if ( p->getParent() == nullptr )
-                {
-                    VERIFY_RTE( pFound == nullptr );
-                    pFound = p;
-                }
-            }
-        }
-        VERIFY_RTE( pFound );
-        return pFound;
-    }
-
-    struct CompareIndexedObjects
-    {
-        inline bool operator()( const Object* pLeft, const Object* pRight ) const
-        {
-            VERIFY_RTE( pLeft && pRight );
-            return ( pLeft->getFileID() != pRight->getFileID() ) ? ( pLeft->getFileID() < pRight->getFileID() ) : ( pLeft->getIndex() < pRight->getIndex() );
+            return _begin == cmp._begin && _end == cmp._end;
         }
     };
+
+    template < class IteratorType >
+    class MultiRangeIter : public std::iterator< std::forward_iterator_tag, typename IteratorType::value_type >
+    {
+    public:
+        using RangeType = Range< IteratorType >;
+        using RangeVector = std::vector< RangeType >;
+        using value_type = typename IteratorType::value_type;
+
+    private:
+        RangeVector  ranges;
+        std::size_t  szIndex = 0U;
+        IteratorType iter;
+
+    public:
+        inline MultiRangeIter()
+            : ranges( { RangeType{ IteratorType{}, IteratorType{} } } )
+            , szIndex( 0 )
+        {
+        }
+
+        inline MultiRangeIter( const MultiRangeIter& cpy )
+            : ranges( cpy.ranges )
+            , szIndex( cpy.szIndex )
+            , iter( cpy.iter )
+        {
+        }
+
+        inline MultiRangeIter( const RangeVector& iters )
+            : ranges( iters )
+            , szIndex( 0U )
+        {
+            while ( szIndex != ranges.size() )
+            {
+                iter = ranges[ szIndex ].begin();
+                if ( iter == ranges[ szIndex ].end() )
+                    ++szIndex;
+                else
+                    break;
+            }
+        }
+
+        inline MultiRangeIter( const RangeVector& iters, bool atEnd )
+            : ranges( iters )
+            , szIndex( ranges.size() )
+        {
+            if( !ranges.empty() )
+            {
+                iter = ranges.back().end();
+            }
+        }
+
+        inline MultiRangeIter& operator++()
+        {
+            ++iter;
+            while ( ( szIndex != ranges.size() ) && ( iter == ranges[ szIndex ].end() ) )
+            {
+                ++szIndex;
+                if ( szIndex != ranges.size() )
+                    iter = ranges[ szIndex ].begin();
+            }
+            return *this;
+        }
+
+        inline MultiRangeIter operator++( int )
+        {
+            MultiRangeIter tmp( *this );
+            this->         operator++();
+            return tmp;
+        }
+
+        inline bool operator==( const MultiRangeIter& rhs ) const
+        {
+            return ( szIndex == rhs.szIndex ) && ( ranges.size() == rhs.ranges.size() ) &&
+                   // NOTE: either the index is at end ( then does not matter if iter uninitialized
+                   // OR the iterators are exactly the same value ( and must be initialized )
+                   ( ( szIndex == ranges.size() ) || ( iter == rhs.iter ) );
+        }
+        inline bool operator!=( const MultiRangeIter& rhs ) const { return !( rhs == *this ); }
+
+        inline const value_type operator*() const
+        {
+            return *iter;
+        }
+    };
+
+    template < typename T, typename RangeType >
+    inline std::vector< T* > many( const RangeType& range )
+    {
+        std::vector< T* > found;
+        for ( auto value : range )
+        {
+            if ( T* p = dynamic_cast< T* >( value ) )
+            {
+                found.push_back( p );
+            }
+        }
+        return found;
+    }
+
+    template < typename T, typename RangeType >
+    inline T* one( const RangeType& range )
+    {
+        std::vector< T* > found = many< T >( range );
+        VERIFY_RTE( found.size() == 1U );
+        return found.front();
+    }
+
+    template < typename T, typename RangeType >
+    inline T* oneOpt( const RangeType& range )
+    {
+        std::vector< T* > found = many< T >( range );
+        VERIFY_RTE( found.size() <= 1U );
+        if( !found.empty() )
+            return found.back();
+        else
+            return nullptr;
+    }
+/*
+    template < typename T, typename RangeType >
+    inline T* root( const RangeType& range )
+    {
+        T* pFound = nullptr;
+        for ( auto value : range )
+        {
+            if ( T* p = dynamic_cast< T* >( value ) )
+            {
+                if ( p->getParent() == nullptr )
+                {
+                    VERIFY_RTE( pFound == nullptr );
+                    pFound = p;
+                }
+            }
+        }
+        VERIFY_RTE( pFound );
+        return pFound;
+    }*/
+
 } // namespace io
 } // namespace mega
 

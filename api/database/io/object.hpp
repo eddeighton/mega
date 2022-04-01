@@ -74,6 +74,15 @@ namespace io
         }
     };
 
+    struct CompareIndexedObjects
+    {
+        inline bool operator()( const Object* pLeft, const Object* pRight ) const
+        {
+            VERIFY_RTE( pLeft && pRight );
+            return ( pLeft->getFileID() != pRight->getFileID() ) ? ( pLeft->getFileID() < pRight->getFileID() ) : ( pLeft->getIndex() < pRight->getIndex() );
+        }
+    };
+    
 } // namespace io
 } // namespace mega
 

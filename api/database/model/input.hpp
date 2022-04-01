@@ -67,6 +67,7 @@ namespace input
 
     protected:
         Opaque( const io::ObjectInfo& object );
+        Opaque( const io::ObjectInfo& object, const std::string& strOpaque );
 
     public:
         const std::string& getStr() const { return m_str; }
@@ -85,6 +86,8 @@ namespace input
         friend class io::File;
 
     public:
+        HasIdentifier();
+        HasIdentifier( const std::string& strIdentifier );
         const std::string& getIdentifier() const { return m_strIdentifier; }
 
     protected:
@@ -244,7 +247,7 @@ namespace input
 
     protected:
         Include( const io::ObjectInfo& object );
-        Include( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+    Include( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
     public:
         const boost::filesystem::path& getIncludeFilePath() const { return m_path; }
@@ -268,7 +271,7 @@ namespace input
 
     protected:
         MegaInclude( const io::ObjectInfo& object );
-        MegaInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        MegaInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
@@ -284,7 +287,7 @@ namespace input
 
     protected:
         CPPInclude( const io::ObjectInfo& object );
-        CPPInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        CPPInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
@@ -300,10 +303,32 @@ namespace input
 
     protected:
         SystemInclude( const io::ObjectInfo& object );
-        SystemInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
+        SystemInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath );
 
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
+    };
+
+    class Import : public Element, public HasIdentifier
+    {
+        friend class io::Factory;
+        friend class io::File;
+    public:
+        static const ObjectType Type = eImport;
+
+    protected:
+        Import( const io::ObjectInfo& object );
+        Import( const io::ObjectInfo& object, const std::string& strIdenfier, const Opaque* pImport );
+
+    public:
+        const Opaque* getImport() const { return m_pImport; }
+
+        virtual void load( io::Loader& loader );
+        virtual void store( io::Storer& storer ) const;
+        void         print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const;
+
+    public:
+        const Opaque* m_pImport;
     };
 
     class Using : public Element, public HasIdentifier

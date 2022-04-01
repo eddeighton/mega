@@ -1,7 +1,8 @@
 #ifndef IO_FILE_SYSTEM_26_MAR_2022
 #define IO_FILE_SYSTEM_26_MAR_2022
 
-#include "database/io/file_info.hpp"
+#include "file_info.hpp"
+#include "generics.hpp"
 #include "environment.hpp"
 #include "file.hpp"
 #include "manifest.hpp"
@@ -14,13 +15,12 @@ namespace mega
 {
 namespace io
 {
-
     class FileSystem : public FileAccess
     {
         using FileMap = std::map< ObjectInfo::FileID, File::Ptr >;
         using FileMapCst = std::map< ObjectInfo::FileID, File::PtrCst >;
-    public:
 
+    public:
         FileSystem( const Environment& environment, std::optional< boost::filesystem::path > object )
             : m_environment( environment )
             , m_object( object )
@@ -32,12 +32,16 @@ namespace io
         {
             return m_manifest;
         }
-
+        
         template < typename TFileType >
-        inline File::PtrCst getReadableFile() const;
-
-        template < typename TFileType >
-        inline File::Ptr getWritableFile() const;
+        inline File::Ptr getWritableFile() const
+        {
+            File::Ptr               pFile;
+            FileMap::const_iterator iFind = m_writableFiles.find( getFileID< TFileType >() );
+            if ( iFind != m_writableFiles.end() )
+                pFile = iFind->second;
+            return pFile;
+        }
 
         template < typename TStage >
         inline void load();
@@ -47,15 +51,49 @@ namespace io
 
         virtual File::PtrCst getFile( ObjectInfo::FileID fileId ) const
         {
-            File::PtrCst                        pFile;
+            File::PtrCst            pFile;
             FileMap::const_iterator iFind = m_readableFiles.find( fileId );
             if ( iFind != m_readableFiles.end() )
                 pFile = iFind->second;
             return pFile;
         }
+
+        inline Range< MultiRangeIter< Object::Array::const_iterator > > range_cst() const
+        {
+            std::vector< Range< Object::Array::const_iterator > > ranges;
+            for ( FileMap::const_iterator i = m_readableFiles.begin(),
+                                          iEnd = m_readableFiles.end();
+                  i != iEnd;
+                  ++i )
+            {
+                ranges.push_back( static_cast< const File* >( i->second.get() )->range() );
+            }
+            return Range< MultiRangeIter< Object::Array::const_iterator > >(
+                MultiRangeIter< Object::Array::const_iterator >( ranges ),
+                MultiRangeIter< Object::Array::const_iterator >( ranges, true ) );
+        }
+
+        inline Range< MultiRangeIter< Object::Array::iterator > > range() const
+        {
+            std::vector< Range< Object::Array::iterator > > ranges;
+            for ( FileMap::const_iterator i = m_writableFiles.begin(),
+                                          iEnd = m_writableFiles.end();
+                  i != iEnd;
+                  ++i )
+            {
+                ranges.push_back( i->second->range() );
+            }
+            return Range< MultiRangeIter< Object::Array::iterator > >(
+                MultiRangeIter< Object::Array::iterator >( ranges ),
+                MultiRangeIter< Object::Array::iterator >( ranges, true ) );
+        }
+
     private:
         template < typename TFileType >
-        inline ObjectInfo::FileID getFileID() const;
+        inline ObjectInfo::FileID getFileID() const
+        {
+            return m_writableFileIDMap[ TFileType::Type ];
+        }
 
         template < typename TStage >
         inline void getReadableFiles();
@@ -68,31 +106,11 @@ namespace io
         std::optional< boost::filesystem::path > m_object;
         const Manifest                           m_manifest;
 
-        ObjectInfo::FileID m_fileIDs[ FileInfo::TOTAL_FILE_TYPES ] = { ObjectInfo::NO_FILE };
+        ObjectInfo::FileID m_writableFileIDMap[ FileInfo::TOTAL_FILE_TYPES ] = { ObjectInfo::NO_FILE };
 
         FileMap m_readableFiles;
         FileMap m_writableFiles;
     };
-
-    template < typename TFileType >
-    inline File::PtrCst FileSystem::getReadableFile() const
-    {
-        File::PtrCst                        pFile;
-        FileMap::const_iterator iFind = m_readableFiles.find( getFileID< TFileType >() );
-        if ( iFind != m_readableFiles.end() )
-            pFile = iFind->second;
-        return pFile;
-    }
-
-    template < typename TFileType >
-    inline File::Ptr FileSystem::getWritableFile() const
-    {
-        File::Ptr                           pFile;
-        FileMap::const_iterator iFind = m_writableFiles.find( getFileID< TFileType >() );
-        if ( iFind != m_writableFiles.end() )
-            pFile = iFind->second;
-        return pFile;
-    }
 
     template < typename TStage >
     inline void FileSystem::load()
@@ -100,16 +118,16 @@ namespace io
         getReadableFiles< TStage >();
         getWritableFiles< TStage >();
 
-        //load the readable files
+        // load the readable files
         for ( FileMap::const_iterator i = m_readableFiles.begin(),
-                                                  iEnd = m_readableFiles.end();
+                                      iEnd = m_readableFiles.end();
               i != iEnd;
               ++i )
         {
             i->second->preload( *this, m_manifest );
         }
         for ( FileMap::const_iterator i = m_readableFiles.begin(),
-                                                  iEnd = m_readableFiles.end();
+                                      iEnd = m_readableFiles.end();
               i != iEnd;
               ++i )
         {
@@ -121,7 +139,7 @@ namespace io
     inline void FileSystem::store() const
     {
         for ( FileMap::const_iterator i = m_writableFiles.begin(),
-                                                  iEnd = m_writableFiles.end();
+                                      iEnd = m_writableFiles.end();
               i != iEnd;
               ++i )
         {
@@ -129,7 +147,7 @@ namespace io
         }
     }
 
-    //stage::Component
+    // stage::Component
     template <>
     inline void FileSystem::getReadableFiles< stage::Component >()
     {
@@ -146,7 +164,7 @@ namespace io
             {
             case FileInfo::Component:
                 m_writableFiles.insert( std::make_pair( fileInfo.getFileID(), std::make_shared< file::Component >( fileInfo ) ) );
-                m_fileIDs[ FileInfo::Component ] = fileInfo.getFileID();
+                m_writableFileIDMap[ FileInfo::Component ] = fileInfo.getFileID();
                 break;
             default:
                 break;
@@ -154,7 +172,7 @@ namespace io
         }
     }
 
-    //stage::ObjectParse
+    // stage::ObjectParse
     template <>
     inline void FileSystem::getReadableFiles< stage::ObjectParse >()
     {
@@ -165,7 +183,6 @@ namespace io
             {
             case FileInfo::Component:
                 m_readableFiles.insert( std::make_pair( fileInfo.getFileID(), std::make_shared< file::Component >( fileInfo ) ) );
-                m_fileIDs[ FileInfo::Component ] = fileInfo.getFileID();
                 break;
             default:
                 break;
@@ -184,17 +201,13 @@ namespace io
             {
                 switch ( fileInfo.getFileType() )
                 {
-                case FileInfo::Component:
-                    break;
-                case FileInfo::ObjectSourceFile:
-                    break;
                 case FileInfo::ObjectAST:
                     m_writableFiles.insert( std::make_pair( fileInfo.getFileID(), std::make_shared< file::ObjectAST >( fileInfo ) ) );
-                    m_fileIDs[ FileInfo::ObjectAST ] = fileInfo.getFileID();
+                    m_writableFileIDMap[ FileInfo::ObjectAST ] = fileInfo.getFileID();
                     break;
                 case FileInfo::ObjectBody:
                     m_writableFiles.insert( std::make_pair( fileInfo.getFileID(), std::make_shared< file::ObjectBody >( fileInfo ) ) );
-                    m_fileIDs[ FileInfo::ObjectBody ] = fileInfo.getFileID();
+                    m_writableFileIDMap[ FileInfo::ObjectBody ] = fileInfo.getFileID();
                     break;
                 default:
                     break;
@@ -203,22 +216,47 @@ namespace io
         }
     }
 
+    // stage::DependencyAnalysis
     template <>
-    inline ObjectInfo::FileID FileSystem::getFileID< file::Component >() const
+    inline void FileSystem::getReadableFiles< stage::DependencyAnalysis >()
     {
-        return m_fileIDs[ FileInfo::Component ];
+        VERIFY_RTE( !m_object.has_value() );
+        for ( const FileInfo& fileInfo : m_manifest.getFileInfos() )
+        {
+            switch ( fileInfo.getFileType() )
+            {
+            case FileInfo::Component:
+                m_readableFiles.insert( std::make_pair( fileInfo.getFileID(), std::make_shared< file::Component >( fileInfo ) ) );
+                break;
+            case FileInfo::ObjectAST:
+                m_readableFiles.insert( std::make_pair( fileInfo.getFileID(), std::make_shared< file::ObjectAST >( fileInfo ) ) );
+                break;
+            case FileInfo::ObjectBody:
+                m_readableFiles.insert( std::make_pair( fileInfo.getFileID(), std::make_shared< file::ObjectBody >( fileInfo ) ) );
+                break;
+            default:
+                break;
+            }
+        }
     }
 
     template <>
-    inline ObjectInfo::FileID FileSystem::getFileID< file::ObjectAST >() const
+    inline void FileSystem::getWritableFiles< stage::DependencyAnalysis >()
     {
-        return m_fileIDs[ FileInfo::ObjectAST ];
-    }
+        VERIFY_RTE( !m_object.has_value() );
 
-    template <>
-    inline ObjectInfo::FileID FileSystem::getFileID< file::ObjectBody >() const
-    {
-        return m_fileIDs[ FileInfo::ObjectBody ];
+        for ( const FileInfo& fileInfo : m_manifest.getFileInfos() )
+        {
+            switch ( fileInfo.getFileType() )
+            {
+            case FileInfo::DependencyAnalysis:
+                m_writableFiles.insert( std::make_pair( fileInfo.getFileID(), std::make_shared< file::DependencyAnalysis >( fileInfo ) ) );
+                m_writableFileIDMap[ FileInfo::DependencyAnalysis ] = fileInfo.getFileID();
+                break;
+            default:
+                break;
+            }
+        }
     }
 
 } // namespace io

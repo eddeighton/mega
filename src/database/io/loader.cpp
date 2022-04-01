@@ -72,7 +72,7 @@ namespace io
             VERIFY_RTE_MSG( fileID != ObjectInfo::NO_FILE, "Failed to map fileID to valid file" );
 
             File::PtrCst pFile = m_fileAccess.getFile( fileID );
-            VERIFY_RTE_MSG( pFile, "Failed to find valid file for fileID" );
+            VERIFY_RTE_MSG( pFile, "Failed to find valid file for fileID: " << fileID );
 
             ObjectInfo::Index szIndex = ObjectInfo::NO_INDEX;
             load( szIndex );
@@ -82,5 +82,6 @@ namespace io
         }
         return pObject;
     }
+
 } // namespace io
 } // namespace mega

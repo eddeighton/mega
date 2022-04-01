@@ -82,8 +82,14 @@ namespace io
         T* loadObjectRef()
         {
             T* pObject = dynamic_cast< T* >( loadObjectRef() );
-            VERIFY_RTE_MSG( pObject, "Failed to load indexed object" );
+            VERIFY_RTE_MSG( pObject, "Failed to load object" );
             return pObject;
+        }
+
+        template < class T >
+        T* loadOptionalObjectRef()
+        {
+            return dynamic_cast< T* >( loadObjectRef() );
         }
 
         template < class T >

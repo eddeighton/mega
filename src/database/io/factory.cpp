@@ -78,6 +78,10 @@ namespace io
         case eInputSystemInclude:
             pObject = new input::MegaInclude( object );
             break;
+
+        case eImport:
+            pObject = new input::Import( object );
+            break;
         
         case eInputBody:
             pObject = new input::Body( object );

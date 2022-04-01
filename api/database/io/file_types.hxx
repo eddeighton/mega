@@ -1,4 +1,5 @@
+FILE_TYPE(ObjectSourceFile,Input)
 FILE_TYPE(Component,Component)
-FILE_TYPE(ObjectSourceFile,ObjectParse)
+FILE_TYPE(DependencyAnalysis,DependencyAnalysis)
 FILE_TYPE(ObjectAST,ObjectParse)
 FILE_TYPE(ObjectBody,ObjectParse)

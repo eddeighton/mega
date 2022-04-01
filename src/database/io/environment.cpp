@@ -59,6 +59,13 @@ namespace io
         return m_rootBuildDir / os.str();
     }
 
+    Path Environment::dependencyAnalysis() const
+    {
+        std::ostringstream os;
+        os << "dependencies" << DB_EXTENSION;
+        return m_rootBuildDir / os.str();
+    }
+
     Path Environment::source_list( const Path& buildDir ) const
     {
         VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDir ),

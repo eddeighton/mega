@@ -27,6 +27,15 @@ namespace mega
 namespace input
 {
 
+    HasIdentifier::HasIdentifier()
+    {
+    }
+
+    HasIdentifier::HasIdentifier( const std::string& strIdentifier )
+        : m_strIdentifier( strIdentifier )
+    {
+    }
+
     void HasIdentifier::load( io::Loader& loader )
     {
         loader.load( m_strIdentifier );
@@ -59,24 +68,24 @@ namespace input
 
     void HasDomain::load( io::Loader& loader )
     {
-        m_pSize = loader.loadObjectRef< Opaque >();
+        m_pSize = loader.loadOptionalObjectRef< Opaque >();
     }
 
     void HasDomain::store( io::Storer& storer ) const
     {
-        storer.storeObjectRef( m_pSize );
+        storer.storeOptionalObjectRef( m_pSize );
     }
 
     void HasParameters::load( io::Loader& loader )
     {
-        m_pReturnType = loader.loadObjectRef< Opaque >();
-        m_pParams = loader.loadObjectRef< Opaque >();
+        m_pReturnType = loader.loadOptionalObjectRef< Opaque >();
+        m_pParams = loader.loadOptionalObjectRef< Opaque >();
     }
 
     void HasParameters::store( io::Storer& storer ) const
     {
-        storer.storeObjectRef( m_pReturnType );
-        storer.storeObjectRef( m_pParams );
+        storer.storeOptionalObjectRef( m_pReturnType );
+        storer.storeOptionalObjectRef( m_pParams );
     }
 
     void HasDefinition::load( io::Loader& loader )
@@ -159,6 +168,12 @@ namespace input
     {
     }
 
+    Opaque::Opaque( const io::ObjectInfo& object, const std::string& strOpaque )
+        : Element( object )
+        , m_str( strOpaque )
+    {
+    }
+
     void Opaque::load( io::Loader& loader )
     {
         loader.load( m_str );
@@ -207,8 +222,9 @@ namespace input
         : Element( object )
     {
     }
-    Include::Include( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+    Include::Include( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
         : Element( object )
+        , HasIdentifier( strIdenfier )
         , m_strOpaque( strOpaque )
         , m_path( includeFilePath )
     {
@@ -240,8 +256,8 @@ namespace input
         : Include( object )
     {
     }
-    MegaInclude::MegaInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
-        : Include( object, strOpaque, includeFilePath )
+    MegaInclude::MegaInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+        : Include( object, strIdenfier, strOpaque, includeFilePath )
     {
     }
     void MegaInclude::load( io::Loader& loader )
@@ -258,8 +274,8 @@ namespace input
         : Include( object )
     {
     }
-    CPPInclude::CPPInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
-        : Include( object, strOpaque, includeFilePath )
+    CPPInclude::CPPInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+        : Include( object, strIdenfier, strOpaque, includeFilePath )
     {
     }
     void CPPInclude::load( io::Loader& loader )
@@ -276,8 +292,8 @@ namespace input
         : Include( object )
     {
     }
-    SystemInclude::SystemInclude( const io::ObjectInfo& object, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
-        : Include( object, strOpaque, includeFilePath )
+    SystemInclude::SystemInclude( const io::ObjectInfo& object, const std::string& strIdenfier, const std::string& strOpaque, const boost::filesystem::path& includeFilePath )
+        : Include( object, strIdenfier, strOpaque, includeFilePath )
     {
     }
     void SystemInclude::load( io::Loader& loader )
@@ -288,6 +304,40 @@ namespace input
     void SystemInclude::store( io::Storer& storer ) const
     {
         Include::store( storer );
+    }
+
+    Import::Import( const io::ObjectInfo& object )
+        : Element( object )
+        , m_pImport( nullptr )
+    {
+    }
+
+    Import::Import( const io::ObjectInfo& object, const std::string& strIdenfier, const Opaque* pImport )
+        : Element( object )
+        , HasIdentifier( strIdenfier )
+        , m_pImport( pImport )
+    {
+    }
+
+    void Import::load( io::Loader& loader )
+    {
+        HasIdentifier::load( loader );
+        m_pImport = loader.loadObjectRef< Opaque >();
+    }
+
+    void Import::store( io::Storer& storer ) const
+    {
+        HasIdentifier::store( storer );
+        storer.storeObjectRef( m_pImport );
+    }
+
+    void Import::print( std::ostream& os, std::string& strIndent, const std::string& strAnnotation ) const
+    {
+        VERIFY_RTE( m_pImport );
+        if ( m_strIdentifier.empty() )
+            os << strIndent << "import( " << m_pImport->getStr() << " );//" << strAnnotation << "\n";
+        else
+            os << strIndent << "import " << m_strIdentifier << "( " << m_pImport->getStr() << " );//" << strAnnotation << "\n";
     }
 
     Using::Using( const io::ObjectInfo& object )

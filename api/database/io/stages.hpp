@@ -2,6 +2,7 @@
 #ifndef STAGES_25_MAR_2022
 #define STAGES_25_MAR_2022
 
+#include "file_info.hpp"
 #include "file.hpp"
 
 #include "boost/filesystem/path.hpp"
@@ -15,7 +16,7 @@ namespace io
 {
     namespace stage
     {
-        
+
 // clang-format off
 #define STAGE_TYPE( stage )     \
         class stage            \
@@ -48,12 +49,13 @@ namespace io
         filetype( const FileInfo& fileInfo ) : StagedFile( fileInfo )  \
         {                                                              \
         }                                                              \
+        static const typename FileInfo::Type Type = FileInfo::filetype;\
     };
 #include "file_types.hxx"
 // clang-format on
 #undef FILE_TYPE
 
-    }
+    } // namespace file
 } // namespace io
 } // namespace mega
 

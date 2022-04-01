@@ -31,86 +31,51 @@ namespace io
             m_fileSystem.store< Stage >();
         }
         
-        template < typename T >
-        File::PtrCst getReadableFile() const
-        {
-            static_assert( std::is_class< typename T::FileType >::value, "Type missing FileType" );
-            File::PtrCst   pFile = m_fileSystem.getReadableFile< typename T::FileType >();
-            VERIFY_RTE_MSG( pFile,
-                            "Failed to get compilation file for " << typeid( T ).name() << " in stage: " << typeid( Stage ).name() );
-            return pFile;
-        }
-
-        template < typename T >
-        File::Ptr getWritableFile() const
-        {
-            static_assert( std::is_class< typename T::FileType >::value, "Type missing FileType" );
-            File::Ptr      pFile = m_fileSystem.getWritableFile< typename T::FileType >();
-            VERIFY_RTE_MSG( pFile,
-                            "Failed to get compilation file for " << typeid( T ).name() << " in stage: " << typeid( Stage ).name() );
-            return pFile;
-        }
-
         template < typename T, typename... Args >
         inline T* construct( Args... args )
         {
-            return getWritableFile< T >()->template construct< T, Args... >( args... );
-        }
+            static_assert( std::is_class< typename T::FileType >::value, "Type missing FileType" );
+            File::Ptr      pFile = m_fileSystem.getWritableFile< typename T::FileType >();
 
-        template < typename T >
-        inline std::vector< T* > many() const
-        {
-            return getWritableFile< T >()->template collect< T >( []( const Object::Array& objects )
-                                                                  { return io::many< T >( objects ); } );
+            VERIFY_RTE_MSG( pFile,
+                            "Failed to get compilation file for " << typeid( T ).name() << " in stage: " << typeid( Stage ).name() );
+            return pFile->template construct< T, Args... >( args... );
         }
 
         template < typename T >
         inline std::vector< const T* > many_cst() const
         {
-            return getReadableFile< T >()->template collect< T >( []( const Object::Array& objects )
-                                                                  { return io::many_cst< T >( objects ); } );
+            return io::many< const T >( m_fileSystem.range_cst() );
         }
 
         template < typename T >
-        inline T* one() const
+        inline std::vector< T* > many() const
         {
-            return getWritableFile< T >()->template collect< T >( []( const Object::Array& objects )
-                                                                  { return io::one< T >( objects ); } );
+            return io::many< T >( m_fileSystem.range() );
         }
 
         template < typename T >
-        inline const T* one_cst() const
+        inline std::vector< const T* > one_cst() const
         {
-            return getReadableFile< T >()->template collect< T >( []( const Object::Array& objects )
-                                                                  { return io::one_cst< T >( objects ); } );
+            return io::one< const T >( m_fileSystem.range_cst() );
         }
 
         template < typename T >
-        inline T* oneOpt() const
+        inline std::vector< T* > one() const
         {
-            return getWritableFile< T >()->template collect< T >( []( const Object::Array& objects )
-                                                                  { return io::oneOpt< T >( objects ); } );
+            return io::one< T >( m_fileSystem.range() );
         }
 
         template < typename T >
-        inline const T* oneOpt_cst() const
+        inline std::vector< const T* > one_opt_cst() const
         {
-            return getReadableFile< T >()->template collect< T >( []( const Object::Array& objects )
-                                                                  { return io::oneOpt_cst< T >( objects ); } );
+            return io::oneOpt< const T >( m_fileSystem.range_cst() );
         }
 
         template < typename T >
-        inline T* root() const
+        inline std::vector< T* > one_opt() const
         {
-            return getWritableFile< T >()->template collect< T >( []( const Object::Array& objects )
-                                                                  { return io::root< T >( objects ); } );
-        }
-
-        template < typename T >
-        inline const T* root_cst() const
-        {
-            return getReadableFile< T >()->template collect< T >( []( const Object::Array& objects )
-                                                                  { return io::root_cst< T >( objects ); } );
+            return io::oneOpt< T >( m_fileSystem.range() );
         }
 
     private:

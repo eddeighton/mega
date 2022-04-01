@@ -34,5 +34,25 @@ namespace io
         m_archive << m_manifest;
     }
 
+    void Storer::storeObjectRef( const Object* pObject )
+    {
+        // NOTE: this needs to match up with Loader::loadObjectRef()
+        VERIFY_RTE( pObject );
+        store( pObject->getFileID() );
+        store( pObject->getIndex() );
+    }
+
+    void Storer::storeOptionalObjectRef( const Object* pObject )
+    {
+        // NOTE: this needs to match up with Loader::loadObjectRef()
+        if ( pObject )
+        {
+            storeObjectRef( pObject );
+        }
+        else
+        {
+            store( ObjectInfo::NO_FILE );
+        }
+    }
 } // namespace io
 } // namespace mega

@@ -45,19 +45,9 @@ namespace io
     public:
         Storer( const boost::filesystem::path& filePath, const Manifest& manifest );
 
-        template< typename TObjectType >
-        void storeObjectRef( const TObjectType* pObject )
-        {
-            if ( pObject )
-            {
-                store( pObject->getIndex() );
-                store( pObject->getFileID() );
-            }
-            else
-            {
-                store( ObjectInfo::NO_INDEX );
-            }
-        }
+        void storeObjectRef( const Object* pObject );
+
+        void storeOptionalObjectRef( const Object* pObject );
 
         template < class T >
         inline void store( const T& value )
