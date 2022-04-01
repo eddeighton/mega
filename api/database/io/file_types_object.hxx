@@ -1,0 +1,5 @@
+FILE_TYPE( ObjectAST, Stage_ObjectParse )
+FILE_TYPE( ObjectBody, Stage_ObjectParse )
+FILE_TYPE( ObjectInterface, Stage_ObjectInterface )
+FILE_TYPE( ObjectCompile,  Stage_ObjectAnalysis )
+FILE_TYPE( ObjectAnalysis, Stage_ObjectAnalysis )

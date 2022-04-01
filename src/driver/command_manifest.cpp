@@ -51,7 +51,9 @@ namespace manifest
     class BaseTask : public task::Task
     {
     public:
-        BaseTask( const mega::io::Environment& environment, task::Stash& stash, const RawPtrSet& dependencies )
+        BaseTask( const mega::io::Environment& environment,
+                  task::Stash&                 stash,
+                  const RawPtrSet&             dependencies )
             : task::Task( dependencies )
             , m_environment( environment )
             , m_stash( stash )
@@ -77,11 +79,11 @@ namespace manifest
         }
         virtual void run( task::Progress& taskProgress )
         {
-            const mega::io::Environment::Path projectManifestPath = m_environment.project_manifest();
+            const mega::io::Environment::Path projectManifestPath
+                = m_environment.project_manifest();
 
-            taskProgress.start( "Task_GenerateManifest",
-                                m_environment.rootBuildDir(),
-                                projectManifestPath );
+            taskProgress.start(
+                "Task_GenerateManifest", m_environment.rootBuildDir(), projectManifestPath );
 
             const mega::io::Manifest manifest( m_environment, m_componentInfoPaths );
             manifest.save( projectManifestPath );
@@ -115,9 +117,9 @@ namespace manifest
 
             taskProgress.start( "Task_GenerateComponents",
                                 m_environment.rootBuildDir(),
-                                m_environment.component() );
+                                m_environment.Component() );
 
-            io::Database< io::stage::Component > database( m_environment );
+            io::Database< io::stage::Stage_Component > database( m_environment );
 
             for ( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
             {
@@ -125,12 +127,13 @@ namespace manifest
                 {
                     VERIFY_RTE_MSG( boost::filesystem::exists( componentInfoPath ),
                                     "Failed to locate file: " << componentInfoPath.string() );
-                    std::ifstream inputFileStream( componentInfoPath.native().c_str(), std::ios::in );
+                    std::ifstream inputFileStream(
+                        componentInfoPath.native().c_str(), std::ios::in | std::ios_base::binary );
                     if ( !inputFileStream.good() )
                     {
                         THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
                     }
-                    InputArchiveType ia(inputFileStream);
+                    InputArchiveType ia( inputFileStream );
                     ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
                 }
 
@@ -165,7 +168,8 @@ namespace manifest
         p.add( "components", -1 );
 
         po::variables_map vm;
-        po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
+        po::store(
+            po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
         po::notify( vm );
 
         if ( bHelp )
@@ -178,14 +182,17 @@ namespace manifest
 
             task::Stash stash( environment.stashDir() );
 
-            const std::vector< boost::filesystem::path > componentInfoPaths = pathListToFiles( parsePathList( strComponentInfoPaths ) );
+            const std::vector< boost::filesystem::path > componentInfoPaths
+                = pathListToFiles( parsePathList( strComponentInfoPaths ) );
 
             task::Task::PtrVector tasks;
 
-            Task_GenerateManifest* pTask = new Task_GenerateManifest( environment, stash, componentInfoPaths );
+            Task_GenerateManifest* pTask
+                = new Task_GenerateManifest( environment, stash, componentInfoPaths );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
-            Task_GenerateComponents* pTaskComponents = new Task_GenerateComponents( pTask, environment, stash, componentInfoPaths );
+            Task_GenerateComponents* pTaskComponents
+                = new Task_GenerateComponents( pTask, environment, stash, componentInfoPaths );
             tasks.push_back( task::Task::Ptr( pTaskComponents ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

@@ -12,34 +12,41 @@ namespace io
 
     void File::preload( const FileAccess& fileAccess, const Manifest& manifest )
     {
-        VERIFY_RTE( !m_pLoader );
-        m_pLoader = std::make_unique< Loader >( manifest, fileAccess, m_info.getFilePath() );
-
+        try
         {
-            std::size_t szNumObjects = 0U;
-            m_pLoader->load( szNumObjects );
-            m_objects.resize( szNumObjects );
-            for ( std::size_t sz = 0U; sz < szNumObjects; ++sz )
+            VERIFY_RTE( !m_pLoader );
+            m_pLoader = std::make_unique< Loader >( manifest, fileAccess, m_info.getFilePath() );
+
             {
-                ObjectInfo objectInfo;
-                m_pLoader->load( objectInfo );
+                std::size_t szNumObjects = 0U;
+                m_pLoader->load( szNumObjects );
+                m_objects.resize( szNumObjects );
+                for ( std::size_t sz = 0U; sz < szNumObjects; ++sz )
+                {
+                    ObjectInfo objectInfo;
+                    m_pLoader->load( objectInfo );
 
-                // map the stored fileID to the runtime file ID
-                // which basically means setting the fileID to this files
-                objectInfo = ObjectInfo( objectInfo.getType(), getFileID(), objectInfo.getIndex() );
+                    // map the stored fileID to the runtime file ID
+                    // which basically means setting the fileID to this files
+                    objectInfo = ObjectInfo( objectInfo.getType(), getFileID(), objectInfo.getIndex() );
 
-                // test the stored index is valid
-                VERIFY_RTE( objectInfo.getIndex() < m_objects.size() );
+                    // test the stored index is valid
+                    VERIFY_RTE( objectInfo.getIndex() < m_objects.size() );
 
-                // test the object NOT already created
-                Object* pObject = m_objects[ objectInfo.getIndex() ];
-                VERIFY_RTE( !pObject );
+                    // test the object NOT already created
+                    Object* pObject = m_objects[ objectInfo.getIndex() ];
+                    VERIFY_RTE( !pObject );
 
-                // create the object
-                pObject = Factory::create( objectInfo );
+                    // create the object
+                    pObject = Factory::create( objectInfo );
 
-                m_objects[ objectInfo.getIndex() ] = pObject;
+                    m_objects[ objectInfo.getIndex() ] = pObject;
+                }
             }
+        }
+        catch( boost::archive::archive_exception& ex )
+        {
+            THROW_RTE( "Exception from boost archive when loading: " << m_info.getFilePath().string() );
         }
     }
 

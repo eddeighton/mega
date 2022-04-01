@@ -43,7 +43,9 @@ namespace list
     class BaseTask : public task::Task
     {
     public:
-        BaseTask( const mega::io::Environment& environment, task::Stash& stash, const RawPtrSet& dependencies )
+        BaseTask( const mega::io::Environment& environment,
+                  task::Stash&                 stash,
+                  const RawPtrSet&             dependencies )
             : task::Task( dependencies )
             , m_environment( environment )
             , m_stash( stash )
@@ -58,13 +60,14 @@ namespace list
     class Task_ComponentInfoToManifest : public BaseTask
     {
     public:
-        Task_ComponentInfoToManifest( const mega::io::Environment&                  environment,
-                                      task::Stash&                                  stash,
-                                      const std::string&                            strComponentName,
-                                      const boost::filesystem::path&                srcDir,
-                                      const boost::filesystem::path&                buildDir,
-                                      const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
-                                      const std::vector< boost::filesystem::path >& includeDirectories )
+        Task_ComponentInfoToManifest(
+            const mega::io::Environment&                  environment,
+            task::Stash&                                  stash,
+            const std::string&                            strComponentName,
+            const boost::filesystem::path&                srcDir,
+            const boost::filesystem::path&                buildDir,
+            const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
+            const std::vector< boost::filesystem::path >& includeDirectories )
             : BaseTask( environment, stash, {} )
             , m_srcDir( srcDir )
             , m_buildDir( buildDir )
@@ -75,18 +78,18 @@ namespace list
         virtual void run( task::Progress& taskProgress )
         {
             // inputMegaSourceFiles
-            const mega::io::Environment::Path sourceListPath = m_environment.source_list( m_buildDir );
+            const mega::io::Environment::Path sourceListPath
+                = m_environment.source_list( m_buildDir );
 
-            taskProgress.start( "Task_ComponentInfoToManifest",
-                                m_srcDir,
-                                sourceListPath );
+            taskProgress.start( "Task_ComponentInfoToManifest", m_srcDir, sourceListPath );
 
-            std::ofstream outputFileStream( sourceListPath.native().c_str(), std::ios_base::trunc | std::ios_base::out );
+            std::ofstream outputFileStream(
+                sourceListPath.native().c_str(), std::ios_base::trunc | std::ios_base::out | std::ios_base::binary);
             if ( !outputFileStream.good() )
             {
                 THROW_RTE( "Failed to write to file: " << sourceListPath.string() );
             }
-            mega::OutputArchiveType oa(outputFileStream);
+            mega::OutputArchiveType oa( outputFileStream );
             oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
 
             taskProgress.succeeded();
@@ -124,7 +127,8 @@ namespace list
         p.add( "src", -1 );
 
         po::variables_map vm;
-        po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
+        po::store(
+            po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
         po::notify( vm );
 
         if ( bHelp )
@@ -134,8 +138,10 @@ namespace list
         else
         {
             // tokenize semi colon delimited names into absolute mega source file paths
-            const std::vector< boost::filesystem::path > inputSourceFiles = pathListToFiles( sourceDir, objectSourceFileNames );
-            const std::vector< boost::filesystem::path > includeDirectories = pathListToFolders( parsePathList( strIncludeDirectories ) );
+            const std::vector< boost::filesystem::path > inputSourceFiles
+                = pathListToFiles( sourceDir, objectSourceFileNames );
+            const std::vector< boost::filesystem::path > includeDirectories
+                = pathListToFolders( parsePathList( strIncludeDirectories ) );
 
             mega::io::Environment environment( rootSourceDir, rootBuildDir );
 
@@ -143,14 +149,14 @@ namespace list
 
             task::Task::PtrVector tasks;
 
-            Task_ComponentInfoToManifest* pTask = new Task_ComponentInfoToManifest(
-                environment,
-                stash,
-                strComponentName,
-                sourceDir,
-                buildDir,
-                inputSourceFiles,
-                includeDirectories );
+            Task_ComponentInfoToManifest* pTask
+                = new Task_ComponentInfoToManifest( environment,
+                                                    stash,
+                                                    strComponentName,
+                                                    sourceDir,
+                                                    buildDir,
+                                                    inputSourceFiles,
+                                                    includeDirectories );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

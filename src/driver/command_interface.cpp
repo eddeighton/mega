@@ -86,20 +86,20 @@ namespace interface
         Task_ParseAST( const mega::io::Environment&             environment,
                        task::Stash&                             stash,
                        const boost::filesystem::path&           parserDll,
-                       const mega::io::FileInfo&                fileInfo,
+                       const boost::filesystem::path&           sourceFilePath,
                        const std::vector< mega::io::FileInfo >& fileInfos )
             : BaseTask( {}, environment, stash )
             , m_parserDLL( parserDll )
-            , m_fileInfo( fileInfo )
+            , m_sourceFilePath( sourceFilePath )
             , m_fileInfos( fileInfos )
         {
         }
 
-        void parseInputFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
-                             const mega::Component*                              pComponent,
-                             mega::input::Root*                                  pRoot,
-                             std::ostream&                                       osError,
-                             std::ostream&                                       osWarn )
+        void parseInputFile( mega::io::Database< mega::io::stage::Stage_ObjectParse >& database,
+                             const mega::Component*                                    pComponent,
+                             mega::input::Root*                                        pRoot,
+                             std::ostream&                                             osError,
+                             std::ostream&                                             osWarn )
         {
             static boost::shared_ptr< mega::EG_PARSER_INTERFACE > pParserInterface;
             if ( !pParserInterface )
@@ -114,12 +114,11 @@ namespace interface
 
         virtual void run( task::Progress& taskProgress )
         {
-            mega::io::Database< mega::io::stage::ObjectParse > database(
-                m_environment, m_fileInfo.getFilePath() );
+            mega::io::Database< mega::io::stage::Stage_ObjectParse > database(
+                m_environment, m_sourceFilePath );
 
-            taskProgress.start( "Task_ParseAST",
-                                m_fileInfo.getFilePath(),
-                                m_environment.objectAST( m_fileInfo.getFilePath() ) );
+            taskProgress.start(
+                "Task_ParseAST", m_sourceFilePath, m_environment.ObjectAST( m_sourceFilePath ) );
 
             std::ostringstream osError, osWarn;
 
@@ -129,7 +128,7 @@ namespace interface
                 {
                     for ( const boost::filesystem::path& sourceFile : pIter->getSourceFiles() )
                     {
-                        if ( sourceFile == m_fileInfo.getFilePath() )
+                        if ( sourceFile == m_sourceFilePath )
                         {
                             pComponent = pIter;
                             break;
@@ -138,13 +137,13 @@ namespace interface
                 }
                 VERIFY_RTE_MSG(
                     pComponent,
-                    "Failed to locate component for source file: " << m_fileInfo.getFilePath() );
+                    "Failed to locate component for source file: " << m_sourceFilePath.string() );
             }
 
             mega::input::Root* pObjectSrcRoot = database.construct< mega::input::Root >(
-                pComponent, m_fileInfo.getFilePath(), mega::eObjectSrcRoot );
+                pComponent, m_sourceFilePath, mega::eObjectSrcRoot );
             parseInputFile( database, pComponent, pObjectSrcRoot, osError, osWarn );
-            m_rootFiles.insert( std::make_pair( m_fileInfo.getFilePath(), pObjectSrcRoot ) );
+            m_rootFiles.insert( std::make_pair( m_sourceFilePath, pObjectSrcRoot ) );
 
             // greedy algorithm to parse transitive closure of include files
             {
@@ -195,11 +194,39 @@ namespace interface
             }
         }
 
-        const mega::io::FileInfo&                m_fileInfo;
+        const boost::filesystem::path&           m_sourceFilePath;
         const std::vector< mega::io::FileInfo >& m_fileInfos;
         const boost::filesystem::path            m_parserDLL;
         using FileRootMap = std::map< boost::filesystem::path, mega::input::Root* >;
         FileRootMap m_rootFiles;
+    };
+
+    class Task_ObjectInterfaceGen : public BaseTask
+    {
+    public:
+        Task_ObjectInterfaceGen( task::Task::RawPtr             pDependency,
+                                 const mega::io::Environment&   environment,
+                                 task::Stash&                   stash,
+                                 const boost::filesystem::path& sourceFilePath )
+            : BaseTask( { pDependency }, environment, stash )
+            , m_sourceFilePath( sourceFilePath )
+        {
+        }
+
+        virtual void run( task::Progress& taskProgress )
+        {
+            mega::io::Database< mega::io::stage::Stage_ObjectInterface > database(
+                m_environment, m_sourceFilePath );
+
+            taskProgress.start( "Task_ObjectInterfaceGen",
+                                m_sourceFilePath,
+                                m_environment.ObjectInterface( m_sourceFilePath ) );
+
+            database.store();
+
+            taskProgress.succeeded();
+        }
+        const boost::filesystem::path& m_sourceFilePath;
     };
 
     class Task_DependencyAnalysis : public BaseTask
@@ -212,7 +239,8 @@ namespace interface
         {
         }
 
-        using DependencyMap = std::map< const mega::input::Dependency*, const mega::input::Root* >;
+        using DependencyMap = std::map< const mega::input::Dependency*, const mega::input::Root*,
+                                        mega::io::CompareIndexedObjects >;
 
         const mega::input::Root*
         resolveDependency( const std::vector< const mega::input::Root* >& roots,
@@ -301,7 +329,8 @@ namespace interface
         }
 
         using DependenciesMap
-            = std::multimap< const mega::input::Root*, const mega::input::Dependency* >;
+            = std::multimap< const mega::input::Root*, const mega::input::Dependency*,
+                             mega::io::CompareIndexedObjects >;
 
         void collectDependencies( const std::vector< const mega::input::Root* >& roots,
                                   const mega::input::Root*                       pRoot,
@@ -331,11 +360,12 @@ namespace interface
 
         virtual void run( task::Progress& taskProgress )
         {
-            mega::io::Database< mega::io::stage::DependencyAnalysis > database( m_environment );
+            mega::io::Database< mega::io::stage::Stage_DependencyAnalysis > database(
+                m_environment );
 
             taskProgress.start( "Task_DependencyAnalysis",
-                                m_environment.component(),
-                                m_environment.dependencyAnalysis() );
+                                m_environment.Component(),
+                                m_environment.DependencyAnalysis() );
 
             using namespace mega;
 
@@ -372,9 +402,9 @@ namespace interface
                         auto iFind = dependencyMap.find( i->second );
                         VERIFY_RTE( iFind != dependencyMap.end() );
                         pDA->m_dependencies.insert( std::make_pair( pRoot, iFind->second ) );
-                        std::ostringstream os;
-                        os << pRoot->getFilePath() << "->" << iFind->second->getFilePath();
-                        taskProgress.msg( os.str() );
+                        // std::ostringstream os;
+                        // os << pRoot->getFilePath() << "->" << iFind->second->getFilePath();
+                        // taskProgress.msg( os.str() );
                     }
                 }
             }
@@ -382,6 +412,46 @@ namespace interface
             database.store();
             taskProgress.succeeded();
         }
+    };
+
+    class Task_ObjectInterfaceAnalysis : public BaseTask
+    {
+    public:
+        Task_ObjectInterfaceAnalysis( task::Task::RawPtrSet          dependencies,
+                                      const mega::io::Environment&   environment,
+                                      task::Stash&                   stash,
+                                      const boost::filesystem::path& sourceFilePath )
+            : BaseTask( dependencies, environment, stash )
+            , m_sourceFilePath( sourceFilePath )
+        {
+        }
+
+        virtual bool isReady( const RawPtrSet& finished )
+        {
+            if ( BaseTask::isReady( finished ) )
+            {
+                // determine if dependency tasks are completed...
+
+                return true;
+            }
+
+            return false;
+        }
+
+        virtual void run( task::Progress& taskProgress )
+        {
+            mega::io::Database< mega::io::stage::Stage_ObjectAnalysis > database(
+                m_environment, m_sourceFilePath );
+
+            taskProgress.start( "Task_ObjectInterfaceAnalysis",
+                                m_sourceFilePath,
+                                m_environment.ObjectInterface( m_sourceFilePath ) );
+
+            database.store();
+
+            taskProgress.succeeded();
+        }
+        const boost::filesystem::path& m_sourceFilePath;
     };
 
     void command( bool bHelp, const std::vector< std::string >& args )
@@ -428,28 +498,34 @@ namespace interface
 
             task::Task::PtrVector tasks;
             task::Task::RawPtrSet parserTasks;
-            for ( const mega::io::FileInfo& fileInfo : manifest.getFileInfos() )
+            task::Task::RawPtrSet interfaceGenTasks;
+            for ( const boost::filesystem::path& sourceFilePath : manifest.getSourceFiles() )
             {
-                switch ( fileInfo.getFileType() )
-                {
-                    case mega::io::FileInfo::ObjectSourceFile:
-                    {
-                        Task_ParseAST* pTask = new Task_ParseAST(
-                            environment, stash, parserDll, fileInfo, manifest.getFileInfos() );
-                        parserTasks.insert( pTask );
-                        tasks.push_back( task::Task::Ptr( pTask ) );
-                    }
-                    break;
-                    default:
-                        break;
-                }
+                Task_ParseAST* pTask
+                    = new Task_ParseAST( environment, stash, parserDll, sourceFilePath,
+                                         manifest.getCompilationFileInfos() );
+                parserTasks.insert( pTask );
+                tasks.push_back( task::Task::Ptr( pTask ) );
+
+                Task_ObjectInterfaceGen* pInterfaceGenTask
+                    = new Task_ObjectInterfaceGen( pTask, environment, stash, sourceFilePath );
+                interfaceGenTasks.insert( pInterfaceGenTask );
+                tasks.push_back( task::Task::Ptr( pInterfaceGenTask ) );
             }
 
             VERIFY_RTE_MSG( !tasks.empty(), "No input source code found" );
 
             Task_DependencyAnalysis* pDependencyAnalysisTask
-                = new Task_DependencyAnalysis( parserTasks, environment, stash );
+                = new Task_DependencyAnalysis( interfaceGenTasks, environment, stash );
             tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
+
+            for ( const boost::filesystem::path& sourceFilePath : manifest.getSourceFiles() )
+            {
+                Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis
+                    = new Task_ObjectInterfaceAnalysis(
+                        { pDependencyAnalysisTask }, environment, stash, sourceFilePath );
+                tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
+            }
 
             task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
             task::run( pSchedule, std::cout );

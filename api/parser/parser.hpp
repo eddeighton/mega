@@ -33,7 +33,7 @@ namespace io
     class FileInfo;
     namespace stage
     {
-        class ObjectParse;
+        class Stage_ObjectParse;
     }
     template < typename T >
     class Database;
@@ -45,11 +45,12 @@ namespace input
 
 struct EGDB_EXPORT EG_PARSER_INTERFACE
 {
-    virtual void parseEGSourceFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
-                                    mega::input::Root*                                  pRoot,
-                                    const std::vector< boost::filesystem::path >&       includeDirectories,
-                                    std::ostream&                                       osError,
-                                    std::ostream&                                       osWarn )
+    virtual void
+    parseEGSourceFile( mega::io::Database< mega::io::stage::Stage_ObjectParse >& database,
+                       mega::input::Root*                                        pRoot,
+                       const std::vector< boost::filesystem::path >&             includeDirectories,
+                       std::ostream&                                             osError,
+                       std::ostream&                                             osWarn )
         = 0;
 };
 } // namespace mega

@@ -55,25 +55,25 @@ namespace io
         }
 
         template < typename T >
-        inline std::vector< const T* > one_cst() const
+        inline const T* one_cst() const
         {
             return io::one< const T >( m_fileSystem.range_cst() );
         }
 
         template < typename T >
-        inline std::vector< T* > one() const
+        inline T* one() const
         {
             return io::one< T >( m_fileSystem.range() );
         }
 
         template < typename T >
-        inline std::vector< const T* > one_opt_cst() const
+        inline const T* one_opt_cst() const
         {
             return io::oneOpt< const T >( m_fileSystem.range_cst() );
         }
 
         template < typename T >
-        inline std::vector< T* > one_opt() const
+        inline T* one_opt() const
         {
             return io::oneOpt< T >( m_fileSystem.range() );
         }

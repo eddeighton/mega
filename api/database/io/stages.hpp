@@ -16,11 +16,11 @@ namespace io
 {
     namespace stage
     {
-
 // clang-format off
-#define STAGE_TYPE( stage )     \
-        class stage            \
-        {                       \
+#define STAGE_TYPE( stage )                                         \
+        struct stage                                                \
+        {                                                           \
+            static const FileInfo::Stage Stage = FileInfo::stage;   \
         };
 #include "stage_types.hxx"
 // clang-format on
@@ -42,16 +42,17 @@ namespace io
     {
 
 // clang-format off
-#define FILE_TYPE( filetype, stage_name )                              \
-    class filetype : public StagedFile< stage::stage_name >            \
-    {                                                                  \
-    public:                                                            \
-        filetype( const FileInfo& fileInfo ) : StagedFile( fileInfo )  \
-        {                                                              \
-        }                                                              \
-        static const typename FileInfo::Type Type = FileInfo::filetype;\
+#define FILE_TYPE( filetype, stagetype )                                \
+    class filetype : public StagedFile< stage::stagetype >              \
+    {                                                                   \
+    public:                                                             \
+        filetype( const FileInfo& fileInfo ) : StagedFile( fileInfo )   \
+        {                                                               \
+        }                                                               \
+        static const typename FileInfo::Type Type = FileInfo::filetype; \
     };
-#include "file_types.hxx"
+#include "file_types_global.hxx"
+#include "file_types_object.hxx"
 // clang-format on
 #undef FILE_TYPE
 

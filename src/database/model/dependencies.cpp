@@ -12,7 +12,6 @@ DependencyAnalysis::DependencyAnalysis( const io::ObjectInfo& object )
 void DependencyAnalysis::load( io::Loader& loader )
 {
     loader.loadObjectMap( m_dependencies );
-
 }
 
 void DependencyAnalysis::store( io::Storer& storer ) const

@@ -19,14 +19,25 @@ namespace io
 
     public:
         // clang-format off
-        enum Type
+        enum Stage
         {
-            #define FILE_TYPE( filetype, stage ) filetype,
-            #include "file_types.hxx"
-            #undef FILE_TYPE
-            TOTAL_FILE_TYPES
+#define STAGE_TYPE( stagetype ) stagetype,
+#include "stage_types.hxx"
+#undef STAGE_TYPE
+            TOTAL_STAGE_TYPES
         };
         // clang-format on
+
+        // clang-format off
+        // clang-format on
+        enum Type
+        {
+#define FILE_TYPE( filetype, stage ) filetype,
+#include "file_types_global.hxx"
+#include "file_types_object.hxx"
+#undef FILE_TYPE
+            TOTAL_FILE_TYPES
+        };
 
         inline bool operator==( const FileInfo& cmp ) const
         {
@@ -44,21 +55,19 @@ namespace io
     public:
         FileInfo();
 
-        FileInfo(
-            Type                           fileType,
-            ObjectInfo::FileID             fileID,
-            const boost::filesystem::path& filePath );
+        FileInfo( Type                           fileType,
+                  ObjectInfo::FileID             fileID,
+                  const boost::filesystem::path& filePath );
 
-        FileInfo(
-            Type                           fileType,
-            ObjectInfo::FileID             fileID,
-            const boost::filesystem::path& filePath,
-            const boost::filesystem::path& objectSourceFilePath );
+        FileInfo( Type                           fileType,
+                  ObjectInfo::FileID             fileID,
+                  const boost::filesystem::path& filePath,
+                  const boost::filesystem::path& objectSourceFilePath );
 
         Type                           getFileType() const { return m_fileType; }
         ObjectInfo::FileID             getFileID() const { return m_fileID; }
         const boost::filesystem::path& getFilePath() const { return m_filePath; }
-        const OptionalPath&            getObjectSourceFilePath() const { return m_objectSourceFilePath; }
+        const OptionalPath& getObjectSourceFilePath() const { return m_objectSourceFilePath; }
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
@@ -66,7 +75,8 @@ namespace io
             archive& boost::serialization::make_nvp( "fileType", m_fileType );
             archive& boost::serialization::make_nvp( "fileID", m_fileID );
             archive& boost::serialization::make_nvp( "filePath", m_filePath );
-            archive& boost::serialization::make_nvp( "objectSourceFilePath", m_objectSourceFilePath );
+            archive& boost::serialization::make_nvp(
+                "objectSourceFilePath", m_objectSourceFilePath );
         }
 
     private:

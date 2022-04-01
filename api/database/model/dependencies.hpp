@@ -17,7 +17,7 @@ class DependencyAnalysis : public io::FileObject< io::file::DependencyAnalysis >
     friend class io::File;
     friend class io::Factory;
     using Base = io::FileObject< io::file::DependencyAnalysis >;
-    using DependencyGraph = std::multimap< const input::Root*, const input::Root* >;
+    using DependencyGraph = std::multimap< const input::Root*, const input::Root*, io::CompareIndexedObjects >;
 
 protected:
     DependencyAnalysis( const io::ObjectInfo& object );
@@ -28,9 +28,7 @@ public:
     virtual void load( io::Loader& loader );
     virtual void store( io::Storer& storer ) const;
 
-
     DependencyGraph m_dependencies;
-
 };
 
 } // namespace mega

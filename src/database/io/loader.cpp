@@ -27,7 +27,8 @@ namespace mega
 {
 namespace io
 {
-    Loader::Loader( const Manifest& manifest, const FileAccess& fileAccess, const boost::filesystem::path& filePath )
+    Loader::Loader( const Manifest& manifest, const FileAccess& fileAccess,
+                    const boost::filesystem::path& filePath )
         : m_runtimeManifest( manifest )
         , m_fileAccess( fileAccess )
         , m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
@@ -36,9 +37,10 @@ namespace io
         Manifest loadedManifest;
         m_archive >> loadedManifest;
 
-        // calculate mapping from the old fileIDs in the file to the new runtime ones in the m_runtimeManifest
+        // calculate mapping from the old fileIDs in the file to the new runtime ones in the
+        // m_runtimeManifest
         std::size_t szHighest = 0U;
-        for ( const FileInfo& fileInfo : loadedManifest.getFileInfos() )
+        for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
         {
             if ( fileInfo.getFileID() + 1 > szHighest )
             {
@@ -47,13 +49,16 @@ namespace io
         }
         m_fileIDLoadedToRuntime.resize( szHighest, ObjectInfo::NO_FILE );
 
-        for ( const FileInfo& fileInfo : loadedManifest.getFileInfos() )
+        for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
         {
-            for ( const FileInfo& runtimeFileInfo : m_runtimeManifest.getFileInfos() )
+            for ( const FileInfo& runtimeFileInfo : m_runtimeManifest.getCompilationFileInfos() )
             {
                 if ( runtimeFileInfo.getFilePath() == fileInfo.getFilePath() )
                 {
-                    m_fileIDLoadedToRuntime[ fileInfo.getFileID() ] = runtimeFileInfo.getFileID();
+                    VERIFY_RTE( fileInfo.getFileID() != ObjectInfo::NO_FILE );
+                    VERIFY_RTE( runtimeFileInfo.getFileID() != ObjectInfo::NO_FILE );
+                    m_fileIDLoadedToRuntime[ fileInfo.getFileID() ]
+                        = runtimeFileInfo.getFileID();
                     break;
                 }
             }

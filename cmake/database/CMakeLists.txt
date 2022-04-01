@@ -141,6 +141,11 @@ install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION
 
 
 add_c_preprocessor_command( OUTPUT stages.hpp.i SOURCE ${MEGA_API_DIR}/database/io/stages.hpp TARGET database )
-add_custom_target( PreprocessXMacros
+add_custom_target( PreprocessStages
 	SOURCES stages.hpp.i
 	COMMENT "Proprocessing stages.hpp")
+
+add_c_preprocessor_command( OUTPUT file_system.hpp.i SOURCE ${MEGA_API_DIR}/database/io/file_system.hpp TARGET database )
+add_custom_target( PreprocessFileSystem
+    SOURCES file_system.hpp.i
+    COMMENT "Proprocessing file_system.hpp")

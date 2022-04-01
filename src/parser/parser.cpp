@@ -789,7 +789,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
     // high level parsing utility functions
-    using Database = mega::io::Database< mega::io::stage::ObjectParse >;
+    using Database = mega::io::Database< mega::io::stage::Stage_ObjectParse >;
 
     void parse_identifier( std::string& strIdentifier )
     {
@@ -1168,7 +1168,7 @@ public:
 
         parse_semicolon();
 
-        //const boost::filesystem::path filePath = resolveFilePath( strImport );
+        // const boost::filesystem::path filePath = resolveFilePath( strImport );
 
         input::Opaque*     pOpaque = session.construct< input::Opaque >( strImport );
         input::Dependency* pDependency
@@ -1740,11 +1740,11 @@ struct Stuff
 struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 {
     virtual void
-    parseEGSourceFile( mega::io::Database< mega::io::stage::ObjectParse >& database,
-                       mega::input::Root*                                  pRoot,
-                       const std::vector< boost::filesystem::path >&       includeDirectories,
-                       std::ostream&                                       osError,
-                       std::ostream&                                       osWarn )
+    parseEGSourceFile( mega::io::Database< mega::io::stage::Stage_ObjectParse >& database,
+                       mega::input::Root*                                        pRoot,
+                       const std::vector< boost::filesystem::path >&             includeDirectories,
+                       std::ostream&                                             osError,
+                       std::ostream&                                             osWarn )
 
     {
         boost::filesystem::path sourceDir = pRoot->getFilePath();

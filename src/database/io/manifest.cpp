@@ -16,26 +16,14 @@ namespace mega
 namespace io
 {
 
-    Manifest::Manifest()
-    {
-    }
+    Manifest::Manifest() {}
 
-    Manifest::Manifest( const boost::filesystem::path& filepath )
+    Manifest::Manifest( const boost::filesystem::path& filepath ) { load( filepath ); }
+    Manifest::Manifest( const Environment&                            environment,
+                        const std::vector< boost::filesystem::path >& componentInfos )
     {
-        load( filepath );
-    }
-    Manifest::Manifest( const Environment& environment, const std::vector< boost::filesystem::path >& componentInfos )
-    {
-        ObjectInfo::FileID fileIDCounter = 0;
-
-        // generate the component compilation file
-        {
-            const FileInfo fileInfo(
-                FileInfo::Component,
-                fileIDCounter++,
-                environment.component() );
-            m_fileInfos.push_back( fileInfo );
-        }
+        ObjectInfo::FileID sourceFileID = 0;
+        ObjectInfo::FileID compilationFileID = 0;
 
         for ( const boost::filesystem::path& componentInfoPath : componentInfos )
         {
@@ -43,7 +31,7 @@ namespace io
             {
                 VERIFY_RTE_MSG( boost::filesystem::exists( componentInfoPath ),
                                 "Failed to locate file: " << componentInfoPath.string() );
-                std::ifstream inputFileStream( componentInfoPath.native().c_str(), std::ios::in );
+                std::ifstream inputFileStream( componentInfoPath.native().c_str(), std::ios::in | std::ios_base::binary );
                 if ( !inputFileStream.good() )
                 {
                     THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
@@ -54,48 +42,43 @@ namespace io
 
             for ( const boost::filesystem::path& sourceFilePath : componentInfo.getSourceFiles() )
             {
-                const FileInfo fileInfo(
-                    FileInfo::ObjectSourceFile,
-                    fileIDCounter++,
-                    sourceFilePath,
-                    sourceFilePath );
-                m_fileInfos.push_back( fileInfo );
-
                 {
-                    FileInfo compilationFile(
-                        FileInfo::ObjectAST,
-                        fileIDCounter++,
-                        environment.objectAST( fileInfo.getFilePath() ),
-                        fileInfo.getFilePath() );
-                    m_fileInfos.push_back( compilationFile );
+                    m_sourceFiles.push_back( sourceFilePath );
                 }
 
-                {
-                    FileInfo compilationFile(
-                        FileInfo::ObjectBody,
-                        fileIDCounter++,
-                        environment.objectBody( fileInfo.getFilePath() ),
-                        fileInfo.getFilePath() );
-                    m_fileInfos.push_back( compilationFile );
-                }
+// clang-format off
+// clang-format on
+#define FILE_TYPE( filetype, stagetype )                                  \
+    {                                                                     \
+        FileInfo compilationFile( FileInfo::filetype,                     \
+                                  compilationFileID++,                    \
+                                  environment.filetype( sourceFilePath ), \
+                                  sourceFilePath );                       \
+        m_compilationFileInfos.push_back( compilationFile );              \
+    }
+#include "database/io/file_types_object.hxx"
+#undef FILE_TYPE
             }
         }
 
-        // generate the dependency analysis compilation file
-        {
-            const FileInfo fileInfo(
-                FileInfo::DependencyAnalysis,
-                fileIDCounter++,
-                environment.dependencyAnalysis() );
-            m_fileInfos.push_back( fileInfo );
-        }
+// clang-format off
+// clang-format on
+#define FILE_TYPE( filetype, stagetype )                                       \
+    {                                                                          \
+        FileInfo compilationFile(                                              \
+            FileInfo::filetype, compilationFileID++, environment.filetype() ); \
+        m_compilationFileInfos.push_back( compilationFile );                   \
     }
+#include "database/io/file_types_global.hxx"
+#undef FILE_TYPE
+
+    } // namespace io
 
     void Manifest::load( const boost::filesystem::path& filepath )
     {
-        VERIFY_RTE_MSG( boost::filesystem::exists( filepath ),
-                        "Failed to locate file: " << filepath.string() );
-        std::ifstream inputFileStream( filepath.native().c_str(), std::ios::in );
+        VERIFY_RTE_MSG(
+            boost::filesystem::exists( filepath ), "Failed to locate file: " << filepath.string() );
+        std::ifstream inputFileStream( filepath.native().c_str(), std::ios::in | std::ios_base::binary );
         if ( !inputFileStream.good() )
         {
             THROW_RTE( "Failed to open file: " << filepath.string() );
@@ -106,7 +89,8 @@ namespace io
 
     void Manifest::save( const boost::filesystem::path& filepath ) const
     {
-        std::ofstream outputFileStream( filepath.native().c_str(), std::ios_base::trunc | std::ios_base::out );
+        std::ofstream outputFileStream(
+            filepath.native().c_str(), std::ios_base::trunc | std::ios_base::out | std::ios_base::binary );
         if ( !outputFileStream.good() )
         {
             THROW_RTE( "Failed to write to file: " << filepath.string() );
