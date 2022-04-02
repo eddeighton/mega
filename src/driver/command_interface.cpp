@@ -17,6 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "database/model/interface.hpp"
 #include "parser/parser.hpp"
 
 #include "database/model/input.hpp"
@@ -213,6 +214,41 @@ namespace interface
         {
         }
 
+        using DatabaseType = mega::io::Database< mega::io::stage::Stage_ObjectInterface >;
+
+        void buildInterface( DatabaseType&               database,
+                             const mega::input::Element* pInput,
+                             mega::interface::Element*   pInterface )
+        {
+            using namespace mega;
+            switch ( pInput->getType() )
+            {
+                case eInputOpaque:
+                case eInputDimension:
+                case eInputUsing:
+                case eInputExport:
+                case eInputVisibility:
+                case eInputMegaInclude:
+                case eInputCPPInclude:
+                case eInputSystemInclude:
+                case eInputDependency:
+                    break;
+                case eInputContext:
+                case eInputRoot:
+                {
+                    const input::Context* pContext
+                        = dynamic_cast< const input::Context* >( pInput );
+                    VERIFY_RTE( pContext );
+
+                    for ( const input::Element* pChildElement : pContext->getElements() )
+                    {
+                        buildInterface( database, pChildElement, pInterface );
+                    }
+                }
+                break;
+            }
+        }
+
         virtual void run( task::Progress& taskProgress )
         {
             mega::io::Database< mega::io::stage::Stage_ObjectInterface > database(
@@ -221,6 +257,22 @@ namespace interface
             taskProgress.start( "Task_ObjectInterfaceGen",
                                 m_sourceFilePath,
                                 m_environment.ObjectInterface( m_sourceFilePath ) );
+
+            const mega::input::Root* pRoot = nullptr;
+            for ( const mega::input::Root* pIter : database.many_cst< mega::input::Root >() )
+            {
+                if ( pIter->getFilePath() == m_sourceFilePath )
+                {
+                    pRoot = pIter;
+                    break;
+                }
+            }
+            VERIFY_RTE( pRoot );
+
+            //mega::interface::Root* pInterfaceRoot
+            //    = database.construct< mega::interface::Root >( pRoot, mega::eVisPublic );
+
+            //buildInterface( database, pRoot, pInterfaceRoot );
 
             database.store();
 

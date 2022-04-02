@@ -20,8 +20,10 @@
 #ifndef ABSTRACT_TREE_18_04_2019
 #define ABSTRACT_TREE_18_04_2019
 
+#include "database/io/object.hpp"
 #include "input.hpp"
 
+#include "database/io/stages.hpp"
 #include "database/io/generics.hpp"
 
 #include <set>
@@ -45,181 +47,153 @@ namespace Stages
 
 namespace interface
 {
-    class Element : public io::Object
+    class Element : public io::FileObject< io::file::ObjectInterface >
     {
         friend class mega::Stages::Parser;
+        using Base = io::FileObject< io::file::ObjectInterface >;
     protected:
-        Element( const io::ObjectInfo& object, Element* pParent,
-                 input::Element* pElement, VisibilityType visibility );
+        Element( const io::ObjectInfo& object, Element* pParent, const input::Element* pElement,
+                 VisibilityType visibility );
 
     public:
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
-/*
-        template < class T >
-        class Collector
-        {
-            template < typename Base, typename ArgType >
-            std::enable_if_t< std::is_base_of< Base, ArgType >::value >
-            collectIfBase( const ArgType* pArg, std::vector< const Base* >& result )
-            {
-                result.push_back( pArg );
-            }
-
-            template < typename Base, typename ArgType >
-            std::enable_if_t< !std::is_base_of< Base, ArgType >::value >
-            collectIfBase( const ArgType* pArg, std::vector< const Base* >& result )
-            {
-            }
-
-        public:
-            template < class TArg >
-            void operator()( const TArg* pElement )
-            {
-                collectIfBase< T, TArg >( pElement, m_result );
-            }
-
-            const std::vector< const T* >& operator()() { return m_result; }
-
-        private:
-            std::vector< const T* > m_result;
-        };
-
-        template < class T >
-        inline void visit( T& visitor ) const
-        {
-            if ( m_pElement )
-            {
-                switch ( m_pElement->getType() )
+        /*
+                template < class T >
+                class Collector
                 {
-                case eInputOpaque:
-                    visitor( dynamic_cast< const input::Opaque* >( m_pElement ) );
-                    break;
-                case eInputDimension:
-                    visitor( dynamic_cast< const input::Dimension* >( m_pElement ) );
-                    break;
-                case eInputInclude:
-                    visitor( dynamic_cast< const input::Include* >( m_pElement ) );
-                    break;
-                case eInputUsing:
-                    visitor( dynamic_cast< const input::Using* >( m_pElement ) );
-                    break;
-                case eInputExport:
-                    visitor( dynamic_cast< const input::Export* >( m_pElement ) );
-                    break;
-                case eInputVisibility:
-                    visitor( dynamic_cast< const input::Visibility* >( m_pElement ) );
-                    break;
-                case eInputRoot:
-                    visitor( dynamic_cast< const input::Root* >( m_pElement ) );
-                    break;
-                case eInputContext:
-                    visitor( dynamic_cast< const input::Context* >( m_pElement ) );
-                    break;
-                    break;
-                default:
-                    THROW_RTE( "Unsupported type" );
-                    break;
-                }
-            }
-            for ( Element* pChildNode : m_children )
-            {
-                pChildNode->visit( visitor );
-            }
-        }
+                    template < typename Base, typename ArgType >
+                    std::enable_if_t< std::is_base_of< Base, ArgType >::value >
+                    collectIfBase( const ArgType* pArg, std::vector< const Base* >& result )
+                    {
+                        result.push_back( pArg );
+                    }
 
-        template < class T >
-        inline void pushpop( T& visitor ) const
-        {
-            if ( m_pElement )
-            {
-                switch ( m_pElement->getType() )
-                {
-                case eInputOpaque:
-                    visitor.push( dynamic_cast< const input::Opaque* >( m_pElement ), this );
-                    break;
-                case eInputDimension:
-                    visitor.push( dynamic_cast< const input::Dimension* >( m_pElement ), this );
-                    break;
-                case eInputInclude:
-                    visitor.push( dynamic_cast< const input::Include* >( m_pElement ), this );
-                    break;
-                case eInputUsing:
-                    visitor.push( dynamic_cast< const input::Using* >( m_pElement ), this );
-                    break;
-                case eInputExport:
-                    visitor.push( dynamic_cast< const input::Export* >( m_pElement ), this );
-                    break;
-                case eInputVisibility:
-                    visitor.push( dynamic_cast< const input::Visibility* >( m_pElement ), this );
-                    break;
-                case eInputRoot:
-                    visitor.push( dynamic_cast< const input::Root* >( m_pElement ), this );
-                    break;
-                case eInputContext:
-                    visitor.push( dynamic_cast< const input::Context* >( m_pElement ), this );
-                    break;
-                    break;
-                default:
-                    THROW_RTE( "Unsupported type" );
-                    break;
-                }
-            }
-            for ( const Element* pChildNode : m_children )
-            {
-                pChildNode->pushpop( visitor );
-            }
-            if ( m_pElement )
-            {
-                switch ( m_pElement->getType() )
-                {
-                case eInputOpaque:
-                    visitor.pop( dynamic_cast< const input::Opaque* >( m_pElement ), this );
-                    break;
-                case eInputDimension:
-                    visitor.pop( dynamic_cast< const input::Dimension* >( m_pElement ), this );
-                    break;
-                case eInputInclude:
-                    visitor.pop( dynamic_cast< const input::Include* >( m_pElement ), this );
-                    break;
-                case eInputUsing:
-                    visitor.pop( dynamic_cast< const input::Using* >( m_pElement ), this );
-                    break;
-                case eInputExport:
-                    visitor.pop( dynamic_cast< const input::Export* >( m_pElement ), this );
-                    break;
-                case eInputVisibility:
-                    visitor.pop( dynamic_cast< const input::Visibility* >( m_pElement ), this );
-                    break;
-                case eInputRoot:
-                    visitor.pop( dynamic_cast< const input::Root* >( m_pElement ), this );
-                    break;
-                case eInputContext:
-                    visitor.pop( dynamic_cast< const input::Context* >( m_pElement ), this );
-                    break;
-                    break;
-                default:
-                    THROW_RTE( "Unsupported type" );
-                    break;
-                }
-            }
-        }
-*/
-        VisibilityType  getVisibility() const { return m_visibility; }
-        input::Element* getInputElement() const { return m_pElement; }
-        Element*        getParent() const { return m_pParent; }
+                    template < typename Base, typename ArgType >
+                    std::enable_if_t< !std::is_base_of< Base, ArgType >::value >
+                    collectIfBase( const ArgType* pArg, std::vector< const Base* >& result )
+                    {
+                    }
 
-        virtual void                     print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
-        const std::string&               getIdentifier() const;
-        const std::vector< Element* >&   getChildren() const { return m_children; }
-        std::string                      getFriendlyName() const;
+                public:
+                    template < class TArg >
+                    void operator()( const TArg* pElement )
+                    {
+                        collectIfBase< T, TArg >( pElement, m_result );
+                    }
+
+                    const std::vector< const T* >& operator()() { return m_result; }
+
+                private:
+                    std::vector< const T* > m_result;
+                };
+
+                template < class T >
+                inline void visit( T& visitor ) const
+                {
+                    if ( m_pElement )
+                    {
+                        switch ( m_pElement->getType() )
+                        {
+                        case eInputOpaque:
+                            visitor( dynamic_cast< const input::Opaque* >( m_pElement ) );
+                            break;
+                        case eInputDimension:
+                            visitor( dynamic_cast< const input::Dimension* >( m_pElement ) );
+                            break;
+                        case eInputInclude:
+                            visitor( dynamic_cast< const input::Include* >( m_pElement ) );
+                            break;
+                        case eInputUsing:
+                            visitor( dynamic_cast< const input::Using* >( m_pElement ) );
+                            break;
+                        case eInputExport:
+                            visitor( dynamic_cast< const input::Export* >( m_pElement ) );
+                            break;
+                        case eInputVisibility:
+                            visitor( dynamic_cast< const input::Visibility* >( m_pElement ) );
+                            break;
+                        case eInputRoot:
+                            visitor( dynamic_cast< const input::Root* >( m_pElement ) );
+                            break;
+                        case eInputContext:
+                            visitor( dynamic_cast< const input::Context* >( m_pElement ) );
+                            break;
+                            break;
+                        default:
+                            THROW_RTE( "Unsupported type" );
+                            break;
+                        }
+                    }
+                    for ( Element* pChildNode : m_children )
+                    {
+                        pChildNode->visit( visitor );
+                    }
+                }
+
+                template < class T >
+                inline void pushpop( T& visitor ) const
+                {
+                    if ( m_pElement )
+                    {
+                        switch ( m_pElement->getType() )
+                        {
+                        case eInputOpaque:
+                            visitor.push( dynamic_cast< const input::Opaque* >( m_pElement ), this
+           ); break; case eInputDimension: visitor.push( dynamic_cast< const input::Dimension* >(
+           m_pElement ), this ); break; case eInputInclude: visitor.push( dynamic_cast< const
+           input::Include* >( m_pElement ), this ); break; case eInputUsing: visitor.push(
+           dynamic_cast< const input::Using* >( m_pElement ), this ); break; case eInputExport:
+                            visitor.push( dynamic_cast< const input::Export* >( m_pElement ), this
+           ); break; case eInputVisibility: visitor.push( dynamic_cast< const input::Visibility* >(
+           m_pElement ), this ); break; case eInputRoot: visitor.push( dynamic_cast< const
+           input::Root* >( m_pElement ), this ); break; case eInputContext: visitor.push(
+           dynamic_cast< const input::Context* >( m_pElement ), this ); break; break; default:
+                            THROW_RTE( "Unsupported type" );
+                            break;
+                        }
+                    }
+                    for ( const Element* pChildNode : m_children )
+                    {
+                        pChildNode->pushpop( visitor );
+                    }
+                    if ( m_pElement )
+                    {
+                        switch ( m_pElement->getType() )
+                        {
+                        case eInputOpaque:
+                            visitor.pop( dynamic_cast< const input::Opaque* >( m_pElement ), this );
+                            break;
+                        case eInputDimension:
+                            visitor.pop( dynamic_cast< const input::Dimension* >( m_pElement ), this
+           ); break; case eInputInclude: visitor.pop( dynamic_cast< const input::Include* >(
+           m_pElement ), this ); break; case eInputUsing: visitor.pop( dynamic_cast< const
+           input::Using* >( m_pElement ), this ); break; case eInputExport: visitor.pop(
+           dynamic_cast< const input::Export* >( m_pElement ), this ); break; case eInputVisibility:
+                            visitor.pop( dynamic_cast< const input::Visibility* >( m_pElement ),
+           this ); break; case eInputRoot: visitor.pop( dynamic_cast< const input::Root* >(
+           m_pElement ), this ); break; case eInputContext: visitor.pop( dynamic_cast< const
+           input::Context* >( m_pElement ), this ); break; break; default: THROW_RTE( "Unsupported
+           type" ); break;
+                        }
+                    }
+                }
+        */
+        VisibilityType        getVisibility() const { return m_visibility; }
+        const input::Element* getInputElement() const { return m_pElement; }
+        Element*              getParent() const { return m_pParent; }
+
+        virtual void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
+        const std::string&                   getIdentifier() const;
+        const std::vector< Element* >&       getChildren() const { return m_children; }
+        std::string                          getFriendlyName() const;
         std::vector< io::ObjectInfo::Index > getIndexPath() const;
 
     protected:
-        input::Element*         m_pElement;
+        const input::Element*   m_pElement;
         Element*                m_pParent;
         VisibilityType          m_visibility;
-        input::Include*         pIncludeIdentifier;
+        const input::Include*   pIncludeIdentifier;
         std::vector< Element* > m_children;
     };
 
@@ -229,20 +203,22 @@ namespace interface
     class Opaque : public Element
     {
         friend class io::Factory;
+
     public:
         static const ObjectType Type = eAbstractOpaque;
 
     protected:
         Opaque( const io::ObjectInfo& indexedObject );
-        Opaque( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Opaque( const io::ObjectInfo& indexedObject, Element* pParent,
+                const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
     public:
-        //void modify( const Opaque* pNew ) { m_pOpaque->modify( pNew->m_pOpaque->getStr() ); }
+        // void modify( const Opaque* pNew ) { m_pOpaque->modify( pNew->m_pOpaque->getStr() ); }
 
     private:
-        input::Opaque* m_pOpaque = nullptr;
+        const input::Opaque* m_pOpaque = nullptr;
     };
 
     class Context;
@@ -252,12 +228,14 @@ namespace interface
         friend class io::Factory;
         static const std::size_t SIZE_NOT_SET = std::numeric_limits< std::size_t >::max();
         friend class ::clang::AbstractMutator;
+
     public:
         static const ObjectType Type = eAbstractDimension;
 
     protected:
         Dimension( const io::ObjectInfo& indexedObject );
-        Dimension( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Dimension( const io::ObjectInfo& indexedObject, Element* pParent,
+                   const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -276,10 +254,10 @@ namespace interface
             return ( m_simple != 0U ) ? true : false;
         }
         const std::vector< Context* >& getContextTypes() const { return m_contextTypes; }
-        static bool                    isHomogenous( const std::vector< const Dimension* >& dimensions );
+        static bool isHomogenous( const std::vector< const Dimension* >& dimensions );
 
     private:
-        input::Dimension*       m_pDimension = nullptr;
+        const input::Dimension* m_pDimension = nullptr;
         std::vector< Context* > m_contextTypes;
         std::string             m_canonicalType;
         std::size_t             m_size = SIZE_NOT_SET;
@@ -290,12 +268,14 @@ namespace interface
     {
         friend class io::Factory;
         friend class ::clang::AbstractMutator;
+
     public:
         static const ObjectType Type = eAbstractUsing;
 
     protected:
         Using( const io::ObjectInfo& indexedObject );
-        Using( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Using( const io::ObjectInfo& indexedObject, Element* pParent,
+               const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -304,19 +284,21 @@ namespace interface
         const std::string& getCanonicalType() const { return m_canonicalType; }
 
     private:
-        input::Using* m_pUsing = nullptr;
-        std::string   m_canonicalType;
+        const input::Using* m_pUsing = nullptr;
+        std::string         m_canonicalType;
     };
 
     class Export : public Element
     {
         friend class io::Factory;
+
     public:
         static const ObjectType Type = eAbstractExport;
 
     protected:
         Export( const io::ObjectInfo& indexedObject );
-        Export( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Export( const io::ObjectInfo& indexedObject, Element* pParent,
+                const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -325,24 +307,26 @@ namespace interface
         const std::string& getParameters() const;
 
     private:
-        input::Export* m_pExport = nullptr;
+        const input::Export* m_pExport = nullptr;
     };
 
     class Include : public Element
     {
         friend class io::Factory;
+
     public:
         static const ObjectType Type = eAbstractInclude;
 
     protected:
         Include( const io::ObjectInfo& indexedObject );
-        Include( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Include( const io::ObjectInfo& indexedObject, Element* pParent,
+                 const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
     public:
     private:
-        input::Include* m_pInclude = nullptr;
+        const input::Include* m_pInclude = nullptr;
     };
 
     class Root;
@@ -353,35 +337,42 @@ namespace interface
         friend class ::clang::AbstractMutator;
 
     public:
-        void                              getDimensions( std::vector< Dimension* >& dimensions ) const;
-        void                              getUsings( std::vector< Using* >& usings ) const;
-        void                              getExports( std::vector< Export* >& exports ) const;
-        std::size_t                       getInputBaseCount() const;
-        const std::vector< Context* >&    getBaseContexts() const { return m_baseContexts; }
+        void                           getDimensions( std::vector< Dimension* >& dimensions ) const;
+        void                           getUsings( std::vector< Using* >& usings ) const;
+        void                           getExports( std::vector< Export* >& exports ) const;
+        std::size_t                    getInputBaseCount() const;
+        const std::vector< Context* >& getBaseContexts() const { return m_baseContexts; }
         const std::vector< std::string >& getParameters() const { return m_parameterTypes; }
-        void                              getChildContexts( std::vector< Context* >& actions ) const;
-        const Context*                    getChildContext( const std::string& strIdentifier ) const;
-        bool                              isIndirectlyAbstract() const;
-        std::size_t                       getSize() const { return m_size; }
-        const char*                       getContextType() const;
+        void           getChildContexts( std::vector< Context* >& actions ) const;
+        const Context* getChildContext( const std::string& strIdentifier ) const;
+        bool           isIndirectlyAbstract() const;
+        std::size_t    getSize() const { return m_size; }
+        const char*    getContextType() const;
 
-        std::optional< boost::filesystem::path > getDefinitionFile() const { return m_definitionFile; }
-        bool                                     hasDefinition() const { return m_definitionFile.has_value(); }
-        void                                     setDefinitionFile( std::optional< boost::filesystem::path > definitionFileOpt ) { m_definitionFile = definitionFileOpt; }
+        std::optional< boost::filesystem::path > getDefinitionFile() const
+        {
+            return m_definitionFile;
+        }
+        bool hasDefinition() const { return m_definitionFile.has_value(); }
+        void setDefinitionFile( std::optional< boost::filesystem::path > definitionFileOpt )
+        {
+            m_definitionFile = definitionFileOpt;
+        }
 
-        virtual void                print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
-        virtual bool                isAbstract() const;
-        virtual bool                isExecutable() const;
-        virtual bool                isMainExecutable() const;
+        virtual void print( std::ostream& os, std::string& strIndent, bool bIncludeOpaque ) const;
+        virtual bool isAbstract() const;
+        virtual bool isExecutable() const;
+        virtual bool isMainExecutable() const;
         const interface::Dimension* getLinkBaseDimension() const;
 
     protected:
         Context( const io::ObjectInfo& indexedObject );
-        Context( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Context( const io::ObjectInfo& indexedObject, Element* pParent,
+                 const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
-        input::Context*                          m_pContext = nullptr;
+        const input::Context*                    m_pContext = nullptr;
         std::vector< Context* >                  m_baseContexts;
         std::vector< std::string >               m_parameterTypes;
         std::size_t                              m_size = 1U;
@@ -400,7 +391,8 @@ namespace interface
 
     protected:
         Abstract( const io::ObjectInfo& indexedObject );
-        Abstract( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Abstract( const io::ObjectInfo& indexedObject, Element* pParent,
+                  const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
         virtual bool isAbstract() const;
@@ -417,7 +409,8 @@ namespace interface
 
     protected:
         Event( const io::ObjectInfo& indexedObject );
-        Event( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Event( const io::ObjectInfo& indexedObject, Element* pParent,
+               const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
@@ -432,11 +425,12 @@ namespace interface
         static const ObjectType Type = eAbstractFunction;
 
         std::string getReturnType() const;
-        void        setReturnType( const std::string& strReturnType ) { m_strReturnType = strReturnType; }
+        void setReturnType( const std::string& strReturnType ) { m_strReturnType = strReturnType; }
 
     protected:
         Function( const io::ObjectInfo& indexedObject );
-        Function( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Function( const io::ObjectInfo& indexedObject, Element* pParent,
+                  const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
@@ -455,7 +449,8 @@ namespace interface
 
     protected:
         Action( const io::ObjectInfo& indexedObject );
-        Action( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Action( const io::ObjectInfo& indexedObject, Element* pParent,
+                const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
@@ -471,7 +466,8 @@ namespace interface
 
     protected:
         Object( const io::ObjectInfo& indexedObject );
-        Object( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Object( const io::ObjectInfo& indexedObject, Element* pParent,
+                const input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
@@ -487,7 +483,8 @@ namespace interface
 
     protected:
         Link( const io::ObjectInfo& indexedObject );
-        Link( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
+        Link( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement,
+              VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
     };
@@ -495,26 +492,21 @@ namespace interface
     class Root : public Object
     {
         friend class io::Factory;
+
     public:
         static const ObjectType Type = eAbstractRoot;
 
     protected:
         Root( const io::ObjectInfo& indexedObject );
-        Root( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility );
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
     public:
-        //RootType getRootType() const { return m_rootType; }
-
-        //virtual bool isExecutable() const;
-        //virtual bool isMainExecutable() const;
-
-        mutable std::string m_strTemp;
+        Root( const io::ObjectInfo& indexedObject, const input::Element* pElement,
+              VisibilityType visibility );
 
     private:
-        input::Root* m_pRoot = nullptr;
-        //RootType     m_rootType;
+        const input::Root* m_pRoot = nullptr;
     };
 
 } // namespace interface

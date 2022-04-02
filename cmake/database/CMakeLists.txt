@@ -124,12 +124,15 @@ add_library( database
 					${MEGA_DATABASE_SOURCES}
 				)
 
+target_compile_definitions(database PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
 set_target_properties( database PROPERTIES FOLDER database )
 set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 link_boost( database filesystem )
 link_boost( database iostreams )
 link_boost( database serialization )
+link_boost( database system )
+link_boost( database atomic )
 link_common( database ) 
 
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )

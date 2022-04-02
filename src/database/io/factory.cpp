@@ -83,7 +83,7 @@ namespace io
             pObject = new input::MegaInclude( object );
             break;
 
-        case eDependency:
+        case eInputDependency:
             pObject = new input::Dependency( object );
             break;
         

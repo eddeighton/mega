@@ -906,7 +906,7 @@ public:
         }
     }
 
-    void parse_inheritance( Database& session, std::vector< input::Opaque* >& inheritance )
+    void parse_inheritance( Database& session, std::vector< const input::Opaque* >& inheritance )
     {
         if ( Tok.is( clang::tok::colon ) )
         {
@@ -1013,8 +1013,6 @@ public:
     {
         // dim type identifier;
         {
-            pDimension->m_pType = session.construct< input::Opaque >();
-
             clang::SourceLocation startLoc = Tok.getLocation();
             clang::SourceLocation endLoc = Tok.getEndLoc();
 
@@ -1026,7 +1024,9 @@ public:
                 next = NextToken();
             }
 
-            VERIFY_RTE( getSourceText( startLoc, endLoc, pDimension->m_pType->m_str ) );
+            input::Opaque* pOpaque = session.construct< input::Opaque >();
+            VERIFY_RTE( getSourceText( startLoc, endLoc, pOpaque->m_str ) );
+            pDimension->m_pType = pOpaque;
         }
 
         parse_identifier( pDimension->m_strIdentifier );
@@ -1319,7 +1319,7 @@ public:
 
         // parse optional inheritance list
         {
-            std::vector< input::Opaque* > inheritance;
+            std::vector< const input::Opaque* > inheritance;
             parse_inheritance( session, inheritance );
             if ( !pContext->m_inheritance.empty() && !inheritance.empty() )
             {
@@ -1400,9 +1400,9 @@ public:
 
         bool bFound = false;
         {
-            for ( input::Element* pExisting : pContext->m_elements )
+            for ( const input::Element* pExisting : pContext->m_elements )
             {
-                if ( input::Dimension* pDim = dynamic_cast< input::Dimension* >( pExisting ) )
+                if ( const input::Dimension* pDim = dynamic_cast< const input::Dimension* >( pExisting ) )
                 {
                     if ( pDim->getIdentifier() == EG_LINK_DIMENSION )
                     {

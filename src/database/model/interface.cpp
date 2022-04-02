@@ -56,8 +56,8 @@ namespace interface
     }
 
     Element::Element( const io::ObjectInfo& object, Element* pParent,
-                      input::Element* pElement, VisibilityType visibility )
-        : io::Object( object )
+                      const input::Element* pElement, VisibilityType visibility )
+        : Base( object )
         , m_pElement( pElement )
         , m_pParent( pParent )
         , m_visibility( visibility )
@@ -67,8 +67,8 @@ namespace interface
 
     void Element::load( io::Loader& loader )
     {
-        m_pElement = loader.loadObjectRef< input::Element >();
-        m_pParent = loader.loadObjectRef< Element >();
+        m_pElement = loader.loadObjectRef< const input::Element >();
+        m_pParent = loader.loadOptionalObjectRef< Element >();
         loader.load( m_visibility );
         pIncludeIdentifier = loader.loadObjectRef< input::Include >();
         loader.loadObjectVector( m_children );
@@ -77,7 +77,7 @@ namespace interface
     void Element::store( io::Storer& storer ) const
     {
         storer.storeObjectRef( m_pElement );
-        storer.storeObjectRef( m_pParent );
+        storer.storeOptionalObjectRef( m_pParent );
         storer.store( m_visibility );
         storer.storeObjectRef( pIncludeIdentifier );
         storer.storeObjectVector( m_children );
@@ -101,7 +101,7 @@ namespace interface
             case eInputMegaInclude:
             case eInputCPPInclude:
             case eInputSystemInclude:
-            case eDependency:
+            case eInputDependency:
             case eInputUsing:
             case eInputExport:
             {
@@ -141,24 +141,24 @@ namespace interface
             switch ( m_pElement->getType() )
             {
             case eInputDimension:
-                return dynamic_cast< input::Dimension* >( m_pElement )->getIdentifier();
+                return dynamic_cast< const input::Dimension* >( m_pElement )->getIdentifier();
             case eInputMegaInclude:
             case eInputCPPInclude:
             case eInputSystemInclude:
-                return dynamic_cast< input::Include* >( m_pElement )->getIdentifier();
-            case eDependency:
-                return dynamic_cast< input::Dependency* >( m_pElement )->getIdentifier();
+                return dynamic_cast< const input::Include* >( m_pElement )->getIdentifier();
+            case eInputDependency:
+                return dynamic_cast< const input::Dependency* >( m_pElement )->getIdentifier();
             case eInputUsing:
-                return dynamic_cast< input::Using* >( m_pElement )->getIdentifier();
+                return dynamic_cast< const input::Using* >( m_pElement )->getIdentifier();
             case eInputExport:
-                return dynamic_cast< input::Export* >( m_pElement )->getIdentifier();
+                return dynamic_cast< const input::Export* >( m_pElement )->getIdentifier();
             case eInputVisibility:
                 THROW_RTE( "Invalid attempt to obtain visibility identifier" );
-                // return dynamic_cast< input::Visibility* >( m_pElement )->getIdentifier();
+                // return dynamic_cast< const input::Visibility* >( m_pElement )->getIdentifier();
             case eInputRoot:
-                return dynamic_cast< input::Root* >( m_pElement )->getIdentifier();
+                return dynamic_cast< const input::Root* >( m_pElement )->getIdentifier();
             case eInputContext:
-                return dynamic_cast< input::Context* >( m_pElement )->getIdentifier();
+                return dynamic_cast< const input::Context* >( m_pElement )->getIdentifier();
                 break;
             case eInputOpaque:
             default:
@@ -200,9 +200,9 @@ namespace interface
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Opaque::Opaque( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Opaque::Opaque( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
-        , m_pOpaque( dynamic_cast< input::Opaque* >( pElement ) )
+        , m_pOpaque( dynamic_cast< const input::Opaque* >( pElement ) )
     {
         VERIFY_RTE( m_pOpaque );
     }
@@ -212,7 +212,7 @@ namespace interface
         Element::load( loader );
         if ( m_pElement )
         {
-            m_pOpaque = dynamic_cast< input::Opaque* >( m_pElement );
+            m_pOpaque = dynamic_cast< const input::Opaque* >( m_pElement );
             VERIFY_RTE( m_pOpaque );
         }
     }
@@ -226,9 +226,9 @@ namespace interface
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Dimension::Dimension( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Dimension::Dimension( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
-        , m_pDimension( dynamic_cast< input::Dimension* >( pElement ) )
+        , m_pDimension( dynamic_cast< const input::Dimension* >( pElement ) )
     {
         VERIFY_RTE( m_pDimension );
     }
@@ -238,7 +238,7 @@ namespace interface
         Element::load( loader );
         if ( m_pElement )
         {
-            m_pDimension = dynamic_cast< input::Dimension* >( m_pElement );
+            m_pDimension = dynamic_cast< const input::Dimension* >( m_pElement );
             VERIFY_RTE( m_pDimension );
         }
         loader.loadObjectVector( m_contextTypes );
@@ -297,9 +297,9 @@ namespace interface
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Using::Using( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Using::Using( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
-        , m_pUsing( dynamic_cast< input::Using* >( pElement ) )
+        , m_pUsing( dynamic_cast< const input::Using* >( pElement ) )
     {
         VERIFY_RTE( m_pUsing );
     }
@@ -309,7 +309,7 @@ namespace interface
         Element::load( loader );
         if ( m_pElement )
         {
-            m_pUsing = dynamic_cast< input::Using* >( m_pElement );
+            m_pUsing = dynamic_cast< const input::Using* >( m_pElement );
             VERIFY_RTE( m_pUsing );
         }
         loader.load( m_canonicalType );
@@ -329,9 +329,9 @@ namespace interface
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Export::Export( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Export::Export( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
-        , m_pExport( dynamic_cast< input::Export* >( pElement ) )
+        , m_pExport( dynamic_cast< const input::Export* >( pElement ) )
     {
         VERIFY_RTE( m_pExport );
     }
@@ -341,7 +341,7 @@ namespace interface
         Element::load( loader );
         if ( m_pElement )
         {
-            m_pExport = dynamic_cast< input::Export* >( m_pElement );
+            m_pExport = dynamic_cast< const input::Export* >( m_pElement );
             VERIFY_RTE( m_pExport );
         }
     }
@@ -363,9 +363,9 @@ namespace interface
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Include::Include( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Include::Include( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
-        , m_pInclude( dynamic_cast< input::Include* >( pElement ) )
+        , m_pInclude( dynamic_cast< const input::Include* >( pElement ) )
     {
         VERIFY_RTE( m_pInclude );
     }
@@ -375,7 +375,7 @@ namespace interface
         Element::load( loader );
         if ( m_pElement )
         {
-            m_pInclude = dynamic_cast< input::Include* >( m_pElement );
+            m_pInclude = dynamic_cast< const input::Include* >( m_pElement );
             VERIFY_RTE( m_pInclude );
         }
     }
@@ -393,9 +393,9 @@ namespace interface
         : Element( indexedObject, nullptr, nullptr, TOTAL_VISIBILITY_TYPES )
     {
     }
-    Context::Context( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Context::Context( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Element( indexedObject, pParent, pElement, visibility )
-        , m_pContext( dynamic_cast< input::Context* >( pElement ) )
+        , m_pContext( dynamic_cast< const input::Context* >( pElement ) )
     {
         if ( pElement )
         {
@@ -408,7 +408,7 @@ namespace interface
         Element::load( loader );
         if ( m_pElement )
         {
-            m_pContext = dynamic_cast< input::Context* >( m_pElement );
+            m_pContext = dynamic_cast< const input::Context* >( m_pElement );
             VERIFY_RTE( m_pContext );
         }
         loader.loadObjectVector( m_baseContexts );
@@ -722,12 +722,12 @@ namespace interface
             case eInputMegaInclude:
             case eInputCPPInclude:
             case eInputSystemInclude:
-            case eDependency:
+            case eInputDependency:
                 break;
             case eInputContext:
             case eInputRoot:
             {
-                input::Context* pContext = dynamic_cast< input::Context* >( m_pElement );
+                const input::Context* pContext = dynamic_cast< const input::Context* >( m_pElement );
                 VERIFY_RTE( pContext );
                 {
                     std::ostringstream osAnnotation;
@@ -796,7 +796,7 @@ namespace interface
         : Context( indexedObject )
     {
     }
-    Abstract::Abstract( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Abstract::Abstract( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -819,7 +819,7 @@ namespace interface
         : Context( indexedObject )
     {
     }
-    Event::Event( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Event::Event( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -838,7 +838,7 @@ namespace interface
         : Context( indexedObject )
     {
     }
-    Function::Function( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Function::Function( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -857,7 +857,7 @@ namespace interface
     {
         if ( m_strReturnType.empty() )
         {
-            const std::vector< input::Opaque* >& inheritance = m_pContext->getInheritance();
+            const std::vector< const input::Opaque* >& inheritance = m_pContext->getInheritance();
             VERIFY_RTE( inheritance.size() <= 1U );
             if ( inheritance.size() == 1 )
             {
@@ -881,7 +881,7 @@ namespace interface
         : Context( indexedObject )
     {
     }
-    Action::Action( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Action::Action( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -902,7 +902,7 @@ namespace interface
         : Context( indexedObject )
     {
     }
-    Object::Object( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Object::Object( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -921,7 +921,7 @@ namespace interface
         : Context( indexedObject )
     {
     }
-    Link::Link( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
+    Link::Link( const io::ObjectInfo& indexedObject, Element* pParent, const input::Element* pElement, VisibilityType visibility )
         : Context( indexedObject, pParent, pElement, visibility )
     {
     }
@@ -940,9 +940,9 @@ namespace interface
         : Object( indexedObject )
     {
     }
-    Root::Root( const io::ObjectInfo& indexedObject, Element* pParent, input::Element* pElement, VisibilityType visibility )
-        : Object( indexedObject, pParent, pElement, visibility )
-        , m_pRoot( dynamic_cast< input::Root* >( pElement ) )
+    Root::Root( const io::ObjectInfo& indexedObject, const input::Element* pElement, VisibilityType visibility )
+        : Object( indexedObject, nullptr, pElement, visibility )
+        , m_pRoot( dynamic_cast< const input::Root* >( pElement ) )
     {
         VERIFY_RTE( m_pRoot );
     }
@@ -952,7 +952,7 @@ namespace interface
         Object::load( loader );
         if ( m_pElement )
         {
-            m_pRoot = dynamic_cast< input::Root* >( m_pElement );
+            m_pRoot = dynamic_cast< const input::Root* >( m_pElement );
             VERIFY_RTE( m_pRoot );
         }
     }

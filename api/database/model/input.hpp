@@ -121,14 +121,14 @@ namespace input
         friend class io::File;
 
     public:
-        const std::vector< Element* >& getElements() const { return m_elements; }
+        const std::vector< const Element* >& getElements() const { return m_elements; }
 
     protected:
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
     public:
-        std::vector< Element* > m_elements;
+        std::vector< const Element* > m_elements;
     };
 
     class HasDomain
@@ -188,14 +188,14 @@ namespace input
         friend class io::File;
 
     public:
-        const std::vector< Opaque* >& getInheritance() const { return m_inheritance; }
+        const std::vector< const Opaque* >& getInheritance() const { return m_inheritance; }
 
     protected:
         void load( io::Loader& loader );
         void store( io::Storer& storer ) const;
 
     public:
-        std::vector< Opaque* > m_inheritance;
+        std::vector< const Opaque* > m_inheritance;
     };
 
     class HasVisibility
@@ -216,8 +216,8 @@ namespace input
     void printDeclaration( std::ostream& os, std::string& strIndent,
                            const std::string& strInputType, const std::string& strIdentifier,
                            const Opaque* pReturnType, const Opaque* pParams, const Opaque* pSize,
-                           const std::vector< Opaque* >& inheritance,
-                           const std::string&            strAnnotation );
+                           const std::vector< const Opaque* >& inheritance,
+                           const std::string&                  strAnnotation );
 
     //////////////////////////////////////////////////////////////////////////////
     // input tree
@@ -241,7 +241,7 @@ namespace input
                             const std::string& strAnnotation ) const;
 
     public:
-        Opaque* m_pType;
+        const Opaque* m_pType;
     };
 
     class Include : public Element, public HasIdentifier
@@ -329,7 +329,7 @@ namespace input
         friend class io::File;
 
     public:
-        static const ObjectType Type = eDependency;
+        static const ObjectType Type = eInputDependency;
 
     protected:
         Dependency( const io::ObjectInfo& object );
@@ -435,7 +435,7 @@ namespace input
         virtual void load( io::Loader& loader );
         virtual void store( io::Storer& storer ) const;
 
-        Context* findContext( const std::string& strIdentifier ) const;
+        Context* findContext( const std::string& strIdentifier );
         void     print( std::ostream& os, std::string& strIndent,
                         const std::string& strAnnotation ) const;
 

@@ -88,8 +88,7 @@ enum ObjectType : std::size_t
     eInputMegaInclude,
     eInputCPPInclude,
     eInputSystemInclude,
-    eDependency,
-
+    eInputDependency,
     eInputContext,
     eInputRoot,
     

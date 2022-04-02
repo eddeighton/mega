@@ -88,15 +88,15 @@ namespace input
 
     void HasVisibility::store( io::Storer& storer ) const { storer.store( m_visibility ); }
 
-    void printDeclaration( std::ostream&                 os,
-                           std::string&                  strIndent,
-                           const std::string&            strInputType,
-                           const std::string&            strIdentifier,
-                           const Opaque*                 pReturnType,
-                           const Opaque*                 pParams,
-                           const Opaque*                 pSize,
-                           const std::vector< Opaque* >& inheritance,
-                           const std::string&            strAnnotation )
+    void printDeclaration( std::ostream&                       os,
+                           std::string&                        strIndent,
+                           const std::string&                  strInputType,
+                           const std::string&                  strIdentifier,
+                           const Opaque*                       pReturnType,
+                           const Opaque*                       pParams,
+                           const Opaque*                       pSize,
+                           const std::vector< const Opaque* >& inheritance,
+                           const std::string&                  strAnnotation )
     {
         os << strIndent << strInputType << " " << strIdentifier;
 
@@ -429,14 +429,14 @@ namespace input
         storer.store( m_contextType );
     }
 
-    Context* Context::findContext( const std::string& strIdentifier ) const
+    Context* Context::findContext( const std::string& strIdentifier )
     {
-        for ( Element* pObject : m_elements )
+        for ( const Element* pObject : m_elements )
         {
-            if ( Context* pContext = dynamic_cast< Context* >( pObject ) )
+            if ( const Context* pContext = dynamic_cast< const Context* >( pObject ) )
             {
                 if ( pContext->m_strIdentifier == strIdentifier )
-                    return pContext;
+                    return const_cast< Context* >( pContext );
             }
         }
         return nullptr;
