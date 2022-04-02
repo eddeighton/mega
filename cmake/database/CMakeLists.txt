@@ -10,6 +10,16 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get handy function to preprocess files for the xmacros stuff
 include( ../preprocess_cpp.cmake )
 
+add_custom_target( database_generation
+    COMMAND database_compiler 
+        --input ${MEGA_SRC_DIR}/schema.txt
+        --api ${MEGA_API_DIR}/database/model/
+        --src ${MEGA_SRC_DIR}/database/model/
+    DEPENDS ${MEGA_SRC_DIR}/schema.txt
+    SOURCES ${MEGA_SRC_DIR}/schema.txt
+)
+add_dependencies( database_generation database_compiler )
+
 #set( MEGA_LIBRARY
 #	${MEGA_API_DIR}/mega/allocator.hpp
 #	${MEGA_API_DIR}/mega/backtrace.hpp
@@ -123,6 +133,9 @@ add_library( database
 					${MEGA_DATABASE_STAGES}
 					${MEGA_DATABASE_SOURCES}
 				)
+
+add_dependencies( database database_generation )
+                
 
 target_compile_definitions(database PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
 set_target_properties( database PROPERTIES FOLDER database )

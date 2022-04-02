@@ -20,7 +20,7 @@ int main( int argc, const char* argv[] )
         bool bGeneralWait = false;
 
         std::vector< std::string > sourceFiles;
-        std::string                outputDir;
+        std::string                outputAPIDir, outputSrcDir;
 
         po::options_description commandOptions( " Commands" );
         {
@@ -29,7 +29,8 @@ int main( int argc, const char* argv[] )
             ( "help",   po::bool_switch( &bHelp ), "Print command line help info." )
             ( "wait",   po::bool_switch( &bGeneralWait ), "Wait at startup for attaching a debugger" )
             ( "input",  po::value< std::vector< std::string > >( &sourceFiles ), "Input source file" )
-            ( "output", po::value< std::string >( &outputDir ), "Output folder to generate to" )
+            ( "api", po::value< std::string >( &outputAPIDir ), "Output folder to generate API" )
+            ( "src", po::value< std::string >( &outputSrcDir ), "Output folder to generate source" )
             ;
             // clang-format on
         }
@@ -49,28 +50,50 @@ int main( int argc, const char* argv[] )
         }
         else
         {
-            VERIFY_RTE_MSG( !sourceFiles.empty(), "No input source files specified" );
-            VERIFY_RTE_MSG( !outputDir.empty(), "No output folder specified" );
-
             using Path = boost::filesystem::path;
             using PathVector = std::vector< Path >;
 
-            const Path outputFolderPath
-                = boost::filesystem::edsCannonicalise( boost::filesystem::absolute( outputDir ) );
-            VERIFY_RTE_MSG(
-                boost::filesystem::exists( outputFolderPath ),
-                "Could not locate output folder directory: " << outputFolderPath.string() );
-            std::cout << "Generating to output folder: " << outputFolderPath.string() << std::endl;
+            Path outputAPIFolderPath;
+            {
+                VERIFY_RTE_MSG( !outputAPIDir.empty(), "No output folder specified" );
+                outputAPIFolderPath = boost::filesystem::edsCannonicalise(
+                    boost::filesystem::absolute( outputAPIDir ) );
+                {
+                    VERIFY_RTE_MSG( boost::filesystem::exists( outputAPIFolderPath ),
+                                    "Could not locate output folder directory: "
+                                        << outputAPIFolderPath.string() );
+                    std::cout << "Generating to output API folder: " << outputAPIFolderPath.string()
+                              << std::endl;
+                }
+            }
+
+            Path outputSrcFolderPath;
+            {
+                VERIFY_RTE_MSG( !outputSrcDir.empty(), "No output folder specified" );
+                outputSrcFolderPath = boost::filesystem::edsCannonicalise(
+                    boost::filesystem::absolute( outputSrcDir ) );
+                {
+                    VERIFY_RTE_MSG( boost::filesystem::exists( outputSrcFolderPath ),
+                                    "Could not locate output folder directory: "
+                                        << outputSrcFolderPath.string() );
+                    std::cout << "Generating to output source folder: "
+                              << outputSrcFolderPath.string() << std::endl;
+                }
+            }
 
             PathVector inputSourceFiles;
-            for ( const std::string& strPath : sourceFiles )
             {
-                const boost::filesystem::path sourceFilePath
-                    = boost::filesystem::edsCannonicalise( boost::filesystem::absolute( strPath ) );
-                VERIFY_RTE_MSG(
-                    boost::filesystem::exists( sourceFilePath ),
-                    "Could not find specified input file: " << sourceFilePath.string() );
-                inputSourceFiles.push_back( sourceFilePath );
+                VERIFY_RTE_MSG( !sourceFiles.empty(), "No input source files specified" );
+                for ( const std::string& strPath : sourceFiles )
+                {
+                    const boost::filesystem::path sourceFilePath
+                        = boost::filesystem::edsCannonicalise(
+                            boost::filesystem::absolute( strPath ) );
+                    VERIFY_RTE_MSG(
+                        boost::filesystem::exists( sourceFilePath ),
+                        "Could not find specified input file: " << sourceFilePath.string() );
+                    inputSourceFiles.push_back( sourceFilePath );
+                }
             }
 
             for ( const Path& sourceFilePath : inputSourceFiles )
