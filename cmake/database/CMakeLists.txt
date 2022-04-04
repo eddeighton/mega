@@ -15,6 +15,10 @@ add_custom_target( database_generation
         --input ${MEGA_SRC_DIR}/schema.txt
         --api ${MEGA_API_DIR}/database/model/
         --src ${MEGA_SRC_DIR}/database/model/
+        --data_dir ${MEGA_SRC_DIR}/database_compiler/data/
+        --inja_dir ${MEGA_SRC_DIR}/database_compiler/templates/
+        --json
+        --template
     DEPENDS ${MEGA_SRC_DIR}/schema.txt
     SOURCES ${MEGA_SRC_DIR}/schema.txt
 )

@@ -1,0 +1,23 @@
+#ifndef {{ guard }}
+#define {{ guard }}
+
+## for namespace in namespaces
+namespace {{ namespace.name }}
+{
+
+## for object in namespace.objects
+class {{ object.name }}
+{
+public:
+    {{ object.name }}();
+    {{ object.name }}( const ObjectInfo& objectInfo );
+private:
+    //Ed was here
+};
+
+## endfor
+};
+
+## endfor
+
+#endif //{{ guard }}
