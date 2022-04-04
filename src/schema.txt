@@ -1,2 +1,30 @@
 
-// Hello World
+///////////////////////////////////////////
+///////////////////////////////////////////
+// Stages
+stage Component
+{
+    program Stage_Component
+}
+
+stage ObjectParse
+{
+    object ObjectAST
+    object ObjectBody
+}
+
+stage ObjectInterface
+{
+    object ObjectInterface
+}
+
+stage DependencyAnalysis
+{
+    program Stage_DependencyAnalysis
+}
+
+stage ObjectAnalysis
+{
+    object ObjectCompile
+    object ObjectAnalysis
+}

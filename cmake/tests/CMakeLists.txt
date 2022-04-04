@@ -9,13 +9,17 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/gtest/gtest_include.cmake )
 set( MEGA_TEST_DIR ${MEGA_ROOT_DIR}/tests )
 
 set( MEGA_UNIT_TESTS
-	 ${MEGA_TEST_DIR}/io_tests.cpp
-	 ${MEGA_TEST_DIR}/file_system_tests.cpp
-	 ${MEGA_TEST_DIR}/manifest_tests.cpp)
+	${MEGA_TEST_DIR}/database_compiler_tests.cpp
+	${MEGA_TEST_DIR}/io_tests.cpp
+	${MEGA_TEST_DIR}/file_system_tests.cpp
+	${MEGA_TEST_DIR}/manifest_tests.cpp)
 
 enable_testing()
 
 add_executable( mega_tests ${MEGA_UNIT_TESTS} ${MEGA_TEST_DIR}/main_test_runner.cpp )
+
+# allow access to source folder for tests
+target_include_directories(mega_tests PUBLIC ${MEGA_SRC_DIR})
 
 set_target_properties( mega_tests PROPERTIES FOLDER mega )
 

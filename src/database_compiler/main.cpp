@@ -1,4 +1,4 @@
-
+#include "grammar.hpp"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
@@ -9,6 +9,8 @@
 #include <boost/filesystem.hpp>
 
 #include <iostream>
+#include <iterator>
+#include <algorithm>
 
 int main( int argc, const char* argv[] )
 {
@@ -96,10 +98,46 @@ int main( int argc, const char* argv[] )
                 }
             }
 
+            dbcomp::Schema schema;
             for ( const Path& sourceFilePath : inputSourceFiles )
             {
-                std::cout << "Processing: " << sourceFilePath.string() << std::endl;
+                std::string strFileContents;
+                boost::filesystem::loadAsciiFile( sourceFilePath, strFileContents, true );
+
+                std::ostringstream  osError;
+                dbcomp::Schema      fileSchema;
+                dbcomp::ParseResult result = dbcomp::parse( strFileContents, fileSchema, osError );
+                if ( result.bSuccess )
+                {
+                    std::string::const_iterator iterReached = result.iterReached.base();
+                    if ( iterReached == strFileContents.end() )
+                    {
+                        std::copy( fileSchema.m_elements.begin(), fileSchema.m_elements.end(),
+                                   std::back_inserter( schema.m_elements ) );
+                    }
+                    else
+                    {
+                        const int distance = std::distance( strFileContents.cbegin(), iterReached );
+                        const int distanceToEnd
+                            = std::distance( iterReached, strFileContents.cend() );
+                        const std::string strError(
+                            strFileContents.cbegin() + std::max( 0, distance - 30 ),
+                            iterReached + std::min( distanceToEnd - distance, 30 ) );
+                        THROW_RTE( "Failed to load schema file: "
+                                   << sourceFilePath.string() << " Could not parse beyond line: "
+                                   << result.iterReached.position() << "\n"
+                                   << strError << "\n"
+                                   << osError.str() );
+                    }
+                }
+                else
+                {
+                    THROW_RTE( "Failed to load schema file: " << sourceFilePath.string()
+                                                              << " Error: " << osError.str() );
+                }
             }
+
+            std::cout << "Parsed schema:\n" << schema << std::endl;
         }
     }
     catch ( boost::program_options::error& e )

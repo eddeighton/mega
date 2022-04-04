@@ -74,10 +74,12 @@ int inner_main(int argc, char* argv[])
     catch( std::runtime_error& e )
     {
         std::cout << "Encountered exception: " << e.what() << std::endl;
+        szResult = 1;
     }
     catch( ... )
     {
         std::cout << "Encountered unknown exception" << std::endl;
+        szResult = 1;
     }
 
     //wait for UnitTestWrapper to restore standard output before we print
