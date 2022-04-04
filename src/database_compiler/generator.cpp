@@ -38,7 +38,7 @@ namespace gen
         const boost::filesystem::path viewHeaderFile = env.apiDir / "view.hxx";
 
         std::cout << "Writing view header file to: " << viewHeaderFile.string() << std::endl;
-        injaEnv.write( "/view.inja", loadJson( jsonFile ), "/view.hxx" );
+        injaEnv.write( "/view.jinja", loadJson( jsonFile ), "/view.hxx" );
     }
 } // namespace gen
 } // namespace db
