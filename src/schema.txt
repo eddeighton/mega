@@ -2,9 +2,9 @@
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 // Stages
-stage Component
+stage Components
 {
-    program Stage_Component
+    program Components
 }
 
 stage ObjectParse
@@ -20,7 +20,7 @@ stage ObjectInterface
 
 stage DependencyAnalysis
 {
-    program Stage_DependencyAnalysis
+    program DependencyAnalysis
 }
 
 stage ObjectAnalysis
@@ -28,3 +28,54 @@ stage ObjectAnalysis
     object ObjectCompile
     object ObjectAnalysis
 }
+
+namespace test
+{
+
+    object a -> Components
+    {
+        value< std::string > name1
+        value< std::string > name2
+        value< std::string > name3
+        value< std::string > name4
+    }
+    object b -> Components
+    {
+        value< std::string > name
+    }
+    object c -> Components
+    {
+        value< std::string > name
+    }
+    object d -> Components
+    {
+        value< std::string > name
+    }
+
+}
+
+namespace test2
+{
+
+    object a -> Components
+    {
+        value< std::string > name1
+        value< std::string > name2
+        value< std::string > name3
+        value< std::string > name4
+    }
+    object b -> Components
+    {
+        value< std::string > name
+    }
+    object c -> Components
+    {
+        value< std::string > name
+    }
+    object d -> Components
+    {
+        value< std::string > name
+    }
+
+}
+

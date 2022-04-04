@@ -3,7 +3,7 @@
 
 #include "boost/filesystem/path.hpp"
 
-namespace dbcomp
+namespace db
 {
 namespace gen
 {
@@ -14,6 +14,6 @@ namespace gen
 
     void generate_view( const Environment& env );
 } // namespace gen
-} // namespace dbcomp
+} // namespace db
 
 #endif // DATABASE_COMPILER_GENERATOR_4_APRIL_2022

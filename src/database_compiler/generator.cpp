@@ -13,7 +13,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace dbcomp
+namespace db
 {
 namespace gen
 {
@@ -41,4 +41,4 @@ namespace gen
         injaEnv.write( "/view.inja", loadJson( jsonFile ), "/view.hxx" );
     }
 } // namespace gen
-} // namespace dbcomp
+} // namespace db

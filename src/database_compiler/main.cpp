@@ -87,7 +87,7 @@ int main( int argc, const char* argv[] )
 
             const Path outputAPIFolderPath = inputStringToPath( outputAPIDir );
             const Path outputSrcFolderPath = inputStringToPath( outputSrcDir );
-            
+
             const Path dataFolderPath = inputStringToPath( dataDir );
             const Path injaFolderPath = inputStringToPath( injaDir );
 
@@ -99,16 +99,16 @@ int main( int argc, const char* argv[] )
                     inputSourceFiles.push_back( inputStringToPath( strFile ) );
                 }
 
-                dbcomp::Schema schema;
+                db::schema::Schema schema;
                 for ( const Path& sourceFilePath : inputSourceFiles )
                 {
                     std::string strFileContents;
                     boost::filesystem::loadAsciiFile( sourceFilePath, strFileContents, true );
 
-                    std::ostringstream  osError;
-                    dbcomp::Schema      fileSchema;
-                    dbcomp::ParseResult result
-                        = dbcomp::parse( strFileContents, fileSchema, osError );
+                    std::ostringstream      osError;
+                    db::schema::Schema      fileSchema;
+                    db::schema::ParseResult result
+                        = db::schema::parse( strFileContents, fileSchema, osError );
                     if ( result.bSuccess )
                     {
                         std::string::const_iterator iterReached = result.iterReached.base();
@@ -141,16 +141,16 @@ int main( int argc, const char* argv[] )
                     }
                 }
                 // std::cout << "Parsed schema:\n" << schema << std::endl;
-                dbcomp::model::Schema::Ptr pSchema = dbcomp::model::from_ast( schema );
+                db::model::Schema::Ptr pSchema = db::model::from_ast( schema );
                 // write schema to json data
-                dbcomp::jsonconv::toJSON( dataFolderPath, pSchema );
+                db::jsonconv::toJSON( dataFolderPath, pSchema );
             }
 
             if ( bExecuteTemplates )
             {
-                const dbcomp::gen::Environment env{
+                const db::gen::Environment env{
                     outputAPIFolderPath, outputSrcFolderPath, dataFolderPath, injaFolderPath };
-                dbcomp::gen::generate_view( env );
+                db::gen::generate_view( env );
             }
         }
     }

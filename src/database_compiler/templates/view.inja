@@ -12,7 +12,8 @@ public:
     {{ object.name }}();
     {{ object.name }}( const ObjectInfo& objectInfo );
 private:
-    //Ed was here
+    
+    // Data Interface goes here...
 };
 
 ## endfor

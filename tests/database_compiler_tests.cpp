@@ -16,8 +16,8 @@ protected:
 
 TEST_P( IdentifierAccept, Basic )
 {
-    std::string        str = GetParam();
-    dbcomp::Identifier result = dbcomp::parse< dbcomp::Identifier >( str );
+    std::string            str = GetParam();
+    db::schema::Identifier result = db::schema::parse< db::schema::Identifier >( str );
     ASSERT_EQ( result, str );
 }
 
@@ -35,9 +35,9 @@ protected:
 
 TEST_P( IdentifierReject, Basic )
 {
-    dbcomp::Identifier  id;
-    std::ostringstream  osError;
-    dbcomp::ParseResult result = dbcomp::parse( GetParam(), id, osError );
+    db::schema::Identifier  id;
+    std::ostringstream      osError;
+    db::schema::ParseResult result = db::schema::parse( GetParam(), id, osError );
     ASSERT_FALSE( result.bSuccess );
 }
 
@@ -55,9 +55,9 @@ protected:
 
 TEST_P( IdentifierListAccept, Basic )
 {
-    std::string            str = GetParam();
-    dbcomp::IdentifierList result = dbcomp::parse< dbcomp::IdentifierList >( str );
-    std::ostringstream     os;
+    std::string                str = GetParam();
+    db::schema::IdentifierList result = db::schema::parse< db::schema::IdentifierList >( str );
+    std::ostringstream         os;
     os << result;
     ASSERT_EQ( os.str(), str );
 }
@@ -75,9 +75,9 @@ protected:
 
 TEST_P( TypeAccept, Basic )
 {
-    dbcomp::Type        type;
-    std::ostringstream  osError;
-    dbcomp::ParseResult result = dbcomp::parse( GetParam(), type, osError );
+    db::schema::Type        type;
+    std::ostringstream      osError;
+    db::schema::ParseResult result = db::schema::parse( GetParam(), type, osError );
     std::cout << type << std::endl;
     ASSERT_TRUE( result.bSuccess );
 }
@@ -96,9 +96,9 @@ protected:
 
 TEST_P( TypeReject, Basic )
 {
-    dbcomp::Type        type;
-    std::ostringstream  osError;
-    dbcomp::ParseResult result = dbcomp::parse( GetParam(), type, osError );
+    db::schema::Type        type;
+    std::ostringstream      osError;
+    db::schema::ParseResult result = db::schema::parse( GetParam(), type, osError );
     ASSERT_FALSE( result.bSuccess );
 }
 
@@ -115,9 +115,9 @@ protected:
 
 TEST_P( StageAccept, Basic )
 {
-    dbcomp::Stage       stage;
-    std::ostringstream  osError;
-    dbcomp::ParseResult result = dbcomp::parse( GetParam(), stage, osError );
+    db::schema::Stage       stage;
+    std::ostringstream      osError;
+    db::schema::ParseResult result = db::schema::parse( GetParam(), stage, osError );
     std::cout << stage << std::endl;
     ASSERT_TRUE( result.bSuccess );
 }
@@ -136,9 +136,9 @@ protected:
 
 TEST_P( PropertyAccept, Basic )
 {
-    dbcomp::Property    property;
-    std::ostringstream  osError;
-    dbcomp::ParseResult result = dbcomp::parse( GetParam(), property, osError );
+    db::schema::Property    property;
+    std::ostringstream      osError;
+    db::schema::ParseResult result = db::schema::parse( GetParam(), property, osError );
     std::cout << property << std::endl;
     ASSERT_TRUE( result.bSuccess );
 }
@@ -157,9 +157,9 @@ protected:
 
 TEST_P( ObjectAccept, Basic )
 {
-    dbcomp::Object      object;
-    std::ostringstream  osError;
-    dbcomp::ParseResult result = dbcomp::parse( GetParam(), object, osError );
+    db::schema::Object      object;
+    std::ostringstream      osError;
+    db::schema::ParseResult result = db::schema::parse( GetParam(), object, osError );
     std::cout << object << std::endl;
     ASSERT_TRUE( result.bSuccess );
 }
@@ -196,9 +196,9 @@ protected:
 
 TEST_P( NamespaceAccept, Basic )
 {
-    dbcomp::Namespace   namespace_;
-    std::ostringstream  osError;
-    dbcomp::ParseResult result = dbcomp::parse( GetParam(), namespace_, osError );
+    db::schema::Namespace   namespace_;
+    std::ostringstream      osError;
+    db::schema::ParseResult result = db::schema::parse( GetParam(), namespace_, osError );
     std::cout << namespace_ << std::endl;
     ASSERT_TRUE( result.bSuccess );
 }
@@ -238,9 +238,9 @@ protected:
 
 TEST_P( SchemaAccept, Basic )
 {
-    dbcomp::Schema      schema;
-    std::ostringstream  osError;
-    dbcomp::ParseResult result = dbcomp::parse( GetParam(), schema, osError );
+    db::schema::Schema      schema;
+    std::ostringstream      osError;
+    db::schema::ParseResult result = db::schema::parse( GetParam(), schema, osError );
     std::cout << schema << std::endl;
     ASSERT_TRUE( result.bSuccess );
 }

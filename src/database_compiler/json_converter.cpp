@@ -1,10 +1,11 @@
 #include "json_converter.hpp"
 
+#include "database_compiler/model.hpp"
 #include "nlohmann/json.hpp"
 
 #include <fstream>
 
-namespace dbcomp
+namespace db
 {
 namespace jsonconv
 {
@@ -24,32 +25,15 @@ namespace jsonconv
 
         data[ "guard" ] = "DATABASE_VIEW_GUARD_4_APRIL_2022";
 
+        for ( model::Namespace::Ptr pNamespace : pSchema->m_namespaces )
         {
-            nlohmann::json ns = nlohmann::json::object( { { "name", "testnamespace" } } );
+            nlohmann::json ns = nlohmann::json::object( { { "name", pNamespace->m_strName } } );
 
+            for ( model::Object::Ptr pObject : pNamespace->m_objects )
             {
-                nlohmann::json obj = nlohmann::json::object( { { "name", "obj1" } } );
+                nlohmann::json obj = nlohmann::json::object( { { "name", pObject->m_strName } } );
                 ns[ "objects" ].push_back( obj );
             }
-            {
-                nlohmann::json obj = nlohmann::json::object( { { "name", "obj2" } } );
-                ns[ "objects" ].push_back( obj );
-            }
-
-            data[ "namespaces" ].push_back( ns );
-        }
-        {
-            nlohmann::json ns = nlohmann::json::object( { { "name", "testnamespace2" } } );
-
-            {
-                nlohmann::json obj = nlohmann::json::object( { { "name", "obj3" } } );
-                ns[ "objects" ].push_back( obj );
-            }
-            {
-                nlohmann::json obj = nlohmann::json::object( { { "name", "obj4" } } );
-                ns[ "objects" ].push_back( obj );
-            }
-
             data[ "namespaces" ].push_back( ns );
         }
 
@@ -57,4 +41,4 @@ namespace jsonconv
     }
 
 } // namespace jsonconv
-} // namespace dbcomp
+} // namespace db
