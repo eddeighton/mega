@@ -16,12 +16,9 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get handy function to preprocess files for the xmacros stuff
 include( ../preprocess_cpp.cmake )
 
-#set( MEGA_DATABASE_TEMPLATES_DIR ${MEGA_SRC_DIR}/database_compiler/templates )
-#set( MEGA_DATABASE_TEMPLATES
-#    ${MEGA_DATABASE_TEMPLATES_DIR}/view.inja
-#)
-
 set( MEGA_DATABASE_COMPILER
+    ${MEGA_SRC_DIR}/database_compiler/grammar.hpp
+    ${MEGA_SRC_DIR}/database_compiler/grammar.cpp
     ${MEGA_SRC_DIR}/database_compiler/json_converter.hpp
     ${MEGA_SRC_DIR}/database_compiler/json_converter.cpp
     ${MEGA_SRC_DIR}/database_compiler/generator.hpp
@@ -52,5 +49,4 @@ link_inja( database_compiler )
 link_common( database_compiler ) 
 
 install( TARGETS database_compiler DESTINATION bin)
-#install( FILES ${MEGA_DATABASE_TEMPLATES} DESINATION templates )
 

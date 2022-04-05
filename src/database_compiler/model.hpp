@@ -3,6 +3,8 @@
 
 #include "grammar.hpp"
 
+#include "common/assert_verify.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -19,6 +21,8 @@ namespace model
     {
     public:
         using Ptr = std::shared_ptr< Type >;
+
+        virtual std::string getReturnType() const = 0;
     };
 
     class File;
@@ -111,8 +115,25 @@ namespace model
     public:
         using Ptr = std::shared_ptr< ValueType >;
         std::string m_cppType;
+
+        virtual std::string getReturnType() const { return m_cppType; }
     };
 
+    class ArrayType : public Type
+    {
+    public:
+        using Ptr = std::shared_ptr< ArrayType >;
+        Type::Ptr m_underlyingType;
+
+        virtual std::string getReturnType() const 
+        { 
+            VERIFY_RTE( m_underlyingType );
+            std::ostringstream os;
+            os << "std::vector< " << m_underlyingType->getReturnType() << " >";
+            return os.str();
+        }
+    };
+/*
     class ReferenceType : public Type
     {
     public:
@@ -166,7 +187,7 @@ namespace model
         Type::Ptr m_fromType;
         Type::Ptr m_toType;
         Type::Ptr m_predicate;
-    };
+    };*/
 
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////

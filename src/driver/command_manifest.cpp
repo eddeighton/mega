@@ -19,7 +19,7 @@
 
 #include "command_utils.hpp"
 
-#include "database/model/component.hpp"
+//#include "database/model/component.hpp"
 
 #include "database/io/manifest.hpp"
 #include "database/io/environment.hpp"
@@ -137,7 +137,7 @@ namespace manifest
                     ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
                 }
 
-                database.construct< mega::Component >( componentInfo );
+                //database.construct< mega::Component >( componentInfo );
             }
 
             database.store();

@@ -10,17 +10,18 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get handy function to preprocess files for the xmacros stuff
 include( ../preprocess_cpp.cmake )
 
+set( DATABASE_SCHEMA ${MEGA_SRC_DIR}/database_compiler/data/schema.txt )
 add_custom_target( database_generation
     COMMAND database_compiler 
-        --input ${MEGA_SRC_DIR}/schema.txt
+        --input ${DATABASE_SCHEMA}
         --api ${MEGA_API_DIR}/database/model/
         --src ${MEGA_SRC_DIR}/database/model/
         --data_dir ${MEGA_SRC_DIR}/database_compiler/data/
         --inja_dir ${MEGA_SRC_DIR}/database_compiler/templates/
         --json
         --template
-    DEPENDS ${MEGA_SRC_DIR}/schema.txt
-    SOURCES ${MEGA_SRC_DIR}/schema.txt
+    DEPENDS ${DATABASE_SCHEMA}
+    SOURCES ${DATABASE_SCHEMA}
 )
 add_dependencies( database_generation database_compiler )
 
@@ -51,30 +52,10 @@ add_dependencies( database_generation database_compiler )
 #	)
 	
 set( MEGA_DATABASE_MODEL
-    ${MEGA_API_DIR}/database/model/component.hpp
-    ${MEGA_API_DIR}/database/model/dependencies.hpp
-    ${MEGA_API_DIR}/database/model/eg.hpp
-    ${MEGA_API_DIR}/database/model/objects.hpp
-    ${MEGA_API_DIR}/database/model/input.hpp
-    ${MEGA_API_DIR}/database/model/interface.hpp
-    ${MEGA_API_DIR}/database/model/allocator.hpp
-    ${MEGA_API_DIR}/database/model/concrete.hpp
-    ${MEGA_API_DIR}/database/model/derivation.hpp
-    ${MEGA_API_DIR}/database/model/link.hpp
-    ${MEGA_API_DIR}/database/model/translation_unit.hpp
-    ${MEGA_API_DIR}/database/model/layout.hpp
-    ${MEGA_API_DIR}/database/model/identifiers.hpp
-    ${MEGA_API_DIR}/database/model/name_resolution.hpp
-    ${MEGA_API_DIR}/database/model/invocation.hpp
-    ${MEGA_API_DIR}/database/model/instruction.hpp
-	)
-	
-set( MEGA_DATABASE_SESSIONS
-    ${MEGA_API_DIR}/database/stages/stage.hpp
-    ${MEGA_API_DIR}/database/stages/parser.hpp
-    ${MEGA_API_DIR}/database/stages/interface.hpp
-    ${MEGA_API_DIR}/database/stages/implementation.hpp
-    ${MEGA_API_DIR}/database/stages/operations.hpp
+
+    ${MEGA_API_DIR}/database/model/data.hxx
+    ${MEGA_API_DIR}/database/model/view.hxx
+
 	)
 	
 set( MEGA_DATABASE_IO
@@ -107,34 +88,15 @@ set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/io/object.cpp
     ${MEGA_SRC_DIR}/database/io/storer.cpp
     
-    ${MEGA_SRC_DIR}/database/model/component.cpp
-    ${MEGA_SRC_DIR}/database/model/dependencies.cpp
-    ${MEGA_SRC_DIR}/database/model/eg.cpp
-    ${MEGA_SRC_DIR}/database/model/input.cpp
-    ${MEGA_SRC_DIR}/database/model/interface.cpp
-    ${MEGA_SRC_DIR}/database/model/allocator.cpp
-    ${MEGA_SRC_DIR}/database/model/concrete.cpp
-    ${MEGA_SRC_DIR}/database/model/derivation.cpp
-    ${MEGA_SRC_DIR}/database/model/link.cpp
-    ${MEGA_SRC_DIR}/database/model/translation_unit.cpp
-    ${MEGA_SRC_DIR}/database/model/layout.cpp
-    ${MEGA_SRC_DIR}/database/model/identifiers.cpp
-    ${MEGA_SRC_DIR}/database/model/name_resolution.cpp
-    ${MEGA_SRC_DIR}/database/model/invocation.cpp
-    ${MEGA_SRC_DIR}/database/model/instruction.cpp
+    ${MEGA_SRC_DIR}/database/model/data.cxx
+    ${MEGA_SRC_DIR}/database/model/view.cxx
     
-    ${MEGA_SRC_DIR}/database/stages/stage.cpp
-    ${MEGA_SRC_DIR}/database/stages/parser.cpp
-    ${MEGA_SRC_DIR}/database/stages/interface.cpp
-    ${MEGA_SRC_DIR}/database/stages/implementation.cpp
-    ${MEGA_SRC_DIR}/database/stages/operations.cpp
     
     )
     
 add_library( database
                     ${MEGA_DATABASE_IO}
 					${MEGA_DATABASE_MODEL}
-					${MEGA_DATABASE_STAGES}
 					${MEGA_DATABASE_SOURCES}
 				)
 
@@ -155,7 +117,6 @@ link_common( database )
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
 install( FILES ${MEGA_DATABASE_IO} DESTINATION include/database/io )
 install( FILES ${MEGA_DATABASE_MODEL} DESTINATION include/database/model )
-install( FILES ${MEGA_DATABASE_STAGES} DESTINATION include/database/stages )
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )
 

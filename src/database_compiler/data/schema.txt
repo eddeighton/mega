@@ -1,0 +1,56 @@
+
+///////////////////////////////////////////
+///////////////////////////////////////////
+// Stages
+stage ComponentStage
+{
+    program Components
+}
+
+stage ObjectParseStage
+{
+    object ObjectAST
+    object ObjectBody
+}
+
+stage ObjectInterfaceStage
+{
+    object ObjectInterface
+}
+
+stage DependencyAnalysisStage
+{
+    program DependencyAnalysis
+}
+
+stage ObjectAnalysisStage
+{
+    object ObjectCompile
+    object ObjectAnalysis
+}
+
+namespace Components
+{
+    object Component -> Components
+    {
+        value< std::string > name
+        value< boost::filesystem::path > directory
+        array< value< boost::filesystem::path > > includeDirectories
+        array< value< boost::filesystem::path > > sourceFiles
+    }
+}
+
+namespace Parser
+{
+    object Opaque -> ObjectAST
+    {
+        value< std::string > str
+    }
+
+    object Dimension -> ObjectAST
+    {
+        value< bool > isConst
+        value< std::string > identifier
+        value< std::string > type
+    }
+}

@@ -30,15 +30,40 @@ namespace gen
         }
     } // namespace
 
-    void generate_view( const Environment& env )
+    void generate( const Environment& env )
     {
-        inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+        //view.hxx
+        {
+            inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+            const boost::filesystem::path jsonFile = env.dataDir / "view.json";
+            const auto data = loadJson( jsonFile );
+            injaEnv.write( "/view.hxx.jinja", data, "/view.hxx" );
+        }
 
-        const boost::filesystem::path jsonFile = env.dataDir / "view.json";
-        const boost::filesystem::path viewHeaderFile = env.apiDir / "view.hxx";
+        //view.cxx
+        {
+            inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
+            const boost::filesystem::path jsonFile = env.dataDir / "view.json";
+            const auto data = loadJson( jsonFile );
+            injaEnv.write( "/view.cxx.jinja", data, "/view.cxx" );
+        }
 
-        std::cout << "Writing view header file to: " << viewHeaderFile.string() << std::endl;
-        injaEnv.write( "/view.jinja", loadJson( jsonFile ), "/view.hxx" );
+        //data.hxx
+        {
+            inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+            const boost::filesystem::path jsonFile = env.dataDir / "data.json";
+            const auto data = loadJson( jsonFile );
+            injaEnv.write( "/data.hxx.jinja", data, "/data.hxx" );
+        }
+
+        //data.cxx
+        {
+            inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
+            const boost::filesystem::path jsonFile = env.dataDir / "data.json";
+            const auto data = loadJson( jsonFile );
+            injaEnv.write( "/data.cxx.jinja", data, "/data.cxx" );
+        }
+
     }
 } // namespace gen
 } // namespace db

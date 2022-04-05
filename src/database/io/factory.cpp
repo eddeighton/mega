@@ -17,8 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "database/io/factory.hpp"
+
 #include "database/io/object_info.hpp"
 #include "database/io/object.hpp"
+
+/*
 #include "database/model/objects.hpp"
 #include "database/model/component.hpp"
 #include "database/model/dependencies.hpp"
@@ -32,7 +36,7 @@
 #include "database/model/derivation.hpp"
 #include "database/model/link.hpp"
 #include "database/model/invocation.hpp"
-#include "database/model/instruction.hpp"
+#include "database/model/instruction.hpp"*/
 
 namespace mega
 {
@@ -41,7 +45,7 @@ namespace io
     io::Object* Factory::create( const io::ObjectInfo& object )
     {
         io::Object* pObject = nullptr;
-
+/*
         switch ( object.getType() )
         {
         case eComponent:
@@ -187,7 +191,7 @@ namespace io
         default:
             THROW_RTE( "Unknown object type" );
             break;
-        }
+        }*/
         return pObject;
     }
 } // namespace io

@@ -4,6 +4,11 @@
 
 #include "common/string.hpp"
 
+#include <vector>
+#include <utility>
+#include <map>
+#include <algorithm>
+
 namespace db
 {
 namespace model
@@ -104,6 +109,7 @@ namespace model
                     pObjectPart->m_object = objectPartFile.first;
                     pObjectPart->m_file = pFile;
                     pFile->m_parts.push_back( pObjectPart );
+                    objectPartFile.first->m_parts.push_back( pObjectPart );
                     mapping.objectPartMap.insert( std::make_pair( objectPartFile, pObjectPart ) );
                 }
                 else
@@ -113,11 +119,54 @@ namespace model
                 return pObjectPart;
             }
 
+            Type::Ptr getType( const schema::Type& type ) const
+            {
+                if ( type.m_idList.size() == 1U )
+                {
+                    const std::string& strID = type.m_idList.front();
+
+                    if ( strID == "value" )
+                    {
+                        // value< typename >
+                        if ( type.m_children.size() == 1U )
+                        {
+                            const schema::Type& cppType = type.m_children.front();
+                            if ( cppType.m_children.empty() && !cppType.m_idList.empty() )
+                            {
+                                std::ostringstream osCPPTypeName;
+                                common::delimit( cppType.m_idList.begin(),
+                                                    cppType.m_idList.end(), "::", osCPPTypeName );
+
+                                ValueType::Ptr pValueType = std::make_shared< ValueType >();
+                                pValueType->m_cppType = osCPPTypeName.str();
+                                return pValueType;
+                            }
+                        }
+                    }
+                    else if( strID == "array" )
+                    {
+                        // array< value< cpptype > >
+                        if ( type.m_children.size() == 1U )
+                        {
+                            const schema::Type& underlyingType = type.m_children.front();
+                            if ( !underlyingType.m_children.empty() && !underlyingType.m_idList.empty() )
+                            {
+                                ArrayType::Ptr pArray = std::make_shared< ArrayType >();
+                                pArray->m_underlyingType = getType( underlyingType );
+                                return pArray;
+                            }
+                        }
+                    }
+                }
+                THROW_RTE( "Failed to resolve type for: " << type );
+            }
+
             void operator()( const schema::Object& object ) const
             {
                 Object::Ptr pObject = std::make_shared< Object >();
 
                 pObject->m_strName = object.m_name;
+                pObject->m_namespace = pNamespace;
 
                 FileMap::iterator iFind = mapping.fileMap.find( object.m_file );
                 VERIFY_RTE_MSG(
@@ -142,39 +191,12 @@ namespace model
                             ObjectPartFile( pObject, property.m_optFile.value() ), pFile );
                     }
                     pProperty->m_objectPart = pObjectPart;
+                    pObjectPart->m_properties.push_back( pProperty );
 
-                    const schema::Type& type = property.m_type;
-
-                    if ( type.m_idList.size() == 1U )
-                    {
-                        const std::string& strID = type.m_idList.front();
-
-                        if ( strID == "value" )
-                        {
-                            // value< typename >
-                            if ( type.m_children.size() == 1U )
-                            {
-                                const schema::Type& cppType = type.m_children.front();
-                                if ( cppType.m_children.empty() && !cppType.m_idList.empty() )
-                                {
-                                    std::ostringstream osCPPTypeName;
-                                    common::delimit( cppType.m_idList.begin(),
-                                                     cppType.m_idList.end(), "::", osCPPTypeName );
-
-                                    ValueType::Ptr pValueType = std::make_shared< ValueType >();
-                                    pValueType->m_cppType = osCPPTypeName.str();
-
-                                    pProperty->m_type = pValueType;
-                                }
-                            }
-                        }
-                        else
-                        {
-                        }
-                    }
+                    pProperty->m_type = getType( property.m_type );
 
                     VERIFY_RTE_MSG( pProperty->m_type,
-                        "Failed to resolve type for property: " << property.m_name );
+                                    "Failed to resolve type for property: " << property.m_name );
                 }
 
                 pNamespace->m_objects.push_back( pObject );

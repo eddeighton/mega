@@ -17,12 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/model/interface.hpp"
+//#include "database/model/interface.hpp"
 #include "parser/parser.hpp"
 
-#include "database/model/input.hpp"
-#include "database/model/component.hpp"
-#include "database/model/dependencies.hpp"
+//#include "database/model/input.hpp"
+//#include "database/model/component.hpp"
+//#include "database/model/dependencies.hpp"
 
 #include "database/io/file.hpp"
 #include "database/io/manifest.hpp"
@@ -95,7 +95,7 @@ namespace interface
             , m_fileInfos( fileInfos )
         {
         }
-
+/*
         void parseInputFile( mega::io::Database< mega::io::stage::Stage_ObjectParse >& database,
                              const mega::Component*                                    pComponent,
                              mega::input::Root*                                        pRoot,
@@ -112,7 +112,7 @@ namespace interface
             pParserInterface->parseEGSourceFile(
                 database, pRoot, pComponent->getIncludeDirectories(), osError, osWarn );
         }
-
+*/
         virtual void run( task::Progress& taskProgress )
         {
             mega::io::Database< mega::io::stage::Stage_ObjectParse > database(
@@ -122,7 +122,7 @@ namespace interface
                 "Task_ParseAST", m_sourceFilePath, m_environment.ObjectAST( m_sourceFilePath ) );
 
             std::ostringstream osError, osWarn;
-
+/*
             const mega::Component* pComponent = nullptr;
             {
                 for ( const mega::Component* pIter : database.many_cst< mega::Component >() )
@@ -176,7 +176,7 @@ namespace interface
                     }
                 }
             }
-
+*/
             if ( !osError.str().empty() )
             {
                 // Error
@@ -198,8 +198,8 @@ namespace interface
         const boost::filesystem::path&           m_sourceFilePath;
         const std::vector< mega::io::FileInfo >& m_fileInfos;
         const boost::filesystem::path            m_parserDLL;
-        using FileRootMap = std::map< boost::filesystem::path, mega::input::Root* >;
-        FileRootMap m_rootFiles;
+        //using FileRootMap = std::map< boost::filesystem::path, mega::input::Root* >;
+        //FileRootMap m_rootFiles;
     };
 
     class Task_ObjectInterfaceGen : public BaseTask
@@ -215,7 +215,7 @@ namespace interface
         }
 
         using DatabaseType = mega::io::Database< mega::io::stage::Stage_ObjectInterface >;
-
+/*
         void buildInterface( DatabaseType&               database,
                              const mega::input::Element* pInput,
                              mega::interface::Element*   pInterface )
@@ -248,7 +248,7 @@ namespace interface
                 break;
             }
         }
-
+*/
         virtual void run( task::Progress& taskProgress )
         {
             mega::io::Database< mega::io::stage::Stage_ObjectInterface > database(
@@ -257,7 +257,7 @@ namespace interface
             taskProgress.start( "Task_ObjectInterfaceGen",
                                 m_sourceFilePath,
                                 m_environment.ObjectInterface( m_sourceFilePath ) );
-
+/*
             const mega::input::Root* pRoot = nullptr;
             for ( const mega::input::Root* pIter : database.many_cst< mega::input::Root >() )
             {
@@ -268,7 +268,7 @@ namespace interface
                 }
             }
             VERIFY_RTE( pRoot );
-
+*/
             //mega::interface::Root* pInterfaceRoot
             //    = database.construct< mega::interface::Root >( pRoot, mega::eVisPublic );
 
@@ -290,7 +290,7 @@ namespace interface
             : BaseTask( parserTasks, environment, stash )
         {
         }
-
+/*
         using DependencyMap = std::map< const mega::input::Dependency*, const mega::input::Root*,
                                         mega::io::CompareIndexedObjects >;
 
@@ -409,7 +409,7 @@ namespace interface
                 }
             }
         }
-
+*/
         virtual void run( task::Progress& taskProgress )
         {
             mega::io::Database< mega::io::stage::Stage_DependencyAnalysis > database(
@@ -420,7 +420,7 @@ namespace interface
                                 m_environment.DependencyAnalysis() );
 
             using namespace mega;
-
+/*
             mega::DependencyAnalysis* pDA = database.construct< mega::DependencyAnalysis >();
 
             const std::vector< const mega::input::Root* > roots
@@ -461,7 +461,7 @@ namespace interface
                 }
             }
 
-            database.store();
+            database.store();*/
             taskProgress.succeeded();
         }
     };

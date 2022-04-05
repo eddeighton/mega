@@ -150,7 +150,7 @@ int main( int argc, const char* argv[] )
             {
                 const db::gen::Environment env{
                     outputAPIFolderPath, outputSrcFolderPath, dataFolderPath, injaFolderPath };
-                db::gen::generate_view( env );
+                db::gen::generate( env );
             }
         }
     }

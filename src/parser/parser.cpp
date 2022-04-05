@@ -1,8 +1,6 @@
 
 #include "parser/parser.hpp"
 
-#include "database/model/eg.hpp"
-#include "database/model/input.hpp"
 
 #include "database/io/environment.hpp"
 #include "database/io/stages.hpp"
@@ -804,7 +802,7 @@ public:
             MEGA_PARSER_ERROR( "Expected identifier" );
         }
     }
-
+/*
     void parse_visibility( Database& session, input::Visibility* pVisibility )
     {
         if ( Tok.is( clang::tok::kw_public ) )
@@ -1615,29 +1613,29 @@ public:
         VERIFY_RTE( BraceCount == braceStack.back() );
         braceStack.pop_back();
 
-        /*if ( bActionDefinition )
-        {
-            if ( pContext->m_definitionFile )
-            {
-                if ( pContext->m_definitionFile == egSourceFile )
-                {
-                    MEGA_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined
-        in: " << egSourceFile.string() );
-                }
-                else
-                {
-                    MEGA_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined
-        in: " << pContext->m_definitionFile.value().string() << " and " << egSourceFile.string() );
-                }
-            }
-            pContext->m_definitionFile = egSourceFile;
-        }*/
+        //if ( bActionDefinition )
+        //{
+        //    if ( pContext->m_definitionFile )
+        //    {
+        //        if ( pContext->m_definitionFile == egSourceFile )
+        //        {
+        //            MEGA_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined
+        //in: " << egSourceFile.string() );
+        //        }
+        //        else
+        //        {
+        //            MEGA_PARSER_ERROR( "Action: " << pContext->getIdentifier() << " multiply defined
+        //in: " << pContext->m_definitionFile.value().string() << " and " << egSourceFile.string() );
+        //        }
+        //    }
+        //    pContext->m_definitionFile = egSourceFile;
+        //}
     }
 
     void parse_file( Database& database, mega::input::Root* pRoot )
     {
         parse_context_body( database, pRoot );
-    }
+    }*/
 };
 
 struct Stuff
@@ -1741,13 +1739,13 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
 {
     virtual void
     parseEGSourceFile( mega::io::Database< mega::io::stage::Stage_ObjectParse >& database,
-                       mega::input::Root*                                        pRoot,
+                       //mega::input::Root*                                        pRoot,
                        const std::vector< boost::filesystem::path >&             includeDirectories,
                        std::ostream&                                             osError,
                        std::ostream&                                             osWarn )
 
     {
-        boost::filesystem::path sourceDir = pRoot->getFilePath();
+      /*  boost::filesystem::path sourceDir = pRoot->getFilePath();
         sourceDir.remove_filename();
 
         ParserDiagnosticSystem                pds( sourceDir, osError, osWarn );
@@ -1780,7 +1778,7 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                        pDiagnosticsEngine );
         parser.ConsumeToken();
 
-        parser.parse_file( database, pRoot );
+        //parser.parse_file( database, pRoot );*/
     }
 };
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;

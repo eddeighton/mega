@@ -38,16 +38,17 @@ namespace io
     template < typename T >
     class Database;
 } // namespace io
+/*
 namespace input
 {
     class Root;
-}
+}*/
 
 struct EGDB_EXPORT EG_PARSER_INTERFACE
 {
     virtual void
     parseEGSourceFile( mega::io::Database< mega::io::stage::Stage_ObjectParse >& database,
-                       mega::input::Root*                                        pRoot,
+                       //mega::input::Root*                                        pRoot,
                        const std::vector< boost::filesystem::path >&             includeDirectories,
                        std::ostream&                                             osError,
                        std::ostream&                                             osWarn )

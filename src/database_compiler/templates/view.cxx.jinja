@@ -1,0 +1,71 @@
+
+#include "database/model/view.hxx"
+
+## for stage in stages
+namespace {{ stage.name }}
+{
+
+## for object in stage.readonly_objects
+## for namespace in object.namespaces
+namespace {{ namespace }}
+{
+## endfor
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+// {{ object.name }}
+{{ object.name }}::{{ object.name }}( const mega::io::ObjectInfo& objectInfo )
+{
+}
+## for property in object.readonly_properties
+{{ property.return_type }} {{ object.name }}::get_{{ property.name }}() const
+{
+    {{ property.return_type }} result;
+
+    return result;
+}
+## endfor
+
+## for namespace in object.namespaces
+} // {{ namespace }}
+## endfor
+## endfor
+
+## for object in stage.readwrite_objects
+## for namespace in object.namespaces
+namespace {{ namespace }}
+{
+## endfor
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+// {{ object.name }}
+{{ object.name }}::{{ object.name }}( const mega::io::ObjectInfo& objectInfo )
+{
+}
+## for property in object.readonly_properties
+{{ property.return_type }} {{ object.name }}::get_{{ property.name }}() const
+{
+    {{ property.return_type }} result;
+
+    return result;
+}
+## endfor
+
+## for property in object.readwrite_properties
+{{ property.return_type }} {{ object.name }}::get_{{ property.name }}() const
+{
+    {{ property.return_type }} result;
+
+    return result;
+}
+void {{ object.name }}::set_{{ property.name }}( {{ property.return_type }} value ) const
+{
+}
+## endfor
+
+## for namespace in object.namespaces
+} // {{ namespace }}
+## endfor
+## endfor
+
+}
+## endfor

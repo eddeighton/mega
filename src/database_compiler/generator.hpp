@@ -12,7 +12,7 @@ namespace gen
         boost::filesystem::path apiDir, srcDir, dataDir, injaDir;
     };
 
-    void generate_view( const Environment& env );
+    void generate( const Environment& env );
 } // namespace gen
 } // namespace db
 
