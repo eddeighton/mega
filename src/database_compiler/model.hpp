@@ -11,202 +11,234 @@
 
 namespace db
 {
-namespace model
-{
-
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
-    // base classes
-    class Type
+    namespace model
     {
-    public:
-        using Ptr = std::shared_ptr< Type >;
 
-        virtual std::string getReturnType() const = 0;
-    };
+        ///////////////////////////////////////////////////
+        ///////////////////////////////////////////////////
+        // base classes
+        class Type
+        {
+        public:
+            using Ptr = std::shared_ptr< Type >;
 
-    class File;
-    class ObjectPart;
-    class Object;
-    class Namespace;
-    class Stage;
+            virtual std::string getViewType() const = 0;
+            virtual std::string getDataType() const = 0;
+        };
 
-    class Property
-    {
-    public:
-        using Ptr = std::shared_ptr< Property >;
+        class File;
+        class ObjectPart;
+        class Object;
+        class Namespace;
+        class Stage;
 
-        std::weak_ptr< ObjectPart > m_objectPart;
+        class Property
+        {
+        public:
+            using Ptr = std::shared_ptr< Property >;
 
-        std::string m_strName;
-        Type::Ptr   m_type;
-    };
+            std::weak_ptr< ObjectPart > m_objectPart;
 
-    class ObjectPart
-    {
-    public:
-        using Ptr = std::shared_ptr< ObjectPart >;
+            std::string m_strName;
+            Type::Ptr   m_type;
+        };
 
-        std::weak_ptr< Object > m_object;
-        std::weak_ptr< File >   m_file;
+        class ObjectPart
+        {
+        public:
+            using Ptr = std::shared_ptr< ObjectPart >;
 
-        std::vector< Property::Ptr > m_properties;
-    };
+            std::weak_ptr< Object > m_object;
+            std::weak_ptr< File >   m_file;
 
-    class Object
-    {
-    public:
-        using Ptr = std::shared_ptr< Object >;
+            std::vector< Property::Ptr > m_properties;
+            std::size_t m_typeID;
+        };
 
-        std::weak_ptr< Namespace > m_namespace;
-        std::weak_ptr< File >      m_primaryFile;
+        class Object
+        {
+        public:
+            using Ptr = std::shared_ptr< Object >;
 
-        std::string                    m_strName;
-        std::vector< ObjectPart::Ptr > m_parts;
-    };
+            std::weak_ptr< Namespace > m_namespace;
+            std::weak_ptr< File >      m_primaryFile;
 
-    class Namespace
-    {
-    public:
-        using Ptr = std::shared_ptr< Namespace >;
+            std::string                    m_strInheritance;
+            std::string                    m_strName;
+            std::vector< ObjectPart::Ptr > m_parts;
+            Ptr                            m_base;
+        };
 
-        std::weak_ptr< Namespace > m_namespace;
+        class Namespace
+        {
+        public:
+            using Ptr = std::shared_ptr< Namespace >;
 
-        std::string                   m_strName;
-        std::string                   m_strFullName;
-        std::vector< Object::Ptr >    m_objects;
-        std::vector< Namespace::Ptr > m_namespaces;
-    };
+            std::weak_ptr< Namespace > m_namespace;
 
-    class File
-    {
-    public:
-        using Ptr = std::shared_ptr< File >;
+            std::string                   m_strName;
+            std::string                   m_strFullName;
+            std::vector< Object::Ptr >    m_objects;
+            std::vector< Namespace::Ptr > m_namespaces;
+        };
 
-        std::weak_ptr< Stage > m_stage;
+        class File
+        {
+        public:
+            using Ptr = std::shared_ptr< File >;
 
-        std::string                    m_strName;
-        std::vector< ObjectPart::Ptr > m_parts;
-    };
+            std::weak_ptr< Stage > m_stage;
 
-    class Stage
-    {
-    public:
-        using Ptr = std::shared_ptr< Stage >;
+            std::string                    m_strName;
+            std::vector< ObjectPart::Ptr > m_parts;
+        };
 
-        std::string              m_strName;
-        std::vector< File::Ptr > m_files;
-    };
+        class Accessor
+        {
+        public:
+            using Ptr = std::shared_ptr< Accessor >;
+            std::weak_ptr< Stage > m_stage;
+            bool                   m_bPerObject;
+            Type::Ptr              m_type;
+        };
 
-    class Schema
-    {
-    public:
-        using Ptr = std::shared_ptr< Schema >;
+        class Stage
+        {
+        public:
+            using Ptr = std::shared_ptr< Stage >;
+            bool                         m_bPerObject;
+            std::string                  m_strName;
+            std::vector< File::Ptr >     m_files;
+            std::vector< Accessor::Ptr > m_accessors;
+        };
 
-        std::vector< Namespace::Ptr > m_namespaces;
-        std::vector< Stage::Ptr >     m_stages;
-    };
+        class Schema
+        {
+        public:
+            using Ptr = std::shared_ptr< Schema >;
 
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
-    // types
-    class ValueType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< ValueType >;
-        std::string m_cppType;
+            std::vector< Namespace::Ptr > m_namespaces;
+            std::vector< Stage::Ptr >     m_stages;
+        };
 
-        virtual std::string getReturnType() const { return m_cppType; }
-    };
+        ///////////////////////////////////////////////////
+        ///////////////////////////////////////////////////
+        // types
+        class ValueType : public Type
+        {
+        public:
+            using Ptr = std::shared_ptr< ValueType >;
+            std::string m_cppType;
 
-    class ArrayType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< ArrayType >;
-        Type::Ptr m_underlyingType;
+            virtual std::string getViewType() const { return m_cppType; }
+            virtual std::string getDataType() const { return m_cppType; }
+        };
 
-        virtual std::string getReturnType() const 
-        { 
-            VERIFY_RTE( m_underlyingType );
-            std::ostringstream os;
-            os << "std::vector< " << m_underlyingType->getReturnType() << " >";
-            return os.str();
-        }
-    };
-/*
-    class ReferenceType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< ReferenceType >;
-        Object::Ptr m_objectType;
-    };
+        class ArrayType : public Type
+        {
+        public:
+            using Ptr = std::shared_ptr< ArrayType >;
+            Type::Ptr m_underlyingType;
 
-    class OptionalType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< OptionalType >;
-        Type::Ptr m_underlyingType;
-    };
+            virtual std::string getViewType() const
+            {
+                VERIFY_RTE( m_underlyingType );
+                std::ostringstream os;
+                os << "std::vector< " << m_underlyingType->getViewType() << " >";
+                return os.str();
+            }
+            virtual std::string getDataType() const
+            {
+                VERIFY_RTE( m_underlyingType );
+                std::ostringstream os;
+                os << "std::vector< " << m_underlyingType->getDataType() << " >";
+                return os.str();
+            }
+        };
 
-    class PredicateType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< PredicateType >;
-        std::string m_cppType;
-    };
+        class RefType : public Type
+        {
+        public:
+            using Ptr = std::shared_ptr< RefType >;
+            std::string m_strObjectType;
+            Object::Ptr m_object;
 
-    class ArrayType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< ArrayType >;
-        Type::Ptr m_underlyingType;
-    };
+            virtual std::string getViewType() const
+            {
+                VERIFY_RTE( m_object );
+                std::ostringstream os;
+                os << m_object->m_namespace.lock()->m_strFullName << "::" << m_object->m_strName
+                   << "*";
+                return os.str();
+            }
+            virtual std::string getDataType() const
+            {
+                VERIFY_RTE( m_object );
+                std::ostringstream os;
+                os << m_object->m_primaryFile.lock()->m_strName << "::" << m_object->m_strName
+                   << "*";
+                return os.str();
+            }
+        };
+        /*
+            class ReferenceType : public Type
+            {
+            public:
+                using Ptr = std::shared_ptr< ReferenceType >;
+                Object::Ptr m_objectType;
+            };
 
-    class SetType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< SetType >;
-        Type::Ptr m_underlyingType;
-        Type::Ptr m_predicate;
-    };
+            class OptionalType : public Type
+            {
+            public:
+                using Ptr = std::shared_ptr< OptionalType >;
+                Type::Ptr m_underlyingType;
+            };
 
-    class MapType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< MapType >;
-        Type::Ptr m_fromType;
-        Type::Ptr m_toType;
-        Type::Ptr m_predicate;
-    };
+            class PredicateType : public Type
+            {
+            public:
+                using Ptr = std::shared_ptr< PredicateType >;
+                std::string m_cppType;
+            };
 
-    class MultiMapType : public Type
-    {
-    public:
-        using Ptr = std::shared_ptr< MultiMapType >;
+            class ArrayType : public Type
+            {
+            public:
+                using Ptr = std::shared_ptr< ArrayType >;
+                Type::Ptr m_underlyingType;
+            };
 
-        Type::Ptr m_fromType;
-        Type::Ptr m_toType;
-        Type::Ptr m_predicate;
-    };*/
+            class SetType : public Type
+            {
+            public:
+                using Ptr = std::shared_ptr< SetType >;
+                Type::Ptr m_underlyingType;
+                Type::Ptr m_predicate;
+            };
 
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
-    // files
-    class PerObjectFile : public File
-    {
-    public:
-        using Ptr = std::shared_ptr< PerObjectFile >;
-    };
+            class MapType : public Type
+            {
+            public:
+                using Ptr = std::shared_ptr< MapType >;
+                Type::Ptr m_fromType;
+                Type::Ptr m_toType;
+                Type::Ptr m_predicate;
+            };
 
-    class PerProgramFile : public File
-    {
-    public:
-        using Ptr = std::shared_ptr< PerProgramFile >;
-    };
+            class MultiMapType : public Type
+            {
+            public:
+                using Ptr = std::shared_ptr< MultiMapType >;
 
-    Schema::Ptr from_ast( const ::db::schema::Schema& schema );
+                Type::Ptr m_fromType;
+                Type::Ptr m_toType;
+                Type::Ptr m_predicate;
+            };*/
 
-} // namespace model
+        Schema::Ptr from_ast( const ::db::schema::Schema& schema );
+
+    } // namespace model
 } // namespace db
 
 #endif // DATABASE_COMPILER_MODEL_4_APRIL_2022

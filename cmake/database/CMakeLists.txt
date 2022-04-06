@@ -12,7 +12,7 @@ include( ../preprocess_cpp.cmake )
 
 set( DATABASE_SCHEMA ${MEGA_SRC_DIR}/database_compiler/data/schema.txt )
 add_custom_target( database_generation
-    COMMAND database_compiler 
+    COMMAND database_compiler_driver 
         --input ${DATABASE_SCHEMA}
         --api ${MEGA_API_DIR}/database/model/
         --src ${MEGA_SRC_DIR}/database/model/
@@ -23,7 +23,7 @@ add_custom_target( database_generation
     DEPENDS ${DATABASE_SCHEMA}
     SOURCES ${DATABASE_SCHEMA}
 )
-add_dependencies( database_generation database_compiler )
+add_dependencies( database_generation database_compiler_driver )
 
 #set( MEGA_LIBRARY
 #	${MEGA_API_DIR}/mega/allocator.hpp
@@ -90,7 +90,6 @@ set( MEGA_DATABASE_SOURCES
     
     ${MEGA_SRC_DIR}/database/model/data.cxx
     ${MEGA_SRC_DIR}/database/model/view.cxx
-    
     
     )
     

@@ -1,10 +1,10 @@
 
 
-#include "json_converter.hpp"
-#include "generator.hpp"
-#include "grammar.hpp"
-#include "model.hpp"
-#include "generator.hpp"
+#include "database_compiler/json_converter.hpp"
+#include "database_compiler/generator.hpp"
+#include "database_compiler/grammar.hpp"
+#include "database_compiler/model.hpp"
+#include "database_compiler/generator.hpp"
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"

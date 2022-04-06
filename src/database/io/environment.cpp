@@ -65,7 +65,7 @@ namespace io
         return boost::filesystem::edsCannonicalise(                                            \
             buildDirFromSrcDir( Path( megaSourcePath ).remove_filename() ) / os.str() );       \
     }
-#include "database/io/file_types_object.hxx"
+#include "database/model/file_types_object.hxx"
 #undef FILE_TYPE
 
 #define FILE_TYPE( filetype, stagetype )  \
@@ -75,7 +75,7 @@ namespace io
         os << #filetype << DB_EXTENSION;  \
         return m_rootBuildDir / os.str(); \
     }
-#include "database/io/file_types_global.hxx"
+#include "database/model/file_types_global.hxx"
 #undef FILE_TYPE
 
 } // namespace io

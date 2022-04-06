@@ -33,6 +33,7 @@ include (InstallRequiredSystemLibraries)
 
 # add the compiler first
 add_subdirectory(database_compiler)
+add_subdirectory(database_compiler_driver)
 
 add_subdirectory(parser)
 add_subdirectory(database)

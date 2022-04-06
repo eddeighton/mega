@@ -22,7 +22,7 @@ namespace io
         {                                                           \
             static const FileInfo::Stage Stage = FileInfo::stage;   \
         };
-#include "stage_types.hxx"
+#include "database/model/stage_types.hxx"
 // clang-format on
 #undef STAGE_TYPE
     } // namespace stage
@@ -51,8 +51,8 @@ namespace io
         }                                                               \
         static const typename FileInfo::Type Type = FileInfo::filetype; \
     };
-#include "file_types_global.hxx"
-#include "file_types_object.hxx"
+#include "database/model/file_types_global.hxx"
+#include "database/model/file_types_object.hxx"
 // clang-format on
 #undef FILE_TYPE
 

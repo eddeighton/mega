@@ -22,7 +22,7 @@ namespace io
         enum Stage
         {
 #define STAGE_TYPE( stagetype ) stagetype,
-#include "stage_types.hxx"
+#include "database/model/stage_types.hxx"
 #undef STAGE_TYPE
             TOTAL_STAGE_TYPES
         };
@@ -33,8 +33,8 @@ namespace io
         enum Type
         {
 #define FILE_TYPE( filetype, stage ) filetype,
-#include "file_types_global.hxx"
-#include "file_types_object.hxx"
+#include "database/model/file_types_global.hxx"
+#include "database/model/file_types_object.hxx"
 #undef FILE_TYPE
             TOTAL_FILE_TYPES
         };

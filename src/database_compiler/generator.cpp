@@ -11,6 +11,7 @@
 #include "inja/template.hpp"
 
 #include <fstream>
+#include <ios>
 #include <iostream>
 
 namespace db
@@ -35,6 +36,7 @@ namespace gen
         //view.hxx
         {
             inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+            injaEnv.set_trim_blocks(true);
             const boost::filesystem::path jsonFile = env.dataDir / "view.json";
             const auto data = loadJson( jsonFile );
             injaEnv.write( "/view.hxx.jinja", data, "/view.hxx" );
@@ -43,6 +45,7 @@ namespace gen
         //view.cxx
         {
             inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
+            injaEnv.set_trim_blocks(true);
             const boost::filesystem::path jsonFile = env.dataDir / "view.json";
             const auto data = loadJson( jsonFile );
             injaEnv.write( "/view.cxx.jinja", data, "/view.cxx" );
@@ -51,6 +54,7 @@ namespace gen
         //data.hxx
         {
             inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+            injaEnv.set_trim_blocks(true);
             const boost::filesystem::path jsonFile = env.dataDir / "data.json";
             const auto data = loadJson( jsonFile );
             injaEnv.write( "/data.hxx.jinja", data, "/data.hxx" );
@@ -59,11 +63,38 @@ namespace gen
         //data.cxx
         {
             inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
+            injaEnv.set_trim_blocks(true);
             const boost::filesystem::path jsonFile = env.dataDir / "data.json";
             const auto data = loadJson( jsonFile );
             injaEnv.write( "/data.cxx.jinja", data, "/data.cxx" );
         }
 
+        //file_types_global.hxx
+        {
+            inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+            injaEnv.set_trim_blocks(true);
+            const boost::filesystem::path jsonFile = env.dataDir / "data.json";
+            const auto data = loadJson( jsonFile );
+            injaEnv.write( "/file_types_global.hxx.jinja", data, "/file_types_global.hxx" );
+        }
+        
+        //file_types_object.hxx
+        {
+            inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+            injaEnv.set_trim_blocks(true);
+            const boost::filesystem::path jsonFile = env.dataDir / "data.json";
+            const auto data = loadJson( jsonFile );
+            injaEnv.write( "/file_types_object.hxx.jinja", data, "/file_types_object.hxx" );
+        }
+
+        //stage_types.hxx
+        {
+            inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+            injaEnv.set_trim_blocks(true);
+            const boost::filesystem::path jsonFile = env.dataDir / "view.json";
+            const auto data = loadJson( jsonFile );
+            injaEnv.write( "/stage_types.hxx.jinja", data, "/stage_types.hxx" );
+        }
     }
 } // namespace gen
 } // namespace db

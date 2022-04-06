@@ -115,11 +115,11 @@ namespace interface
 */
         virtual void run( task::Progress& taskProgress )
         {
-            mega::io::Database< mega::io::stage::Stage_ObjectParse > database(
+            mega::io::Database< mega::io::stage::STAGE_InputParse > database(
                 m_environment, m_sourceFilePath );
 
             taskProgress.start(
-                "Task_ParseAST", m_sourceFilePath, m_environment.ObjectAST( m_sourceFilePath ) );
+                "Task_ParseAST", m_sourceFilePath, m_environment.FILE_InputParse_AST( m_sourceFilePath ) );
 
             std::ostringstream osError, osWarn;
 /*
@@ -214,7 +214,7 @@ namespace interface
         {
         }
 
-        using DatabaseType = mega::io::Database< mega::io::stage::Stage_ObjectInterface >;
+        //using DatabaseType = mega::io::Database< mega::io::stage::STAGE_Interface >;
 /*
         void buildInterface( DatabaseType&               database,
                              const mega::input::Element* pInput,
@@ -251,12 +251,12 @@ namespace interface
 */
         virtual void run( task::Progress& taskProgress )
         {
-            mega::io::Database< mega::io::stage::Stage_ObjectInterface > database(
-                m_environment, m_sourceFilePath );
+            //mega::io::Database< mega::io::stage::STAGE_Interface > database(
+            //    m_environment, m_sourceFilePath );
 
             taskProgress.start( "Task_ObjectInterfaceGen",
                                 m_sourceFilePath,
-                                m_environment.ObjectInterface( m_sourceFilePath ) );
+                                m_environment.FILE_Interface_Tree( m_sourceFilePath ) );
 /*
             const mega::input::Root* pRoot = nullptr;
             for ( const mega::input::Root* pIter : database.many_cst< mega::input::Root >() )
@@ -274,7 +274,7 @@ namespace interface
 
             //buildInterface( database, pRoot, pInterfaceRoot );
 
-            database.store();
+            //database.store();
 
             taskProgress.succeeded();
         }
@@ -412,12 +412,12 @@ namespace interface
 */
         virtual void run( task::Progress& taskProgress )
         {
-            mega::io::Database< mega::io::stage::Stage_DependencyAnalysis > database(
-                m_environment );
+           // mega::io::Database< mega::io::stage::Stage_DependencyAnalysis > database(
+           //     m_environment );
 
             taskProgress.start( "Task_DependencyAnalysis",
-                                m_environment.Component(),
-                                m_environment.DependencyAnalysis() );
+                                m_environment.FILE_ComponentListing_Components(),
+                                m_environment.FILE_Dependencies_DependencyAnalysis() );
 
             using namespace mega;
 /*
@@ -492,14 +492,14 @@ namespace interface
 
         virtual void run( task::Progress& taskProgress )
         {
-            mega::io::Database< mega::io::stage::Stage_ObjectAnalysis > database(
-                m_environment, m_sourceFilePath );
+            //mega::io::Database< mega::io::stage::Stage_ObjectAnalysis > database(
+            //    m_environment, m_sourceFilePath );
 
             taskProgress.start( "Task_ObjectInterfaceAnalysis",
                                 m_sourceFilePath,
-                                m_environment.ObjectInterface( m_sourceFilePath ) );
+                                m_environment.FILE_Analysis_ObjectAnalysis( m_sourceFilePath ) );
 
-            database.store();
+            //database.store();
 
             taskProgress.succeeded();
         }

@@ -2,36 +2,65 @@
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 // Stages
-stage ComponentStage
+stage perprogram ComponentListing
 {
-    program Components
+    file Components
 }
 
-stage ObjectParseStage
+stage perobject InputParse
 {
-    object ObjectAST
-    object ObjectBody
+    file AST
+    file Body
+
+    accessor perprogram array< ref< Components::Component > >
 }
 
-stage ObjectInterfaceStage
+stage perobject Interface
 {
-    object ObjectInterface
+    file Tree
+
+    accessor perobject ref< Parser::Root >
 }
 
-stage DependencyAnalysisStage
+stage perprogram Dependencies
 {
-    program DependencyAnalysis
+    file DependencyAnalysis
+
+    accessor perobject ref< Interface::Root >
 }
 
-stage ObjectAnalysisStage
+stage perobject Analysis
 {
-    object ObjectCompile
-    object ObjectAnalysis
+    file ObjectCompile
+    file ObjectAnalysis
 }
 
+stage perprogram Concrete
+{
+    file Tree
+}
+
+stage perprogram Layout
+{
+    file Buffers
+}
+
+stage perprogram HyperGraph
+{
+    file Graph
+}
+
+stage perprogram Derivations
+{
+    file Invocations
+}
+
+///////////////////////////////////////////
+///////////////////////////////////////////
+// Objects
 namespace Components
 {
-    object Component -> Components
+    object Component -> ComponentListing::Components
     {
         value< std::string > name
         value< boost::filesystem::path > directory
@@ -42,15 +71,33 @@ namespace Components
 
 namespace Parser
 {
-    object Opaque -> ObjectAST
+    object Opaque -> InputParse::AST
     {
         value< std::string > str
     }
 
-    object Dimension -> ObjectAST
+    object Dimension -> InputParse::AST
     {
         value< bool > isConst
         value< std::string > identifier
         value< std::string > type
+    }
+
+    object Context -> InputParse::AST
+    {
+        value< std::string > identifier
+        value< std::string > body -> InputParse::Body
+    }
+
+    object Root : Context -> InputParse::AST
+    {
+    }
+}
+
+namespace Interface
+{
+    object Root -> Interface::Tree
+    {
+        //ref< Parser::Root > root
     }
 }

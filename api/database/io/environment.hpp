@@ -39,11 +39,11 @@ namespace io
 // clang-format off
 // clang-format on
 #define FILE_TYPE( filetype, stagetype ) Path filetype( const Path& objectSourcePath ) const;
-#include "file_types_object.hxx"
+#include "database/model/file_types_object.hxx"
 #undef FILE_TYPE
 
 #define FILE_TYPE( filetype, stagetype ) Path filetype() const;
-#include "file_types_global.hxx"
+#include "database/model/file_types_global.hxx"
 #undef FILE_TYPE
 
     private:

@@ -1,6 +1,8 @@
 #ifndef DATABASE_GRAMMAR_4_APRIL_2022
 #define DATABASE_GRAMMAR_4_APRIL_2022
 
+#include "common/assert_verify.hpp"
+
 #include <boost/spirit/home/support/iterators/line_pos_iterator.hpp>
 #include <boost/variant.hpp>
 
@@ -8,6 +10,7 @@
 #include <vector>
 #include <optional>
 #include <ostream>
+#include <sstream>
 
 namespace db
 {
@@ -57,84 +60,66 @@ namespace db
         ParseResult
         parse( const std::string& strInput, IdentifierList& idlist, std::ostream& errorStream );
 
-        class Type
+        struct Type
         {
-        public:
             IdentifierList      m_idList;
             std::vector< Type > m_children;
         };
 
         ParseResult parse( const std::string& strInput, Type& type, std::ostream& errorStream );
 
-        template < typename T >
-        class StrongStringType : public std::string
+        struct PerProgramAccessor
         {
-        public:
-            class Compare
-            {
-            public:
-                inline bool operator()( const StrongStringType< T >& left,
-                                        const StrongStringType< T >& right ) const
-                {
-                    return std::lexicographical_compare(
-                        left.begin(), left.end(), right.begin(), right.end() );
-                }
-            };
-            StrongStringType() {}
-            StrongStringType( const std::string& str )
-                : std::string( str )
-            {
-            }
-            StrongStringType( const char* pszStr )
-                : std::string( pszStr )
-            {
-            }
+            Type m_type;
         };
-
-        struct PerObjectFileTag;
-        struct PerProgramFileTag;
-
-        using PerObjectFile = StrongStringType< PerObjectFileTag >;
-        using PerProgramFile = StrongStringType< PerProgramFileTag >;
-        using FileVariant = boost::variant< PerObjectFile, PerProgramFile >;
-
-        class Stage
+        struct PerObjectAccessor
         {
-        public:
-            Identifier                 m_name;
-            std::vector< FileVariant > m_files;
+            Type m_type;
         };
+        using StageElementVariant
+            = boost::variant< PerProgramAccessor, PerObjectAccessor, Identifier >;
 
-        ParseResult parse( const std::string& strInput, Stage& stage, std::ostream& errorStream );
-
-        class Property
+        struct PerObjectStage
         {
-        public:
-            Type                        m_type;
-            Identifier                  m_name;
-            std::optional< Identifier > m_optFile;
+            Identifier                         m_name;
+            std::vector< StageElementVariant > m_elements;
+        };
+        struct PerProgramStage
+        {
+            Identifier                         m_name;
+            std::vector< StageElementVariant > m_elements;
+        };
+        using StageVariant = boost::variant< PerObjectStage, PerProgramStage >;
+
+        ParseResult
+        parse( const std::string& strInput, StageVariant& stage, std::ostream& errorStream );
+
+        struct Property
+        {
+            Type                            m_type;
+            Identifier                      m_name;
+            std::optional< IdentifierList > m_optFile;
         };
 
         ParseResult
         parse( const std::string& strInput, Property& property, std::ostream& errorStream );
 
-        class Object
+        struct Object
         {
-        public:
-            Identifier              m_name;
-            Identifier              m_file;
-            std::vector< Property > m_properties;
+            Identifier                      m_name;
+            std::optional< IdentifierList > m_optInheritance;
+            IdentifierList                  m_file;
+            std::vector< Property >         m_properties;
         };
 
         ParseResult parse( const std::string& strInput, Object& object, std::ostream& errorStream );
 
-        class Namespace;
+        struct Namespace;
 
         using NamespaceVariant = boost::variant< boost::recursive_wrapper< Namespace >, Object >;
 
-        class Namespace
+        struct Namespace
         {
-        public:
             Identifier                      m_name;
             std::vector< NamespaceVariant > m_elements;
         };
@@ -145,8 +130,8 @@ namespace db
         ParseResult
         parse( const std::string& strInput, Namespace& namespace_, std::ostream& errorStream );
 
-        using SchemaVariant = boost::variant< Stage, Namespace >;
-        class Schema
+        using SchemaVariant = boost::variant< StageVariant, Namespace >;
+        struct Schema
         {
         public:
             std::vector< SchemaVariant > m_elements;
@@ -154,13 +139,24 @@ namespace db
 
         ParseResult parse( const std::string& strInput, Schema& schema, std::ostream& errorStream );
 
+        template < typename T >
+        inline T parse( const std::string& strInput )
+        {
+            std::ostringstream osError;
+            T                  resultType;
+            const ParseResult  result = parse( strInput, resultType, osError );
+            VERIFY_RTE_MSG( result.bSuccess && result.iterReached.base() == strInput.end(),
+                            "Failed to parse string: " << strInput << " : " << osError.str() );
+            return resultType;
+        }
     } // namespace schema
 } // namespace db
 
 std::ostream& operator<<( std::ostream& os, const db::schema::Identifier& identifier );
 std::ostream& operator<<( std::ostream& os, const db::schema::IdentifierList& idlist );
 std::ostream& operator<<( std::ostream& os, const db::schema::Type& type );
-std::ostream& operator<<( std::ostream& os, const db::schema::Stage& stage );
+std::ostream& operator<<( std::ostream& os, const db::schema::PerObjectStage& stage );
+std::ostream& operator<<( std::ostream& os, const db::schema::PerProgramStage& stage );
 std::ostream& operator<<( std::ostream& os, const db::schema::Property& property );
 std::ostream& operator<<( std::ostream& os, const db::schema::Object& object );
 std::ostream& operator<<( std::ostream& os, const db::schema::Namespace& namespace_ );

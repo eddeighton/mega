@@ -1,5 +1,0 @@
-STAGE_TYPE( Stage_Component )
-STAGE_TYPE( Stage_ObjectParse )
-STAGE_TYPE( Stage_ObjectInterface )
-STAGE_TYPE( Stage_DependencyAnalysis )
-STAGE_TYPE( Stage_ObjectAnalysis )

@@ -161,8 +161,8 @@ namespace io
         }                                                                                  \
     }                                                                                      \
     break;
-#include "file_types_global.hxx"
-#include "file_types_object.hxx"
+#include "database/model/file_types_global.hxx"
+#include "database/model/file_types_object.hxx"
 #undef FILE_TYPE
                     default:
                         break;
@@ -195,8 +195,8 @@ namespace io
         }                                                                                  \
     }                                                                                      \
     break;
-#include "file_types_global.hxx"
-#include "file_types_object.hxx"
+#include "database/model/file_types_global.hxx"
+#include "database/model/file_types_object.hxx"
 #undef FILE_TYPE
                     default:
                         break;

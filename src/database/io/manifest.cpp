@@ -56,7 +56,7 @@ namespace io
                                   sourceFilePath );                       \
         m_compilationFileInfos.push_back( compilationFile );              \
     }
-#include "database/io/file_types_object.hxx"
+#include "database/model/file_types_object.hxx"
 #undef FILE_TYPE
             }
         }
@@ -69,11 +69,33 @@ namespace io
             FileInfo::filetype, compilationFileID++, environment.filetype() ); \
         m_compilationFileInfos.push_back( compilationFile );                   \
     }
-#include "database/io/file_types_global.hxx"
+#include "database/model/file_types_global.hxx"
 #undef FILE_TYPE
 
     } // namespace io
 
+    void Manifest::getCompilationFileInfos( FileInfo::Type fileType, FileInfoVector& fileInfos ) const
+    {
+        for( const FileInfo& fileInfo : m_compilationFileInfos )
+        {
+            if( fileInfo.getFileType() == fileType )
+            {
+                fileInfos.push_back( fileInfo );
+            }
+        }
+    }
+
+    void Manifest::getCompilationFileInfos( FileInfo::Type fileType, const boost::filesystem::path& objectFile, FileInfoVector& fileInfos ) const
+    {
+        for( const FileInfo& fileInfo : m_compilationFileInfos )
+        {
+            if( fileInfo.getFileType() == fileType && fileInfo.getObjectSourceFilePath() == objectFile )
+            {
+                fileInfos.push_back( fileInfo );
+            }
+        }
+    }
+    
     void Manifest::load( const boost::filesystem::path& filepath )
     {
         VERIFY_RTE_MSG(

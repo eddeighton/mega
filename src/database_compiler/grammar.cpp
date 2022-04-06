@@ -1,17 +1,18 @@
 #include "grammar.hpp"
 
-#include "common/assert_verify.hpp"
 #include "common/string.hpp"
 
 #include <boost/algorithm/string/detail/formatter.hpp>
+
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/qi_eoi.hpp>
 #include <boost/spirit/include/support_line_pos_iterator.hpp>
-#include <boost/spirit/include/phoenix_core.hpp>
-#include <boost/spirit/include/phoenix_stl.hpp>
-#include <boost/spirit/include/phoenix_fusion.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/phoenix_object.hpp>
+
+#include "boost/phoenix/core.hpp"
+#include "boost/phoenix/stl.hpp"
+#include "boost/phoenix/fusion.hpp"
+#include "boost/phoenix/operator.hpp"
+#include "boost/phoenix/object.hpp"
 
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -108,17 +109,6 @@ namespace db
             return resultPair;
         }
 
-        template < class T >
-        inline T parse( const std::string& strInput )
-        {
-            std::ostringstream osError;
-            T                  resultType;
-            const ParseResult  result = parse( strInput, resultType, osError );
-            VERIFY_RTE_MSG( result.bSuccess && result.iterReached.base() == strInput.end(),
-                            "Failed to parse string: " << strInput << " : " << osError.str() );
-            return resultType;
-        }
-
         template < typename Iterator >
         class IdentifierGrammar : public boost::spirit::qi::grammar< Iterator, Identifier() >
         {
@@ -155,7 +145,7 @@ namespace db
                 using namespace boost::phoenix;
                 m_main_rule
                     = m_grammar_identifier[ push_back( _val, qi::_1 ) ]
-                      >> *( string( "::" ) >> m_grammar_identifier[ push_back( _val, qi::_1 ) ] );
+                      >> *( lit( "::" ) >> m_grammar_identifier[ push_back( _val, qi::_1 ) ] );
             }
 
             IdentifierGrammar< Iterator >                         m_grammar_identifier;
@@ -216,9 +206,21 @@ namespace db
 } // namespace db
 
 // clang-format off
-BOOST_FUSION_ADAPT_STRUCT( db::schema::Stage,
+
+BOOST_FUSION_ADAPT_STRUCT( db::schema::PerProgramAccessor,
+    ( db::schema::Type, m_type ) )
+
+BOOST_FUSION_ADAPT_STRUCT( db::schema::PerObjectAccessor,
+    ( db::schema::Type, m_type ) )
+
+BOOST_FUSION_ADAPT_STRUCT( db::schema::PerObjectStage,
     ( db::schema::Identifier, m_name )
-    ( std::vector< db::schema::FileVariant >, m_files ) )
+    ( std::vector< db::schema::StageElementVariant >, m_elements )  )
+
+BOOST_FUSION_ADAPT_STRUCT( db::schema::PerProgramStage,
+    ( db::schema::Identifier, m_name )
+    ( std::vector< db::schema::StageElementVariant >, m_elements )  )
+
 // clang-format on
 
 namespace db
@@ -226,40 +228,66 @@ namespace db
     namespace schema
     {
         template < typename Iterator >
-        class StageGrammar
-            : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, Stage() >
+        class StageVariantGrammar
+            : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, StageVariant() >
         {
         public:
-            StageGrammar()
-                : StageGrammar::base_type( m_main_rule, "Stage" )
+            StageVariantGrammar()
+                : StageVariantGrammar::base_type( m_main_rule, "StageVariant" )
             {
                 using namespace boost::spirit;
                 using namespace boost::spirit::qi;
                 using boost::spirit::qi::eoi;
                 using namespace boost::phoenix;
 
-                m_perObjectFile = string( "object" ) >> m_grammar_id[ _val = qi::_1 ];
-                m_perProgramFile = string( "program" ) >> m_grammar_id[ _val = qi::_1 ];
+                m_file_rule = lit( "file" ) >> m_grammar_id[ _val = qi::_1 ];
 
-                m_main_rule
-                    = string( "stage" ) >> m_grammar_id[ at_c< 0 >( _val ) = qi::_1 ] >> lit( '{' )
-                      >> *( ( m_perObjectFile
-                              | m_perProgramFile )[ push_back( at_c< 1 >( _val ), qi::_1 ) ] )
-                      >> lit( '}' );
+                m_per_object_accessor_rule = lit( "accessor" ) >> lit( "perobject" )
+                                             >> m_grammar_type[ at_c< 0 >( _val ) = qi::_1 ];
+                m_per_program_accessor_rule = lit( "accessor" ) >> lit( "perprogram" )
+                                              >> m_grammar_type[ at_c< 0 >( _val ) = qi::_1 ];
+
+                m_per_object_stage_rule = lit( "stage" ) >> lit( "perobject" )
+                                          >> m_grammar_id[ at_c< 0 >( _val ) = qi::_1 ]
+                                          >> lit( '{' )
+                                          >> *( ( m_file_rule | m_per_object_accessor_rule
+                                                  | m_per_program_accessor_rule )[ push_back(
+                                              at_c< 1 >( _val ), qi::_1 ) ] )
+                                          >> lit( '}' );
+
+                m_per_program_stage_rule = lit( "stage" ) >> lit( "perprogram" )
+                                           >> m_grammar_id[ at_c< 0 >( _val ) = qi::_1 ]
+                                           >> lit( '{' )
+                                           >> *( ( m_file_rule | m_per_object_accessor_rule
+                                                   | m_per_program_accessor_rule )[ push_back(
+                                               at_c< 1 >( _val ), qi::_1 ) ] )
+                                           >> lit( '}' );
+
+                m_main_rule = m_per_object_stage_rule | m_per_program_stage_rule;
             }
 
-            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, PerObjectFile() >
-                m_perObjectFile;
-            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, PerProgramFile() >
-                m_perProgramFile;
+            IdentifierGrammar< Iterator > m_grammar_id;
+            TypeGrammar< Iterator >       m_grammar_type;
 
-            IdentifierGrammar< Iterator >                                         m_grammar_id;
-            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Stage() > m_main_rule;
+            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, PerProgramAccessor() >
+                m_per_object_accessor_rule;
+            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, PerObjectAccessor() >
+                m_per_program_accessor_rule;
+            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Identifier() > m_file_rule;
+
+            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, PerObjectStage() >
+                m_per_object_stage_rule;
+            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, PerProgramStage() >
+                m_per_program_stage_rule;
+
+            boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, StageVariant() >
+                m_main_rule;
         };
 
-        ParseResult parse( const std::string& strInput, Stage& stage, std::ostream& errorStream )
+        ParseResult
+        parse( const std::string& strInput, StageVariant& stage, std::ostream& errorStream )
         {
-            return parse_impl< StageGrammar >( strInput, stage, errorStream );
+            return parse_impl< StageVariantGrammar >( strInput, stage, errorStream );
         }
 
     } // namespace schema
@@ -269,7 +297,7 @@ namespace db
 BOOST_FUSION_ADAPT_STRUCT( db::schema::Property,
     ( db::schema::Type, m_type )
     ( db::schema::Identifier, m_name )
-    ( std::optional< db::schema::Identifier >, m_optFile ) )
+    ( std::optional< db::schema::IdentifierList >, m_optFile ) )
 // clang-format on
 
 namespace db
@@ -289,13 +317,17 @@ namespace db
                 using boost::spirit::qi::eoi;
                 using namespace boost::phoenix;
 
-                m_main_rule = m_grammar_type[ at_c< 0 >( _val ) = qi::_1 ]
-                              >> m_grammar_id[ at_c< 1 >( _val ) = qi::_1 ]
-                              >> -( string( "->" ) >> m_grammar_id )[ at_c< 2 >( _val ) = qi::_1 ];
+                // clang-format off
+                m_main_rule
+                    = m_grammar_type[ at_c< 0 >( _val ) = qi::_1 ]
+                      >> m_grammar_id[ at_c< 1 >( _val ) = qi::_1 ]
+                      >> -( lit( "->" ) >> m_grammar_idlist )[ at_c< 2 >( _val ) = qi::_1 ];
+                // clang-format on
             }
 
-            TypeGrammar< Iterator >                                                  m_grammar_type;
-            IdentifierGrammar< Iterator >                                            m_grammar_id;
+            TypeGrammar< Iterator >           m_grammar_type;
+            IdentifierGrammar< Iterator >     m_grammar_id;
+            IdentifierListGrammar< Iterator > m_grammar_idlist;
             boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Property() > m_main_rule;
         };
 
@@ -310,9 +342,10 @@ namespace db
 
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( db::schema::Object,
-    ( db::schema::Identifier, m_name )
-    ( db::schema::Identifier, m_file )
-    ( std::vector< db::schema::Property >, m_properties ) )
+    ( db::schema::Identifier,                       m_name )
+    ( std::optional< db::schema::IdentifierList >,  m_optInheritance )
+    ( db::schema::IdentifierList,                   m_file )
+    ( std::vector< db::schema::Property >,          m_properties ) )
 // clang-format on
 
 namespace db
@@ -333,17 +366,20 @@ namespace db
                 using namespace boost::phoenix;
 
                 // clang-format off
-                m_main_rule =   string( "object" ) >> m_grammar_id[ at_c< 0 >( _val ) = qi::_1 ] >> 
-                        string( "->" ) >> m_grammar_id[ at_c< 1 >( _val ) = qi::_1 ] >>
+                m_main_rule =   
+                        lit( "object" ) >> m_grammar_id[ at_c< 0 >( _val ) = qi::_1 ] >> 
+                        -( lit( ':' ) >> m_grammar_idlist )[ at_c< 1 >( _val ) = qi::_1 ] >> 
+                        lit( "->" ) >> m_grammar_idlist[ at_c< 2 >( _val ) = qi::_1 ] >>
                         lit( '{' ) >> 
-                            *m_grammar_property[ push_back( at_c< 2 >( _val ), qi::_1 ) ] 
+                            *m_grammar_property[ push_back( at_c< 3 >( _val ), qi::_1 ) ] 
                         >> lit( '}' );
                 // clang-format on
             }
 
-            PropertyGrammar< Iterator >   m_grammar_property;
-            TypeGrammar< Iterator >       m_grammar_type;
-            IdentifierGrammar< Iterator > m_grammar_id;
+            PropertyGrammar< Iterator >       m_grammar_property;
+            TypeGrammar< Iterator >           m_grammar_type;
+            IdentifierGrammar< Iterator >     m_grammar_id;
+            IdentifierListGrammar< Iterator > m_grammar_idlist;
             boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Object() > m_main_rule;
         };
 
@@ -380,7 +416,7 @@ namespace db
 
                 // clang-format off
                 m_main_rule
-                    = string( "namespace" ) > m_grammar_id[ at_c< 0 >( _val ) = qi::_1 ] 
+                    = lit( "namespace" ) > m_grammar_id[ at_c< 0 >( _val ) = qi::_1 ] 
                         >> lit( '{' )
                             >> *( m_main_rule | m_grammar_object )[ push_back( at_c< 1 >( _val ), qi::_1 ) ]
                         >> lit( '}' );
@@ -423,12 +459,12 @@ namespace db
                 using namespace boost::phoenix;
 
                 // clang-format off
-            m_main_rule = *( m_grammar_stage | m_grammar_namespace )[ push_back( at_c< 0 >( _val ), qi::_1 )  ];
+                m_main_rule = *( m_grammar_stage | m_grammar_namespace )[ push_back( at_c< 0 >( _val ), qi::_1 ) ];
                 // clang-format on
             }
 
-            StageGrammar< Iterator >     m_grammar_stage;
-            NamespaceGrammar< Iterator > m_grammar_namespace;
+            StageVariantGrammar< Iterator > m_grammar_stage;
+            NamespaceGrammar< Iterator >    m_grammar_namespace;
             boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Schema() > m_main_rule;
         };
 
@@ -463,29 +499,50 @@ std::ostream& operator<<( std::ostream& os, const db::schema::Type& type )
     }
     return os;
 }
-std::ostream& operator<<( std::ostream& os, const db::schema::Stage& stage )
+template < typename TStageType >
+void commonStageIO( std::ostream& os, const TStageType& stage )
 {
     using namespace db::schema;
-    os << "stage " << stage.m_name << "\n{\n";
-    struct FileVariantPrinter : boost::static_visitor< void >
+    os << stage.m_name << "\n{\n";
+    struct StageElementPrinter : boost::static_visitor< void >
     {
         std::ostream& os;
-        FileVariantPrinter( std::ostream& os )
+        StageElementPrinter( std::ostream& os )
             : os( os )
         {
         }
-        void operator()( const PerObjectFile& file ) const { os << "    object " << file << "\n"; }
-        void operator()( const PerProgramFile& file ) const
+        void operator()( const db::schema::Identifier& file ) const
         {
-            os << "    program " << file << "\n";
+            os << "    file " << file << "\n";
+        }
+        void operator()( const db::schema::PerProgramAccessor& accessor ) const
+        {
+            os << "    accessor perprogram " << accessor.m_type << "\n";
+        }
+        void operator()( const db::schema::PerObjectAccessor& accessor ) const
+        {
+            os << "    accessor perobject " << accessor.m_type << "\n";
         }
     };
-    FileVariantPrinter printer( os );
-    for ( const FileVariant& file : stage.m_files )
+    StageElementPrinter printer( os );
+    for ( const db::schema::StageElementVariant& file : stage.m_elements )
     {
         boost::apply_visitor( printer, file );
     }
     os << "}\n";
+}
+std::ostream& operator<<( std::ostream& os, const db::schema::PerObjectStage& stage )
+{
+    using namespace db::schema;
+    os << "stage perobject ";
+    commonStageIO( os, stage );
+    return os;
+}
+std::ostream& operator<<( std::ostream& os, const db::schema::PerProgramStage& stage )
+{
+    using namespace db::schema;
+    os << "stage perprogram ";
+    commonStageIO( os, stage );
     return os;
 }
 std::ostream& operator<<( std::ostream& os, const db::schema::Property& property )
@@ -493,13 +550,16 @@ std::ostream& operator<<( std::ostream& os, const db::schema::Property& property
     using namespace db::schema;
     os << property.m_type << property.m_name;
     if ( property.m_optFile.has_value() )
-        os << "->" << property.m_optFile.value();
+        os << " -> " << property.m_optFile.value();
     return os;
 }
 std::ostream& operator<<( std::ostream& os, const db::schema::Object& object )
 {
     using namespace db::schema;
-    os << object.m_name << "->" << object.m_file;
+    os << object.m_name;
+    if ( object.m_optInheritance.has_value() )
+        os << " : " << object.m_optInheritance.value();
+    os << " -> " << object.m_file;
     os << "\n{\n";
     for ( const Property& property : object.m_properties )
     {
@@ -535,6 +595,16 @@ std::ostream& operator<<( std::ostream& os, const db::schema::Namespace& namespa
 std::ostream& operator<<( std::ostream& os, const db::schema::Schema& schema )
 {
     using namespace db::schema;
+    struct StageVariantPrinter : boost::static_visitor< void >
+    {
+        std::ostream& os;
+        StageVariantPrinter( std::ostream& os )
+            : os( os )
+        {
+        }
+        void operator()( const PerObjectStage& stage ) const { os << stage; }
+        void operator()( const PerProgramStage& stage ) const { os << stage; }
+    };
     struct SchemaVariantPrinter : boost::static_visitor< void >
     {
         std::ostream& os;
@@ -542,7 +612,11 @@ std::ostream& operator<<( std::ostream& os, const db::schema::Schema& schema )
             : os( os )
         {
         }
-        void operator()( const Stage& stage ) const { os << stage; }
+        void operator()( const StageVariant& stage ) const
+        {
+            StageVariantPrinter printer( os );
+            boost::apply_visitor( printer, stage );
+        }
         void operator()( const Namespace& namespace_ ) const { os << namespace_; }
     };
     SchemaVariantPrinter printer( os );

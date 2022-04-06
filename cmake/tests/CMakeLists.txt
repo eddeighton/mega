@@ -33,6 +33,7 @@ link_gtest( mega_tests )
 
 target_link_libraries( mega_tests database )
 target_link_libraries( mega_tests parser )
+target_link_libraries( mega_tests database_compiler)
 
 gtest_add_tests( TARGET mega_tests )
 

@@ -1,9 +1,135 @@
 
 #include "database/model/view.hxx"
+#include "database/model/data.hxx"
+
+#include "database/io/object_info.hpp"
+#include "database/io/file_info.hpp"
+#include "database/io/file.hpp"
+#include "database/io/manifest.hpp"
+
+#include <vector>
 
 ## for stage in stages
 namespace {{ stage.name }}
 {
+struct Database::Pimpl
+{
+    using FileMap = std::map< mega::io::ObjectInfo::FileID, mega::io::File::Ptr >;
+    using FileMapCst = std::map< mega::io::ObjectInfo::FileID, mega::io::File::PtrCst >;
+{% if stage.perobject %}
+    Pimpl( const mega::io::Environment& environment, const boost::filesystem::path& objectFile )
+        :   m_environment( environment ),
+            m_objectFile( objectFile ),
+            m_manifest( m_environment.project_manifest() )
+    {
+        // create read-write files
+{% for file in stage.readwrite_files %}
+        {
+            std::vector< mega::io::FileInfo > fileInfos;
+            m_manifest.getCompilationFileInfos( mega::io::FileInfo::FILE_{{ stage.name }}_{{ file.name }}, m_objectFile, fileInfos );
+            VERIFY_RTE( fileInfos.size() == 1U );
+            const mega::io::FileInfo& fileInfo = fileInfos.front();
+            m_pFile_{{ file.name }} = std::make_shared< mega::io::File >( fileInfo ) ;
+            m_readwriteFiles.insert( std::make_pair( fileInfo.getFileID(), m_pFile_{{ file.name }} ) ); 
+        }
+{% endfor %}{# stage.readwrite_files #}
+    }
+{% endif %}
+
+{% if not stage.perobject %}
+    Pimpl( const mega::io::Environment& environment )
+        :   m_environment( environment ),
+            m_manifest( m_environment.project_manifest() )
+    {
+        // create read-write files
+{% for file in stage.readwrite_files %}
+        {
+            std::vector< mega::io::FileInfo > fileInfos;
+            m_manifest.getCompilationFileInfos( mega::io::FileInfo::FILE_{{ stage.name }}_{{ file.name }}, fileInfos );
+            VERIFY_RTE( fileInfos.size() == 1U );
+            const mega::io::FileInfo& fileInfo = fileInfos.front();
+            m_pFile_{{ file.name }} = std::make_shared< mega::io::File >( fileInfo ) ;
+            m_readwriteFiles.insert( std::make_pair( fileInfo.getFileID(), m_pFile_{{ file.name }} ) ); 
+        }
+{% endfor %}{# stage.readwrite_files #}
+    }
+{% endif %}
+
+{% for object in stage.readwrite_objects %}
+    {{ object.full_name }}* construct_{% for namespace in object.namespaces %}{{namespace}}_{% endfor %}{{ object.name }}()
+    {
+        using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+
+        // create the primary object part
+        PrimaryObjectPart* pPrimaryData = m_pFile_{{ object.primary_file }}->construct< PrimaryObjectPart >();
+
+        // create secondary object parts
+{% for secondaryFile in object.secondary_files %}
+        {
+            using SecondaryObjectPart = data::{{ secondaryFile }}::{{ object.name }};
+            SecondaryObjectPart* pSecondaryData = m_pFile_{{ secondaryFile }}->construct< SecondaryObjectPart >();
+            pSecondaryData->p{{ object.primary_file }}_{{ object.name }} = pPrimaryData;
+            pPrimaryData->p{{ secondaryFile }}_{{ object.name }} = pSecondaryData;
+        }
+{% endfor %}
+
+        // create the view type
+        {{ object.full_name }}* pObject = new {{ object.full_name }}( pPrimaryData );
+        pPrimaryData->pView = pObject;
+
+        return pObject;
+    }
+{% endfor %}{# stage.readwrite_objects #}
+
+    void store()
+    {
+        for ( FileMap::const_iterator 
+                i = m_readwriteFiles.begin(), 
+                iEnd = m_readwriteFiles.end();
+              i != iEnd; ++i )
+        {
+            i->second->store( m_manifest );
+        }
+    }
+
+    const mega::io::Environment& m_environment;
+{% if stage.perobject %}
+    boost::filesystem::path m_objectFile;
+{% endif %}
+    const mega::io::Manifest m_manifest;
+
+{% for file in stage.readwrite_files %}
+    std::shared_ptr< mega::io::File > m_pFile_{{ file.name }};
+{% endfor %}
+
+    FileMap m_readonlyFiles;
+    FileMap m_readwriteFiles;
+};
+
+{% if not stage.perobject %}
+Database::Database( const mega::io::Environment& environment )
+:   m_pimpl( new Pimpl( environment ) )
+{
+}
+{% endif %}
+{% if stage.perobject %}
+Database::Database( const mega::io::Environment& environment, const boost::filesystem::path& objectFile )
+:   m_pimpl( new Pimpl( environment, objectFile ) )
+{
+}
+{% endif %}
+
+void Database::store()
+{
+    m_pimpl->store();
+}
+
+{% for object in stage.readwrite_objects %}
+{% for namespace in object.namespaces %}{{namespace}}::{% endfor %}{{ object.name }}* Database::construct_{% for namespace in object.namespaces %}{{namespace}}_{% endfor %}{{ object.name }}()
+{
+    return m_pimpl->construct_{% for namespace in object.namespaces %}{{namespace}}_{% endfor %}{{ object.name }}();
+}
+{% endfor %}{# stage.readwrite_objects #}
 
 ## for object in stage.readonly_objects
 ## for namespace in object.namespaces
@@ -13,15 +139,22 @@ namespace {{ namespace }}
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 // {{ object.name }}
-{{ object.name }}::{{ object.name }}( const mega::io::ObjectInfo& objectInfo )
+{{ object.name }}::{{ object.name }}( void* pData )
+:   m_pData( pData )
 {
 }
 ## for property in object.readonly_properties
-{{ property.return_type }} {{ object.name }}::get_{{ property.name }}() const
+const {{ property.return_type }}& {{ object.name }}::get_{{ property.name }}() const
 {
-    {{ property.return_type }} result;
-
-    return result;
+{% if object.primary_file == property.file %}
+    using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+    PrimaryObjectPart* pData = reinterpret_cast< PrimaryObjectPart* >( m_pData );
+    return pData->{{ property.name }};
+{% else %}
+    using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+    PrimaryObjectPart* pData = reinterpret_cast< PrimaryObjectPart* >( m_pData );
+    return pData->p{{ property.file }}_{{ object.name }}->{{ property.name }};
+{% endif %}
 }
 ## endfor
 
@@ -38,27 +171,49 @@ namespace {{ namespace }}
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 // {{ object.name }}
-{{ object.name }}::{{ object.name }}( const mega::io::ObjectInfo& objectInfo )
+{{ object.name }}::{{ object.name }}( void* pData )
+:   m_pData( pData )
 {
 }
 ## for property in object.readonly_properties
-{{ property.return_type }} {{ object.name }}::get_{{ property.name }}() const
+const {{ property.return_type }}& {{ object.name }}::get_{{ property.name }}() const
 {
-    {{ property.return_type }} result;
-
-    return result;
+{% if object.primary_file == property.file %}
+    using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+    PrimaryObjectPart* pData = reinterpret_cast< PrimaryObjectPart* >( m_pData );
+    return pData->{{ property.name }};
+{% else %}
+    using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+    PrimaryObjectPart* pData = reinterpret_cast< PrimaryObjectPart* >( m_pData );
+    return pData->p{{ property.file }}_{{ object.name }}->{{ property.name }};
+{% endif %}
 }
 ## endfor
 
 ## for property in object.readwrite_properties
-{{ property.return_type }} {{ object.name }}::get_{{ property.name }}() const
+const {{ property.return_type }}& {{ object.name }}::get_{{ property.name }}() const
 {
-    {{ property.return_type }} result;
-
-    return result;
+{% if object.primary_file == property.file %}
+    using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+    PrimaryObjectPart* pData = reinterpret_cast< PrimaryObjectPart* >( m_pData );
+    return pData->{{ property.name }};
+{% else %}
+    using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+    PrimaryObjectPart* pData = reinterpret_cast< PrimaryObjectPart* >( m_pData );
+    return pData->p{{ property.file }}_{{ object.name }}->{{ property.name }};
+{% endif %}
 }
-void {{ object.name }}::set_{{ property.name }}( {{ property.return_type }} value ) const
+void {{ object.name }}::set_{{ property.name }}( const {{ property.return_type }}& value ) const
 {
+{% if object.primary_file == property.file %}
+    using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+    PrimaryObjectPart* pData = reinterpret_cast< PrimaryObjectPart* >( m_pData );
+    pData->{{ property.name }} = value;
+{% else %}
+    using PrimaryObjectPart = data::{{ object.primary_file }}::{{ object.name }};
+    PrimaryObjectPart* pData = reinterpret_cast< PrimaryObjectPart* >( m_pData );
+    pData->p{{ property.file }}_{{ object.name }}->{{ property.name }} = value;
+{% endif %}
 }
 ## endfor
 

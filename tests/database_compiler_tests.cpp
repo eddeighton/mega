@@ -115,17 +115,17 @@ protected:
 
 TEST_P( StageAccept, Basic )
 {
-    db::schema::Stage       stage;
-    std::ostringstream      osError;
-    db::schema::ParseResult result = db::schema::parse( GetParam(), stage, osError );
-    std::cout << stage << std::endl;
+    db::schema::StageVariant stage;
+    std::ostringstream       osError;
+    db::schema::ParseResult  result = db::schema::parse( GetParam(), stage, osError );
     ASSERT_TRUE( result.bSuccess );
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    Stage_Accept,
-    StageAccept,
-    ::testing::Values( "stage test{}", "stage test{ object one program two object three }" ) );
+INSTANTIATE_TEST_SUITE_P( Stage_Accept,
+                          StageAccept,
+                          ::testing::Values( "stage perobject test{}",
+                                             "stage perprogram test{ file someFile accessor "
+                                             "perobject ref< foobar > }" ) );
 
 // PropertyAccept
 class PropertyAccept : public ::testing::TestWithParam< std::string >
@@ -253,36 +253,34 @@ INSTANTIATE_TEST_SUITE_P(
     
 "namespace test{}", 
 
-"stage test"
+"stage perprogram test"
 "{"
-"  object fileone"
-"  program fileone"
+"  file fileone"
+"  accessor perobject ref< Parser::Root >"
 "}",
 
-"stage test"
+"stage perobject test"
 "{"
-"  object fileone"
-"  program fileone"
-"  object fileone"
-"  program fileone"
+"  file fileone"
+"  accessor perprogram ref< Parser::Root >"
 "}"
 "namespace test"
 "{"
-"   object test -> somefile"
+"   object test : foobar -> A::B"
 "   {"
-"       value< std::string > name"
+"       value< std::string > name1"
+"       value< std::string > name2 -> A::C"
+"       value< std::string > name3"
 "   }"
 "}"
-"stage test2"
+"stage perprogram test"
 "{"
-"  object fileone"
-"  program fileone"
-"  object fileone"
-"  program fileone"
+"  file fileone"
+"  accessor perobject ref< Parser::Root >"
 "}"
 "namespace test2"
 "{"
-"   object test -> somefile"
+"   object test -> A::B"
 "   {"
 "       value< std::string > name"
 "   }"
