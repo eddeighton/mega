@@ -1,0 +1,38 @@
+
+#include "database/model/data.hxx"
+
+
+namespace data
+{
+
+{% for file in files %}
+namespace {{ file.name }}
+{
+{% for part in file.parts %}
+    // struct {{ part.name }} : public mega::io::Object
+    {{ part.name }}::{{ part.name }}( const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+{% for pointer in part.pointers %}
+        p{{ pointer.namespace }}_{{ pointer.name }} = nullptr;
+{% endfor %}{#part.pointers#}
+    } 
+
+    void {{ part.name }}::load( mega::io::Loader& loader )
+    {
+{% for property in part.properties %}
+        loader.load( {{ property.name }} );
+{% endfor %}{#part.property#}
+    }
+    void {{ part.name }}::store( mega::io::Storer& storer ) const
+    {
+{% for property in part.properties %}
+        storer.store( {{ property.name }} );
+{% endfor %}{#part.property#}
+    }
+        
+{% endfor %}{#file.parts#}
+}
+{% endfor %}{# files #}
+
+}

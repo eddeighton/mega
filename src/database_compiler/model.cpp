@@ -269,7 +269,7 @@ namespace db
                     File::Ptr pFile = iFind->second;
                     pObject->m_primaryFile = pFile;
                     pObject->m_stage = pFile->m_stage;
-                    pFile->m_stage.lock()->m_readWriteObjects.push_back( pObject );
+                    // pFile->m_stage.lock()->m_readWriteObjects.push_back( pObject );
 
                     ObjectFilePair objectFilePair( pObject, object.m_file );
 
@@ -284,13 +284,28 @@ namespace db
                         {
                             FileMap::iterator i
                                 = mapping.fileMap.find( property.m_optFile.value() );
+                            File::Ptr pObjectPartFile = i->second;
+
                             VERIFY_RTE_MSG(
                                 i != mapping.fileMap.end(),
                                 "Could not find file: " << property.m_optFile.value()
                                                         << " for object: " << object.m_name );
+
+                            Stage::Ptr pObjectStage = pFile->m_stage.lock();
+                            Stage::Ptr pObjectPartStage = pObjectPartFile->m_stage.lock();
+
+                            // ensure the object part is from current or later stage
+                            VERIFY_RTE_MSG(
+                                pObjectStage->getCounter() <= pObjectPartStage->getCounter(),
+                                "Property: " << property.m_name
+                                             << " specifies file which has earlier stage: "
+                                             << pObjectPartStage->m_strName
+                                             << " than containing object: " << object.m_name
+                                             << " which is: " << pObjectStage->m_strName );
+
                             pObjectPart = getObjectPart(
-                                ObjectFilePair( pObject, property.m_optFile.value() ), i->second,
-                                false );
+                                ObjectFilePair( pObject, property.m_optFile.value() ),
+                                pObjectPartFile, false );
                         }
                         pProperty->m_objectPart = pObjectPart;
                         pObjectPart->m_properties.push_back( pProperty );
@@ -536,93 +551,92 @@ namespace db
                 i->first->m_base = findType( pSchema, i->second );
             }
 
-            // calculate the accumulated read only objects for each stage
-            {
-                std::vector< std::weak_ptr< Object > > objectsSoFar;
-                for ( Stage::Ptr pStage : pSchema->m_stages )
-                {
-                    pStage->m_readOnlyObjects = objectsSoFar;
-                    // for each stage add the new set of objects introduced by the stage
-                    std::copy( pStage->m_readWriteObjects.begin(), pStage->m_readWriteObjects.end(),
-                               std::back_inserter( objectsSoFar ) );
-                }
-            }
+            using ObjectPtrVector = std::vector< ObjectPart::Ptr >;
+            using ObjectPartMap
+                = std::map< Object::Ptr, ObjectPtrVector, CountedObjectComparator< Object::Ptr > >;
 
-            // calculate the stage interfaces
+            // once an object exists it WILL ALWAYS exist in every stage from then on
+            // so we only need to know the objects in the previous and current stage
+            // each interface must correspond to an object.
+
+            Stage::Ptr pPreviousStage;
             for ( Stage::Ptr pStage : pSchema->m_stages )
             {
+                // collect the new accumulation parts
+                ObjectPartMap objectParts;
+                for ( File::Ptr pFile : pStage->m_files )
+                {
+                    for ( ObjectPart::Ptr pPart : pFile->m_parts )
+                    {
+                        Object::Ptr             pObject = pPart->m_object.lock();
+                        ObjectPartMap::iterator iFind = objectParts.find( pObject );
+                        if ( iFind != objectParts.end() )
+                        {
+                            iFind->second.push_back( pPart );
+                        }
+                        else
+                        {
+                            objectParts.insert(
+                                std::make_pair( pObject, ObjectPtrVector{ pPart } ) );
+                        }
+                    }
+                }
+
                 using InterfaceMap = std::map< Object::Ptr, Interface::Ptr >;
                 InterfaceMap interfaceMap;
-                // for each stage add the new set of objects introduced by the stage
-                for ( std::weak_ptr< Object > pObjectWeak : pStage->m_readOnlyObjects )
+
+                for ( ObjectPartMap::iterator i = objectParts.begin(), iEnd = objectParts.end();
+                      i != iEnd; ++i )
                 {
-                    Object::Ptr pObject = pObjectWeak.lock();
-
                     Interface::Ptr pInterface = std::make_shared< Interface >( mapping.counter );
-                    pInterface->m_object = pObject;
-                    interfaceMap.insert( std::make_pair( pObject, pInterface ) );
-
-                    for ( Property::Ptr pProperty : pObject->m_primaryObjectPart->m_properties )
-                    {
-                        FunctionGetter::Ptr pGetter
-                            = std::make_shared< FunctionGetter >( mapping.counter );
-                        pGetter->m_property = pProperty;
-                        pInterface->m_functions.push_back( pGetter );
-                    }
-
-                    for ( SecondaryObjectPart::Ptr pPart : pObject->m_secondaryParts )
-                    {
-                        for ( Property::Ptr pProperty : pPart->m_properties )
-                        {
-                            FunctionGetter::Ptr pGetter
-                                = std::make_shared< FunctionGetter >( mapping.counter );
-                            pGetter->m_property = pProperty;
-                            pInterface->m_functions.push_back( pGetter );
-                        }
-                    }
-                    pStage->m_interfaces.push_back( pInterface );
-                }
-                for ( std::weak_ptr< Object > pObjectWeak : pStage->m_readWriteObjects )
-                {
-                    Object::Ptr pObject = pObjectWeak.lock();
-
-                    Interface::Ptr pInterface = std::make_shared< Interface >( mapping.counter );
-                    pInterface->m_object = pObject;
-                    interfaceMap.insert( std::make_pair( pObject, pInterface ) );
-
-                    for ( Property::Ptr pProperty : pObject->m_primaryObjectPart->m_properties )
-                    {
-                        FunctionGetter::Ptr pGetter
-                            = std::make_shared< FunctionGetter >( mapping.counter );
-                        pGetter->m_property = pProperty;
-                        pInterface->m_functions.push_back( pGetter );
-
-                        FunctionSetter::Ptr pSetter
-                            = std::make_shared< FunctionSetter >( mapping.counter );
-                        pGetter->m_property = pProperty;
-                        pInterface->m_functions.push_back( pSetter );
-                    }
-
-                    for ( SecondaryObjectPart::Ptr pPart : pObject->m_secondaryParts )
-                    {
-                        for ( Property::Ptr pProperty : pPart->m_properties )
-                        {
-                            FunctionGetter::Ptr pGetter
-                                = std::make_shared< FunctionGetter >( mapping.counter );
-                            pGetter->m_property = pProperty;
-                            pInterface->m_functions.push_back( pGetter );
-
-                            FunctionSetter::Ptr pSetter
-                                = std::make_shared< FunctionSetter >( mapping.counter );
-                            pGetter->m_property = pProperty;
-                            pInterface->m_functions.push_back( pSetter );
-                        }
-                    }
-                    pStage->m_interfaces.push_back( pInterface );
+                    std::copy( i->second.begin(), i->second.end(),
+                               std::back_inserter( pInterface->m_readWriteObjectParts ) );
+                    pStage->m_readWriteInterfaces.push_back( pInterface );
+                    pInterface->m_object = i->first;
+                    interfaceMap.insert( std::make_pair( i->first, pInterface ) );
                 }
 
-                // resolve interface inheritance
-                for ( Interface::Ptr pInterface : pStage->m_interfaces )
+                if ( pPreviousStage )
+                {
+                    std::vector< Interface::Ptr > previousInterfaces;
+                    std::copy( pPreviousStage->m_readWriteInterfaces.begin(),
+                               pPreviousStage->m_readWriteInterfaces.end(),
+                               std::back_inserter( previousInterfaces ) );
+                    std::copy( pPreviousStage->m_readOnlyInterfaces.begin(),
+                               pPreviousStage->m_readOnlyInterfaces.end(),
+                               std::back_inserter( previousInterfaces ) );
+                    for ( Interface::Ptr pPreviousInterface : previousInterfaces )
+                    {
+                        Object::Ptr            pObject = pPreviousInterface->m_object.lock();
+                        InterfaceMap::iterator iFind = interfaceMap.find( pObject );
+                        if ( iFind == interfaceMap.end() )
+                        {
+                            Interface::Ptr pInterface
+                                = std::make_shared< Interface >( mapping.counter );
+                            interfaceMap.insert( std::make_pair( pObject, pInterface ) );
+                            pInterface->m_readOnlyObjectParts
+                                = pPreviousInterface->m_readOnlyObjectParts;
+                            std::copy( pPreviousInterface->m_readWriteObjectParts.begin(),
+                                       pPreviousInterface->m_readWriteObjectParts.end(),
+                                       std::back_inserter( pInterface->m_readOnlyObjectParts ) );
+                            pInterface->m_object = pPreviousInterface->m_object;
+                            pStage->m_readOnlyInterfaces.push_back( pInterface );
+                        }
+                        else
+                        {
+                            Interface::Ptr pNewInterface = iFind->second;
+                            std::copy( pPreviousInterface->m_readOnlyObjectParts.begin(),
+                                       pPreviousInterface->m_readOnlyObjectParts.end(),
+                                       std::back_inserter( pNewInterface->m_readOnlyObjectParts ) );
+                            std::copy( pPreviousInterface->m_readWriteObjectParts.begin(),
+                                       pPreviousInterface->m_readWriteObjectParts.end(),
+                                       std::back_inserter( pNewInterface->m_readOnlyObjectParts ) );
+                        }
+                    }
+                }
+
+                // create interface functions and set base interfaces
+                for ( Interface::Ptr pInterface : pStage->m_readOnlyInterfaces )
                 {
                     Object::Ptr pObject = pInterface->m_object.lock();
                     if ( pObject->m_base )
@@ -631,13 +645,178 @@ namespace db
                         VERIFY_RTE( iFind != interfaceMap.end() );
                         pInterface->m_base = iFind->second;
                     }
+                    VERIFY_RTE( pInterface->m_readWriteObjectParts.empty() );
+                    for ( ObjectPart::Ptr pObjectPart : pInterface->m_readOnlyObjectParts )
+                    {
+                        for ( Property::Ptr pProperty : pObjectPart->m_properties )
+                        {
+                            if ( pProperty->isGet() )
+                            {
+                                FunctionGetter::Ptr pGetter
+                                    = std::make_shared< FunctionGetter >( mapping.counter );
+                                pGetter->m_property = pProperty;
+                                pInterface->m_functions.push_back( pGetter );
+                            }
+                        }
+                    }
                 }
+                for ( Interface::Ptr pInterface : pStage->m_readWriteInterfaces )
+                {
+                    Object::Ptr pObject = pInterface->m_object.lock();
+                    if ( pObject->m_base )
+                    {
+                        InterfaceMap::iterator iFind = interfaceMap.find( pObject->m_base );
+                        VERIFY_RTE( iFind != interfaceMap.end() );
+                        pInterface->m_base = iFind->second;
+                    }
+                    for ( ObjectPart::Ptr pObjectPart : pInterface->m_readWriteObjectParts )
+                    {
+                        for ( Property::Ptr pProperty : pObjectPart->m_properties )
+                        {
+                            if ( pProperty->isGet() )
+                            {
+                                FunctionGetter::Ptr pGetter
+                                    = std::make_shared< FunctionGetter >( mapping.counter );
+                                pGetter->m_property = pProperty;
+                                pInterface->m_functions.push_back( pGetter );
+                            }
+                            if ( pProperty->isSet() )
+                            {
+                                FunctionSetter::Ptr pSetter
+                                    = std::make_shared< FunctionSetter >( mapping.counter );
+                                pSetter->m_property = pProperty;
+                                pInterface->m_functions.push_back( pSetter );
+                            }
+                        }
+                    }
+                    for ( ObjectPart::Ptr pObjectPart : pInterface->m_readOnlyObjectParts )
+                    {
+                        for ( Property::Ptr pProperty : pObjectPart->m_properties )
+                        {
+                            if ( pProperty->isGet() )
+                            {
+                                FunctionGetter::Ptr pGetter
+                                    = std::make_shared< FunctionGetter >( mapping.counter );
+                                pGetter->m_property = pProperty;
+                                pInterface->m_functions.push_back( pGetter );
+                            }
+                        }
+                    }
+                }
+
+                // create stage functions
+                for ( Interface::Ptr pInterface : pStage->m_readWriteInterfaces )
+                {
+                    std::vector< Interface::Ptr > interfacesCreatedThisStage{ pInterface };
+                    std::vector< Interface::Ptr > interfacesCreatedPreviously;
+                    Interface::Ptr                pBase = pInterface->m_base;
+                    while ( pBase )
+                    {
+                        if ( !pBase->m_readWriteObjectParts.empty() )
+                        {
+                            interfacesCreatedThisStage.push_back( pBase );
+                        }
+                        else
+                        {
+                            interfacesCreatedPreviously.push_back( pBase );
+                        }
+                        pBase = pBase->m_base;
+                    }
+
+                    const bool bInterfaceHasPrimaryPart
+                        = pInterface->m_readWriteObjectParts.end()
+                          == std::find( pInterface->m_readWriteObjectParts.begin(),
+                                        pInterface->m_readWriteObjectParts.end(),
+                                        pInterface->m_object.lock()->m_primaryObjectPart );
+
+                    if ( !interfacesCreatedPreviously.empty() )
+                    {
+                        Interface::Ptr pPrevious = interfacesCreatedPreviously.front();
+
+                        // create refinement from previous stage interface
+                        Refinement::Ptr pRefinement
+                            = std::make_shared< Refinement >( mapping.counter );
+                        pRefinement->m_fromInterface = pPrevious;
+                        pRefinement->m_toInterface = pInterface;
+                        pRefinement->m_stage = pStage;
+
+                        for ( Interface::Ptr pInherited : interfacesCreatedThisStage )
+                        {
+                            for ( ObjectPart::Ptr pPart : pInherited->m_readWriteObjectParts )
+                            {
+                                for ( Property::Ptr pProperty : pPart->m_properties )
+                                {
+                                    if ( pProperty->isCtorParam() )
+                                        pRefinement->m_parameters.push_back( pProperty );
+                                }
+                            }
+                        }
+
+                        pStage->m_refinements.push_back( pRefinement );
+                    }
+                    else
+                    {
+                        Constructor::Ptr pConstructor
+                            = std::make_shared< Constructor >( mapping.counter );
+                        pConstructor->m_interface = pInterface;
+                        pConstructor->m_stage = pStage;
+                        for ( Interface::Ptr pInherited : interfacesCreatedThisStage )
+                        {
+                            for ( ObjectPart::Ptr pPart : pInherited->m_readWriteObjectParts )
+                            {
+                                for ( Property::Ptr pProperty : pPart->m_properties )
+                                {
+                                    if ( pProperty->isCtorParam() )
+                                        pConstructor->m_parameters.push_back( pProperty );
+                                }
+                            }
+                        }
+                        pStage->m_constructors.push_back( pConstructor );
+                    }
+
+                    for ( std::vector< Interface::Ptr >::iterator i
+                          = interfacesCreatedThisStage.begin(),
+                          iEnd = interfacesCreatedThisStage.end();
+                          i != iEnd;
+                          ++i )
+                    {
+                        Interface::Ptr pFrom = *i;
+                        if ( pFrom != pInterface )
+                        {
+                            Refinement::Ptr pRefinement
+                                = std::make_shared< Refinement >( mapping.counter );
+                            pRefinement->m_fromInterface = pFrom;
+                            pRefinement->m_toInterface = pInterface;
+                            pRefinement->m_stage = pStage;
+
+                            for ( std::vector< Interface::Ptr >::iterator j = i + 1; j != iEnd;
+                                  ++j )
+                            {
+                                Interface::Ptr pInherited = *j;
+                                for ( ObjectPart::Ptr pPart : pInherited->m_readWriteObjectParts )
+                                {
+                                    for ( Property::Ptr pProperty : pPart->m_properties )
+                                    {
+                                        if ( pProperty->isCtorParam() )
+                                            pRefinement->m_parameters.push_back( pProperty );
+                                    }
+                                }
+                            }
+                            pStage->m_refinements.push_back( pRefinement );
+                        }
+                    }
+                }
+
+                pPreviousStage = pStage;
             }
 
             // calculate the stage super interfaces
             for ( Stage::Ptr pStage : pSchema->m_stages )
             {
-                std::vector< Interface::Ptr > interfaces = pStage->m_interfaces;
+                std::vector< Interface::Ptr > interfaces = pStage->m_readOnlyInterfaces;
+                std::copy( pStage->m_readWriteInterfaces.begin(),
+                           pStage->m_readWriteInterfaces.end(),
+                           std::back_inserter( interfaces ) );
 
                 std::sort( interfaces.begin(), interfaces.end(),
                            CountedObjectComparator< Interface::Ptr >() );

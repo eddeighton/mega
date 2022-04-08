@@ -1,0 +1,87 @@
+
+#include "database/model/{{ stage.name }}.hxx"
+
+#include "database/io/object_info.hpp"
+#include "database/io/file_info.hpp"
+#include "database/io/file.hpp"
+#include "database/io/manifest.hpp"
+
+namespace {{ stage.name }}
+{
+
+struct Database::Pimpl
+{
+    using FileMap = std::map< mega::io::ObjectInfo::FileID, mega::io::File::Ptr >;
+    using FileMapCst = std::map< mega::io::ObjectInfo::FileID, mega::io::File::PtrCst >;
+{% if stage.perobject %}
+    Pimpl( const mega::io::Environment& environment, const boost::filesystem::path& objectFile )
+        :   m_environment( environment ),
+            m_objectFile( objectFile ),
+            m_manifest( m_environment.project_manifest() )
+    {
+    }
+{% endif %}
+
+{% if not stage.perobject %}
+    Pimpl( const mega::io::Environment& environment )
+        :   m_environment( environment ),
+            m_manifest( m_environment.project_manifest() )
+    {
+    }
+{% endif %}
+
+{% for constructor in stage.constructors %}
+    {{ constructor.return_type }}* {{ constructor.function_name }}()
+    {
+        return nullptr;
+    }
+{% endfor %}{# stage.constructors#}
+
+    void store()
+    {
+        for ( FileMap::const_iterator 
+                i = m_readwriteFiles.begin(), 
+                iEnd = m_readwriteFiles.end();
+              i != iEnd; ++i )
+        {
+            i->second->store( m_manifest );
+        }
+    }
+
+    const mega::io::Environment& m_environment;
+{% if stage.perobject %}
+    boost::filesystem::path m_objectFile;
+{% endif %}
+    const mega::io::Manifest m_manifest;
+
+    FileMap m_readonlyFiles;
+    FileMap m_readwriteFiles;
+};
+
+
+{% if not stage.perobject %}
+Database::Database( const mega::io::Environment& environment )
+:   m_pimpl( new Pimpl( environment ) )
+{
+}
+{% endif %}
+{% if stage.perobject %}
+Database::Database( const mega::io::Environment& environment, const boost::filesystem::path& objectFile )
+:   m_pimpl( new Pimpl( environment, objectFile ) )
+{
+}
+{% endif %}
+
+void Database::store()
+{
+    m_pimpl->store();
+}
+
+{% for constructor in stage.constructors %}
+{{ constructor.return_type }}* Database::{{ constructor.function_name }}()
+{
+    return m_pimpl->{{ constructor.function_name }}();
+}
+{% endfor %}{# stage.constructors #}
+
+}

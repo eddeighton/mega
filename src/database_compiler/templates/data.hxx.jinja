@@ -1,0 +1,58 @@
+#ifndef {{ guard }}
+#define {{ guard }}
+
+#include "database/io/object_info.hpp"
+#include "database/io/object.hpp"
+#include "database/io/loader.hpp"
+#include "database/io/storer.hpp"
+
+#include "boost/filesystem/path.hpp"
+
+#include <vector>
+#include <string>
+#include <cstddef>
+
+namespace data
+{
+
+// declarations
+{% for file in files %}
+namespace {{ file.name }}
+{
+{% for part in file.parts %}
+    struct {{ part.name }};
+{% endfor %}{#file.parts#}
+}
+{% endfor %}{# files #}
+
+// definitions
+{% for file in files %}
+namespace {{ file.name }}
+{
+{% for part in file.parts %}
+    struct {{ part.name }} : public mega::io::Object
+    {
+        {{ part.name }}( const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Type = {{ part.typeID }}
+        } size_t;
+
+{% for property in part.properties %}
+        {{ property.type }} {{ property.name }};
+{% endfor %}{#part.property#}
+
+{% for pointer in part.pointers %}
+        {{ pointer.namespace }}::{{ pointer.name }}* p{{ pointer.namespace }}_{{ pointer.name }};
+{% endfor %}{#part.pointers#}
+        void* pView = nullptr;
+
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+{% endfor %}{#file.parts#}
+}
+{% endfor %}{# files #}
+
+}
+#endif //{{ guard }}

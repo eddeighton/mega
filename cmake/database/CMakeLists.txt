@@ -10,9 +10,9 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get handy function to preprocess files for the xmacros stuff
 include( ../preprocess_cpp.cmake )
 
-set( DATABASE_SCHEMA ${MEGA_SRC_DIR}/database_compiler/data/schema.txt )
+set( DATABASE_SCHEMA ${MEGA_SRC_DIR}/database_compiler/schema.txt )
 add_custom_target( database_generation
-    COMMAND database_compiler_driver 
+    COMMAND database_compiler_driver
         --input ${DATABASE_SCHEMA}
         --api ${MEGA_API_DIR}/database/model/
         --src ${MEGA_SRC_DIR}/database/model/
@@ -50,14 +50,23 @@ add_dependencies( database_generation database_compiler_driver )
 #	${MEGA_API_DIR}/mega/type_path.hpp
 #	${MEGA_API_DIR}/mega/variant.hpp
 #	)
-	
+
 set( MEGA_DATABASE_MODEL
 
     ${MEGA_API_DIR}/database/model/data.hxx
-    ${MEGA_API_DIR}/database/model/view.hxx
 
+    ${MEGA_API_DIR}/database/model/Analysis.hxx
+    ${MEGA_API_DIR}/database/model/Concrete.hxx
+    ${MEGA_API_DIR}/database/model/Dependencies.hxx
+    ${MEGA_API_DIR}/database/model/HyperGraph.hxx
+    ${MEGA_API_DIR}/database/model/Interface.hxx
+    ${MEGA_API_DIR}/database/model/ComponentListing.hxx
+    ${MEGA_API_DIR}/database/model/data.hxx
+    ${MEGA_API_DIR}/database/model/Derivations.hxx
+    ${MEGA_API_DIR}/database/model/InputParse.hxx
+    ${MEGA_API_DIR}/database/model/Layout.hxx
 	)
-	
+
 set( MEGA_DATABASE_IO
     ${MEGA_API_DIR}/database/io/object_info.hpp
     ${MEGA_API_DIR}/database/io/file_info.hpp
@@ -73,7 +82,7 @@ set( MEGA_DATABASE_IO
     ${MEGA_API_DIR}/database/io/object.hpp
     ${MEGA_API_DIR}/database/io/storer.hpp
 	)
-	
+
 set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/io/file_info.cpp
     ${MEGA_SRC_DIR}/database/io/component_info.cpp
@@ -84,12 +93,22 @@ set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/io/loader.cpp
     ${MEGA_SRC_DIR}/database/io/object.cpp
     ${MEGA_SRC_DIR}/database/io/storer.cpp
-    
+
     ${MEGA_SRC_DIR}/database/model/data.cxx
-    ${MEGA_SRC_DIR}/database/model/view.cxx
-    
+
+    ${MEGA_SRC_DIR}/database/model/Analysis.cxx
+    ${MEGA_SRC_DIR}/database/model/Concrete.cxx
+    ${MEGA_SRC_DIR}/database/model/Dependencies.cxx
+    ${MEGA_SRC_DIR}/database/model/HyperGraph.cxx
+    ${MEGA_SRC_DIR}/database/model/Interface.cxx
+    ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
+    ${MEGA_SRC_DIR}/database/model/data.cxx
+    ${MEGA_SRC_DIR}/database/model/Derivations.cxx
+    ${MEGA_SRC_DIR}/database/model/InputParse.cxx
+    ${MEGA_SRC_DIR}/database/model/Layout.cxx
+
     )
-    
+
 add_library( database
                     ${MEGA_DATABASE_IO}
 					${MEGA_DATABASE_MODEL}
@@ -97,7 +116,7 @@ add_library( database
 				)
 
 add_dependencies( database database_generation )
-                
+
 
 target_compile_definitions(database PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
 set_target_properties( database PROPERTIES FOLDER database )
@@ -108,7 +127,7 @@ link_boost( database iostreams )
 link_boost( database serialization )
 link_boost( database system )
 link_boost( database atomic )
-link_common( database ) 
+link_common( database )
 
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
 install( FILES ${MEGA_DATABASE_IO} DESTINATION include/database/io )

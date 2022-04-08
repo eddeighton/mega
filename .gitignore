@@ -20,3 +20,7 @@ third_party
 *.pdb
 *.swp
 imgui.ini
+*.hxx
+*.cxx
+*.json
+

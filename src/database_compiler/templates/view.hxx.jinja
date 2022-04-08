@@ -1,0 +1,83 @@
+#ifndef {{ guard }}
+#define {{ guard }}
+
+#include "database/io/environment.hpp"
+
+#include <boost/filesystem/path.hpp>
+
+#include <string>
+#include <vector>
+#include <optional>
+#include <memory>
+
+namespace {{ stage.name }}
+{
+    // forward declarations
+{% for interface in stage.interfaces %}
+{% for namespace in interface.namespaces %}
+    namespace {{ namespace }}
+    { 
+{% endfor %}{#interface.namespaces#}
+        class {{ interface.name }};
+{% for namespace in interface.namespaces %}
+    } //{{ namespace }}
+{% endfor %}{#interface.namespaces#}
+{% endfor %}{# stage.interfaces #}
+    
+    // Definitions
+    class Database
+    {
+    public:
+        struct Pimpl;
+{% if not stage.perobject %}
+        Database( const mega::io::Environment& environment );
+{% endif %}
+{% if stage.perobject %}
+        Database( const mega::io::Environment& environment, const boost::filesystem::path& objectFile );
+{% endif %}
+
+        template< typename T >
+        inline T* construct();
+
+        void store();
+
+    private:
+{% for constructor in stage.constructors %}
+        {{ constructor.return_type }}* {{ constructor.function_name }}();
+{% endfor %}{# stage.constructors #}
+
+    private:
+        std::shared_ptr< Pimpl > m_pimpl;
+    };
+
+{% for constructor in stage.constructors %}
+    template<>
+    inline {{ constructor.return_type }}* Database::construct< {{ constructor.return_type }} >()
+    {
+        return {{ constructor.function_name }}();
+    }
+{% endfor %}{# stage.constructors #}
+
+{% for interface in stage.interfaces %}
+{% for namespace in interface.namespaces %}
+    namespace {{ namespace }}
+    { 
+{% endfor %}{#interface.namespaces#}
+        class {{ interface.name }}
+        {
+        public:
+            {{ interface.name }}();
+            virtual ~{{ interface.name }}() = 0;
+
+{% for function in interface.functions %}
+            virtual {{ function.returntype }} {{ function.name }}({{ function.params }}) = 0;
+{% endfor %}{#interface.functions#}
+        };
+{% for namespace in interface.namespaces %}
+    } //{{ namespace }}
+{% endfor %}{#interface.namespaces#}
+{% endfor %}{# stage.interfaces #}
+
+}
+
+#endif //{{ guard }}

@@ -81,6 +81,7 @@ namespace Parser
         value< bool > isConst
         value< std::string > identifier
         value< std::string > type
+        value< std::string > foobar -> Interface::Tree
     }
 
     object Context -> InputParse::AST

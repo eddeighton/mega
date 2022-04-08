@@ -22,6 +22,7 @@ namespace db
                 : m_szIndex( szCounter++ )
             {
             }
+            virtual ~CountedObject(){}
             inline Counter getCounter() const { return m_szIndex; }
 
         private:
@@ -53,6 +54,9 @@ namespace db
 
             virtual std::string getViewType() const = 0;
             virtual std::string getDataType() const = 0;
+            virtual bool        isCtorParam() const = 0;
+            virtual bool        isGet() const = 0;
+            virtual bool        isSet() const = 0;
         };
 
         class File;
@@ -70,6 +74,10 @@ namespace db
                 : CountedObject( szCounter )
             {
             }
+
+            bool isCtorParam() const { return m_type->isCtorParam(); }
+            bool isGet() const { return m_type->isGet(); }
+            bool isSet() const { return m_type->isSet(); }
 
             std::weak_ptr< ObjectPart > m_objectPart;
 
@@ -171,19 +179,6 @@ namespace db
             std::vector< ObjectPart::Ptr > m_parts;
         };
 
-        class Accessor : public CountedObject
-        {
-        public:
-            Accessor( std::size_t& szCounter )
-                : CountedObject( szCounter )
-            {
-            }
-            using Ptr = std::shared_ptr< Accessor >;
-            std::weak_ptr< Stage > m_stage;
-            bool                   m_bPerObject;
-            Type::Ptr              m_type;
-        };
-
         class Function : public CountedObject
         {
         public:
@@ -197,7 +192,7 @@ namespace db
         class FunctionGetter : public Function
         {
         public:
-            using Ptr = std::shared_ptr< Function >;
+            using Ptr = std::shared_ptr< FunctionGetter >;
             FunctionGetter( std::size_t& szCounter )
                 : Function( szCounter )
             {
@@ -206,7 +201,7 @@ namespace db
         class FunctionSetter : public Function
         {
         public:
-            using Ptr = std::shared_ptr< Function >;
+            using Ptr = std::shared_ptr< FunctionSetter >;
             FunctionSetter( std::size_t& szCounter )
                 : Function( szCounter )
             {
@@ -223,9 +218,38 @@ namespace db
             {
             }
             std::weak_ptr< SuperInterface > m_superInterface;
-            std::weak_ptr< Object >      m_object;
-            std::vector< Function::Ptr > m_functions;
-            Interface::Ptr               m_base;
+            std::weak_ptr< Object >         m_object;
+            std::vector< Function::Ptr >    m_functions;
+            Interface::Ptr                  m_base;
+            std::vector< ObjectPart::Ptr >  m_readOnlyObjectParts;
+            std::vector< ObjectPart::Ptr >  m_readWriteObjectParts;
+
+            std::string delimitTypeName( const std::string& str ) const
+            {
+                Object::Ptr pObject = m_object.lock();
+
+                std::vector< Namespace::Ptr > namespaces;
+                {
+                    Namespace::Ptr pIter = pObject->m_namespace.lock();
+                    while( pIter )
+                    {
+                        namespaces.push_back(pIter);
+                        pIter = pIter->m_namespace.lock();
+                    }
+                    std::reverse( namespaces.begin(), namespaces.end() );
+                }
+
+                std::ostringstream os;
+                {
+                    for( Namespace::Ptr pNamespace : namespaces )
+                    {
+                        os << pNamespace->m_strName << str;
+                    }
+                    os << pObject->m_strName;
+                }
+
+                return os.str();
+            }
         };
 
         class SuperInterface : public CountedObject
@@ -241,6 +265,58 @@ namespace db
             std::vector< Interface::Ptr > m_interfaces;
         };
 
+        class StageFunction : public CountedObject
+        {
+        public:
+            StageFunction( std::size_t& szCounter )
+                : CountedObject( szCounter )
+            {
+            }
+            using Ptr = std::shared_ptr< StageFunction >;
+
+            std::weak_ptr< Stage > m_stage;
+        };
+
+        class Accessor : public StageFunction
+        {
+        public:
+            Accessor( std::size_t& szCounter )
+                : StageFunction( szCounter )
+            {
+            }
+            using Ptr = std::shared_ptr< Accessor >;
+            bool                   m_bPerObject;
+            std::weak_ptr< Stage > m_stage;
+            Type::Ptr              m_type;
+        };
+
+        class Constructor : public StageFunction
+        {
+        public:
+            Constructor( std::size_t& szCounter )
+                : StageFunction( szCounter )
+            {
+            }
+            using Ptr = std::shared_ptr< Constructor >;
+            std::weak_ptr< Stage >                   m_stage;
+            Interface::Ptr                           m_interface;
+            std::vector< std::weak_ptr< Property > > m_parameters;
+        };
+
+        class Refinement : public StageFunction
+        {
+        public:
+            Refinement( std::size_t& szCounter )
+                : StageFunction( szCounter )
+            {
+            }
+            using Ptr = std::shared_ptr< Refinement >;
+            std::weak_ptr< Stage >                   m_stage;
+            Interface::Ptr                           m_fromInterface;
+            Interface::Ptr                           m_toInterface;
+            std::vector< std::weak_ptr< Property > > m_parameters;
+        };
+
         class Stage : public CountedObject
         {
         public:
@@ -249,14 +325,17 @@ namespace db
             {
             }
             using Ptr = std::shared_ptr< Stage >;
-            bool                                   m_bPerObject;
-            std::string                            m_strName;
-            std::vector< File::Ptr >               m_files;
-            std::vector< Accessor::Ptr >           m_accessors;
-            std::vector< std::weak_ptr< Object > > m_readOnlyObjects;
-            std::vector< std::weak_ptr< Object > > m_readWriteObjects;
-            std::vector< SuperInterface::Ptr >     m_superInterfaces;
-            std::vector< Interface::Ptr >          m_interfaces;
+            bool                     m_bPerObject;
+            std::string              m_strName;
+            std::vector< File::Ptr > m_files;
+
+            std::vector< Accessor::Ptr >    m_accessors;
+            std::vector< Constructor::Ptr > m_constructors;
+            std::vector< Refinement::Ptr >  m_refinements;
+
+            std::vector< Interface::Ptr >      m_readOnlyInterfaces;
+            std::vector< Interface::Ptr >      m_readWriteInterfaces;
+            std::vector< SuperInterface::Ptr > m_superInterfaces;
         };
 
         class Schema : public CountedObject
@@ -287,6 +366,9 @@ namespace db
 
             virtual std::string getViewType() const { return m_cppType; }
             virtual std::string getDataType() const { return m_cppType; }
+            virtual bool        isCtorParam() const { return true; }
+            virtual bool        isGet() const { return true; }
+            virtual bool        isSet() const { return false; }
         };
 
         class ArrayType : public Type
@@ -313,6 +395,9 @@ namespace db
                 os << "std::vector< " << m_underlyingType->getDataType() << " >";
                 return os.str();
             }
+            virtual bool isCtorParam() const { return false; }
+            virtual bool isGet() const { return true; }
+            virtual bool isSet() const { return true; }
         };
 
         class RefType : public Type
@@ -341,6 +426,9 @@ namespace db
                    << "*";
                 return os.str();
             }
+            virtual bool isCtorParam() const { return true; }
+            virtual bool isGet() const { return true; }
+            virtual bool isSet() const { return false; }
         };
         /*
             class ReferenceType : public Type

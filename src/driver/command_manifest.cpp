@@ -19,8 +19,6 @@
 
 #include "command_utils.hpp"
 
-#include "database/model/view.hxx"
-
 #include "database/io/manifest.hpp"
 #include "database/io/environment.hpp"
 
