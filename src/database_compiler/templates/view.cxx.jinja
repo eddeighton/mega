@@ -5,9 +5,47 @@
 #include "database/io/file_info.hpp"
 #include "database/io/file.hpp"
 #include "database/io/manifest.hpp"
+#include "database/io/data_pointer.hpp"
+
+#include "database/model/data.hxx"
+
+#include <variant>
 
 namespace {{ stage.name }}
 {
+
+{% for stype in stage.supertypes %}
+class {{ stype.name }} : public {% for interface in stype.interfaces %}virtual {{ interface.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}
+
+{
+    using DataVariant = std::variant< {% for interface in stype.interfaces %} data::Ptr< data::{{ interface.part }} > {% if not loop.is_last %}, {% endif %}{% endfor %} >;
+    DataVariant m_data;
+public:
+{% for interface in stype.interfaces %}
+    {{ stype.name }}( data::Ptr< data::{{ interface.part }} >& data )
+        :   m_data( data )
+    {
+    }
+{% endfor %}{# stype.interfaces #}
+    virtual ~{{ stype.name }}()
+    {
+    }
+{% for interface in stype.interfaces %}
+    // {{ interface.name }}
+{% for function in interface.functions %}
+    virtual {{ function.returntype }} {{ function.name }}({{function.params }})
+    {
+        data::Ptr< data::{{ function.objectpart }} > part = 
+            data::convert< data::{{ function.objectpart }} >( m_data );
+{% for line in function.body %}
+        {{ line }}
+{% endfor %}{# function.body #}
+    }
+{% endfor %}{# interface.functions #}
+{% endfor %}{# stype.interfaces #}
+};
+
+{% endfor %}{# stage.supertypes #}
 
 struct Database::Pimpl
 {

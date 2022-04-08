@@ -66,6 +66,19 @@ namespace AST
         storer.store( type );
     }
         
+    // struct Root : public mega::io::Object
+    Root::Root( const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    } 
+
+    void Root::load( mega::io::Loader& loader )
+    {
+    }
+    void Root::store( mega::io::Storer& storer ) const
+    {
+    }
+        
     // struct Context : public mega::io::Object
     Context::Context( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
@@ -82,16 +95,29 @@ namespace AST
         storer.store( identifier );
     }
         
-    // struct Root : public mega::io::Object
-    Root::Root( const mega::io::ObjectInfo& objectInfo )
+    // struct FoobarRoot : public mega::io::Object
+    FoobarRoot::FoobarRoot( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
     {
     } 
 
-    void Root::load( mega::io::Loader& loader )
+    void FoobarRoot::load( mega::io::Loader& loader )
     {
     }
-    void Root::store( mega::io::Storer& storer ) const
+    void FoobarRoot::store( mega::io::Storer& storer ) const
+    {
+    }
+        
+    // struct TestRoot : public mega::io::Object
+    TestRoot::TestRoot( const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    } 
+
+    void TestRoot::load( mega::io::Loader& loader )
+    {
+    }
+    void TestRoot::store( mega::io::Storer& storer ) const
     {
     }
         

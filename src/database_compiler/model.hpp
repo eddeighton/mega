@@ -22,7 +22,7 @@ namespace db
                 : m_szIndex( szCounter++ )
             {
             }
-            virtual ~CountedObject(){}
+            virtual ~CountedObject() {}
             inline Counter getCounter() const { return m_szIndex; }
 
         private:
@@ -100,6 +100,8 @@ namespace db
 
             std::vector< Property::Ptr > m_properties;
             std::size_t                  m_typeID;
+
+            std::string getDataType( const std::string& strDelimiter ) const;
         };
 
         class PrimaryObjectPart : public ObjectPart
@@ -231,9 +233,9 @@ namespace db
                 std::vector< Namespace::Ptr > namespaces;
                 {
                     Namespace::Ptr pIter = pObject->m_namespace.lock();
-                    while( pIter )
+                    while ( pIter )
                     {
-                        namespaces.push_back(pIter);
+                        namespaces.push_back( pIter );
                         pIter = pIter->m_namespace.lock();
                     }
                     std::reverse( namespaces.begin(), namespaces.end() );
@@ -241,7 +243,7 @@ namespace db
 
                 std::ostringstream os;
                 {
-                    for( Namespace::Ptr pNamespace : namespaces )
+                    for ( Namespace::Ptr pNamespace : namespaces )
                     {
                         os << pNamespace->m_strName << str;
                     }
@@ -333,6 +335,7 @@ namespace db
             std::vector< Constructor::Ptr > m_constructors;
             std::vector< Refinement::Ptr >  m_refinements;
 
+            std::vector< Interface::Ptr >      m_interfaceTopological;
             std::vector< Interface::Ptr >      m_readOnlyInterfaces;
             std::vector< Interface::Ptr >      m_readWriteInterfaces;
             std::vector< SuperInterface::Ptr > m_superInterfaces;
@@ -368,7 +371,7 @@ namespace db
             virtual std::string getDataType() const { return m_cppType; }
             virtual bool        isCtorParam() const { return true; }
             virtual bool        isGet() const { return true; }
-            virtual bool        isSet() const { return false; }
+            virtual bool        isSet() const { return true; }
         };
 
         class ArrayType : public Type
@@ -428,7 +431,7 @@ namespace db
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
-            virtual bool isSet() const { return false; }
+            virtual bool isSet() const { return true; }
         };
         /*
             class ReferenceType : public Type

@@ -34,57 +34,67 @@ namespace db
                 writeJSON( dataDir / "stages.json", data );
             }
 
+            nlohmann::json writeFunction( model::Function::Ptr pFunction )
+            {
+                nlohmann::json     function;
+                std::ostringstream osName, osReturnType, osParams;
+                if ( std::dynamic_pointer_cast< model::FunctionGetter >( pFunction ) )
+                {
+                    osName << "get_" << pFunction->m_property->m_strName;
+                    osReturnType << "const " << pFunction->m_property->m_type->getViewType() << "&";
+                }
+                else if ( std::dynamic_pointer_cast< model::FunctionSetter >( pFunction ) )
+                {
+                    osName << "set_" << pFunction->m_property->m_strName;
+                    osReturnType << "void";
+                    osParams << " const " << pFunction->m_property->m_type->getViewType()
+                             << "& value ";
+                }
+                else
+                {
+                    THROW_RTE( "Unknown function type" );
+                }
+
+                function[ "name" ] = osName.str();
+                function[ "returntype" ] = osReturnType.str();
+                function[ "params" ] = osParams.str();
+                return function;
+            }
+
             nlohmann::json writeInterface( model::Interface::Ptr pInterface )
             {
                 model::Object::Ptr pObject = pInterface->m_object.lock();
                 nlohmann::json     interface = nlohmann::json::object( {
                     { "name", pObject->m_strName },
+                    { "fullname", pInterface->delimitTypeName( "::" ) },
                     { "functions", nlohmann::json::array() },
                 } );
 
+                // base interface
+                if ( pInterface->m_base )
+                {
+                    interface[ "has_base" ] = true;
+                    interface[ "base" ] = pInterface->m_base->delimitTypeName( "::" );
+                }
+                else
+                {
+                    interface[ "has_base" ] = false;
+                }
+
                 // namespaces
                 {
-                    // std::ostringstream    os;
                     model::Namespace::Ptr pNamespace = pObject->m_namespace.lock();
                     VERIFY_RTE( pNamespace );
                     while ( pNamespace )
                     {
-                        // os << pNamespace->m_strName << "::";
                         interface[ "namespaces" ].push_back( pNamespace->m_strName );
                         pNamespace = pNamespace->m_namespace.lock();
                     }
-                    // os << pObject->m_strName;
-                    // interface[ "full_name" ] = os.str();
                 }
 
                 for ( model::Function::Ptr pFunction : pInterface->m_functions )
                 {
-                    nlohmann::json function;
-
-                    std::ostringstream osName, osReturnType, osParams;
-                    if ( std::dynamic_pointer_cast< model::FunctionGetter >( pFunction ) )
-                    {
-                        osName << "get_" << pFunction->m_property->m_strName;
-                        osReturnType << "const " << pFunction->m_property->m_type->getViewType()
-                                     << "&";
-                    }
-                    else if ( std::dynamic_pointer_cast< model::FunctionSetter >( pFunction ) )
-                    {
-                        osName << "get_" << pFunction->m_property->m_strName;
-                        osReturnType << "void";
-                        osParams << " const " << pFunction->m_property->m_type->getViewType()
-                                 << "& value ";
-                    }
-                    else
-                    {
-                        THROW_RTE( "Unknown function type" );
-                    }
-
-                    function[ "name" ] = osName.str();
-                    function[ "returntype" ] = osReturnType.str();
-                    function[ "params" ] = osParams.str();
-
-                    interface[ "functions" ].push_back( function );
+                    interface[ "functions" ].push_back( writeFunction( pFunction ) );
                 }
 
                 return interface;
@@ -109,11 +119,7 @@ namespace db
                                                     { "refinements", nlohmann::json::array() },
                                                     { "interfaces", nlohmann::json::array() } } );
 
-                    for ( model::Interface::Ptr pInterface : pStage->m_readOnlyInterfaces )
-                    {
-                        stage[ "interfaces" ].push_back( writeInterface( pInterface ) );
-                    }
-                    for ( model::Interface::Ptr pInterface : pStage->m_readWriteInterfaces )
+                    for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
                     {
                         stage[ "interfaces" ].push_back( writeInterface( pInterface ) );
                     }
@@ -131,6 +137,67 @@ namespace db
                               { "function_name", os.str() } } );
 
                         stage[ "constructors" ].push_back( ctor );
+                    }
+                    for ( model::SuperInterface::Ptr pSuperType : pStage->m_superInterfaces )
+                    {
+                        std::ostringstream os;
+                        os << "super";
+                        for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
+                        {
+                            os << "_" << pInterface->delimitTypeName( "_" );
+                        }
+
+                        nlohmann::json stype = nlohmann::json::object(
+                            { { "name", os.str() }, { "interfaces", nlohmann::json::array() } } );
+
+                        for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
+                        {
+                            model::ObjectPart::Ptr pPrimaryObjectPart
+                                = pInterface->m_object.lock()->m_primaryObjectPart;
+
+                            nlohmann::json interface = nlohmann::json::object(
+                                { { "name", pInterface->delimitTypeName( "::" ) },
+                                  { "part", pPrimaryObjectPart->getDataType( "::" ) },
+                                  { "functions", nlohmann::json::array() } } );
+
+                            for ( model::Function::Ptr pFunction : pInterface->m_functions )
+                            {
+                                nlohmann::json function = writeFunction( pFunction );
+
+                                function[ "objectpart" ]
+                                    = pFunction->m_property->m_objectPart.lock()->getDataType(
+                                        "::" );
+
+                                if ( std::dynamic_pointer_cast< model::FunctionGetter >(
+                                         pFunction ) )
+                                {
+                                    std::ostringstream osFunctionBody;
+                                    osFunctionBody << "return part->"
+                                                   << pFunction->m_property->m_strName
+                                                   << ";";
+                                    function[ "body" ].push_back( osFunctionBody.str() );
+                                }
+                                else if ( std::dynamic_pointer_cast< model::FunctionSetter >(
+                                              pFunction ) )
+                                {
+                                    std::ostringstream osFunctionBody;
+                                    osFunctionBody << "part->"
+                                                   << pFunction->m_property->m_strName
+                                                   << " = value;";
+                                    function[ "body" ].push_back( osFunctionBody.str() );
+                                }
+                                else
+                                {
+                                    THROW_RTE( "Unknown function type" );
+                                }
+
+                                interface[ "functions" ].push_back( function );
+                            }
+
+                            stype[ "interfaces" ].push_back( interface );
+                        }
+
+                        stage[ "supertypes" ].push_back( stype );
                     }
 
                     data[ "stage" ] = stage;
@@ -182,16 +249,16 @@ namespace db
                             for ( model::ObjectPart::Ptr pObjectPart : pObject->m_secondaryParts )
                             {
                                 nlohmann::json pointer = nlohmann::json::object(
-                                    { { "namespace", pObjectPart->m_file.lock()->m_strName },
-                                      { "name", pObjectPart->m_object.lock()->m_strName } } );
+                                    { { "longname", pObjectPart->getDataType( "_" ) },
+                                      { "typename", pObjectPart->getDataType( "::" ) } } );
                                 part[ "pointers" ].push_back( pointer );
                             }
                         }
                         else
                         {
                             nlohmann::json pointer = nlohmann::json::object(
-                                { { "namespace", pPrimaryPart->m_file.lock()->m_strName },
-                                  { "name", pPrimaryPart->m_object.lock()->m_strName } } );
+                                { { "longname", pPrimaryPart->getDataType( "_" ) },
+                                  { "typename", pPrimaryPart->getDataType( "::" ) } } );
                             part[ "pointers" ].push_back( pointer );
                         }
 

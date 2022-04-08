@@ -24,8 +24,10 @@ namespace AST
 {
     struct Opaque;
     struct Dimension;
-    struct Context;
     struct Root;
+    struct Context;
+    struct FoobarRoot;
+    struct TestRoot;
 }
 namespace Body
 {
@@ -115,6 +117,20 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
+    struct Root : public mega::io::Object
+    {
+        Root( const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Type = 1
+        } size_t;
+
+
+        void* pView = nullptr;
+
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
     struct Context : public mega::io::Object
     {
         Context( const mega::io::ObjectInfo& objectInfo );
@@ -131,9 +147,23 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
-    struct Root : public mega::io::Object
+    struct FoobarRoot : public mega::io::Object
     {
-        Root( const mega::io::ObjectInfo& objectInfo );
+        FoobarRoot( const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Type = 2
+        } size_t;
+
+
+        void* pView = nullptr;
+
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct TestRoot : public mega::io::Object
+    {
+        TestRoot( const mega::io::ObjectInfo& objectInfo );
         enum 
         {
             Type = 2

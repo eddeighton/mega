@@ -14,7 +14,7 @@ namespace {{ file.name }}
         :   mega::io::Object( objectInfo )
     {
 {% for pointer in part.pointers %}
-        p{{ pointer.namespace }}_{{ pointer.name }} = nullptr;
+        p{{ pointer.longname }} = nullptr;
 {% endfor %}{#part.pointers#}
     } 
 

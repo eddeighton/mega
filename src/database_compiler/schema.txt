@@ -84,13 +84,21 @@ namespace Parser
         value< std::string > foobar -> Interface::Tree
     }
 
+    object Root : Context -> InputParse::AST
+    {
+    }
+
     object Context -> InputParse::AST
     {
         value< std::string > identifier
         value< std::string > body -> InputParse::Body
     }
 
-    object Root : Context -> InputParse::AST
+    object FoobarRoot : TestRoot -> InputParse::AST
+    {
+    }
+
+    object TestRoot : Root -> InputParse::AST
     {
     }
 }

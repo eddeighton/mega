@@ -43,7 +43,7 @@ namespace {{ file.name }}
 {% endfor %}{#part.property#}
 
 {% for pointer in part.pointers %}
-        {{ pointer.namespace }}::{{ pointer.name }}* p{{ pointer.namespace }}_{{ pointer.name }};
+        {{ pointer.typename }}* p{{ pointer.longname }};
 {% endfor %}{#part.pointers#}
         void* pView = nullptr;
 

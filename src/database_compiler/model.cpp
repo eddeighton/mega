@@ -14,6 +14,17 @@ namespace db
 {
     namespace model
     {
+
+        std::string ObjectPart::getDataType( const std::string& strDelimiter ) const
+        {
+            std::ostringstream osObjectPartType;
+            {
+                osObjectPartType << m_file.lock()->m_strName
+                                    << strDelimiter << m_object.lock()->m_strName;
+            }
+            return osObjectPartType.str();
+        }
+        
         namespace
         {
 
@@ -856,6 +867,9 @@ namespace db
                                            std::back_inserter( existingGroup ) );
                                 std::sort( existingGroup.begin(), existingGroup.end(),
                                            CountedObjectComparator< Interface::Ptr >() );
+                                existingGroup.erase(
+                                    std::unique( existingGroup.begin(), existingGroup.end() ),
+                                    existingGroup.end() );
                                 bFound = true;
                                 break;
                             }
@@ -880,6 +894,48 @@ namespace db
                     {
                         pInterface->m_superInterface = pSuperInterface;
                     }
+
+                    // calculate topological sort of the inheritance tree
+                    std::vector< Interface::Ptr > topological;
+                    {
+                        std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > >
+                            closed;
+                        std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > open(
+                            group.begin(), group.end() );
+
+                        while ( !open.empty() )
+                        {
+                            bool bFound = false;
+                            for ( Interface::Ptr pIter : open )
+                            {
+                                if ( pIter->m_base )
+                                {
+                                    if ( closed.count( pIter->m_base ) )
+                                    {
+                                        bFound = true;
+                                        closed.insert( pIter );
+                                        topological.push_back( pIter );
+                                        open.erase( pIter );
+                                        break;
+                                    }
+                                }
+                                else
+                                {
+                                    bFound = true;
+                                    closed.insert( pIter );
+                                    topological.push_back( pIter );
+                                    open.erase( pIter );
+                                    break;
+                                }
+                            }
+                            if ( !bFound )
+                            {
+                                THROW_RTE( "Failed to solve topological sort of group" );
+                            }
+                        }
+                    }
+                    std::copy( topological.begin(), topological.end(),
+                               std::back_inserter( pStage->m_interfaceTopological ) );
                 }
             }
 

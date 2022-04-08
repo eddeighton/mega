@@ -63,7 +63,8 @@ namespace {{ stage.name }}
     namespace {{ namespace }}
     { 
 {% endfor %}{#interface.namespaces#}
-        class {{ interface.name }}
+        class {{ interface.name }}{% if interface.has_base %} : public virtual {{ interface.base }}{% endif %}
+
         {
         public:
             {{ interface.name }}();
