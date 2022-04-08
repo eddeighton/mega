@@ -1,6 +1,0 @@
-FILE_TYPE( FILE_ComponentListing_Components, STAGE_ComponentListing )
-FILE_TYPE( FILE_Dependencies_DependencyAnalysis, STAGE_Dependencies )
-FILE_TYPE( FILE_Concrete_Tree, STAGE_Concrete )
-FILE_TYPE( FILE_Layout_Buffers, STAGE_Layout )
-FILE_TYPE( FILE_HyperGraph_Graph, STAGE_HyperGraph )
-FILE_TYPE( FILE_Derivations_Invocations, STAGE_Derivations )

@@ -33,6 +33,7 @@ namespace gen
 
     void generate( const Environment& env )
     {
+        /*
         //view.hxx
         {
             inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
@@ -94,7 +95,7 @@ namespace gen
             const boost::filesystem::path jsonFile = env.dataDir / "view.json";
             const auto data = loadJson( jsonFile );
             injaEnv.write( "/stage_types.hxx.jinja", data, "/stage_types.hxx" );
-        }
+        }*/
     }
 } // namespace gen
 } // namespace db

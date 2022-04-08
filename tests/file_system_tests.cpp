@@ -3,7 +3,6 @@
 #include "database/io/environment.hpp"
 #include "database/io/file_info.hpp"
 #include "database/io/manifest.hpp"
-#include "database/io/database.hpp"
 #include "database/io/component_info.hpp"
 
 #include <boost/filesystem/operations.hpp>

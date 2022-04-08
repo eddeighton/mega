@@ -5,7 +5,6 @@
 #include "database/io/environment.hpp"
 #include "database/io/stages.hpp"
 #include "database/io/file.hpp"
-#include "database/io/database.hpp"
 
 #include "common/file.hpp"
 

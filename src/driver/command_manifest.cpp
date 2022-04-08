@@ -25,7 +25,6 @@
 #include "database/io/environment.hpp"
 
 #include "database/io/stages.hpp"
-#include "database/io/database.hpp"
 #include "database/io/component_info.hpp"
 #include "database/io/archive.hpp"
 
@@ -117,7 +116,7 @@ namespace driver
                 using namespace mega;
 
                 const io::Environment::Path projectManifestPath = m_environment.project_manifest();
-
+/*
                 taskProgress.start( "Task_GenerateComponents",
                                     m_environment.rootBuildDir(),
                                     m_environment.FILE_ComponentListing_Components() );
@@ -148,7 +147,7 @@ namespace driver
                 }
 
                 database.store();
-
+*/
                 taskProgress.succeeded();
             }
         };
