@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace db
 {
@@ -102,6 +103,7 @@ namespace db
             std::size_t                  m_typeID;
 
             std::string getDataType( const std::string& strDelimiter ) const;
+            std::string getPointerName() const;
         };
 
         class PrimaryObjectPart : public ObjectPart
@@ -352,6 +354,25 @@ namespace db
 
             std::vector< Namespace::Ptr > m_namespaces;
             std::vector< Stage::Ptr >     m_stages;
+
+            template < typename T >
+            class CountedObjectPairComparator
+            {
+            public:
+                bool operator()( T left, T right ) const
+                {
+                    return ( left.first->getCounter() != right.first->getCounter() )
+                               ? ( left.first->getCounter() < right.first->getCounter() )
+                               : ( left.second->getCounter() < right.second->getCounter() );
+                }
+            };
+
+            using ObjectPartPair = std::pair< ObjectPart::Ptr, ObjectPart::Ptr >;
+            using ObjectPartVector = std::vector< ObjectPart::Ptr >;
+            using ConversionMap = std::map< ObjectPartPair, ObjectPartVector,
+                                            CountedObjectPairComparator< ObjectPartPair > >;
+
+            ConversionMap m_conversions;
         };
 
         ///////////////////////////////////////////////////

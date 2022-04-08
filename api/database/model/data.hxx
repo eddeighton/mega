@@ -5,6 +5,7 @@
 #include "database/io/object.hpp"
 #include "database/io/loader.hpp"
 #include "database/io/storer.hpp"
+#include "database/io/data_pointer.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -111,7 +112,7 @@ namespace AST
         std::string identifier;
         std::string type;
 
-        Tree::Dimension* pTree_Dimension;
+        Ptr< Tree::Dimension > p_Tree_Dimension;
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -126,6 +127,7 @@ namespace AST
         } size_t;
 
 
+        Ptr< AST::Context > p_AST_Context;
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -141,7 +143,7 @@ namespace AST
 
         std::string identifier;
 
-        Body::Context* pBody_Context;
+        Ptr< Body::Context > p_Body_Context;
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -156,6 +158,7 @@ namespace AST
         } size_t;
 
 
+        Ptr< AST::TestRoot > p_AST_TestRoot;
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -170,6 +173,7 @@ namespace AST
         } size_t;
 
 
+        Ptr< AST::Root > p_AST_Root;
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -188,7 +192,7 @@ namespace Body
 
         std::string body;
 
-        AST::Context* pAST_Context;
+        Ptr< AST::Context > p_AST_Context;
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -207,7 +211,7 @@ namespace Tree
 
         std::string foobar;
 
-        AST::Dimension* pAST_Dimension;
+        Ptr< AST::Dimension > p_AST_Dimension;
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -249,6 +253,103 @@ namespace Graph
 namespace Invocations
 {
 }
+
+template <>
+inline Ptr< Components::Component > convert( Ptr< Components::Component >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Opaque > convert( Ptr< AST::Opaque >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Dimension > convert( Ptr< AST::Dimension >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::Dimension > convert( Ptr< AST::Dimension >& from )
+{
+    return from->p_Tree_Dimension;
+}
+
+template <>
+inline Ptr< AST::Root > convert( Ptr< AST::Root >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Context > convert( Ptr< AST::Root >& from )
+{
+    return from->p_AST_Context;
+}
+
+template <>
+inline Ptr< AST::Context > convert( Ptr< AST::Context >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Body::Context > convert( Ptr< AST::Context >& from )
+{
+    return from->p_Body_Context;
+}
+
+template <>
+inline Ptr< AST::Root > convert( Ptr< AST::FoobarRoot >& from )
+{
+    return from->p_AST_TestRoot->p_AST_Root;
+}
+
+template <>
+inline Ptr< AST::Context > convert( Ptr< AST::FoobarRoot >& from )
+{
+    return from->p_AST_TestRoot->p_AST_Root->p_AST_Context;
+}
+
+template <>
+inline Ptr< AST::FoobarRoot > convert( Ptr< AST::FoobarRoot >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::TestRoot > convert( Ptr< AST::FoobarRoot >& from )
+{
+    return from->p_AST_TestRoot;
+}
+
+template <>
+inline Ptr< AST::Root > convert( Ptr< AST::TestRoot >& from )
+{
+    return from->p_AST_Root;
+}
+
+template <>
+inline Ptr< AST::Context > convert( Ptr< AST::TestRoot >& from )
+{
+    return from->p_AST_Root->p_AST_Context;
+}
+
+template <>
+inline Ptr< AST::TestRoot > convert( Ptr< AST::TestRoot >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::Root > convert( Ptr< Tree::Root >& from )
+{
+    return from;
+}
+
 
 }
 #endif //DATABASE_DATA_GUARD_4_APRIL_2022

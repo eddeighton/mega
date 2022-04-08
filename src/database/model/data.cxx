@@ -50,7 +50,7 @@ namespace AST
     Dimension::Dimension( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
     {
-        pTree_Dimension = nullptr;
+        p_Tree_Dimension = nullptr;
     } 
 
     void Dimension::load( mega::io::Loader& loader )
@@ -70,6 +70,7 @@ namespace AST
     Root::Root( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
     {
+        p_AST_Context = nullptr;
     } 
 
     void Root::load( mega::io::Loader& loader )
@@ -83,7 +84,7 @@ namespace AST
     Context::Context( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
     {
-        pBody_Context = nullptr;
+        p_Body_Context = nullptr;
     } 
 
     void Context::load( mega::io::Loader& loader )
@@ -99,6 +100,7 @@ namespace AST
     FoobarRoot::FoobarRoot( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
     {
+        p_AST_TestRoot = nullptr;
     } 
 
     void FoobarRoot::load( mega::io::Loader& loader )
@@ -112,6 +114,7 @@ namespace AST
     TestRoot::TestRoot( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
     {
+        p_AST_Root = nullptr;
     } 
 
     void TestRoot::load( mega::io::Loader& loader )
@@ -128,7 +131,7 @@ namespace Body
     Context::Context( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
     {
-        pAST_Context = nullptr;
+        p_AST_Context = nullptr;
     } 
 
     void Context::load( mega::io::Loader& loader )
@@ -147,7 +150,7 @@ namespace Tree
     Dimension::Dimension( const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
     {
-        pAST_Dimension = nullptr;
+        p_AST_Dimension = nullptr;
     } 
 
     void Dimension::load( mega::io::Loader& loader )

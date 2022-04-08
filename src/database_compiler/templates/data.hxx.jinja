@@ -5,6 +5,7 @@
 #include "database/io/object.hpp"
 #include "database/io/loader.hpp"
 #include "database/io/storer.hpp"
+#include "database/io/data_pointer.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -43,7 +44,7 @@ namespace {{ file.name }}
 {% endfor %}{#part.property#}
 
 {% for pointer in part.pointers %}
-        {{ pointer.typename }}* p{{ pointer.longname }};
+        Ptr< {{ pointer.typename }} > {{ pointer.longname }};
 {% endfor %}{#part.pointers#}
         void* pView = nullptr;
 
@@ -53,6 +54,15 @@ namespace {{ file.name }}
 {% endfor %}{#file.parts#}
 }
 {% endfor %}{# files #}
+
+{% for conversion in conversions %}
+template <>
+inline Ptr< {{ conversion.to }} > convert( Ptr< {{ conversion.from }} >& from )
+{
+    return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
+}
+
+{% endfor %}{# conversions #}
 
 }
 #endif //{{ guard }}

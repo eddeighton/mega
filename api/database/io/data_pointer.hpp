@@ -38,13 +38,13 @@ namespace data
     };
 
     template < typename TTo, typename TFrom >
-    inline Ptr< TTo > convert( const Ptr< TFrom >& from )
+    inline Ptr< TTo > convert( Ptr< TFrom >& from )
     {
         THROW_RTE( "Invalid conversion" );
     }
 
     template < typename TTo, typename... TFromTypes >
-    inline Ptr< TTo > convert( const std::variant< TFromTypes... >& from )
+    inline Ptr< TTo > convert( std::variant< TFromTypes... >& from )
     {
         return std::visit( []( auto&& arg ) -> Ptr< TTo > { return convert< TTo >( arg ); }, from );
     }

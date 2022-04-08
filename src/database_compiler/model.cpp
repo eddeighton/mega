@@ -19,12 +19,22 @@ namespace db
         {
             std::ostringstream osObjectPartType;
             {
-                osObjectPartType << m_file.lock()->m_strName
-                                    << strDelimiter << m_object.lock()->m_strName;
+                osObjectPartType << m_file.lock()->m_strName << strDelimiter
+                                 << m_object.lock()->m_strName;
             }
             return osObjectPartType.str();
         }
-        
+
+        std::string ObjectPart::getPointerName() const
+        {
+            std::ostringstream osObjectPartType;
+            {
+                osObjectPartType << "p_" << m_file.lock()->m_strName << "_"
+                                 << m_object.lock()->m_strName;
+            }
+            return osObjectPartType.str();
+        }
+
         namespace
         {
 
@@ -531,6 +541,18 @@ namespace db
             return pResult;
         }
 
+        void getObjects( Namespace::Ptr pNamespace, std::vector< Object::Ptr >& objects )
+        {
+            for ( Object::Ptr pObject : pNamespace->m_objects )
+            {
+                objects.push_back( pObject );
+            }
+            for ( Namespace::Ptr pIter : pNamespace->m_namespaces )
+            {
+                getObjects( pIter, objects );
+            }
+        }
+
         Schema::Ptr from_ast( const ::db::schema::Schema& schema )
         {
             Mapping mapping;
@@ -559,7 +581,9 @@ namespace db
                   i != iEnd;
                   ++i )
             {
-                i->first->m_base = findType( pSchema, i->second );
+                Object::Ptr pObject = findType( pSchema, i->second );
+                i->first->m_base = pObject;
+                pObject->m_deriving.push_back( i->first );
             }
 
             using ObjectPtrVector = std::vector< ObjectPart::Ptr >;
@@ -936,6 +960,56 @@ namespace db
                     }
                     std::copy( topological.begin(), topological.end(),
                                std::back_inserter( pStage->m_interfaceTopological ) );
+                }
+            }
+
+            // calculate the object part conversions
+            {
+                std::vector< Object::Ptr > objects;
+                {
+                    for ( Namespace::Ptr pNamespace : pSchema->m_namespaces )
+                    {
+                        getObjects( pNamespace, objects );
+                    }
+                }
+
+                for ( Object::Ptr pObject : objects )
+                {
+                    // to self case
+                    pSchema->m_conversions.insert(
+                        std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart,
+                                                                pObject->m_primaryObjectPart },
+                                        Schema::ObjectPartVector{} ) );
+
+                    for ( ObjectPart::Ptr pSecondary : pObject->m_secondaryParts )
+                    {
+                        pSchema->m_conversions.insert( std::make_pair(
+                            Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary },
+                            Schema::ObjectPartVector{ pSecondary } ) );
+                    }
+
+                    Object::Ptr              pBase = pObject->m_base;
+                    Schema::ObjectPartVector baseList;
+                    while ( pBase )
+                    {
+                        baseList.push_back( pBase->m_primaryObjectPart );
+
+                        pSchema->m_conversions.insert(
+                            std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart,
+                                                                    pBase->m_primaryObjectPart },
+                                            baseList ) );
+
+                        for ( ObjectPart::Ptr pSecondary : pObject->m_secondaryParts )
+                        {
+                            Schema::ObjectPartVector baseListPlusSecondary = baseList;
+                            baseListPlusSecondary.push_back( pSecondary );
+                            pSchema->m_conversions.insert( std::make_pair(
+                                Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary },
+                                baseListPlusSecondary ) );
+                        }
+
+                        pBase = pBase->m_base;
+                    }
                 }
             }
 

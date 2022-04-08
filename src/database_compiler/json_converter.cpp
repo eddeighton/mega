@@ -173,16 +173,14 @@ namespace db
                                 {
                                     std::ostringstream osFunctionBody;
                                     osFunctionBody << "return part->"
-                                                   << pFunction->m_property->m_strName
-                                                   << ";";
+                                                   << pFunction->m_property->m_strName << ";";
                                     function[ "body" ].push_back( osFunctionBody.str() );
                                 }
                                 else if ( std::dynamic_pointer_cast< model::FunctionSetter >(
                                               pFunction ) )
                                 {
                                     std::ostringstream osFunctionBody;
-                                    osFunctionBody << "part->"
-                                                   << pFunction->m_property->m_strName
+                                    osFunctionBody << "part->" << pFunction->m_property->m_strName
                                                    << " = value;";
                                     function[ "body" ].push_back( osFunctionBody.str() );
                                 }
@@ -210,7 +208,8 @@ namespace db
 
             void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr pSchema )
             {
-                nlohmann::json data( { { "files", nlohmann::json::array() } } );
+                nlohmann::json data( { { "files", nlohmann::json::array() },
+                                       { "conversions", nlohmann::json::array() } } );
 
                 data[ "guard" ] = "DATABASE_DATA_GUARD_4_APRIL_2022";
 
@@ -249,15 +248,22 @@ namespace db
                             for ( model::ObjectPart::Ptr pObjectPart : pObject->m_secondaryParts )
                             {
                                 nlohmann::json pointer = nlohmann::json::object(
-                                    { { "longname", pObjectPart->getDataType( "_" ) },
+                                    { { "longname", pObjectPart->getPointerName() },
                                       { "typename", pObjectPart->getDataType( "::" ) } } );
+                                part[ "pointers" ].push_back( pointer );
+                            }
+                            if( pObject->m_base )
+                            {
+                                nlohmann::json pointer = nlohmann::json::object(
+                                    { { "longname", pObject->m_base->m_primaryObjectPart->getPointerName() },
+                                    { "typename", pObject->m_base->m_primaryObjectPart->getDataType( "::" ) } } );
                                 part[ "pointers" ].push_back( pointer );
                             }
                         }
                         else
                         {
                             nlohmann::json pointer = nlohmann::json::object(
-                                { { "longname", pPrimaryPart->getDataType( "_" ) },
+                                { { "longname", pPrimaryPart->getPointerName() },
                                   { "typename", pPrimaryPart->getDataType( "::" ) } } );
                             part[ "pointers" ].push_back( pointer );
                         }
@@ -276,6 +282,31 @@ namespace db
                     }
 
                     data[ "files" ].push_back( file );
+                }
+
+                // conversions
+                {
+                    for ( model::Schema::ConversionMap::const_iterator i
+                          = pSchema->m_conversions.begin(),
+                          iEnd = pSchema->m_conversions.end();
+                          i != iEnd;
+                          ++i )
+                    {
+                        const model::Schema::ObjectPartPair&   parts = i->first;
+                        const model::Schema::ObjectPartVector& sequence = i->second;
+
+                        nlohmann::json conversion = nlohmann::json::object(
+                            { { "from", parts.first->getDataType( "::" ) },
+                              { "to", parts.second->getDataType( "::" ) },
+                              { "pointers", nlohmann::json::array() } } );
+
+                        for ( model::ObjectPart::Ptr pPart : sequence )
+                        {
+                            conversion[ "pointers" ].push_back( pPart->getPointerName() );
+                        }
+
+                        data[ "conversions" ].push_back( conversion );
+                    }
                 }
 
                 writeJSON( dataDir / "data.json", data );
