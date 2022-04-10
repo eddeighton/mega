@@ -1,6 +1,6 @@
 STAGE_TYPE( STAGE_ComponentListing )
 STAGE_TYPE( STAGE_InputParse )
-STAGE_TYPE( STAGE_Interface )
+STAGE_TYPE( STAGE_InterfaceStage )
 STAGE_TYPE( STAGE_Dependencies )
 STAGE_TYPE( STAGE_Analysis )
 STAGE_TYPE( STAGE_Concrete )

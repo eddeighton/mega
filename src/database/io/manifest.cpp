@@ -76,14 +76,11 @@ namespace io
 
     const FileInfo& Manifest::getCompilationFilePath( ObjectInfo::FileID fileID ) const
     {
-        for( const FileInfo& fileInfo : m_compilationFileInfos )
-        {
-            if( fileInfo.getFileID() == fileID )
-            {
-                return fileInfo;
-            }
-        }
-        THROW_RTE( "Failed to locate file id: " << fileID );
+        VERIFY_RTE_MSG( fileID >= 0 && fileID < m_compilationFileInfos.size(),
+            "Invalid fileID of: " << fileID );
+        const FileInfo& fileInfo = m_compilationFileInfos[ fileID ];
+        VERIFY_RTE( fileInfo.getFileID() == fileID );
+        return fileInfo;
     }
 
     void Manifest::getCompilationFileInfos( FileInfo::Type fileType, FileInfoVector& fileInfos ) const

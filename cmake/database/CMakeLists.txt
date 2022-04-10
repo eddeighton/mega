@@ -51,65 +51,69 @@ add_dependencies( database_generation database_compiler_driver )
 #	${MEGA_API_DIR}/mega/variant.hpp
 #	)
 
-set( MEGA_DATABASE_MODEL
+set( MEGA_DATABASE_GENERATED_HEADERS
 
     ${MEGA_API_DIR}/database/model/data.hxx
 
     ${MEGA_API_DIR}/database/model/Analysis.hxx
-    ${MEGA_API_DIR}/database/model/Concrete.hxx
-    ${MEGA_API_DIR}/database/model/Dependencies.hxx
-    ${MEGA_API_DIR}/database/model/HyperGraph.hxx
-    ${MEGA_API_DIR}/database/model/Interface.hxx
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
+    ${MEGA_API_DIR}/database/model/Concrete.hxx
     ${MEGA_API_DIR}/database/model/data.hxx
+    ${MEGA_API_DIR}/database/model/Dependencies.hxx
     ${MEGA_API_DIR}/database/model/Derivations.hxx
+    ${MEGA_API_DIR}/database/model/HyperGraph.hxx
     ${MEGA_API_DIR}/database/model/InputParse.hxx
+    ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
     ${MEGA_API_DIR}/database/model/Layout.hxx
 	)
 
-set( MEGA_DATABASE_IO
-    ${MEGA_API_DIR}/database/io/object_info.hpp
-    ${MEGA_API_DIR}/database/io/file_info.hpp
-    ${MEGA_API_DIR}/database/io/component_info.hpp
-    ${MEGA_API_DIR}/database/io/environment.hpp
-    ${MEGA_API_DIR}/database/io/manifest.hpp
-    ${MEGA_API_DIR}/database/io/stages.hpp
-    ${MEGA_API_DIR}/database/io/archive.hpp
-    ${MEGA_API_DIR}/database/io/file.hpp
-    ${MEGA_API_DIR}/database/io/generics.hpp
-    ${MEGA_API_DIR}/database/io/loader.hpp
-    ${MEGA_API_DIR}/database/io/object.hpp
-    ${MEGA_API_DIR}/database/io/storer.hpp
-	)
-
-set( MEGA_DATABASE_SOURCES
-    ${MEGA_SRC_DIR}/database/io/file_info.cpp
-    ${MEGA_SRC_DIR}/database/io/component_info.cpp
-    ${MEGA_SRC_DIR}/database/io/environment.cpp
-    ${MEGA_SRC_DIR}/database/io/manifest.cpp
-    ${MEGA_SRC_DIR}/database/io/file.cpp
-    ${MEGA_SRC_DIR}/database/io/loader.cpp
-    ${MEGA_SRC_DIR}/database/io/object.cpp
-    ${MEGA_SRC_DIR}/database/io/storer.cpp
+set( MEGA_DATABASE_GENERATED_SOURCES
 
     ${MEGA_SRC_DIR}/database/model/data.cxx
 
     ${MEGA_SRC_DIR}/database/model/Analysis.cxx
-    ${MEGA_SRC_DIR}/database/model/Concrete.cxx
-    ${MEGA_SRC_DIR}/database/model/Dependencies.cxx
-    ${MEGA_SRC_DIR}/database/model/HyperGraph.cxx
-    ${MEGA_SRC_DIR}/database/model/Interface.cxx
     ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
+    ${MEGA_SRC_DIR}/database/model/Concrete.cxx
     ${MEGA_SRC_DIR}/database/model/data.cxx
+    ${MEGA_SRC_DIR}/database/model/Dependencies.cxx
     ${MEGA_SRC_DIR}/database/model/Derivations.cxx
+    ${MEGA_SRC_DIR}/database/model/HyperGraph.cxx
     ${MEGA_SRC_DIR}/database/model/InputParse.cxx
+    ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
     ${MEGA_SRC_DIR}/database/model/Layout.cxx
+)
+
+set( MEGA_DATABASE_IO
+    ${MEGA_API_DIR}/database/io/archive.hpp
+    ${MEGA_API_DIR}/database/io/component_info.hpp
+    ${MEGA_API_DIR}/database/io/environment.hpp
+    ${MEGA_API_DIR}/database/io/file_info.hpp
+    ${MEGA_API_DIR}/database/io/file.hpp
+    ${MEGA_API_DIR}/database/io/generics.hpp
+    ${MEGA_API_DIR}/database/io/loader.hpp
+    ${MEGA_API_DIR}/database/io/manifest.hpp
+    ${MEGA_API_DIR}/database/io/object_info.hpp
+    ${MEGA_API_DIR}/database/io/object.hpp
+    ${MEGA_API_DIR}/database/io/stages.hpp
+    ${MEGA_API_DIR}/database/io/storer.hpp
+	)
+
+set( MEGA_DATABASE_SOURCES
+    ${MEGA_SRC_DIR}/database/io/component_info.cpp
+    ${MEGA_SRC_DIR}/database/io/environment.cpp
+    ${MEGA_SRC_DIR}/database/io/file_info.cpp
+    ${MEGA_SRC_DIR}/database/io/file.cpp
+    ${MEGA_SRC_DIR}/database/io/loader.cpp
+    ${MEGA_SRC_DIR}/database/io/manifest.cpp
+    ${MEGA_SRC_DIR}/database/io/object.cpp
+    ${MEGA_SRC_DIR}/database/io/storer.cpp
+
 
     )
 
 add_library( database
                     ${MEGA_DATABASE_IO}
-					${MEGA_DATABASE_MODEL}
+					${MEGA_DATABASE_GENERATED_SOURCES}
 					${MEGA_DATABASE_SOURCES}
 				)
 
@@ -129,7 +133,7 @@ link_common( database )
 
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
 install( FILES ${MEGA_DATABASE_IO} DESTINATION include/database/io )
-install( FILES ${MEGA_DATABASE_MODEL} DESTINATION include/database/model )
+install( FILES ${MEGA_DATABASE_GENERATED_HEADERS} DESTINATION include/database/model )
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )
 

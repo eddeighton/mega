@@ -11,21 +11,19 @@ namespace mega
 namespace io
 {
 
-    void File::preload( const Manifest& manifest )
+    void File::preload( Loader& loader, const Manifest& manifest )
     {
         try
         {
-            VERIFY_RTE( !m_pLoader );
-            m_pLoader = std::make_unique< Loader >( manifest, m_info.getFilePath() );
 
             {
                 std::size_t szNumObjects = 0U;
-                m_pLoader->load( szNumObjects );
+                loader.load( szNumObjects );
                 m_objects.resize( szNumObjects );
                 for ( std::size_t sz = 0U; sz < szNumObjects; ++sz )
                 {
                     ObjectInfo objectInfo;
-                    m_pLoader->load( objectInfo );
+                    loader.load( objectInfo );
 
                     // map the stored fileID to the runtime file ID
                     // which basically means setting the fileID to this files
@@ -53,18 +51,16 @@ namespace io
 
     void File::load( const Manifest& manifest )
     {
-        VERIFY_RTE( m_pLoader );
+        Loader loader( manifest, m_info.getFilePath() );
+        preload( loader, manifest );
         for ( Object* pObject : m_objects )
         {
-            pObject->load( *m_pLoader );
+            pObject->load( loader );
         }
-        m_pLoader.reset();
     }
 
     void File::store( const Manifest& manifest ) const
     {
-        VERIFY_RTE( !m_pLoader );
-
         Storer storer( m_info.getFilePath(), manifest );
 
         storer.store( m_objects.size() );

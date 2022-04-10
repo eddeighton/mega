@@ -19,26 +19,32 @@ stage perobject InputParse
     accessor perobject ref< Parser::Root >
 }
 
-stage perobject Interface
+stage perobject InterfaceStage
 {
     file Tree
 
+    accessor perobject ref< Parser::Dimension >
     accessor perobject ref< Parser::Context >
     accessor perobject ref< Parser::Root >
+
+    accessor perobject ref< Interface::Dimension >
 }
 
 stage perprogram Dependencies
 {
     file DependencyAnalysis
-
-    accessor perobject ref< Parser::Root >
-    accessor perobject ref< Interface::Root >
 }
 
 stage perobject Analysis
 {
     file ObjectCompile
     file ObjectAnalysis
+
+    accessor perobject ref< Parser::Root >
+    accessor perobject ref< Parser::Dimension >
+
+    accessor perobject ref< Interface::Root >
+    accessor perobject ref< Interface::Dimension >
 }
 
 stage perprogram Concrete
@@ -114,12 +120,12 @@ namespace Parser
 
 namespace Interface
 {
-    object Dimension : Parser::Dimension -> Interface::Tree
+    object Dimension : Parser::Dimension -> InterfaceStage::Tree
     {
         value< bool > more
     }
 
-    object Root -> Interface::Tree
+    object Root -> InterfaceStage::Tree
     {
         //ref< Parser::Root > root
     }

@@ -222,6 +222,300 @@ namespace db
                 return interface;
             }
 
+            void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model::Stage::Ptr pStage )
+            {
+                for ( model::Stage::Ptr pStageIter : pSchema->m_stages )
+                {
+                    for ( model::File::Ptr pFile : pStageIter->m_files )
+                    {
+                        for ( model::ObjectPart::Ptr pPart : pFile->m_parts )
+                        {
+                            model::SuperInterface::Ptr pSuper = pStage->getInterface( pPart->m_object.lock() )->m_superInterface.lock();
+                            nlohmann::json             conversion = nlohmann::json::object( { { "type_id", pPart->m_typeID },
+                                                                                  { "supertype", pSuper->getTypeName() },
+                                                                                  { "file", pFile->m_strName },
+                                                                                  { "object", pPart->m_object.lock()->m_strName } } );
+                            stage[ "super_conversions" ].push_back( conversion );
+                        }
+                    }
+                    if ( pStageIter == pStage )
+                        break;
+                }
+                for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
+                {
+                    model::PrimaryObjectPart::Ptr pPart = pInterface->getPrimaryObjectPart();
+                    model::SuperInterface::Ptr    pSuper = pInterface->m_superInterface.lock();
+                    nlohmann::json                conversion = nlohmann::json::object( { { "type", pInterface->delimitTypeName( "::" ) },
+                                                                          { "file", pPart->m_file.lock()->m_strName },
+                                                                          { "supertype", pSuper->getTypeName() },
+                                                                          { "object", pPart->m_object.lock()->m_strName } } );
+                    stage[ "interface_conversions" ].push_back( conversion );
+                }
+            }
+
+            void writeAccessors( nlohmann::json& stage, model::Stage::Ptr pStage )
+            {
+                std::set< model::Interface::Ptr > manyAccessors;
+                for ( model::Accessor::Ptr pAccessor : pStage->m_accessors )
+                {
+                    if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pAccessor->m_type ) )
+                    {
+                        model::Object::Ptr            pObject = pRef->m_object;
+                        model::Interface::Ptr         pInterface = pStage->getInterface( pObject );
+                        model::PrimaryObjectPart::Ptr pPrimaryPart = pInterface->getPrimaryObjectPart();
+                        nlohmann::json                acessor
+                            = nlohmann::json::object( { { "type", pInterface->delimitTypeName( "::" ) },
+                                                        { "longname", pInterface->delimitTypeName( "_" ) },
+                                                        { "object", pPrimaryPart->m_object.lock()->m_strName },
+                                                        { "file", pPrimaryPart->m_file.lock()->m_strName },
+                                                        { "stage", pPrimaryPart->m_file.lock()->m_stage.lock()->m_strName },
+                                                        { "supertype", pInterface->m_superInterface.lock()->getTypeName() } } );
+
+                        stage[ "one_accessors" ].push_back( acessor );
+                        if ( manyAccessors.count( pInterface ) == 0 )
+                        {
+                            manyAccessors.insert( pInterface );
+                            stage[ "many_accessors" ].push_back( acessor );
+                        }
+                    }
+                    else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pAccessor->m_type ) )
+                    {
+                        if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pArray->m_underlyingType ) )
+                        {
+                            model::Object::Ptr            pObject = pRef->m_object;
+                            model::Interface::Ptr         pInterface = pStage->getInterface( pObject );
+                            model::PrimaryObjectPart::Ptr pPrimaryPart = pInterface->getPrimaryObjectPart();
+
+                            if ( manyAccessors.count( pInterface ) == 0 )
+                            {
+                                manyAccessors.insert( pInterface );
+                                nlohmann::json acessor
+                                    = nlohmann::json::object( { { "type", pInterface->delimitTypeName( "::" ) },
+                                                                { "longname", pInterface->delimitTypeName( "_" ) },
+                                                                { "object", pPrimaryPart->m_object.lock()->m_strName },
+                                                                { "file", pPrimaryPart->m_file.lock()->m_strName },
+                                                                { "stage", pPrimaryPart->m_file.lock()->m_stage.lock()->m_strName },
+                                                                { "supertype", pInterface->m_superInterface.lock()->getTypeName() } } );
+
+                                stage[ "many_accessors" ].push_back( acessor );
+                            }
+                        }
+                        else
+                        {
+                            THROW_RTE( "Unsupported Accessor type: " );
+                        }
+                    }
+                    /*else if( model::OptionalType::Ptr pArray =
+                        std::dynamic_pointer_cast< model::ArrayType >( pAccessor->m_type ) )
+                    {
+
+                    }*/
+                    else
+                    {
+                        THROW_RTE( "Unsupported Accessor type: " );
+                    }
+                }
+            }
+
+            nlohmann::json writeCtorPart( model::ObjectPart::Ptr pPart )
+            {
+                nlohmann::json part = nlohmann::json::object( { { "object", pPart->m_object.lock()->m_strName },
+                                                                { "file", pPart->m_file.lock()->m_strName },
+                                                                { "args", nlohmann::json::array() } } );
+                {
+                    for ( model::Property::Ptr pProperty : pPart->m_properties )
+                    {
+                        model::Type::Ptr pType = pProperty->m_type;
+
+                        std::ostringstream osExpression;
+                        if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
+                        {
+                            osExpression << "toData( arguments." << pProperty->m_strName << ".value() )";
+                        }
+                        else if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
+                        {
+                            osExpression << "arguments." << pProperty->m_strName << ".value()";
+                        }
+                        else if ( model::ArrayType::Ptr pValue = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+                        {
+                            osExpression << "arguments." << pProperty->m_strName << ".value()";
+                        }
+                        else
+                        {
+                            THROW_RTE( "Unsupported argument type" );
+                        }
+
+                        nlohmann::json arg = nlohmann::json::object( { { "expression", osExpression.str() } } );
+                        part[ "args" ].push_back( arg );
+                    }
+                }
+                return part;
+            }
+
+            void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
+            {
+                for ( model::Constructor::Ptr pConstructor : pStage->m_constructors )
+                {
+                    std::ostringstream os;
+                    os << "construct_" << pConstructor->m_interface->delimitTypeName( "_" );
+
+                    model::Interface::Ptr      pInterface = pConstructor->m_interface;
+                    model::SuperInterface::Ptr pSuperInterface = pInterface->m_superInterface.lock();
+
+                    nlohmann::json ctor = nlohmann::json::object( { { "return_type", pConstructor->m_interface->delimitTypeName( "::" ) },
+                                                                    { "function_name", os.str() },
+                                                                    { "super_type_name", pSuperInterface->getTypeName() },
+                                                                    { "bases", nlohmann::json::array() },
+                                                                    { "bases_reverse", nlohmann::json::array() } } );
+
+                    // add self to list
+                    model::Interface::Ptr                pBase = pInterface;
+                    std::vector< model::Interface::Ptr > bases_reversed;
+                    while ( pBase )
+                    {
+                        nlohmann::json base = nlohmann::json::object( { { "typename", pBase->delimitTypeName( "::" ) },
+                                                                        { "owns_primary_part", pBase->ownsPrimaryObjectPart() },
+                                                                        { "parts", nlohmann::json::array() } } );
+
+                        model::PrimaryObjectPart::Ptr pPrimaryPart = pBase->getPrimaryObjectPart();
+
+                        base[ "primary_part" ] = writeCtorPart( pPrimaryPart );
+                        // VERIFY_RTE( pBase->m_readOnlyObjectParts.empty() );
+                        for ( model::ObjectPart::Ptr pPart : pBase->m_readWriteObjectParts )
+                        {
+                            if ( pPrimaryPart != pPart )
+                            {
+                                base[ "parts" ].push_back( writeCtorPart( pPart ) );
+                            }
+                        }
+
+                        ctor[ "bases" ].push_back( base );
+                        bases_reversed.push_back( pBase );
+                        pBase = pBase->m_base;
+                    }
+                    std::reverse( bases_reversed.begin(), bases_reversed.end() );
+                    for ( model::Interface::Ptr pBase : bases_reversed )
+                    {
+                        nlohmann::json base = nlohmann::json::object(
+                            { { "typename", pBase->delimitTypeName( "::" ) }, { "owns_primary_part", pBase->ownsPrimaryObjectPart() } } );
+
+                        model::PrimaryObjectPart::Ptr pPrimaryPart = pBase->getPrimaryObjectPart();
+                        base[ "primary_part" ] = nlohmann::json::object( { { "object", pPrimaryPart->m_object.lock()->m_strName },
+                                                                           { "file", pPrimaryPart->m_file.lock()->m_strName } } );
+
+                        ctor[ "bases_reverse" ].push_back( base );
+                    }
+
+                    stage[ "constructors" ].push_back( ctor );
+                }
+            }
+
+            void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
+            {
+                for ( model::SuperInterface::Ptr pSuperType : pStage->m_superInterfaces )
+                {
+                    const std::string strSuperTypeName = pSuperType->getTypeName();
+
+                    nlohmann::json stype
+                        = nlohmann::json::object( { { "name", strSuperTypeName }, { "interfaces", nlohmann::json::array() } } );
+
+                    for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
+                    {
+                        model::ObjectPart::Ptr pPrimaryObjectPart = pInterface->m_object.lock()->m_primaryObjectPart;
+
+                        nlohmann::json interface = nlohmann::json::object( { { "name", pInterface->delimitTypeName( "::" ) },
+                                                                             { "part", pPrimaryObjectPart->getDataType( "::" ) },
+                                                                             { "functions", nlohmann::json::array() } } );
+
+                        for ( model::Function::Ptr pFunction : pInterface->m_functions )
+                        {
+                            nlohmann::json function = writeFunction( pFunction );
+
+                            function[ "objectpart" ] = pFunction->m_property->m_objectPart.lock()->getDataType( "::" );
+
+                            model::Type::Ptr pType = pFunction->m_property->m_type;
+
+                            if ( std::dynamic_pointer_cast< model::FunctionGetter >( pFunction ) )
+                            {
+                                if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
+                                {
+                                    std::ostringstream osFunctionBody;
+                                    osFunctionBody << "return part->" << pFunction->m_property->m_strName << ";";
+                                    function[ "body" ].push_back( osFunctionBody.str() );
+                                }
+                                else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+                                {
+                                    model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
+                                    if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+                                    {
+                                        std::ostringstream osFunctionBody;
+                                        osFunctionBody << "return part->" << pFunction->m_property->m_strName << ";";
+                                        function[ "body" ].push_back( osFunctionBody.str() );
+                                    }
+                                    else
+                                    {
+                                        THROW_RTE( "Unsupported type for getter" );
+                                    }
+                                }
+                                else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
+                                {
+                                    std::ostringstream osFunctionBody;
+                                    osFunctionBody << "return m_converter.toInterface( part->" << pFunction->m_property->m_strName << " );";
+                                    function[ "body" ].push_back( osFunctionBody.str() );
+                                }
+                                else
+                                {
+                                    THROW_RTE( "Unsupported type for getter" );
+                                }
+                            }
+                            else if ( std::dynamic_pointer_cast< model::FunctionSetter >( pFunction ) )
+                            {
+                                if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
+                                {
+                                    std::ostringstream osFunctionBody;
+                                    osFunctionBody << "part->" << pFunction->m_property->m_strName << " = value;";
+                                    function[ "body" ].push_back( osFunctionBody.str() );
+                                }
+                                else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+                                {
+                                    model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
+                                    if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+                                    {
+                                        std::ostringstream osFunctionBody;
+                                        osFunctionBody << "part->" << pFunction->m_property->m_strName << " = value;";
+                                        function[ "body" ].push_back( osFunctionBody.str() );
+                                    }
+                                    else
+                                    {
+                                        THROW_RTE( "Unsupported type for setter" );
+                                    }
+                                }
+                                else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
+                                {
+                                    std::ostringstream osFunctionBody;
+                                    osFunctionBody << "part->" << pFunction->m_property->m_strName << " = m_converter.toData( value );";
+                                    function[ "body" ].push_back( osFunctionBody.str() );
+                                }
+                                else
+                                {
+                                    THROW_RTE( "Unsupported type for setter" );
+                                }
+                            }
+                            else
+                            {
+                                THROW_RTE( "Unknown function type" );
+                            }
+
+                            interface[ "functions" ].push_back( function );
+                        }
+
+                        stype[ "interfaces" ].push_back( interface );
+                    }
+
+                    stage[ "supertypes" ].push_back( stype );
+                }
+            }
+
             void writeViewData( const boost::filesystem::path& dataDir, model::Schema::Ptr pSchema )
             {
                 for ( model::Stage::Ptr pStage : pSchema->m_stages )
@@ -235,7 +529,8 @@ namespace db
 
                     nlohmann::json stage = nlohmann::json::object( { { "name", pStage->m_strName },
                                                                      { "perobject", pStage->m_bPerObject },
-                                                                     { "object_parts", nlohmann::json::array() },
+                                                                     { "super_conversions", nlohmann::json::array() },
+                                                                     { "interface_conversions", nlohmann::json::array() },
                                                                      { "readwrite_files", nlohmann::json::array() },
                                                                      { "many_accessors", nlohmann::json::array() },
                                                                      { "one_accessors", nlohmann::json::array() },
@@ -243,23 +538,7 @@ namespace db
                                                                      { "constructors", nlohmann::json::array() },
                                                                      { "interfaces", nlohmann::json::array() } } );
 
-                    for ( model::Stage::Ptr pStageIter : pSchema->m_stages )
-                    {
-                        for ( model::File::Ptr pFile : pStageIter->m_files )
-                        {
-                            for ( model::ObjectPart::Ptr pPart : pFile->m_parts )
-                            {
-                                model::SuperInterface::Ptr pSuper = pStage->getInterface( pPart->m_object.lock() )->m_superInterface.lock();
-                                nlohmann::json             part = nlohmann::json::object( { { "type_id", pPart->m_typeID },
-                                                                                { "supertype", pSuper->getTypeName() },
-                                                                                { "file", pFile->m_strName },
-                                                                                { "object", pPart->m_object.lock()->m_strName } } );
-                                stage[ "object_parts" ].push_back( part );
-                            }
-                        }
-                        if ( pStageIter == pStage )
-                            break;
-                    }
+                    writeConversions( stage, pSchema, pStage );
 
                     for ( model::File::Ptr pFile : pStage->m_files )
                     {
@@ -271,305 +550,10 @@ namespace db
                     {
                         stage[ "interfaces" ].push_back( writeInterface( pInterface ) );
                     }
-                    std::set< model::Interface::Ptr > manyAccessors;
-                    for ( model::Accessor::Ptr pAccessor : pStage->m_accessors )
-                    {
-                        if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pAccessor->m_type ) )
-                        {
-                            model::Object::Ptr            pObject = pRef->m_object;
-                            model::Interface::Ptr         pInterface = pStage->getInterface( pObject );
-                            model::PrimaryObjectPart::Ptr pPrimaryPart = pInterface->getPrimaryObjectPart();
-                            nlohmann::json                acessor
-                                = nlohmann::json::object( { { "type", pInterface->delimitTypeName( "::" ) },
-                                                            { "longname", pInterface->delimitTypeName( "_" ) },
-                                                            { "object", pPrimaryPart->m_object.lock()->m_strName },
-                                                            { "file", pPrimaryPart->m_file.lock()->m_strName },
-                                                            { "stage", pPrimaryPart->m_file.lock()->m_stage.lock()->m_strName },
-                                                            { "supertype", pInterface->m_superInterface.lock()->getTypeName() } } );
 
-                            stage[ "one_accessors" ].push_back( acessor );
-                            if ( manyAccessors.count( pInterface ) == 0 )
-                            {
-                                manyAccessors.insert( pInterface );
-                                stage[ "many_accessors" ].push_back( acessor );
-                            }
-                        }
-                        else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pAccessor->m_type ) )
-                        {
-                            if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pArray->m_underlyingType ) )
-                            {
-                                model::Object::Ptr            pObject = pRef->m_object;
-                                model::Interface::Ptr         pInterface = pStage->getInterface( pObject );
-                                model::PrimaryObjectPart::Ptr pPrimaryPart = pInterface->getPrimaryObjectPart();
-
-                                if ( manyAccessors.count( pInterface ) == 0 )
-                                {
-                                    manyAccessors.insert( pInterface );
-                                    nlohmann::json acessor
-                                        = nlohmann::json::object( { { "type", pInterface->delimitTypeName( "::" ) },
-                                                                    { "longname", pInterface->delimitTypeName( "_" ) },
-                                                                    { "object", pPrimaryPart->m_object.lock()->m_strName },
-                                                                    { "file", pPrimaryPart->m_file.lock()->m_strName },
-                                                                    { "stage", pPrimaryPart->m_file.lock()->m_stage.lock()->m_strName },
-                                                                    { "supertype", pInterface->m_superInterface.lock()->getTypeName() } } );
-
-                                    stage[ "many_accessors" ].push_back( acessor );
-                                }
-                            }
-                            else
-                            {
-                                THROW_RTE( "Unsupported Accessor type: " );
-                            }
-                        }
-                        /*else if( model::OptionalType::Ptr pArray =
-                            std::dynamic_pointer_cast< model::ArrayType >( pAccessor->m_type ) )
-                        {
-
-                        }*/
-                        else
-                        {
-                            THROW_RTE( "Unsupported Accessor type: " );
-                        }
-                    }
-                    for ( model::Constructor::Ptr pConstructor : pStage->m_constructors )
-                    {
-                        std::ostringstream os;
-                        os << "construct_" << pConstructor->m_interface->delimitTypeName( "_" );
-
-                        model::Interface::Ptr      pInterface = pConstructor->m_interface;
-                        model::SuperInterface::Ptr pSuperInterface = pInterface->m_superInterface.lock();
-
-                        nlohmann::json ctor
-                            = nlohmann::json::object( { { "return_type", pConstructor->m_interface->delimitTypeName( "::" ) },
-                                                        { "function_name", os.str() },
-                                                        { "super_type_name", pSuperInterface->getTypeName() },
-                                                        { "bases", nlohmann::json::array() },
-                                                        { "bases_reverse", nlohmann::json::array() } } );
-
-                        // add self to list
-                        model::Interface::Ptr                pBase = pInterface;
-                        std::vector< model::Interface::Ptr > bases_reversed;
-                        while ( pBase )
-                        {
-                            nlohmann::json base = nlohmann::json::object( { { "typename", pBase->delimitTypeName( "::" ) },
-                                                                            { "owns_primary_part", pBase->ownsPrimaryObjectPart() },
-                                                                            { "parts", nlohmann::json::array() } } );
-
-                            model::PrimaryObjectPart::Ptr pPrimaryPart = pBase->getPrimaryObjectPart();
-
-                            {
-                                nlohmann::json primaryPart
-                                    = nlohmann::json::object( { { "object", pPrimaryPart->m_object.lock()->m_strName },
-                                                                { "file", pPrimaryPart->m_file.lock()->m_strName },
-                                                                { "args", nlohmann::json::array() } } );
-                                {
-                                    for ( model::Property::Ptr pProperty : pPrimaryPart->m_properties )
-                                    {
-                                        model::Type::Ptr pType = pProperty->m_type;
-
-                                        std::ostringstream osExpression;
-                                        if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
-                                        {
-                                            model::Object::Ptr    pObject = pRef->m_object;
-                                            model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-
-                                            model::SuperInterface::Ptr pSuper = pInterface->m_superInterface.lock();
-                                            osExpression << "toData_" << pInterface->getPrimaryObjectPart()->m_file.lock()->m_strName << "_"
-                                                         << pObject->m_strName << "( dynamic_cast< " << pSuper->getTypeName()
-                                                         << "* >( arguments." << pProperty->m_strName << ".value() ) )";
-                                        }
-                                        else if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
-                                        {
-                                            osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                        }
-                                        else
-                                        {
-                                            osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                            // THROW_RTE( "Unsupported argument type" );
-                                        }
-
-                                        nlohmann::json arg = nlohmann::json::object( { { "expression", osExpression.str() } } );
-                                        primaryPart[ "args" ].push_back( arg );
-                                    }
-                                }
-                                base[ "primary_part" ] = primaryPart;
-                            }
-                            // VERIFY_RTE( pBase->m_readOnlyObjectParts.empty() );
-                            for ( model::ObjectPart::Ptr pPart : pBase->m_readWriteObjectParts )
-                            {
-                                if ( pPrimaryPart != pPart )
-                                {
-                                    nlohmann::json part = nlohmann::json::object( { { "object", pPart->m_object.lock()->m_strName },
-                                                                                    { "file", pPart->m_file.lock()->m_strName },
-                                                                                    { "args", nlohmann::json::array() } } );
-
-                                    for ( model::Property::Ptr pProperty : pPart->m_properties )
-                                    {
-                                        model::Type::Ptr pType = pProperty->m_type;
-
-                                        std::ostringstream osExpression;
-                                        if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
-                                        {
-                                            model::Object::Ptr    pObject = pRef->m_object;
-                                            model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-
-                                            model::SuperInterface::Ptr pSuper = pInterface->m_superInterface.lock();
-                                            osExpression << "toData_" << pInterface->getPrimaryObjectPart()->m_file.lock()->m_strName << "_"
-                                                         << pObject->m_strName << "( dynamic_cast< " << pSuper->getTypeName()
-                                                         << "* >( arguments." << pProperty->m_strName << ".value() ) )";
-                                        }
-                                        else if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
-                                        {
-                                            osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                        }
-                                        else
-                                        {
-                                            osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                            // THROW_RTE( "Unsupported argument type" );
-                                        }
-
-                                        nlohmann::json arg = nlohmann::json::object( { { "expression", osExpression.str() } } );
-                                        part[ "args" ].push_back( arg );
-                                    }
-                                    base[ "parts" ].push_back( part );
-                                }
-                            }
-
-                            ctor[ "bases" ].push_back( base );
-                            bases_reversed.push_back( pBase );
-                            pBase = pBase->m_base;
-                        }
-                        std::reverse( bases_reversed.begin(), bases_reversed.end() );
-                        for ( model::Interface::Ptr pBase : bases_reversed )
-                        {
-                            nlohmann::json base = nlohmann::json::object( { { "typename", pBase->delimitTypeName( "::" ) },
-                                                                            { "owns_primary_part", pBase->ownsPrimaryObjectPart() } } );
-
-                            model::PrimaryObjectPart::Ptr pPrimaryPart = pBase->getPrimaryObjectPart();
-                            base[ "primary_part" ] = nlohmann::json::object( { { "object", pPrimaryPart->m_object.lock()->m_strName },
-                                                                               { "file", pPrimaryPart->m_file.lock()->m_strName } } );
-
-                            ctor[ "bases_reverse" ].push_back( base );
-                        }
-
-                        stage[ "constructors" ].push_back( ctor );
-                    }
-                    for ( model::SuperInterface::Ptr pSuperType : pStage->m_superInterfaces )
-                    {
-                        const std::string strSuperTypeName = pSuperType->getTypeName();
-
-                        nlohmann::json stype
-                            = nlohmann::json::object( { { "name", strSuperTypeName }, { "interfaces", nlohmann::json::array() } } );
-
-                        for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
-                        {
-                            model::ObjectPart::Ptr pPrimaryObjectPart = pInterface->m_object.lock()->m_primaryObjectPart;
-
-                            nlohmann::json interface = nlohmann::json::object( { { "name", pInterface->delimitTypeName( "::" ) },
-                                                                                 { "part", pPrimaryObjectPart->getDataType( "::" ) },
-                                                                                 { "functions", nlohmann::json::array() } } );
-
-                            for ( model::Function::Ptr pFunction : pInterface->m_functions )
-                            {
-                                nlohmann::json function = writeFunction( pFunction );
-
-                                function[ "objectpart" ] = pFunction->m_property->m_objectPart.lock()->getDataType( "::" );
-
-                                model::Type::Ptr pType = pFunction->m_property->m_type;
-
-                                if ( std::dynamic_pointer_cast< model::FunctionGetter >( pFunction ) )
-                                {
-                                    if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
-                                    {
-                                        std::ostringstream osFunctionBody;
-                                        osFunctionBody << "return part->" << pFunction->m_property->m_strName << ";";
-                                        function[ "body" ].push_back( osFunctionBody.str() );
-                                    }
-                                    else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
-                                    {
-                                        model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
-                                        if ( model::ValueType::Ptr pValue
-                                             = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
-                                        {
-                                            std::ostringstream osFunctionBody;
-                                            osFunctionBody << "return part->" << pFunction->m_property->m_strName << ";";
-                                            function[ "body" ].push_back( osFunctionBody.str() );
-                                        }
-                                        else
-                                        {
-                                            THROW_RTE( "Unsupported type for getter" );
-                                        }
-                                    }
-                                    else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
-                                    {
-                                        model::Object::Ptr pUnderlyingType = pRef->m_object;
-
-                                        std::ostringstream osFunctionBody;
-                                        osFunctionBody << "return dynamic_cast< " << pRef->getViewType( false )
-                                                       << " >( m_converter.toSuper( part->" << pFunction->m_property->m_strName << " ));";
-                                        function[ "body" ].push_back( osFunctionBody.str() );
-                                    }
-                                    else
-                                    {
-                                        THROW_RTE( "Unsupported type for getter" );
-                                    }
-                                }
-                                else if ( std::dynamic_pointer_cast< model::FunctionSetter >( pFunction ) )
-                                {
-                                    if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
-                                    {
-                                        std::ostringstream osFunctionBody;
-                                        osFunctionBody << "part->" << pFunction->m_property->m_strName << " = value;";
-                                        function[ "body" ].push_back( osFunctionBody.str() );
-                                    }
-                                    else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
-                                    {
-                                        model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
-                                        if ( model::ValueType::Ptr pValue
-                                             = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
-                                        {
-                                            std::ostringstream osFunctionBody;
-                                            osFunctionBody << "part->" << pFunction->m_property->m_strName << " = value;";
-                                            function[ "body" ].push_back( osFunctionBody.str() );
-                                        }
-                                        else
-                                        {
-                                            THROW_RTE( "Unsupported type for setter" );
-                                        }
-                                    }
-                                    else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
-                                    {
-                                        model::Object::Ptr pUnderlyingType = pRef->m_object;
-                                        model::Interface::Ptr pInterface = pStage->getInterface( pUnderlyingType );
-                                        model::SuperInterface::Ptr pSuper = pInterface->m_superInterface.lock();
-
-                                        std::ostringstream osFunctionBody;
-
-                                        osFunctionBody << "part->" << pFunction->m_property->m_strName << 
-                                            " = m_converter.toData_" << pInterface->getPrimaryObjectPart()->m_file.lock()->m_strName << "_"
-                                                         << pUnderlyingType->m_strName << "( dynamic_cast< " << pSuper->getTypeName()
-                                                         << "* >( value ) );";
-
-                                        function[ "body" ].push_back( osFunctionBody.str() );
-                                    }
-                                    else
-                                    {
-                                        THROW_RTE( "Unsupported type for setter" );
-                                    }
-                                }
-                                else
-                                {
-                                    THROW_RTE( "Unknown function type" );
-                                }
-
-                                interface[ "functions" ].push_back( function );
-                            }
-
-                            stype[ "interfaces" ].push_back( interface );
-                        }
-
-                        stage[ "supertypes" ].push_back( stype );
-                    }
+                    writeAccessors( stage, pStage );
+                    writeConstructors( stage, pStage );
+                    writeSuperTypes( stage, pStage );
 
                     data[ "stage" ] = stage;
 
@@ -634,10 +618,10 @@ namespace db
                             model::Type::Ptr pType = pProperty->m_type;
 
                             bool bIsPointer = false;
-                            if( std::dynamic_pointer_cast< model::RefType >( pType ) )
+                            if ( std::dynamic_pointer_cast< model::RefType >( pType ) )
                                 bIsPointer = true;
 
-                            nlohmann::json   property = nlohmann::json::object( { { "name", pProperty->m_strName },
+                            nlohmann::json property = nlohmann::json::object( { { "name", pProperty->m_strName },
                                                                                 { "type", pType->getDataType( false ) },
                                                                                 { "argtype", pType->getDataType( true ) },
                                                                                 { "is_pointer", bIsPointer } } );

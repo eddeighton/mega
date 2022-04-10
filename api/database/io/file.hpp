@@ -30,8 +30,8 @@ namespace mega
             FileInfo                  m_info;
             data::ObjectPartLoader&   m_objectLoader;
             Object::Array             m_objects;
-            std::unique_ptr< Loader > m_pLoader;
 
+            void preload( Loader& loader, const Manifest& manifest );
         public:
             File( const FileInfo& info, data::ObjectPartLoader& objectLoader )
                 : m_info( info )
@@ -55,7 +55,6 @@ namespace mega
                 return m_info.getObjectSourceFilePath();
             }
 
-            void preload( const Manifest& manifest );
             void load( const Manifest& manifest );
             void store( const Manifest& manifest ) const;
 

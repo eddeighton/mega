@@ -40,10 +40,14 @@ class {{ stype.name }};
 
 struct PointerConverter
 {
-{% for object_part in stage.object_parts %}
+{% for object_part in stage.super_conversions %}
     virtual {{ object_part.supertype }}* toSuper( const data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} >& pData ) const = 0;
     virtual data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} > toData_{{ object_part.file }}_{{ object_part.object }}( {{ object_part.supertype }}* pSuper ) const = 0;
-{% endfor %}{# stage.object_parts #}
+{% endfor %}{# stage.super_conversions #}
+{% for interface_conversion in stage.interface_conversions %}
+    virtual {{ interface_conversion.type }}* toInterface( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const = 0;
+    virtual data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} > toData( {{ interface_conversion.type }}* pInterface ) const = 0;
+{% endfor %}{# stage.interface_conversions #}
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -174,30 +178,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
                 mega::io::FileInfo::FILE_{{ many_accessor.stage }}_{{ many_accessor.file }}{% if stage.perobject %}, m_objectFile{% endif %}, fileInfos );
             for( const mega::io::FileInfo& fileInfo : fileInfos )
             {
-                mega::io::File::PtrCst pFile;
-                {
-                    FileMap::const_iterator iFind = m_readwriteFiles.find( fileInfo.getFileID() );
-                    if( iFind != m_readwriteFiles.end() )
-                    {
-                        pFile = iFind->second;
-                    }
-                    else
-                    {
-                        FileMapCst::const_iterator iFind = m_readonlyFiles.find( fileInfo.getFileID() );
-                        if( iFind != m_readonlyFiles.end() )
-                        {
-                            pFile = iFind->second;
-                        }
-                        else
-                        {
-                            mega::io::File::Ptr pNewFile = std::make_shared< mega::io::File >( fileInfo, const_cast< Database::Pimpl&>(*this) );
-                            pNewFile->preload( m_manifest );
-                            pNewFile->load( m_manifest );
-                            m_readonlyFiles.insert( std::make_pair( fileInfo.getFileID(), pNewFile ) );
-                            pFile = pNewFile;
-                        }
-                    }
-                }
+                mega::io::File::PtrCst pFile = getFile( fileInfo );
                 for( mega::io::Object* pObject : pFile->range() )
                 {
                     if( data::{{ many_accessor.file }}::{{ many_accessor.object }}* pFound = 
@@ -328,53 +309,89 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
         }
     }
 
+    mega::io::File::PtrCst getFile( const mega::io::FileInfo& fileInfo ) const
+    {
+        FileMap::const_iterator iFind = m_readwriteFiles.find( fileInfo.getFileID() );
+        if( iFind != m_readwriteFiles.end() )
+        {
+            return iFind->second;
+        }
+        else
+        {
+            FileMapCst::const_iterator iFind = m_readonlyFiles.find( fileInfo.getFileID() );
+            if( iFind != m_readonlyFiles.end() )
+            {
+                return iFind->second;
+            }
+            else
+            {
+                mega::io::File::Ptr pNewFile = 
+                    std::make_shared< mega::io::File >( fileInfo, 
+                        const_cast< Database::Pimpl&>(*this) );
+                pNewFile->load( m_manifest );
+                m_readonlyFiles.insert( std::make_pair( fileInfo.getFileID(), pNewFile ) );
+                return pNewFile;
+            }
+        }
+    }
+
     virtual mega::io::Object* load( const mega::io::ObjectInfo& objectInfo )
     {
-        FileMapCst::const_iterator iFind = m_readonlyFiles.find( objectInfo.getFileID() );
-        if( iFind != m_readonlyFiles.end() )
-        {
-            return iFind->second->getObject( objectInfo.getIndex() );
-        }
-
-        // load the file
-        const mega::io::FileInfo fileInfo =
-            m_manifest.getCompilationFilePath( objectInfo.getFileID() );
-
-        mega::io::File::Ptr pFile = 
-            std::make_shared< mega::io::File >( fileInfo, *this );
-        
-        m_readonlyFiles.insert( std::make_pair( objectInfo.getFileID(), pFile ) );
-
-        pFile->preload( m_manifest );
-        pFile->load( m_manifest );
-
+        mega::io::File::PtrCst pFile = 
+            getFile( m_manifest.getCompilationFilePath( objectInfo.getFileID() ) );
         return pFile->getObject( objectInfo.getIndex() );
     }
 
-{% for object_part in stage.object_parts %}
-    virtual {{ object_part.supertype }}* toSuper( const data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} >& pData ) const
+{% for super_conversion in stage.super_conversions %}
+    virtual {{ super_conversion.supertype }}* toSuper( const data::Ptr< data::{{ super_conversion.file }}::{{ super_conversion.object }} >& pData ) const
     {
         InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
         if( iFind != m_interfaceHash.end() )
         {
-            {{ object_part.supertype }}* pSuper = dynamic_cast< {{ object_part.supertype }}* >( iFind->second.get() );
+            {{ super_conversion.supertype }}* pSuper = dynamic_cast< {{ super_conversion.supertype }}* >( iFind->second.get() );
             VERIFY_RTE( pSuper );
             return pSuper;
         }
         else
         {
-            using SuperType = {{ object_part.supertype }};
+            using SuperType = {{ super_conversion.supertype }};
             SuperType* pSuper = new SuperType( const_cast<Database::Pimpl&>(*this), pData );
             m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
             return pSuper;
         }
     }
-    virtual data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} > toData_{{ object_part.file }}_{{ object_part.object }}( {{ object_part.supertype }}* pSuper ) const
+    virtual data::Ptr< data::{{ super_conversion.file }}::{{ super_conversion.object }} > 
+        toData_{{ super_conversion.file }}_{{ super_conversion.object }}( {{ super_conversion.supertype }}* pSuper ) const
     {
-        return data::convert< data::{{ object_part.file }}::{{ object_part.object }} >( pSuper->m_data );
+        return data::convert< data::{{ super_conversion.file }}::{{ super_conversion.object }} >( pSuper->m_data );
     }
-{% endfor %}{# stage.object_parts #}
+{% endfor %}{# stage.super_conversions #}
 
+{% for interface_conversion in stage.interface_conversions %}
+    virtual {{ interface_conversion.type }}* toInterface( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const
+    {
+        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
+        if( iFind != m_interfaceHash.end() )
+        {
+            {{ interface_conversion.type }}* pSuper = dynamic_cast< {{ interface_conversion.type }}* >( iFind->second.get() );
+            VERIFY_RTE( pSuper );
+            return pSuper;
+        }
+        else
+        {
+            using SuperType = {{ interface_conversion.supertype }};
+            SuperType* pSuper = new SuperType( const_cast<Database::Pimpl&>(*this), pData );
+            m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
+            return pSuper;
+        }
+    }
+    virtual data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} > toData( {{ interface_conversion.type }}* pInterface ) const
+    {
+        using SuperType = {{ interface_conversion.supertype }};
+        SuperType* pSuper = dynamic_cast< SuperType* >( pInterface );
+        return data::convert< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >( pSuper->m_data );
+    }
+{% endfor %}{# stage.interface_conversions #}
 
     const mega::io::Environment& m_environment;
 {% if stage.perobject %}
