@@ -29,7 +29,6 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/archive/binary_oarchive.hpp>
 
 #include <memory>
 #include <optional>
@@ -39,32 +38,26 @@
 
 namespace mega
 {
-namespace io
-{
-    class Storer
+    namespace io
     {
-    public:
-        Storer( const boost::filesystem::path& filePath, const Manifest& manifest );
-
-        template < class T >
-        inline void store( const T& value )
+        class Storer
         {
-            m_archive << value;
-        }
+        public:
+            Storer( const boost::filesystem::path& filePath, const Manifest& manifest );
 
-        template< class T >
-        inline void store( const data::Ptr< T >& value )
-        {
-            m_archive << value.getObjectInfo();
-        }
-        
-    private:
-        const boost::filesystem::path                  m_targetFilePath;
-        const Manifest&                                m_manifest;
-        std::unique_ptr< boost::filesystem::ofstream > m_pFileStream;
-        boost::archive::binary_oarchive                m_archive;
-    };
-} // namespace io
+            template < class T >
+            inline void store( const T& value )
+            {
+                m_archive & value;
+            }
+
+        private:
+            const boost::filesystem::path                  m_targetFilePath;
+            const Manifest&                                m_manifest;
+            std::unique_ptr< boost::filesystem::ofstream > m_pFileStream;
+            boost::archive::MegaOArchive                   m_archive;
+        };
+    } // namespace io
 } // namespace mega
 
 #endif // STORER_18_04_2019

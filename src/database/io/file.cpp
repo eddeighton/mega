@@ -15,7 +15,6 @@ namespace io
     {
         try
         {
-
             {
                 std::size_t szNumObjects = 0U;
                 loader.load( szNumObjects );
@@ -51,7 +50,7 @@ namespace io
 
     void File::load( const Manifest& manifest )
     {
-        Loader loader( manifest, m_info.getFilePath() );
+        Loader loader( manifest, m_info.getFilePath(), m_objectLoader );
         preload( loader, manifest );
         for ( Object* pObject : m_objects )
         {

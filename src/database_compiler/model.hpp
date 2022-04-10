@@ -450,7 +450,8 @@ namespace db
                 VERIFY_RTE( m_underlyingType );
                 std::ostringstream os;
                 os << "std::vector< " << m_underlyingType->getViewType( false ) << " >";
-                return bAsArg ? toConstRef( os.str() ) : os.str();
+                return os.str();
+                //return bAsArg ? toConstRef( os.str() ) : os.str();
             }
             virtual std::string getDataType( bool bAsArg ) const
             {
@@ -494,6 +495,39 @@ namespace db
             virtual bool isGet() const { return true; }
             virtual bool isSet() const { return true; }
         };
+
+        class MapType : public Type
+        {
+        public:
+            MapType( std::size_t& szCounter )
+                : Type( szCounter )
+            {
+            }
+            using Ptr = std::shared_ptr< MapType >;
+            Type::Ptr m_fromType;
+            Type::Ptr m_toType;
+            Type::Ptr m_predicate;
+
+            virtual std::string getViewType( bool bAsArg ) const
+            {
+                VERIFY_RTE( m_fromType );
+                VERIFY_RTE( m_toType );
+                std::ostringstream os;
+                os << "std::map< " << m_fromType->getViewType( false ) << ", " << m_toType->getViewType( false ) << " >";
+                return os.str();
+            }
+            virtual std::string getDataType( bool bAsArg ) const
+            {
+                VERIFY_RTE( m_fromType );
+                VERIFY_RTE( m_toType );
+                std::ostringstream os;
+                os << "std::map< " << m_fromType->getDataType( false ) << ", " << m_toType->getDataType( false ) << " >";
+                return os.str();
+            }
+            virtual bool isCtorParam() const { return true; }
+            virtual bool isGet() const { return true; }
+            virtual bool isSet() const { return true; }
+        };
         /*
             class OptionalType : public Type
             {
@@ -524,14 +558,6 @@ namespace db
                 Type::Ptr m_predicate;
             };
 
-            class MapType : public Type
-            {
-            public:
-                using Ptr = std::shared_ptr< MapType >;
-                Type::Ptr m_fromType;
-                Type::Ptr m_toType;
-                Type::Ptr m_predicate;
-            };
 
             class MultiMapType : public Type
             {

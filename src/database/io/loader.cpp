@@ -23,46 +23,56 @@
 #include "common/file.hpp"
 #include "database/io/file_info.hpp"
 
+namespace boost
+{
+    namespace archive
+    {
+        MegaIArchive::MegaIArchive( std::istream& os, ::data::ObjectPartLoader& loader )
+            : binary_iarchive( os )
+            , m_loader( loader )
+        {
+        }
+    } // namespace archive
+} // namespace boost
+
 namespace mega
 {
-namespace io
-{
-    Loader::Loader( const Manifest& manifest,
-                    const boost::filesystem::path& filePath )
-        : m_runtimeManifest( manifest )
-        , m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
-        , m_archive( *m_pFileStream )
+    namespace io
     {
-        Manifest loadedManifest;
-        m_archive >> loadedManifest;
-
-        // calculate mapping from the old fileIDs in the file to the new runtime ones in the
-        // m_runtimeManifest
-        std::size_t szHighest = 0U;
-        for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
+        Loader::Loader( const Manifest& manifest, const boost::filesystem::path& filePath, ::data::ObjectPartLoader& loader )
+            : m_runtimeManifest( manifest )
+            , m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
+            , m_archive( *m_pFileStream, loader )
         {
-            if ( fileInfo.getFileID() + 1 > szHighest )
-            {
-                szHighest = fileInfo.getFileID() + 1;
-            }
-        }
-        m_fileIDLoadedToRuntime.resize( szHighest, ObjectInfo::NO_FILE );
+            Manifest loadedManifest;
+            m_archive >> loadedManifest;
 
-        for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
-        {
-            for ( const FileInfo& runtimeFileInfo : m_runtimeManifest.getCompilationFileInfos() )
+            // calculate mapping from the old fileIDs in the file to the new runtime ones in the
+            // m_runtimeManifest
+            std::size_t szHighest = 0U;
+            for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
             {
-                if ( runtimeFileInfo.getFilePath() == fileInfo.getFilePath() )
+                if ( fileInfo.getFileID() + 1 > szHighest )
                 {
-                    VERIFY_RTE( fileInfo.getFileID() != ObjectInfo::NO_FILE );
-                    VERIFY_RTE( runtimeFileInfo.getFileID() != ObjectInfo::NO_FILE );
-                    m_fileIDLoadedToRuntime[ fileInfo.getFileID() ]
-                        = runtimeFileInfo.getFileID();
-                    break;
+                    szHighest = fileInfo.getFileID() + 1;
+                }
+            }
+            m_archive.m_fileIDLoadedToRuntime.resize( szHighest, ObjectInfo::NO_FILE );
+
+            for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
+            {
+                for ( const FileInfo& runtimeFileInfo : m_runtimeManifest.getCompilationFileInfos() )
+                {
+                    if ( runtimeFileInfo.getFilePath() == fileInfo.getFilePath() )
+                    {
+                        VERIFY_RTE( fileInfo.getFileID() != ObjectInfo::NO_FILE );
+                        VERIFY_RTE( runtimeFileInfo.getFileID() != ObjectInfo::NO_FILE );
+                        m_archive.m_fileIDLoadedToRuntime[ fileInfo.getFileID() ] = runtimeFileInfo.getFileID();
+                        break;
+                    }
                 }
             }
         }
-    }
 
-} // namespace io
+    } // namespace io
 } // namespace mega

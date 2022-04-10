@@ -20,8 +20,7 @@
 #ifndef ARCHIVE_18_04_2019
 #define ARCHIVE_18_04_2019
 
-//#include <boost/archive/binary_oarchive.hpp>
-//#include <boost/archive/binary_iarchive.hpp>
+#include "object_loader.hpp"
 
 #include <boost/filesystem/path.hpp>
 
@@ -31,6 +30,9 @@
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+
 //#include <boost/archive/text_oarchive.hpp>
 //#include <boost/archive/text_iarchive.hpp>
 
@@ -43,6 +45,32 @@ namespace mega
     //using InputArchiveType = boost::archive::text_iarchive;
     //using OutputArchiveType = boost::archive::text_oarchive;
 }
+
+namespace boost
+{
+    namespace archive
+    {
+        class MegaIArchive : public binary_iarchive
+        {
+        public:
+            MegaIArchive( std::istream& os, ::data::ObjectPartLoader& loader );
+            std::vector< mega::io::ObjectInfo::FileID > m_fileIDLoadedToRuntime;
+            ::data::ObjectPartLoader&                   m_loader;
+        };
+    } // namespace archive
+} // namespace boost
+
+namespace boost
+{
+    namespace archive
+    {
+        class MegaOArchive : public binary_oarchive
+        {
+        public:
+            MegaOArchive( std::ostream& os );
+        };
+    } // namespace archive
+} // namespace boost
 
 namespace boost
 {

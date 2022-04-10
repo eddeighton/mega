@@ -29,8 +29,7 @@ namespace db
         {
             std::ostringstream osObjectPartType;
             {
-                osObjectPartType << "p_" << m_file.lock()->m_strName << "_"
-                                 << m_object.lock()->m_strName;
+                osObjectPartType << "p_" << getDataType( "_" );
             }
             return osObjectPartType.str();
         }
@@ -66,6 +65,7 @@ namespace db
             using NamespaceMap = std::map< schema::Identifier, Namespace::Ptr >;
             using ObjectVector = std::vector< Object::Ptr >;
             using ObjectRefVector = std::vector< RefType::Ptr >;
+            using MapTypeVector = std::vector< MapType::Ptr >;
             using InheritanceMap = std::map< schema::IdentifierList, Object::Ptr >;
 
             struct Mapping
@@ -81,6 +81,7 @@ namespace db
                 NamespaceMap                  namespaceMap;
                 ObjectVector                  objects;
                 ObjectRefVector               objectRefs;
+                MapTypeVector mapTypes;
             };
 
             Type::Ptr getType( const schema::Type& type, Mapping& mapping,
@@ -141,6 +142,24 @@ namespace db
                                 mapping.typeNameResMap.insert( std::make_pair(
                                     pRefType, NameResolution{ pNamespace, cppType.m_idList } ) );
                                 return pRefType;
+                            }
+                        }
+                    }
+                    else if ( strID == "map" )
+                    {
+                        // ref< ObjectType >
+                        if ( type.m_children.size() == 2U )
+                        {
+                            const schema::Type& fromType = type.m_children.front();
+                            const schema::Type& toType = type.m_children.back();
+                            if ( !fromType.m_idList.empty() && !toType.m_idList.empty() )
+                            {
+                                MapType::Ptr pMapType
+                                    = std::make_shared< MapType >( mapping.counter );
+                                mapping.mapTypes.push_back( pMapType );
+                                pMapType->m_fromType    = getType( fromType, mapping, pNamespace );
+                                pMapType->m_toType      = getType( toType, mapping, pNamespace );
+                                return pMapType;
                             }
                         }
                     }

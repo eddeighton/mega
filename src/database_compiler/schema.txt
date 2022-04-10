@@ -95,7 +95,11 @@ namespace Parser
         value< std::string > type
         value< std::string > test -> InputParse::Extra
         ref< Opaque > cppTypeName
-        //array< ref< Dimension > > children 
+        array< ref< Opaque > > children1 
+        map< value< int >, ref< Opaque > > map1
+        map< ref< Opaque >, value< int > > map2
+
+        //array< array< ref< Opaque > > > children2 
         //value< std::string > foobar -> Interface::Tree
     }
 

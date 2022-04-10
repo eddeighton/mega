@@ -50,6 +50,113 @@ struct PointerConverter
 {% endfor %}{# stage.interface_conversions #}
 };
 
+// conversion generics
+template< typename TTo, typename TFrom >
+inline data::Ptr< TTo > toData( PointerConverter& converter, TFrom* pFrom )
+{
+    return converter.toData( pFrom );
+}
+
+// conversion generics
+template< typename TTo, typename TFrom >
+inline TTo toInterface( PointerConverter& converter, const TFrom& from )
+{
+    return converter.toInterface( from );
+}
+
+template< typename TTo, typename TFrom >
+inline std::vector< data::Ptr< TTo > > toData( PointerConverter& converter, const std::vector< TFrom* >& from )
+{
+    std::vector< data::Ptr< TTo > > result;
+    for( typename std::vector< TFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.push_back( toData< TTo, TFrom >( converter, *i ) );
+    }
+    return result;
+}
+
+template< typename TTo, typename TFrom >
+inline std::vector< TTo* > toInterface( PointerConverter& converter, const std::vector< TFrom >& from )
+{
+    std::vector< TTo* > result;
+    for( typename std::vector< TFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.push_back( toInterface< TTo*, TFrom >( converter, *i ) );
+    }
+    return result;
+}
+
+
+template< typename TTo, typename TFrom, typename TKey >
+inline std::map< TKey, data::Ptr< TTo > > toData( PointerConverter& converter, const std::map< TKey, TFrom* >& from )
+{
+    std::map< TKey, data::Ptr< TTo > > result;
+    for( typename std::map< TKey, TFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( i->first, toData< TTo, TFrom >( converter, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TTo, typename TFrom, typename TKey >
+inline std::map< TKey, TTo* > toInterface( PointerConverter& converter, const std::map< TKey, TFrom >& from )
+{
+    std::map< TKey, TTo* > result;
+    for( typename std::map< TKey, TFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( i->first, toInterface< TTo*, TFrom >( converter, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TTo, typename TFrom, typename TValue >
+inline std::map< data::Ptr< TTo >, TValue > toData( PointerConverter& converter, const std::map< TFrom*, TValue >& from )
+{
+    std::map< data::Ptr< TTo >, TValue > result;
+    for( typename std::map< TFrom*, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( toData< TTo, TFrom >( converter, i->first ), i->second ) );
+    }
+    return result;
+}
+
+template< typename TTo, typename TFrom, typename TValue >
+inline std::map< TTo*, TValue > toInterface( PointerConverter& converter, const std::map< TFrom, TValue >& from )
+{
+    std::map< TTo*, TValue > result;
+    for( typename std::map< TFrom, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( toInterface< TTo*, TFrom >( converter, i->first ), i->second ) );
+    }
+    return result;
+}
+
+template< typename TKeyTo, typename TKeyFrom, typename TValueTo, typename TValueFrom >
+inline std::map< data::Ptr< TKeyTo >, data::Ptr< TValueTo > > toData( PointerConverter& converter, const std::map< TKeyFrom*, TValueFrom* >& from )
+{
+    std::map< data::Ptr< TKeyTo >, data::Ptr< TValueTo > > result;
+    for( typename std::map< TKeyFrom*, TValueFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( 
+            toData< TKeyTo, TKeyFrom >( converter, i->first ), 
+            toData< TValueTo, TValueFrom >( converter, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TKeyTo, typename TKeyFrom, typename TValueTo, typename TValueFrom >
+inline std::map< TKeyTo*, TValueTo* > toInterface( PointerConverter& converter, const std::map< TKeyFrom, TValueFrom >& from )
+{
+    std::map< TKeyTo*, TValueTo > result;
+    for( typename std::map< TKeyFrom, TValueFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( 
+            toInterface< TKeyTo*, TKeyFrom >( converter, i->first ), 
+            toInterface< TValueTo*, TValueFrom >( converter, i->second )) );
+    }
+    return result;
+}
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Super type declarations
@@ -150,6 +257,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
     using InterfaceMap = std::unordered_map< mega::io::ObjectInfo, SuperTypePtr, ObjectInfoHash, ObjectInfoEquality >;
     using FileMap = std::map< mega::io::ObjectInfo::FileID, mega::io::File::Ptr >;
     using FileMapCst = std::map< mega::io::ObjectInfo::FileID, mega::io::File::PtrCst >;
+
 {% if stage.perobject %}
     Pimpl( const mega::io::Environment& environment, const boost::filesystem::path& objectFile )
         :   m_environment( environment ),

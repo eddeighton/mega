@@ -10,10 +10,13 @@
 
 #include "boost/filesystem/path.hpp"
 
-#include <vector>
 #include <string>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
+#include <map>
+#include <set>
+#include <unordered_map>
 
 namespace data
 {
@@ -101,7 +104,7 @@ namespace AST
     struct Dimension : public mega::io::Object
     {
         Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test, data::Ptr< data::AST::Opaque > cppTypeName);
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test, data::Ptr< data::AST::Opaque > cppTypeName, const std::vector< data::Ptr< data::AST::Opaque > >& children1, std::map< int, data::Ptr< data::AST::Opaque > > map1, std::map< data::Ptr< data::AST::Opaque >, int > map2);
         enum 
         {
             Type = 2
@@ -111,6 +114,9 @@ namespace AST
         std::string type;
         std::string test;
         data::Ptr< data::AST::Opaque > cppTypeName;
+        std::vector< data::Ptr< data::AST::Opaque > > children1;
+        std::map< int, data::Ptr< data::AST::Opaque > > map1;
+        std::map< data::Ptr< data::AST::Opaque >, int > map2;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };

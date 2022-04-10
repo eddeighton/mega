@@ -63,13 +63,16 @@ namespace AST
           , cppTypeName( loader )
     {
     }
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test, data::Ptr< data::AST::Opaque > cppTypeName)
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test, data::Ptr< data::AST::Opaque > cppTypeName, const std::vector< data::Ptr< data::AST::Opaque > >& children1, std::map< int, data::Ptr< data::AST::Opaque > > map1, std::map< data::Ptr< data::AST::Opaque >, int > map2)
         :   mega::io::Object( objectInfo )
           , isConst( isConst )
           , identifier( identifier )
           , type( type )
           , test( test )
           , cppTypeName( cppTypeName )
+          , children1( children1 )
+          , map1( map1 )
+          , map2( map2 )
     {
     }
     void Dimension::load( mega::io::Loader& loader )
@@ -79,6 +82,9 @@ namespace AST
         loader.load( type );
         loader.load( test );
         loader.load( cppTypeName );
+        loader.load( children1 );
+        loader.load( map1 );
+        loader.load( map2 );
     }
     void Dimension::store( mega::io::Storer& storer ) const
     {
@@ -87,6 +93,9 @@ namespace AST
         storer.store( type );
         storer.store( test );
         storer.store( cppTypeName );
+        storer.store( children1 );
+        storer.store( map1 );
+        storer.store( map2 );
     }
         
     // struct Root : public mega::io::Object

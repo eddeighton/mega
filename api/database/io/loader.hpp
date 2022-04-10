@@ -21,7 +21,7 @@
 #define LOADER_18_04_2019
 
 #include "archive.hpp"
-#include "database/io/object_info.hpp"
+#include "object_info.hpp"
 #include "object.hpp"
 #include "manifest.hpp"
 #include "data_pointer.hpp"
@@ -30,7 +30,6 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/fstream.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 
 #include <memory>
 #include <optional>
@@ -45,28 +44,18 @@ namespace mega
         class Loader
         {
         public:
-            Loader( const Manifest& manifest, const boost::filesystem::path& filePath );
+            Loader( const Manifest& manifest, const boost::filesystem::path& filePath, ::data::ObjectPartLoader& loader );
 
-            template < class T >
-            inline void load( T& value )
+            template < typename T >
+            void load( T& value )
             {
-                m_archive >> value;
-            }
-
-            template < class T >
-            inline void load( data::Ptr< T >& value )
-            {
-                ObjectInfo objectInfo;
-                m_archive >> objectInfo;
-                value = data::Ptr< T >(
-                    value, ObjectInfo( objectInfo.getType(), m_fileIDLoadedToRuntime[ objectInfo.getFileID() ], objectInfo.getIndex() ) );
+                m_archive& value;
             }
 
         private:
             const Manifest&                                m_runtimeManifest;
             std::unique_ptr< boost::filesystem::ifstream > m_pFileStream;
-            boost::archive::binary_iarchive                m_archive;
-            std::vector< ObjectInfo::FileID >              m_fileIDLoadedToRuntime;
+            boost::archive::MegaIArchive                   m_archive;
         };
 
     } // namespace io

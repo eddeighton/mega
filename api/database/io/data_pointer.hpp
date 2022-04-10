@@ -1,9 +1,11 @@
 #ifndef DATA_POINTER_7_APRIL_2022
 #define DATA_POINTER_7_APRIL_2022
 
+#include "database/io/loader.hpp"
 #include "object_info.hpp"
 #include "object.hpp"
 #include "object_loader.hpp"
+#include "archive.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -15,32 +17,37 @@ namespace data
     class Ptr
     {
     public:
-        Ptr( ObjectPartLoader& loader )
-            : m_loader( loader )
+        Ptr()
+            : m_pLoader( nullptr )
         {
         }
         
+        Ptr( ObjectPartLoader& loader )
+            : m_pLoader( &loader )
+        {
+        }
+
         Ptr( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-            : m_loader( loader )
+            : m_pLoader( &loader )
             , m_objectInfo( objectInfo )
         {
         }
 
         Ptr( Ptr& old, const mega::io::ObjectInfo& objectInfo )
-            : m_loader( old.m_loader )
+            : m_pLoader( old.m_pLoader )
             , m_objectInfo( objectInfo )
         {
         }
 
         Ptr( ObjectPartLoader& loader, T* pObjectPart )
-            : m_loader( loader )
+            : m_pLoader( &loader )
             , m_objectInfo( pObjectPart->getObjectInfo() )
             , m_pObjectPart( pObjectPart )
         {
         }
 
         Ptr( const Ptr& copy )
-            : m_loader( copy.m_loader )
+            : m_pLoader( copy.m_pLoader )
             , m_objectInfo( copy.m_objectInfo )
             , m_pObjectPart( copy.m_pObjectPart )
         {
@@ -48,7 +55,7 @@ namespace data
 
         Ptr& operator=( const Ptr& copy )
         {
-            VERIFY_RTE( &m_loader == &copy.m_loader );
+            VERIFY_RTE( m_pLoader == copy.m_pLoader );
             if ( this != &copy )
             {
                 m_objectInfo = copy.m_objectInfo;
@@ -60,7 +67,28 @@ namespace data
         inline T& operator*() const { return *get(); }
         inline T* operator->() const { return get(); }
 
+        inline bool operator<( const Ptr& cmp ) const
+        {
+            return m_objectInfo < cmp.m_objectInfo;
+        }
+
         const mega::io::ObjectInfo& getObjectInfo() const { return m_objectInfo; }
+
+        template < class Archive >
+        void save( Archive& ar, const unsigned int version ) const
+        {
+            ar& m_objectInfo;
+        }
+        template < class Archive >
+        void load( Archive& ar, const unsigned int version )
+        {
+            ar& m_objectInfo;
+            boost::archive::MegaIArchive& mar = dynamic_cast< boost::archive::MegaIArchive& >( ar );
+            m_objectInfo
+                = mega::io::ObjectInfo( m_objectInfo.getType(), mar.m_fileIDLoadedToRuntime[ m_objectInfo.getFileID() ], m_objectInfo.getIndex() );
+            m_pLoader = &mar.m_loader;
+        }
+        BOOST_SERIALIZATION_SPLIT_MEMBER()
 
     private:
         T* get() const
@@ -72,11 +100,12 @@ namespace data
             else
             {
                 // load the object
-                m_pObjectPart = dynamic_cast< T* >( m_loader.load( m_objectInfo ) );
+                VERIFY_RTE( m_pLoader );
+                m_pObjectPart = dynamic_cast< T* >( m_pLoader->load( m_objectInfo ) );
             }
             return m_pObjectPart;
         }
-        ObjectPartLoader&    m_loader;
+        ObjectPartLoader*    m_pLoader;
         mega::io::ObjectInfo m_objectInfo;
         mutable T*           m_pObjectPart = nullptr;
     };

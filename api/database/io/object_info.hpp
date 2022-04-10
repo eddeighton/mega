@@ -5,64 +5,68 @@
 
 namespace mega
 {
-namespace io
-{
-    class Loader;
-    class Storer;
-
-    class ObjectInfo
+    namespace io
     {
-    public:
-        using Type = std::int32_t;
-        enum : Type
+        class Loader;
+        class Storer;
+
+        class ObjectInfo
         {
-            NO_TYPE = ( Type )-1
+        public:
+            using Type = std::int32_t;
+            enum : Type
+            {
+                NO_TYPE = ( Type )-1
+            };
+
+            using Index = std::int32_t;
+            enum : Index
+            {
+                NO_INDEX = ( Index )-1
+            };
+
+            using FileID = std::int32_t;
+            enum : FileID
+            {
+                NO_FILE = ( FileID )-1
+            };
+
+            inline Type   getType() const { return m_type; }
+            inline FileID getFileID() const { return m_fileID; }
+            inline Index  getIndex() const { return m_index; }
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& m_type;
+                archive& m_fileID;
+                archive& m_index;
+            }
+
+            ObjectInfo() {}
+
+            ObjectInfo( Type type, FileID fileID, Index index )
+                : m_type( type )
+                , m_fileID( fileID )
+                , m_index( index )
+            {
+            }
+
+            bool operator<( const ObjectInfo& cmp ) const
+            {
+                return m_type != cmp.m_type       ? m_type < cmp.m_type
+                       : m_fileID != cmp.m_fileID ? m_fileID < cmp.m_fileID
+                       : m_index != cmp.m_index   ? m_index < cmp.m_index
+                                                  : false;
+            }
+
+        private:
+            Type   m_type = NO_TYPE;
+            FileID m_fileID = NO_FILE;
+            Index  m_index = NO_INDEX;
         };
 
-        using Index = std::int32_t;
-        enum : Index
-        {
-            NO_INDEX = ( Index )-1
-        };
-
-        using FileID = std::int32_t;
-        enum : FileID
-        {
-            NO_FILE = ( FileID )-1
-        };
-
-        inline Type   getType() const { return m_type; }
-        inline FileID getFileID() const { return m_fileID; }
-        inline Index  getIndex() const { return m_index; }
-
-        template < class Archive >
-        inline void serialize( Archive& archive, const unsigned int version )
-        {
-            archive& m_type;
-            archive& m_fileID;
-            archive& m_index;
-        }
-
-        ObjectInfo()
-        {
-        }
-
-        ObjectInfo( Type   type,
-                    FileID fileID,
-                    Index  index )
-            : m_type( type )
-            , m_fileID( fileID )
-            , m_index( index )
-        {
-        }
-
-    private:
-        Type   m_type = NO_TYPE;
-        FileID m_fileID = NO_FILE;
-        Index  m_index = NO_INDEX;
-    };
-
-} // namespace io
+    } // namespace io
 } // namespace mega
 
 #endif // OBJECT_INFO_30_MAR_2022
