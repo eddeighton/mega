@@ -74,6 +74,18 @@ namespace io
 
     } // namespace io
 
+    const FileInfo& Manifest::getCompilationFilePath( ObjectInfo::FileID fileID ) const
+    {
+        for( const FileInfo& fileInfo : m_compilationFileInfos )
+        {
+            if( fileInfo.getFileID() == fileID )
+            {
+                return fileInfo;
+            }
+        }
+        THROW_RTE( "Failed to locate file id: " << fileID );
+    }
+
     void Manifest::getCompilationFileInfos( FileInfo::Type fileType, FileInfoVector& fileInfos ) const
     {
         for( const FileInfo& fileInfo : m_compilationFileInfos )

@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <cstddef>
+#include <cstdint>
 
 namespace data
 {
@@ -32,11 +33,9 @@ namespace AST
 }
 namespace Body
 {
-    struct Context;
 }
 namespace Extra
 {
-    struct Dimension;
 }
 namespace Tree
 {
@@ -74,15 +73,11 @@ namespace Components
         enum 
         {
             Type = 0
-        } size_t;
-
+        };
         std::string name;
         boost::filesystem::path directory;
         std::vector< boost::filesystem::path > includeDirectories;
         std::vector< boost::filesystem::path > sourceFiles;
-
-        void* pView = nullptr;
-
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -94,31 +89,23 @@ namespace AST
         Opaque( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
         enum 
         {
-            Type = 0
-        } size_t;
-
+            Type = 1
+        };
         std::string str;
-
-        void* pView = nullptr;
-
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct Dimension : public mega::io::Object
     {
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type);
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test);
         enum 
         {
-            Type = 0
-        } size_t;
-
+            Type = 2
+        };
         bool isConst;
         std::string identifier;
         std::string type;
-
-        Ptr< Extra::Dimension > p_Extra_Dimension;
-        void* pView = nullptr;
-
+        std::string test;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -127,29 +114,21 @@ namespace AST
         Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
         enum 
         {
-            Type = 1
-        } size_t;
-
-
+            Type = 3
+        };
         Ptr< AST::Context > p_AST_Context;
-        void* pView = nullptr;
-
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct Context : public mega::io::Object
     {
-        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier);
+        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const std::string& body);
         enum 
         {
-            Type = 1
-        } size_t;
-
+            Type = 4
+        };
         std::string identifier;
-
-        Ptr< Body::Context > p_Body_Context;
-        void* pView = nullptr;
-
+        std::string body;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -158,13 +137,9 @@ namespace AST
         FoobarRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
         enum 
         {
-            Type = 2
-        } size_t;
-
-
+            Type = 5
+        };
         Ptr< AST::TestRoot > p_AST_TestRoot;
-        void* pView = nullptr;
-
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -173,52 +148,18 @@ namespace AST
         TestRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
         enum 
         {
-            Type = 2
-        } size_t;
-
-
+            Type = 6
+        };
         Ptr< AST::Root > p_AST_Root;
-        void* pView = nullptr;
-
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
 }
 namespace Body
 {
-    struct Context : public mega::io::Object
-    {
-        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& body);
-        enum 
-        {
-            Type = 1
-        } size_t;
-
-        std::string body;
-
-        void* pView = nullptr;
-
-        virtual void load( mega::io::Loader& loader );
-        virtual void store( mega::io::Storer& storer ) const;
-    };
 }
 namespace Extra
 {
-    struct Dimension : public mega::io::Object
-    {
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& test);
-        enum 
-        {
-            Type = 0
-        } size_t;
-
-        std::string test;
-
-        void* pView = nullptr;
-
-        virtual void load( mega::io::Loader& loader );
-        virtual void store( mega::io::Storer& storer ) const;
-    };
 }
 namespace Tree
 {
@@ -227,14 +168,10 @@ namespace Tree
         Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& more);
         enum 
         {
-            Type = 2
-        } size_t;
-
+            Type = 7
+        };
         bool more;
-
         Ptr< AST::Dimension > p_AST_Dimension;
-        void* pView = nullptr;
-
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -243,12 +180,8 @@ namespace Tree
         Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
         enum 
         {
-            Type = 2
-        } size_t;
-
-
-        void* pView = nullptr;
-
+            Type = 8
+        };
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -294,12 +227,6 @@ inline Ptr< AST::Dimension > convert( Ptr< AST::Dimension >& from )
 }
 
 template <>
-inline Ptr< Extra::Dimension > convert( Ptr< AST::Dimension >& from )
-{
-    return from->p_Extra_Dimension;
-}
-
-template <>
 inline Ptr< AST::Root > convert( Ptr< AST::Root >& from )
 {
     return from;
@@ -315,12 +242,6 @@ template <>
 inline Ptr< AST::Context > convert( Ptr< AST::Context >& from )
 {
     return from;
-}
-
-template <>
-inline Ptr< Body::Context > convert( Ptr< AST::Context >& from )
-{
-    return from->p_Body_Context;
 }
 
 template <>

@@ -242,6 +242,9 @@ namespace db
 
                         pObject->m_primaryObjectPart = pPrimaryObjectPart;
 
+                        mapping.objectPartMap.insert(
+                            std::make_pair( objectFilePair, pPrimaryObjectPart ) );
+
                         return pPrimaryObjectPart;
                     }
                     else if ( iFind == mapping.objectPartMap.end() )

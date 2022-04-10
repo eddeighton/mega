@@ -9,7 +9,11 @@
 
 #include "database/model/data.hxx"
 
+#include "common/hash.hpp"
+
 #include <variant>
+#include <memory>
+#include <unordered_map>
 
 namespace {{ stage.name }}
 {
@@ -25,8 +29,14 @@ namespace {{ stage.name }}
 {% endfor %}{#interface.namespaces#}
 {% endfor %}{# stage.interfaces #}
 
+class SuperTypeBase
+{
+public:
+    virtual ~SuperTypeBase(){}
+};
+
 {% for stype in stage.supertypes %}
-class {{ stype.name }} : 
+class {{ stype.name }} : public SuperTypeBase,
 {% for interface in stype.interfaces %}
     public virtual {{ interface.name }}{% if not loop.is_last %}, 
 {% endif %}
@@ -75,6 +85,28 @@ public:
 
 struct Database::Pimpl : public data::ObjectPartLoader
 {
+    using SuperTypePtr = std::unique_ptr< SuperTypeBase >;
+    struct ObjectInfoHash
+    {
+        std::size_t operator()( const mega::io::ObjectInfo& objectInfo ) const
+        {
+            static auto hashgenerator =  std::hash<std::int32_t>{};
+            return common::hash_combine( {
+                hashgenerator(objectInfo.getType()),
+                hashgenerator(objectInfo.getFileID()),
+                hashgenerator(objectInfo.getIndex()) } );
+        }
+    };
+    struct ObjectInfoEquality
+    {
+        std::size_t operator()( const mega::io::ObjectInfo& left, const mega::io::ObjectInfo& right ) const
+        {
+            return  left.getType()      == right.getType() &&
+                    left.getFileID()    == right.getFileID() &&
+                    left.getIndex()     == right.getIndex() ;
+        }
+    };
+    using InterfaceMap = std::unordered_map< mega::io::ObjectInfo, SuperTypePtr, ObjectInfoHash, ObjectInfoEquality >;
     using FileMap = std::map< mega::io::ObjectInfo::FileID, mega::io::File::Ptr >;
     using FileMapCst = std::map< mega::io::ObjectInfo::FileID, mega::io::File::PtrCst >;
 {% if stage.perobject %}
@@ -94,6 +126,85 @@ struct Database::Pimpl : public data::ObjectPartLoader
         create();
     }
 {% endif %}
+
+{% for many_accessor in stage.many_accessors %}
+    std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}() const
+    {
+        std::vector< {{ many_accessor.type }}* > result;
+        {
+            std::vector< mega::io::FileInfo > fileInfos;
+            m_manifest.getCompilationFileInfos( 
+                mega::io::FileInfo::FILE_{{ many_accessor.stage }}_{{ many_accessor.file }}{% if stage.perobject %}, m_objectFile{% endif %}, fileInfos );
+            for( const mega::io::FileInfo& fileInfo : fileInfos )
+            {
+                mega::io::File::PtrCst pFile;
+                {
+                    FileMap::const_iterator iFind = m_readwriteFiles.find( fileInfo.getFileID() );
+                    if( iFind == m_readwriteFiles.end() )
+                    {
+                        pFile = iFind->second;
+                    }
+                    else
+                    {
+                        FileMapCst::const_iterator iFind = m_readonlyFiles.find( fileInfo.getFileID() );
+                        if( iFind == m_readonlyFiles.end() )
+                        {
+                            pFile = iFind->second;
+                        }
+                        else
+                        {
+                            pFile = std::make_shared< mega::io::File >( fileInfo, const_cast< Database::Pimpl&>(*this) );
+                            m_readonlyFiles.insert( std::make_pair( fileInfo.getFileID(), pFile ) );
+                        }
+                    }
+                }
+                for( mega::io::Object* pObject : pFile->range() )
+                {
+                    if( data::{{ many_accessor.file }}::{{ many_accessor.object }}* pFound = 
+                        dynamic_cast< data::{{ many_accessor.file }}::{{ many_accessor.object }}* >( pObject ) )
+                    {
+                        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pFound->getObjectInfo() );
+                        if( iFind != m_interfaceHash.end() )
+                        {
+                            {{ many_accessor.type }}* pResult = dynamic_cast< {{ many_accessor.type }}* >( iFind->second.get() );
+                            VERIFY_RTE( pResult );
+                            result.push_back( pResult );
+                        }
+                        else
+                        {
+                            using SuperType = {{ many_accessor.supertype }};
+                            data::Ptr< data::{{ many_accessor.file }}::{{ many_accessor.object }} > pDataPtr( const_cast< Database::Pimpl&>(*this), pFound );
+                            SuperType* pSuper = new SuperType( pDataPtr );
+                            m_interfaceHash[ pFound->getObjectInfo() ] = SuperTypePtr( pSuper );
+                            result.push_back( pSuper );
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+{% endfor %}{# stage.accessors #}
+{% for one_accessor in stage.one_accessors %}
+    {{ one_accessor.type }}* one_{{ one_accessor.longname }}() const
+    {
+        std::vector< {{ one_accessor.type }}* > result = many_{{ one_accessor.longname }}();
+        VERIFY_RTE_MSG( result.empty(), "Singular accessor for {{ one_accessor.type }} found none" );
+        VERIFY_RTE_MSG( result.size() == 1U, "Singular accessor for {{ one_accessor.type }} found many" );
+        return result.back();
+    }
+{% endfor %}{# stage.accessors #}
+{% for one_opt_accessor in stage.one_opt_accessors %}
+    {{ one_opt_accessor.type }}* > oneOpt_{{ one_opt_accessor.longname }}() const
+    {
+        std::vector< {{ one_opt_accessor.type }}* > result = many_{{ one_opt_accessor.longname }}();
+        VERIFY_RTE_MSG( result.size() > 1U, "Singular accessor for {{ one_accessor.type }} found many" );
+        if( !result.empty() )
+            return result.back();
+        else
+            return nullptr;
+    }
+{% endfor %}{# stage.accessors #}
 
 {% for constructor in stage.constructors %}
     {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments )
@@ -154,6 +265,7 @@ struct Database::Pimpl : public data::ObjectPartLoader
         if( pSuper == nullptr )
         {
             pSuper = new SuperType( pPrimaryObjectPart );
+            m_interfaceHash[ pPrimaryObjectPart.getObjectInfo() ] = SuperTypePtr( pSuper );
         }
         else
         {
@@ -191,9 +303,22 @@ struct Database::Pimpl : public data::ObjectPartLoader
 
     virtual mega::io::Object* load( const mega::io::ObjectInfo& objectInfo )
     {
-        mega::io::Object* pObjectPart = nullptr;
+        FileMapCst::const_iterator iFind = m_readonlyFiles.find( objectInfo.getFileID() );
+        if( iFind != m_readonlyFiles.end() )
+        {
+            return iFind->second->getObject( objectInfo.getIndex() );
+        }
 
-        return pObjectPart;
+        // load the file
+        const mega::io::FileInfo fileInfo =
+            m_manifest.getCompilationFilePath( objectInfo.getFileID() );
+
+        mega::io::File::Ptr pFile = 
+            std::make_shared< mega::io::File >( fileInfo, *this );
+        
+        m_readonlyFiles.insert( std::make_pair( objectInfo.getFileID(), pFile ) );
+
+        return pFile->getObject( objectInfo.getIndex() );
     }
 
     const mega::io::Environment& m_environment;
@@ -202,8 +327,9 @@ struct Database::Pimpl : public data::ObjectPartLoader
 {% endif %}
     const mega::io::Manifest m_manifest;
 
-    FileMap m_readonlyFiles;
     FileMap m_readwriteFiles;
+    mutable FileMapCst m_readonlyFiles;
+    mutable InterfaceMap m_interfaceHash;
 
 {% for file in stage.readwrite_files %}
     std::shared_ptr< mega::io::File > m_pFile_{{ file.name }};
@@ -229,6 +355,24 @@ void Database::store()
     m_pimpl->store();
 }
 
+{% for many_accessor in stage.many_accessors %}
+std::vector< {{ many_accessor.type }}* > Database::many_{{ many_accessor.longname }}() const
+{
+    return m_pimpl->many_{{ many_accessor.longname }}();
+}
+{% endfor %}{# stage.accessors #}
+{% for one_accessor in stage.one_accessors %}
+{{ one_accessor.type }}* Database::one_{{ one_accessor.longname }}() const
+{
+    return m_pimpl->one_{{ one_accessor.longname }}();
+}
+{% endfor %}{# stage.accessors #}
+{% for one_opt_accessor in stage.one_opt_accessors %}
+{{ one_opt_accessor.type }}* > Database::oneOpt_{{ one_opt_accessor.longname }}() const
+{
+    return m_pimpl->oneOpt_{{ one_opt_accessor.longname }}();
+}
+{% endfor %}{# stage.accessors #}
 {% for constructor in stage.constructors %}
 {{ constructor.return_type }}* Database::{{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments )
 {

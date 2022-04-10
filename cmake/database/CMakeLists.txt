@@ -141,7 +141,7 @@ add_custom_target( PreprocessStages
 	SOURCES stages.hpp.i
 	COMMENT "Proprocessing stages.hpp")
 
-add_c_preprocessor_command( OUTPUT file_system.hpp.i SOURCE ${MEGA_API_DIR}/database/io/file_system.hpp TARGET database )
-add_custom_target( PreprocessFileSystem
-    SOURCES file_system.hpp.i
-    COMMENT "Proprocessing file_system.hpp")
+add_c_preprocessor_command( OUTPUT file_info.hpp.i SOURCE ${MEGA_API_DIR}/database/io/file_info.hpp TARGET database )
+add_custom_target( PreprocessFileInfo
+    SOURCES file_info.hpp.i
+    COMMENT "Proprocessing file_info.hpp")

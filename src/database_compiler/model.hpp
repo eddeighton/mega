@@ -358,6 +358,16 @@ namespace db
             std::vector< Interface::Ptr >      m_readOnlyInterfaces;
             std::vector< Interface::Ptr >      m_readWriteInterfaces;
             std::vector< SuperInterface::Ptr > m_superInterfaces;
+
+            Interface::Ptr getInterface( Object::Ptr pObject ) const
+            {
+                for( Interface::Ptr pInterface : m_interfaceTopological )
+                {
+                    if( pInterface->m_object.lock() == pObject )
+                        return pInterface;
+                }
+                THROW_RTE( "Failed to locate interface for object" );
+            }
         };
 
         class Schema : public CountedObject

@@ -77,6 +77,14 @@ namespace {{ stage.name }}
 {% if stage.perobject %}
         Database( const mega::io::Environment& environment, const boost::filesystem::path& objectFile );
 {% endif %}
+        template< typename T >
+        inline std::vector< T* > many() const;
+
+        template< typename T >
+        inline T* one() const;
+
+        template< typename T >
+        inline T* oneOpt() const;
 
         template< typename T >
         inline T* construct( const typename T::Args& arguments );
@@ -84,6 +92,15 @@ namespace {{ stage.name }}
         void store();
 
     private:
+{% for many_accessor in stage.many_accessors %}
+        std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}() const;
+{% endfor %}{# stage.accessors #}
+{% for one_accessor in stage.one_accessors %}
+        {{ one_accessor.type }}* one_{{ one_accessor.longname }}() const;
+{% endfor %}{# stage.accessors #}
+{% for one_opt_accessor in stage.one_opt_accessors %}
+        {{ one_opt_accessor.type }}* > oneOpt_{{ one_opt_accessor.longname }}() const;
+{% endfor %}{# stage.accessors #}
 {% for constructor in stage.constructors %}
         {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments );
 {% endfor %}{# stage.constructors #}
@@ -99,7 +116,27 @@ namespace {{ stage.name }}
         return {{ constructor.function_name }}( arguments );
     }
 {% endfor %}{# stage.constructors #}
-
+{% for many_accessor in stage.many_accessors %}
+    template<>
+    inline std::vector< {{ many_accessor.type }}* > Database::many< {{ many_accessor.type }} >() const
+    {
+        return many_{{ many_accessor.longname }}();
+    }
+{% endfor %}{# stage.accessors #}
+{% for one_accessor in stage.one_accessors %}
+    template<>
+    inline {{ one_accessor.type }}* Database::one< {{ one_accessor.type }} >() const
+    {
+        return one_{{ one_accessor.longname }}();
+    }
+{% endfor %}{# stage.accessors #}
+{% for one_opt_accessor in stage.one_opt_accessors %}
+    template<>
+    inline {{ one_opt_accessor.type }}* > Database::oneOpt< {{ one_opt_accessor.type }} >() const
+    {
+        return oneOpt_{{ one_opt_accessor.longname }}();
+    }
+{% endfor %}{# stage.accessors #}
 }
 
 #endif //{{ guard }}

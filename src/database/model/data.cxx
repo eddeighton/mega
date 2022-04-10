@@ -52,12 +52,12 @@ namespace AST
     }
         
     // struct Dimension : public mega::io::Object
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type)
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test)
         :   mega::io::Object( objectInfo )
-          , p_Extra_Dimension( loader )
           , isConst( isConst )
           , identifier( identifier )
           , type( type )
+          , test( test )
     {
     } 
 
@@ -66,12 +66,14 @@ namespace AST
         loader.load( isConst );
         loader.load( identifier );
         loader.load( type );
+        loader.load( test );
     }
     void Dimension::store( mega::io::Storer& storer ) const
     {
         storer.store( isConst );
         storer.store( identifier );
         storer.store( type );
+        storer.store( test );
     }
         
     // struct Root : public mega::io::Object
@@ -89,20 +91,22 @@ namespace AST
     }
         
     // struct Context : public mega::io::Object
-    Context::Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier)
+    Context::Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const std::string& body)
         :   mega::io::Object( objectInfo )
-          , p_Body_Context( loader )
           , identifier( identifier )
+          , body( body )
     {
     } 
 
     void Context::load( mega::io::Loader& loader )
     {
         loader.load( identifier );
+        loader.load( body );
     }
     void Context::store( mega::io::Storer& storer ) const
     {
         storer.store( identifier );
+        storer.store( body );
     }
         
     // struct FoobarRoot : public mega::io::Object
@@ -136,41 +140,9 @@ namespace AST
 }
 namespace Body
 {
-    // struct Context : public mega::io::Object
-    Context::Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& body)
-        :   mega::io::Object( objectInfo )
-          , body( body )
-    {
-    } 
-
-    void Context::load( mega::io::Loader& loader )
-    {
-        loader.load( body );
-    }
-    void Context::store( mega::io::Storer& storer ) const
-    {
-        storer.store( body );
-    }
-        
 }
 namespace Extra
 {
-    // struct Dimension : public mega::io::Object
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& test)
-        :   mega::io::Object( objectInfo )
-          , test( test )
-    {
-    } 
-
-    void Dimension::load( mega::io::Loader& loader )
-    {
-        loader.load( test );
-    }
-    void Dimension::store( mega::io::Storer& storer ) const
-    {
-        storer.store( test );
-    }
-        
 }
 namespace Tree
 {

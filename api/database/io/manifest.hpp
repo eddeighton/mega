@@ -35,6 +35,7 @@ namespace io
 
         const FileVector& getSourceFiles() const { return m_sourceFiles; }
         const FileInfoVector& getCompilationFileInfos() const { return m_compilationFileInfos; }
+        const FileInfo& getCompilationFilePath( ObjectInfo::FileID fileID ) const;
 
         void getCompilationFileInfos( FileInfo::Type fileType, FileInfoVector& fileInfos ) const;
         void getCompilationFileInfos( FileInfo::Type fileType, const boost::filesystem::path& objectFile, FileInfoVector& fileInfos ) const;

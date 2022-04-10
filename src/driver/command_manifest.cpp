@@ -17,6 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "database/model/ComponentListing.hxx"
+
 #include "command_utils.hpp"
 
 #include "database/io/manifest.hpp"
@@ -114,7 +116,7 @@ namespace driver
                 using namespace mega;
 
                 const io::Environment::Path projectManifestPath = m_environment.project_manifest();
-/*
+
                 taskProgress.start( "Task_GenerateComponents",
                                     m_environment.rootBuildDir(),
                                     m_environment.FILE_ComponentListing_Components() );
@@ -137,15 +139,19 @@ namespace driver
                         }
                         InputArchiveType ia( inputFileStream );
                         ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
-                    }
+                    };
 
-                    Components::Component* pComponent
-                        = database.construct< Components::Component >();
+                    Components::Component* pComponent = database.construct< Components::Component >(
+                        Components::Component::Args( componentInfo.getName(),
+                                                     componentInfo.getDirectory(),
+                                                     componentInfo.getIncludeDirectories(),
+                                                     componentInfo.getSourceFiles() ) );
 
+                    VERIFY_RTE( pComponent->get_name() == componentInfo.getName() );
                 }
 
                 database.store();
-*/
+
                 taskProgress.succeeded();
             }
         };

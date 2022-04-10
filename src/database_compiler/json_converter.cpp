@@ -208,7 +208,8 @@ namespace db
                                 interface[ "args_ctors" ].push_back( ctorBasePointer );
                             }
                             std::ostringstream osType;
-                            osType << "std::optional< std::variant< " << osBasePointer.str() << " > >";
+                            osType << "std::optional< std::variant< " << osBasePointer.str()
+                                   << " > >";
                             nlohmann::json value = nlohmann::json::object(
                                 { { "name", "base" }, { "type", osType.str() } } );
                             interface[ "args_values" ].push_back( value );
@@ -256,14 +257,16 @@ namespace db
                         data[ "guard" ] = os.str();
                     }
 
-                    nlohmann::json stage
-                        = nlohmann::json::object( { { "name", pStage->m_strName },
-                                                    { "perobject", pStage->m_bPerObject },
-                                                    { "readwrite_files", nlohmann::json::array() },
-                                                    { "accessors", nlohmann::json::array() },
-                                                    { "constructors", nlohmann::json::array() },
-                                                    { "refinements", nlohmann::json::array() },
-                                                    { "interfaces", nlohmann::json::array() } } );
+                    nlohmann::json stage = nlohmann::json::object(
+                        { { "name", pStage->m_strName },
+                          { "perobject", pStage->m_bPerObject },
+                          { "readwrite_files", nlohmann::json::array() },
+                          { "many_accessors", nlohmann::json::array() },
+                          { "one_accessors", nlohmann::json::array() },
+                          { "one_opt_accessors", nlohmann::json::array() },
+                          { "constructors", nlohmann::json::array() },
+                          { "refinements", nlohmann::json::array() },
+                          { "interfaces", nlohmann::json::array() } } );
 
                     for ( model::File::Ptr pFile : pStage->m_files )
                     {
@@ -276,10 +279,75 @@ namespace db
                     {
                         stage[ "interfaces" ].push_back( writeInterface( pInterface ) );
                     }
-                    /*for( model::Accessor::Ptr pAccessor : pStage->m_accessors )
+                    std::set< model::Interface::Ptr > manyAccessors;
+                    for ( model::Accessor::Ptr pAccessor : pStage->m_accessors )
                     {
+                        if ( model::RefType::Ptr pRef
+                             = std::dynamic_pointer_cast< model::RefType >( pAccessor->m_type ) )
+                        {
+                            model::Object::Ptr    pObject = pRef->m_object;
+                            model::Interface::Ptr pInterface = pStage->getInterface( pObject );
+                            model::PrimaryObjectPart::Ptr pPrimaryPart
+                                = pInterface->getPrimaryObjectPart();
+                            nlohmann::json acessor = nlohmann::json::object(
+                                { { "type", pInterface->delimitTypeName( "::" ) },
+                                  { "longname", pInterface->delimitTypeName( "_" ) },
+                                  { "object", pPrimaryPart->m_object.lock()->m_strName },
+                                  { "file", pPrimaryPart->m_file.lock()->m_strName },
+                                  { "stage", pPrimaryPart->m_file.lock()->m_stage.lock()->m_strName },
+                                  { "supertype",
+                                    pInterface->m_superInterface.lock()->getTypeName() } } );
 
-                    }*/
+                            stage[ "one_accessors" ].push_back( acessor );
+                            if ( manyAccessors.count( pInterface ) == 0 )
+                            {
+                                manyAccessors.insert( pInterface );
+                                stage[ "many_accessors" ].push_back( acessor );
+                            }
+                        }
+                        else if ( model::ArrayType::Ptr pArray
+                                  = std::dynamic_pointer_cast< model::ArrayType >(
+                                      pAccessor->m_type ) )
+                        {
+                            if ( model::RefType::Ptr pRef
+                                 = std::dynamic_pointer_cast< model::RefType >(
+                                     pArray->m_underlyingType ) )
+                            {
+                                model::Object::Ptr    pObject = pRef->m_object;
+                                model::Interface::Ptr pInterface = pStage->getInterface( pObject );
+                                model::PrimaryObjectPart::Ptr pPrimaryPart
+                                    = pInterface->getPrimaryObjectPart();
+
+                                if ( manyAccessors.count( pInterface ) == 0 )
+                                {
+                                    manyAccessors.insert( pInterface );
+                                    nlohmann::json acessor = nlohmann::json::object(
+                                        { { "type", pInterface->delimitTypeName( "::" ) },
+                                          { "longname", pInterface->delimitTypeName( "_" ) },
+                                          { "object", pPrimaryPart->m_object.lock()->m_strName },
+                                          { "file", pPrimaryPart->m_file.lock()->m_strName },
+                                          { "stage", pPrimaryPart->m_file.lock()->m_stage.lock()->m_strName },
+                                          { "supertype", pInterface->m_superInterface.lock()
+                                                             ->getTypeName() } } );
+
+                                    stage[ "many_accessors" ].push_back( acessor );
+                                }
+                            }
+                            else
+                            {
+                                THROW_RTE( "Unsupported Accessor type: " );
+                            }
+                        }
+                        /*else if( model::OptionalType::Ptr pArray =
+                            std::dynamic_pointer_cast< model::ArrayType >( pAccessor->m_type ) )
+                        {
+
+                        }*/
+                        else
+                        {
+                            THROW_RTE( "Unsupported Accessor type: " );
+                        }
+                    }
                     for ( model::Constructor::Ptr pConstructor : pStage->m_constructors )
                     {
                         std::ostringstream os;

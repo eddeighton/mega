@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <cstddef>
+#include <cstdint>
 
 namespace data
 {
@@ -37,17 +38,13 @@ namespace {{ file.name }}
         enum 
         {
             Type = {{ part.typeID }}
-        } size_t;
-
+        };
 {% for property in part.properties %}
         {{ property.type }} {{ property.name }};
 {% endfor %}{#part.property#}
-
 {% for pointer in part.pointers %}
         Ptr< {{ pointer.typename }} > {{ pointer.longname }};
 {% endfor %}{#part.pointers#}
-        void* pView = nullptr;
-
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };

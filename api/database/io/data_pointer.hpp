@@ -53,6 +53,8 @@ namespace data
         inline T& operator*() const { return *get(); }
         inline T* operator->() const { return get(); }
 
+        const mega::io::ObjectInfo& getObjectInfo() const { return m_objectInfo; }
+
     private:
         T* get() const
         {
