@@ -13,18 +13,44 @@
 
 namespace {{ stage.name }}
 {
+{% for interface in stage.interfaces %}
+{% for namespace in interface.namespaces %}
+    namespace {{ namespace }}
+    { 
+{% endfor %}{#interface.namespaces#}
+        {{ interface.name }}::{{ interface.name }}(){}
+        {{ interface.name }}::~{{ interface.name }}(){}
+{% for namespace in interface.namespaces %}
+    } //{{ namespace }}
+{% endfor %}{#interface.namespaces#}
+{% endfor %}{# stage.interfaces #}
 
 {% for stype in stage.supertypes %}
-class {{ stype.name }} : public {% for interface in stype.interfaces %}virtual {{ interface.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}
+class {{ stype.name }} : 
+{% for interface in stype.interfaces %}
+    public virtual {{ interface.name }}{% if not loop.is_last %}, 
+{% endif %}
+{% endfor %}
 
 {
-    using DataVariant = std::variant< {% for interface in stype.interfaces %} data::Ptr< data::{{ interface.part }} > {% if not loop.is_last %}, {% endif %}{% endfor %} >;
-    DataVariant m_data;
 public:
+    using DataVariant = std::variant
+    < 
+{% for interface in stype.interfaces %} 
+        data::Ptr< data::{{ interface.part }} > {% if not loop.is_last %}, 
+{% endif %}
+{% endfor %} 
+
+    >;
+    DataVariant m_data;
 {% for interface in stype.interfaces %}
     {{ stype.name }}( data::Ptr< data::{{ interface.part }} >& data )
         :   m_data( data )
     {
+    }
+    void reconstruct( data::Ptr< data::{{ interface.part }} >& data )
+    {
+        m_data = data;
     }
 {% endfor %}{# stype.interfaces #}
     virtual ~{{ stype.name }}()
@@ -47,7 +73,7 @@ public:
 
 {% endfor %}{# stage.supertypes #}
 
-struct Database::Pimpl
+struct Database::Pimpl : public data::ObjectPartLoader
 {
     using FileMap = std::map< mega::io::ObjectInfo::FileID, mega::io::File::Ptr >;
     using FileMapCst = std::map< mega::io::ObjectInfo::FileID, mega::io::File::PtrCst >;
@@ -57,23 +83,100 @@ struct Database::Pimpl
             m_objectFile( objectFile ),
             m_manifest( m_environment.project_manifest() )
     {
+        create();
     }
 {% endif %}
-
 {% if not stage.perobject %}
     Pimpl( const mega::io::Environment& environment )
         :   m_environment( environment ),
             m_manifest( m_environment.project_manifest() )
     {
+        create();
     }
 {% endif %}
 
 {% for constructor in stage.constructors %}
-    {{ constructor.return_type }}* {{ constructor.function_name }}()
+    {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments )
     {
-        return nullptr;
+        using SuperType = {{ constructor.super_type_name }};
+        SuperType* pSuper = nullptr;
+        Database::Pimpl& database = *this;
+
+{% for base in constructor.bases %}
+{% if not loop.is_first %}
+        struct Visitor
+        {
+            Database::Pimpl& database;
+            SuperType*& pSuper;
+            Visitor( Database::Pimpl& database, SuperType*& pSuper )
+                :   database( database ),
+                    pSuper( pSuper )
+            {}
+
+            data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( {{ base.typename }}* pExisting ) const
+            {
+                pSuper = dynamic_cast< SuperType* >( pExisting );
+                VERIFY_RTE( pSuper );
+                return data::convert< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >( pSuper->m_data );
+            }
+{% if base.owns_primary_part %}
+            data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( const {{ base.typename }}::Args& arguments ) const
+            {
+{% endif %}{# base.owns_primary_part #}
+{% endif %}
+{% if base.owns_primary_part %}
+        // primary part: {{ base.typename }}
+        data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
+            database.m_pFile_{{ base.primary_part.file }}->construct< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >
+                ({% for arg in base.primary_part.args %}arguments.{{ arg.name }}.value(){% if not loop.is_last %}, {% endif %}{% endfor %});
+
+{% for secondary_part in base.parts %}
+        // secondary part: {{ secondary_part.file }} :: {{ secondary_part.object }}
+        pPrimaryObjectPart->p_{{ secondary_part.file }}_{{ secondary_part.object }} =
+            database.m_pFile_{{ secondary_part.file }}->construct< data::{{ secondary_part.file }}::{{ secondary_part.object }} >
+                ({% for arg in secondary_part.args %}arguments.{{ arg.name }}.value(){% if not loop.is_last %}, {% endif %}{% endfor %});
+
+{% endfor %}{# base.parts #}
+{% endif %}{# base.owns_primary_part #}
+{% endfor %}{# constructor.bases #}
+{% for base in constructor.bases_reverse%}
+{% if not loop.is_last %}
+{% if base.owns_primary_part %}
+                return pPrimaryObjectPart;
+            }
+{% endif %}{# base.owns_primary_part #}
+        } visitor( database, pSuper );
+
+        pPrimaryObjectPart->p_{{ base.primary_part.file }}_{{ base.primary_part.object }} =
+            std::visit( visitor, arguments.base.value() );
+{% endif %}
+{% endfor %}{# constructor.bases #}
+        if( pSuper == nullptr )
+        {
+            pSuper = new SuperType( pPrimaryObjectPart );
+        }
+        else
+        {
+            pSuper->reconstruct( pPrimaryObjectPart );
+        }
+        return dynamic_cast< {{ constructor.return_type }}* >( pSuper );
     }
 {% endfor %}{# stage.constructors#}
+
+    void create()
+    {
+        // create read-write files
+{% for file in stage.readwrite_files %}
+        {
+            std::vector< mega::io::FileInfo > fileInfos;
+            m_manifest.getCompilationFileInfos( mega::io::FileInfo::FILE_{{ stage.name }}_{{ file.name }}{% if stage.perobject %}, m_objectFile{% endif %}, fileInfos );
+            VERIFY_RTE( fileInfos.size() == 1U );
+            const mega::io::FileInfo& fileInfo = fileInfos.front();
+            m_pFile_{{ file.name }} = std::make_shared< mega::io::File >( fileInfo, *this ) ;
+            m_readwriteFiles.insert( std::make_pair( fileInfo.getFileID(), m_pFile_{{ file.name }} ) ); 
+        }
+{% endfor %}{# stage.readwrite_files #}
+    }
 
     void store()
     {
@@ -86,6 +189,13 @@ struct Database::Pimpl
         }
     }
 
+    virtual mega::io::Object* load( const mega::io::ObjectInfo& objectInfo )
+    {
+        mega::io::Object* pObjectPart = nullptr;
+
+        return pObjectPart;
+    }
+
     const mega::io::Environment& m_environment;
 {% if stage.perobject %}
     boost::filesystem::path m_objectFile;
@@ -94,6 +204,10 @@ struct Database::Pimpl
 
     FileMap m_readonlyFiles;
     FileMap m_readwriteFiles;
+
+{% for file in stage.readwrite_files %}
+    std::shared_ptr< mega::io::File > m_pFile_{{ file.name }};
+{% endfor %}
 };
 
 
@@ -116,9 +230,9 @@ void Database::store()
 }
 
 {% for constructor in stage.constructors %}
-{{ constructor.return_type }}* Database::{{ constructor.function_name }}()
+{{ constructor.return_type }}* Database::{{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments )
 {
-    return m_pimpl->{{ constructor.function_name }}();
+    return m_pimpl->{{ constructor.function_name }}( arguments );
 }
 {% endfor %}{# stage.constructors #}
 

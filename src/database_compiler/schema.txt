@@ -11,6 +11,7 @@ stage perobject InputParse
 {
     file AST
     file Body
+    file Extra
 
     accessor perprogram array< ref< Components::Component > >
 }
@@ -81,7 +82,10 @@ namespace Parser
         value< bool > isConst
         value< std::string > identifier
         value< std::string > type
-        value< std::string > foobar -> Interface::Tree
+        value< std::string > test -> InputParse::Extra
+        //ref< Opaque > cppTypeName
+        //array< ref< Dimension > > children 
+        //value< std::string > foobar -> Interface::Tree
     }
 
     object Root : Context -> InputParse::AST
@@ -105,6 +109,11 @@ namespace Parser
 
 namespace Interface
 {
+    object Dimension : Parser::Dimension -> Interface::Tree
+    {
+        value< bool > more
+    }
+
     object Root -> Interface::Tree
     {
         //ref< Parser::Root > root

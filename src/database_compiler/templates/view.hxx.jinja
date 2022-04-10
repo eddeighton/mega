@@ -9,6 +9,7 @@
 #include <vector>
 #include <optional>
 #include <memory>
+#include <variant>
 
 namespace {{ stage.name }}
 {
@@ -25,6 +26,47 @@ namespace {{ stage.name }}
 {% endfor %}{# stage.interfaces #}
     
     // Definitions
+
+{% for interface in stage.interfaces %}
+{% for namespace in interface.namespaces %}
+    namespace {{ namespace }}
+    { 
+{% endfor %}{#interface.namespaces#}
+        class {{ interface.name }}{% if interface.has_base %} : public virtual {{ interface.base }}{% endif %}
+
+        {
+        protected:
+            {{ interface.name }}();
+            {{ interface.name }}( const {{ interface.name }}& ) = delete;
+            {{ interface.name }}& operator=( const {{ interface.name }}& ) = delete;
+            virtual ~{{ interface.name }}() = 0;
+        public:
+{% if interface.readwrite %}
+            struct Args
+            {
+{% for ctor in interface.args_ctors %}
+                Args({% for param in ctor.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %})
+{% for param in ctor.params %}
+                    {% if loop.is_first %}:{% else %},{% endif %} {{ param.value }}( {{ param.name }} )
+{% endfor %}{# ctor.params #}
+                {
+                }
+{% endfor %}{# interface.ctors #}
+{% for value in interface.args_values %}
+                {{ value.type }} {{ value.name }};
+{% endfor %}{# interface.values #}
+            };
+{% endif %}
+
+{% for function in interface.functions %}
+            virtual {{ function.returntype }} {{ function.name }}({{ function.params }}) = 0;
+{% endfor %}{#interface.functions#}
+        };
+{% for namespace in interface.namespaces %}
+    } //{{ namespace }}
+{% endfor %}{#interface.namespaces#}
+{% endfor %}{# stage.interfaces #}
+
     class Database
     {
     public:
@@ -37,13 +79,13 @@ namespace {{ stage.name }}
 {% endif %}
 
         template< typename T >
-        inline T* construct();
+        inline T* construct( const typename T::Args& arguments );
 
         void store();
 
     private:
 {% for constructor in stage.constructors %}
-        {{ constructor.return_type }}* {{ constructor.function_name }}();
+        {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments );
 {% endfor %}{# stage.constructors #}
 
     private:
@@ -52,32 +94,11 @@ namespace {{ stage.name }}
 
 {% for constructor in stage.constructors %}
     template<>
-    inline {{ constructor.return_type }}* Database::construct< {{ constructor.return_type }} >()
+    inline {{ constructor.return_type }}* Database::construct< {{ constructor.return_type }} >( const {{ constructor.return_type }}::Args& arguments )
     {
-        return {{ constructor.function_name }}();
+        return {{ constructor.function_name }}( arguments );
     }
 {% endfor %}{# stage.constructors #}
-
-{% for interface in stage.interfaces %}
-{% for namespace in interface.namespaces %}
-    namespace {{ namespace }}
-    { 
-{% endfor %}{#interface.namespaces#}
-        class {{ interface.name }}{% if interface.has_base %} : public virtual {{ interface.base }}{% endif %}
-
-        {
-        public:
-            {{ interface.name }}();
-            virtual ~{{ interface.name }}() = 0;
-
-{% for function in interface.functions %}
-            virtual {{ function.returntype }} {{ function.name }}({{ function.params }}) = 0;
-{% endfor %}{#interface.functions#}
-        };
-{% for namespace in interface.namespaces %}
-    } //{{ namespace }}
-{% endfor %}{#interface.namespaces#}
-{% endfor %}{# stage.interfaces #}
 
 }
 

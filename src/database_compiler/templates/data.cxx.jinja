@@ -10,12 +10,15 @@ namespace {{ file.name }}
 {
 {% for part in file.parts %}
     // struct {{ part.name }} : public mega::io::Object
-    {{ part.name }}::{{ part.name }}( const mega::io::ObjectInfo& objectInfo )
+    {{ part.name }}::{{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.properties %}, {{ property.argtype }} {{ property.name }}{% endfor %} )
         :   mega::io::Object( objectInfo )
-    {
 {% for pointer in part.pointers %}
-        {{ pointer.longname }} = nullptr;
+          , {{ pointer.longname }}( loader )
 {% endfor %}{#part.pointers#}
+{% for property in part.properties %}
+          , {{ property.name }}( {{ property.name }} )
+{% endfor %}{#part.property#}
+    {
     } 
 
     void {{ part.name }}::load( mega::io::Loader& loader )

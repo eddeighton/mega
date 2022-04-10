@@ -53,8 +53,8 @@ namespace db
             {
             }
 
-            virtual std::string getViewType() const = 0;
-            virtual std::string getDataType() const = 0;
+            virtual std::string getViewType( bool bAsArg ) const = 0;
+            virtual std::string getDataType( bool bAsArg ) const = 0;
             virtual bool        isCtorParam() const = 0;
             virtual bool        isGet() const = 0;
             virtual bool        isSet() const = 0;
@@ -224,9 +224,11 @@ namespace db
             std::weak_ptr< SuperInterface > m_superInterface;
             std::weak_ptr< Object >         m_object;
             std::vector< Function::Ptr >    m_functions;
+            std::vector< Property::Ptr >    m_args;
             Interface::Ptr                  m_base;
             std::vector< ObjectPart::Ptr >  m_readOnlyObjectParts;
             std::vector< ObjectPart::Ptr >  m_readWriteObjectParts;
+            bool                            m_isReadWrite;
 
             std::string delimitTypeName( const std::string& str ) const
             {
@@ -254,6 +256,25 @@ namespace db
 
                 return os.str();
             }
+
+            inline PrimaryObjectPart::Ptr getPrimaryObjectPart() const
+            {
+                PrimaryObjectPart::Ptr pPart = m_object.lock()->m_primaryObjectPart;
+                VERIFY_RTE( pPart );
+                return pPart;
+            }
+            inline bool ownsPrimaryObjectPart() const
+            {
+                ObjectPart::Ptr pPrimaryObjectPart = getPrimaryObjectPart();
+                for ( model::ObjectPart::Ptr pPart : m_readWriteObjectParts )
+                {
+                    if ( pPart == pPrimaryObjectPart )
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
         };
 
         class SuperInterface : public CountedObject
@@ -267,6 +288,17 @@ namespace db
 
             std::weak_ptr< Stage >        m_stage;
             std::vector< Interface::Ptr > m_interfaces;
+
+            std::string getTypeName() const
+            {
+                std::ostringstream os;
+                os << "super";
+                for ( model::Interface::Ptr pInterface : m_interfaces )
+                {
+                    os << "_" << pInterface->delimitTypeName( "_" );
+                }
+                return os.str();
+            }
         };
 
         class StageFunction : public CountedObject
@@ -302,23 +334,8 @@ namespace db
             {
             }
             using Ptr = std::shared_ptr< Constructor >;
-            std::weak_ptr< Stage >                   m_stage;
-            Interface::Ptr                           m_interface;
-            std::vector< std::weak_ptr< Property > > m_parameters;
-        };
-
-        class Refinement : public StageFunction
-        {
-        public:
-            Refinement( std::size_t& szCounter )
-                : StageFunction( szCounter )
-            {
-            }
-            using Ptr = std::shared_ptr< Refinement >;
-            std::weak_ptr< Stage >                   m_stage;
-            Interface::Ptr                           m_fromInterface;
-            Interface::Ptr                           m_toInterface;
-            std::vector< std::weak_ptr< Property > > m_parameters;
+            std::weak_ptr< Stage > m_stage;
+            Interface::Ptr         m_interface;
         };
 
         class Stage : public CountedObject
@@ -335,7 +352,7 @@ namespace db
 
             std::vector< Accessor::Ptr >    m_accessors;
             std::vector< Constructor::Ptr > m_constructors;
-            std::vector< Refinement::Ptr >  m_refinements;
+            // std::vector< Refinement::Ptr >  m_refinements;
 
             std::vector< Interface::Ptr >      m_interfaceTopological;
             std::vector< Interface::Ptr >      m_readOnlyInterfaces;
@@ -375,6 +392,13 @@ namespace db
             ConversionMap m_conversions;
         };
 
+        inline std::string toConstRef( const std::string& strType )
+        {
+            std::ostringstream os;
+            os << "const " << strType << "&";
+            return os.str();
+        }
+
         ///////////////////////////////////////////////////
         ///////////////////////////////////////////////////
         // types
@@ -388,11 +412,17 @@ namespace db
             using Ptr = std::shared_ptr< ValueType >;
             std::string m_cppType;
 
-            virtual std::string getViewType() const { return m_cppType; }
-            virtual std::string getDataType() const { return m_cppType; }
-            virtual bool        isCtorParam() const { return true; }
-            virtual bool        isGet() const { return true; }
-            virtual bool        isSet() const { return true; }
+            virtual std::string getViewType( bool bAsArg ) const
+            {
+                return bAsArg ? toConstRef( m_cppType ) : m_cppType;
+            }
+            virtual std::string getDataType( bool bAsArg ) const
+            {
+                return bAsArg ? toConstRef( m_cppType ) : m_cppType;
+            }
+            virtual bool isCtorParam() const { return true; }
+            virtual bool isGet() const { return true; }
+            virtual bool isSet() const { return true; }
         };
 
         class ArrayType : public Type
@@ -405,21 +435,21 @@ namespace db
             using Ptr = std::shared_ptr< ArrayType >;
             Type::Ptr m_underlyingType;
 
-            virtual std::string getViewType() const
+            virtual std::string getViewType( bool bAsArg ) const
             {
                 VERIFY_RTE( m_underlyingType );
                 std::ostringstream os;
-                os << "std::vector< " << m_underlyingType->getViewType() << " >";
-                return os.str();
+                os << "std::vector< " << m_underlyingType->getViewType( false ) << " >";
+                return bAsArg ? toConstRef( os.str() ) : os.str();
             }
-            virtual std::string getDataType() const
+            virtual std::string getDataType( bool bAsArg ) const
             {
                 VERIFY_RTE( m_underlyingType );
                 std::ostringstream os;
-                os << "std::vector< " << m_underlyingType->getDataType() << " >";
-                return os.str();
+                os << "std::vector< " << m_underlyingType->getDataType( false ) << " >";
+                return bAsArg ? toConstRef( os.str() ) : os.str();
             }
-            virtual bool isCtorParam() const { return false; }
+            virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
             virtual bool isSet() const { return true; }
         };
@@ -434,7 +464,7 @@ namespace db
             using Ptr = std::shared_ptr< RefType >;
             Object::Ptr m_object;
 
-            virtual std::string getViewType() const
+            virtual std::string getViewType( bool bAsArg ) const
             {
                 VERIFY_RTE( m_object );
                 std::ostringstream os;
@@ -442,7 +472,7 @@ namespace db
                    << "*";
                 return os.str();
             }
-            virtual std::string getDataType() const
+            virtual std::string getDataType( bool bAsArg ) const
             {
                 VERIFY_RTE( m_object );
                 std::ostringstream os;
@@ -455,13 +485,6 @@ namespace db
             virtual bool isSet() const { return true; }
         };
         /*
-            class ReferenceType : public Type
-            {
-            public:
-                using Ptr = std::shared_ptr< ReferenceType >;
-                Object::Ptr m_objectType;
-            };
-
             class OptionalType : public Type
             {
             public:

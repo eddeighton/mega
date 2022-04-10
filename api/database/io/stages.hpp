@@ -4,6 +4,7 @@
 
 #include "file_info.hpp"
 #include "file.hpp"
+#include "object_loader.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -32,8 +33,8 @@ namespace io
     {
     public:
         using CreatingStage = TCreatingStage;
-        StagedFile( const FileInfo& fileInfo )
-            : File( fileInfo )
+        StagedFile( const FileInfo& fileInfo, data::ObjectPartLoader& objectLoader )
+            : File( fileInfo, objectLoader )
         {
         }
     };
@@ -46,7 +47,7 @@ namespace io
     class filetype : public StagedFile< stage::stagetype >              \
     {                                                                   \
     public:                                                             \
-        filetype( const FileInfo& fileInfo ) : StagedFile( fileInfo )   \
+        filetype( const FileInfo& fileInfo, data::ObjectPartLoader& objectLoader ) : StagedFile( fileInfo, objectLoader )   \
         {                                                               \
         }                                                               \
         static const typename FileInfo::Type Type = FileInfo::filetype; \

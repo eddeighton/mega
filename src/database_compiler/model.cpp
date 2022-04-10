@@ -620,10 +620,12 @@ namespace db
                 using InterfaceMap = std::map< Object::Ptr, Interface::Ptr >;
                 InterfaceMap interfaceMap;
 
+                // add the read-write interfaces
                 for ( ObjectPartMap::iterator i = objectParts.begin(), iEnd = objectParts.end();
                       i != iEnd; ++i )
                 {
                     Interface::Ptr pInterface = std::make_shared< Interface >( mapping.counter );
+                    pInterface->m_isReadWrite = true;
                     std::copy( i->second.begin(), i->second.end(),
                                std::back_inserter( pInterface->m_readWriteObjectParts ) );
                     pStage->m_readWriteInterfaces.push_back( pInterface );
@@ -631,6 +633,7 @@ namespace db
                     interfaceMap.insert( std::make_pair( i->first, pInterface ) );
                 }
 
+                // add the read only interfaces
                 if ( pPreviousStage )
                 {
                     std::vector< Interface::Ptr > previousInterfaces;
@@ -648,6 +651,7 @@ namespace db
                         {
                             Interface::Ptr pInterface
                                 = std::make_shared< Interface >( mapping.counter );
+                            pInterface->m_isReadWrite = false;
                             interfaceMap.insert( std::make_pair( pObject, pInterface ) );
                             pInterface->m_readOnlyObjectParts
                                 = pPreviousInterface->m_readOnlyObjectParts;
@@ -722,6 +726,10 @@ namespace db
                                 pSetter->m_property = pProperty;
                                 pInterface->m_functions.push_back( pSetter );
                             }
+                            if( pProperty->isCtorParam() )
+                            {
+                                pInterface->m_args.push_back( pProperty );
+                            }
                         }
                     }
                     for ( ObjectPart::Ptr pObjectPart : pInterface->m_readOnlyObjectParts )
@@ -742,104 +750,11 @@ namespace db
                 // create stage functions
                 for ( Interface::Ptr pInterface : pStage->m_readWriteInterfaces )
                 {
-                    std::vector< Interface::Ptr > interfacesCreatedThisStage{ pInterface };
-                    std::vector< Interface::Ptr > interfacesCreatedPreviously;
-                    Interface::Ptr                pBase = pInterface->m_base;
-                    while ( pBase )
-                    {
-                        if ( !pBase->m_readWriteObjectParts.empty() )
-                        {
-                            interfacesCreatedThisStage.push_back( pBase );
-                        }
-                        else
-                        {
-                            interfacesCreatedPreviously.push_back( pBase );
-                        }
-                        pBase = pBase->m_base;
-                    }
-
-                    const bool bInterfaceHasPrimaryPart
-                        = pInterface->m_readWriteObjectParts.end()
-                          == std::find( pInterface->m_readWriteObjectParts.begin(),
-                                        pInterface->m_readWriteObjectParts.end(),
-                                        pInterface->m_object.lock()->m_primaryObjectPart );
-
-                    if ( !interfacesCreatedPreviously.empty() )
-                    {
-                        Interface::Ptr pPrevious = interfacesCreatedPreviously.front();
-
-                        // create refinement from previous stage interface
-                        Refinement::Ptr pRefinement
-                            = std::make_shared< Refinement >( mapping.counter );
-                        pRefinement->m_fromInterface = pPrevious;
-                        pRefinement->m_toInterface = pInterface;
-                        pRefinement->m_stage = pStage;
-
-                        for ( Interface::Ptr pInherited : interfacesCreatedThisStage )
-                        {
-                            for ( ObjectPart::Ptr pPart : pInherited->m_readWriteObjectParts )
-                            {
-                                for ( Property::Ptr pProperty : pPart->m_properties )
-                                {
-                                    if ( pProperty->isCtorParam() )
-                                        pRefinement->m_parameters.push_back( pProperty );
-                                }
-                            }
-                        }
-
-                        pStage->m_refinements.push_back( pRefinement );
-                    }
-                    else
-                    {
-                        Constructor::Ptr pConstructor
-                            = std::make_shared< Constructor >( mapping.counter );
-                        pConstructor->m_interface = pInterface;
-                        pConstructor->m_stage = pStage;
-                        for ( Interface::Ptr pInherited : interfacesCreatedThisStage )
-                        {
-                            for ( ObjectPart::Ptr pPart : pInherited->m_readWriteObjectParts )
-                            {
-                                for ( Property::Ptr pProperty : pPart->m_properties )
-                                {
-                                    if ( pProperty->isCtorParam() )
-                                        pConstructor->m_parameters.push_back( pProperty );
-                                }
-                            }
-                        }
-                        pStage->m_constructors.push_back( pConstructor );
-                    }
-
-                    for ( std::vector< Interface::Ptr >::iterator i
-                          = interfacesCreatedThisStage.begin(),
-                          iEnd = interfacesCreatedThisStage.end();
-                          i != iEnd;
-                          ++i )
-                    {
-                        Interface::Ptr pFrom = *i;
-                        if ( pFrom != pInterface )
-                        {
-                            Refinement::Ptr pRefinement
-                                = std::make_shared< Refinement >( mapping.counter );
-                            pRefinement->m_fromInterface = pFrom;
-                            pRefinement->m_toInterface = pInterface;
-                            pRefinement->m_stage = pStage;
-
-                            for ( std::vector< Interface::Ptr >::iterator j = i + 1; j != iEnd;
-                                  ++j )
-                            {
-                                Interface::Ptr pInherited = *j;
-                                for ( ObjectPart::Ptr pPart : pInherited->m_readWriteObjectParts )
-                                {
-                                    for ( Property::Ptr pProperty : pPart->m_properties )
-                                    {
-                                        if ( pProperty->isCtorParam() )
-                                            pRefinement->m_parameters.push_back( pProperty );
-                                    }
-                                }
-                            }
-                            pStage->m_refinements.push_back( pRefinement );
-                        }
-                    }
+                    Constructor::Ptr pConstructor
+                        = std::make_shared< Constructor >( mapping.counter );
+                    pConstructor->m_interface = pInterface;
+                    pConstructor->m_stage = pStage;
+                    pStage->m_constructors.push_back( pConstructor );
                 }
 
                 pPreviousStage = pStage;

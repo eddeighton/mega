@@ -8,8 +8,12 @@ namespace data
 namespace Components
 {
     // struct Component : public mega::io::Object
-    Component::Component( const mega::io::ObjectInfo& objectInfo )
+    Component::Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& name, const boost::filesystem::path& directory, const std::vector< boost::filesystem::path >& includeDirectories, const std::vector< boost::filesystem::path >& sourceFiles)
         :   mega::io::Object( objectInfo )
+          , name( name )
+          , directory( directory )
+          , includeDirectories( includeDirectories )
+          , sourceFiles( sourceFiles )
     {
     } 
 
@@ -32,8 +36,9 @@ namespace Components
 namespace AST
 {
     // struct Opaque : public mega::io::Object
-    Opaque::Opaque( const mega::io::ObjectInfo& objectInfo )
+    Opaque::Opaque( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str)
         :   mega::io::Object( objectInfo )
+          , str( str )
     {
     } 
 
@@ -47,10 +52,13 @@ namespace AST
     }
         
     // struct Dimension : public mega::io::Object
-    Dimension::Dimension( const mega::io::ObjectInfo& objectInfo )
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type)
         :   mega::io::Object( objectInfo )
+          , p_Extra_Dimension( loader )
+          , isConst( isConst )
+          , identifier( identifier )
+          , type( type )
     {
-        p_Tree_Dimension = nullptr;
     } 
 
     void Dimension::load( mega::io::Loader& loader )
@@ -67,10 +75,10 @@ namespace AST
     }
         
     // struct Root : public mega::io::Object
-    Root::Root( const mega::io::ObjectInfo& objectInfo )
+    Root::Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo)
         :   mega::io::Object( objectInfo )
+          , p_AST_Context( loader )
     {
-        p_AST_Context = nullptr;
     } 
 
     void Root::load( mega::io::Loader& loader )
@@ -81,10 +89,11 @@ namespace AST
     }
         
     // struct Context : public mega::io::Object
-    Context::Context( const mega::io::ObjectInfo& objectInfo )
+    Context::Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier)
         :   mega::io::Object( objectInfo )
+          , p_Body_Context( loader )
+          , identifier( identifier )
     {
-        p_Body_Context = nullptr;
     } 
 
     void Context::load( mega::io::Loader& loader )
@@ -97,10 +106,10 @@ namespace AST
     }
         
     // struct FoobarRoot : public mega::io::Object
-    FoobarRoot::FoobarRoot( const mega::io::ObjectInfo& objectInfo )
+    FoobarRoot::FoobarRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo)
         :   mega::io::Object( objectInfo )
+          , p_AST_TestRoot( loader )
     {
-        p_AST_TestRoot = nullptr;
     } 
 
     void FoobarRoot::load( mega::io::Loader& loader )
@@ -111,10 +120,10 @@ namespace AST
     }
         
     // struct TestRoot : public mega::io::Object
-    TestRoot::TestRoot( const mega::io::ObjectInfo& objectInfo )
+    TestRoot::TestRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo)
         :   mega::io::Object( objectInfo )
+          , p_AST_Root( loader )
     {
-        p_AST_Root = nullptr;
     } 
 
     void TestRoot::load( mega::io::Loader& loader )
@@ -128,10 +137,10 @@ namespace AST
 namespace Body
 {
     // struct Context : public mega::io::Object
-    Context::Context( const mega::io::ObjectInfo& objectInfo )
+    Context::Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& body)
         :   mega::io::Object( objectInfo )
+          , body( body )
     {
-        p_AST_Context = nullptr;
     } 
 
     void Context::load( mega::io::Loader& loader )
@@ -144,26 +153,46 @@ namespace Body
     }
         
 }
-namespace Tree
+namespace Extra
 {
     // struct Dimension : public mega::io::Object
-    Dimension::Dimension( const mega::io::ObjectInfo& objectInfo )
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& test)
         :   mega::io::Object( objectInfo )
+          , test( test )
     {
-        p_AST_Dimension = nullptr;
     } 
 
     void Dimension::load( mega::io::Loader& loader )
     {
-        loader.load( foobar );
+        loader.load( test );
     }
     void Dimension::store( mega::io::Storer& storer ) const
     {
-        storer.store( foobar );
+        storer.store( test );
+    }
+        
+}
+namespace Tree
+{
+    // struct Dimension : public mega::io::Object
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& more)
+        :   mega::io::Object( objectInfo )
+          , p_AST_Dimension( loader )
+          , more( more )
+    {
+    } 
+
+    void Dimension::load( mega::io::Loader& loader )
+    {
+        loader.load( more );
+    }
+    void Dimension::store( mega::io::Storer& storer ) const
+    {
+        storer.store( more );
     }
         
     // struct Root : public mega::io::Object
-    Root::Root( const mega::io::ObjectInfo& objectInfo )
+    Root::Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo)
         :   mega::io::Object( objectInfo )
     {
     } 

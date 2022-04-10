@@ -33,7 +33,7 @@ namespace {{ file.name }}
 {% for part in file.parts %}
     struct {{ part.name }} : public mega::io::Object
     {
-        {{ part.name }}( const mega::io::ObjectInfo& objectInfo );
+        {{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.properties %}, {{ property.argtype }} {{ property.name }}{% endfor %} );
         enum 
         {
             Type = {{ part.typeID }}

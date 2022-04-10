@@ -34,6 +34,10 @@ namespace Body
 {
     struct Context;
 }
+namespace Extra
+{
+    struct Dimension;
+}
 namespace Tree
 {
     struct Dimension;
@@ -66,7 +70,7 @@ namespace Components
 {
     struct Component : public mega::io::Object
     {
-        Component( const mega::io::ObjectInfo& objectInfo );
+        Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& name, const boost::filesystem::path& directory, const std::vector< boost::filesystem::path >& includeDirectories, const std::vector< boost::filesystem::path >& sourceFiles);
         enum 
         {
             Type = 0
@@ -87,7 +91,7 @@ namespace AST
 {
     struct Opaque : public mega::io::Object
     {
-        Opaque( const mega::io::ObjectInfo& objectInfo );
+        Opaque( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
         enum 
         {
             Type = 0
@@ -102,7 +106,7 @@ namespace AST
     };
     struct Dimension : public mega::io::Object
     {
-        Dimension( const mega::io::ObjectInfo& objectInfo );
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type);
         enum 
         {
             Type = 0
@@ -112,7 +116,7 @@ namespace AST
         std::string identifier;
         std::string type;
 
-        Ptr< Tree::Dimension > p_Tree_Dimension;
+        Ptr< Extra::Dimension > p_Extra_Dimension;
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -120,7 +124,7 @@ namespace AST
     };
     struct Root : public mega::io::Object
     {
-        Root( const mega::io::ObjectInfo& objectInfo );
+        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
         enum 
         {
             Type = 1
@@ -135,7 +139,7 @@ namespace AST
     };
     struct Context : public mega::io::Object
     {
-        Context( const mega::io::ObjectInfo& objectInfo );
+        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier);
         enum 
         {
             Type = 1
@@ -151,7 +155,7 @@ namespace AST
     };
     struct FoobarRoot : public mega::io::Object
     {
-        FoobarRoot( const mega::io::ObjectInfo& objectInfo );
+        FoobarRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
         enum 
         {
             Type = 2
@@ -166,7 +170,7 @@ namespace AST
     };
     struct TestRoot : public mega::io::Object
     {
-        TestRoot( const mega::io::ObjectInfo& objectInfo );
+        TestRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
         enum 
         {
             Type = 2
@@ -184,7 +188,7 @@ namespace Body
 {
     struct Context : public mega::io::Object
     {
-        Context( const mega::io::ObjectInfo& objectInfo );
+        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& body);
         enum 
         {
             Type = 1
@@ -192,7 +196,24 @@ namespace Body
 
         std::string body;
 
-        Ptr< AST::Context > p_AST_Context;
+        void* pView = nullptr;
+
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+}
+namespace Extra
+{
+    struct Dimension : public mega::io::Object
+    {
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& test);
+        enum 
+        {
+            Type = 0
+        } size_t;
+
+        std::string test;
+
         void* pView = nullptr;
 
         virtual void load( mega::io::Loader& loader );
@@ -203,13 +224,13 @@ namespace Tree
 {
     struct Dimension : public mega::io::Object
     {
-        Dimension( const mega::io::ObjectInfo& objectInfo );
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& more);
         enum 
         {
-            Type = 0
+            Type = 2
         } size_t;
 
-        std::string foobar;
+        bool more;
 
         Ptr< AST::Dimension > p_AST_Dimension;
         void* pView = nullptr;
@@ -219,7 +240,7 @@ namespace Tree
     };
     struct Root : public mega::io::Object
     {
-        Root( const mega::io::ObjectInfo& objectInfo );
+        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
         enum 
         {
             Type = 2
@@ -273,9 +294,9 @@ inline Ptr< AST::Dimension > convert( Ptr< AST::Dimension >& from )
 }
 
 template <>
-inline Ptr< Tree::Dimension > convert( Ptr< AST::Dimension >& from )
+inline Ptr< Extra::Dimension > convert( Ptr< AST::Dimension >& from )
 {
-    return from->p_Tree_Dimension;
+    return from->p_Extra_Dimension;
 }
 
 template <>
@@ -340,6 +361,18 @@ inline Ptr< AST::Context > convert( Ptr< AST::TestRoot >& from )
 
 template <>
 inline Ptr< AST::TestRoot > convert( Ptr< AST::TestRoot >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Dimension > convert( Ptr< Tree::Dimension >& from )
+{
+    return from->p_AST_Dimension;
+}
+
+template <>
+inline Ptr< Tree::Dimension > convert( Ptr< Tree::Dimension >& from )
 {
     return from;
 }

@@ -2,6 +2,8 @@
 #define DATA_POINTER_7_APRIL_2022
 
 #include "object_info.hpp"
+#include "object.hpp"
+#include "object_loader.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -9,32 +11,65 @@
 
 namespace data
 {
-
     template < typename T >
     class Ptr
     {
     public:
-        Ptr( const mega::io::ObjectInfo& objectInfo )
-            : m_objectInfo( objectInfo )
+        Ptr( ObjectPartLoader& loader )
+            : m_loader( loader )
         {
         }
-        Ptr( T* pObjectPart )
-            : m_objectInfo( pObjectPart->getObjectInfo() )
+        Ptr( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+            : m_loader( loader )
+            , m_objectInfo( objectInfo )
+        {
+        }
+        Ptr( ObjectPartLoader& loader, T* pObjectPart )
+            : m_loader( loader )
+            , m_objectInfo( pObjectPart->getObjectInfo() )
             , m_pObjectPart( pObjectPart )
         {
         }
 
-        inline T& operator*() const
+        Ptr( const Ptr& copy )
+            : m_loader( copy.m_loader )
+            , m_objectInfo( copy.m_objectInfo )
+            , m_pObjectPart( copy.m_pObjectPart )
         {
-            return *m_pObjectPart;
+
         }
-        inline T* operator->() const
+
+        Ptr& operator=( const Ptr& copy )
         {
+            VERIFY_RTE( &m_loader == &copy.m_loader );
+            if( this != &copy )
+            {
+                m_objectInfo = copy.m_objectInfo;
+                m_pObjectPart = copy.m_pObjectPart;
+            }
+            return *this;
+        }
+
+        inline T& operator*() const { return *get(); }
+        inline T* operator->() const { return get(); }
+
+    private:
+        T* get() const
+        {
+            if ( m_pObjectPart )
+            {
+                return m_pObjectPart;
+            }
+            else
+            {
+                // load the object
+                m_pObjectPart = dynamic_cast<T*>( m_loader.load( m_objectInfo ) );
+            }
             return m_pObjectPart;
         }
-    private:
+        ObjectPartLoader&    m_loader;
         mega::io::ObjectInfo m_objectInfo;
-        T*                   m_pObjectPart = nullptr;
+        mutable T*           m_pObjectPart = nullptr;
     };
 
     template < typename TTo, typename TFrom >

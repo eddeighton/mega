@@ -41,14 +41,13 @@ namespace db
                 if ( std::dynamic_pointer_cast< model::FunctionGetter >( pFunction ) )
                 {
                     osName << "get_" << pFunction->m_property->m_strName;
-                    osReturnType << "const " << pFunction->m_property->m_type->getViewType() << "&";
+                    osReturnType << pFunction->m_property->m_type->getViewType( true );
                 }
                 else if ( std::dynamic_pointer_cast< model::FunctionSetter >( pFunction ) )
                 {
                     osName << "set_" << pFunction->m_property->m_strName;
                     osReturnType << "void";
-                    osParams << " const " << pFunction->m_property->m_type->getViewType()
-                             << "& value ";
+                    osParams << pFunction->m_property->m_type->getViewType( true ) << " value ";
                 }
                 else
                 {
@@ -67,7 +66,10 @@ namespace db
                 nlohmann::json     interface = nlohmann::json::object( {
                     { "name", pObject->m_strName },
                     { "fullname", pInterface->delimitTypeName( "::" ) },
+                    { "readwrite", pInterface->m_isReadWrite },
                     { "functions", nlohmann::json::array() },
+                    { "args_ctors", nlohmann::json::array() },
+                    { "args_values", nlohmann::json::array() },
                 } );
 
                 // base interface
@@ -92,9 +94,152 @@ namespace db
                     }
                 }
 
+                // functions
                 for ( model::Function::Ptr pFunction : pInterface->m_functions )
                 {
                     interface[ "functions" ].push_back( writeFunction( pFunction ) );
+                }
+
+                // args
+                if ( pInterface->m_isReadWrite )
+                {
+                    // calculate ctor overloads...
+                    if ( !pInterface->m_args.empty() )
+                    {
+                        // add default
+                        nlohmann::json ctor
+                            = nlohmann::json::object( { { "params", nlohmann::json::array() } } );
+                        interface[ "args_ctors" ].push_back( ctor );
+                    }
+
+                    if ( pInterface->m_base )
+                    {
+                        if ( pInterface->m_base->ownsPrimaryObjectPart() )
+                        {
+                            std::ostringstream osBaseArgs;
+                            {
+                                osBaseArgs << pInterface->m_base->delimitTypeName( "::" )
+                                           << "::Args";
+                            }
+                            {
+                                nlohmann::json ctorBaseArgs = nlohmann::json::object(
+                                    { { "params", nlohmann::json::array() } } );
+
+                                nlohmann::json baseArg
+                                    = nlohmann::json::object( { { "name", "base" },
+                                                                { "type", osBaseArgs.str() },
+                                                                { "value", "base" } } );
+                                ctorBaseArgs[ "params" ].push_back( baseArg );
+
+                                for ( model::Property::Ptr pProperty : pInterface->m_args )
+                                {
+                                    nlohmann::json param = nlohmann::json::object(
+                                        { { "name", pProperty->m_strName },
+                                          { "type", pProperty->m_type->getViewType( true ) },
+                                          { "value", pProperty->m_strName } } );
+                                    ctorBaseArgs[ "params" ].push_back( param );
+                                }
+
+                                interface[ "args_ctors" ].push_back( ctorBaseArgs );
+                            }
+                            std::ostringstream osBasePointer;
+                            {
+                                osBasePointer << pInterface->m_base->delimitTypeName( "::" ) << "*";
+                            }
+                            {
+                                nlohmann::json ctorBasePointer = nlohmann::json::object(
+                                    { { "params", nlohmann::json::array() } } );
+
+                                nlohmann::json baseArg
+                                    = nlohmann::json::object( { { "name", "base" },
+                                                                { "type", osBasePointer.str() },
+                                                                { "value", "base" } } );
+                                ctorBasePointer[ "params" ].push_back( baseArg );
+
+                                for ( model::Property::Ptr pProperty : pInterface->m_args )
+                                {
+                                    nlohmann::json param = nlohmann::json::object(
+                                        { { "name", pProperty->m_strName },
+                                          { "type", pProperty->m_type->getViewType( true ) },
+                                          { "value", pProperty->m_strName } } );
+                                    ctorBasePointer[ "params" ].push_back( param );
+                                }
+
+                                interface[ "args_ctors" ].push_back( ctorBasePointer );
+                            }
+
+                            std::ostringstream osVariant;
+                            {
+                                osVariant << "std::variant< " << osBaseArgs.str() << ", "
+                                          << osBasePointer.str() << " >";
+                            }
+
+                            std::ostringstream osType;
+                            osType << "std::optional< " << osVariant.str() << " >";
+                            nlohmann::json value = nlohmann::json::object(
+                                { { "name", "base" }, { "type", osType.str() } } );
+                            interface[ "args_values" ].push_back( value );
+                        }
+                        else
+                        {
+                            std::ostringstream osBasePointer;
+                            {
+                                osBasePointer << pInterface->m_base->delimitTypeName( "::" ) << "*";
+                            }
+                            {
+                                nlohmann::json ctorBasePointer = nlohmann::json::object(
+                                    { { "params", nlohmann::json::array() } } );
+
+                                nlohmann::json baseArg
+                                    = nlohmann::json::object( { { "name", "base" },
+                                                                { "type", osBasePointer.str() },
+                                                                { "value", "base" } } );
+                                ctorBasePointer[ "params" ].push_back( baseArg );
+
+                                for ( model::Property::Ptr pProperty : pInterface->m_args )
+                                {
+                                    nlohmann::json param = nlohmann::json::object(
+                                        { { "name", pProperty->m_strName },
+                                          { "type", pProperty->m_type->getViewType( true ) },
+                                          { "value", pProperty->m_strName } } );
+                                    ctorBasePointer[ "params" ].push_back( param );
+                                }
+
+                                interface[ "args_ctors" ].push_back( ctorBasePointer );
+                            }
+                            std::ostringstream osType;
+                            osType << "std::optional< std::variant< " << osBasePointer.str() << " > >";
+                            nlohmann::json value = nlohmann::json::object(
+                                { { "name", "base" }, { "type", osType.str() } } );
+                            interface[ "args_values" ].push_back( value );
+                        }
+                    }
+                    else
+                    {
+                        nlohmann::json ctor
+                            = nlohmann::json::object( { { "params", nlohmann::json::array() } } );
+
+                        for ( model::Property::Ptr pProperty : pInterface->m_args )
+                        {
+                            nlohmann::json param = nlohmann::json::object(
+                                { { "name", pProperty->m_strName },
+                                  { "type", pProperty->m_type->getViewType( true ) },
+                                  { "value", pProperty->m_strName } } );
+                            ctor[ "params" ].push_back( param );
+                        }
+
+                        interface[ "args_ctors" ].push_back( ctor );
+                    }
+
+                    for ( model::Property::Ptr pProperty : pInterface->m_args )
+                    {
+                        std::ostringstream osType;
+                        osType << "std::optional< " << pProperty->m_type->getViewType( false )
+                               << " >";
+                        nlohmann::json value = nlohmann::json::object(
+                            { { "name", pProperty->m_strName }, { "type", osType.str() } } );
+                        interface[ "args_values" ].push_back( value );
+                    }
                 }
 
                 return interface;
@@ -114,10 +259,18 @@ namespace db
                     nlohmann::json stage
                         = nlohmann::json::object( { { "name", pStage->m_strName },
                                                     { "perobject", pStage->m_bPerObject },
+                                                    { "readwrite_files", nlohmann::json::array() },
                                                     { "accessors", nlohmann::json::array() },
                                                     { "constructors", nlohmann::json::array() },
                                                     { "refinements", nlohmann::json::array() },
                                                     { "interfaces", nlohmann::json::array() } } );
+
+                    for ( model::File::Ptr pFile : pStage->m_files )
+                    {
+                        nlohmann::json file
+                            = nlohmann::json::object( { { "name", pFile->m_strName } } );
+                        stage[ "readwrite_files" ].push_back( file );
+                    }
 
                     for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
                     {
@@ -132,23 +285,97 @@ namespace db
                         std::ostringstream os;
                         os << "construct_" << pConstructor->m_interface->delimitTypeName( "_" );
 
+                        model::Interface::Ptr      pInterface = pConstructor->m_interface;
+                        model::SuperInterface::Ptr pSuperInterface
+                            = pInterface->m_superInterface.lock();
+
                         nlohmann::json ctor = nlohmann::json::object(
                             { { "return_type", pConstructor->m_interface->delimitTypeName( "::" ) },
-                              { "function_name", os.str() } } );
+                              { "function_name", os.str() },
+                              { "super_type_name", pSuperInterface->getTypeName() },
+                              { "bases", nlohmann::json::array() },
+                              { "bases_reverse", nlohmann::json::array() } } );
+
+                        // add self to list
+                        model::Interface::Ptr                pBase = pInterface;
+                        std::vector< model::Interface::Ptr > bases_reversed;
+                        while ( pBase )
+                        {
+                            nlohmann::json base = nlohmann::json::object(
+                                { { "typename", pBase->delimitTypeName( "::" ) },
+                                  { "owns_primary_part", pBase->ownsPrimaryObjectPart() },
+                                  { "parts", nlohmann::json::array() } } );
+
+                            model::PrimaryObjectPart::Ptr pPrimaryPart
+                                = pBase->getPrimaryObjectPart();
+
+                            {
+                                nlohmann::json primaryPart = nlohmann::json::object(
+                                    { { "object", pPrimaryPart->m_object.lock()->m_strName },
+                                      { "file", pPrimaryPart->m_file.lock()->m_strName },
+                                      { "args", nlohmann::json::array() } } );
+                                {
+                                    for ( model::Property::Ptr pProperty :
+                                          pPrimaryPart->m_properties )
+                                    {
+                                        model::Type::Ptr pType = pProperty->m_type;
+                                        nlohmann::json   arg = nlohmann::json::object(
+                                              { { "name", pProperty->m_strName } } );
+                                        primaryPart[ "args" ].push_back( arg );
+                                    }
+                                }
+                                base[ "primary_part" ] = primaryPart;
+                            }
+                            // VERIFY_RTE( pBase->m_readOnlyObjectParts.empty() );
+                            for ( model::ObjectPart::Ptr pPart : pBase->m_readWriteObjectParts )
+                            {
+                                if ( pPrimaryPart != pPart )
+                                {
+                                    nlohmann::json part = nlohmann::json::object(
+                                        { { "object", pPart->m_object.lock()->m_strName },
+                                          { "file", pPart->m_file.lock()->m_strName },
+                                          { "args", nlohmann::json::array() } } );
+
+                                    for ( model::Property::Ptr pProperty : pPart->m_properties )
+                                    {
+                                        model::Type::Ptr pType = pProperty->m_type;
+                                        nlohmann::json   arg = nlohmann::json::object(
+                                              { { "name", pProperty->m_strName } } );
+                                        part[ "args" ].push_back( arg );
+                                    }
+                                    base[ "parts" ].push_back( part );
+                                }
+                            }
+
+                            ctor[ "bases" ].push_back( base );
+                            bases_reversed.push_back( pBase );
+                            pBase = pBase->m_base;
+                        }
+                        std::reverse( bases_reversed.begin(), bases_reversed.end() );
+                        for ( model::Interface::Ptr pBase : bases_reversed )
+                        {
+                            nlohmann::json base = nlohmann::json::object(
+                                { { "typename", pBase->delimitTypeName( "::" ) },
+                                  { "owns_primary_part", pBase->ownsPrimaryObjectPart() } } );
+
+                            model::PrimaryObjectPart::Ptr pPrimaryPart
+                                = pBase->getPrimaryObjectPart();
+                            base[ "primary_part" ] = nlohmann::json::object(
+                                { { "object", pPrimaryPart->m_object.lock()->m_strName },
+                                  { "file", pPrimaryPart->m_file.lock()->m_strName } } );
+
+                            ctor[ "bases_reverse" ].push_back( base );
+                        }
 
                         stage[ "constructors" ].push_back( ctor );
                     }
                     for ( model::SuperInterface::Ptr pSuperType : pStage->m_superInterfaces )
                     {
-                        std::ostringstream os;
-                        os << "super";
-                        for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
-                        {
-                            os << "_" << pInterface->delimitTypeName( "_" );
-                        }
+                        const std::string strSuperTypeName = pSuperType->getTypeName();
 
                         nlohmann::json stype = nlohmann::json::object(
-                            { { "name", os.str() }, { "interfaces", nlohmann::json::array() } } );
+                            { { "name", strSuperTypeName },
+                              { "interfaces", nlohmann::json::array() } } );
 
                         for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
                         {
@@ -252,28 +479,25 @@ namespace db
                                       { "typename", pObjectPart->getDataType( "::" ) } } );
                                 part[ "pointers" ].push_back( pointer );
                             }
-                            if( pObject->m_base )
+                            if ( pObject->m_base )
                             {
                                 nlohmann::json pointer = nlohmann::json::object(
-                                    { { "longname", pObject->m_base->m_primaryObjectPart->getPointerName() },
-                                    { "typename", pObject->m_base->m_primaryObjectPart->getDataType( "::" ) } } );
+                                    { { "longname",
+                                        pObject->m_base->m_primaryObjectPart->getPointerName() },
+                                      { "typename",
+                                        pObject->m_base->m_primaryObjectPart->getDataType(
+                                            "::" ) } } );
                                 part[ "pointers" ].push_back( pointer );
                             }
-                        }
-                        else
-                        {
-                            nlohmann::json pointer = nlohmann::json::object(
-                                { { "longname", pPrimaryPart->getPointerName() },
-                                  { "typename", pPrimaryPart->getDataType( "::" ) } } );
-                            part[ "pointers" ].push_back( pointer );
                         }
 
                         for ( model::Property::Ptr pProperty : pPart->m_properties )
                         {
                             model::Type::Ptr pType = pProperty->m_type;
-                            nlohmann::json   property
-                                = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                            { "type", pType->getDataType() } } );
+                            nlohmann::json   property = nlohmann::json::object(
+                                  { { "name", pProperty->m_strName },
+                                  { "type", pType->getDataType( false ) },
+                                  { "argtype", pType->getDataType( true ) } } );
 
                             part[ "properties" ].push_back( property );
                         }
