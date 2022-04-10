@@ -75,7 +75,6 @@ set( MEGA_DATABASE_IO
     ${MEGA_API_DIR}/database/io/manifest.hpp
     ${MEGA_API_DIR}/database/io/stages.hpp
     ${MEGA_API_DIR}/database/io/archive.hpp
-    ${MEGA_API_DIR}/database/io/factory.hpp
     ${MEGA_API_DIR}/database/io/file.hpp
     ${MEGA_API_DIR}/database/io/generics.hpp
     ${MEGA_API_DIR}/database/io/loader.hpp
@@ -88,7 +87,6 @@ set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/io/component_info.cpp
     ${MEGA_SRC_DIR}/database/io/environment.cpp
     ${MEGA_SRC_DIR}/database/io/manifest.cpp
-    ${MEGA_SRC_DIR}/database/io/factory.cpp
     ${MEGA_SRC_DIR}/database/io/file.cpp
     ${MEGA_SRC_DIR}/database/io/loader.cpp
     ${MEGA_SRC_DIR}/database/io/object.cpp

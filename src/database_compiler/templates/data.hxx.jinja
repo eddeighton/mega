@@ -6,6 +6,7 @@
 #include "database/io/loader.hpp"
 #include "database/io/storer.hpp"
 #include "database/io/data_pointer.hpp"
+#include "database/io/object_loader.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -34,7 +35,10 @@ namespace {{ file.name }}
 {% for part in file.parts %}
     struct {{ part.name }} : public mega::io::Object
     {
+        {{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+{% if length(part.properties) %}
         {{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.properties %}, {{ property.argtype }} {{ property.name }}{% endfor %} );
+{% endif %}
         enum 
         {
             Type = {{ part.typeID }}
@@ -60,6 +64,12 @@ inline Ptr< {{ conversion.to }} > convert( Ptr< {{ conversion.from }} >& from )
 }
 
 {% endfor %}{# conversions #}
+
+class Factory
+{
+public:
+    static mega::io::Object* create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+};
 
 }
 #endif //{{ guard }}

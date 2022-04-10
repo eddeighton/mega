@@ -6,6 +6,7 @@
 #include "database/io/loader.hpp"
 #include "database/io/storer.hpp"
 #include "database/io/data_pointer.hpp"
+#include "database/io/object_loader.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -69,6 +70,7 @@ namespace Components
 {
     struct Component : public mega::io::Object
     {
+        Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& name, const boost::filesystem::path& directory, const std::vector< boost::filesystem::path >& includeDirectories, const std::vector< boost::filesystem::path >& sourceFiles);
         enum 
         {
@@ -86,6 +88,7 @@ namespace AST
 {
     struct Opaque : public mega::io::Object
     {
+        Opaque( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         Opaque( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
         enum 
         {
@@ -97,7 +100,8 @@ namespace AST
     };
     struct Dimension : public mega::io::Object
     {
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test);
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test, data::Ptr< data::AST::Opaque > cppTypeName);
         enum 
         {
             Type = 2
@@ -106,12 +110,13 @@ namespace AST
         std::string identifier;
         std::string type;
         std::string test;
+        data::Ptr< data::AST::Opaque > cppTypeName;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct Root : public mega::io::Object
     {
-        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
+        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
             Type = 3
@@ -122,6 +127,7 @@ namespace AST
     };
     struct Context : public mega::io::Object
     {
+        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const std::string& body);
         enum 
         {
@@ -134,7 +140,7 @@ namespace AST
     };
     struct FoobarRoot : public mega::io::Object
     {
-        FoobarRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
+        FoobarRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
             Type = 5
@@ -145,7 +151,7 @@ namespace AST
     };
     struct TestRoot : public mega::io::Object
     {
-        TestRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
+        TestRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
             Type = 6
@@ -165,6 +171,7 @@ namespace Tree
 {
     struct Dimension : public mega::io::Object
     {
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& more);
         enum 
         {
@@ -177,7 +184,7 @@ namespace Tree
     };
     struct Root : public mega::io::Object
     {
-        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo);
+        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
             Type = 8
@@ -304,6 +311,12 @@ inline Ptr< Tree::Root > convert( Ptr< Tree::Root >& from )
     return from;
 }
 
+
+class Factory
+{
+public:
+    static mega::io::Object* create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+};
 
 }
 #endif //DATABASE_DATA_GUARD_4_APRIL_2022

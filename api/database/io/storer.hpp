@@ -23,6 +23,7 @@
 #include "archive.hpp"
 #include "object.hpp"
 #include "manifest.hpp"
+#include "data_pointer.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -45,111 +46,18 @@ namespace io
     public:
         Storer( const boost::filesystem::path& filePath, const Manifest& manifest );
 
-        void storeObjectRef( const Object* pObject );
-
-        void storeOptionalObjectRef( const Object* pObject );
-
         template < class T >
         inline void store( const T& value )
         {
             m_archive << value;
         }
 
-        template < class T >
-        inline void storeOptional( const std::optional< T >& value )
+        template< class T >
+        inline void store( const data::Ptr< T >& value )
         {
-            if ( value )
-            {
-                m_archive << true;
-                store( value.value() );
-            }
-            else
-            {
-                m_archive << false;
-            }
+            m_archive << value.getObjectInfo();
         }
-
-        template < class T >
-        inline void storeObjectVector( const std::vector< T* >& objects )
-        {
-            std::size_t szCount = objects.size();
-            store( szCount );
-            for ( std::size_t sz = 0U; sz < szCount; ++sz )
-            {
-                storeObjectRef( objects[ sz ] );
-            }
-        }
-
-        template < class T, class TPred >
-        inline void storeObjectSet( const std::set< T*, TPred >& objects )
-        {
-            std::size_t szCount = objects.size();
-            store( szCount );
-            for ( typename std::set< T* >::const_iterator i = objects.begin(),
-                                                          iEnd = objects.end();
-                  i != iEnd;
-                  ++i )
-            {
-                storeObjectRef( *i );
-            }
-        }
-
-        template < class T >
-        inline void storeObjectVectorVector( const std::vector< std::vector< T* > >& objects )
-        {
-            std::size_t szCount = objects.size();
-            store( szCount );
-            for ( std::size_t sz = 0U; sz < szCount; ++sz )
-            {
-                storeObjectVector( objects[ sz ] );
-            }
-        }
-
-        template < class T1, class T2, class TPred >
-        inline void storeObjectMap( const std::map< T1*, T2*, TPred >& objects )
-        {
-            std::size_t szSize = objects.size();
-            store( szSize );
-            for ( typename std::map< T1*, T2* >::const_iterator i = objects.begin(),
-                                                                iEnd = objects.end();
-                  i != iEnd;
-                  ++i )
-            {
-                storeObjectRef( i->first );
-                storeObjectRef( i->second );
-            }
-        }
-
-        template < class T1, class T2 >
-        inline void storeKeyObjectMap( const std::map< T1, T2* >& objects )
-        {
-            std::size_t szSize = objects.size();
-            store( szSize );
-            for ( typename std::map< T1, T2* >::const_iterator i = objects.begin(),
-                                                               iEnd = objects.end();
-                  i != iEnd;
-                  ++i )
-            {
-                store( i->first );
-                storeObjectRef( i->second );
-            }
-        }
-
-        template < class T1, class T2, class TPred >
-        inline void storeObjectMap( const std::multimap< T1*, T2*, TPred >& objects )
-        {
-            std::size_t szSize = objects.size();
-            store( szSize );
-            for ( typename std::multimap< T1*, T2* >::const_iterator i = objects.begin(),
-                                                                     iEnd = objects.end();
-                  i != iEnd;
-                  ++i )
-            {
-                storeObjectRef( i->first );
-                storeObjectRef( i->second );
-            }
-        }
-
+        
     private:
         const boost::filesystem::path                  m_targetFilePath;
         const Manifest&                                m_manifest;

@@ -34,7 +34,21 @@ class SuperTypeBase
 public:
     virtual ~SuperTypeBase(){}
 };
+{% for stype in stage.supertypes %}
+class {{ stype.name }};
+{% endfor %}
 
+struct PointerConverter
+{
+{% for object_part in stage.object_parts %}
+    virtual {{ object_part.supertype }}* toSuper( const data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} >& pData ) const = 0;
+    virtual data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} > toData_{{ object_part.file }}_{{ object_part.object }}( {{ object_part.supertype }}* pSuper ) const = 0;
+{% endfor %}{# stage.object_parts #}
+};
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Super type declarations
 {% for stype in stage.supertypes %}
 class {{ stype.name }} : public SuperTypeBase,
 {% for interface in stype.interfaces %}
@@ -43,6 +57,7 @@ class {{ stype.name }} : public SuperTypeBase,
 {% endfor %}
 
 {
+    PointerConverter& m_converter;
 public:
     using DataVariant = std::variant
     < 
@@ -54,36 +69,58 @@ public:
     >;
     DataVariant m_data;
 {% for interface in stype.interfaces %}
-    {{ stype.name }}( data::Ptr< data::{{ interface.part }} >& data )
-        :   m_data( data )
-    {
-    }
-    void reconstruct( data::Ptr< data::{{ interface.part }} >& data )
-    {
-        m_data = data;
-    }
+    {{ stype.name }}( PointerConverter& converter, const data::Ptr< data::{{ interface.part }} >& data );
+    void reconstruct( const data::Ptr< data::{{ interface.part }} >& data );
 {% endfor %}{# stype.interfaces #}
-    virtual ~{{ stype.name }}()
-    {
-    }
+    virtual ~{{ stype.name }}();
 {% for interface in stype.interfaces %}
     // {{ interface.name }}
 {% for function in interface.functions %}
-    virtual {{ function.returntype }} {{ function.name }}({{function.params }})
-    {
-        data::Ptr< data::{{ function.objectpart }} > part = 
-            data::convert< data::{{ function.objectpart }} >( m_data );
-{% for line in function.body %}
-        {{ line }}
-{% endfor %}{# function.body #}
-    }
+    virtual {{ function.returntype }} {{ function.name }}({{function.params }});
 {% endfor %}{# interface.functions #}
 {% endfor %}{# stype.interfaces #}
 };
 
 {% endfor %}{# stage.supertypes #}
 
-struct Database::Pimpl : public data::ObjectPartLoader
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Super type definitions
+{% for stype in stage.supertypes %}
+{% for interface in stype.interfaces %}
+{{ stype.name }}::{{ stype.name }}( PointerConverter& converter, const data::Ptr< data::{{ interface.part }} >& data )
+    :   m_converter( converter ),
+        m_data( data )
+{
+}
+void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} >& data )
+{
+    m_data = data;
+}
+{% endfor %}{# stype.interfaces #}
+{{ stype.name }}::~{{ stype.name }}()
+{
+}
+{% for interface in stype.interfaces %}
+// {{ interface.name }}
+{% for function in interface.functions %}
+{{ function.returntype }} {{ stype.name }}::{{ function.name }}({{function.params }})
+{
+    data::Ptr< data::{{ function.objectpart }} > part = 
+        data::convert< data::{{ function.objectpart }} >( m_data );
+{% for line in function.body %}
+    {{ line }}
+{% endfor %}{# function.body #}
+}
+{% endfor %}{# interface.functions #}
+{% endfor %}{# stype.interfaces #}
+{% endfor %}{# stage.supertypes #}
+
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Database implementation
+struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
 {
     using SuperTypePtr = std::unique_ptr< SuperTypeBase >;
     struct ObjectInfoHash
@@ -140,21 +177,24 @@ struct Database::Pimpl : public data::ObjectPartLoader
                 mega::io::File::PtrCst pFile;
                 {
                     FileMap::const_iterator iFind = m_readwriteFiles.find( fileInfo.getFileID() );
-                    if( iFind == m_readwriteFiles.end() )
+                    if( iFind != m_readwriteFiles.end() )
                     {
                         pFile = iFind->second;
                     }
                     else
                     {
                         FileMapCst::const_iterator iFind = m_readonlyFiles.find( fileInfo.getFileID() );
-                        if( iFind == m_readonlyFiles.end() )
+                        if( iFind != m_readonlyFiles.end() )
                         {
                             pFile = iFind->second;
                         }
                         else
                         {
-                            pFile = std::make_shared< mega::io::File >( fileInfo, const_cast< Database::Pimpl&>(*this) );
-                            m_readonlyFiles.insert( std::make_pair( fileInfo.getFileID(), pFile ) );
+                            mega::io::File::Ptr pNewFile = std::make_shared< mega::io::File >( fileInfo, const_cast< Database::Pimpl&>(*this) );
+                            pNewFile->preload( m_manifest );
+                            pNewFile->load( m_manifest );
+                            m_readonlyFiles.insert( std::make_pair( fileInfo.getFileID(), pNewFile ) );
+                            pFile = pNewFile;
                         }
                     }
                 }
@@ -163,21 +203,8 @@ struct Database::Pimpl : public data::ObjectPartLoader
                     if( data::{{ many_accessor.file }}::{{ many_accessor.object }}* pFound = 
                         dynamic_cast< data::{{ many_accessor.file }}::{{ many_accessor.object }}* >( pObject ) )
                     {
-                        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pFound->getObjectInfo() );
-                        if( iFind != m_interfaceHash.end() )
-                        {
-                            {{ many_accessor.type }}* pResult = dynamic_cast< {{ many_accessor.type }}* >( iFind->second.get() );
-                            VERIFY_RTE( pResult );
-                            result.push_back( pResult );
-                        }
-                        else
-                        {
-                            using SuperType = {{ many_accessor.supertype }};
-                            data::Ptr< data::{{ many_accessor.file }}::{{ many_accessor.object }} > pDataPtr( const_cast< Database::Pimpl&>(*this), pFound );
-                            SuperType* pSuper = new SuperType( pDataPtr );
-                            m_interfaceHash[ pFound->getObjectInfo() ] = SuperTypePtr( pSuper );
-                            result.push_back( pSuper );
-                        }
+                        data::Ptr< data::{{ many_accessor.file }}::{{ many_accessor.object }} > pData( const_cast<Database::Pimpl&>(*this), pFound );
+                        result.push_back( toSuper( pData ) );
                     }
                 }
             }
@@ -189,7 +216,7 @@ struct Database::Pimpl : public data::ObjectPartLoader
     {{ one_accessor.type }}* one_{{ one_accessor.longname }}() const
     {
         std::vector< {{ one_accessor.type }}* > result = many_{{ one_accessor.longname }}();
-        VERIFY_RTE_MSG( result.empty(), "Singular accessor for {{ one_accessor.type }} found none" );
+        VERIFY_RTE_MSG( !result.empty(), "Singular accessor for {{ one_accessor.type }} found none" );
         VERIFY_RTE_MSG( result.size() == 1U, "Singular accessor for {{ one_accessor.type }} found many" );
         return result.back();
     }
@@ -239,13 +266,13 @@ struct Database::Pimpl : public data::ObjectPartLoader
         // primary part: {{ base.typename }}
         data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
             database.m_pFile_{{ base.primary_part.file }}->construct< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >
-                ({% for arg in base.primary_part.args %}arguments.{{ arg.name }}.value(){% if not loop.is_last %}, {% endif %}{% endfor %});
+                ({% for arg in base.primary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
 
 {% for secondary_part in base.parts %}
         // secondary part: {{ secondary_part.file }} :: {{ secondary_part.object }}
         pPrimaryObjectPart->p_{{ secondary_part.file }}_{{ secondary_part.object }} =
             database.m_pFile_{{ secondary_part.file }}->construct< data::{{ secondary_part.file }}::{{ secondary_part.object }} >
-                ({% for arg in secondary_part.args %}arguments.{{ arg.name }}.value(){% if not loop.is_last %}, {% endif %}{% endfor %});
+                ({% for arg in secondary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
 
 {% endfor %}{# base.parts #}
 {% endif %}{# base.owns_primary_part #}
@@ -264,7 +291,7 @@ struct Database::Pimpl : public data::ObjectPartLoader
 {% endfor %}{# constructor.bases #}
         if( pSuper == nullptr )
         {
-            pSuper = new SuperType( pPrimaryObjectPart );
+            pSuper = new SuperType( *this, pPrimaryObjectPart );
             m_interfaceHash[ pPrimaryObjectPart.getObjectInfo() ] = SuperTypePtr( pSuper );
         }
         else
@@ -318,8 +345,36 @@ struct Database::Pimpl : public data::ObjectPartLoader
         
         m_readonlyFiles.insert( std::make_pair( objectInfo.getFileID(), pFile ) );
 
+        pFile->preload( m_manifest );
+        pFile->load( m_manifest );
+
         return pFile->getObject( objectInfo.getIndex() );
     }
+
+{% for object_part in stage.object_parts %}
+    virtual {{ object_part.supertype }}* toSuper( const data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} >& pData ) const
+    {
+        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
+        if( iFind != m_interfaceHash.end() )
+        {
+            {{ object_part.supertype }}* pSuper = dynamic_cast< {{ object_part.supertype }}* >( iFind->second.get() );
+            VERIFY_RTE( pSuper );
+            return pSuper;
+        }
+        else
+        {
+            using SuperType = {{ object_part.supertype }};
+            SuperType* pSuper = new SuperType( const_cast<Database::Pimpl&>(*this), pData );
+            m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
+            return pSuper;
+        }
+    }
+    virtual data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} > toData_{{ object_part.file }}_{{ object_part.object }}( {{ object_part.supertype }}* pSuper ) const
+    {
+        return data::convert< data::{{ object_part.file }}::{{ object_part.object }} >( pSuper->m_data );
+    }
+{% endfor %}{# stage.object_parts #}
+
 
     const mega::io::Environment& m_environment;
 {% if stage.perobject %}

@@ -361,9 +361,9 @@ namespace db
 
             Interface::Ptr getInterface( Object::Ptr pObject ) const
             {
-                for( Interface::Ptr pInterface : m_interfaceTopological )
+                for ( Interface::Ptr pInterface : m_interfaceTopological )
                 {
-                    if( pInterface->m_object.lock() == pObject )
+                    if ( pInterface->m_object.lock() == pObject )
                         return pInterface;
                 }
                 THROW_RTE( "Failed to locate interface for object" );
@@ -486,8 +486,8 @@ namespace db
             {
                 VERIFY_RTE( m_object );
                 std::ostringstream os;
-                os << m_object->m_primaryFile.lock()->m_strName << "::" << m_object->m_strName
-                   << "*";
+                os << "data::Ptr< data::" << m_object->m_primaryFile.lock()->m_strName
+                   << "::" << m_object->m_strName << " >";
                 return os.str();
             }
             virtual bool isCtorParam() const { return true; }

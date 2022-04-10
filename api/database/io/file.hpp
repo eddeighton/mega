@@ -55,7 +55,7 @@ namespace mega
                 return m_info.getObjectSourceFilePath();
             }
 
-            void preload( const FileAccess& fileAccess, const Manifest& manifest );
+            void preload( const Manifest& manifest );
             void load( const Manifest& manifest );
             void store( const Manifest& manifest ) const;
 

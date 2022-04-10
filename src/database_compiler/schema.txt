@@ -14,12 +14,16 @@ stage perobject InputParse
     file Extra
 
     accessor perprogram array< ref< Components::Component > >
+
+    accessor perobject ref< Parser::Context >
+    accessor perobject ref< Parser::Root >
 }
 
 stage perobject Interface
 {
     file Tree
 
+    accessor perobject ref< Parser::Context >
     accessor perobject ref< Parser::Root >
 }
 
@@ -27,6 +31,7 @@ stage perprogram Dependencies
 {
     file DependencyAnalysis
 
+    accessor perobject ref< Parser::Root >
     accessor perobject ref< Interface::Root >
 }
 
@@ -83,7 +88,7 @@ namespace Parser
         value< std::string > identifier
         value< std::string > type
         value< std::string > test -> InputParse::Extra
-        //ref< Opaque > cppTypeName
+        ref< Opaque > cppTypeName
         //array< ref< Dimension > > children 
         //value< std::string > foobar -> Interface::Tree
     }

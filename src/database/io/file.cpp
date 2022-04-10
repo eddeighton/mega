@@ -1,21 +1,22 @@
 
 #include "database/io/file.hpp"
-#include "database/io/factory.hpp"
 #include "database/io/loader.hpp"
 #include "database/io/object_info.hpp"
 #include "database/io/storer.hpp"
+
+#include "database/model/data.hxx"
 
 namespace mega
 {
 namespace io
 {
 
-    void File::preload( const FileAccess& fileAccess, const Manifest& manifest )
+    void File::preload( const Manifest& manifest )
     {
         try
         {
             VERIFY_RTE( !m_pLoader );
-            m_pLoader = std::make_unique< Loader >( manifest, fileAccess, m_info.getFilePath() );
+            m_pLoader = std::make_unique< Loader >( manifest, m_info.getFilePath() );
 
             {
                 std::size_t szNumObjects = 0U;
@@ -38,7 +39,7 @@ namespace io
                     VERIFY_RTE( !pObject );
 
                     // create the object
-                    pObject = Factory::create( objectInfo );
+                    pObject = data::Factory::create( m_objectLoader, objectInfo );
 
                     m_objects[ objectInfo.getIndex() ] = pObject;
                 }

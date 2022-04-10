@@ -27,10 +27,9 @@ namespace mega
 {
 namespace io
 {
-    Loader::Loader( const Manifest& manifest, const FileAccess& fileAccess,
+    Loader::Loader( const Manifest& manifest,
                     const boost::filesystem::path& filePath )
         : m_runtimeManifest( manifest )
-        , m_fileAccess( fileAccess )
         , m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
         , m_archive( *m_pFileStream )
     {
@@ -63,29 +62,6 @@ namespace io
                 }
             }
         }
-    }
-
-    Object* Loader::loadObjectRef()
-    {
-        Object*            pObject = nullptr;
-        ObjectInfo::FileID fileID = ObjectInfo::NO_FILE;
-        load( fileID );
-        if ( fileID != ObjectInfo::NO_FILE )
-        {
-            // map the loaded fileID to the runtime fileID
-            fileID = m_fileIDLoadedToRuntime[ fileID ];
-            VERIFY_RTE_MSG( fileID != ObjectInfo::NO_FILE, "Failed to map fileID to valid file" );
-
-            File::PtrCst pFile = m_fileAccess.getFile( fileID );
-            VERIFY_RTE_MSG( pFile, "Failed to find valid file for fileID: " << fileID );
-
-            ObjectInfo::Index szIndex = ObjectInfo::NO_INDEX;
-            load( szIndex );
-            VERIFY_RTE( szIndex < pFile->getTotalObjects() );
-
-            pObject = pFile->getObject( szIndex );
-        }
-        return pObject;
     }
 
 } // namespace io

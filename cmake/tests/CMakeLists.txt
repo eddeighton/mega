@@ -6,9 +6,11 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get gtest
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/gtest/gtest_include.cmake )
 
+# compile test databases
 set( MEGA_TEST_DIR ${MEGA_ROOT_DIR}/tests )
 
 set( MEGA_UNIT_TESTS
+	${MEGA_TEST_DIR}/database_tests.cpp 
 	${MEGA_TEST_DIR}/database_compiler_tests.cpp
 	${MEGA_TEST_DIR}/io_tests.cpp
 	${MEGA_TEST_DIR}/file_system_tests.cpp

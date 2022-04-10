@@ -33,7 +33,7 @@ namespace io
     {
         m_archive << m_manifest;
     }
-
+/*
     void Storer::storeObjectRef( const Object* pObject )
     {
         // NOTE: this needs to match up with Loader::loadObjectRef()
@@ -53,6 +53,6 @@ namespace io
         {
             store( ObjectInfo::NO_FILE );
         }
-    }
+    }*/
 } // namespace io
 } // namespace mega

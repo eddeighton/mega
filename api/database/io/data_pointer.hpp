@@ -19,11 +19,19 @@ namespace data
             : m_loader( loader )
         {
         }
+        
         Ptr( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
             : m_loader( loader )
             , m_objectInfo( objectInfo )
         {
         }
+
+        Ptr( Ptr& old, const mega::io::ObjectInfo& objectInfo )
+            : m_loader( old.m_loader )
+            , m_objectInfo( objectInfo )
+        {
+        }
+
         Ptr( ObjectPartLoader& loader, T* pObjectPart )
             : m_loader( loader )
             , m_objectInfo( pObjectPart->getObjectInfo() )
@@ -36,13 +44,12 @@ namespace data
             , m_objectInfo( copy.m_objectInfo )
             , m_pObjectPart( copy.m_pObjectPart )
         {
-
         }
 
         Ptr& operator=( const Ptr& copy )
         {
             VERIFY_RTE( &m_loader == &copy.m_loader );
-            if( this != &copy )
+            if ( this != &copy )
             {
                 m_objectInfo = copy.m_objectInfo;
                 m_pObjectPart = copy.m_pObjectPart;
@@ -65,7 +72,7 @@ namespace data
             else
             {
                 // load the object
-                m_pObjectPart = dynamic_cast<T*>( m_loader.load( m_objectInfo ) );
+                m_pObjectPart = dynamic_cast< T* >( m_loader.load( m_objectInfo ) );
             }
             return m_pObjectPart;
         }
