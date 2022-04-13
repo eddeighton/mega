@@ -124,8 +124,8 @@ TEST_P( StageAccept, Basic )
 INSTANTIATE_TEST_SUITE_P( Stage_Accept,
                           StageAccept,
                           ::testing::Values( "stage perobject test{}",
-                                             "stage perprogram test{ file someFile accessor "
-                                             "perobject ref< foobar > }" ) );
+                                             "stage perprogram test{ file someFile; accessor "
+                                             "perobject ref< foobar >; }" ) );
 
 // PropertyAccept
 class PropertyAccept : public ::testing::TestWithParam< std::string >
@@ -174,14 +174,14 @@ ObjectAccept,
 
 "object test -> file"
 "{"
-"   value name"
+"   value name;"
 "}",
 
 "object test -> somefile"
 "{"
-"    ref< a > context -> otherfile"
-"    value< std::string > name"
-"    map< ref< a >, value< bool >, pref< compare > > mapping"
+"    ref< a > context -> otherfile;"
+"    value< std::string > name;"
+"    map< ref< a >, value< bool >, pref< compare > > mapping;"
 "}"
 
 ) );
@@ -221,7 +221,7 @@ INSTANTIATE_TEST_SUITE_P(
 "{"
 "   object test -> somefile"
 "   {"
-"       value< std::string > name"
+"       value< std::string > name;"
 "   }"
 "   namespace test{}"
 "}"
@@ -255,34 +255,34 @@ INSTANTIATE_TEST_SUITE_P(
 
 "stage perprogram test"
 "{"
-"  file fileone"
-"  accessor perobject ref< Parser::Root >"
+"  file fileone;"
+"  accessor perobject ref< Parser::Root >;"
 "}",
 
 "stage perobject test"
 "{"
-"  file fileone"
-"  accessor perprogram ref< Parser::Root >"
+"  file fileone;"
+"  accessor perprogram ref< Parser::Root >;"
 "}"
 "namespace test"
 "{"
 "   object test : foobar -> A::B"
 "   {"
-"       value< std::string > name1"
-"       value< std::string > name2 -> A::C"
-"       value< std::string > name3"
+"       value< std::string > name1;"
+"       value< std::string > name2 -> A::C;"
+"       value< std::string > name3;"
 "   }"
 "}"
 "stage perprogram test"
 "{"
-"  file fileone"
-"  accessor perobject ref< Parser::Root >"
+"  file fileone;"
+"  accessor perobject ref< Parser::Root >;"
 "}"
 "namespace test2"
 "{"
 "   object test -> A::B"
 "   {"
-"       value< std::string > name"
+"       value< std::string > name;"
 "   }"
 "}"
 

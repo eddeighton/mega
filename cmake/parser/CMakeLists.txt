@@ -13,6 +13,8 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( CLANG_PLUGIN_API ${MEGA_API_DIR}/parser/parser.hpp )
 
 set( CLANG_PLUGIN_SOURCES
+    ${MEGA_SRC_DIR}/parser/clang.hpp
+    ${MEGA_SRC_DIR}/parser/clang.cpp
     ${MEGA_SRC_DIR}/parser/parser.cpp
     )
 

@@ -28,43 +28,30 @@ namespace Components
 }
 namespace AST
 {
-    struct Opaque;
+    struct Identifier;
+    struct ScopedIdentifier;
+    struct ArgumentList;
+    struct ReturnType;
+    struct Inheritance;
+    struct Size;
     struct Dimension;
-    struct Root;
-    struct Context;
-    struct FoobarRoot;
-    struct TestRoot;
+    struct Include;
+    struct SystemInclude;
+    struct MegaInclude;
+    struct CPPInclude;
+    struct Dependency;
+    struct ContextDef;
+    struct AbstractDef;
+    struct ActionDef;
+    struct EventDef;
+    struct FunctionDef;
+    struct ObjectDef;
+    struct LinkDef;
+    struct SourceRoot;
+    struct IncludeRoot;
+    struct ObjectSourceRoot;
 }
 namespace Body
-{
-}
-namespace Extra
-{
-}
-namespace Tree
-{
-    struct Dimension;
-    struct Root;
-}
-namespace DependencyAnalysis
-{
-}
-namespace ObjectCompile
-{
-}
-namespace ObjectAnalysis
-{
-}
-namespace Tree
-{
-}
-namespace Buffers
-{
-}
-namespace Graph
-{
-}
-namespace Invocations
 {
 }
 
@@ -89,10 +76,10 @@ namespace Components
 }
 namespace AST
 {
-    struct Opaque : public mega::io::Object
+    struct Identifier : public mega::io::Object
     {
-        Opaque( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Opaque( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
+        Identifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Identifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
         enum 
         {
             Type = 1
@@ -101,68 +88,284 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
-    struct Dimension : public mega::io::Object
+    struct ScopedIdentifier : public mega::io::Object
     {
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const std::string& identifier, const std::string& type, const std::string& test, data::Ptr< data::AST::Opaque > cppTypeName, const std::vector< data::Ptr< data::AST::Opaque > >& children1, std::map< int, data::Ptr< data::AST::Opaque > > map1, std::map< data::Ptr< data::AST::Opaque >, int > map2);
+        ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Identifier > >& ids);
         enum 
         {
             Type = 2
         };
-        bool isConst;
-        std::string identifier;
-        std::string type;
-        std::string test;
-        data::Ptr< data::AST::Opaque > cppTypeName;
-        std::vector< data::Ptr< data::AST::Opaque > > children1;
-        std::map< int, data::Ptr< data::AST::Opaque > > map1;
-        std::map< data::Ptr< data::AST::Opaque >, int > map2;
+        std::vector< data::Ptr< data::AST::Identifier > > ids;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
-    struct Root : public mega::io::Object
+    struct ArgumentList : public mega::io::Object
     {
-        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ArgumentList( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ArgumentList( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
         enum 
         {
             Type = 3
         };
-        Ptr< AST::Context > p_AST_Context;
+        std::string str;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
-    struct Context : public mega::io::Object
+    struct ReturnType : public mega::io::Object
     {
-        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const std::string& body);
+        ReturnType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ReturnType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
         enum 
         {
             Type = 4
         };
-        std::string identifier;
-        std::string body;
+        std::string str;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
-    struct FoobarRoot : public mega::io::Object
+    struct Inheritance : public mega::io::Object
     {
-        FoobarRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Inheritance( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Inheritance( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< std::string >& strings);
         enum 
         {
             Type = 5
         };
-        Ptr< AST::TestRoot > p_AST_TestRoot;
+        std::vector< std::string > strings;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
-    struct TestRoot : public mega::io::Object
+    struct Size : public mega::io::Object
     {
-        TestRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Size( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Size( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
         enum 
         {
             Type = 6
         };
-        Ptr< AST::Root > p_AST_Root;
+        std::string str;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Dimension : public mega::io::Object
+    {
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, data::Ptr< data::AST::Identifier > id, const std::string& type);
+        enum 
+        {
+            Type = 7
+        };
+        bool isConst;
+        data::Ptr< data::AST::Identifier > id;
+        std::string type;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Include : public mega::io::Object
+    {
+        Include( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Include( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::Identifier > id);
+        enum 
+        {
+            Type = 8
+        };
+        data::Ptr< data::AST::Identifier > id;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct SystemInclude : public mega::io::Object
+    {
+        SystemInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        SystemInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
+        enum 
+        {
+            Type = 9
+        };
+        std::string str;
+        Ptr< AST::Include > p_AST_Include;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct MegaInclude : public mega::io::Object
+    {
+        MegaInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        MegaInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& megaSourceFilePath, data::Ptr< data::AST::IncludeRoot > root);
+        enum 
+        {
+            Type = 10
+        };
+        boost::filesystem::path megaSourceFilePath;
+        data::Ptr< data::AST::IncludeRoot > root;
+        Ptr< AST::Include > p_AST_Include;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct CPPInclude : public mega::io::Object
+    {
+        CPPInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        CPPInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& cppSourceFilePath);
+        enum 
+        {
+            Type = 11
+        };
+        boost::filesystem::path cppSourceFilePath;
+        Ptr< AST::Include > p_AST_Include;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Dependency : public mega::io::Object
+    {
+        Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::Identifier > id, const std::string& str);
+        enum 
+        {
+            Type = 12
+        };
+        data::Ptr< data::AST::Identifier > id;
+        std::string str;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct ContextDef : public mega::io::Object
+    {
+        ContextDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ContextDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ContextDef > >& children, const std::vector< data::Ptr< data::AST::Dimension > >& dimensions, const std::vector< data::Ptr< data::AST::Include > >& includes, const std::vector< data::Ptr< data::AST::Dependency > >& dependencies, const std::string& body);
+        enum 
+        {
+            Type = 13
+        };
+        std::vector< data::Ptr< data::AST::ContextDef > > children;
+        std::vector< data::Ptr< data::AST::Dimension > > dimensions;
+        std::vector< data::Ptr< data::AST::Include > > includes;
+        std::vector< data::Ptr< data::AST::Dependency > > dependencies;
+        std::string body;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct AbstractDef : public mega::io::Object
+    {
+        AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id);
+        enum 
+        {
+            Type = 14
+        };
+        data::Ptr< data::AST::ScopedIdentifier > id;
+        Ptr< AST::ContextDef > p_AST_ContextDef;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct ActionDef : public mega::io::Object
+    {
+        ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance);
+        enum 
+        {
+            Type = 15
+        };
+        data::Ptr< data::AST::ScopedIdentifier > id;
+        data::Ptr< data::AST::Size > size;
+        data::Ptr< data::AST::Inheritance > inheritance;
+        Ptr< AST::ContextDef > p_AST_ContextDef;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct EventDef : public mega::io::Object
+    {
+        EventDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        EventDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance);
+        enum 
+        {
+            Type = 16
+        };
+        data::Ptr< data::AST::ScopedIdentifier > id;
+        data::Ptr< data::AST::Size > size;
+        data::Ptr< data::AST::Inheritance > inheritance;
+        Ptr< AST::ContextDef > p_AST_ContextDef;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct FunctionDef : public mega::io::Object
+    {
+        FunctionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        FunctionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::ArgumentList > argumentList, data::Ptr< data::AST::ReturnType > returnType);
+        enum 
+        {
+            Type = 17
+        };
+        data::Ptr< data::AST::ScopedIdentifier > id;
+        data::Ptr< data::AST::ArgumentList > argumentList;
+        data::Ptr< data::AST::ReturnType > returnType;
+        Ptr< AST::ContextDef > p_AST_ContextDef;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct ObjectDef : public mega::io::Object
+    {
+        ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance);
+        enum 
+        {
+            Type = 18
+        };
+        data::Ptr< data::AST::ScopedIdentifier > id;
+        data::Ptr< data::AST::Size > size;
+        data::Ptr< data::AST::Inheritance > inheritance;
+        Ptr< AST::ContextDef > p_AST_ContextDef;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct LinkDef : public mega::io::Object
+    {
+        LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance);
+        enum 
+        {
+            Type = 19
+        };
+        data::Ptr< data::AST::ScopedIdentifier > id;
+        data::Ptr< data::AST::Size > size;
+        data::Ptr< data::AST::Inheritance > inheritance;
+        Ptr< AST::ContextDef > p_AST_ContextDef;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct SourceRoot : public mega::io::Object
+    {
+        SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& sourceFile, data::Ptr< data::Components::Component > component, data::Ptr< data::AST::ContextDef > ast);
+        enum 
+        {
+            Type = 20
+        };
+        boost::filesystem::path sourceFile;
+        data::Ptr< data::Components::Component > component;
+        data::Ptr< data::AST::ContextDef > ast;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct IncludeRoot : public mega::io::Object
+    {
+        IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::MegaInclude > include);
+        enum 
+        {
+            Type = 21
+        };
+        data::Ptr< data::AST::MegaInclude > include;
+        Ptr< AST::SourceRoot > p_AST_SourceRoot;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct ObjectSourceRoot : public mega::io::Object
+    {
+        ObjectSourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Type = 22
+        };
+        Ptr< AST::SourceRoot > p_AST_SourceRoot;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -170,149 +373,207 @@ namespace AST
 namespace Body
 {
 }
-namespace Extra
-{
-}
-namespace Tree
-{
-    struct Dimension : public mega::io::Object
-    {
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& more);
-        enum 
-        {
-            Type = 7
-        };
-        bool more;
-        Ptr< AST::Dimension > p_AST_Dimension;
-        virtual void load( mega::io::Loader& loader );
-        virtual void store( mega::io::Storer& storer ) const;
-    };
-    struct Root : public mega::io::Object
-    {
-        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        enum 
-        {
-            Type = 8
-        };
-        virtual void load( mega::io::Loader& loader );
-        virtual void store( mega::io::Storer& storer ) const;
-    };
-}
-namespace DependencyAnalysis
-{
-}
-namespace ObjectCompile
-{
-}
-namespace ObjectAnalysis
-{
-}
-namespace Tree
-{
-}
-namespace Buffers
-{
-}
-namespace Graph
-{
-}
-namespace Invocations
-{
-}
 
 template <>
-inline Ptr< Components::Component > convert( Ptr< Components::Component >& from )
+inline Ptr< Components::Component > convert( const Ptr< Components::Component >& from )
 {
     return from;
 }
 
 template <>
-inline Ptr< AST::Opaque > convert( Ptr< AST::Opaque >& from )
+inline Ptr< AST::Identifier > convert( const Ptr< AST::Identifier >& from )
 {
     return from;
 }
 
 template <>
-inline Ptr< AST::Dimension > convert( Ptr< AST::Dimension >& from )
+inline Ptr< AST::ScopedIdentifier > convert( const Ptr< AST::ScopedIdentifier >& from )
 {
     return from;
 }
 
 template <>
-inline Ptr< AST::Root > convert( Ptr< AST::Root >& from )
+inline Ptr< AST::ArgumentList > convert( const Ptr< AST::ArgumentList >& from )
 {
     return from;
 }
 
 template <>
-inline Ptr< AST::Context > convert( Ptr< AST::Root >& from )
-{
-    return from->p_AST_Context;
-}
-
-template <>
-inline Ptr< AST::Context > convert( Ptr< AST::Context >& from )
+inline Ptr< AST::ReturnType > convert( const Ptr< AST::ReturnType >& from )
 {
     return from;
 }
 
 template <>
-inline Ptr< AST::Root > convert( Ptr< AST::FoobarRoot >& from )
-{
-    return from->p_AST_TestRoot->p_AST_Root;
-}
-
-template <>
-inline Ptr< AST::Context > convert( Ptr< AST::FoobarRoot >& from )
-{
-    return from->p_AST_TestRoot->p_AST_Root->p_AST_Context;
-}
-
-template <>
-inline Ptr< AST::FoobarRoot > convert( Ptr< AST::FoobarRoot >& from )
+inline Ptr< AST::Inheritance > convert( const Ptr< AST::Inheritance >& from )
 {
     return from;
 }
 
 template <>
-inline Ptr< AST::TestRoot > convert( Ptr< AST::FoobarRoot >& from )
-{
-    return from->p_AST_TestRoot;
-}
-
-template <>
-inline Ptr< AST::Root > convert( Ptr< AST::TestRoot >& from )
-{
-    return from->p_AST_Root;
-}
-
-template <>
-inline Ptr< AST::Context > convert( Ptr< AST::TestRoot >& from )
-{
-    return from->p_AST_Root->p_AST_Context;
-}
-
-template <>
-inline Ptr< AST::TestRoot > convert( Ptr< AST::TestRoot >& from )
+inline Ptr< AST::Size > convert( const Ptr< AST::Size >& from )
 {
     return from;
 }
 
 template <>
-inline Ptr< AST::Dimension > convert( Ptr< Tree::Dimension >& from )
-{
-    return from->p_AST_Dimension;
-}
-
-template <>
-inline Ptr< Tree::Dimension > convert( Ptr< Tree::Dimension >& from )
+inline Ptr< AST::Dimension > convert( const Ptr< AST::Dimension >& from )
 {
     return from;
 }
 
 template <>
-inline Ptr< Tree::Root > convert( Ptr< Tree::Root >& from )
+inline Ptr< AST::Include > convert( const Ptr< AST::Include >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Include > convert( const Ptr< AST::SystemInclude >& from )
+{
+    return from->p_AST_Include;
+}
+
+template <>
+inline Ptr< AST::SystemInclude > convert( const Ptr< AST::SystemInclude >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Include > convert( const Ptr< AST::MegaInclude >& from )
+{
+    return from->p_AST_Include;
+}
+
+template <>
+inline Ptr< AST::MegaInclude > convert( const Ptr< AST::MegaInclude >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Include > convert( const Ptr< AST::CPPInclude >& from )
+{
+    return from->p_AST_Include;
+}
+
+template <>
+inline Ptr< AST::CPPInclude > convert( const Ptr< AST::CPPInclude >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Dependency > convert( const Ptr< AST::Dependency >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::ContextDef > convert( const Ptr< AST::ContextDef >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::ContextDef > convert( const Ptr< AST::AbstractDef >& from )
+{
+    return from->p_AST_ContextDef;
+}
+
+template <>
+inline Ptr< AST::AbstractDef > convert( const Ptr< AST::AbstractDef >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::ContextDef > convert( const Ptr< AST::ActionDef >& from )
+{
+    return from->p_AST_ContextDef;
+}
+
+template <>
+inline Ptr< AST::ActionDef > convert( const Ptr< AST::ActionDef >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::ContextDef > convert( const Ptr< AST::EventDef >& from )
+{
+    return from->p_AST_ContextDef;
+}
+
+template <>
+inline Ptr< AST::EventDef > convert( const Ptr< AST::EventDef >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::ContextDef > convert( const Ptr< AST::FunctionDef >& from )
+{
+    return from->p_AST_ContextDef;
+}
+
+template <>
+inline Ptr< AST::FunctionDef > convert( const Ptr< AST::FunctionDef >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::ContextDef > convert( const Ptr< AST::ObjectDef >& from )
+{
+    return from->p_AST_ContextDef;
+}
+
+template <>
+inline Ptr< AST::ObjectDef > convert( const Ptr< AST::ObjectDef >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::ContextDef > convert( const Ptr< AST::LinkDef >& from )
+{
+    return from->p_AST_ContextDef;
+}
+
+template <>
+inline Ptr< AST::LinkDef > convert( const Ptr< AST::LinkDef >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::SourceRoot > convert( const Ptr< AST::SourceRoot >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::SourceRoot > convert( const Ptr< AST::IncludeRoot >& from )
+{
+    return from->p_AST_SourceRoot;
+}
+
+template <>
+inline Ptr< AST::IncludeRoot > convert( const Ptr< AST::IncludeRoot >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::SourceRoot > convert( const Ptr< AST::ObjectSourceRoot >& from )
+{
+    return from->p_AST_SourceRoot;
+}
+
+template <>
+inline Ptr< AST::ObjectSourceRoot > convert( const Ptr< AST::ObjectSourceRoot >& from )
 {
     return from;
 }

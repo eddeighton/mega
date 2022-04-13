@@ -4,68 +4,18 @@
 // Stages
 stage perprogram ComponentListing
 {
-    file Components
+    file Components;
 }
 
-stage perobject InputParse
+stage perobject ParserStage
 {
-    file AST
-    file Body
-    file Extra
+    file AST;
+    file Body;
 
-    accessor perprogram array< ref< Components::Component > >
-
-    accessor perobject ref< Parser::Context >
-    accessor perobject ref< Parser::Root >
+    accessor perprogram array< ref< Components::Component > >;
+    accessor perobject array< ref< Parser::MegaInclude > >;
 }
 
-stage perobject InterfaceStage
-{
-    file Tree
-
-    accessor perobject ref< Parser::Dimension >
-    accessor perobject ref< Parser::Context >
-    accessor perobject ref< Parser::Root >
-
-    accessor perobject ref< Interface::Dimension >
-}
-
-stage perprogram Dependencies
-{
-    file DependencyAnalysis
-}
-
-stage perobject Analysis
-{
-    file ObjectCompile
-    file ObjectAnalysis
-
-    accessor perobject ref< Parser::Root >
-    accessor perobject ref< Parser::Dimension >
-
-    accessor perobject ref< Interface::Root >
-    accessor perobject ref< Interface::Dimension >
-}
-
-stage perprogram Concrete
-{
-    file Tree
-}
-
-stage perprogram Layout
-{
-    file Buffers
-}
-
-stage perprogram HyperGraph
-{
-    file Graph
-}
-
-stage perprogram Derivations
-{
-    file Invocations
-}
 
 ///////////////////////////////////////////
 ///////////////////////////////////////////
@@ -74,63 +24,142 @@ namespace Components
 {
     object Component -> ComponentListing::Components
     {
-        value< std::string > name
-        value< boost::filesystem::path > directory
-        array< value< boost::filesystem::path > > includeDirectories
-        array< value< boost::filesystem::path > > sourceFiles
+        value< std::string > name;
+        value< boost::filesystem::path > directory;
+        array< value< boost::filesystem::path > > includeDirectories;
+        array< value< boost::filesystem::path > > sourceFiles;
     }
 }
 
 namespace Parser
 {
-    object Opaque -> InputParse::AST
+    object Identifier -> ParserStage::AST
     {
-        value< std::string > str
+        value< std::string > str;
     }
 
-    object Dimension -> InputParse::AST
+    object ScopedIdentifier -> ParserStage::AST
     {
-        value< bool > isConst
-        value< std::string > identifier
-        value< std::string > type
-        value< std::string > test -> InputParse::Extra
-        ref< Opaque > cppTypeName
-        array< ref< Opaque > > children1 
-        map< value< int >, ref< Opaque > > map1
-        map< ref< Opaque >, value< int > > map2
-
-        //array< array< ref< Opaque > > > children2 
-        //value< std::string > foobar -> Interface::Tree
+        array< ref< Identifier > > ids;
     }
 
-    object Root : Context -> InputParse::AST
+    object ArgumentList -> ParserStage::AST
+    {
+        value< std::string > str;
+    }
+
+    object ReturnType -> ParserStage::AST
+    {
+        value< std::string > str;
+    }
+
+    object Inheritance -> ParserStage::AST
+    {
+        array< value< std::string > > strings;
+    }
+
+    object Size -> ParserStage::AST
+    {
+        value< std::string > str;
+    }
+
+    object Dimension -> ParserStage::AST
+    {
+        value< bool > isConst;
+        ref< Identifier > id;
+        value< std::string > type;
+    }
+
+    object Include -> ParserStage::AST
+    {
+        ref< Identifier > id;
+    }
+
+    object SystemInclude : Include -> ParserStage::AST
+    {
+        value< std::string > str;
+    }
+
+    object MegaInclude : Include -> ParserStage::AST
+    {
+        value< boost::filesystem::path > megaSourceFilePath;
+        ref< IncludeRoot > root;
+    }
+
+    object CPPInclude : Include -> ParserStage::AST
+    {
+        value< boost::filesystem::path > cppSourceFilePath;
+    }
+
+    object Dependency -> ParserStage::AST
+    {
+        ref< Identifier > id;
+        value< std::string > str;
+    }
+
+    object ContextDef -> ParserStage::AST
+    {
+        array< ref< ContextDef > > children;
+        array< ref< Dimension > > dimensions;
+        array< ref< Include > > includes;
+        array< ref< Dependency > > dependencies;
+        value< std::string > body -> ParserStage::Body;
+    }
+
+    object AbstractDef : ContextDef -> ParserStage::AST
+    {
+        ref< ScopedIdentifier > id;
+    }
+
+    object ActionDef : ContextDef -> ParserStage::AST
+    {
+        ref< ScopedIdentifier > id;
+        ref< Size > size;
+        ref< Inheritance > inheritance;
+    }
+
+    object EventDef : ContextDef -> ParserStage::AST
+    {
+        ref< ScopedIdentifier > id;
+        ref< Size > size;
+        ref< Inheritance > inheritance;
+    }
+
+    object FunctionDef : ContextDef -> ParserStage::AST
+    {
+        ref< ScopedIdentifier > id;
+        ref< ArgumentList > argumentList;
+        ref< ReturnType > returnType;
+    }
+
+    object ObjectDef : ContextDef -> ParserStage::AST
+    {
+        ref< ScopedIdentifier > id;
+        ref< Size > size;
+        ref< Inheritance > inheritance;
+    }
+
+    object LinkDef : ContextDef -> ParserStage::AST
+    {
+        ref< ScopedIdentifier > id;
+        ref< Size > size;
+        ref< Inheritance > inheritance;
+    }
+
+    object SourceRoot  -> ParserStage::AST
+    {
+        value< boost::filesystem::path > sourceFile;
+        ref< Components::Component > component;
+        ref< ContextDef > ast;
+    }
+
+    object IncludeRoot : SourceRoot -> ParserStage::AST
+    {
+        ref< MegaInclude > include;
+    }
+
+    object ObjectSourceRoot : SourceRoot -> ParserStage::AST
     {
     }
 
-    object Context -> InputParse::AST
-    {
-        value< std::string > identifier
-        value< std::string > body -> InputParse::Body
-    }
-
-    object FoobarRoot : TestRoot -> InputParse::AST
-    {
-    }
-
-    object TestRoot : Root -> InputParse::AST
-    {
-    }
-}
-
-namespace Interface
-{
-    object Dimension : Parser::Dimension -> InterfaceStage::Tree
-    {
-        value< bool > more
-    }
-
-    object Root -> InterfaceStage::Tree
-    {
-        //ref< Parser::Root > root
-    }
 }

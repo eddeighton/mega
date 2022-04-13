@@ -34,10 +34,7 @@ namespace db
         class CountedObjectComparator
         {
         public:
-            bool operator()( T left, T right ) const
-            {
-                return left->getCounter() < right->getCounter();
-            }
+            bool operator()( T left, T right ) const { return left->getCounter() < right->getCounter(); }
         };
 
         ///////////////////////////////////////////////////
@@ -80,7 +77,7 @@ namespace db
             bool isCtorParam() const { return m_type->isCtorParam(); }
             bool isGet() const { return m_type->isGet(); }
             bool isSet() const { return m_type->isSet(); }
-            bool isInsert() const { return  m_type->isInsert(); }
+            bool isInsert() const { return m_type->isInsert(); }
 
             std::weak_ptr< ObjectPart > m_objectPart;
 
@@ -184,7 +181,7 @@ namespace db
             std::string                    m_strName;
             std::vector< ObjectPart::Ptr > m_parts;
         };
-
+        class Interface;
         class Function : public CountedObject
         {
         public:
@@ -194,6 +191,18 @@ namespace db
             {
             }
             Property::Ptr m_property;
+            std::weak_ptr< Interface > m_interface;
+
+            virtual std::string getName() const = 0;
+            virtual std::string getReturnType() const = 0;
+            virtual std::string getParams() const = 0;
+
+            inline std::string getMangledName() const
+            {
+                std::ostringstream os;
+                os << getReturnType() << getName() << getParams();
+                return os.str();
+            }
         };
         class FunctionGetter : public Function
         {
@@ -202,6 +211,23 @@ namespace db
             FunctionGetter( std::size_t& szCounter )
                 : Function( szCounter )
             {
+            }
+            virtual std::string getName() const
+            {
+                std::ostringstream os;
+                os << "get_" << m_property->m_strName;
+                return os.str();
+            }
+            virtual std::string getReturnType() const
+            {
+                std::ostringstream os;
+                os << m_property->m_type->getViewType( true );
+                return os.str();
+            }
+            virtual std::string getParams() const
+            {
+                std::ostringstream os;
+                return os.str();
             }
         };
         class FunctionSetter : public Function
@@ -212,6 +238,22 @@ namespace db
                 : Function( szCounter )
             {
             }
+            virtual std::string getName() const
+            {
+                std::ostringstream os;
+                os << "set_" << m_property->m_strName;
+                return os.str();
+            }
+            virtual std::string getReturnType() const
+            {
+                return "void";
+            }
+            virtual std::string getParams() const
+            {
+                std::ostringstream os;
+                os << m_property->m_type->getViewType( true ) << " value ";
+                return os.str();
+            }
         };
         class FunctionInserter : public Function
         {
@@ -221,6 +263,12 @@ namespace db
                 : Function( szCounter )
             {
             }
+            virtual std::string getName() const;
+            virtual std::string getReturnType() const
+            {
+                return "void";
+            }
+            virtual std::string getParams() const;
         };
 
         class SuperInterface;
@@ -300,6 +348,9 @@ namespace db
             std::weak_ptr< Stage >        m_stage;
             std::vector< Interface::Ptr > m_interfaces;
 
+            using FunctionMultiMap = std::multimap< std::string, Function::Ptr >;
+            FunctionMultiMap m_functions;
+
             std::string getTypeName() const
             {
                 std::ostringstream os;
@@ -363,7 +414,6 @@ namespace db
 
             std::vector< Accessor::Ptr >    m_accessors;
             std::vector< Constructor::Ptr > m_constructors;
-            // std::vector< Refinement::Ptr >  m_refinements;
 
             std::vector< Interface::Ptr >      m_interfaceTopological;
             std::vector< Interface::Ptr >      m_readOnlyInterfaces;
@@ -407,8 +457,7 @@ namespace db
 
             using ObjectPartPair = std::pair< ObjectPart::Ptr, ObjectPart::Ptr >;
             using ObjectPartVector = std::vector< ObjectPart::Ptr >;
-            using ConversionMap = std::map< ObjectPartPair, ObjectPartVector,
-                                            CountedObjectPairComparator< ObjectPartPair > >;
+            using ConversionMap = std::map< ObjectPartPair, ObjectPartVector, CountedObjectPairComparator< ObjectPartPair > >;
 
             ConversionMap m_conversions;
         };
@@ -433,18 +482,12 @@ namespace db
             using Ptr = std::shared_ptr< ValueType >;
             std::string m_cppType;
 
-            virtual std::string getViewType( bool bAsArg ) const
-            {
-                return bAsArg ? toConstRef( m_cppType ) : m_cppType;
-            }
-            virtual std::string getDataType( bool bAsArg ) const
-            {
-                return bAsArg ? toConstRef( m_cppType ) : m_cppType;
-            }
-            virtual bool isCtorParam() const { return true; }
-            virtual bool isGet() const { return true; }
-            virtual bool isSet() const { return true; }
-            virtual bool isInsert() const { return false; }
+            virtual std::string getViewType( bool bAsArg ) const { return bAsArg ? toConstRef( m_cppType ) : m_cppType; }
+            virtual std::string getDataType( bool bAsArg ) const { return bAsArg ? toConstRef( m_cppType ) : m_cppType; }
+            virtual bool        isCtorParam() const { return true; }
+            virtual bool        isGet() const { return true; }
+            virtual bool        isSet() const { return true; }
+            virtual bool        isInsert() const { return false; }
         };
 
         class ArrayType : public Type
@@ -463,7 +506,7 @@ namespace db
                 std::ostringstream os;
                 os << "std::vector< " << m_underlyingType->getViewType( false ) << " >";
                 return os.str();
-                //return bAsArg ? toConstRef( os.str() ) : os.str();
+                // return bAsArg ? toConstRef( os.str() ) : os.str();
             }
             virtual std::string getDataType( bool bAsArg ) const
             {
@@ -492,16 +535,14 @@ namespace db
             {
                 VERIFY_RTE( m_object );
                 std::ostringstream os;
-                os << m_object->m_namespace.lock()->m_strFullName << "::" << m_object->m_strName
-                   << "*";
+                os << m_object->m_namespace.lock()->m_strFullName << "::" << m_object->m_strName << "*";
                 return os.str();
             }
             virtual std::string getDataType( bool bAsArg ) const
             {
                 VERIFY_RTE( m_object );
                 std::ostringstream os;
-                os << "data::Ptr< data::" << m_object->m_primaryFile.lock()->m_strName
-                   << "::" << m_object->m_strName << " >";
+                os << "data::Ptr< data::" << m_object->m_primaryFile.lock()->m_strName << "::" << m_object->m_strName << " >";
                 return os.str();
             }
             virtual bool isCtorParam() const { return true; }

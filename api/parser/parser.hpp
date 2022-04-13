@@ -25,35 +25,24 @@
 
 #endif
 
-// EG Database Interface
-namespace mega
+namespace ParserStage
 {
-namespace io
-{
-    class FileInfo;
-    namespace stage
-    {
-        class Stage_ObjectParse;
-    }
-    template < typename T >
     class Database;
-} // namespace io
-/*
-namespace input
-{
-    class Root;
-}*/
+
+    namespace Parser
+    {
+        class ContextDef;
+    }
+} // namespace ParserStage
 
 struct EGDB_EXPORT EG_PARSER_INTERFACE
 {
-    virtual void
-    parseEGSourceFile( mega::io::Database< mega::io::stage::Stage_ObjectParse >& database,
-                       //mega::input::Root*                                        pRoot,
-                       const std::vector< boost::filesystem::path >&             includeDirectories,
-                       std::ostream&                                             osError,
-                       std::ostream&                                             osWarn )
+    virtual ParserStage::Parser::ContextDef* parseEGSourceFile( ParserStage::Database&                        database,
+                                                                const boost::filesystem::path&                sourceFilePath,
+                                                                const std::vector< boost::filesystem::path >& includeDirectories,
+                                                                std::ostream&                                 osError,
+                                                                std::ostream&                                 osWarn )
         = 0;
 };
-} // namespace mega
 
 #endif // PARSER_14_SEPT_2020

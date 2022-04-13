@@ -61,7 +61,7 @@ namespace {{ file.name }}
 
 {% for conversion in conversions %}
 template <>
-inline Ptr< {{ conversion.to }} > convert( Ptr< {{ conversion.from }} >& from )
+inline Ptr< {{ conversion.to }} > convert( const Ptr< {{ conversion.from }} >& from )
 {
     return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
 }

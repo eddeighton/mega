@@ -55,32 +55,16 @@ set( MEGA_DATABASE_GENERATED_HEADERS
 
     ${MEGA_API_DIR}/database/model/data.hxx
 
-    ${MEGA_API_DIR}/database/model/Analysis.hxx
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
-    ${MEGA_API_DIR}/database/model/Concrete.hxx
-    ${MEGA_API_DIR}/database/model/data.hxx
-    ${MEGA_API_DIR}/database/model/Dependencies.hxx
-    ${MEGA_API_DIR}/database/model/Derivations.hxx
-    ${MEGA_API_DIR}/database/model/HyperGraph.hxx
-    ${MEGA_API_DIR}/database/model/InputParse.hxx
-    ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
-    ${MEGA_API_DIR}/database/model/Layout.hxx
+    ${MEGA_API_DIR}/database/model/ParserStage.hxx
 	)
 
 set( MEGA_DATABASE_GENERATED_SOURCES
 
     ${MEGA_SRC_DIR}/database/model/data.cxx
 
-    ${MEGA_SRC_DIR}/database/model/Analysis.cxx
     ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
-    ${MEGA_SRC_DIR}/database/model/Concrete.cxx
-    ${MEGA_SRC_DIR}/database/model/data.cxx
-    ${MEGA_SRC_DIR}/database/model/Dependencies.cxx
-    ${MEGA_SRC_DIR}/database/model/Derivations.cxx
-    ${MEGA_SRC_DIR}/database/model/HyperGraph.cxx
-    ${MEGA_SRC_DIR}/database/model/InputParse.cxx
-    ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
-    ${MEGA_SRC_DIR}/database/model/Layout.cxx
+    ${MEGA_SRC_DIR}/database/model/ParserStage.cxx
 )
 
 set( MEGA_DATABASE_IO

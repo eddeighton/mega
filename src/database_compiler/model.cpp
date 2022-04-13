@@ -19,8 +19,7 @@ namespace db
         {
             std::ostringstream osObjectPartType;
             {
-                osObjectPartType << m_file.lock()->m_strName << strDelimiter
-                                 << m_object.lock()->m_strName;
+                osObjectPartType << m_file.lock()->m_strName << strDelimiter << m_object.lock()->m_strName;
             }
             return osObjectPartType.str();
         }
@@ -32,6 +31,47 @@ namespace db
                 osObjectPartType << "p_" << getDataType( "_" );
             }
             return osObjectPartType.str();
+        }
+
+        std::string FunctionInserter::getName() const
+        {
+            std::ostringstream os;
+            model::Type::Ptr   pType = m_property->m_type;
+            if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+            {
+                os << "push_back_" << m_property->m_strName;
+            }
+            else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
+            {
+                os << "insert_" << m_property->m_strName;
+            }
+            else
+            {
+                THROW_RTE( "Unsupported inserter type" );
+            }
+
+            return os.str();
+        }
+
+        std::string FunctionInserter::getParams() const
+        {
+            std::ostringstream os;
+            model::Type::Ptr   pType = m_property->m_type;
+            if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
+            {
+                os << pArray->m_underlyingType->getViewType( true ) << " value ";
+            }
+            else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
+            {
+                model::Type::Ptr pFrom = pMap->m_fromType;
+                model::Type::Ptr pTo = pMap->m_toType;
+                os << pFrom->getViewType( true ) << " key , " << pTo->getViewType( true ) << " value ";
+            }
+            else
+            {
+                THROW_RTE( "Unsupported inserter type" );
+            }
+            return os.str();
         }
 
         namespace
@@ -58,8 +98,7 @@ namespace db
                 }
             };
 
-            using ObjectFilePairToObjectPartMap
-                = std::map< ObjectFilePair, ObjectPart::Ptr, ObjectFilePairComparator >;
+            using ObjectFilePairToObjectPartMap = std::map< ObjectFilePair, ObjectPart::Ptr, ObjectFilePairComparator >;
             using FileMap = std::map< schema::IdentifierList, File::Ptr >;
             using StageMap = std::map< schema::Identifier, Stage::Ptr >;
             using NamespaceMap = std::map< schema::Identifier, Namespace::Ptr >;
@@ -81,11 +120,10 @@ namespace db
                 NamespaceMap                  namespaceMap;
                 ObjectVector                  objects;
                 ObjectRefVector               objectRefs;
-                MapTypeVector mapTypes;
+                MapTypeVector                 mapTypes;
             };
 
-            Type::Ptr getType( const schema::Type& type, Mapping& mapping,
-                               Namespace::Ptr pNamespace )
+            Type::Ptr getType( const schema::Type& type, Mapping& mapping, Namespace::Ptr pNamespace )
             {
                 if ( type.m_idList.size() == 1U )
                 {
@@ -100,11 +138,9 @@ namespace db
                             if ( cppType.m_children.empty() && !cppType.m_idList.empty() )
                             {
                                 std::ostringstream osCPPTypeName;
-                                common::delimit( cppType.m_idList.begin(), cppType.m_idList.end(),
-                                                 "::", osCPPTypeName );
+                                common::delimit( cppType.m_idList.begin(), cppType.m_idList.end(), "::", osCPPTypeName );
 
-                                ValueType::Ptr pValueType
-                                    = std::make_shared< ValueType >( mapping.counter );
+                                ValueType::Ptr pValueType = std::make_shared< ValueType >( mapping.counter );
                                 pValueType->m_cppType = osCPPTypeName.str();
                                 return pValueType;
                             }
@@ -116,13 +152,10 @@ namespace db
                         if ( type.m_children.size() == 1U )
                         {
                             const schema::Type& underlyingType = type.m_children.front();
-                            if ( !underlyingType.m_children.empty()
-                                 && !underlyingType.m_idList.empty() )
+                            if ( !underlyingType.m_children.empty() && !underlyingType.m_idList.empty() )
                             {
-                                ArrayType::Ptr pArray
-                                    = std::make_shared< ArrayType >( mapping.counter );
-                                pArray->m_underlyingType
-                                    = getType( underlyingType, mapping, pNamespace );
+                                ArrayType::Ptr pArray = std::make_shared< ArrayType >( mapping.counter );
+                                pArray->m_underlyingType = getType( underlyingType, mapping, pNamespace );
                                 return pArray;
                             }
                         }
@@ -135,12 +168,10 @@ namespace db
                             const schema::Type& cppType = type.m_children.front();
                             if ( cppType.m_children.empty() && !cppType.m_idList.empty() )
                             {
-                                RefType::Ptr pRefType
-                                    = std::make_shared< RefType >( mapping.counter );
+                                RefType::Ptr pRefType = std::make_shared< RefType >( mapping.counter );
                                 mapping.objectRefs.push_back( pRefType );
                                 // record the type name for later resolution
-                                mapping.typeNameResMap.insert( std::make_pair(
-                                    pRefType, NameResolution{ pNamespace, cppType.m_idList } ) );
+                                mapping.typeNameResMap.insert( std::make_pair( pRefType, NameResolution{ pNamespace, cppType.m_idList } ) );
                                 return pRefType;
                             }
                         }
@@ -154,11 +185,10 @@ namespace db
                             const schema::Type& toType = type.m_children.back();
                             if ( !fromType.m_idList.empty() && !toType.m_idList.empty() )
                             {
-                                MapType::Ptr pMapType
-                                    = std::make_shared< MapType >( mapping.counter );
+                                MapType::Ptr pMapType = std::make_shared< MapType >( mapping.counter );
                                 mapping.mapTypes.push_back( pMapType );
-                                pMapType->m_fromType    = getType( fromType, mapping, pNamespace );
-                                pMapType->m_toType      = getType( toType, mapping, pNamespace );
+                                pMapType->m_fromType = getType( fromType, mapping, pNamespace );
+                                pMapType->m_toType = getType( toType, mapping, pNamespace );
                                 return pMapType;
                             }
                         }
@@ -180,7 +210,7 @@ namespace db
                 {
                     Accessor::Ptr pAccessor = std::make_shared< Accessor >( mapping.counter );
                     pAccessor->m_stage = pStage;
-                    pAccessor->m_bPerObject = false;
+                    pAccessor->m_bPerObject = true;
                     pAccessor->m_type = getType( accessor.m_type, mapping, Namespace::Ptr() );
                     pStage->m_accessors.push_back( pAccessor );
                 }
@@ -188,19 +218,18 @@ namespace db
                 {
                     Accessor::Ptr pAccessor = std::make_shared< Accessor >( mapping.counter );
                     pAccessor->m_stage = pStage;
-                    pAccessor->m_bPerObject = true;
+                    pAccessor->m_bPerObject = false;
                     pAccessor->m_type = getType( accessor.m_type, mapping, Namespace::Ptr() );
                     pStage->m_accessors.push_back( pAccessor );
                 }
                 void operator()( const schema::Identifier& file ) const
                 {
                     const schema::IdentifierList idlist = { pStage->m_strName, file };
-                    File::Ptr pFile = std::make_shared< File >( mapping.counter );
+                    File::Ptr                    pFile = std::make_shared< File >( mapping.counter );
                     pFile->m_strName = file;
                     pFile->m_stage = pStage;
                     FileMap::iterator iFind = mapping.fileMap.find( idlist );
-                    VERIFY_RTE_MSG(
-                        iFind == mapping.fileMap.end(), "Duplicate file name found: " << idlist );
+                    VERIFY_RTE_MSG( iFind == mapping.fileMap.end(), "Duplicate file name found: " << idlist );
                     mapping.fileMap.insert( std::make_pair( idlist, pFile ) );
                     pStage->m_files.push_back( pFile );
                 }
@@ -217,19 +246,14 @@ namespace db
                 }
                 void operator()( const schema::Namespace& namespace_ ) const
                 {
-                    Namespace::Ptr pChildNamespace
-                        = std::make_shared< Namespace >( mapping.counter );
+                    Namespace::Ptr pChildNamespace = std::make_shared< Namespace >( mapping.counter );
                     pChildNamespace->m_strName = namespace_.m_name;
-                    pChildNamespace->m_strFullName
-                        = pNamespace->m_strName + "::" + namespace_.m_name;
+                    pChildNamespace->m_strFullName = pNamespace->m_strName + "::" + namespace_.m_name;
 
-                    NamespaceMap::iterator iFind
-                        = mapping.namespaceMap.find( pChildNamespace->m_strFullName );
+                    NamespaceMap::iterator iFind = mapping.namespaceMap.find( pChildNamespace->m_strFullName );
                     VERIFY_RTE_MSG(
-                        iFind == mapping.namespaceMap.end(),
-                        "Duplicate namespace name found: " << pChildNamespace->m_strFullName );
-                    mapping.namespaceMap.insert(
-                        std::make_pair( pChildNamespace->m_strFullName, pChildNamespace ) );
+                        iFind == mapping.namespaceMap.end(), "Duplicate namespace name found: " << pChildNamespace->m_strFullName );
+                    mapping.namespaceMap.insert( std::make_pair( pChildNamespace->m_strFullName, pChildNamespace ) );
 
                     NamespaceVariantVisitor visitor( mapping, pChildNamespace );
                     for ( const schema::NamespaceVariant& element : namespace_.m_elements )
@@ -240,19 +264,16 @@ namespace db
                     pNamespace->m_namespaces.push_back( pChildNamespace );
                 }
 
-                ObjectPart::Ptr getObjectPart( const ObjectFilePair& objectFilePair,
-                                               File::Ptr pFile, bool bIsPrimary ) const
+                ObjectPart::Ptr getObjectPart( const ObjectFilePair& objectFilePair, File::Ptr pFile, bool bIsPrimary ) const
                 {
-                    ObjectFilePairToObjectPartMap::iterator iFind
-                        = mapping.objectPartMap.find( objectFilePair );
+                    ObjectFilePairToObjectPartMap::iterator iFind = mapping.objectPartMap.find( objectFilePair );
 
                     Object::Ptr pObject = objectFilePair.first;
 
                     if ( bIsPrimary )
                     {
                         VERIFY_RTE( iFind == mapping.objectPartMap.end() );
-                        PrimaryObjectPart::Ptr pPrimaryObjectPart
-                            = std::make_shared< PrimaryObjectPart >( mapping.counter );
+                        PrimaryObjectPart::Ptr pPrimaryObjectPart = std::make_shared< PrimaryObjectPart >( mapping.counter );
                         pPrimaryObjectPart->m_object = pObject;
                         pPrimaryObjectPart->m_file = pFile;
                         pPrimaryObjectPart->m_typeID = mapping.objectPartMap.size();
@@ -261,15 +282,13 @@ namespace db
 
                         pObject->m_primaryObjectPart = pPrimaryObjectPart;
 
-                        mapping.objectPartMap.insert(
-                            std::make_pair( objectFilePair, pPrimaryObjectPart ) );
+                        mapping.objectPartMap.insert( std::make_pair( objectFilePair, pPrimaryObjectPart ) );
 
                         return pPrimaryObjectPart;
                     }
                     else if ( iFind == mapping.objectPartMap.end() )
                     {
-                        SecondaryObjectPart::Ptr pSecondaryObjectPart
-                            = std::make_shared< SecondaryObjectPart >( mapping.counter );
+                        SecondaryObjectPart::Ptr pSecondaryObjectPart = std::make_shared< SecondaryObjectPart >( mapping.counter );
 
                         pSecondaryObjectPart->m_object = pObject;
                         pSecondaryObjectPart->m_file = pFile;
@@ -279,8 +298,7 @@ namespace db
 
                         pObject->m_secondaryParts.push_back( pSecondaryObjectPart );
 
-                        mapping.objectPartMap.insert(
-                            std::make_pair( objectFilePair, pSecondaryObjectPart ) );
+                        mapping.objectPartMap.insert( std::make_pair( objectFilePair, pSecondaryObjectPart ) );
 
                         return pSecondaryObjectPart;
                     }
@@ -299,15 +317,13 @@ namespace db
                     pObject->m_namespace = pNamespace;
                     if ( object.m_optInheritance.has_value() )
                     {
-                        mapping.inheritanceNameResMap.insert( std::make_pair(
-                            pObject,
-                            NameResolution{ pNamespace, object.m_optInheritance.value() } ) );
+                        mapping.inheritanceNameResMap.insert(
+                            std::make_pair( pObject, NameResolution{ pNamespace, object.m_optInheritance.value() } ) );
                     }
 
                     FileMap::iterator iFind = mapping.fileMap.find( object.m_file );
-                    VERIFY_RTE_MSG( iFind != mapping.fileMap.end(),
-                                    "Could not find file: " << object.m_file
-                                                            << " for object: " << object.m_name );
+                    VERIFY_RTE_MSG(
+                        iFind != mapping.fileMap.end(), "Could not find file: " << object.m_file << " for object: " << object.m_name );
 
                     File::Ptr pFile = iFind->second;
                     pObject->m_primaryFile = pFile;
@@ -325,39 +341,29 @@ namespace db
                         pProperty->m_strName = property.m_name;
                         if ( property.m_optFile.has_value() )
                         {
-                            FileMap::iterator i
-                                = mapping.fileMap.find( property.m_optFile.value() );
-                            File::Ptr pObjectPartFile = i->second;
+                            FileMap::iterator i = mapping.fileMap.find( property.m_optFile.value() );
+                            File::Ptr         pObjectPartFile = i->second;
 
-                            VERIFY_RTE_MSG(
-                                i != mapping.fileMap.end(),
-                                "Could not find file: " << property.m_optFile.value()
-                                                        << " for object: " << object.m_name );
+                            VERIFY_RTE_MSG( i != mapping.fileMap.end(),
+                                            "Could not find file: " << property.m_optFile.value() << " for object: " << object.m_name );
 
                             Stage::Ptr pObjectStage = pFile->m_stage.lock();
                             Stage::Ptr pObjectPartStage = pObjectPartFile->m_stage.lock();
 
                             // ensure the object part is from current or later stage
-                            VERIFY_RTE_MSG(
-                                pObjectStage->getCounter() <= pObjectPartStage->getCounter(),
-                                "Property: " << property.m_name
-                                             << " specifies file which has earlier stage: "
-                                             << pObjectPartStage->m_strName
-                                             << " than containing object: " << object.m_name
-                                             << " which is: " << pObjectStage->m_strName );
+                            VERIFY_RTE_MSG( pObjectStage->getCounter() <= pObjectPartStage->getCounter(),
+                                            "Property: " << property.m_name << " specifies file which has earlier stage: "
+                                                         << pObjectPartStage->m_strName << " than containing object: " << object.m_name
+                                                         << " which is: " << pObjectStage->m_strName );
 
-                            pObjectPart = getObjectPart(
-                                ObjectFilePair( pObject, property.m_optFile.value() ),
-                                pObjectPartFile, false );
+                            pObjectPart = getObjectPart( ObjectFilePair( pObject, property.m_optFile.value() ), pObjectPartFile, false );
                         }
                         pProperty->m_objectPart = pObjectPart;
                         pObjectPart->m_properties.push_back( pProperty );
 
                         pProperty->m_type = getType( property.m_type, mapping, pNamespace );
 
-                        VERIFY_RTE_MSG(
-                            pProperty->m_type,
-                            "Failed to resolve type for property: " << property.m_name );
+                        VERIFY_RTE_MSG( pProperty->m_type, "Failed to resolve type for property: " << property.m_name );
                     }
 
                     pNamespace->m_objects.push_back( pObject );
@@ -381,8 +387,7 @@ namespace db
                     pStage->m_bPerObject = true;
 
                     StageMap::iterator iFind = mapping.stageMap.find( stage.m_name );
-                    VERIFY_RTE_MSG( iFind == mapping.stageMap.end(),
-                                    "Duplicate stage name found: " << stage.m_name );
+                    VERIFY_RTE_MSG( iFind == mapping.stageMap.end(), "Duplicate stage name found: " << stage.m_name );
                     mapping.stageMap.insert( std::make_pair( stage.m_name, pStage ) );
 
                     StageElementVariantVisitor visitor( mapping, pStage );
@@ -401,8 +406,7 @@ namespace db
                     pStage->m_bPerObject = false;
 
                     StageMap::iterator iFind = mapping.stageMap.find( stage.m_name );
-                    VERIFY_RTE_MSG( iFind == mapping.stageMap.end(),
-                                    "Duplicate stage name found: " << stage.m_name );
+                    VERIFY_RTE_MSG( iFind == mapping.stageMap.end(), "Duplicate stage name found: " << stage.m_name );
                     mapping.stageMap.insert( std::make_pair( stage.m_name, pStage ) );
 
                     StageElementVariantVisitor visitor( mapping, pStage );
@@ -437,13 +441,9 @@ namespace db
                     pNamespace->m_strName = namespace_.m_name;
                     pNamespace->m_strFullName = namespace_.m_name;
 
-                    NamespaceMap::iterator iFind
-                        = mapping.namespaceMap.find( pNamespace->m_strFullName );
-                    VERIFY_RTE_MSG(
-                        iFind == mapping.namespaceMap.end(),
-                        "Duplicate namespace name found: " << pNamespace->m_strFullName );
-                    mapping.namespaceMap.insert(
-                        std::make_pair( pNamespace->m_strFullName, pNamespace ) );
+                    NamespaceMap::iterator iFind = mapping.namespaceMap.find( pNamespace->m_strFullName );
+                    VERIFY_RTE_MSG( iFind == mapping.namespaceMap.end(), "Duplicate namespace name found: " << pNamespace->m_strFullName );
+                    mapping.namespaceMap.insert( std::make_pair( pNamespace->m_strFullName, pNamespace ) );
 
                     NamespaceVariantVisitor visitor( mapping, pNamespace );
                     for ( const schema::NamespaceVariant& element : namespace_.m_elements )
@@ -460,10 +460,9 @@ namespace db
         {
             if ( nameRes.m_namespace )
             {
-                VERIFY_RTE_MSG( !pResult,
-                                "Ambiguous name resolution for: "
-                                    << nameRes.id
-                                    << " from namespace: " << nameRes.m_namespace->m_strFullName );
+                VERIFY_RTE_MSG(
+                    !pResult,
+                    "Ambiguous name resolution for: " << nameRes.id << " from namespace: " << nameRes.m_namespace->m_strFullName );
             }
             else
             {
@@ -471,8 +470,7 @@ namespace db
             }
         }
 
-        Object::Ptr findType( const NameResolution& nameRes, Namespace::Ptr pNamespace,
-                              schema::IdentifierList::const_iterator i,
+        Object::Ptr findType( const NameResolution& nameRes, Namespace::Ptr pNamespace, schema::IdentifierList::const_iterator i,
                               schema::IdentifierList::const_iterator iEnd )
         {
             Object::Ptr pResult;
@@ -495,8 +493,7 @@ namespace db
                 {
                     if ( pNestedNamespace->m_strName == *i )
                     {
-                        if ( Object::Ptr pObject
-                             = findType( nameRes, pNestedNamespace, i + 1, iEnd ) )
+                        if ( Object::Ptr pObject = findType( nameRes, pNestedNamespace, i + 1, iEnd ) )
                         {
                             checkAmbiguity( pResult, nameRes );
                             pResult = pObject;
@@ -516,8 +513,7 @@ namespace db
                 Namespace::Ptr pNamespace = nameRes.m_namespace;
                 while ( pNamespace )
                 {
-                    if ( Object::Ptr pObject
-                         = findType( nameRes, pNamespace, nameRes.id.begin(), nameRes.id.end() ) )
+                    if ( Object::Ptr pObject = findType( nameRes, pNamespace, nameRes.id.begin(), nameRes.id.end() ) )
                     {
                         checkAmbiguity( pResult, nameRes );
                         pResult = pObject;
@@ -536,9 +532,7 @@ namespace db
                     {
                         if ( pNamespace->m_strName == *nameRes.id.begin() )
                         {
-                            if ( Object::Ptr pObject
-                                 = findType( nameRes, pNamespace, nameRes.id.begin() + 1,
-                                             nameRes.id.end() ) )
+                            if ( Object::Ptr pObject = findType( nameRes, pNamespace, nameRes.id.begin() + 1, nameRes.id.end() ) )
                             {
                                 checkAmbiguity( pResult, nameRes );
                                 pResult = pObject;
@@ -550,10 +544,9 @@ namespace db
 
             if ( nameRes.m_namespace )
             {
-                VERIFY_RTE_MSG( pResult,
-                                "Failed to resolve name resolution for: "
-                                    << nameRes.id
-                                    << " from namespace: " << nameRes.m_namespace->m_strFullName );
+                VERIFY_RTE_MSG(
+                    pResult,
+                    "Failed to resolve name resolution for: " << nameRes.id << " from namespace: " << nameRes.m_namespace->m_strFullName );
             }
             else
             {
@@ -589,19 +582,14 @@ namespace db
             }
 
             // resolve RefType type names
-            for ( TypeNameResMap::iterator i = mapping.typeNameResMap.begin(),
-                                           iEnd = mapping.typeNameResMap.end();
-                  i != iEnd;
-                  ++i )
+            for ( TypeNameResMap::iterator i = mapping.typeNameResMap.begin(), iEnd = mapping.typeNameResMap.end(); i != iEnd; ++i )
             {
                 i->first->m_object = findType( pSchema, i->second );
             }
 
             // resolve object inheritance type names
-            for ( InheritanceNameResMap::iterator i = mapping.inheritanceNameResMap.begin(),
-                                                  iEnd = mapping.inheritanceNameResMap.end();
-                  i != iEnd;
-                  ++i )
+            for ( InheritanceNameResMap::iterator i = mapping.inheritanceNameResMap.begin(), iEnd = mapping.inheritanceNameResMap.end();
+                  i != iEnd; ++i )
             {
                 Object::Ptr pObject = findType( pSchema, i->second );
                 i->first->m_base = pObject;
@@ -609,8 +597,7 @@ namespace db
             }
 
             using ObjectPtrVector = std::vector< ObjectPart::Ptr >;
-            using ObjectPartMap
-                = std::map< Object::Ptr, ObjectPtrVector, CountedObjectComparator< Object::Ptr > >;
+            using ObjectPartMap = std::map< Object::Ptr, ObjectPtrVector, CountedObjectComparator< Object::Ptr > >;
 
             // once an object exists it WILL ALWAYS exist in every stage from then on
             // so we only need to know the objects in the previous and current stage
@@ -633,8 +620,7 @@ namespace db
                         }
                         else
                         {
-                            objectParts.insert(
-                                std::make_pair( pObject, ObjectPtrVector{ pPart } ) );
+                            objectParts.insert( std::make_pair( pObject, ObjectPtrVector{ pPart } ) );
                         }
                     }
                 }
@@ -643,13 +629,11 @@ namespace db
                 InterfaceMap interfaceMap;
 
                 // add the read-write interfaces
-                for ( ObjectPartMap::iterator i = objectParts.begin(), iEnd = objectParts.end();
-                      i != iEnd; ++i )
+                for ( ObjectPartMap::iterator i = objectParts.begin(), iEnd = objectParts.end(); i != iEnd; ++i )
                 {
                     Interface::Ptr pInterface = std::make_shared< Interface >( mapping.counter );
                     pInterface->m_isReadWrite = true;
-                    std::copy( i->second.begin(), i->second.end(),
-                               std::back_inserter( pInterface->m_readWriteObjectParts ) );
+                    std::copy( i->second.begin(), i->second.end(), std::back_inserter( pInterface->m_readWriteObjectParts ) );
                     pStage->m_readWriteInterfaces.push_back( pInterface );
                     pInterface->m_object = i->first;
                     interfaceMap.insert( std::make_pair( i->first, pInterface ) );
@@ -671,12 +655,10 @@ namespace db
                         InterfaceMap::iterator iFind = interfaceMap.find( pObject );
                         if ( iFind == interfaceMap.end() )
                         {
-                            Interface::Ptr pInterface
-                                = std::make_shared< Interface >( mapping.counter );
+                            Interface::Ptr pInterface = std::make_shared< Interface >( mapping.counter );
                             pInterface->m_isReadWrite = false;
                             interfaceMap.insert( std::make_pair( pObject, pInterface ) );
-                            pInterface->m_readOnlyObjectParts
-                                = pPreviousInterface->m_readOnlyObjectParts;
+                            pInterface->m_readOnlyObjectParts = pPreviousInterface->m_readOnlyObjectParts;
                             std::copy( pPreviousInterface->m_readWriteObjectParts.begin(),
                                        pPreviousInterface->m_readWriteObjectParts.end(),
                                        std::back_inserter( pInterface->m_readOnlyObjectParts ) );
@@ -713,8 +695,8 @@ namespace db
                         {
                             if ( pProperty->isGet() )
                             {
-                                FunctionGetter::Ptr pGetter
-                                    = std::make_shared< FunctionGetter >( mapping.counter );
+                                FunctionGetter::Ptr pGetter = std::make_shared< FunctionGetter >( mapping.counter );
+                                pGetter->m_interface = pInterface;
                                 pGetter->m_property = pProperty;
                                 pInterface->m_functions.push_back( pGetter );
                             }
@@ -736,26 +718,26 @@ namespace db
                         {
                             if ( pProperty->isGet() )
                             {
-                                FunctionGetter::Ptr pGetter
-                                    = std::make_shared< FunctionGetter >( mapping.counter );
+                                FunctionGetter::Ptr pGetter = std::make_shared< FunctionGetter >( mapping.counter );
+                                pGetter->m_interface = pInterface;
                                 pGetter->m_property = pProperty;
                                 pInterface->m_functions.push_back( pGetter );
                             }
                             if ( pProperty->isSet() )
                             {
-                                FunctionSetter::Ptr pSetter
-                                    = std::make_shared< FunctionSetter >( mapping.counter );
+                                FunctionSetter::Ptr pSetter = std::make_shared< FunctionSetter >( mapping.counter );
+                                pSetter->m_interface = pInterface;
                                 pSetter->m_property = pProperty;
                                 pInterface->m_functions.push_back( pSetter );
                             }
                             if ( pProperty->isInsert() )
                             {
-                                FunctionInserter::Ptr pInserter
-                                    = std::make_shared< FunctionInserter >( mapping.counter );
+                                FunctionInserter::Ptr pInserter = std::make_shared< FunctionInserter >( mapping.counter );
+                                pInserter->m_interface = pInterface;
                                 pInserter->m_property = pProperty;
                                 pInterface->m_functions.push_back( pInserter );
                             }
-                            if( pProperty->isCtorParam() )
+                            if ( pProperty->isCtorParam() )
                             {
                                 pInterface->m_args.push_back( pProperty );
                             }
@@ -767,8 +749,8 @@ namespace db
                         {
                             if ( pProperty->isGet() )
                             {
-                                FunctionGetter::Ptr pGetter
-                                    = std::make_shared< FunctionGetter >( mapping.counter );
+                                FunctionGetter::Ptr pGetter = std::make_shared< FunctionGetter >( mapping.counter );
+                                pGetter->m_interface = pInterface;
                                 pGetter->m_property = pProperty;
                                 pInterface->m_functions.push_back( pGetter );
                             }
@@ -779,8 +761,7 @@ namespace db
                 // create stage functions
                 for ( Interface::Ptr pInterface : pStage->m_readWriteInterfaces )
                 {
-                    Constructor::Ptr pConstructor
-                        = std::make_shared< Constructor >( mapping.counter );
+                    Constructor::Ptr pConstructor = std::make_shared< Constructor >( mapping.counter );
                     pConstructor->m_interface = pInterface;
                     pConstructor->m_stage = pStage;
                     pStage->m_constructors.push_back( pConstructor );
@@ -793,17 +774,13 @@ namespace db
             for ( Stage::Ptr pStage : pSchema->m_stages )
             {
                 std::vector< Interface::Ptr > interfaces = pStage->m_readOnlyInterfaces;
-                std::copy( pStage->m_readWriteInterfaces.begin(),
-                           pStage->m_readWriteInterfaces.end(),
-                           std::back_inserter( interfaces ) );
+                std::copy( pStage->m_readWriteInterfaces.begin(), pStage->m_readWriteInterfaces.end(), std::back_inserter( interfaces ) );
 
-                std::sort( interfaces.begin(), interfaces.end(),
-                           CountedObjectComparator< Interface::Ptr >() );
+                std::sort( interfaces.begin(), interfaces.end(), CountedObjectComparator< Interface::Ptr >() );
 
                 std::vector< std::vector< Interface::Ptr > > disjointInheritanceSets;
                 {
-                    std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > remaining(
-                        interfaces.begin(), interfaces.end() );
+                    std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > remaining( interfaces.begin(), interfaces.end() );
                     while ( !remaining.empty() )
                     {
                         Interface::Ptr pInterface = *remaining.begin();
@@ -816,28 +793,21 @@ namespace db
                                 group.push_back( pInterface );
                                 pInterface = pInterface->m_base;
                             }
-                            std::sort( group.begin(), group.end(),
-                                       CountedObjectComparator< Interface::Ptr >() );
+                            std::sort( group.begin(), group.end(), CountedObjectComparator< Interface::Ptr >() );
                         }
 
                         bool bFound = false;
-                        for ( std::vector< Interface::Ptr >& existingGroup :
-                              disjointInheritanceSets )
+                        for ( std::vector< Interface::Ptr >& existingGroup : disjointInheritanceSets )
                         {
                             // is the object in the group?
                             std::vector< Interface::Ptr > intersection;
-                            std::set_intersection( group.begin(), group.end(),
-                                                   existingGroup.begin(), existingGroup.end(),
+                            std::set_intersection( group.begin(), group.end(), existingGroup.begin(), existingGroup.end(),
                                                    std::back_inserter( intersection ) );
                             if ( !intersection.empty() )
                             {
-                                std::copy( group.begin(), group.end(),
-                                           std::back_inserter( existingGroup ) );
-                                std::sort( existingGroup.begin(), existingGroup.end(),
-                                           CountedObjectComparator< Interface::Ptr >() );
-                                existingGroup.erase(
-                                    std::unique( existingGroup.begin(), existingGroup.end() ),
-                                    existingGroup.end() );
+                                std::copy( group.begin(), group.end(), std::back_inserter( existingGroup ) );
+                                std::sort( existingGroup.begin(), existingGroup.end(), CountedObjectComparator< Interface::Ptr >() );
+                                existingGroup.erase( std::unique( existingGroup.begin(), existingGroup.end() ), existingGroup.end() );
                                 bFound = true;
                                 break;
                             }
@@ -852,8 +822,7 @@ namespace db
                 }
                 for ( const std::vector< Interface::Ptr >& group : disjointInheritanceSets )
                 {
-                    SuperInterface::Ptr pSuperInterface
-                        = std::make_shared< SuperInterface >( mapping.counter );
+                    SuperInterface::Ptr pSuperInterface = std::make_shared< SuperInterface >( mapping.counter );
                     pSuperInterface->m_stage = pStage;
                     pSuperInterface->m_interfaces = group;
                     pStage->m_superInterfaces.push_back( pSuperInterface );
@@ -861,15 +830,19 @@ namespace db
                     for ( Interface::Ptr pInterface : pSuperInterface->m_interfaces )
                     {
                         pInterface->m_superInterface = pSuperInterface;
+
+                        // work out the function groups
+                        for ( Function::Ptr pFunction : pInterface->m_functions )
+                        {
+                            pSuperInterface->m_functions.insert( std::make_pair( pFunction->getMangledName(), pFunction ) );
+                        }
                     }
 
                     // calculate topological sort of the inheritance tree
                     std::vector< Interface::Ptr > topological;
                     {
-                        std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > >
-                            closed;
-                        std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > open(
-                            group.begin(), group.end() );
+                        std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > closed;
+                        std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > open( group.begin(), group.end() );
 
                         while ( !open.empty() )
                         {
@@ -902,8 +875,7 @@ namespace db
                             }
                         }
                     }
-                    std::copy( topological.begin(), topological.end(),
-                               std::back_inserter( pStage->m_interfaceTopological ) );
+                    std::copy( topological.begin(), topological.end(), std::back_inserter( pStage->m_interfaceTopological ) );
                 }
             }
 
@@ -921,15 +893,13 @@ namespace db
                 {
                     // to self case
                     pSchema->m_conversions.insert(
-                        std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart,
-                                                                pObject->m_primaryObjectPart },
+                        std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pObject->m_primaryObjectPart },
                                         Schema::ObjectPartVector{} ) );
 
                     for ( ObjectPart::Ptr pSecondary : pObject->m_secondaryParts )
                     {
                         pSchema->m_conversions.insert( std::make_pair(
-                            Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary },
-                            Schema::ObjectPartVector{ pSecondary } ) );
+                            Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary }, Schema::ObjectPartVector{ pSecondary } ) );
                     }
 
                     Object::Ptr              pBase = pObject->m_base;
@@ -938,18 +908,15 @@ namespace db
                     {
                         baseList.push_back( pBase->m_primaryObjectPart );
 
-                        pSchema->m_conversions.insert(
-                            std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart,
-                                                                    pBase->m_primaryObjectPart },
-                                            baseList ) );
+                        pSchema->m_conversions.insert( std::make_pair(
+                            Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart }, baseList ) );
 
                         for ( ObjectPart::Ptr pSecondary : pObject->m_secondaryParts )
                         {
                             Schema::ObjectPartVector baseListPlusSecondary = baseList;
                             baseListPlusSecondary.push_back( pSecondary );
                             pSchema->m_conversions.insert( std::make_pair(
-                                Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary },
-                                baseListPlusSecondary ) );
+                                Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary }, baseListPlusSecondary ) );
                         }
 
                         pBase = pBase->m_base;

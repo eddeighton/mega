@@ -184,14 +184,13 @@ public:
     void reconstruct( const data::Ptr< data::{{ interface.part }} >& data );
 {% endfor %}{# stype.interfaces #}
     virtual ~{{ stype.name }}();
+{% for function in stype.functions %}
+    {{ function.returntype }} {{ function.name }}({{function.params }}) const;
+{% endfor %}{# stype.functions #}
 {% for interface in stype.interfaces %}
-    // {{ interface.name }}
-{% for function in interface.functions %}
-    virtual {{ function.returntype }} {{ function.name }}({{function.params }});
-{% endfor %}{# interface.functions #}
+    virtual bool is_{{ interface.fullname }}() const;
 {% endfor %}{# stype.interfaces #}
 };
-
 {% endfor %}{# stage.supertypes #}
 
 //////////////////////////////////////////////////////////////////////
@@ -212,18 +211,46 @@ void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} 
 {{ stype.name }}::~{{ stype.name }}()
 {
 }
-{% for interface in stype.interfaces %}
-// {{ interface.name }}
-{% for function in interface.functions %}
-{{ function.returntype }} {{ stype.name }}::{{ function.name }}({{function.params }})
+
+{% for function in stype.functions %}
+{{ function.returntype }} {{ stype.name }}::{{ function.name }}({{function.params }}) const
 {
-    data::Ptr< data::{{ function.objectpart }} > part = 
-        data::convert< data::{{ function.objectpart }} >( m_data );
-{% for line in function.body %}
+    struct Visitor
+    {
+{% for variant in function.variants %}
+        {{ function.propertytype }}& operator()( const data::Ptr< data::{{ variant.primaryobjectpart }} >& data ) const
+        {
+{% if variant.matched %}
+            data::Ptr< data::{{ variant.dataobjectpart }} > part = 
+                data::convert< data::{{ variant.dataobjectpart }} >( data );
+            return part->{{ function.property }};
+{% else %}
+            THROW_RTE( "Invalid function call: {{ function.returntype }} {{ stype.name }}::{{ function.name }}({{function.params }}) const" );
+{% endif %}
+        }
+{% endfor %}{# function.bodies #}
+    } visitor;
+    {{ function.propertytype }}& data = std::visit( visitor, m_data );
+{% for line in function.body.lines %}
     {{ line }}
-{% endfor %}{# function.body #}
+{% endfor %}{# body.impl #}
 }
-{% endfor %}{# interface.functions #}
+{% endfor %}{# stype.functions #}
+
+{% for interface in stype.interfaces %}
+bool {{ stype.name }}::is_{{ interface.fullname }}() const
+{
+    struct Visit
+    {
+{% for cast in interface.casts %}
+        bool operator()( const data::Ptr< data::{{ cast.type }} >& p ) const
+        {
+            return {{ cast.truth }};
+        }
+{% endfor %}
+    } visitor;
+    return std::visit( visitor, m_data );
+}
 {% endfor %}{# stype.interfaces #}
 {% endfor %}{# stage.supertypes #}
 
@@ -283,7 +310,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
         {
             std::vector< mega::io::FileInfo > fileInfos;
             m_manifest.getCompilationFileInfos( 
-                mega::io::FileInfo::FILE_{{ many_accessor.stage }}_{{ many_accessor.file }}{% if stage.perobject %}, m_objectFile{% endif %}, fileInfos );
+                mega::io::FileInfo::FILE_{{ many_accessor.stage }}_{{ many_accessor.file }}{% if many_accessor.perobject %}, m_objectFile{% endif %}, fileInfos );
             for( const mega::io::FileInfo& fileInfo : fileInfos )
             {
                 mega::io::File::PtrCst pFile = getFile( fileInfo );
@@ -353,11 +380,17 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
 {% endif %}
 {% if base.owns_primary_part %}
         // primary part: {{ base.typename }}
+{% for arg in base.primary_part.args %}
+        VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
+{% endfor %}{# arg in base.primary_part.args #}
         data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
             database.m_pFile_{{ base.primary_part.file }}->construct< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >
                 ({% for arg in base.primary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
 
 {% for secondary_part in base.parts %}
+{% for arg in secondary_part.args %}
+        VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
+{% endfor %}{# secondary_part in base.parts #}
         // secondary part: {{ secondary_part.file }} :: {{ secondary_part.object }}
         pPrimaryObjectPart->p_{{ secondary_part.file }}_{{ secondary_part.object }} =
             database.m_pFile_{{ secondary_part.file }}->construct< data::{{ secondary_part.file }}::{{ secondary_part.object }} >

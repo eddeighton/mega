@@ -252,7 +252,7 @@ namespace db
                                           >> lit( '{' )
                                           >> *( ( m_file_rule | m_per_object_accessor_rule
                                                   | m_per_program_accessor_rule )[ push_back(
-                                              at_c< 1 >( _val ), qi::_1 ) ] )
+                                              at_c< 1 >( _val ), qi::_1 ) ] >> lit( ';' )  )
                                           >> lit( '}' );
 
                 m_per_program_stage_rule = lit( "stage" ) >> lit( "perprogram" )
@@ -260,7 +260,7 @@ namespace db
                                            >> lit( '{' )
                                            >> *( ( m_file_rule | m_per_object_accessor_rule
                                                    | m_per_program_accessor_rule )[ push_back(
-                                               at_c< 1 >( _val ), qi::_1 ) ] )
+                                               at_c< 1 >( _val ), qi::_1 ) ] >> lit( ';' ) )
                                            >> lit( '}' );
 
                 m_main_rule = m_per_object_stage_rule | m_per_program_stage_rule;
@@ -371,7 +371,7 @@ namespace db
                         -( lit( ':' ) >> m_grammar_idlist )[ at_c< 1 >( _val ) = qi::_1 ] >> 
                         lit( "->" ) >> m_grammar_idlist[ at_c< 2 >( _val ) = qi::_1 ] >>
                         lit( '{' ) >> 
-                            *m_grammar_property[ push_back( at_c< 3 >( _val ), qi::_1 ) ] 
+                            *( m_grammar_property[ push_back( at_c< 3 >( _val ), qi::_1 ) ] >> lit( ';' ) )
                         >> lit( '}' );
                 // clang-format on
             }
