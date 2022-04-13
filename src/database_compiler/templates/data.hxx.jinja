@@ -40,7 +40,7 @@ namespace {{ file.name }}
     {
         {{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
 {% if length(part.properties) %}
-        {{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.properties %}, {{ property.argtype }} {{ property.name }}{% endfor %} );
+        {{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.initialisations %}, {{ property.argtype }} {{ property.name }}{% endfor %} );
 {% endif %}
         enum 
         {

@@ -193,6 +193,17 @@ namespace db
                             }
                         }
                     }
+                    else if ( strID == "late" )
+                    {
+                        // late< ... >
+                        if ( type.m_children.size() == 1U )
+                        {
+                            const schema::Type& nestedType = type.m_children.front();
+                            Type::Ptr pType = getType( nestedType, mapping, pNamespace );
+                            pType->setLate();
+                            return pType;
+                        }
+                    }
                 }
                 THROW_RTE( "Failed to resolve type for: " << type );
             }

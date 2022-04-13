@@ -158,7 +158,7 @@ namespace AST
           , id( loader )
     {
     }
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, data::Ptr< data::AST::Identifier > id, const std::string& type)
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const data::Ptr< data::AST::Identifier >& id, const std::string& type)
         :   mega::io::Object( objectInfo )
           , isConst( isConst )
           , id( id )
@@ -181,21 +181,13 @@ namespace AST
     // struct Include : public mega::io::Object
     Include::Include( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
-          , id( loader )
-    {
-    }
-    Include::Include( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::Identifier > id)
-        :   mega::io::Object( objectInfo )
-          , id( id )
     {
     }
     void Include::load( mega::io::Loader& loader )
     {
-        loader.load( id );
     }
     void Include::store( mega::io::Storer& storer ) const
     {
-        storer.store( id );
     }
         
     // struct SystemInclude : public mega::io::Object
@@ -228,11 +220,10 @@ namespace AST
           , root( loader )
     {
     }
-    MegaInclude::MegaInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& megaSourceFilePath, data::Ptr< data::AST::IncludeRoot > root)
+    MegaInclude::MegaInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& megaSourceFilePath)
         :   mega::io::Object( objectInfo )
           , p_AST_Include( loader )
           , megaSourceFilePath( megaSourceFilePath )
-          , root( root )
     {
     }
     void MegaInclude::load( mega::io::Loader& loader )
@@ -245,7 +236,47 @@ namespace AST
     {
         storer.store( p_AST_Include );
         storer.store( megaSourceFilePath );
+        VERIFY_RTE_MSG( root.has_value(), "AST::MegaInclude.root has NOT been set" );
         storer.store( root );
+    }
+        
+    // struct MegaIncludeInline : public mega::io::Object
+    MegaIncludeInline::MegaIncludeInline( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_AST_MegaInclude( loader )
+    {
+    }
+    void MegaIncludeInline::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_MegaInclude );
+    }
+    void MegaIncludeInline::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_MegaInclude );
+    }
+        
+    // struct MegaIncludeNested : public mega::io::Object
+    MegaIncludeNested::MegaIncludeNested( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_AST_MegaInclude( loader )
+          , id( loader )
+    {
+    }
+    MegaIncludeNested::MegaIncludeNested( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Identifier >& id)
+        :   mega::io::Object( objectInfo )
+          , p_AST_MegaInclude( loader )
+          , id( id )
+    {
+    }
+    void MegaIncludeNested::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_MegaInclude );
+        loader.load( id );
+    }
+    void MegaIncludeNested::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_MegaInclude );
+        storer.store( id );
     }
         
     // struct CPPInclude : public mega::io::Object
@@ -274,23 +305,19 @@ namespace AST
     // struct Dependency : public mega::io::Object
     Dependency::Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
-          , id( loader )
     {
     }
-    Dependency::Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::Identifier > id, const std::string& str)
+    Dependency::Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str)
         :   mega::io::Object( objectInfo )
-          , id( id )
           , str( str )
     {
     }
     void Dependency::load( mega::io::Loader& loader )
     {
-        loader.load( id );
         loader.load( str );
     }
     void Dependency::store( mega::io::Storer& storer ) const
     {
-        storer.store( id );
         storer.store( str );
     }
         
@@ -332,7 +359,7 @@ namespace AST
           , id( loader )
     {
     }
-    AbstractDef::AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id)
+    AbstractDef::AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id)
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
           , id( id )
@@ -358,7 +385,7 @@ namespace AST
           , inheritance( loader )
     {
     }
-    ActionDef::ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance)
+    ActionDef::ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance)
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
           , id( id )
@@ -390,7 +417,7 @@ namespace AST
           , inheritance( loader )
     {
     }
-    EventDef::EventDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance)
+    EventDef::EventDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance)
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
           , id( id )
@@ -422,7 +449,7 @@ namespace AST
           , returnType( loader )
     {
     }
-    FunctionDef::FunctionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::ArgumentList > argumentList, data::Ptr< data::AST::ReturnType > returnType)
+    FunctionDef::FunctionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::ArgumentList >& argumentList, const data::Ptr< data::AST::ReturnType >& returnType)
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
           , id( id )
@@ -454,7 +481,7 @@ namespace AST
           , inheritance( loader )
     {
     }
-    ObjectDef::ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance)
+    ObjectDef::ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance)
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
           , id( id )
@@ -486,7 +513,7 @@ namespace AST
           , inheritance( loader )
     {
     }
-    LinkDef::LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance)
+    LinkDef::LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance)
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
           , id( id )
@@ -516,7 +543,7 @@ namespace AST
           , ast( loader )
     {
     }
-    SourceRoot::SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& sourceFile, data::Ptr< data::Components::Component > component, data::Ptr< data::AST::ContextDef > ast)
+    SourceRoot::SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& sourceFile, const data::Ptr< data::Components::Component >& component, const data::Ptr< data::AST::ContextDef >& ast)
         :   mega::io::Object( objectInfo )
           , sourceFile( sourceFile )
           , component( component )
@@ -543,7 +570,7 @@ namespace AST
           , include( loader )
     {
     }
-    IncludeRoot::IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::MegaInclude > include)
+    IncludeRoot::IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::MegaInclude >& include)
         :   mega::io::Object( objectInfo )
           , p_AST_SourceRoot( loader )
           , include( include )
@@ -596,18 +623,20 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 8: return new AST::Include( loader, objectInfo );
         case 9: return new AST::SystemInclude( loader, objectInfo );
         case 10: return new AST::MegaInclude( loader, objectInfo );
-        case 11: return new AST::CPPInclude( loader, objectInfo );
-        case 12: return new AST::Dependency( loader, objectInfo );
-        case 13: return new AST::ContextDef( loader, objectInfo );
-        case 14: return new AST::AbstractDef( loader, objectInfo );
-        case 15: return new AST::ActionDef( loader, objectInfo );
-        case 16: return new AST::EventDef( loader, objectInfo );
-        case 17: return new AST::FunctionDef( loader, objectInfo );
-        case 18: return new AST::ObjectDef( loader, objectInfo );
-        case 19: return new AST::LinkDef( loader, objectInfo );
-        case 20: return new AST::SourceRoot( loader, objectInfo );
-        case 21: return new AST::IncludeRoot( loader, objectInfo );
-        case 22: return new AST::ObjectSourceRoot( loader, objectInfo );
+        case 11: return new AST::MegaIncludeInline( loader, objectInfo );
+        case 12: return new AST::MegaIncludeNested( loader, objectInfo );
+        case 13: return new AST::CPPInclude( loader, objectInfo );
+        case 14: return new AST::Dependency( loader, objectInfo );
+        case 15: return new AST::ContextDef( loader, objectInfo );
+        case 16: return new AST::AbstractDef( loader, objectInfo );
+        case 17: return new AST::ActionDef( loader, objectInfo );
+        case 18: return new AST::EventDef( loader, objectInfo );
+        case 19: return new AST::FunctionDef( loader, objectInfo );
+        case 20: return new AST::ObjectDef( loader, objectInfo );
+        case 21: return new AST::LinkDef( loader, objectInfo );
+        case 22: return new AST::SourceRoot( loader, objectInfo );
+        case 23: return new AST::IncludeRoot( loader, objectInfo );
+        case 24: return new AST::ObjectSourceRoot( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

@@ -313,127 +313,131 @@ namespace db
                     {
                         model::Type::Ptr pType = pProperty->m_type;
 
-                        std::ostringstream osExpression, osValidation, osErrorMsg;
-                        osErrorMsg << '"';
-                        if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
+                        if ( !pType->m_bLate )
                         {
-                            osExpression << "database.toData( arguments." << pProperty->m_strName << ".value() )";
-                            osValidation << "arguments." << pProperty->m_strName << ".has_value() && arguments." << pProperty->m_strName << ".value()";
-                            osErrorMsg << pProperty->m_strName << " is not initialised";
-                        }
-                        else if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
-                        {
-                            osExpression << "arguments." << pProperty->m_strName << ".value()";
-                            osValidation << "arguments." << pProperty->m_strName << ".has_value()";
-                            osErrorMsg << pProperty->m_strName << " is not initialised";
-                        }
-                        else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
-                        {
-                            model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
-                            if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+                            std::ostringstream osExpression, osValidation, osErrorMsg;
+                            osErrorMsg << '"';
+                            if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
+                            {
+                                osExpression << "database.toData( arguments." << pProperty->m_strName << ".value() )";
+                                osValidation << "arguments." << pProperty->m_strName << ".has_value() && arguments." << pProperty->m_strName
+                                             << ".value()";
+                                osErrorMsg << pProperty->m_strName << " is not initialised";
+                            }
+                            else if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
                             {
                                 osExpression << "arguments." << pProperty->m_strName << ".value()";
                                 osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                                 osErrorMsg << pProperty->m_strName << " is not initialised";
                             }
-                            else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+                            else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
                             {
-                                model::Object::Ptr pObject = pRef->m_object;
-                                osExpression << pStage->m_strName << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                             << " >( database, arguments." << pProperty->m_strName << ".value() )";
-                                osValidation << "arguments." << pProperty->m_strName << ".has_value()";
-                                osErrorMsg << pProperty->m_strName << " is not initialised";
+                                model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
+                                if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
+                                {
+                                    osExpression << "arguments." << pProperty->m_strName << ".value()";
+                                    osValidation << "arguments." << pProperty->m_strName << ".has_value()";
+                                    osErrorMsg << pProperty->m_strName << " is not initialised";
+                                }
+                                else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
+                                {
+                                    model::Object::Ptr pObject = pRef->m_object;
+                                    osExpression << pStage->m_strName
+                                                 << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
+                                                 << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                    osValidation << "arguments." << pProperty->m_strName << ".has_value()";
+                                    osErrorMsg << pProperty->m_strName << " is not initialised";
+                                }
+                                else
+                                {
+                                    THROW_RTE( "Unsupported type for ctor" );
+                                }
+                            }
+                            else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
+                            {
+                                model::Type::Ptr pFrom = pMap->m_fromType;
+                                model::Type::Ptr pTo = pMap->m_toType;
+
+                                if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
+                                {
+                                    if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                                    {
+                                        osExpression << "arguments." << pProperty->m_strName << ".value()";
+                                        osValidation << "arguments." << pProperty->m_strName << ".has_value()";
+                                        osErrorMsg << pProperty->m_strName << " is not initialised";
+                                    }
+                                    else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                                    {
+                                        model::Object::Ptr pObject = pToRef->m_object;
+                                        osExpression << pStage->m_strName
+                                                     << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
+                                                     << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                        osValidation << "arguments." << pProperty->m_strName << ".has_value()";
+                                        osErrorMsg << pProperty->m_strName << " is not initialised";
+                                    }
+                                    else
+                                    {
+                                        THROW_RTE( "Unsupported type for map from type" );
+                                    }
+                                }
+                                else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
+                                {
+                                    if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                                    {
+                                        // osExpression << "arguments." << pProperty->m_strName << ".value()";
+                                        model::Object::Ptr pObject = pFromRef->m_object;
+                                        osExpression << pStage->m_strName
+                                                     << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
+                                                     << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                        osValidation << "arguments." << pProperty->m_strName << ".has_value()";
+                                        osErrorMsg << pProperty->m_strName << " is not initialised";
+                                    }
+                                    else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                                    {
+                                        THROW_RTE( "Unsupported type for map from type" );
+                                    }
+                                    else
+                                    {
+                                        THROW_RTE( "Unsupported type for map from type" );
+                                    }
+
+                                    /*if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
+                                    {
+                                        osExpression << "arguments." << pProperty->m_strName << ".value()";
+                                    }
+                                    else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
+                                    {
+                                        model::Object::Ptr pObject = pToRef->m_object;
+                                        osExpression << pStage->m_strName << "::toData< data::" <<
+                                    pObject->m_primaryObjectPart->getDataType(
+                                    "::" ) << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                    }
+                                    else
+                                    {
+                                        THROW_RTE( "Unsupported type for map from type" );
+                                    }*/
+
+                                    // model::Object::Ptr pObject = pRef->m_object;
+                                    // osExpression << pStage->m_strName << "::toData< data::" << pObject->m_primaryObjectPart->getDataType(
+                                    // "::" ) <<
+                                    //     " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                }
+                                else
+                                {
+                                    THROW_RTE( "Unsupported type for map from type" );
+                                }
                             }
                             else
                             {
                                 THROW_RTE( "Unsupported type for ctor" );
                             }
+
+                            osErrorMsg << '"';
+                            nlohmann::json arg = nlohmann::json::object( { { "expression", osExpression.str() },
+                                                                           { "validation", osValidation.str() },
+                                                                           { "errormsg", osErrorMsg.str() } } );
+                            part[ "args" ].push_back( arg );
                         }
-                        else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
-                        {
-                            model::Type::Ptr pFrom = pMap->m_fromType;
-                            model::Type::Ptr pTo = pMap->m_toType;
-
-                            if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
-                            {
-                                if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
-                                {
-                                    osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                    osValidation << "arguments." << pProperty->m_strName << ".has_value()";
-                                    osErrorMsg << pProperty->m_strName << " is not initialised";
-                                }
-                                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
-                                {
-                                    model::Object::Ptr pObject = pToRef->m_object;
-                                    osExpression << pStage->m_strName
-                                                 << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                                 << " >( database, arguments." << pProperty->m_strName << ".value() )";
-                                    osValidation << "arguments." << pProperty->m_strName << ".has_value()";
-                                    osErrorMsg << pProperty->m_strName << " is not initialised";
-                                }
-                                else
-                                {
-                                    THROW_RTE( "Unsupported type for map from type" );
-                                }
-                            }
-                            else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
-                            {
-                                if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
-                                {
-                                    // osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                    model::Object::Ptr pObject = pFromRef->m_object;
-                                    osExpression << pStage->m_strName
-                                                 << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                                 << " >( database, arguments." << pProperty->m_strName << ".value() )";
-                                    osValidation << "arguments." << pProperty->m_strName << ".has_value()";
-                                    osErrorMsg << pProperty->m_strName << " is not initialised";
-                                }
-                                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
-                                {
-                                    THROW_RTE( "Unsupported type for map from type" );
-                                }
-                                else
-                                {
-                                    THROW_RTE( "Unsupported type for map from type" );
-                                }
-
-                                /*if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
-                                {
-                                    osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                }
-                                else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
-                                {
-                                    model::Object::Ptr pObject = pToRef->m_object;
-                                    osExpression << pStage->m_strName << "::toData< data::" << pObject->m_primaryObjectPart->getDataType(
-                                "::" ) << " >( database, arguments." << pProperty->m_strName << ".value() )";
-                                }
-                                else
-                                {
-                                    THROW_RTE( "Unsupported type for map from type" );
-                                }*/
-
-                                // model::Object::Ptr pObject = pRef->m_object;
-                                // osExpression << pStage->m_strName << "::toData< data::" << pObject->m_primaryObjectPart->getDataType(
-                                // "::" ) <<
-                                //     " >( database, arguments." << pProperty->m_strName << ".value() )";
-                            }
-                            else
-                            {
-                                THROW_RTE( "Unsupported type for map from type" );
-                            }
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unsupported type for ctor" );
-                        }
-
-                        osErrorMsg << '"';
-                        nlohmann::json arg = nlohmann::json::object( { 
-                            { "expression", osExpression.str() },
-                            { "validation", osValidation.str() },
-                            { "errormsg", osErrorMsg.str() }
-                             } );
-                        part[ "args" ].push_back( arg );
                     }
                 }
                 return part;
@@ -503,33 +507,49 @@ namespace db
 
                 model::Type::Ptr pType = pFunction->m_property->m_type;
 
+                std::ostringstream osFunctionBody;
+
                 if ( std::dynamic_pointer_cast< model::FunctionGetter >( pFunction ) )
                 {
+                    // only for getters want to test late variables have a value set
+                    if ( pType->m_bLate )
+                    {
+                        function[ "lines" ].push_back( "VERIFY_RTE( data.has_value() );" );
+                    }
                     if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
                     {
-                        std::ostringstream osFunctionBody;
-                        osFunctionBody << "return data;";
+                        if ( pType->m_bLate )
+                            osFunctionBody << "return data.value();";
+                        else
+                            osFunctionBody << "return data;";
                         function[ "lines" ].push_back( osFunctionBody.str() );
                     }
                     else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
                     {
-                        std::ostringstream osFunctionBody;
-                        model::Type::Ptr   pUnderlyingType = pArray->m_underlyingType;
+                        model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
                         if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
                         {
-                            osFunctionBody << "return data;";
+                            if ( pType->m_bLate )
+                                osFunctionBody << "return data.value();";
+                            else
+                                osFunctionBody << "return data;";
                         }
                         else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                         {
                             model::Object::Ptr    pObject = pRef->m_object;
                             model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-                            osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" ) << " >( m_converter, data );";
+
+                            if ( pType->m_bLate )
+                                osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                               << " >( m_converter, data.value() );";
+                            else
+                                osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                               << " >( m_converter, data );";
                         }
                         else
                         {
                             THROW_RTE( "Unsupported type for getter" );
                         }
-                        function[ "lines" ].push_back( osFunctionBody.str() );
                     }
                     else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
                     {
@@ -537,35 +557,46 @@ namespace db
                         model::Type::Ptr pTo = pMap->m_toType;
                         if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
                         {
-                            std::ostringstream osFunctionBody;
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
-                                osFunctionBody << "return part->" << pFunction->m_property->m_strName << ";";
+                                if ( pType->m_bLate )
+                                    osFunctionBody << "return data.value();";
+                                else
+                                    osFunctionBody << "return data;";
                             }
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
                                 model::Object::Ptr    pObject = pToRef->m_object;
                                 model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-                                osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
-                                               << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
-                                               << " >( m_converter, data );";
+
+                                if ( pType->m_bLate )
+                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                                   << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
+                                                   << " >( m_converter, data.value() );";
+                                else
+                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                                   << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
+                                                   << " >( m_converter, data );";
                             }
                             else
                             {
                                 THROW_RTE( "Unsupported type for map from type" );
                             }
-                            function[ "lines" ].push_back( osFunctionBody.str() );
                         }
                         else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
                         {
-                            std::ostringstream osFunctionBody;
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
                                 model::Object::Ptr    pObject = pFromRef->m_object;
                                 model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-                                osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
-                                               << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
-                                               << " >( m_converter, data );";
+                                if ( pType->m_bLate )
+                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                                   << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
+                                                   << " >( m_converter, data.value() );";
+                                else
+                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                                   << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
+                                                   << " >( m_converter, data );";
                             }
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
@@ -575,7 +606,6 @@ namespace db
                             {
                                 THROW_RTE( "Unsupported type for map from type" );
                             }
-                            function[ "lines" ].push_back( osFunctionBody.str() );
                         }
                         else
                         {
@@ -584,9 +614,10 @@ namespace db
                     }
                     else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
                     {
-                        std::ostringstream osFunctionBody;
-                        osFunctionBody << "return m_converter.toInterface( data );";
-                        function[ "lines" ].push_back( osFunctionBody.str() );
+                        if ( pType->m_bLate )
+                            osFunctionBody << "return m_converter.toInterface( data.value() );";
+                        else
+                            osFunctionBody << "return m_converter.toInterface( data );";
                     }
                     else
                     {
@@ -597,14 +628,11 @@ namespace db
                 {
                     if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pType ) )
                     {
-                        std::ostringstream osFunctionBody;
                         osFunctionBody << "data = value;";
-                        function[ "lines" ].push_back( osFunctionBody.str() );
                     }
                     else if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
                     {
-                        model::Type::Ptr   pUnderlyingType = pArray->m_underlyingType;
-                        std::ostringstream osFunctionBody;
+                        model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
                         if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
                         {
                             osFunctionBody << "data = value;";
@@ -619,7 +647,6 @@ namespace db
                         {
                             THROW_RTE( "Unsupported type for setter" );
                         }
-                        function[ "lines" ].push_back( osFunctionBody.str() );
                     }
                     else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
                     {
@@ -627,7 +654,6 @@ namespace db
                         model::Type::Ptr pTo = pMap->m_toType;
                         if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
                         {
-                            std::ostringstream osFunctionBody;
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
                                 osFunctionBody << "data = value;";
@@ -643,11 +669,9 @@ namespace db
                             {
                                 THROW_RTE( "Unsupported type for map from type" );
                             }
-                            function[ "lines" ].push_back( osFunctionBody.str() );
                         }
                         else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
                         {
-                            std::ostringstream osFunctionBody;
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
                                 model::Object::Ptr    pObject = pFromRef->m_object;
@@ -665,7 +689,6 @@ namespace db
                             {
                                 THROW_RTE( "Unsupported type for map from type" );
                             }
-                            function[ "lines" ].push_back( osFunctionBody.str() );
                         }
                         else
                         {
@@ -674,9 +697,7 @@ namespace db
                     }
                     else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
                     {
-                        std::ostringstream osFunctionBody;
                         osFunctionBody << "data = m_converter.toData( value );";
-                        function[ "lines" ].push_back( osFunctionBody.str() );
                     }
                     else
                     {
@@ -687,8 +708,7 @@ namespace db
                 {
                     if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
                     {
-                        model::Type::Ptr   pUnderlyingType = pArray->m_underlyingType;
-                        std::ostringstream osFunctionBody;
+                        model::Type::Ptr pUnderlyingType = pArray->m_underlyingType;
                         if ( model::ValueType::Ptr pValue = std::dynamic_pointer_cast< model::ValueType >( pUnderlyingType ) )
                         {
                             osFunctionBody << "data.push_back( value );";
@@ -702,7 +722,6 @@ namespace db
                         {
                             THROW_RTE( "Unsupported type for inserter" );
                         }
-                        function[ "lines" ].push_back( osFunctionBody.str() );
                     }
                     else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
                     {
@@ -710,7 +729,6 @@ namespace db
                         model::Type::Ptr pTo = pMap->m_toType;
                         if ( model::ValueType::Ptr pFromValue = std::dynamic_pointer_cast< model::ValueType >( pFrom ) )
                         {
-                            std::ostringstream osFunctionBody;
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
                                 osFunctionBody << "data.insert( std::make_pair( key, value ) );";
@@ -723,11 +741,9 @@ namespace db
                             {
                                 THROW_RTE( "Unsupported type for map from type" );
                             }
-                            function[ "lines" ].push_back( osFunctionBody.str() );
                         }
                         else if ( model::RefType::Ptr pFromRef = std::dynamic_pointer_cast< model::RefType >( pFrom ) )
                         {
-                            std::ostringstream osFunctionBody;
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
                                 osFunctionBody << "data.insert( std::make_pair( m_converter.toData( key ), value ) );";
@@ -740,7 +756,6 @@ namespace db
                             {
                                 THROW_RTE( "Unsupported type for map from type" );
                             }
-                            function[ "lines" ].push_back( osFunctionBody.str() );
                         }
                         else
                         {
@@ -752,6 +767,8 @@ namespace db
                 {
                     THROW_RTE( "Unknown function type" );
                 }
+
+                function[ "lines" ].push_back( osFunctionBody.str() );
 
                 return function;
             }
@@ -944,7 +961,8 @@ namespace db
                         nlohmann::json part = nlohmann::json::object( { { "name", pObject->m_strName },
                                                                         { "typeID", pPart->m_typeID },
                                                                         { "pointers", nlohmann::json::array() },
-                                                                        { "properties", nlohmann::json::array() } } );
+                                                                        { "properties", nlohmann::json::array() },
+                                                                        { "initialisations", nlohmann::json::array() } } );
 
                         if ( bIsPrimaryPart )
                         {
@@ -966,6 +984,24 @@ namespace db
                         for ( model::Property::Ptr pProperty : pPart->m_properties )
                         {
                             model::Type::Ptr pType = pProperty->m_type;
+                            if ( !pType->m_bLate )
+                            {
+                                bool bIsPointer = false;
+                                if ( std::dynamic_pointer_cast< model::RefType >( pType ) )
+                                    bIsPointer = true;
+
+                                nlohmann::json init = nlohmann::json::object( { { "name", pProperty->m_strName },
+                                                                                { "type", pType->getDataType( false ) },
+                                                                                { "argtype", pType->getDataType( true ) },
+                                                                                { "is_pointer", bIsPointer } } );
+
+                                part[ "initialisations" ].push_back( init );
+                            }
+                        }
+
+                        for ( model::Property::Ptr pProperty : pPart->m_properties )
+                        {
+                            model::Type::Ptr pType = pProperty->m_type;
 
                             bool bIsPointer = false;
                             if ( std::dynamic_pointer_cast< model::RefType >( pType ) )
@@ -974,7 +1010,18 @@ namespace db
                             nlohmann::json property = nlohmann::json::object( { { "name", pProperty->m_strName },
                                                                                 { "type", pType->getDataType( false ) },
                                                                                 { "argtype", pType->getDataType( true ) },
-                                                                                { "is_pointer", bIsPointer } } );
+                                                                                { "is_pointer", bIsPointer },
+                                                                                { "has_validation", false } } );
+
+                            if ( pType->m_bLate )
+                            {
+                                std::ostringstream os;
+                                os << "VERIFY_RTE_MSG( " << pProperty->m_strName << ".has_value(), \""
+                                   << pObject->m_primaryObjectPart->getDataType( "::" ) << "." << pProperty->m_strName
+                                   << " has NOT been set\" );";
+                                property[ "validation" ] = os.str();
+                                property[ "has_validation" ] = true;
+                            }
 
                             part[ "properties" ].push_back( property );
                         }

@@ -72,18 +72,25 @@ namespace Parser
 
     object Include -> ParserStage::AST
     {
-        ref< Identifier > id;
     }
 
     object SystemInclude : Include -> ParserStage::AST
     {
         value< std::string > str;
     }
-
     object MegaInclude : Include -> ParserStage::AST
     {
         value< boost::filesystem::path > megaSourceFilePath;
-        ref< IncludeRoot > root;
+        late< ref< IncludeRoot > > root;
+    }
+
+    object MegaIncludeInline : MegaInclude -> ParserStage::AST
+    {
+    }
+
+    object MegaIncludeNested : MegaInclude -> ParserStage::AST
+    {
+        ref< Identifier > id;
     }
 
     object CPPInclude : Include -> ParserStage::AST
@@ -93,7 +100,6 @@ namespace Parser
 
     object Dependency -> ParserStage::AST
     {
-        ref< Identifier > id;
         value< std::string > str;
     }
 

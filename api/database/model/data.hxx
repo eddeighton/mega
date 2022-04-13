@@ -38,6 +38,8 @@ namespace AST
     struct Include;
     struct SystemInclude;
     struct MegaInclude;
+    struct MegaIncludeInline;
+    struct MegaIncludeNested;
     struct CPPInclude;
     struct Dependency;
     struct ContextDef;
@@ -151,7 +153,7 @@ namespace AST
     struct Dimension : public mega::io::Object
     {
         Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, data::Ptr< data::AST::Identifier > id, const std::string& type);
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& isConst, const data::Ptr< data::AST::Identifier >& id, const std::string& type);
         enum 
         {
             Type = 7
@@ -165,12 +167,10 @@ namespace AST
     struct Include : public mega::io::Object
     {
         Include( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Include( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::Identifier > id);
         enum 
         {
             Type = 8
         };
-        data::Ptr< data::AST::Identifier > id;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -190,14 +190,38 @@ namespace AST
     struct MegaInclude : public mega::io::Object
     {
         MegaInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        MegaInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& megaSourceFilePath, data::Ptr< data::AST::IncludeRoot > root);
+        MegaInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& megaSourceFilePath);
         enum 
         {
             Type = 10
         };
         boost::filesystem::path megaSourceFilePath;
-        data::Ptr< data::AST::IncludeRoot > root;
+        std::optional< data::Ptr< data::AST::IncludeRoot > > root;
         Ptr< AST::Include > p_AST_Include;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct MegaIncludeInline : public mega::io::Object
+    {
+        MegaIncludeInline( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Type = 11
+        };
+        Ptr< AST::MegaInclude > p_AST_MegaInclude;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct MegaIncludeNested : public mega::io::Object
+    {
+        MegaIncludeNested( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        MegaIncludeNested( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Identifier >& id);
+        enum 
+        {
+            Type = 12
+        };
+        data::Ptr< data::AST::Identifier > id;
+        Ptr< AST::MegaInclude > p_AST_MegaInclude;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
@@ -207,7 +231,7 @@ namespace AST
         CPPInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& cppSourceFilePath);
         enum 
         {
-            Type = 11
+            Type = 13
         };
         boost::filesystem::path cppSourceFilePath;
         Ptr< AST::Include > p_AST_Include;
@@ -217,12 +241,11 @@ namespace AST
     struct Dependency : public mega::io::Object
     {
         Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::Identifier > id, const std::string& str);
+        Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
         enum 
         {
-            Type = 12
+            Type = 14
         };
-        data::Ptr< data::AST::Identifier > id;
         std::string str;
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
@@ -233,7 +256,7 @@ namespace AST
         ContextDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ContextDef > >& children, const std::vector< data::Ptr< data::AST::Dimension > >& dimensions, const std::vector< data::Ptr< data::AST::Include > >& includes, const std::vector< data::Ptr< data::AST::Dependency > >& dependencies, const std::string& body);
         enum 
         {
-            Type = 13
+            Type = 15
         };
         std::vector< data::Ptr< data::AST::ContextDef > > children;
         std::vector< data::Ptr< data::AST::Dimension > > dimensions;
@@ -246,10 +269,10 @@ namespace AST
     struct AbstractDef : public mega::io::Object
     {
         AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id);
+        AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id);
         enum 
         {
-            Type = 14
+            Type = 16
         };
         data::Ptr< data::AST::ScopedIdentifier > id;
         Ptr< AST::ContextDef > p_AST_ContextDef;
@@ -259,10 +282,10 @@ namespace AST
     struct ActionDef : public mega::io::Object
     {
         ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance);
+        ActionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance);
         enum 
         {
-            Type = 15
+            Type = 17
         };
         data::Ptr< data::AST::ScopedIdentifier > id;
         data::Ptr< data::AST::Size > size;
@@ -274,37 +297,7 @@ namespace AST
     struct EventDef : public mega::io::Object
     {
         EventDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        EventDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance);
-        enum 
-        {
-            Type = 16
-        };
-        data::Ptr< data::AST::ScopedIdentifier > id;
-        data::Ptr< data::AST::Size > size;
-        data::Ptr< data::AST::Inheritance > inheritance;
-        Ptr< AST::ContextDef > p_AST_ContextDef;
-        virtual void load( mega::io::Loader& loader );
-        virtual void store( mega::io::Storer& storer ) const;
-    };
-    struct FunctionDef : public mega::io::Object
-    {
-        FunctionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        FunctionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::ArgumentList > argumentList, data::Ptr< data::AST::ReturnType > returnType);
-        enum 
-        {
-            Type = 17
-        };
-        data::Ptr< data::AST::ScopedIdentifier > id;
-        data::Ptr< data::AST::ArgumentList > argumentList;
-        data::Ptr< data::AST::ReturnType > returnType;
-        Ptr< AST::ContextDef > p_AST_ContextDef;
-        virtual void load( mega::io::Loader& loader );
-        virtual void store( mega::io::Storer& storer ) const;
-    };
-    struct ObjectDef : public mega::io::Object
-    {
-        ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance);
+        EventDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance);
         enum 
         {
             Type = 18
@@ -316,13 +309,43 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
-    struct LinkDef : public mega::io::Object
+    struct FunctionDef : public mega::io::Object
     {
-        LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::ScopedIdentifier > id, data::Ptr< data::AST::Size > size, data::Ptr< data::AST::Inheritance > inheritance);
+        FunctionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        FunctionDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::ArgumentList >& argumentList, const data::Ptr< data::AST::ReturnType >& returnType);
         enum 
         {
             Type = 19
+        };
+        data::Ptr< data::AST::ScopedIdentifier > id;
+        data::Ptr< data::AST::ArgumentList > argumentList;
+        data::Ptr< data::AST::ReturnType > returnType;
+        Ptr< AST::ContextDef > p_AST_ContextDef;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct ObjectDef : public mega::io::Object
+    {
+        ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance);
+        enum 
+        {
+            Type = 20
+        };
+        data::Ptr< data::AST::ScopedIdentifier > id;
+        data::Ptr< data::AST::Size > size;
+        data::Ptr< data::AST::Inheritance > inheritance;
+        Ptr< AST::ContextDef > p_AST_ContextDef;
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct LinkDef : public mega::io::Object
+    {
+        LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ScopedIdentifier >& id, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance);
+        enum 
+        {
+            Type = 21
         };
         data::Ptr< data::AST::ScopedIdentifier > id;
         data::Ptr< data::AST::Size > size;
@@ -334,10 +357,10 @@ namespace AST
     struct SourceRoot : public mega::io::Object
     {
         SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& sourceFile, data::Ptr< data::Components::Component > component, data::Ptr< data::AST::ContextDef > ast);
+        SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& sourceFile, const data::Ptr< data::Components::Component >& component, const data::Ptr< data::AST::ContextDef >& ast);
         enum 
         {
-            Type = 20
+            Type = 22
         };
         boost::filesystem::path sourceFile;
         data::Ptr< data::Components::Component > component;
@@ -348,10 +371,10 @@ namespace AST
     struct IncludeRoot : public mega::io::Object
     {
         IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, data::Ptr< data::AST::MegaInclude > include);
+        IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::MegaInclude >& include);
         enum 
         {
-            Type = 21
+            Type = 23
         };
         data::Ptr< data::AST::MegaInclude > include;
         Ptr< AST::SourceRoot > p_AST_SourceRoot;
@@ -363,7 +386,7 @@ namespace AST
         ObjectSourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Type = 22
+            Type = 24
         };
         Ptr< AST::SourceRoot > p_AST_SourceRoot;
         virtual void load( mega::io::Loader& loader );
@@ -448,6 +471,42 @@ inline Ptr< AST::Include > convert( const Ptr< AST::MegaInclude >& from )
 
 template <>
 inline Ptr< AST::MegaInclude > convert( const Ptr< AST::MegaInclude >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Include > convert( const Ptr< AST::MegaIncludeInline >& from )
+{
+    return from->p_AST_MegaInclude->p_AST_Include;
+}
+
+template <>
+inline Ptr< AST::MegaInclude > convert( const Ptr< AST::MegaIncludeInline >& from )
+{
+    return from->p_AST_MegaInclude;
+}
+
+template <>
+inline Ptr< AST::MegaIncludeInline > convert( const Ptr< AST::MegaIncludeInline >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< AST::Include > convert( const Ptr< AST::MegaIncludeNested >& from )
+{
+    return from->p_AST_MegaInclude->p_AST_Include;
+}
+
+template <>
+inline Ptr< AST::MegaInclude > convert( const Ptr< AST::MegaIncludeNested >& from )
+{
+    return from->p_AST_MegaInclude;
+}
+
+template <>
+inline Ptr< AST::MegaIncludeNested > convert( const Ptr< AST::MegaIncludeNested >& from )
 {
     return from;
 }

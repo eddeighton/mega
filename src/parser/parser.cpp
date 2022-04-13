@@ -400,18 +400,32 @@ public:
             {
                 VERIFY_RTE( strFile.back() == '>' );
                 strFile = std::string( strFile.begin() + 1, strFile.end() - 1 );
-                pResult = database.construct< SystemInclude >( SystemInclude::Args{ Include::Args{ pIdentifier }, strFile } );
+
+                if ( pIdentifier )
+                {
+                    MEGA_PARSER_ERROR( "System include has identifier" );
+                }
+                pResult = database.construct< SystemInclude >( SystemInclude::Args{ Include::Args{}, strFile } );
             }
             else
             {
                 const boost::filesystem::path filePath = resolveFilePath( strFile );
                 if ( boost::filesystem::extension( filePath ) == mega::io::Environment::MEGA_EXTENSION )
                 {
-                    pResult = database.construct< MegaInclude >( MegaInclude::Args{ Include::Args{ pIdentifier }, filePath, nullptr } );
+                    if ( pIdentifier )
+                        pResult = database.construct< MegaIncludeNested >(
+                            MegaIncludeNested::Args{ MegaInclude::Args{ Include::Args{}, filePath, nullptr }, pIdentifier } );
+                    else
+                        pResult = database.construct< MegaIncludeInline >(
+                            MegaIncludeInline::Args{ MegaInclude::Args{ Include::Args{}, filePath, nullptr } } );
                 }
                 else
                 {
-                    pResult = database.construct< CPPInclude >( CPPInclude::Args{ Include::Args{ pIdentifier }, filePath } );
+                    if ( pIdentifier )
+                    {
+                        MEGA_PARSER_ERROR( "C++  include has identifier" );
+                    }
+                    pResult = database.construct< CPPInclude >( CPPInclude::Args{ Include::Args{}, filePath } );
                 }
             }
         }
@@ -430,14 +444,6 @@ public:
 
     Dependency* parse_dependency( Database& database )
     {
-        // include name( file );
-        // optional identifier
-        Identifier* pIdentifier = nullptr;
-        if ( Tok.is( clang::tok::identifier ) )
-        {
-            pIdentifier = parse_identifier( database );
-        }
-
         BalancedDelimiterTracker T( *this, clang::tok::l_paren );
 
         T.consumeOpen();
@@ -458,7 +464,7 @@ public:
 
         parse_semicolon();
 
-        return database.construct< Dependency >( Dependency::Args{ pIdentifier, strDependency } );
+        return database.construct< Dependency >( Dependency::Args{ strDependency } );
     }
     /*
         void parse_using( Database& session, input::Using* pUsing )
@@ -542,12 +548,23 @@ public:
         return pNewAction;
     }*/
 
+    ContextDef::Args defaultBody() const
+    {
+        ContextDef::Args body;
+        body.children = std::vector< ContextDef* >{};
+        body.dimensions = std::vector< Dimension* >{};
+        body.includes = std::vector< Include* >{};
+        body.dependencies = std::vector< Dependency* >{};
+        body.body = std::string{};
+        return body;
+    }
+
     AbstractDef* parse_abstract( Database& database )
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
 
-        ContextDef::Args body;
+        ContextDef::Args body = defaultBody();
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
@@ -556,13 +573,9 @@ public:
                 body = parse_context_body( database );
                 T.consumeClose();
             }
-            else if ( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
             else
             {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
+                MEGA_PARSER_ERROR( "Expected body in abstract" );
             }
         }
 
@@ -578,7 +591,7 @@ public:
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
-        ContextDef::Args body;
+        ContextDef::Args body = defaultBody();
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
@@ -609,7 +622,7 @@ public:
         ReturnType* pReturnType = parse_returnType( database );
         parse_comment();
 
-        ContextDef::Args body;
+        ContextDef::Args body = defaultBody();
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
@@ -640,7 +653,7 @@ public:
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
-        ContextDef::Args body;
+        ContextDef::Args body = defaultBody();
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
@@ -671,7 +684,7 @@ public:
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
-        ContextDef::Args body;
+        ContextDef::Args body = defaultBody();
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
@@ -702,7 +715,7 @@ public:
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
-        ContextDef::Args body;
+        ContextDef::Args body = defaultBody();
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
@@ -764,14 +777,10 @@ public:
                         }
                     }
 */
+
     ContextDef::Args parse_context_body( Database& database )
     {
-        ContextDef::Args bodyArgs;
-        bodyArgs.children = std::vector< ContextDef* >{};
-        bodyArgs.dimensions = std::vector< Dimension* >{};
-        bodyArgs.includes = std::vector< Include* >{};
-        bodyArgs.dependencies = std::vector< Dependency* >{};
-        bodyArgs.body = std::string{};
+        ContextDef::Args bodyArgs = defaultBody();
 
         braceStack.push_back( BraceCount );
 
@@ -964,7 +973,7 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
         Stuff stuff( headerSearchOptions, includeDirectories, pFileManager, pDiagnosticsEngine, sourceFile );
 
         MegaParser parser( stuff, pDiagnosticsEngine );
-        parser.ConsumeToken();
+        parser.ConsumeAnyToken( true);
 
         return parser.parse_file( database );
     }

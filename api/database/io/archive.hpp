@@ -42,9 +42,9 @@ namespace mega
 {
     using InputArchiveType = boost::archive::xml_iarchive;
     using OutputArchiveType = boost::archive::xml_oarchive;
-    //using InputArchiveType = boost::archive::text_iarchive;
-    //using OutputArchiveType = boost::archive::text_oarchive;
-}
+    // using InputArchiveType = boost::archive::text_iarchive;
+    // using OutputArchiveType = boost::archive::text_oarchive;
+} // namespace mega
 
 namespace boost
 {
@@ -74,40 +74,58 @@ namespace boost
 
 namespace boost
 {
-namespace serialization
-{
-    template < class Archive >
-    inline void serialize( Archive& ar, boost::filesystem::path& p, const unsigned int version )
+    namespace serialization
     {
-        std::string s;
-        if ( Archive::is_saving::value )
-            s = p.generic_string();
-        ar& boost::serialization::make_nvp( "string", s );
-        if ( Archive::is_loading::value )
-            p = s;
-    }
-
-    template < class Archive >
-    inline void serialize( Archive& ar, std::optional< boost::filesystem::path >& p, const unsigned int version )
-    {
-        std::string s;
-        if ( Archive::is_saving::value )
+        template < class Archive >
+        inline void serialize( Archive& ar, boost::filesystem::path& p, const unsigned int version )
         {
-            if ( p.has_value() )
-                s = p.value().generic_string();
-            else
-                s = "";
-        }
-        ar& boost::serialization::make_nvp( "string", s );
-        if ( Archive::is_loading::value )
-        {
-            if ( s.empty() )
-                p = std::optional< boost::filesystem::path >();
-            else
+            std::string s;
+            if ( Archive::is_saving::value )
+                s = p.generic_string();
+            ar& boost::serialization::make_nvp( "string", s );
+            if ( Archive::is_loading::value )
                 p = s;
         }
-    }
-} // namespace serialization
+
+        template < class Archive >
+        inline void serialize( Archive& ar, std::optional< boost::filesystem::path >& p, const unsigned int version )
+        {
+            std::string s;
+            if ( Archive::is_saving::value )
+            {
+                if ( p.has_value() )
+                    s = p.value().generic_string();
+                else
+                    s = "";
+            }
+            ar& boost::serialization::make_nvp( "string", s );
+            if ( Archive::is_loading::value )
+            {
+                if ( s.empty() )
+                    p = std::optional< boost::filesystem::path >();
+                else
+                    p = s;
+            }
+        }
+
+        template < class Archive, class T >
+        inline void serialize( Archive& ar, std::optional< T >& optionalValue, const unsigned int version )
+        {
+            if ( Archive::is_saving::value )
+            {
+                VERIFY_RTE( optionalValue );
+                ar& optionalValue.value();
+            }
+
+            if ( Archive::is_loading::value )
+            {
+                T   temp;
+                ar& temp;
+                optionalValue = temp;
+            }
+        }
+
+    } // namespace serialization
 } // namespace boost
 
 #endif // ARCHIVE_18_04_2019

@@ -45,10 +45,14 @@ namespace db
         public:
             using Ptr = std::shared_ptr< Type >;
 
+            bool m_bLate = false;
+
             Type( std::size_t& szCounter )
                 : CountedObject( szCounter )
             {
             }
+
+            void setLate() { m_bLate = true; }
 
             virtual std::string getViewType( bool bAsArg ) const = 0;
             virtual std::string getDataType( bool bAsArg ) const = 0;
@@ -190,7 +194,7 @@ namespace db
                 : CountedObject( szCounter )
             {
             }
-            Property::Ptr m_property;
+            Property::Ptr              m_property;
             std::weak_ptr< Interface > m_interface;
 
             virtual std::string getName() const = 0;
@@ -244,10 +248,7 @@ namespace db
                 os << "set_" << m_property->m_strName;
                 return os.str();
             }
-            virtual std::string getReturnType() const
-            {
-                return "void";
-            }
+            virtual std::string getReturnType() const { return "void"; }
             virtual std::string getParams() const
             {
                 std::ostringstream os;
@@ -264,10 +265,7 @@ namespace db
             {
             }
             virtual std::string getName() const;
-            virtual std::string getReturnType() const
-            {
-                return "void";
-            }
+            virtual std::string getReturnType() const { return "void"; }
             virtual std::string getParams() const;
         };
 
@@ -469,6 +467,13 @@ namespace db
             return os.str();
         }
 
+        inline std::string toOptional( const std::string& strType )
+        {
+            std::ostringstream os;
+            os << "std::optional< " << strType << " >";
+            return os.str();
+        }
+
         ///////////////////////////////////////////////////
         ///////////////////////////////////////////////////
         // types
@@ -483,11 +488,19 @@ namespace db
             std::string m_cppType;
 
             virtual std::string getViewType( bool bAsArg ) const { return bAsArg ? toConstRef( m_cppType ) : m_cppType; }
-            virtual std::string getDataType( bool bAsArg ) const { return bAsArg ? toConstRef( m_cppType ) : m_cppType; }
-            virtual bool        isCtorParam() const { return true; }
-            virtual bool        isGet() const { return true; }
-            virtual bool        isSet() const { return true; }
-            virtual bool        isInsert() const { return false; }
+            virtual std::string getDataType( bool bAsArg ) const
+            {
+                if ( m_bLate )
+                    return toOptional( m_cppType );
+                else if ( bAsArg )
+                    return toConstRef( m_cppType );
+                else
+                    return m_cppType;
+            }
+            virtual bool isCtorParam() const { return true; }
+            virtual bool isGet() const { return true; }
+            virtual bool isSet() const { return true; }
+            virtual bool isInsert() const { return false; }
         };
 
         class ArrayType : public Type
@@ -513,7 +526,13 @@ namespace db
                 VERIFY_RTE( m_underlyingType );
                 std::ostringstream os;
                 os << "std::vector< " << m_underlyingType->getDataType( false ) << " >";
-                return bAsArg ? toConstRef( os.str() ) : os.str();
+
+                if ( m_bLate )
+                    return toOptional( os.str() );
+                else if ( bAsArg )
+                    return toConstRef( os.str() );
+                else
+                    return os.str();
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -543,7 +562,13 @@ namespace db
                 VERIFY_RTE( m_object );
                 std::ostringstream os;
                 os << "data::Ptr< data::" << m_object->m_primaryFile.lock()->m_strName << "::" << m_object->m_strName << " >";
-                return os.str();
+
+                if ( m_bLate )
+                    return toOptional( os.str() );
+                else if ( bAsArg )
+                    return toConstRef( os.str() );
+                else
+                    return os.str();
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -577,45 +602,19 @@ namespace db
                 VERIFY_RTE( m_toType );
                 std::ostringstream os;
                 os << "std::map< " << m_fromType->getDataType( false ) << ", " << m_toType->getDataType( false ) << " >";
-                return os.str();
+
+                if ( m_bLate )
+                    return toOptional( os.str() );
+                else if ( bAsArg )
+                    return toConstRef( os.str() );
+                else
+                    return os.str();
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
             virtual bool isSet() const { return true; }
             virtual bool isInsert() const { return true; }
         };
-        /*
-            class OptionalType : public Type
-            {
-            public:
-                using Ptr = std::shared_ptr< OptionalType >;
-                Type::Ptr m_underlyingType;
-            };
-
-            class PredicateType : public Type
-            {
-            public:
-                using Ptr = std::shared_ptr< PredicateType >;
-                std::string m_cppType;
-            };
-
-            class SetType : public Type
-            {
-            public:
-                using Ptr = std::shared_ptr< SetType >;
-                Type::Ptr m_underlyingType;
-                Type::Ptr m_predicate;
-            };
-
-            class MultiMapType : public Type
-            {
-            public:
-                using Ptr = std::shared_ptr< MultiMapType >;
-
-                Type::Ptr m_fromType;
-                Type::Ptr m_toType;
-                Type::Ptr m_predicate;
-            };*/
 
         Schema::Ptr from_ast( const ::db::schema::Schema& schema );
 

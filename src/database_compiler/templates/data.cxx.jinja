@@ -23,12 +23,12 @@ namespace {{ file.name }}
     {
     }
 {% if length(part.properties) %}
-    {{ part.name }}::{{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.properties %}, {{ property.argtype }} {{ property.name }}{% endfor %} )
+    {{ part.name }}::{{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.initialisations %}, {{ property.argtype }} {{ property.name }}{% endfor %} )
         :   mega::io::Object( objectInfo )
 {% for pointer in part.pointers %}
           , {{ pointer.longname }}( loader )
 {% endfor %}{#part.pointers#}
-{% for property in part.properties %}
+{% for property in part.initialisations %}
           , {{ property.name }}( {{ property.name }} )
 {% endfor %}{#part.property#}
     {
@@ -49,6 +49,9 @@ namespace {{ file.name }}
         storer.store( {{ pointer.longname }} );
 {% endfor %}{#part.pointers#}
 {% for property in part.properties %}
+{% if property.has_validation %}  
+        {{ property.validation }}
+{% endif %}
         storer.store( {{ property.name }} );
 {% endfor %}{#part.property#}
     }
