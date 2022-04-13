@@ -748,6 +748,13 @@ namespace db
                                 pSetter->m_property = pProperty;
                                 pInterface->m_functions.push_back( pSetter );
                             }
+                            if ( pProperty->isInsert() )
+                            {
+                                FunctionInserter::Ptr pInserter
+                                    = std::make_shared< FunctionInserter >( mapping.counter );
+                                pInserter->m_property = pProperty;
+                                pInterface->m_functions.push_back( pInserter );
+                            }
                             if( pProperty->isCtorParam() )
                             {
                                 pInterface->m_args.push_back( pProperty );

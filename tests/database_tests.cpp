@@ -1,6 +1,7 @@
 
 #include <gtest/gtest.h>
 
+#include "database/model/ComponentListing.hxx"
 #include "database/model/InputParse.hxx"
 #include "database/model/InterfaceStage.hxx"
 #include "database/model/Analysis.hxx"
@@ -292,4 +293,25 @@ TEST_F( DatabaseTest, MapOfPointers )
 
         database.store();
     }
+}
+
+TEST_F( DatabaseTest, Inserter )
+{
+    {
+        using namespace ComponentListing;
+        Database database( environment );
+
+        using namespace ComponentListing::Components;
+
+        Component::Args args( "test", "somepath", {}, {});
+        Component* pComponent = database.construct< Component >( args );
+
+        ASSERT_TRUE( pComponent->get_includeDirectories().empty() );
+
+        pComponent->push_back_includeDirectories("testpath");
+
+        ASSERT_EQ( pComponent->get_includeDirectories().front(), "testpath" );
+        
+    }
+
 }

@@ -58,6 +58,7 @@ namespace db
             virtual bool        isCtorParam() const = 0;
             virtual bool        isGet() const = 0;
             virtual bool        isSet() const = 0;
+            virtual bool        isInsert() const = 0;
         };
 
         class File;
@@ -79,6 +80,7 @@ namespace db
             bool isCtorParam() const { return m_type->isCtorParam(); }
             bool isGet() const { return m_type->isGet(); }
             bool isSet() const { return m_type->isSet(); }
+            bool isInsert() const { return  m_type->isInsert(); }
 
             std::weak_ptr< ObjectPart > m_objectPart;
 
@@ -207,6 +209,15 @@ namespace db
         public:
             using Ptr = std::shared_ptr< FunctionSetter >;
             FunctionSetter( std::size_t& szCounter )
+                : Function( szCounter )
+            {
+            }
+        };
+        class FunctionInserter : public Function
+        {
+        public:
+            using Ptr = std::shared_ptr< FunctionInserter >;
+            FunctionInserter( std::size_t& szCounter )
                 : Function( szCounter )
             {
             }
@@ -433,6 +444,7 @@ namespace db
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
             virtual bool isSet() const { return true; }
+            virtual bool isInsert() const { return false; }
         };
 
         class ArrayType : public Type
@@ -463,6 +475,7 @@ namespace db
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
             virtual bool isSet() const { return true; }
+            virtual bool isInsert() const { return true; }
         };
 
         class RefType : public Type
@@ -494,6 +507,7 @@ namespace db
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
             virtual bool isSet() const { return true; }
+            virtual bool isInsert() const { return false; }
         };
 
         class MapType : public Type
@@ -527,6 +541,7 @@ namespace db
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
             virtual bool isSet() const { return true; }
+            virtual bool isInsert() const { return true; }
         };
         /*
             class OptionalType : public Type
@@ -543,13 +558,6 @@ namespace db
                 std::string m_cppType;
             };
 
-            class ArrayType : public Type
-            {
-            public:
-                using Ptr = std::shared_ptr< ArrayType >;
-                Type::Ptr m_underlyingType;
-            };
-
             class SetType : public Type
             {
             public:
@@ -557,7 +565,6 @@ namespace db
                 Type::Ptr m_underlyingType;
                 Type::Ptr m_predicate;
             };
-
 
             class MultiMapType : public Type
             {
