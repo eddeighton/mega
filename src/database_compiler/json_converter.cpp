@@ -789,8 +789,9 @@ namespace db
                 {
                     const std::string strSuperTypeName = pSuperType->getTypeName();
 
-                    nlohmann::json stype
-                        = nlohmann::json::object( { { "name", strSuperTypeName }, { "interfaces", nlohmann::json::array() } } );
+                    nlohmann::json stype = nlohmann::json::object( { { "name", strSuperTypeName },
+                                                                     { "interfaces", nlohmann::json::array() },
+                                                                     { "functions", nlohmann::json::array() } } );
 
                     for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
                     {
@@ -799,7 +800,6 @@ namespace db
                         nlohmann::json interface = nlohmann::json::object( { { "name", pInterface->delimitTypeName( "::" ) },
                                                                              { "fullname", pInterface->delimitTypeName( "_" ) },
                                                                              { "part", pPrimaryObjectPart->getDataType( "::" ) },
-                                                                             { "functions", nlohmann::json::array() },
                                                                              { "casts", nlohmann::json::array() } } );
 
                         for ( model::Interface::Ptr pOtherInterfaces : pSuperType->m_interfaces )

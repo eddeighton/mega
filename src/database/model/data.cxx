@@ -606,6 +606,21 @@ namespace AST
 namespace Body
 {
 }
+namespace Tree
+{
+    // struct Root : public mega::io::Object
+    Root::Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    void Root::load( mega::io::Loader& loader )
+    {
+    }
+    void Root::store( mega::io::Storer& storer ) const
+    {
+    }
+        
+}
 
 
 mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -637,6 +652,7 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 22: return new AST::SourceRoot( loader, objectInfo );
         case 23: return new AST::IncludeRoot( loader, objectInfo );
         case 24: return new AST::ObjectSourceRoot( loader, objectInfo );
+        case 25: return new Tree::Root( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

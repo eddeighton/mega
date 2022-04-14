@@ -56,6 +56,10 @@ namespace AST
 namespace Body
 {
 }
+namespace Tree
+{
+    struct Root;
+}
 
 // definitions
 namespace Components
@@ -396,6 +400,19 @@ namespace AST
 namespace Body
 {
 }
+namespace Tree
+{
+    struct Root : public mega::io::Object
+    {
+        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Type = 25
+        };
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+}
 
 template <>
 inline Ptr< Components::Component > convert( const Ptr< Components::Component >& from )
@@ -633,6 +650,12 @@ inline Ptr< AST::SourceRoot > convert( const Ptr< AST::ObjectSourceRoot >& from 
 
 template <>
 inline Ptr< AST::ObjectSourceRoot > convert( const Ptr< AST::ObjectSourceRoot >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::Root > convert( const Ptr< Tree::Root >& from )
 {
     return from;
 }

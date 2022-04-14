@@ -10,18 +10,42 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get handy function to preprocess files for the xmacros stuff
 include( ../preprocess_cpp.cmake )
 
-set( DATABASE_SCHEMA ${MEGA_SRC_DIR}/database_compiler/schema.txt )
+set( MEGA_DATABASE_GENERATED_HEADERS
+
+    ${MEGA_API_DIR}/database/model/data.hxx
+
+    ${MEGA_API_DIR}/database/model/ComponentListing.hxx
+    ${MEGA_API_DIR}/database/model/ParserStage.hxx
+    ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
+	)
+
+set( MEGA_DATABASE_GENERATED_SOURCES
+
+    ${MEGA_SRC_DIR}/database/model/data.cxx
+
+    ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
+    ${MEGA_SRC_DIR}/database/model/ParserStage.cxx
+    ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
+)
+
+set( DATABASE_SCHEMAS 
+        ${MEGA_SRC_DIR}/database/parser.dbs
+        ${MEGA_SRC_DIR}/database/interface.dbs
+        )
+
 add_custom_target( database_generation
     COMMAND database_compiler_driver
-        --input ${DATABASE_SCHEMA}
         --api ${MEGA_API_DIR}/database/model/
         --src ${MEGA_SRC_DIR}/database/model/
-        --data_dir ${MEGA_SRC_DIR}/database_compiler/data/
+        --data_dir ${MEGA_SRC_DIR}/database/data/
         --inja_dir ${MEGA_SRC_DIR}/database_compiler/templates/
         --json
         --template
-    DEPENDS ${DATABASE_SCHEMA}
-    SOURCES ${DATABASE_SCHEMA}
+        --input ${DATABASE_SCHEMAS}
+    COMMENT "Generating database"
+    DEPENDS ${DATABASE_SCHEMAS}
+    SOURCES ${DATABASE_SCHEMAS}
+    BYPRODUCTS ${MEGA_DATABASE_GENERATED_HEADERS} ${MEGA_DATABASE_GENERATED_SOURCES}
 )
 add_dependencies( database_generation database_compiler_driver )
 
@@ -51,21 +75,6 @@ add_dependencies( database_generation database_compiler_driver )
 #	${MEGA_API_DIR}/mega/variant.hpp
 #	)
 
-set( MEGA_DATABASE_GENERATED_HEADERS
-
-    ${MEGA_API_DIR}/database/model/data.hxx
-
-    ${MEGA_API_DIR}/database/model/ComponentListing.hxx
-    ${MEGA_API_DIR}/database/model/ParserStage.hxx
-	)
-
-set( MEGA_DATABASE_GENERATED_SOURCES
-
-    ${MEGA_SRC_DIR}/database/model/data.cxx
-
-    ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
-    ${MEGA_SRC_DIR}/database/model/ParserStage.cxx
-)
 
 set( MEGA_DATABASE_IO
     ${MEGA_API_DIR}/database/io/archive.hpp
@@ -91,12 +100,11 @@ set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/io/manifest.cpp
     ${MEGA_SRC_DIR}/database/io/object.cpp
     ${MEGA_SRC_DIR}/database/io/storer.cpp
-
-
     )
 
 add_library( database
                     ${MEGA_DATABASE_IO}
+					${MEGA_DATABASE_GENERATED_HEADERS}
 					${MEGA_DATABASE_GENERATED_SOURCES}
 					${MEGA_DATABASE_SOURCES}
 				)
