@@ -1,1 +1,0 @@
-FILE_TYPE( FILE_ComponentListing_Components, STAGE_ComponentListing )

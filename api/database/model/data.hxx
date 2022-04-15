@@ -1,12 +1,12 @@
 #ifndef DATABASE_DATA_GUARD_4_APRIL_2022
 #define DATABASE_DATA_GUARD_4_APRIL_2022
 
-#include "database/io/object_info.hpp"
-#include "database/io/object.hpp"
-#include "database/io/loader.hpp"
-#include "database/io/storer.hpp"
-#include "database/io/data_pointer.hpp"
-#include "database/io/object_loader.hpp"
+#include "database/common/object_info.hpp"
+#include "database/common/object.hpp"
+#include "database/common/loader.hpp"
+#include "database/common/storer.hpp"
+#include "database/common/data_pointer.hpp"
+#include "database/common/object_loader.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -76,7 +76,9 @@ namespace Components
         boost::filesystem::path directory;
         std::vector< boost::filesystem::path > includeDirectories;
         std::vector< boost::filesystem::path > sourceFiles;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
 }
@@ -91,7 +93,9 @@ namespace AST
             Type = 1
         };
         std::string str;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct ScopedIdentifier : public mega::io::Object
@@ -103,7 +107,9 @@ namespace AST
             Type = 2
         };
         std::vector< data::Ptr< data::AST::Identifier > > ids;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct ArgumentList : public mega::io::Object
@@ -115,7 +121,9 @@ namespace AST
             Type = 3
         };
         std::string str;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct ReturnType : public mega::io::Object
@@ -127,7 +135,9 @@ namespace AST
             Type = 4
         };
         std::string str;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct Inheritance : public mega::io::Object
@@ -139,7 +149,9 @@ namespace AST
             Type = 5
         };
         std::vector< std::string > strings;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct Size : public mega::io::Object
@@ -151,7 +163,9 @@ namespace AST
             Type = 6
         };
         std::string str;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct Dimension : public mega::io::Object
@@ -165,7 +179,9 @@ namespace AST
         bool isConst;
         data::Ptr< data::AST::Identifier > id;
         std::string type;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct Include : public mega::io::Object
@@ -175,7 +191,9 @@ namespace AST
         {
             Type = 8
         };
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct SystemInclude : public mega::io::Object
@@ -188,7 +206,9 @@ namespace AST
         };
         std::string str;
         Ptr< AST::Include > p_AST_Include;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct MegaInclude : public mega::io::Object
@@ -202,7 +222,9 @@ namespace AST
         boost::filesystem::path megaSourceFilePath;
         std::optional< data::Ptr< data::AST::IncludeRoot > > root;
         Ptr< AST::Include > p_AST_Include;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct MegaIncludeInline : public mega::io::Object
@@ -213,7 +235,9 @@ namespace AST
             Type = 11
         };
         Ptr< AST::MegaInclude > p_AST_MegaInclude;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct MegaIncludeNested : public mega::io::Object
@@ -226,7 +250,9 @@ namespace AST
         };
         data::Ptr< data::AST::Identifier > id;
         Ptr< AST::MegaInclude > p_AST_MegaInclude;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct CPPInclude : public mega::io::Object
@@ -239,7 +265,9 @@ namespace AST
         };
         boost::filesystem::path cppSourceFilePath;
         Ptr< AST::Include > p_AST_Include;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct Dependency : public mega::io::Object
@@ -251,7 +279,9 @@ namespace AST
             Type = 14
         };
         std::string str;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct ContextDef : public mega::io::Object
@@ -267,7 +297,9 @@ namespace AST
         std::vector< data::Ptr< data::AST::Include > > includes;
         std::vector< data::Ptr< data::AST::Dependency > > dependencies;
         std::string body;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct AbstractDef : public mega::io::Object
@@ -280,7 +312,9 @@ namespace AST
         };
         data::Ptr< data::AST::ScopedIdentifier > id;
         Ptr< AST::ContextDef > p_AST_ContextDef;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct ActionDef : public mega::io::Object
@@ -295,7 +329,9 @@ namespace AST
         data::Ptr< data::AST::Size > size;
         data::Ptr< data::AST::Inheritance > inheritance;
         Ptr< AST::ContextDef > p_AST_ContextDef;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct EventDef : public mega::io::Object
@@ -310,7 +346,9 @@ namespace AST
         data::Ptr< data::AST::Size > size;
         data::Ptr< data::AST::Inheritance > inheritance;
         Ptr< AST::ContextDef > p_AST_ContextDef;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct FunctionDef : public mega::io::Object
@@ -325,7 +363,9 @@ namespace AST
         data::Ptr< data::AST::ArgumentList > argumentList;
         data::Ptr< data::AST::ReturnType > returnType;
         Ptr< AST::ContextDef > p_AST_ContextDef;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct ObjectDef : public mega::io::Object
@@ -340,7 +380,9 @@ namespace AST
         data::Ptr< data::AST::Size > size;
         data::Ptr< data::AST::Inheritance > inheritance;
         Ptr< AST::ContextDef > p_AST_ContextDef;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct LinkDef : public mega::io::Object
@@ -355,7 +397,9 @@ namespace AST
         data::Ptr< data::AST::Size > size;
         data::Ptr< data::AST::Inheritance > inheritance;
         Ptr< AST::ContextDef > p_AST_ContextDef;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct SourceRoot : public mega::io::Object
@@ -369,7 +413,9 @@ namespace AST
         boost::filesystem::path sourceFile;
         data::Ptr< data::Components::Component > component;
         data::Ptr< data::AST::ContextDef > ast;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct IncludeRoot : public mega::io::Object
@@ -382,7 +428,9 @@ namespace AST
         };
         data::Ptr< data::AST::MegaInclude > include;
         Ptr< AST::SourceRoot > p_AST_SourceRoot;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
     struct ObjectSourceRoot : public mega::io::Object
@@ -393,7 +441,9 @@ namespace AST
             Type = 24
         };
         Ptr< AST::SourceRoot > p_AST_SourceRoot;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
 }
@@ -405,11 +455,15 @@ namespace Tree
     struct Root : public mega::io::Object
     {
         Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ObjectSourceRoot >& root);
         enum 
         {
             Type = 25
         };
+        data::Ptr< data::AST::ObjectSourceRoot > root;
+        mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
 }
@@ -659,6 +713,261 @@ inline Ptr< Tree::Root > convert( const Ptr< Tree::Root >& from )
 {
     return from;
 }
+
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::SystemInclude >, Ptr< AST::Include > >
+{
+    inline TVariant operator()( Ptr< AST::Include >& from ) const
+    {
+        if( AST::SystemInclude* p1 = dynamic_cast< AST::SystemInclude* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::SystemInclude >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::Include >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::MegaInclude >, Ptr< AST::Include > >
+{
+    inline TVariant operator()( Ptr< AST::Include >& from ) const
+    {
+        if( AST::MegaInclude* p1 = dynamic_cast< AST::MegaInclude* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::MegaInclude >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::Include >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::MegaIncludeInline >, Ptr< AST::Include > >
+{
+    inline TVariant operator()( Ptr< AST::Include >& from ) const
+    {
+        if( AST::MegaInclude* p1 = dynamic_cast< AST::MegaInclude* >( from->m_pInheritance ) )
+        {
+        if( AST::MegaIncludeInline* p2 = dynamic_cast< AST::MegaIncludeInline* >( p1->m_pInheritance ) )
+        {
+            return Ptr< AST::MegaIncludeInline >( from, p2 );
+        }
+        else
+        {
+            return Ptr< AST::MegaInclude >( from, p1 );
+        }
+        }
+        else
+        {
+            return Ptr< AST::Include >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::MegaIncludeNested >, Ptr< AST::Include > >
+{
+    inline TVariant operator()( Ptr< AST::Include >& from ) const
+    {
+        if( AST::MegaInclude* p1 = dynamic_cast< AST::MegaInclude* >( from->m_pInheritance ) )
+        {
+        if( AST::MegaIncludeNested* p2 = dynamic_cast< AST::MegaIncludeNested* >( p1->m_pInheritance ) )
+        {
+            return Ptr< AST::MegaIncludeNested >( from, p2 );
+        }
+        else
+        {
+            return Ptr< AST::MegaInclude >( from, p1 );
+        }
+        }
+        else
+        {
+            return Ptr< AST::Include >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::CPPInclude >, Ptr< AST::Include > >
+{
+    inline TVariant operator()( Ptr< AST::Include >& from ) const
+    {
+        if( AST::CPPInclude* p1 = dynamic_cast< AST::CPPInclude* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::CPPInclude >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::Include >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::MegaIncludeInline >, Ptr< AST::MegaInclude > >
+{
+    inline TVariant operator()( Ptr< AST::MegaInclude >& from ) const
+    {
+        if( AST::MegaIncludeInline* p1 = dynamic_cast< AST::MegaIncludeInline* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::MegaIncludeInline >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::MegaInclude >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::MegaIncludeNested >, Ptr< AST::MegaInclude > >
+{
+    inline TVariant operator()( Ptr< AST::MegaInclude >& from ) const
+    {
+        if( AST::MegaIncludeNested* p1 = dynamic_cast< AST::MegaIncludeNested* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::MegaIncludeNested >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::MegaInclude >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::AbstractDef >, Ptr< AST::ContextDef > >
+{
+    inline TVariant operator()( Ptr< AST::ContextDef >& from ) const
+    {
+        if( AST::AbstractDef* p1 = dynamic_cast< AST::AbstractDef* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::AbstractDef >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::ContextDef >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::ActionDef >, Ptr< AST::ContextDef > >
+{
+    inline TVariant operator()( Ptr< AST::ContextDef >& from ) const
+    {
+        if( AST::ActionDef* p1 = dynamic_cast< AST::ActionDef* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::ActionDef >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::ContextDef >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::EventDef >, Ptr< AST::ContextDef > >
+{
+    inline TVariant operator()( Ptr< AST::ContextDef >& from ) const
+    {
+        if( AST::EventDef* p1 = dynamic_cast< AST::EventDef* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::EventDef >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::ContextDef >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::FunctionDef >, Ptr< AST::ContextDef > >
+{
+    inline TVariant operator()( Ptr< AST::ContextDef >& from ) const
+    {
+        if( AST::FunctionDef* p1 = dynamic_cast< AST::FunctionDef* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::FunctionDef >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::ContextDef >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::ObjectDef >, Ptr< AST::ContextDef > >
+{
+    inline TVariant operator()( Ptr< AST::ContextDef >& from ) const
+    {
+        if( AST::ObjectDef* p1 = dynamic_cast< AST::ObjectDef* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::ObjectDef >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::ContextDef >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::LinkDef >, Ptr< AST::ContextDef > >
+{
+    inline TVariant operator()( Ptr< AST::ContextDef >& from ) const
+    {
+        if( AST::LinkDef* p1 = dynamic_cast< AST::LinkDef* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::LinkDef >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::ContextDef >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::IncludeRoot >, Ptr< AST::SourceRoot > >
+{
+    inline TVariant operator()( Ptr< AST::SourceRoot >& from ) const
+    {
+        if( AST::IncludeRoot* p1 = dynamic_cast< AST::IncludeRoot* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::IncludeRoot >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::SourceRoot >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< AST::ObjectSourceRoot >, Ptr< AST::SourceRoot > >
+{
+    inline TVariant operator()( Ptr< AST::SourceRoot >& from ) const
+    {
+        if( AST::ObjectSourceRoot* p1 = dynamic_cast< AST::ObjectSourceRoot* >( from->m_pInheritance ) )
+        {
+            return Ptr< AST::ObjectSourceRoot >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::SourceRoot >( from, from );
+        }
+    }
+};
 
 
 class Factory

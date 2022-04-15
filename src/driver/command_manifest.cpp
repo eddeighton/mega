@@ -17,16 +17,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "database/model/ComponentListing.hxx"
 
 #include "command_utils.hpp"
 
-#include "database/io/manifest.hpp"
-#include "database/io/environment.hpp"
+#include "database/common/component_info.hpp"
+#include "database/common/archive.hpp"
 
-#include "database/io/stages.hpp"
-#include "database/io/component_info.hpp"
-#include "database/io/archive.hpp"
+#include "database/model/manifest.hxx"
+#include "database/model/environment.hxx"
+#include "database/model/ComponentListing.hxx"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
@@ -119,11 +118,10 @@ namespace driver
 
                 taskProgress.start( "Task_GenerateComponents",
                                     m_environment.rootBuildDir(),
-                                    m_environment.FILE_ComponentListing_Components() );
+                                    m_environment.ComponentListing_Components( mega::io::manifest{ projectManifestPath } ) );
 
-                // io::Database< io::stage::Stage_Component > database( m_environment );
                 using namespace ComponentListing;
-                Database database( m_environment );
+                Database database( m_environment, projectManifestPath );
 
                 for ( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
                 {

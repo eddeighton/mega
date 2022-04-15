@@ -7,7 +7,7 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
-add_executable( database_compiler_driver ${MEGA_SRC_DIR}/database_compiler_driver/main.cpp )
+add_executable( database_compiler_driver ${MEGA_SRC_DIR}/database/compiler/main.cpp )
 
 target_compile_definitions(database_compiler_driver PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
 

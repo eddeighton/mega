@@ -11,7 +11,7 @@ set( MEGA_TEST_DIR ${MEGA_ROOT_DIR}/tests )
 
 set( MEGA_UNIT_TESTS
 	${MEGA_TEST_DIR}/database_tests.cpp 
-	${MEGA_TEST_DIR}/database_compiler_tests.cpp
+	${MEGA_TEST_DIR}/schema_grammar_tests.cpp
 	${MEGA_TEST_DIR}/io_tests.cpp
 	${MEGA_TEST_DIR}/file_system_tests.cpp
 	${MEGA_TEST_DIR}/manifest_tests.cpp)

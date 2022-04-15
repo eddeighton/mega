@@ -2,11 +2,14 @@
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 // Stages
-stage perobject InterfaceStage
+stage InterfaceStage
 {
+    source .mega;
+    dependency ParserStage;
+
     file Tree;
 
-    accessor perobject ref< Parser::SourceRoot >;
+    persource accessor ref< Parser::ObjectSourceRoot >;
 }
 
 ///////////////////////////////////////////
@@ -16,6 +19,6 @@ namespace Interface
 {
     object Root -> InterfaceStage::Tree
     {
-
+        ref< Parser::ObjectSourceRoot > root;
     }
 }

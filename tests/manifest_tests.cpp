@@ -1,6 +1,6 @@
 
-#include "database/io/file_info.hpp"
-#include "database/io/manifest.hpp"
+#include "database/model/file_info.hxx"
+#include "database/model/manifest.hxx"
 
 #include <gtest/gtest.h>
 

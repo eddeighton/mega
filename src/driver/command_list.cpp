@@ -19,9 +19,10 @@
 
 #include "command_utils.hpp"
 
-#include "database/io/component_info.hpp"
-#include "database/io/environment.hpp"
-#include "database/io/archive.hpp"
+#include "database/common/component_info.hpp"
+#include "database/common/archive.hpp"
+
+#include "database/model/environment.hxx"
 
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"

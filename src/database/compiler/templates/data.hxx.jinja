@@ -1,0 +1,103 @@
+#ifndef {{ guard }}
+#define {{ guard }}
+
+#include "database/common/object_info.hpp"
+#include "database/common/object.hpp"
+#include "database/common/loader.hpp"
+#include "database/common/storer.hpp"
+#include "database/common/data_pointer.hpp"
+#include "database/common/object_loader.hpp"
+
+#include "boost/filesystem/path.hpp"
+
+#include <string>
+#include <cstddef>
+#include <cstdint>
+#include <vector>
+#include <map>
+#include <set>
+#include <unordered_map>
+
+namespace data
+{
+
+// declarations
+{% for file in files %}
+namespace {{ file.name }}
+{
+{% for part in file.parts %}
+    struct {{ part.name }};
+{% endfor %}{#file.parts#}
+}
+{% endfor %}{# files #}
+
+// definitions
+{% for file in files %}
+namespace {{ file.name }}
+{
+{% for part in file.parts %}
+    struct {{ part.name }} : public mega::io::Object
+    {
+        {{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+{% if length(part.properties) %}
+        {{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.initialisations %}, {{ property.argtype }} {{ property.name }}{% endfor %} );
+{% endif %}
+        enum 
+        {
+            Type = {{ part.typeID }}
+        };
+{% for property in part.properties %}
+        {{ property.type }} {{ property.name }};
+{% endfor %}{#part.property#}
+{% for pointer in part.pointers %}
+        Ptr< {{ pointer.typename }} > {{ pointer.longname }};
+{% endfor %}{#part.pointers#}
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+{% endfor %}{#file.parts#}
+}
+{% endfor %}{# files #}
+
+{% for conversion in conversions %}
+template <>
+inline Ptr< {{ conversion.to }} > convert( const Ptr< {{ conversion.from }} >& from )
+{
+    return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
+}
+
+{% endfor %}{# conversions #}
+
+{% for upcast in up_casts %}
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< {{ upcast.to }} >, Ptr< {{ upcast.from }} > >
+{
+    inline TVariant operator()( Ptr< {{ upcast.from }} >& from ) const
+    {
+{% for cast in upcast.casts %}
+        if( {{ cast.type }}* {{ cast.var }} = dynamic_cast< {{ cast.type }}* >( {{ cast.from_var }}->m_pInheritance ) )
+        {
+{% endfor %}
+            return Ptr< {{ upcast.to }} >( from, {{ upcast.final_var }} );
+{% for cast in upcast.casts_reversed %}
+        }
+        else
+        {
+            return Ptr< {{ cast.type }} >( from, {{ cast.var }} );
+        }
+{% endfor %}
+    }
+};
+
+{% endfor %}
+
+class Factory
+{
+public:
+    static mega::io::Object* create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+};
+
+}
+#endif //{{ guard }}

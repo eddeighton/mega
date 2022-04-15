@@ -1,9 +1,11 @@
 
 
-#include "database/io/environment.hpp"
-#include "database/io/file_info.hpp"
-#include "database/io/manifest.hpp"
-#include "database/io/component_info.hpp"
+
+#include "database/common/component_info.hpp"
+
+#include "database/model/environment.hxx"
+#include "database/model/file_info.hxx"
+#include "database/model/manifest.hxx"
 
 #include <boost/filesystem/operations.hpp>
 #include <gtest/gtest.h>

@@ -1,7 +1,6 @@
 
 #include "database/model/data.hxx"
 
-
 namespace data
 {
 
@@ -26,6 +25,9 @@ namespace Components
         loader.load( directory );
         loader.load( includeDirectories );
         loader.load( sourceFiles );
+    }
+    void Component::load_post( mega::io::Loader& loader )
+    {
     }
     void Component::store( mega::io::Storer& storer ) const
     {
@@ -52,6 +54,9 @@ namespace AST
     {
         loader.load( str );
     }
+    void Identifier::load_post( mega::io::Loader& loader )
+    {
+    }
     void Identifier::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
@@ -70,6 +75,9 @@ namespace AST
     void ScopedIdentifier::load( mega::io::Loader& loader )
     {
         loader.load( ids );
+    }
+    void ScopedIdentifier::load_post( mega::io::Loader& loader )
+    {
     }
     void ScopedIdentifier::store( mega::io::Storer& storer ) const
     {
@@ -90,6 +98,9 @@ namespace AST
     {
         loader.load( str );
     }
+    void ArgumentList::load_post( mega::io::Loader& loader )
+    {
+    }
     void ArgumentList::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
@@ -108,6 +119,9 @@ namespace AST
     void ReturnType::load( mega::io::Loader& loader )
     {
         loader.load( str );
+    }
+    void ReturnType::load_post( mega::io::Loader& loader )
+    {
     }
     void ReturnType::store( mega::io::Storer& storer ) const
     {
@@ -128,6 +142,9 @@ namespace AST
     {
         loader.load( strings );
     }
+    void Inheritance::load_post( mega::io::Loader& loader )
+    {
+    }
     void Inheritance::store( mega::io::Storer& storer ) const
     {
         storer.store( strings );
@@ -146,6 +163,9 @@ namespace AST
     void Size::load( mega::io::Loader& loader )
     {
         loader.load( str );
+    }
+    void Size::load_post( mega::io::Loader& loader )
+    {
     }
     void Size::store( mega::io::Storer& storer ) const
     {
@@ -171,6 +191,9 @@ namespace AST
         loader.load( id );
         loader.load( type );
     }
+    void Dimension::load_post( mega::io::Loader& loader )
+    {
+    }
     void Dimension::store( mega::io::Storer& storer ) const
     {
         storer.store( isConst );
@@ -184,6 +207,9 @@ namespace AST
     {
     }
     void Include::load( mega::io::Loader& loader )
+    {
+    }
+    void Include::load_post( mega::io::Loader& loader )
     {
     }
     void Include::store( mega::io::Storer& storer ) const
@@ -206,6 +232,10 @@ namespace AST
     {
         loader.load( p_AST_Include );
         loader.load( str );
+    }
+    void SystemInclude::load_post( mega::io::Loader& loader )
+    {
+        p_AST_Include->m_pInheritance = this;
     }
     void SystemInclude::store( mega::io::Storer& storer ) const
     {
@@ -232,6 +262,10 @@ namespace AST
         loader.load( megaSourceFilePath );
         loader.load( root );
     }
+    void MegaInclude::load_post( mega::io::Loader& loader )
+    {
+        p_AST_Include->m_pInheritance = this;
+    }
     void MegaInclude::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Include );
@@ -249,6 +283,10 @@ namespace AST
     void MegaIncludeInline::load( mega::io::Loader& loader )
     {
         loader.load( p_AST_MegaInclude );
+    }
+    void MegaIncludeInline::load_post( mega::io::Loader& loader )
+    {
+        p_AST_MegaInclude->m_pInheritance = this;
     }
     void MegaIncludeInline::store( mega::io::Storer& storer ) const
     {
@@ -273,6 +311,10 @@ namespace AST
         loader.load( p_AST_MegaInclude );
         loader.load( id );
     }
+    void MegaIncludeNested::load_post( mega::io::Loader& loader )
+    {
+        p_AST_MegaInclude->m_pInheritance = this;
+    }
     void MegaIncludeNested::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_MegaInclude );
@@ -296,6 +338,10 @@ namespace AST
         loader.load( p_AST_Include );
         loader.load( cppSourceFilePath );
     }
+    void CPPInclude::load_post( mega::io::Loader& loader )
+    {
+        p_AST_Include->m_pInheritance = this;
+    }
     void CPPInclude::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Include );
@@ -315,6 +361,9 @@ namespace AST
     void Dependency::load( mega::io::Loader& loader )
     {
         loader.load( str );
+    }
+    void Dependency::load_post( mega::io::Loader& loader )
+    {
     }
     void Dependency::store( mega::io::Storer& storer ) const
     {
@@ -343,6 +392,9 @@ namespace AST
         loader.load( dependencies );
         loader.load( body );
     }
+    void ContextDef::load_post( mega::io::Loader& loader )
+    {
+    }
     void ContextDef::store( mega::io::Storer& storer ) const
     {
         storer.store( children );
@@ -369,6 +421,10 @@ namespace AST
     {
         loader.load( p_AST_ContextDef );
         loader.load( id );
+    }
+    void AbstractDef::load_post( mega::io::Loader& loader )
+    {
+        p_AST_ContextDef->m_pInheritance = this;
     }
     void AbstractDef::store( mega::io::Storer& storer ) const
     {
@@ -399,6 +455,10 @@ namespace AST
         loader.load( id );
         loader.load( size );
         loader.load( inheritance );
+    }
+    void ActionDef::load_post( mega::io::Loader& loader )
+    {
+        p_AST_ContextDef->m_pInheritance = this;
     }
     void ActionDef::store( mega::io::Storer& storer ) const
     {
@@ -432,6 +492,10 @@ namespace AST
         loader.load( size );
         loader.load( inheritance );
     }
+    void EventDef::load_post( mega::io::Loader& loader )
+    {
+        p_AST_ContextDef->m_pInheritance = this;
+    }
     void EventDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_ContextDef );
@@ -463,6 +527,10 @@ namespace AST
         loader.load( id );
         loader.load( argumentList );
         loader.load( returnType );
+    }
+    void FunctionDef::load_post( mega::io::Loader& loader )
+    {
+        p_AST_ContextDef->m_pInheritance = this;
     }
     void FunctionDef::store( mega::io::Storer& storer ) const
     {
@@ -496,6 +564,10 @@ namespace AST
         loader.load( size );
         loader.load( inheritance );
     }
+    void ObjectDef::load_post( mega::io::Loader& loader )
+    {
+        p_AST_ContextDef->m_pInheritance = this;
+    }
     void ObjectDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_ContextDef );
@@ -528,6 +600,10 @@ namespace AST
         loader.load( size );
         loader.load( inheritance );
     }
+    void LinkDef::load_post( mega::io::Loader& loader )
+    {
+        p_AST_ContextDef->m_pInheritance = this;
+    }
     void LinkDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_ContextDef );
@@ -556,6 +632,9 @@ namespace AST
         loader.load( component );
         loader.load( ast );
     }
+    void SourceRoot::load_post( mega::io::Loader& loader )
+    {
+    }
     void SourceRoot::store( mega::io::Storer& storer ) const
     {
         storer.store( sourceFile );
@@ -581,6 +660,10 @@ namespace AST
         loader.load( p_AST_SourceRoot );
         loader.load( include );
     }
+    void IncludeRoot::load_post( mega::io::Loader& loader )
+    {
+        p_AST_SourceRoot->m_pInheritance = this;
+    }
     void IncludeRoot::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_SourceRoot );
@@ -597,6 +680,10 @@ namespace AST
     {
         loader.load( p_AST_SourceRoot );
     }
+    void ObjectSourceRoot::load_post( mega::io::Loader& loader )
+    {
+        p_AST_SourceRoot->m_pInheritance = this;
+    }
     void ObjectSourceRoot::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_SourceRoot );
@@ -611,13 +698,24 @@ namespace Tree
     // struct Root : public mega::io::Object
     Root::Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
+          , root( loader )
+    {
+    }
+    Root::Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ObjectSourceRoot >& root)
+        :   mega::io::Object( objectInfo )
+          , root( root )
     {
     }
     void Root::load( mega::io::Loader& loader )
     {
+        loader.load( root );
+    }
+    void Root::load_post( mega::io::Loader& loader )
+    {
     }
     void Root::store( mega::io::Storer& storer ) const
     {
+        storer.store( root );
     }
         
 }

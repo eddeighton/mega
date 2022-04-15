@@ -2,18 +2,22 @@
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 // Stages
-stage perprogram ComponentListing
+stage ComponentListing
 {
+    source .manifest;
     file Components;
 }
 
-stage perobject ParserStage
+stage ParserStage
 {
+    source .mega;
+    dependency ComponentListing;
+
     file AST;
     file Body;
 
-    accessor perprogram array< ref< Components::Component > >;
-    accessor perobject array< ref< Parser::MegaInclude > >;
+    global accessor array< ref< Components::Component > >;
+    persource accessor array< ref< Parser::MegaInclude > >;
 }
 
 

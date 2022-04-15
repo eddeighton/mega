@@ -2,13 +2,13 @@
 #include "parser/parser.hpp"
 #include "clang.hpp"
 
-#include "database/model/ParserStage.hxx"
+#include "database/common/sources.hpp"
 
-#include "database/io/environment.hpp"
-#include "database/io/stages.hpp"
-#include "database/io/file.hpp"
+#include "database/model/ParserStage.hxx"
+#include "database/model/environment.hxx"
 
 #include "common/file.hpp"
+#include "common/assert_verify.hpp"
 
 #include "clang/Basic/LLVM.h"
 
@@ -410,7 +410,7 @@ public:
             else
             {
                 const boost::filesystem::path filePath = resolveFilePath( strFile );
-                if ( boost::filesystem::extension( filePath ) == mega::io::Environment::MEGA_EXTENSION )
+                if ( boost::filesystem::extension( filePath ) == mega::io::mega::extension() )
                 {
                     if ( pIdentifier )
                         pResult = database.construct< MegaIncludeNested >(

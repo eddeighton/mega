@@ -1,0 +1,229 @@
+
+#include "database/model/manifest.hxx"
+
+#include "database/common/component_info.hpp"
+#include "database/common/archive.hpp"
+
+#include "database/model/environment.hxx"
+#include "database/model/file_info.hxx"
+
+#include "common/assert_verify.hpp"
+
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
+
+#include <fstream>
+
+namespace mega
+{
+namespace io
+{
+
+    Manifest::Manifest() {}
+
+    Manifest::Manifest( const boost::filesystem::path& filepath ) { load( filepath ); }
+    Manifest::Manifest( const Environment&                            environment,
+                        const std::vector< boost::filesystem::path >& componentInfos )
+    {
+        ObjectInfo::FileID compilationFileID = 0;
+
+{% for source in sources %}
+{% if source.type == "manifest" %}
+        const boost::filesystem::path manifestPath = environment.project_manifest();
+{% for file in source.files %}
+        {
+            FileInfo compilationFileInfo( FileInfo::{{ file.stage }}_{{ file.name }}, 
+                compilationFileID++, 
+                environment.{{ file.stage }}_{{ file.name }}( manifestPath ),
+                manifestPath );
+            m_compilationFileInfos.push_back( compilationFileInfo );
+        }
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+        for ( const boost::filesystem::path& componentInfoPath : componentInfos )
+        {
+            ComponentInfo componentInfo;
+            {
+                VERIFY_RTE_MSG( boost::filesystem::exists( componentInfoPath ),
+                                "Failed to locate file: " << componentInfoPath.string() );
+                std::ifstream inputFileStream( componentInfoPath.native().c_str(), std::ios::in | std::ios_base::binary );
+                if ( !inputFileStream.good() )
+                {
+                    THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
+                }
+                InputArchiveType ia( inputFileStream );
+                ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
+            }
+
+            for ( const boost::filesystem::path& sourceFilePath : componentInfo.getSourceFiles() )
+            {
+                {
+                    m_sourceFiles.push_back( sourceFilePath );
+                }
+
+{% for source in sources %}
+{% if source.type != "manifest" %}
+                if( sourceFilePath.extension() == ".{{ source.type }}" )
+                {
+{% for file in source.files %}
+                    {
+                        FileInfo compilationFileInfo( FileInfo::{{ file.stage }}_{{ file.name }}, 
+                            compilationFileID++, 
+                            environment.{{ file.stage }}_{{ file.name }}( sourceFilePath ),
+                            sourceFilePath );
+                        m_compilationFileInfos.push_back( compilationFileInfo );
+                    }
+{% endfor %}
+                }
+{% endif %}
+{% endfor %}
+            }
+        }
+        initialiseLookupTables();
+    }
+
+    void Manifest::initialiseLookupTables()
+    {
+        m_fileTypeMap.clear();
+        m_dependencies.clear();
+
+        for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
+            iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
+        {
+            const FileInfo& fileInfo = *i;
+            m_fileTypeMap.insert( std::make_pair( 
+                std::make_pair( fileInfo.getFileType(), fileInfo.getObjectSourceFilePath() ), i ) );
+            m_dependencies.push_back( FileIDVector{} );
+        }
+
+        for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
+            iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
+        {
+            //m_dependencies
+            const FileInfo& fileInfo = *i;
+            switch( fileInfo.getFileType() )
+            {
+{% for stage in stages %}
+{% for file in stage.files %}
+            case FileInfo::{{ stage.name }}_{{ file.name }}:
+                {
+{% for dependency in file.dependencies %}
+                    FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
+                        std::make_pair( FileInfo::{{ stage.name }}_{{ file.name }}, fileInfo.getObjectSourceFilePath() ) );
+                    VERIFY_RTE( iFind != m_fileTypeMap.end() );
+                    m_dependencies[ fileInfo.getFileID() ].push_back( iFind->second->getFileID() );
+{% endfor %}
+                }
+                break;
+{% endfor %}
+{% endfor %}
+            default:
+                THROW_RTE( "Unknown file type" );
+                break;
+            }
+        }
+
+    }
+
+    File::PtrCst Manifest::loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
+        const boost::filesystem::path& sourceFile, FileInfo::Type fileType ) const
+    {
+        switch( fileType )
+        {
+{% for stage in stages %}
+{% for file in stage.files %}
+            case FileInfo::{{ stage.name }}_{{ file.name }}:
+                {
+                    FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
+                        std::make_pair( FileInfo::{{ stage.name }}_{{ file.name }}, sourceFile ) );
+                    VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), 
+                        "Failed to locate compilation file of type: FileInfo::{{ stage.name }}_{{ file.name }} for source file: " << sourceFile.string() );
+                    return loadFile( loader, readOnlyFiles, sourceFile, iFind->second->getFileID() );
+                }
+                break;
+{% endfor %}
+{% endfor %}
+            default:
+                THROW_RTE( "Error loading unknown file type for source file: " << sourceFile.string() );
+                break;
+        }
+    }
+
+    File::PtrCst Manifest::loadFileImpl( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
+        const boost::filesystem::path& sourceFile, ObjectInfo::FileID fileID , std::vector< File::Ptr >& loadedFiles ) const
+    {
+        for( ObjectInfo::FileID dependencyFileID : m_dependencies[ fileID ] )
+        {
+            loadFileImpl( loader, readOnlyFiles, sourceFile, dependencyFileID, loadedFiles );
+        }
+
+        FileMapCst::const_iterator iFind = readOnlyFiles.find( fileID );
+        if( iFind != readOnlyFiles.end() )
+            return iFind->second;
+
+        const FileInfo& fileInfo = m_compilationFileInfos[ fileID ];
+        File::Ptr pLoadedFile = std::make_shared< File >( fileInfo, loader );
+        pLoadedFile->load( *this );
+        readOnlyFiles.insert( std::make_pair( fileInfo.getFileID(), pLoadedFile ) );
+        loadedFiles.push_back( pLoadedFile );
+        return pLoadedFile;
+    }
+
+
+    File::PtrCst Manifest::loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
+        const boost::filesystem::path& sourceFile, ObjectInfo::FileID fileID ) const
+    {
+        std::vector< File::Ptr > loadedFiles;
+        File::PtrCst pResult = loadFileImpl( loader, readOnlyFiles, sourceFile, fileID, loadedFiles );
+        for( File::Ptr pFile : loadedFiles )
+        {
+            pFile->load_post( *this );
+        }
+        return pResult;
+    }
+
+    File::Ptr Manifest::createFile( data::ObjectPartLoader& loader, FileMap& readWriteFiles,
+        const boost::filesystem::path& sourceFile, FileInfo::Type fileType ) const
+    {
+        FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
+            std::make_pair( fileType, sourceFile ) );
+        VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), 
+            "Failed to locate compilation file of type: " << fileType << " for source file: " << sourceFile.string() );
+        const FileInfo& fileInfo = *iFind->second;
+        File::Ptr pFile = std::make_shared< File >( fileInfo, loader );
+        readWriteFiles.insert( std::make_pair( fileInfo.getFileID(), pFile ) );
+        return pFile;
+    }
+    
+    void Manifest::load( const boost::filesystem::path& filepath )
+    {
+        VERIFY_RTE_MSG(
+            boost::filesystem::exists( filepath ), "Failed to locate file: " << filepath.string() );
+        std::ifstream inputFileStream( filepath.native().c_str(), std::ios::in | std::ios_base::binary );
+        if ( !inputFileStream.good() )
+        {
+            THROW_RTE( "Failed to open file: " << filepath.string() );
+        }
+        InputArchiveType ia( inputFileStream );
+        ia >> boost::serialization::make_nvp( "manifest", *this );
+        initialiseLookupTables();
+    }
+
+    void Manifest::save( const boost::filesystem::path& filepath ) const
+    {
+        std::ofstream outputFileStream(
+            filepath.native().c_str(), std::ios_base::trunc | std::ios_base::out | std::ios_base::binary );
+        if ( !outputFileStream.good() )
+        {
+            THROW_RTE( "Failed to write to file: " << filepath.string() );
+        }
+        OutputArchiveType oa( outputFileStream );
+        oa << boost::serialization::make_nvp( "manifest", *this );
+    }
+
+} // namespace io
+} // namespace mega
+
+BOOST_CLASS_IMPLEMENTATION( mega::io::Manifest, object_serializable )

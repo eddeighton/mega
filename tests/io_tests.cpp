@@ -1,5 +1,6 @@
 
-#include "database/io/component_info.hpp"
+#include "database/common/component_info.hpp"
+#include "database/common/archive.hpp"
 
 #include <gtest/gtest.h>
 
@@ -7,43 +8,70 @@
 #include <sstream>
 
 using namespace mega::io;
-/*
+
 TEST( MegaIO, SourceListing_Empty )
 {
     ComponentInfo::PathArray paths;
-    ComponentInfo componentInfoFrom( paths, ComponentInfo::PathArray{} );
-    ComponentInfo componentInfoTo( ComponentInfo::PathArray{}, ComponentInfo::PathArray{} );
+    ComponentInfo            componentInfoFrom;
+    ComponentInfo            componentInfoTo;
 
     std::stringstream ss;
-    ss << componentInfoFrom;
-    ss >> componentInfoTo;
+    {
+        mega::OutputArchiveType archive( ss );
+        archive & boost::serialization::make_nvp( "test", componentInfoFrom );
+    }
+    {
+        mega::InputArchiveType archive( ss );
+        archive & boost::serialization::make_nvp( "test", componentInfoTo );
+    }
 
+    ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );
+    ASSERT_EQ( componentInfoFrom.getDirectory(), componentInfoTo.getDirectory() );
     ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
+    ASSERT_EQ( componentInfoFrom.getIncludeDirectories(), componentInfoTo.getIncludeDirectories() );
 }
 
 TEST( MegaIO, SourceListing_Single )
 {
     ComponentInfo::PathArray paths = { "/a/b/c/test.txt" };
-    ComponentInfo componentInfoFrom( paths, ComponentInfo::PathArray{} );
-    ComponentInfo componentInfoTo( ComponentInfo::PathArray{}, ComponentInfo::PathArray{} );
+    ComponentInfo            componentInfoFrom( "test", "some/where", paths, ComponentInfo::PathArray{} );
+    ComponentInfo            componentInfoTo;
 
     std::stringstream ss;
-    ss << componentInfoFrom;
-    ss >> componentInfoTo;
+    {
+        mega::OutputArchiveType archive( ss );
+        archive & boost::serialization::make_nvp( "test", componentInfoFrom );
+    }
+    {
+        mega::InputArchiveType archive( ss );
+        archive & boost::serialization::make_nvp( "test", componentInfoTo );
+    }
 
+    ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );
+    ASSERT_EQ( componentInfoFrom.getDirectory(), componentInfoTo.getDirectory() );
     ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
+    ASSERT_EQ( componentInfoFrom.getIncludeDirectories(), componentInfoTo.getIncludeDirectories() );
 }
 
 TEST( MegaIO, SourceListing_Multi )
 {
     ComponentInfo::PathArray paths = { "/a/b/c/test.txt", "/d/f/g/test.txt", "/c/foobar.txt" };
-    ComponentInfo componentInfoFrom( paths, ComponentInfo::PathArray{} );
-    ComponentInfo componentInfoTo( ComponentInfo::PathArray{}, ComponentInfo::PathArray{} );
+    ComponentInfo::PathArray includes = { "somewhere/place", "/other/place" };
+    ComponentInfo            componentInfoFrom( "test", "some/where", paths, ComponentInfo::PathArray{} );
+    ComponentInfo            componentInfoTo;
 
     std::stringstream ss;
-    ss << componentInfoFrom;
-    ss >> componentInfoTo;
+    {
+        mega::OutputArchiveType archive( ss );
+        archive & boost::serialization::make_nvp( "test", componentInfoFrom );
+    }
+    {
+        mega::InputArchiveType archive( ss );
+        archive & boost::serialization::make_nvp( "test", componentInfoTo );
+    }
 
+    ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );
+    ASSERT_EQ( componentInfoFrom.getDirectory(), componentInfoTo.getDirectory() );
     ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
+    ASSERT_EQ( componentInfoFrom.getIncludeDirectories(), componentInfoTo.getIncludeDirectories() );
 }
-*/

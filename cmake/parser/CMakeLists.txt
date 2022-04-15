@@ -36,7 +36,6 @@ link_common( parser )
 #if (NOT LLVM_ENABLE_RTTI)
 #  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fno-rtti")
 #endif()
-
 #target_compile_options( parser PRIVATE -fno-rtti)
 
 target_link_libraries( parser database )

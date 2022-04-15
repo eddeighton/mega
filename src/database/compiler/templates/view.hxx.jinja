@@ -1,0 +1,177 @@
+#ifndef {{ guard }}
+#define {{ guard }}
+
+#include "database/model/environment.hxx"
+
+#include <boost/filesystem/path.hpp>
+
+#include <string>
+#include <optional>
+#include <memory>
+#include <variant>
+#include <vector>
+#include <map>
+#include <set>
+#include <unordered_map>
+
+namespace {{ stage.name }}
+{
+    // forward declarations
+{% for interface in stage.interfaces %}
+{% for namespace in interface.namespaces %}
+    namespace {{ namespace }}
+    { 
+{% endfor %}{#interface.namespaces#}
+        class {{ interface.name }};
+{% for namespace in interface.namespaces %}
+    } //{{ namespace }}
+{% endfor %}{#interface.namespaces#}
+{% endfor %}{# stage.interfaces #}
+    
+    // Definitions
+
+{% for interface in stage.interfaces %}
+{% for namespace in interface.namespaces %}
+    namespace {{ namespace }}
+    { 
+{% endfor %}{#interface.namespaces#}
+        class {{ interface.name }}{% if interface.has_base %} : public virtual {{ interface.base }}{% endif %}
+
+        {
+        protected:
+            {{ interface.name }}();
+            {{ interface.name }}( const {{ interface.name }}& ) = delete;
+            {{ interface.name }}& operator=( const {{ interface.name }}& ) = delete;
+            virtual ~{{ interface.name }}() = 0;
+        public:
+{% if interface.readwrite %}
+            struct Args
+            {
+{% for ctor in interface.args_ctors %}
+                Args({% for param in ctor.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %})
+{% for param in ctor.params %}
+                    {% if loop.is_first %}:{% else %},{% endif %} {{ param.value }}( {{ param.name }} )
+{% endfor %}{# ctor.params #}
+                {
+                }
+{% endfor %}{# interface.ctors #}
+{% for value in interface.args_values %}
+                {{ value.type }} {{ value.name }};
+{% endfor %}{# interface.values #}
+            };
+{% endif %}
+
+{% for function in interface.functions %}
+            virtual {{ function.returntype }} {{ function.name }}({{ function.params }}) const = 0;
+{% endfor %}{#interface.functions#}
+{% for test in interface.tests %}
+            virtual bool is_{{ test }}() const = 0;
+{% endfor %}{#interface.functions#}
+        };
+{% for namespace in interface.namespaces %}
+    } //{{ namespace }}
+{% endfor %}{#interface.namespaces#}
+{% endfor %}{# stage.interfaces #}
+
+    class Database
+    {
+    public:
+        struct Pimpl;
+        Database( const mega::io::Environment& environment, const boost::filesystem::path& sourceFile );
+        
+        template< typename T >
+        inline std::vector< T* > many( const boost::filesystem::path& sourceFile ) const;
+
+        template< typename T >
+        inline T* one( const boost::filesystem::path& sourceFile ) const;
+
+        template< typename T >
+        inline T* oneOpt( const boost::filesystem::path& sourceFile ) const;
+
+        template< typename T >
+        inline T* construct( const typename T::Args& arguments );
+
+        void store();
+
+    private:
+{% for many_accessor in stage.many_accessors %}
+        std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}( const boost::filesystem::path& sourceFile ) const;
+{% endfor %}{# stage.accessors #}
+{% for one_accessor in stage.one_accessors %}
+        {{ one_accessor.type }}* one_{{ one_accessor.longname }}( const boost::filesystem::path& sourceFile ) const;
+{% endfor %}{# stage.accessors #}
+{% for one_opt_accessor in stage.one_opt_accessors %}
+        {{ one_opt_accessor.type }}* > oneOpt_{{ one_opt_accessor.longname }}( const boost::filesystem::path& sourceFile ) const;
+{% endfor %}{# stage.accessors #}
+{% for constructor in stage.constructors %}
+        {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments );
+{% endfor %}{# stage.constructors #}
+
+    private:
+        std::shared_ptr< Pimpl > m_pimpl;
+    };
+
+    template< typename TFrom, typename TTo >
+    struct PointerCast;
+
+{% for cast in stage.casts %}
+    template< typename TFrom >
+    struct PointerCast< TFrom, {{ cast.type }} >
+    {
+        inline {{ cast.type }}* operator()( TFrom* pFrom ) const
+        {
+            if( pFrom->is_{{ cast.fullname }}() )
+                return dynamic_cast< {{ cast.type }}* >( pFrom );
+            else
+                return nullptr;
+        }
+    };
+{% endfor %}
+
+    template< typename TFrom, typename TTo >
+    struct PointerCast
+    {
+        inline TTo* operator()( TFrom* pFrom ) const
+        {
+            static_assert( 0 && typeid( TFrom ).name() && typeid( TTo ).name(), "Invalid dynamic_database_cast types" );
+            return nullptr;
+        }
+    };
+
+    template< typename TTo, typename TFrom >
+    inline TTo* dynamic_database_cast( TFrom* pFrom )
+    {
+        return PointerCast< TFrom, TTo >()( pFrom );
+    }
+
+{% for constructor in stage.constructors %}
+    template<>
+    inline {{ constructor.return_type }}* Database::construct< {{ constructor.return_type }} >( const {{ constructor.return_type }}::Args& arguments )
+    {
+        return {{ constructor.function_name }}( arguments );
+    }
+{% endfor %}{# stage.constructors #}
+{% for many_accessor in stage.many_accessors %}
+    template<>
+    inline std::vector< {{ many_accessor.type }}* > Database::many< {{ many_accessor.type }} >( const boost::filesystem::path& sourceFile ) const
+    {
+        return many_{{ many_accessor.longname }}( sourceFile );
+    }
+{% endfor %}{# stage.accessors #}
+{% for one_accessor in stage.one_accessors %}
+    template<>
+    inline {{ one_accessor.type }}* Database::one< {{ one_accessor.type }} >( const boost::filesystem::path& sourceFile ) const
+    {
+        return one_{{ one_accessor.longname }}( sourceFile );
+    }
+{% endfor %}{# stage.accessors #}
+{% for one_opt_accessor in stage.one_opt_accessors %}
+    template<>
+    inline {{ one_opt_accessor.type }}* > Database::oneOpt< {{ one_opt_accessor.type }} >( const boost::filesystem::path& sourceFile ) const
+    {
+        return oneOpt_{{ one_opt_accessor.longname }}( sourceFile );
+    }
+{% endfor %}{# stage.accessors #}
+}
+
+#endif //{{ guard }}

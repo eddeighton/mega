@@ -13,6 +13,9 @@ include( ../preprocess_cpp.cmake )
 set( MEGA_DATABASE_GENERATED_HEADERS
 
     ${MEGA_API_DIR}/database/model/data.hxx
+    ${MEGA_API_DIR}/database/model/environment.hxx
+    ${MEGA_API_DIR}/database/model/manifest.hxx
+    ${MEGA_API_DIR}/database/model/file_info.hxx
 
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
     ${MEGA_API_DIR}/database/model/ParserStage.hxx
@@ -22,6 +25,9 @@ set( MEGA_DATABASE_GENERATED_HEADERS
 set( MEGA_DATABASE_GENERATED_SOURCES
 
     ${MEGA_SRC_DIR}/database/model/data.cxx
+    ${MEGA_SRC_DIR}/database/model/environment.cxx
+    ${MEGA_SRC_DIR}/database/model/manifest.cxx
+    ${MEGA_SRC_DIR}/database/model/file_info.cxx
 
     ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
     ${MEGA_SRC_DIR}/database/model/ParserStage.cxx
@@ -33,83 +39,80 @@ set( DATABASE_SCHEMAS
         ${MEGA_SRC_DIR}/database/interface.dbs
         )
 
-add_custom_target( database_generation
+set( COMPILER_OUTPUTS 
+    ${MEGA_DATABASE_GENERATED_HEADERS} 
+    ${MEGA_DATABASE_GENERATED_SOURCES} )
+
+set( COMPILER_BYPRODUCTS
+    data.json 
+    stages.json
+    ComponentListing.json
+    ParserStage.json
+    InterfaceStage.json
+    )
+
+add_custom_command( 
+    OUTPUT ${COMPILER_OUTPUTS}
     COMMAND database_compiler_driver
         --api ${MEGA_API_DIR}/database/model/
         --src ${MEGA_SRC_DIR}/database/model/
         --data_dir ${MEGA_SRC_DIR}/database/data/
-        --inja_dir ${MEGA_SRC_DIR}/database_compiler/templates/
+        --inja_dir ${MEGA_SRC_DIR}/database/compiler/templates/
         --json
         --template
         --input ${DATABASE_SCHEMAS}
-    COMMENT "Generating database"
     DEPENDS ${DATABASE_SCHEMAS}
-    SOURCES ${DATABASE_SCHEMAS}
-    BYPRODUCTS ${MEGA_DATABASE_GENERATED_HEADERS} ${MEGA_DATABASE_GENERATED_SOURCES}
-)
-add_dependencies( database_generation database_compiler_driver )
-
-#set( MEGA_LIBRARY
-#	${MEGA_API_DIR}/mega/allocator.hpp
-#	${MEGA_API_DIR}/mega/backtrace.hpp
-#	${MEGA_API_DIR}/mega/clock.cpp
-#	${MEGA_API_DIR}/mega/clock.hpp
-#	${MEGA_API_DIR}/mega/common.hpp
-#	${MEGA_API_DIR}/mega/coroutine.hpp
-#	${MEGA_API_DIR}/mega/default_traits.hpp
-#	${MEGA_API_DIR}/mega/eg_common_strings.hpp
-#	${MEGA_API_DIR}/mega/event.hpp
-#	${MEGA_API_DIR}/mega/event_log.cpp
-#	${MEGA_API_DIR}/mega/frame.hpp
-#	${MEGA_API_DIR}/mega/frame.cpp
-#	${MEGA_API_DIR}/mega/include.hpp
-#	${MEGA_API_DIR}/mega/iterators.hpp
-#	${MEGA_API_DIR}/mega/macros.hpp
-#	${MEGA_API_DIR}/mega/operations.hpp
-#	${MEGA_API_DIR}/mega/resource.cpp
-#	${MEGA_API_DIR}/mega/resource.hpp
-#	${MEGA_API_DIR}/mega/result_type.hpp
-#	${MEGA_API_DIR}/mega/scheduler.hpp
-#	${MEGA_API_DIR}/mega/basic_scheduler.cpp
-#	${MEGA_API_DIR}/mega/type_path.hpp
-#	${MEGA_API_DIR}/mega/variant.hpp
-#	)
+    BYPRODUCTS ${COMPILER_BYPRODUCTS}
+    COMMON "Generating Database" )
 
 
-set( MEGA_DATABASE_IO
-    ${MEGA_API_DIR}/database/io/archive.hpp
-    ${MEGA_API_DIR}/database/io/component_info.hpp
-    ${MEGA_API_DIR}/database/io/environment.hpp
-    ${MEGA_API_DIR}/database/io/file_info.hpp
-    ${MEGA_API_DIR}/database/io/file.hpp
-    ${MEGA_API_DIR}/database/io/generics.hpp
-    ${MEGA_API_DIR}/database/io/loader.hpp
-    ${MEGA_API_DIR}/database/io/manifest.hpp
-    ${MEGA_API_DIR}/database/io/object_info.hpp
-    ${MEGA_API_DIR}/database/io/object.hpp
-    ${MEGA_API_DIR}/database/io/stages.hpp
-    ${MEGA_API_DIR}/database/io/storer.hpp
+#add_custom_target( database_generation
+#    #COMMAND database_compiler_driver
+#    #    --api ${MEGA_API_DIR}/database/model/
+#    #    --src ${MEGA_SRC_DIR}/database/model/
+#    #    --data_dir ${MEGA_SRC_DIR}/database/data/
+#    #    --inja_dir ${MEGA_SRC_DIR}/database/compiler/templates/
+#    #    --json
+#    #    --template
+#    #    --input ${DATABASE_SCHEMAS}
+#    COMMENT "Generating database"
+#    DEPENDS ${DATABASE_SCHEMAS}
+#    SOURCES ${DATABASE_SCHEMAS}
+#)
+#add_dependencies( database_generation database_compiler_driver )
+
+set( MEGA_DATABASE_COMMON
+    ${MEGA_API_DIR}/database/common/archive.hpp
+    ${MEGA_API_DIR}/database/common/component_info.hpp
+    ${MEGA_API_DIR}/database/common/data_pointer.hpp
+    ${MEGA_API_DIR}/database/common/file.hpp
+    ${MEGA_API_DIR}/database/common/generics.hpp
+    ${MEGA_API_DIR}/database/common/loader.hpp
+    ${MEGA_API_DIR}/database/common/object_info.hpp
+    ${MEGA_API_DIR}/database/common/object_loader.hpp
+    ${MEGA_API_DIR}/database/common/object.hpp
+    ${MEGA_API_DIR}/database/common/storer.hpp
+    ${MEGA_API_DIR}/database/common/sources.hpp
 	)
 
 set( MEGA_DATABASE_SOURCES
-    ${MEGA_SRC_DIR}/database/io/component_info.cpp
-    ${MEGA_SRC_DIR}/database/io/environment.cpp
-    ${MEGA_SRC_DIR}/database/io/file_info.cpp
-    ${MEGA_SRC_DIR}/database/io/file.cpp
-    ${MEGA_SRC_DIR}/database/io/loader.cpp
-    ${MEGA_SRC_DIR}/database/io/manifest.cpp
-    ${MEGA_SRC_DIR}/database/io/object.cpp
-    ${MEGA_SRC_DIR}/database/io/storer.cpp
+    ${MEGA_SRC_DIR}/database/common/sources.cpp
+    ${MEGA_SRC_DIR}/database/common/component_info.cpp
+    ${MEGA_SRC_DIR}/database/common/file.cpp
+    ${MEGA_SRC_DIR}/database/common/loader.cpp
+    ${MEGA_SRC_DIR}/database/common/object.cpp
+    ${MEGA_SRC_DIR}/database/common/storer.cpp
     )
 
 add_library( database
-                    ${MEGA_DATABASE_IO}
+                    ${MEGA_DATABASE_COMMON}
+					${MEGA_DATABASE_SOURCES}
 					${MEGA_DATABASE_GENERATED_HEADERS}
 					${MEGA_DATABASE_GENERATED_SOURCES}
-					${MEGA_DATABASE_SOURCES}
 				)
 
-add_dependencies( database database_generation )
+add_dependencies( database database_compiler_driver )
+#add_dependencies( database database_generation )
 
 
 target_compile_definitions(database PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
@@ -124,18 +127,17 @@ link_boost( database atomic )
 link_common( database )
 
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
-install( FILES ${MEGA_DATABASE_IO} DESTINATION include/database/io )
+install( FILES ${MEGA_DATABASE_COMMON} DESTINATION include/database/io )
 install( FILES ${MEGA_DATABASE_GENERATED_HEADERS} DESTINATION include/database/model )
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )
-
 
 add_c_preprocessor_command( OUTPUT stages.hpp.i SOURCE ${MEGA_API_DIR}/database/io/stages.hpp TARGET database )
 add_custom_target( PreprocessStages
 	SOURCES stages.hpp.i
 	COMMENT "Proprocessing stages.hpp")
 
-add_c_preprocessor_command( OUTPUT file_info.hpp.i SOURCE ${MEGA_API_DIR}/database/io/file_info.hpp TARGET database )
+add_c_preprocessor_command( OUTPUT file_info.hxx.i SOURCE ${MEGA_API_DIR}/database/io/file_info.hxx TARGET database )
 add_custom_target( PreprocessFileInfo
-    SOURCES file_info.hpp.i
-    COMMENT "Proprocessing file_info.hpp")
+    SOURCES file_info.hxx.i
+    COMMENT "Proprocessing file_info.hxx")

@@ -1,0 +1,577 @@
+
+#include "database/model/{{ stage.name }}.hxx"
+
+#include "database/common/object_info.hpp"
+#include "database/common/file.hpp"
+#include "database/common/data_pointer.hpp"
+
+#include "database/model/file_info.hxx"
+#include "database/model/manifest.hxx"
+#include "database/model/data.hxx"
+
+#include "common/hash.hpp"
+
+#include <variant>
+#include <memory>
+#include <unordered_map>
+
+namespace {{ stage.name }}
+{
+{% for interface in stage.interfaces %}
+{% for namespace in interface.namespaces %}
+    namespace {{ namespace }}
+    { 
+{% endfor %}{#interface.namespaces#}
+        {{ interface.name }}::{{ interface.name }}(){}
+        {{ interface.name }}::~{{ interface.name }}(){}
+{% for namespace in interface.namespaces %}
+    } //{{ namespace }}
+{% endfor %}{#interface.namespaces#}
+{% endfor %}{# stage.interfaces #}
+
+class SuperTypeBase
+{
+public:
+    virtual ~SuperTypeBase(){}
+};
+{% for stype in stage.supertypes %}
+class {{ stype.name }};
+{% endfor %}
+
+struct PointerConverter
+{
+{% for object_part in stage.super_conversions %}
+    virtual {{ object_part.supertype }}* toSuper( const data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} >& pData ) const = 0;
+    virtual data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} > toData_{{ object_part.file }}_{{ object_part.object }}( {{ object_part.supertype }}* pSuper ) const = 0;
+{% endfor %}{# stage.super_conversions #}
+{% for interface_conversion in stage.interface_conversions %}
+    virtual {{ interface_conversion.type }}* toInterface( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const = 0;
+    virtual data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} > toData( {{ interface_conversion.type }}* pInterface ) const = 0;
+{% endfor %}{# stage.interface_conversions #}
+};
+
+// conversion generics
+template< typename TTo, typename TFrom >
+inline data::Ptr< TTo > toData( PointerConverter& converter, TFrom* pFrom )
+{
+    return converter.toData( pFrom );
+}
+
+// conversion generics
+template< typename TTo, typename TFrom >
+inline TTo toInterface( PointerConverter& converter, const TFrom& from )
+{
+    return converter.toInterface( from );
+}
+
+template< typename TTo, typename TFrom >
+inline std::vector< data::Ptr< TTo > > toData( PointerConverter& converter, const std::vector< TFrom* >& from )
+{
+    std::vector< data::Ptr< TTo > > result;
+    for( typename std::vector< TFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.push_back( toData< TTo, TFrom >( converter, *i ) );
+    }
+    return result;
+}
+
+template< typename TTo, typename TFrom >
+inline std::vector< TTo* > toInterface( PointerConverter& converter, const std::vector< TFrom >& from )
+{
+    std::vector< TTo* > result;
+    for( typename std::vector< TFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.push_back( toInterface< TTo*, TFrom >( converter, *i ) );
+    }
+    return result;
+}
+
+
+template< typename TTo, typename TFrom, typename TKey >
+inline std::map< TKey, data::Ptr< TTo > > toData( PointerConverter& converter, const std::map< TKey, TFrom* >& from )
+{
+    std::map< TKey, data::Ptr< TTo > > result;
+    for( typename std::map< TKey, TFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( i->first, toData< TTo, TFrom >( converter, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TTo, typename TFrom, typename TKey >
+inline std::map< TKey, TTo* > toInterface( PointerConverter& converter, const std::map< TKey, TFrom >& from )
+{
+    std::map< TKey, TTo* > result;
+    for( typename std::map< TKey, TFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( i->first, toInterface< TTo*, TFrom >( converter, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TTo, typename TFrom, typename TValue >
+inline std::map< data::Ptr< TTo >, TValue > toData( PointerConverter& converter, const std::map< TFrom*, TValue >& from )
+{
+    std::map< data::Ptr< TTo >, TValue > result;
+    for( typename std::map< TFrom*, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( toData< TTo, TFrom >( converter, i->first ), i->second ) );
+    }
+    return result;
+}
+
+template< typename TTo, typename TFrom, typename TValue >
+inline std::map< TTo*, TValue > toInterface( PointerConverter& converter, const std::map< TFrom, TValue >& from )
+{
+    std::map< TTo*, TValue > result;
+    for( typename std::map< TFrom, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( toInterface< TTo*, TFrom >( converter, i->first ), i->second ) );
+    }
+    return result;
+}
+
+template< typename TKeyTo, typename TKeyFrom, typename TValueTo, typename TValueFrom >
+inline std::map< data::Ptr< TKeyTo >, data::Ptr< TValueTo > > toData( PointerConverter& converter, const std::map< TKeyFrom*, TValueFrom* >& from )
+{
+    std::map< data::Ptr< TKeyTo >, data::Ptr< TValueTo > > result;
+    for( typename std::map< TKeyFrom*, TValueFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( 
+            toData< TKeyTo, TKeyFrom >( converter, i->first ), 
+            toData< TValueTo, TValueFrom >( converter, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TKeyTo, typename TKeyFrom, typename TValueTo, typename TValueFrom >
+inline std::map< TKeyTo*, TValueTo* > toInterface( PointerConverter& converter, const std::map< TKeyFrom, TValueFrom >& from )
+{
+    std::map< TKeyTo*, TValueTo > result;
+    for( typename std::map< TKeyFrom, TValueFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( 
+            toInterface< TKeyTo*, TKeyFrom >( converter, i->first ), 
+            toInterface< TValueTo*, TValueFrom >( converter, i->second )) );
+    }
+    return result;
+}
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Super type declarations
+{% for stype in stage.supertypes %}
+class {{ stype.name }} : public SuperTypeBase,
+{% for interface in stype.interfaces %}
+    public virtual {{ interface.name }}{% if not loop.is_last %}, 
+{% endif %}
+{% endfor %}
+
+{
+    PointerConverter& m_converter;
+public:
+    using DataVariant = std::variant
+    < 
+{% for interface in stype.interfaces %} 
+        data::Ptr< data::{{ interface.part }} > {% if not loop.is_last %}, 
+{% endif %}
+{% endfor %} 
+
+    >;
+    mutable DataVariant m_data;
+{% for interface in stype.interfaces %}
+    {{ stype.name }}( PointerConverter& converter, const data::Ptr< data::{{ interface.part }} >& data );
+    void reconstruct( const data::Ptr< data::{{ interface.part }} >& data );
+{% endfor %}{# stype.interfaces #}
+    virtual ~{{ stype.name }}();
+{% for function in stype.functions %}
+    {{ function.returntype }} {{ function.name }}({{function.params }}) const;
+{% endfor %}{# stype.functions #}
+{% for interface in stype.interfaces %}
+    virtual bool is_{{ interface.fullname }}() const;
+{% endfor %}{# stype.interfaces #}
+};
+{% endfor %}{# stage.supertypes #}
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Super type definitions
+{% for stype in stage.supertypes %}
+{% for interface in stype.interfaces %}
+{{ stype.name }}::{{ stype.name }}( PointerConverter& converter, const data::Ptr< data::{{ interface.part }} >& data )
+    :   m_converter( converter ),
+        m_data( data )
+{
+}
+void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} >& data )
+{
+    m_data = data;
+}
+{% endfor %}{# stype.interfaces #}
+{{ stype.name }}::~{{ stype.name }}()
+{
+}
+
+{% for function in stype.functions %}
+{{ function.returntype }} {{ stype.name }}::{{ function.name }}({{function.params }}) const
+{
+    struct Visitor
+    {
+{% for variant in function.variants %}
+        {{ function.propertytype }}& operator()( const data::Ptr< data::{{ variant.primaryobjectpart }} >& data ) const
+        {
+{% if variant.matched %}
+            data::Ptr< data::{{ variant.dataobjectpart }} > part = 
+                data::convert< data::{{ variant.dataobjectpart }} >( data );
+            return part->{{ function.property }};
+{% else %}
+            THROW_RTE( "Invalid function call: {{ function.returntype }} {{ stype.name }}::{{ function.name }}({{function.params }}) const" );
+{% endif %}
+        }
+{% endfor %}{# function.bodies #}
+    } visitor;
+    {{ function.propertytype }}& data = std::visit( visitor, m_data );
+{% for line in function.body.lines %}
+    {{ line }}
+{% endfor %}{# body.impl #}
+}
+{% endfor %}{# stype.functions #}
+
+{% for interface in stype.interfaces %}
+bool {{ stype.name }}::is_{{ interface.fullname }}() const
+{
+    {
+        struct Visit
+        {
+{% for cast in interface.casts %}
+            DataVariant operator()( data::Ptr< data::{{ cast.type }} >& p ) const
+            {
+                return data::UpCast< DataVariant, data::Ptr< data::{{ interface.part }} >, data::Ptr< data::{{ cast.type }} > >()( p );
+            }
+{% endfor %}
+        } visitor;
+        m_data = std::visit( visitor, m_data );
+    }
+    {
+        struct Visit
+        {
+{% for cast in interface.casts %}
+            bool operator()( const data::Ptr< data::{{ cast.type }} >& p ) const
+            {
+                return {{ cast.truth }};
+            }
+{% endfor %}
+        } visitor;
+        return std::visit( visitor, m_data );
+    }
+}
+{% endfor %}{# stype.interfaces #}
+{% endfor %}{# stage.supertypes #}
+
+
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+// Database implementation
+struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
+{
+    using SuperTypePtr = std::unique_ptr< SuperTypeBase >;
+    struct ObjectInfoHash
+    {
+        std::size_t operator()( const mega::io::ObjectInfo& objectInfo ) const
+        {
+            static auto hashgenerator =  std::hash<std::int32_t>{};
+            return common::hash_combine( {
+                hashgenerator(objectInfo.getType()),
+                hashgenerator(objectInfo.getFileID()),
+                hashgenerator(objectInfo.getIndex()) } );
+        }
+    };
+    struct ObjectInfoEquality
+    {
+        std::size_t operator()( const mega::io::ObjectInfo& left, const mega::io::ObjectInfo& right ) const
+        {
+            return  left.getType()      == right.getType() &&
+                    left.getFileID()    == right.getFileID() &&
+                    left.getIndex()     == right.getIndex() ;
+        }
+    };
+    using InterfaceMap = std::unordered_map< mega::io::ObjectInfo, SuperTypePtr, ObjectInfoHash, ObjectInfoEquality >;
+
+    Pimpl( const mega::io::Environment& environment, const boost::filesystem::path& sourceFile )
+        :   m_environment( environment ),
+            m_sourceFile( sourceFile ),
+            m_manifest( m_environment.project_manifest() )
+    {
+        create();
+    }
+
+{% for many_accessor in stage.many_accessors %}
+    std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+    {
+        std::vector< {{ many_accessor.type }}* > result;
+        {
+            mega::io::File::PtrCst pFile;
+{% if many_accessor.read_write %}
+            if( sourceFile == m_sourceFile )
+                pFile = m_pFile_{{ many_accessor.file }};
+            else
+                pFile = m_manifest.loadFile( const_cast< Database::Pimpl&>(*this), 
+                    m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+{% else %}
+            pFile = m_manifest.loadFile( const_cast< Database::Pimpl&>(*this), 
+                m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+{% endif %}
+            for( mega::io::Object* pObject : pFile->range() )
+            {
+                if( data::{{ many_accessor.file }}::{{ many_accessor.object }}* pFound = 
+                    dynamic_cast< data::{{ many_accessor.file }}::{{ many_accessor.object }}* >( pObject ) )
+                {
+                    data::Ptr< data::{{ many_accessor.file }}::{{ many_accessor.object }} > pData( const_cast<Database::Pimpl&>(*this), pFound );
+                    result.push_back( toSuper( pData ) );
+                }
+            }
+        }
+        return result;
+    }
+{% endfor %}{# stage.accessors #}
+{% for one_accessor in stage.one_accessors %}
+    {{ one_accessor.type }}* one_{{ one_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+    {
+        std::vector< {{ one_accessor.type }}* > result = many_{{ one_accessor.longname }}( sourceFile );
+        VERIFY_RTE_MSG( !result.empty(), "Singular accessor for {{ one_accessor.type }} found none" );
+        VERIFY_RTE_MSG( result.size() == 1U, "Singular accessor for {{ one_accessor.type }} found many" );
+        return result.back();
+    }
+{% endfor %}{# stage.accessors #}
+{% for one_opt_accessor in stage.one_opt_accessors %}
+    {{ one_opt_accessor.type }}* > oneOpt_{{ one_opt_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+    {
+        std::vector< {{ one_opt_accessor.type }}* > result = many_{{ one_opt_accessor.longname }}( sourceFile );
+        VERIFY_RTE_MSG( result.size() > 1U, "Singular accessor for {{ one_accessor.type }} found many" );
+        if( !result.empty() )
+            return result.back();
+        else
+            return nullptr;
+    }
+{% endfor %}{# stage.accessors #}
+
+{% for constructor in stage.constructors %}
+    {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments )
+    {
+        using SuperType = {{ constructor.super_type_name }};
+        SuperType* pSuper = nullptr;
+        Database::Pimpl& database = *this;
+
+{% for base in constructor.bases %}
+{% if not loop.is_first %}
+        struct Visitor
+        {
+            Database::Pimpl& database;
+            SuperType*& pSuper;
+            Visitor( Database::Pimpl& database, SuperType*& pSuper )
+                :   database( database ),
+                    pSuper( pSuper )
+            {}
+
+            data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( {{ base.typename }}* pExisting ) const
+            {
+                pSuper = dynamic_cast< SuperType* >( pExisting );
+                VERIFY_RTE( pSuper );
+                return data::convert< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >( pSuper->m_data );
+            }
+{% if base.owns_primary_part %}
+            data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( const {{ base.typename }}::Args& arguments ) const
+            {
+{% endif %}{# base.owns_primary_part #}
+{% endif %}
+{% if base.owns_primary_part %}
+        // primary part: {{ base.typename }}
+{% for arg in base.primary_part.args %}
+        VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
+{% endfor %}{# arg in base.primary_part.args #}
+        data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
+            database.m_pFile_{{ base.primary_part.file }}->construct< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >
+                ({% for arg in base.primary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
+
+{% for secondary_part in base.parts %}
+{% for arg in secondary_part.args %}
+        VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
+{% endfor %}{# secondary_part in base.parts #}
+        // secondary part: {{ secondary_part.file }} :: {{ secondary_part.object }}
+        pPrimaryObjectPart->p_{{ secondary_part.file }}_{{ secondary_part.object }} =
+            database.m_pFile_{{ secondary_part.file }}->construct< data::{{ secondary_part.file }}::{{ secondary_part.object }} >
+                ({% for arg in secondary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
+
+{% endfor %}{# base.parts #}
+{% endif %}{# base.owns_primary_part #}
+{% endfor %}{# constructor.bases #}
+{% for base in constructor.bases_reverse%}
+{% if not loop.is_last %}
+{% if base.owns_primary_part %}
+                return pPrimaryObjectPart;
+            }
+{% endif %}{# base.owns_primary_part #}
+        } visitor( database, pSuper );
+
+        pPrimaryObjectPart->p_{{ base.primary_part.file }}_{{ base.primary_part.object }} =
+            std::visit( visitor, arguments.base.value() );
+{% endif %}
+{% endfor %}{# constructor.bases #}
+        if( pSuper == nullptr )
+        {
+            pSuper = new SuperType( *this, pPrimaryObjectPart );
+            m_interfaceHash[ pPrimaryObjectPart.getObjectInfo() ] = SuperTypePtr( pSuper );
+        }
+        else
+        {
+            pSuper->reconstruct( pPrimaryObjectPart );
+        }
+        return dynamic_cast< {{ constructor.return_type }}* >( pSuper );
+    }
+{% endfor %}{# stage.constructors#}
+
+    void create()
+    {
+{% for file in stage.readwrite_files %}
+        m_pFile_{{ file.name }} = m_manifest.createFile( const_cast< Database::Pimpl&>(*this), 
+            m_readwriteFiles, m_sourceFile, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
+{% endfor %}{# stage.readwrite_files #}
+    }
+
+    void store()
+    {
+        for ( mega::io::Manifest::FileMap::const_iterator 
+                i = m_readwriteFiles.begin(), 
+                iEnd = m_readwriteFiles.end();
+              i != iEnd; ++i )
+        {
+            i->second->store( m_manifest );
+        }
+    }
+
+    virtual mega::io::Object* load( const mega::io::ObjectInfo& objectInfo )
+    {
+        mega::io::File::PtrCst pFile;
+        {
+            mega::io::Manifest::FileMap::const_iterator iFind = m_readwriteFiles.find( objectInfo.getFileID() );
+            if( iFind != m_readwriteFiles.end() )
+            {
+                pFile = iFind->second;
+            }
+            else
+            {
+                mega::io::Manifest::FileMapCst::const_iterator iFind = m_readonlyFiles.find( objectInfo.getFileID() );
+                if( iFind != m_readonlyFiles.end() )
+                {
+                    pFile = iFind->second;
+                }
+                else
+                {
+                    pFile = m_manifest.loadFile( const_cast< Database::Pimpl&>(*this), 
+                        m_readonlyFiles, m_sourceFile, objectInfo.getFileID() );
+                }
+            }
+        }
+        return pFile->getObject( objectInfo.getIndex() );
+    }
+
+{% for super_conversion in stage.super_conversions %}
+    virtual {{ super_conversion.supertype }}* toSuper( const data::Ptr< data::{{ super_conversion.file }}::{{ super_conversion.object }} >& pData ) const
+    {
+        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
+        if( iFind != m_interfaceHash.end() )
+        {
+            {{ super_conversion.supertype }}* pSuper = dynamic_cast< {{ super_conversion.supertype }}* >( iFind->second.get() );
+            VERIFY_RTE( pSuper );
+            return pSuper;
+        }
+        else
+        {
+            using SuperType = {{ super_conversion.supertype }};
+            SuperType* pSuper = new SuperType( const_cast<Database::Pimpl&>(*this), pData );
+            m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
+            return pSuper;
+        }
+    }
+    virtual data::Ptr< data::{{ super_conversion.file }}::{{ super_conversion.object }} > 
+        toData_{{ super_conversion.file }}_{{ super_conversion.object }}( {{ super_conversion.supertype }}* pSuper ) const
+    {
+        return data::convert< data::{{ super_conversion.file }}::{{ super_conversion.object }} >( pSuper->m_data );
+    }
+{% endfor %}{# stage.super_conversions #}
+
+{% for interface_conversion in stage.interface_conversions %}
+    virtual {{ interface_conversion.type }}* toInterface( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const
+    {
+        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
+        if( iFind != m_interfaceHash.end() )
+        {
+            {{ interface_conversion.type }}* pSuper = dynamic_cast< {{ interface_conversion.type }}* >( iFind->second.get() );
+            VERIFY_RTE( pSuper );
+            return pSuper;
+        }
+        else
+        {
+            using SuperType = {{ interface_conversion.supertype }};
+            SuperType* pSuper = new SuperType( const_cast<Database::Pimpl&>(*this), pData );
+            m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
+            return pSuper;
+        }
+    }
+    virtual data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} > toData( {{ interface_conversion.type }}* pInterface ) const
+    {
+        using SuperType = {{ interface_conversion.supertype }};
+        SuperType* pSuper = dynamic_cast< SuperType* >( pInterface );
+        return data::convert< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >( pSuper->m_data );
+    }
+{% endfor %}{# stage.interface_conversions #}
+
+    const mega::io::Environment& m_environment;
+    boost::filesystem::path m_sourceFile;
+    const mega::io::Manifest m_manifest;
+
+    mega::io::Manifest::FileMap m_readwriteFiles;
+    mutable mega::io::Manifest::FileMapCst m_readonlyFiles;
+    mutable InterfaceMap m_interfaceHash;
+
+{% for file in stage.readwrite_files %}
+    std::shared_ptr< mega::io::File > m_pFile_{{ file.name }};
+{% endfor %}
+};
+
+Database::Database( const mega::io::Environment& environment, const boost::filesystem::path& sourceFile )
+:   m_pimpl( new Pimpl( environment, sourceFile ) )
+{
+}
+
+void Database::store()
+{
+    m_pimpl->store();
+}
+
+{% for many_accessor in stage.many_accessors %}
+std::vector< {{ many_accessor.type }}* > Database::many_{{ many_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+{
+    return m_pimpl->many_{{ many_accessor.longname }}( sourceFile );
+}
+{% endfor %}{# stage.accessors #}
+{% for one_accessor in stage.one_accessors %}
+{{ one_accessor.type }}* Database::one_{{ one_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+{
+    return m_pimpl->one_{{ one_accessor.longname }}( sourceFile );
+}
+{% endfor %}{# stage.accessors #}
+{% for one_opt_accessor in stage.one_opt_accessors %}
+{{ one_opt_accessor.type }}* > Database::oneOpt_{{ one_opt_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+{
+    return m_pimpl->oneOpt_{{ one_opt_accessor.longname }}( sourceFile );
+}
+{% endfor %}{# stage.accessors #}
+{% for constructor in stage.constructors %}
+{{ constructor.return_type }}* Database::{{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments )
+{
+    return m_pimpl->{{ constructor.function_name }}( arguments );
+}
+{% endfor %}{# stage.constructors #}
+
+}

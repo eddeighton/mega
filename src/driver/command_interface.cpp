@@ -20,11 +20,12 @@
 //#include "database/model/interface.hpp"
 #include "parser/parser.hpp"
 
+#include "database/model/manifest.hxx"
+#include "database/model/environment.hxx"
 #include "database/model/ParserStage.hxx"
+#include "database/model/InterfaceStage.hxx"
 
-#include "database/io/file.hpp"
-#include "database/io/manifest.hpp"
-#include "database/io/environment.hpp"
+#include "database/common/file.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
@@ -115,13 +116,13 @@ namespace driver
 
                 Database database( m_environment, m_sourceFilePath );
 
-                taskProgress.start( "Task_ParseAST", m_sourceFilePath, m_environment.FILE_ParserStage_AST( m_sourceFilePath ) );
+                taskProgress.start( "Task_ParseAST", m_sourceFilePath, m_environment.ParserStage_AST( mega::io::mega( m_sourceFilePath ) ) );
 
                 std::ostringstream osError, osWarn;
 
                 Components::Component* pComponent = nullptr;
                 {
-                    for ( Components::Component* pIter : database.many< Components::Component >() )
+                    for ( Components::Component* pIter : database.many< Components::Component >( m_environment.project_manifest() ) )
                     {
                         for ( const boost::filesystem::path& sourceFile : pIter->get_sourceFiles() )
                         {
@@ -151,7 +152,7 @@ namespace driver
                     {
                         bExhaustedAll = true;
 
-                        for ( MegaInclude* pInclude : database.many< MegaInclude >() )
+                        for ( MegaInclude* pInclude : database.many< MegaInclude >( m_sourceFilePath ) )
                         {
                             FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->get_megaSourceFilePath() );
                             if ( iFind == m_rootFiles.end() )
@@ -216,67 +217,78 @@ namespace driver
             {
             }
 
-            // using DatabaseType = mega::io::Database< mega::io::stage::STAGE_Interface >;
-            /*
-                    void buildInterface( DatabaseType&               database,
-                                         const mega::input::Element* pInput,
-                                         mega::interface::Element*   pInterface )
-                    {
-                        using namespace mega;
-                        switch ( pInput->getType() )
-                        {
-                            case eInputOpaque:
-                            case eInputDimension:
-                            case eInputUsing:
-                            case eInputExport:
-                            case eInputVisibility:
-                            case eInputMegaInclude:
-                            case eInputCPPInclude:
-                            case eInputSystemInclude:
-                            case eInputDependency:
-                                break;
-                            case eInputContext:
-                            case eInputRoot:
-                            {
-                                const input::Context* pContext
-                                    = dynamic_cast< const input::Context* >( pInput );
-                                VERIFY_RTE( pContext );
+            void recurse( InterfaceStage::Database&                 database,
+                          InterfaceStage::Parser::ObjectSourceRoot* pRoot,
+                          InterfaceStage::Interface::Root*          pInterfaceRoot )
+            {
+                using namespace InterfaceStage;
 
-                                for ( const input::Element* pChildElement : pContext->getElements() )
-                                {
-                                    buildInterface( database, pChildElement, pInterface );
-                                }
-                            }
-                            break;
-                        }
+                Parser::ContextDef* pContext = pRoot->get_ast();
+                VERIFY_RTE( pContext );
+
+                for ( Parser::ContextDef* pChildContext : pContext->get_children() )
+                {
+                    if ( Parser::AbstractDef* pAbstract = dynamic_database_cast< Parser::AbstractDef >( pChildContext ) )
+                    {
+                        std::vector< Parser::Identifier* > ids = pAbstract->get_id()->get_ids();
+                        VERIFY_RTE( !ids.empty() );
                     }
-            */
+                    else if ( Parser::ActionDef* pAction = dynamic_database_cast< Parser::ActionDef >( pChildContext ) )
+                    {
+                        std::vector< Parser::Identifier* > ids = pAction->get_id()->get_ids();
+                        VERIFY_RTE( !ids.empty() );
+                    }
+                    else if ( Parser::EventDef* pEvent = dynamic_database_cast< Parser::EventDef >( pChildContext ) )
+                    {
+                        std::vector< Parser::Identifier* > ids = pEvent->get_id()->get_ids();
+                        VERIFY_RTE( !ids.empty() );
+                    }
+                    else if ( Parser::FunctionDef* pFunction = dynamic_database_cast< Parser::FunctionDef >( pChildContext ) )
+                    {
+                        std::vector< Parser::Identifier* > ids = pFunction->get_id()->get_ids();
+                        VERIFY_RTE( !ids.empty() );
+                    }
+                    else if ( Parser::ObjectDef* pObject = dynamic_database_cast< Parser::ObjectDef >( pChildContext ) )
+                    {
+                        std::vector< Parser::Identifier* > ids = pObject->get_id()->get_ids();
+                        VERIFY_RTE( !ids.empty() );
+                        std::ostringstream os;
+                        for( const Parser::Identifier* pID : ids )
+                        {
+                            os << pID->get_str();
+                            os << "::";
+                        }
+                        std::cout << "Found object: " << os.str() << std::endl;
+                    }
+                    else if ( Parser::LinkDef* pLink = dynamic_database_cast< Parser::LinkDef >( pChildContext ) )
+                    {
+                        std::vector< Parser::Identifier* > ids = pLink->get_id()->get_ids();
+                        VERIFY_RTE( !ids.empty() );
+                    }
+                    else
+                    {
+                        THROW_RTE( "Unknown context type" );
+                    }
+                }
+            }
+
             virtual void run( task::Progress& taskProgress )
             {
-                // mega::io::Database< mega::io::stage::STAGE_Interface > database(
-                //     m_environment, m_sourceFilePath );
+                using namespace InterfaceStage;
 
-                /*
-                            taskProgress.start( "Task_ObjectInterfaceGen",
-                                                m_sourceFilePath,
-                                                m_environment.FILE_Interface_Tree( m_sourceFilePath ) );
-                            const mega::input::Root* pRoot = nullptr;
-                            for ( const mega::input::Root* pIter : database.many_cst< mega::input::Root >() )
-                            {
-                                if ( pIter->getFilePath() == m_sourceFilePath )
-                                {
-                                    pRoot = pIter;
-                                    break;
-                                }
-                            }
-                            VERIFY_RTE( pRoot );
-                */
-                // mega::interface::Root* pInterfaceRoot
-                //     = database.construct< mega::interface::Root >( pRoot, mega::eVisPublic );
+                Database database( m_environment, m_sourceFilePath );
 
-                // buildInterface( database, pRoot, pInterfaceRoot );
+                taskProgress.start(
+                    "Task_ObjectInterfaceGen", m_sourceFilePath, m_environment.InterfaceStage_Tree( mega::io::mega( m_sourceFilePath ) ) );
 
-                // database.store();
+                Parser::ObjectSourceRoot* pRoot = database.one< Parser::ObjectSourceRoot >( m_sourceFilePath );
+                VERIFY_RTE( pRoot );
+
+                Interface::Root* pInterfaceRoot = database.construct< Interface::Root >( Interface::Root::Args{ pRoot } );
+
+                recurse( database, pRoot, pInterfaceRoot );
+
+                database.store();
 
                 taskProgress.succeeded();
             }
@@ -419,8 +431,8 @@ namespace driver
 
                 /*
                             taskProgress.start( "Task_DependencyAnalysis",
-                                                m_environment.FILE_ComponentListing_Components(),
-                                                m_environment.FILE_Dependencies_DependencyAnalysis() );
+                                                m_environment.ComponentListing_Components(),
+                                                m_environment.Dependencies_DependencyAnalysis() );
 
                             using namespace mega;
                             mega::DependencyAnalysis* pDA = database.construct< mega::DependencyAnalysis >();
@@ -499,7 +511,7 @@ namespace driver
 
                 // taskProgress.start( "Task_ObjectInterfaceAnalysis",
                 //                     m_sourceFilePath,
-                //                     m_environment.FILE_Analysis_ObjectAnalysis( m_sourceFilePath ) );
+                //                     m_environment.Analysis_ObjectAnalysis( m_sourceFilePath ) );
 
                 // database.store();
 

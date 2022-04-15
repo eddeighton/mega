@@ -14,14 +14,14 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_DATABASE_COMPILER
-    ${MEGA_SRC_DIR}/database_compiler/grammar.hpp
-    ${MEGA_SRC_DIR}/database_compiler/grammar.cpp
-    ${MEGA_SRC_DIR}/database_compiler/json_converter.hpp
-    ${MEGA_SRC_DIR}/database_compiler/json_converter.cpp
-    ${MEGA_SRC_DIR}/database_compiler/generator.hpp
-    ${MEGA_SRC_DIR}/database_compiler/generator.cpp
-    ${MEGA_SRC_DIR}/database_compiler/model.hpp
-    ${MEGA_SRC_DIR}/database_compiler/model.cpp
+    ${MEGA_SRC_DIR}/database/compiler/generator.hpp
+    ${MEGA_SRC_DIR}/database/compiler/generator.cpp
+    ${MEGA_SRC_DIR}/database/compiler/grammar.hpp
+    ${MEGA_SRC_DIR}/database/compiler/grammar.cpp
+    ${MEGA_SRC_DIR}/database/compiler/json_converter.hpp
+    ${MEGA_SRC_DIR}/database/compiler/json_converter.cpp
+    ${MEGA_SRC_DIR}/database/compiler/model.hpp
+    ${MEGA_SRC_DIR}/database/compiler/model.cpp
 	)
 	
 add_library( database_compiler
