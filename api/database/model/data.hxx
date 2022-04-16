@@ -58,7 +58,19 @@ namespace Body
 }
 namespace Tree
 {
+    struct ContextGroup;
     struct Root;
+    struct Context;
+    struct Abstract;
+    struct Action;
+    struct Event;
+    struct Function;
+    struct Object;
+    struct Link;
+    struct Dimension;
+}
+namespace Analysis
+{
 }
 
 // definitions
@@ -452,20 +464,164 @@ namespace Body
 }
 namespace Tree
 {
+    struct ContextGroup : public mega::io::Object
+    {
+        ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Tree::Context > >& children);
+        enum 
+        {
+            Type = 25
+        };
+        std::vector< data::Ptr< data::Tree::Context > > children;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
     struct Root : public mega::io::Object
     {
         Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ObjectSourceRoot >& root);
         enum 
         {
-            Type = 25
+            Type = 26
         };
         data::Ptr< data::AST::ObjectSourceRoot > root;
+        Ptr< Tree::ContextGroup > p_Tree_ContextGroup;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
     };
+    struct Context : public mega::io::Object
+    {
+        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const data::Ptr< data::Tree::ContextGroup >& parent);
+        enum 
+        {
+            Type = 27
+        };
+        std::string identifier;
+        data::Ptr< data::Tree::ContextGroup > parent;
+        Ptr< Tree::ContextGroup > p_Tree_ContextGroup;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Abstract : public mega::io::Object
+    {
+        Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::AbstractDef > >& abstract_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
+        enum 
+        {
+            Type = 28
+        };
+        std::vector< data::Ptr< data::AST::AbstractDef > > abstract_defs;
+        std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
+        Ptr< Tree::Context > p_Tree_Context;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Action : public mega::io::Object
+    {
+        Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
+        enum 
+        {
+            Type = 29
+        };
+        std::vector< data::Ptr< data::AST::ActionDef > > action_defs;
+        std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
+        Ptr< Tree::Context > p_Tree_Context;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Event : public mega::io::Object
+    {
+        Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::EventDef > >& event_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
+        enum 
+        {
+            Type = 30
+        };
+        std::vector< data::Ptr< data::AST::EventDef > > event_defs;
+        std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
+        Ptr< Tree::Context > p_Tree_Context;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Function : public mega::io::Object
+    {
+        Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::FunctionDef > >& function_defs);
+        enum 
+        {
+            Type = 31
+        };
+        std::vector< data::Ptr< data::AST::FunctionDef > > function_defs;
+        Ptr< Tree::Context > p_Tree_Context;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Object : public mega::io::Object
+    {
+        Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
+        enum 
+        {
+            Type = 32
+        };
+        std::vector< data::Ptr< data::AST::ObjectDef > > object_defs;
+        std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
+        Ptr< Tree::Context > p_Tree_Context;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Link : public mega::io::Object
+    {
+        Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::LinkDef > >& link_defs);
+        enum 
+        {
+            Type = 33
+        };
+        std::vector< data::Ptr< data::AST::LinkDef > > link_defs;
+        Ptr< Tree::Context > p_Tree_Context;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+    struct Dimension : public mega::io::Object
+    {
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Dimension >& parser_dimension, const std::string& identifier);
+        enum 
+        {
+            Type = 34
+        };
+        data::Ptr< data::AST::Dimension > parser_dimension;
+        std::string identifier;
+        std::optional< std::string > type;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+    };
+}
+namespace Analysis
+{
 }
 
 template <>
@@ -709,7 +865,145 @@ inline Ptr< AST::ObjectSourceRoot > convert( const Ptr< AST::ObjectSourceRoot >&
 }
 
 template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::ContextGroup >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::Root >& from )
+{
+    return from->p_Tree_ContextGroup;
+}
+
+template <>
 inline Ptr< Tree::Root > convert( const Ptr< Tree::Root >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::Context >& from )
+{
+    return from->p_Tree_ContextGroup;
+}
+
+template <>
+inline Ptr< Tree::Context > convert( const Ptr< Tree::Context >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::Abstract >& from )
+{
+    return from->p_Tree_Context->p_Tree_ContextGroup;
+}
+
+template <>
+inline Ptr< Tree::Context > convert( const Ptr< Tree::Abstract >& from )
+{
+    return from->p_Tree_Context;
+}
+
+template <>
+inline Ptr< Tree::Abstract > convert( const Ptr< Tree::Abstract >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::Action >& from )
+{
+    return from->p_Tree_Context->p_Tree_ContextGroup;
+}
+
+template <>
+inline Ptr< Tree::Context > convert( const Ptr< Tree::Action >& from )
+{
+    return from->p_Tree_Context;
+}
+
+template <>
+inline Ptr< Tree::Action > convert( const Ptr< Tree::Action >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::Event >& from )
+{
+    return from->p_Tree_Context->p_Tree_ContextGroup;
+}
+
+template <>
+inline Ptr< Tree::Context > convert( const Ptr< Tree::Event >& from )
+{
+    return from->p_Tree_Context;
+}
+
+template <>
+inline Ptr< Tree::Event > convert( const Ptr< Tree::Event >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::Function >& from )
+{
+    return from->p_Tree_Context->p_Tree_ContextGroup;
+}
+
+template <>
+inline Ptr< Tree::Context > convert( const Ptr< Tree::Function >& from )
+{
+    return from->p_Tree_Context;
+}
+
+template <>
+inline Ptr< Tree::Function > convert( const Ptr< Tree::Function >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::Object >& from )
+{
+    return from->p_Tree_Context->p_Tree_ContextGroup;
+}
+
+template <>
+inline Ptr< Tree::Context > convert( const Ptr< Tree::Object >& from )
+{
+    return from->p_Tree_Context;
+}
+
+template <>
+inline Ptr< Tree::Object > convert( const Ptr< Tree::Object >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::Link >& from )
+{
+    return from->p_Tree_Context->p_Tree_ContextGroup;
+}
+
+template <>
+inline Ptr< Tree::Context > convert( const Ptr< Tree::Link >& from )
+{
+    return from->p_Tree_Context;
+}
+
+template <>
+inline Ptr< Tree::Link > convert( const Ptr< Tree::Link >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< Tree::Dimension > convert( const Ptr< Tree::Dimension >& from )
 {
     return from;
 }
@@ -965,6 +1259,272 @@ struct UpCast< TVariant, Ptr< AST::ObjectSourceRoot >, Ptr< AST::SourceRoot > >
         else
         {
             return Ptr< AST::SourceRoot >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Root >, Ptr< Tree::ContextGroup > >
+{
+    inline TVariant operator()( Ptr< Tree::ContextGroup >& from ) const
+    {
+        if( Tree::Root* p1 = dynamic_cast< Tree::Root* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::Root >( from, p1 );
+        }
+        else
+        {
+            return Ptr< Tree::ContextGroup >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Context >, Ptr< Tree::ContextGroup > >
+{
+    inline TVariant operator()( Ptr< Tree::ContextGroup >& from ) const
+    {
+        if( Tree::Context* p1 = dynamic_cast< Tree::Context* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::Context >( from, p1 );
+        }
+        else
+        {
+            return Ptr< Tree::ContextGroup >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Abstract >, Ptr< Tree::ContextGroup > >
+{
+    inline TVariant operator()( Ptr< Tree::ContextGroup >& from ) const
+    {
+        if( Tree::Context* p1 = dynamic_cast< Tree::Context* >( from->m_pInheritance ) )
+        {
+        if( Tree::Abstract* p2 = dynamic_cast< Tree::Abstract* >( p1->m_pInheritance ) )
+        {
+            return Ptr< Tree::Abstract >( from, p2 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, p1 );
+        }
+        }
+        else
+        {
+            return Ptr< Tree::ContextGroup >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Action >, Ptr< Tree::ContextGroup > >
+{
+    inline TVariant operator()( Ptr< Tree::ContextGroup >& from ) const
+    {
+        if( Tree::Context* p1 = dynamic_cast< Tree::Context* >( from->m_pInheritance ) )
+        {
+        if( Tree::Action* p2 = dynamic_cast< Tree::Action* >( p1->m_pInheritance ) )
+        {
+            return Ptr< Tree::Action >( from, p2 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, p1 );
+        }
+        }
+        else
+        {
+            return Ptr< Tree::ContextGroup >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Event >, Ptr< Tree::ContextGroup > >
+{
+    inline TVariant operator()( Ptr< Tree::ContextGroup >& from ) const
+    {
+        if( Tree::Context* p1 = dynamic_cast< Tree::Context* >( from->m_pInheritance ) )
+        {
+        if( Tree::Event* p2 = dynamic_cast< Tree::Event* >( p1->m_pInheritance ) )
+        {
+            return Ptr< Tree::Event >( from, p2 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, p1 );
+        }
+        }
+        else
+        {
+            return Ptr< Tree::ContextGroup >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Function >, Ptr< Tree::ContextGroup > >
+{
+    inline TVariant operator()( Ptr< Tree::ContextGroup >& from ) const
+    {
+        if( Tree::Context* p1 = dynamic_cast< Tree::Context* >( from->m_pInheritance ) )
+        {
+        if( Tree::Function* p2 = dynamic_cast< Tree::Function* >( p1->m_pInheritance ) )
+        {
+            return Ptr< Tree::Function >( from, p2 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, p1 );
+        }
+        }
+        else
+        {
+            return Ptr< Tree::ContextGroup >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Object >, Ptr< Tree::ContextGroup > >
+{
+    inline TVariant operator()( Ptr< Tree::ContextGroup >& from ) const
+    {
+        if( Tree::Context* p1 = dynamic_cast< Tree::Context* >( from->m_pInheritance ) )
+        {
+        if( Tree::Object* p2 = dynamic_cast< Tree::Object* >( p1->m_pInheritance ) )
+        {
+            return Ptr< Tree::Object >( from, p2 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, p1 );
+        }
+        }
+        else
+        {
+            return Ptr< Tree::ContextGroup >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Link >, Ptr< Tree::ContextGroup > >
+{
+    inline TVariant operator()( Ptr< Tree::ContextGroup >& from ) const
+    {
+        if( Tree::Context* p1 = dynamic_cast< Tree::Context* >( from->m_pInheritance ) )
+        {
+        if( Tree::Link* p2 = dynamic_cast< Tree::Link* >( p1->m_pInheritance ) )
+        {
+            return Ptr< Tree::Link >( from, p2 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, p1 );
+        }
+        }
+        else
+        {
+            return Ptr< Tree::ContextGroup >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Abstract >, Ptr< Tree::Context > >
+{
+    inline TVariant operator()( Ptr< Tree::Context >& from ) const
+    {
+        if( Tree::Abstract* p1 = dynamic_cast< Tree::Abstract* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::Abstract >( from, p1 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Action >, Ptr< Tree::Context > >
+{
+    inline TVariant operator()( Ptr< Tree::Context >& from ) const
+    {
+        if( Tree::Action* p1 = dynamic_cast< Tree::Action* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::Action >( from, p1 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Event >, Ptr< Tree::Context > >
+{
+    inline TVariant operator()( Ptr< Tree::Context >& from ) const
+    {
+        if( Tree::Event* p1 = dynamic_cast< Tree::Event* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::Event >( from, p1 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Function >, Ptr< Tree::Context > >
+{
+    inline TVariant operator()( Ptr< Tree::Context >& from ) const
+    {
+        if( Tree::Function* p1 = dynamic_cast< Tree::Function* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::Function >( from, p1 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Object >, Ptr< Tree::Context > >
+{
+    inline TVariant operator()( Ptr< Tree::Context >& from ) const
+    {
+        if( Tree::Object* p1 = dynamic_cast< Tree::Object* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::Object >( from, p1 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::Link >, Ptr< Tree::Context > >
+{
+    inline TVariant operator()( Ptr< Tree::Context >& from ) const
+    {
+        if( Tree::Link* p1 = dynamic_cast< Tree::Link* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::Link >( from, p1 );
+        }
+        else
+        {
+            return Ptr< Tree::Context >( from, from );
         }
     }
 };

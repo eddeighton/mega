@@ -10,6 +10,28 @@ stage InterfaceStage
     file Tree;
 
     persource accessor ref< Parser::ObjectSourceRoot >;
+
+    persource accessor array< ref< Interface::Abstract > >;
+    persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Event > >;
+    persource accessor array< ref< Interface::Function > >;
+    persource accessor array< ref< Interface::Object > >;
+    persource accessor array< ref< Interface::Link > >;
+}
+
+stage InterfaceAnalysis
+{
+    source .mega;
+    dependency InterfaceStage;
+
+    file Analysis;
+
+    persource accessor array< ref< Interface::Abstract > >;
+    persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Event > >;
+    persource accessor array< ref< Interface::Function > >;
+    persource accessor array< ref< Interface::Object > >;
+    persource accessor array< ref< Interface::Link > >;
 }
 
 ///////////////////////////////////////////
@@ -17,8 +39,58 @@ stage InterfaceStage
 // Objects
 namespace Interface
 {
-    object Root -> InterfaceStage::Tree
+    // basic context types
+    object ContextGroup -> InterfaceStage::Tree
+    {
+        array< ref< Context > > children;
+    }
+
+    object Root : ContextGroup -> InterfaceStage::Tree
     {
         ref< Parser::ObjectSourceRoot > root;
+    }
+
+    object Context : ContextGroup -> InterfaceStage::Tree
+    {
+        value< std::string > identifier;
+        ref< ContextGroup > parent;
+    }
+
+    // main context types
+    object Abstract : Context -> InterfaceStage::Tree
+    {
+        array< ref< Parser::AbstractDef > > abstract_defs;
+        array< ref< Dimension > > dimensions;
+    }
+    object Action : Context -> InterfaceStage::Tree
+    {
+        array< ref< Parser::ActionDef > > action_defs;
+        array< ref< Dimension > > dimensions;
+    }
+    object Event : Context -> InterfaceStage::Tree
+    {
+        array< ref< Parser::EventDef > > event_defs;
+        array< ref< Dimension > > dimensions;
+    }
+    object Function : Context -> InterfaceStage::Tree
+    {
+        array< ref< Parser::FunctionDef > > function_defs;
+    }
+    object Object : Context -> InterfaceStage::Tree
+    {
+        array< ref< Parser::ObjectDef > > object_defs;
+        array< ref< Dimension > > dimensions;
+    }
+    object Link : Context -> InterfaceStage::Tree
+    {
+        array< ref< Parser::LinkDef > > link_defs;
+    }
+
+    // context elements
+    object Dimension -> InterfaceStage::Tree
+    {
+        ref< Parser::Dimension > parser_dimension;
+        value< std::string > identifier;
+        late< value< std::string > > type -> InterfaceAnalysis::Analysis;
     }
 }

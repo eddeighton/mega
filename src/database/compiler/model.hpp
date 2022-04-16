@@ -78,7 +78,7 @@ namespace db
             {
             }
 
-            bool isCtorParam() const { return m_type->isCtorParam(); }
+            bool isCtorParam() const { return !(m_type->m_bLate || !m_type->isCtorParam() ); }
             bool isGet() const { return m_type->isGet(); }
             bool isSet() const { return m_type->isSet(); }
             bool isInsert() const { return m_type->isInsert(); }

@@ -695,29 +695,293 @@ namespace Body
 }
 namespace Tree
 {
+    // struct ContextGroup : public mega::io::Object
+    ContextGroup::ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    ContextGroup::ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Tree::Context > >& children)
+        :   mega::io::Object( objectInfo )
+          , children( children )
+    {
+    }
+    void ContextGroup::load( mega::io::Loader& loader )
+    {
+        loader.load( children );
+    }
+    void ContextGroup::load_post( mega::io::Loader& loader )
+    {
+    }
+    void ContextGroup::store( mega::io::Storer& storer ) const
+    {
+        storer.store( children );
+    }
+        
     // struct Root : public mega::io::Object
     Root::Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
+          , p_Tree_ContextGroup( loader )
           , root( loader )
     {
     }
     Root::Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ObjectSourceRoot >& root)
         :   mega::io::Object( objectInfo )
+          , p_Tree_ContextGroup( loader )
           , root( root )
     {
     }
     void Root::load( mega::io::Loader& loader )
     {
+        loader.load( p_Tree_ContextGroup );
         loader.load( root );
     }
     void Root::load_post( mega::io::Loader& loader )
     {
+        p_Tree_ContextGroup->m_pInheritance = this;
     }
     void Root::store( mega::io::Storer& storer ) const
     {
+        storer.store( p_Tree_ContextGroup );
         storer.store( root );
     }
         
+    // struct Context : public mega::io::Object
+    Context::Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_ContextGroup( loader )
+          , parent( loader )
+    {
+    }
+    Context::Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const data::Ptr< data::Tree::ContextGroup >& parent)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_ContextGroup( loader )
+          , identifier( identifier )
+          , parent( parent )
+    {
+    }
+    void Context::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_ContextGroup );
+        loader.load( identifier );
+        loader.load( parent );
+    }
+    void Context::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_ContextGroup->m_pInheritance = this;
+    }
+    void Context::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_ContextGroup );
+        storer.store( identifier );
+        storer.store( parent );
+    }
+        
+    // struct Abstract : public mega::io::Object
+    Abstract::Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+    {
+    }
+    Abstract::Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::AbstractDef > >& abstract_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+          , abstract_defs( abstract_defs )
+          , dimensions( dimensions )
+    {
+    }
+    void Abstract::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Context );
+        loader.load( abstract_defs );
+        loader.load( dimensions );
+    }
+    void Abstract::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_Context->m_pInheritance = this;
+    }
+    void Abstract::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Context );
+        storer.store( abstract_defs );
+        storer.store( dimensions );
+    }
+        
+    // struct Action : public mega::io::Object
+    Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+    {
+    }
+    Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+          , action_defs( action_defs )
+          , dimensions( dimensions )
+    {
+    }
+    void Action::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Context );
+        loader.load( action_defs );
+        loader.load( dimensions );
+    }
+    void Action::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_Context->m_pInheritance = this;
+    }
+    void Action::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Context );
+        storer.store( action_defs );
+        storer.store( dimensions );
+    }
+        
+    // struct Event : public mega::io::Object
+    Event::Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+    {
+    }
+    Event::Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::EventDef > >& event_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+          , event_defs( event_defs )
+          , dimensions( dimensions )
+    {
+    }
+    void Event::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Context );
+        loader.load( event_defs );
+        loader.load( dimensions );
+    }
+    void Event::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_Context->m_pInheritance = this;
+    }
+    void Event::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Context );
+        storer.store( event_defs );
+        storer.store( dimensions );
+    }
+        
+    // struct Function : public mega::io::Object
+    Function::Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+    {
+    }
+    Function::Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::FunctionDef > >& function_defs)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+          , function_defs( function_defs )
+    {
+    }
+    void Function::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Context );
+        loader.load( function_defs );
+    }
+    void Function::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_Context->m_pInheritance = this;
+    }
+    void Function::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Context );
+        storer.store( function_defs );
+    }
+        
+    // struct Object : public mega::io::Object
+    Object::Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+    {
+    }
+    Object::Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+          , object_defs( object_defs )
+          , dimensions( dimensions )
+    {
+    }
+    void Object::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Context );
+        loader.load( object_defs );
+        loader.load( dimensions );
+    }
+    void Object::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_Context->m_pInheritance = this;
+    }
+    void Object::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Context );
+        storer.store( object_defs );
+        storer.store( dimensions );
+    }
+        
+    // struct Link : public mega::io::Object
+    Link::Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+    {
+    }
+    Link::Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::LinkDef > >& link_defs)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Context( loader )
+          , link_defs( link_defs )
+    {
+    }
+    void Link::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Context );
+        loader.load( link_defs );
+    }
+    void Link::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_Context->m_pInheritance = this;
+    }
+    void Link::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Context );
+        storer.store( link_defs );
+    }
+        
+    // struct Dimension : public mega::io::Object
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , parser_dimension( loader )
+    {
+    }
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Dimension >& parser_dimension, const std::string& identifier)
+        :   mega::io::Object( objectInfo )
+          , parser_dimension( parser_dimension )
+          , identifier( identifier )
+    {
+    }
+    void Dimension::load( mega::io::Loader& loader )
+    {
+        loader.load( parser_dimension );
+        loader.load( identifier );
+        loader.load( type );
+    }
+    void Dimension::load_post( mega::io::Loader& loader )
+    {
+    }
+    void Dimension::store( mega::io::Storer& storer ) const
+    {
+        storer.store( parser_dimension );
+        storer.store( identifier );
+        VERIFY_RTE_MSG( type.has_value(), "Tree::Dimension.type has NOT been set" );
+        storer.store( type );
+    }
+        
+}
+namespace Analysis
+{
 }
 
 
@@ -750,7 +1014,16 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 22: return new AST::SourceRoot( loader, objectInfo );
         case 23: return new AST::IncludeRoot( loader, objectInfo );
         case 24: return new AST::ObjectSourceRoot( loader, objectInfo );
-        case 25: return new Tree::Root( loader, objectInfo );
+        case 25: return new Tree::ContextGroup( loader, objectInfo );
+        case 26: return new Tree::Root( loader, objectInfo );
+        case 27: return new Tree::Context( loader, objectInfo );
+        case 28: return new Tree::Abstract( loader, objectInfo );
+        case 29: return new Tree::Action( loader, objectInfo );
+        case 30: return new Tree::Event( loader, objectInfo );
+        case 31: return new Tree::Function( loader, objectInfo );
+        case 32: return new Tree::Object( loader, objectInfo );
+        case 33: return new Tree::Link( loader, objectInfo );
+        case 34: return new Tree::Dimension( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

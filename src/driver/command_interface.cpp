@@ -41,9 +41,16 @@
 #include <boost/tokenizer.hpp>
 #include <boost/dll.hpp>
 
+#include <common/string.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
+
+std::ostream& operator<<( std::ostream& os, const std::vector< std::string >& name )
+{
+    common::delimit( name.begin(), name.end(), ".", os );
+    return os;
+}
 
 namespace driver
 {
@@ -116,7 +123,8 @@ namespace driver
 
                 Database database( m_environment, m_sourceFilePath );
 
-                taskProgress.start( "Task_ParseAST", m_sourceFilePath, m_environment.ParserStage_AST( mega::io::mega( m_sourceFilePath ) ) );
+                taskProgress.start(
+                    "Task_ParseAST", m_sourceFilePath, m_environment.ParserStage_AST( mega::io::mega( m_sourceFilePath ) ) );
 
                 std::ostringstream osError, osWarn;
 
@@ -217,59 +225,216 @@ namespace driver
             {
             }
 
-            void recurse( InterfaceStage::Database&                 database,
-                          InterfaceStage::Parser::ObjectSourceRoot* pRoot,
-                          InterfaceStage::Interface::Root*          pInterfaceRoot )
+            using Name       = std::vector< std::string >;
+            using NameResMap = std::map< Name, InterfaceStage::Interface::ContextGroup* >;
+
+            Name fromParserID( const Name& currentName, const std::vector< InterfaceStage::Parser::Identifier* >& ids ) const
+            {
+                VERIFY_RTE( !ids.empty() );
+                using namespace InterfaceStage;
+                Name name = currentName;
+                for ( const Parser::Identifier* pID : ids )
+                {
+                    name.push_back( pID->get_str() );
+                }
+                return name;
+            }
+
+            InterfaceStage::Interface::ContextGroup* findContextGroup( const Name& name, const NameResMap& namedContexts )
+            {
+                NameResMap::const_iterator iFind = namedContexts.find( name );
+                if ( iFind != namedContexts.end() )
+                {
+                    return iFind->second;
+                }
+                return nullptr;
+            }
+
+            template < typename TParserContextDefType, typename TInterfaceContextType, typename ConstructorLambda,
+                       typename AggregateLambda >
+            void constructOrAggregate( InterfaceStage::Database&        database,
+                                       InterfaceStage::Interface::Root* pRoot,
+                                       TParserContextDefType*           pContextDef,
+                                       const Name&                      currentName,
+                                       NameResMap&                      namedContexts,
+                                       const ConstructorLambda&         constructorFunctor,
+                                       const AggregateLambda&           aggregateFunctor )
             {
                 using namespace InterfaceStage;
+                using namespace InterfaceStage::Interface;
 
-                Parser::ContextDef* pContext = pRoot->get_ast();
+                const Name             name                   = fromParserID( currentName, pContextDef->get_id()->get_ids() );
+                TInterfaceContextType* pInterfaceContextGroup = nullptr;
+                {
+                    if ( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
+                    {
+                        pInterfaceContextGroup = dynamic_database_cast< TInterfaceContextType >( pContextGroup );
+                        VERIFY_RTE_MSG( pInterfaceContextGroup, "Context definition of identifier: " << name << " with mixed types" );
+                        aggregateFunctor( pInterfaceContextGroup, pContextDef );
+                    }
+                    else
+                    {
+                        Interface::ContextGroup* pParent = pRoot;
+                        if ( name.size() > 1U )
+                        {
+                            Name parentName = name;
+                            parentName.pop_back();
+                            pParent = findContextGroup( parentName, namedContexts );
+                            VERIFY_RTE_MSG( pParent, "Failed to locate parent for: " << name );
+                        }
+                        pInterfaceContextGroup = constructorFunctor( database, name.back(), pParent, pContextDef );
+                        namedContexts.insert( std::make_pair( name, pInterfaceContextGroup ) );
+                    }
+                }
+                recurse( database, pRoot, pInterfaceContextGroup, pContextDef, name, namedContexts );
+            }
+
+            void recurse( InterfaceStage::Database&                database,
+                          InterfaceStage::Interface::Root*         pRoot,
+                          InterfaceStage::Interface::ContextGroup* pGroup,
+                          InterfaceStage::Parser::ContextDef*      pContext,
+                          const Name&                              currentName,
+                          NameResMap&                              namedContexts )
+            {
+                using namespace InterfaceStage;
+                using namespace InterfaceStage::Interface;
+
                 VERIFY_RTE( pContext );
 
                 for ( Parser::ContextDef* pChildContext : pContext->get_children() )
                 {
-                    if ( Parser::AbstractDef* pAbstract = dynamic_database_cast< Parser::AbstractDef >( pChildContext ) )
+                    if ( Parser::AbstractDef* pAbstractDef = dynamic_database_cast< Parser::AbstractDef >( pChildContext ) )
                     {
-                        std::vector< Parser::Identifier* > ids = pAbstract->get_id()->get_ids();
-                        VERIFY_RTE( !ids.empty() );
+                        constructOrAggregate< Parser::AbstractDef, Abstract >(
+                            database, pRoot, pAbstractDef, currentName, namedContexts,
+                            []( Database& database, const std::string& name, ContextGroup* pParent,
+                                Parser::AbstractDef* pAbstractDef ) -> Abstract*
+                            {
+                                return database.construct< Abstract >(
+                                    Abstract::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                                                    { pAbstractDef }, {} ) );
+                            },
+                            []( Abstract* pAbstract, Parser::AbstractDef* pAbstractDef )
+                            { pAbstract->push_back_abstract_defs( pAbstractDef ); } );
                     }
-                    else if ( Parser::ActionDef* pAction = dynamic_database_cast< Parser::ActionDef >( pChildContext ) )
+                    else if ( Parser::ActionDef* pActionDef = dynamic_database_cast< Parser::ActionDef >( pChildContext ) )
                     {
-                        std::vector< Parser::Identifier* > ids = pAction->get_id()->get_ids();
-                        VERIFY_RTE( !ids.empty() );
+                        constructOrAggregate< Parser::ActionDef, Action >(
+                            database, pRoot, pActionDef, currentName, namedContexts,
+                            []( Database& database, const std::string& name, ContextGroup* pParent,
+                                Parser::ActionDef* pActionDef ) -> Action*
+                            {
+                                return database.construct< Action >( Action::Args(
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pActionDef }, {} ) );
+                            },
+                            []( Action* pAction, Parser::ActionDef* pActionDef ) { pAction->push_back_action_defs( pActionDef ); } );
                     }
-                    else if ( Parser::EventDef* pEvent = dynamic_database_cast< Parser::EventDef >( pChildContext ) )
+                    else if ( Parser::EventDef* pEventDef = dynamic_database_cast< Parser::EventDef >( pChildContext ) )
                     {
-                        std::vector< Parser::Identifier* > ids = pEvent->get_id()->get_ids();
-                        VERIFY_RTE( !ids.empty() );
+                        constructOrAggregate< Parser::EventDef, Event >(
+                            database, pRoot, pEventDef, currentName, namedContexts,
+                            []( Database& database, const std::string& name, ContextGroup* pParent, Parser::EventDef* pEventDef ) -> Event*
+                            {
+                                return database.construct< Event >( Event::Args(
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pEventDef }, {}) );
+                            },
+                            []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
                     }
-                    else if ( Parser::FunctionDef* pFunction = dynamic_database_cast< Parser::FunctionDef >( pChildContext ) )
+                    else if ( Parser::FunctionDef* pFunctionDef = dynamic_database_cast< Parser::FunctionDef >( pChildContext ) )
                     {
-                        std::vector< Parser::Identifier* > ids = pFunction->get_id()->get_ids();
-                        VERIFY_RTE( !ids.empty() );
+                        constructOrAggregate< Parser::FunctionDef, Function >(
+                            database, pRoot, pFunctionDef, currentName, namedContexts,
+                            []( Database& database, const std::string& name, ContextGroup* pParent,
+                                Parser::FunctionDef* pFunctionDef ) -> Function*
+                            {
+                                return database.construct< Function >( Function::Args(
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pFunctionDef } ) );
+                            },
+                            []( Function* pFunction, Parser::FunctionDef* pFunctionDef )
+                            { pFunction->push_back_function_defs( pFunctionDef ); } );
                     }
-                    else if ( Parser::ObjectDef* pObject = dynamic_database_cast< Parser::ObjectDef >( pChildContext ) )
+                    else if ( Parser::ObjectDef* pObjectDef = dynamic_database_cast< Parser::ObjectDef >( pChildContext ) )
                     {
-                        std::vector< Parser::Identifier* > ids = pObject->get_id()->get_ids();
-                        VERIFY_RTE( !ids.empty() );
-                        std::ostringstream os;
-                        for( const Parser::Identifier* pID : ids )
-                        {
-                            os << pID->get_str();
-                            os << "::";
-                        }
-                        std::cout << "Found object: " << os.str() << std::endl;
+                        constructOrAggregate< Parser::ObjectDef, Object >(
+                            database, pRoot, pObjectDef, currentName, namedContexts,
+                            []( Database& database, const std::string& name, ContextGroup* pParent,
+                                Parser::ObjectDef* pObjectDef ) -> Object*
+                            {
+                                return database.construct< Object >( Object::Args(
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pObjectDef }, {} ) );
+                            },
+                            []( Object* pObject, Parser::ObjectDef* pObjectDef ) { pObject->push_back_object_defs( pObjectDef ); } );
                     }
-                    else if ( Parser::LinkDef* pLink = dynamic_database_cast< Parser::LinkDef >( pChildContext ) )
+                    else if ( Parser::LinkDef* pLinkDef = dynamic_database_cast< Parser::LinkDef >( pChildContext ) )
                     {
-                        std::vector< Parser::Identifier* > ids = pLink->get_id()->get_ids();
-                        VERIFY_RTE( !ids.empty() );
+                        constructOrAggregate< Parser::LinkDef, Link >(
+                            database, pRoot, pLinkDef, currentName, namedContexts,
+                            []( Database& database, const std::string& name, ContextGroup* pParent, Parser::LinkDef* pLinkDef ) -> Link*
+                            {
+                                return database.construct< Link >( Link::Args(
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pLinkDef } ) );
+                            },
+                            []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
                     }
                     else
                     {
                         THROW_RTE( "Unknown context type" );
                     }
                 }
+            }
+
+            template< typename TContextGroup, typename TParserDef >
+            void collectDimensions( InterfaceStage::Database& database, TContextGroup* pGroup, TParserDef* pDef )
+            {
+                using namespace InterfaceStage;
+
+                for ( Parser::Dimension* pParserDim : pDef->get_dimensions() )
+                {
+                    Interface::Dimension* pDimension = database.construct< Interface::Dimension >(
+                        Interface::Dimension::Args( pParserDim, pParserDim->get_id()->get_str() ) );
+                    pGroup->push_back_dimensions( pDimension );
+                }
+            }
+
+            void onAbstract( InterfaceStage::Database& database, InterfaceStage::Interface::Abstract* pAbstract )
+            {
+                using namespace InterfaceStage;
+                for ( Parser::AbstractDef* pDef : pAbstract->get_abstract_defs() )
+                {
+                    collectDimensions< InterfaceStage::Interface::Abstract, Parser::AbstractDef >( database, pAbstract, pDef );
+                }
+            }
+            void onAction( InterfaceStage::Database& database, InterfaceStage::Interface::Action* pAction )
+            {
+                using namespace InterfaceStage;
+                for ( Parser::ActionDef* pDef : pAction->get_action_defs() )
+                {
+                    collectDimensions< InterfaceStage::Interface::Action, Parser::ActionDef >( database, pAction, pDef );
+                }
+            }
+            void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent ) 
+            { 
+                using namespace InterfaceStage;
+                for ( Parser::EventDef* pDef : pEvent->get_event_defs() )
+                {
+                    collectDimensions< InterfaceStage::Interface::Event, Parser::EventDef >( database, pEvent, pDef );
+                }
+            }
+            void onFunction( InterfaceStage::Database& database, InterfaceStage::Interface::Function* pFunction )
+            {
+                using namespace InterfaceStage;
+            }
+            void onObject( InterfaceStage::Database& database, InterfaceStage::Interface::Object* pObject )
+            {
+                using namespace InterfaceStage;
+                for ( Parser::ObjectDef* pDef : pObject->get_object_defs() )
+                {
+                    collectDimensions< InterfaceStage::Interface::Object, Parser::ObjectDef >( database, pObject, pDef );
+                }
+            }
+            void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink ) 
+            { 
+                using namespace InterfaceStage;
             }
 
             virtual void run( task::Progress& taskProgress )
@@ -284,9 +449,38 @@ namespace driver
                 Parser::ObjectSourceRoot* pRoot = database.one< Parser::ObjectSourceRoot >( m_sourceFilePath );
                 VERIFY_RTE( pRoot );
 
-                Interface::Root* pInterfaceRoot = database.construct< Interface::Root >( Interface::Root::Args{ pRoot } );
+                using namespace InterfaceStage::Interface;
+                Root* pInterfaceRoot = database.construct< Root >( Root::Args{ ContextGroup::Args{ {} }, pRoot } );
 
-                recurse( database, pRoot, pInterfaceRoot );
+                Name       currentName;
+                NameResMap namedContexts;
+
+                recurse( database, pInterfaceRoot, pInterfaceRoot, pRoot->get_ast(), currentName, namedContexts );
+
+                for ( Interface::Abstract* pAbstract : database.many< Interface::Abstract >( m_sourceFilePath ) )
+                {
+                    onAbstract( database, pAbstract );
+                }
+                for ( Interface::Action* pAction : database.many< Interface::Action >( m_sourceFilePath ) )
+                {
+                    onAction( database, pAction );
+                }
+                for ( Interface::Event* pEvent : database.many< Interface::Event >( m_sourceFilePath ) )
+                {
+                    onEvent( database, pEvent );
+                }
+                for ( Interface::Function* pFunction : database.many< Interface::Function >( m_sourceFilePath ) )
+                {
+                    onFunction( database, pFunction );
+                }
+                for ( Interface::Object* pObject : database.many< Interface::Object >( m_sourceFilePath ) )
+                {
+                    onObject( database, pObject );
+                }
+                for ( Interface::Link* pLink : database.many< Interface::Link >( m_sourceFilePath ) )
+                {
+                    onLink( database, pLink );
+                }
 
                 database.store();
 

@@ -16,6 +16,9 @@
 
 namespace {{ stage.name }}
 {
+    template< typename TFrom, typename TTo >
+    struct PointerCast;
+
     // forward declarations
 {% for interface in stage.interfaces %}
 {% for namespace in interface.namespaces %}
@@ -64,6 +67,9 @@ namespace {{ stage.name }}
 {% for function in interface.functions %}
             virtual {{ function.returntype }} {{ function.name }}({{ function.params }}) const = 0;
 {% endfor %}{#interface.functions#}
+        private:
+            template< typename TFrom, typename TTo >
+            friend struct ::{{ stage.name }}::PointerCast;
 {% for test in interface.tests %}
             virtual bool is_{{ test }}() const = 0;
 {% endfor %}{#interface.functions#}
@@ -110,9 +116,6 @@ namespace {{ stage.name }}
     private:
         std::shared_ptr< Pimpl > m_pimpl;
     };
-
-    template< typename TFrom, typename TTo >
-    struct PointerCast;
 
 {% for cast in stage.casts %}
     template< typename TFrom >

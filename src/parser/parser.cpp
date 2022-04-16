@@ -414,10 +414,10 @@ public:
                 {
                     if ( pIdentifier )
                         pResult = database.construct< MegaIncludeNested >(
-                            MegaIncludeNested::Args{ MegaInclude::Args{ Include::Args{}, filePath, nullptr }, pIdentifier } );
+                            MegaIncludeNested::Args{ MegaInclude::Args{ Include::Args{}, filePath }, pIdentifier } );
                     else
                         pResult = database.construct< MegaIncludeInline >(
-                            MegaIncludeInline::Args{ MegaInclude::Args{ Include::Args{}, filePath, nullptr } } );
+                            MegaIncludeInline::Args{ MegaInclude::Args{ Include::Args{}, filePath } } );
                 }
                 else
                 {

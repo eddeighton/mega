@@ -153,8 +153,8 @@ namespace db
                                 for ( model::Property::Ptr pProperty : pInterface->m_args )
                                 {
                                     nlohmann::json param = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                                                     { "type", pProperty->m_type->getViewType( true ) },
-                                                                                     { "value", pProperty->m_strName } } );
+                                                                                    { "type", pProperty->m_type->getViewType( true ) },
+                                                                                    { "value", pProperty->m_strName } } );
                                     ctorBaseArgs[ "params" ].push_back( param );
                                 }
 
@@ -174,8 +174,8 @@ namespace db
                                 for ( model::Property::Ptr pProperty : pInterface->m_args )
                                 {
                                     nlohmann::json param = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                                                     { "type", pProperty->m_type->getViewType( true ) },
-                                                                                     { "value", pProperty->m_strName } } );
+                                                                                    { "type", pProperty->m_type->getViewType( true ) },
+                                                                                    { "value", pProperty->m_strName } } );
                                     ctorBasePointer[ "params" ].push_back( param );
                                 }
 
@@ -208,8 +208,8 @@ namespace db
                                 for ( model::Property::Ptr pProperty : pInterface->m_args )
                                 {
                                     nlohmann::json param = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                                                     { "type", pProperty->m_type->getViewType( true ) },
-                                                                                     { "value", pProperty->m_strName } } );
+                                                                                    { "type", pProperty->m_type->getViewType( true ) },
+                                                                                    { "value", pProperty->m_strName } } );
                                     ctorBasePointer[ "params" ].push_back( param );
                                 }
 
@@ -228,8 +228,8 @@ namespace db
                         for ( model::Property::Ptr pProperty : pInterface->m_args )
                         {
                             nlohmann::json param = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                                             { "type", pProperty->m_type->getViewType( true ) },
-                                                                             { "value", pProperty->m_strName } } );
+                                                                            { "type", pProperty->m_type->getViewType( true ) },
+                                                                            { "value", pProperty->m_strName } } );
                             ctor[ "params" ].push_back( param );
                         }
 
