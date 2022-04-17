@@ -10,6 +10,8 @@
 
 #include "database/model/file_info.hxx"
 
+#include "nlohmann/json.hpp"
+
 #include <memory>
 #include <optional>
 
@@ -60,6 +62,7 @@ namespace mega
             void load( const Manifest& manifest );
             void load_post( const Manifest& manifest );
             void store( const Manifest& manifest ) const;
+            void to_json( const Manifest& manifest, nlohmann::json& data ) const;
 
             template < typename T, typename... Args >
             inline data::Ptr< T > construct( Args... args )

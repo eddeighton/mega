@@ -90,7 +90,7 @@ namespace Interface
     {
         array< ref< Parser::ActionDef > > action_defs;
         array< ref< Dimension > > dimensions;
-        late< ref< CPP::Body > > body;
+        //late< ref< CPP::Body > > body;
     }
     object Event : Context -> InterfaceStage::Tree
     {
@@ -100,7 +100,7 @@ namespace Interface
     object Function : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::FunctionDef > > function_defs;
-        late< ref< CPP::Body > > body;
+        //late< ref< CPP::Body > > body;
     }
     object Object : Context -> InterfaceStage::Tree
     {

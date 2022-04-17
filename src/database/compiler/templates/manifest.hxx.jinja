@@ -48,11 +48,13 @@ namespace io
         const FileVector& getSourceFiles() const { return m_sourceFiles; }
         const FileInfoVector& getCompilationFileInfos() const { return m_compilationFileInfos; }
 
-        File::PtrCst loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles,
+        File::PtrCst loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
             const boost::filesystem::path& sourceFile, FileInfo::Type fileType ) const;
 
         File::PtrCst loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles,
-            const boost::filesystem::path& sourceFile, ObjectInfo::FileID fileID ) const;
+            ObjectInfo::FileID fileID ) const;
+
+        void loadAll( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles ) const;
         
         File::Ptr createFile( data::ObjectPartLoader& loader, FileMap& readWriteFiles,
             const boost::filesystem::path& sourceFile, FileInfo::Type fileType ) const;
@@ -70,7 +72,6 @@ namespace io
     private: 
         File::PtrCst loadFileImpl( data::ObjectPartLoader& loader, 
             FileMapCst& readOnlyFiles, 
-            const boost::filesystem::path& sourceFile, 
             ObjectInfo::FileID fileID, 
             std::vector< File::Ptr >& loadedFiles ) const;
         void initialiseLookupTables();

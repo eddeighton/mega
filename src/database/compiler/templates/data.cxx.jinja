@@ -1,6 +1,8 @@
 
 #include "database/model/data.hxx"
 
+#include "nlohmann/json.hpp"
+
 namespace data
 {
 
@@ -58,6 +60,33 @@ namespace {{ file.name }}
         {{ property.validation }}
 {% endif %}
         storer.store( {{ property.name }} );
+{% endfor %}{#part.property#}
+    }
+    void {{ part.name }}::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "{{ part.name }}" },
+                { "filetype" , "{{ file.name }}" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+{% for property in part.properties %}
+{% if property.has_validation %}
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "{{ property.name }}", {{ property.name }}.value() } } );
+            part[ "properties" ].push_back( property );
+        }
+{% else %}
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "{{ property.name }}", {{ property.name }} } } );
+            part[ "properties" ].push_back( property );
+        }
+{% endif %}
 {% endfor %}{#part.property#}
     }
         

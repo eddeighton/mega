@@ -4,6 +4,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -18,6 +21,7 @@ set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
 set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_utils.hpp
+		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_list.cpp
 		${DRIVER_SOURCE_DIR}/command_manifest.cpp
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
@@ -45,6 +49,7 @@ link_boost( mega timer )
 link_boost( mega filesystem )
 link_boost( mega iostreams )
 link_boost( mega serialization )
+link_json( mega )
 link_common( mega )
 
 install( TARGETS mega DESTINATION bin)

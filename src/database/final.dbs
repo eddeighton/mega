@@ -1,0 +1,7 @@
+
+
+stage FinalStage
+{
+    source .mega;
+    dependency InterfaceStage;
+}

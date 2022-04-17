@@ -13,6 +13,7 @@
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <sstream>
 
 namespace db
 {
@@ -42,13 +43,19 @@ namespace db
                         // view.hxx
                         try
                         {
-                            inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
-                            injaEnv.set_trim_blocks( true );
-                            const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
-                            const auto                    data = loadJson( jsonFile );
-                            std::ostringstream            osTargetFile;
+                            std::ostringstream osOutput;
+                            {
+                                inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+                                injaEnv.set_trim_blocks( true );
+                                const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
+                                const auto                    data     = loadJson( jsonFile );
+                                inja::Template                tmp      = injaEnv.parse_template( "/view.hxx.jinja" );
+                                injaEnv.render_to( osOutput, tmp, data );
+                            }
+                            std::ostringstream osTargetFile;
                             osTargetFile << "/" << filePath.filename().replace_extension( ".hxx" ).string();
-                            injaEnv.write( "/view.hxx.jinja", data, osTargetFile.str() );
+                            boost::filesystem::updateFileIfChanged(
+                                env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), osOutput.str() );
                         }
                         catch ( std::exception& ex )
                         {
@@ -60,13 +67,19 @@ namespace db
                         // view.cxx
                         try
                         {
-                            inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
-                            injaEnv.set_trim_blocks( true );
-                            const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
-                            const auto                    data = loadJson( jsonFile );
-                            std::ostringstream            osTargetFile;
+                            std::ostringstream osOutput;
+                            {
+                                inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
+                                injaEnv.set_trim_blocks( true );
+                                const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
+                                const auto                    data     = loadJson( jsonFile );
+                                inja::Template                tmp      = injaEnv.parse_template( "/view.cxx.jinja" );
+                                injaEnv.render_to( osOutput, tmp, data );
+                            }
+                            std::ostringstream osTargetFile;
                             osTargetFile << "/" << filePath.filename().replace_extension( ".cxx" ).string();
-                            injaEnv.write( "/view.cxx.jinja", data, osTargetFile.str() );
+                            boost::filesystem::updateFileIfChanged(
+                                env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), osOutput.str() );
                         }
                         catch ( std::exception& ex )
                         {
@@ -94,10 +107,20 @@ namespace db
                 {
                     try
                     {
-                        inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
-                        injaEnv.set_trim_blocks( true );
-                        const auto data = loadJson( jsonFile );
-                        injaEnv.write( "/" + names.first + ".hxx.jinja", data, "/" + names.first + ".hxx" );
+                        std::ostringstream osOutput;
+                        {
+                            inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
+                            injaEnv.set_trim_blocks( true );
+                            const auto data = loadJson( jsonFile );
+
+                            inja::Template headerTemplate = injaEnv.parse_template( "/" + names.first + ".hxx.jinja" );
+                            injaEnv.render_to( osOutput, headerTemplate, data );
+                        }
+
+                        std::ostringstream osTargetFile;
+                        osTargetFile << "/" + names.first + ".hxx";
+                        boost::filesystem::updateFileIfChanged(
+                            env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), osOutput.str() );
                     }
                     catch ( std::exception& ex )
                     {
@@ -108,10 +131,20 @@ namespace db
                 {
                     try
                     {
-                        inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
-                        injaEnv.set_trim_blocks( true );
-                        const auto data = loadJson( jsonFile );
-                        injaEnv.write( "/" + names.first + ".cxx.jinja", data, "/" + names.first + ".cxx" );
+                        std::ostringstream osOutput;
+                        {
+                            inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
+                            injaEnv.set_trim_blocks( true );
+                            const auto data = loadJson( jsonFile );
+
+                            inja::Template sourceTemplate = injaEnv.parse_template( "/" + names.first + ".cxx.jinja" );
+                            injaEnv.render_to( osOutput, sourceTemplate, data );
+                        }
+
+                        std::ostringstream osTargetFile;
+                        osTargetFile << "/" + names.first + ".cxx";
+                        boost::filesystem::updateFileIfChanged(
+                            env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), osOutput.str() );
                     }
                     catch ( std::exception& ex )
                     {

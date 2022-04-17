@@ -8,6 +8,8 @@
 #include "database/common/data_pointer.hpp"
 #include "database/common/object_loader.hpp"
 
+#include "nlohmann/json.hpp"
+
 #include "boost/filesystem/path.hpp"
 
 #include <string>
@@ -17,6 +19,7 @@
 #include <map>
 #include <set>
 #include <unordered_map>
+
 
 namespace data
 {
@@ -94,6 +97,7 @@ namespace Components
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
 }
 namespace AST
@@ -111,6 +115,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct ScopedIdentifier : public mega::io::Object
     {
@@ -125,6 +130,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct ArgumentList : public mega::io::Object
     {
@@ -139,6 +145,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct ReturnType : public mega::io::Object
     {
@@ -153,6 +160,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Inheritance : public mega::io::Object
     {
@@ -167,6 +175,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Size : public mega::io::Object
     {
@@ -181,6 +190,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Dimension : public mega::io::Object
     {
@@ -197,6 +207,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Include : public mega::io::Object
     {
@@ -209,6 +220,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct SystemInclude : public mega::io::Object
     {
@@ -224,6 +236,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct MegaInclude : public mega::io::Object
     {
@@ -240,6 +253,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct MegaIncludeInline : public mega::io::Object
     {
@@ -253,6 +267,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct MegaIncludeNested : public mega::io::Object
     {
@@ -268,6 +283,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct CPPInclude : public mega::io::Object
     {
@@ -283,6 +299,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Dependency : public mega::io::Object
     {
@@ -297,6 +314,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct ContextDef : public mega::io::Object
     {
@@ -315,6 +333,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct AbstractDef : public mega::io::Object
     {
@@ -330,6 +349,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct ActionDef : public mega::io::Object
     {
@@ -347,6 +367,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct EventDef : public mega::io::Object
     {
@@ -364,6 +385,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct FunctionDef : public mega::io::Object
     {
@@ -381,6 +403,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct ObjectDef : public mega::io::Object
     {
@@ -398,6 +421,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct LinkDef : public mega::io::Object
     {
@@ -415,6 +439,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct SourceRoot : public mega::io::Object
     {
@@ -431,6 +456,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct IncludeRoot : public mega::io::Object
     {
@@ -446,6 +472,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct ObjectSourceRoot : public mega::io::Object
     {
@@ -459,6 +486,7 @@ namespace AST
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
 }
 namespace Body
@@ -479,6 +507,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Type : public mega::io::Object
     {
@@ -493,6 +522,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Dimension : public mega::io::Object
     {
@@ -510,6 +540,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct ContextGroup : public mega::io::Object
     {
@@ -524,6 +555,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Root : public mega::io::Object
     {
@@ -539,6 +571,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Context : public mega::io::Object
     {
@@ -555,6 +588,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Abstract : public mega::io::Object
     {
@@ -571,6 +605,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Action : public mega::io::Object
     {
@@ -582,12 +617,12 @@ namespace Tree
         };
         std::vector< data::Ptr< data::AST::ActionDef > > action_defs;
         std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
-        std::optional< data::Ptr< data::Tree::Body > > body;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Event : public mega::io::Object
     {
@@ -604,6 +639,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Function : public mega::io::Object
     {
@@ -614,12 +650,12 @@ namespace Tree
             Object_Part_Type_ID = 34
         };
         std::vector< data::Ptr< data::AST::FunctionDef > > function_defs;
-        std::optional< data::Ptr< data::Tree::Body > > body;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Object : public mega::io::Object
     {
@@ -636,6 +672,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
     struct Link : public mega::io::Object
     {
@@ -651,6 +688,7 @@ namespace Tree
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
     };
 }
 namespace Analysis

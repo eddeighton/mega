@@ -4,6 +4,12 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get graphviz
+#include( ${WORKSPACE_ROOT_PATH}/thirdparty/graphviz/graphviz_include.cmake )
+
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -23,6 +29,7 @@ set( MEGA_DATABASE_GENERATED_HEADERS
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
     ${MEGA_API_DIR}/database/model/ParserStage.hxx
     ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
+    ${MEGA_API_DIR}/database/model/FinalStage.hxx
 	)
 
 set( MEGA_DATABASE_GENERATED_SOURCES
@@ -35,11 +42,13 @@ set( MEGA_DATABASE_GENERATED_SOURCES
     ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
     ${MEGA_SRC_DIR}/database/model/ParserStage.cxx
     ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
+    ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
 )
 
 set( DATABASE_SCHEMAS 
         ${MEGA_SRC_DIR}/database/parser.dbs
         ${MEGA_SRC_DIR}/database/interface.dbs
+        ${MEGA_SRC_DIR}/database/final.dbs
         )
 
 set( COMPILER_OUTPUTS 
@@ -52,7 +61,21 @@ set( COMPILER_BYPRODUCTS
     ComponentListing.json
     ParserStage.json
     InterfaceStage.json
+    FinalStage.json
     )
+
+set( TEMPLATES 
+    ${MEGA_SRC_DIR}/database/compiler/templates/data.hxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/environment.hxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/file_info.hxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/manifest.hxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/view.hxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/data.cxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/environment.cxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/file_info.cxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/manifest.cxx.jinja
+    ${MEGA_SRC_DIR}/database/compiler/templates/view.cxx.jinja
+)
 
 add_custom_command( 
     OUTPUT ${COMPILER_OUTPUTS}
@@ -64,8 +87,9 @@ add_custom_command(
         --json
         --template
         --input ${DATABASE_SCHEMAS}
-    DEPENDS ${DATABASE_SCHEMAS}
-    COMMENT "Generating Database" )
+    DEPENDS ${DATABASE_SCHEMAS} ${TEMPLATES} database_compiler_driver
+    COMMENT "Generating Database" 
+    )
 
 set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/archive.hpp
@@ -110,6 +134,7 @@ link_boost( database iostreams )
 link_boost( database serialization )
 link_boost( database system )
 link_boost( database atomic )
+link_json( database )
 link_common( database )
 
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )

@@ -1,6 +1,8 @@
 
 #include "database/model/data.hxx"
 
+#include "nlohmann/json.hpp"
+
 namespace data
 {
 
@@ -36,6 +38,38 @@ namespace Components
         storer.store( includeDirectories );
         storer.store( sourceFiles );
     }
+    void Component::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Component" },
+                { "filetype" , "Components" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "name", name } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "directory", directory } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "includeDirectories", includeDirectories } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "sourceFiles", sourceFiles } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
 }
 namespace AST
@@ -61,6 +95,23 @@ namespace AST
     {
         storer.store( str );
     }
+    void Identifier::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Identifier" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "str", str } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct ScopedIdentifier : public mega::io::Object
     ScopedIdentifier::ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -82,6 +133,23 @@ namespace AST
     void ScopedIdentifier::store( mega::io::Storer& storer ) const
     {
         storer.store( ids );
+    }
+    void ScopedIdentifier::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ScopedIdentifier" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "ids", ids } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct ArgumentList : public mega::io::Object
@@ -105,6 +173,23 @@ namespace AST
     {
         storer.store( str );
     }
+    void ArgumentList::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ArgumentList" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "str", str } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct ReturnType : public mega::io::Object
     ReturnType::ReturnType( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -126,6 +211,23 @@ namespace AST
     void ReturnType::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
+    }
+    void ReturnType::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ReturnType" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "str", str } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct Inheritance : public mega::io::Object
@@ -149,6 +251,23 @@ namespace AST
     {
         storer.store( strings );
     }
+    void Inheritance::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Inheritance" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "strings", strings } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct Size : public mega::io::Object
     Size::Size( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -170,6 +289,23 @@ namespace AST
     void Size::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
+    }
+    void Size::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Size" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "str", str } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct Dimension : public mega::io::Object
@@ -200,6 +336,33 @@ namespace AST
         storer.store( id );
         storer.store( type );
     }
+    void Dimension::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Dimension" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "isConst", isConst } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "type", type } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct Include : public mega::io::Object
     Include::Include( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -214,6 +377,18 @@ namespace AST
     }
     void Include::store( mega::io::Storer& storer ) const
     {
+    }
+    void Include::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Include" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
     }
         
     // struct SystemInclude : public mega::io::Object
@@ -241,6 +416,23 @@ namespace AST
     {
         storer.store( p_AST_Include );
         storer.store( str );
+    }
+    void SystemInclude::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "SystemInclude" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "str", str } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct MegaInclude : public mega::io::Object
@@ -273,6 +465,28 @@ namespace AST
         VERIFY_RTE_MSG( root.has_value(), "AST::MegaInclude.root has NOT been set" );
         storer.store( root );
     }
+    void MegaInclude::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "MegaInclude" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "megaSourceFilePath", megaSourceFilePath } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "root", root.value() } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct MegaIncludeInline : public mega::io::Object
     MegaIncludeInline::MegaIncludeInline( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -291,6 +505,18 @@ namespace AST
     void MegaIncludeInline::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_MegaInclude );
+    }
+    void MegaIncludeInline::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "MegaIncludeInline" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
     }
         
     // struct MegaIncludeNested : public mega::io::Object
@@ -320,6 +546,23 @@ namespace AST
         storer.store( p_AST_MegaInclude );
         storer.store( id );
     }
+    void MegaIncludeNested::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "MegaIncludeNested" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct CPPInclude : public mega::io::Object
     CPPInclude::CPPInclude( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -347,6 +590,23 @@ namespace AST
         storer.store( p_AST_Include );
         storer.store( cppSourceFilePath );
     }
+    void CPPInclude::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "CPPInclude" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "cppSourceFilePath", cppSourceFilePath } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct Dependency : public mega::io::Object
     Dependency::Dependency( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -368,6 +628,23 @@ namespace AST
     void Dependency::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
+    }
+    void Dependency::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Dependency" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "str", str } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct ContextDef : public mega::io::Object
@@ -403,6 +680,43 @@ namespace AST
         storer.store( dependencies );
         storer.store( body );
     }
+    void ContextDef::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ContextDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "children", children } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "includes", includes } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dependencies", dependencies } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "body", body } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct AbstractDef : public mega::io::Object
     AbstractDef::AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -430,6 +744,23 @@ namespace AST
     {
         storer.store( p_AST_ContextDef );
         storer.store( id );
+    }
+    void AbstractDef::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "AbstractDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct ActionDef : public mega::io::Object
@@ -467,6 +798,33 @@ namespace AST
         storer.store( size );
         storer.store( inheritance );
     }
+    void ActionDef::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ActionDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "size", size } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "inheritance", inheritance } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct EventDef : public mega::io::Object
     EventDef::EventDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -502,6 +860,33 @@ namespace AST
         storer.store( id );
         storer.store( size );
         storer.store( inheritance );
+    }
+    void EventDef::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "EventDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "size", size } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "inheritance", inheritance } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct FunctionDef : public mega::io::Object
@@ -539,6 +924,33 @@ namespace AST
         storer.store( argumentList );
         storer.store( returnType );
     }
+    void FunctionDef::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "FunctionDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "argumentList", argumentList } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "returnType", returnType } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct ObjectDef : public mega::io::Object
     ObjectDef::ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -574,6 +986,33 @@ namespace AST
         storer.store( id );
         storer.store( size );
         storer.store( inheritance );
+    }
+    void ObjectDef::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ObjectDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "size", size } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "inheritance", inheritance } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct LinkDef : public mega::io::Object
@@ -611,6 +1050,33 @@ namespace AST
         storer.store( size );
         storer.store( inheritance );
     }
+    void LinkDef::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "LinkDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "size", size } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "inheritance", inheritance } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct SourceRoot : public mega::io::Object
     SourceRoot::SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -641,6 +1107,33 @@ namespace AST
         storer.store( component );
         storer.store( ast );
     }
+    void SourceRoot::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "SourceRoot" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "sourceFile", sourceFile } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "component", component } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "ast", ast } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct IncludeRoot : public mega::io::Object
     IncludeRoot::IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -669,6 +1162,23 @@ namespace AST
         storer.store( p_AST_SourceRoot );
         storer.store( include );
     }
+    void IncludeRoot::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "IncludeRoot" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "include", include } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct ObjectSourceRoot : public mega::io::Object
     ObjectSourceRoot::ObjectSourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -687,6 +1197,18 @@ namespace AST
     void ObjectSourceRoot::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_SourceRoot );
+    }
+    void ObjectSourceRoot::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ObjectSourceRoot" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
     }
         
 }
@@ -716,6 +1238,23 @@ namespace Tree
     {
         storer.store( str );
     }
+    void Body::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Body" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "str", str } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct Type : public mega::io::Object
     Type::Type( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -737,6 +1276,23 @@ namespace Tree
     void Type::store( mega::io::Storer& storer ) const
     {
         storer.store( str );
+    }
+    void Type::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Type" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "str", str } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct Dimension : public mega::io::Object
@@ -771,6 +1327,38 @@ namespace Tree
         VERIFY_RTE_MSG( actual_type.has_value(), "Tree::Dimension.actual_type has NOT been set" );
         storer.store( actual_type );
     }
+    void Dimension::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Dimension" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parser_dimension", parser_dimension } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "identifier", identifier } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "embedded_type", embedded_type } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "actual_type", actual_type.value() } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct ContextGroup : public mega::io::Object
     ContextGroup::ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -792,6 +1380,23 @@ namespace Tree
     void ContextGroup::store( mega::io::Storer& storer ) const
     {
         storer.store( children );
+    }
+    void ContextGroup::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ContextGroup" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "children", children } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct Root : public mega::io::Object
@@ -820,6 +1425,23 @@ namespace Tree
     {
         storer.store( p_Tree_ContextGroup );
         storer.store( root );
+    }
+    void Root::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Root" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "root", root } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct Context : public mega::io::Object
@@ -852,6 +1474,28 @@ namespace Tree
         storer.store( identifier );
         storer.store( parent );
     }
+    void Context::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Context" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "identifier", identifier } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parent", parent } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct Abstract : public mega::io::Object
     Abstract::Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -882,12 +1526,33 @@ namespace Tree
         storer.store( abstract_defs );
         storer.store( dimensions );
     }
+    void Abstract::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Abstract" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "abstract_defs", abstract_defs } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct Action : public mega::io::Object
     Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
-          , body( loader )
     {
     }
     Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
@@ -902,7 +1567,6 @@ namespace Tree
         loader.load( p_Tree_Context );
         loader.load( action_defs );
         loader.load( dimensions );
-        loader.load( body );
     }
     void Action::load_post( mega::io::Loader& loader )
     {
@@ -913,8 +1577,28 @@ namespace Tree
         storer.store( p_Tree_Context );
         storer.store( action_defs );
         storer.store( dimensions );
-        VERIFY_RTE_MSG( body.has_value(), "Tree::Action.body has NOT been set" );
-        storer.store( body );
+    }
+    void Action::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Action" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "action_defs", action_defs } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct Event : public mega::io::Object
@@ -946,12 +1630,33 @@ namespace Tree
         storer.store( event_defs );
         storer.store( dimensions );
     }
+    void Event::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Event" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "event_defs", event_defs } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct Function : public mega::io::Object
     Function::Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
-          , body( loader )
     {
     }
     Function::Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::FunctionDef > >& function_defs)
@@ -964,7 +1669,6 @@ namespace Tree
     {
         loader.load( p_Tree_Context );
         loader.load( function_defs );
-        loader.load( body );
     }
     void Function::load_post( mega::io::Loader& loader )
     {
@@ -974,8 +1678,23 @@ namespace Tree
     {
         storer.store( p_Tree_Context );
         storer.store( function_defs );
-        VERIFY_RTE_MSG( body.has_value(), "Tree::Function.body has NOT been set" );
-        storer.store( body );
+    }
+    void Function::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Function" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "function_defs", function_defs } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct Object : public mega::io::Object
@@ -1007,6 +1726,28 @@ namespace Tree
         storer.store( object_defs );
         storer.store( dimensions );
     }
+    void Object::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Object" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "object_defs", object_defs } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
         
     // struct Link : public mega::io::Object
     Link::Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1033,6 +1774,23 @@ namespace Tree
     {
         storer.store( p_Tree_Context );
         storer.store( link_defs );
+    }
+    void Link::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Link" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link_defs", link_defs } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
 }

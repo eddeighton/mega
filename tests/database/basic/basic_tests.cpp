@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "database/model/BasicStage.hxx"
+#include "database/model/SecondStage.hxx"
 
 #include "database/model/ComponentListing.hxx"
 #include "database/model/ParserStage.hxx"
@@ -54,7 +55,7 @@ public:
     }
 };
 
-TEST_F( BasicDBTest, Test )
+TEST_F( BasicDBTest, LoadPointerToSelf )
 {
     {
         using namespace BasicStage;
@@ -65,5 +66,17 @@ TEST_F( BasicDBTest, Test )
 
         ASSERT_TRUE( pTestObject );
         ASSERT_EQ( pTestObject->get_name(), "test" );
+
+        pTestObject->set_self( pTestObject );
+
+        database.store();
+    }
+    {
+        using namespace SecondStage;
+        Database database( environment, environment.project_manifest() );
+
+        TestNamespace::TestObject* pTestObject = database.one< TestNamespace::TestObject >( environment.project_manifest() );
+        ASSERT_TRUE( pTestObject );
+        ASSERT_EQ( pTestObject->get_self(), pTestObject );
     }
 }

@@ -22,6 +22,8 @@
 
 #include "object_loader.hpp"
 
+#include "nlohmann/json.hpp"
+
 #include <boost/filesystem/path.hpp>
 
 #include <boost/filesystem/path_traits.hpp>
@@ -74,6 +76,13 @@ namespace boost
 
 namespace boost
 {
+    namespace filesystem
+    {
+        inline void to_json( nlohmann::json& j, const boost::filesystem::path& p )
+        {
+            j = nlohmann::json{ { "path", p.string() } };
+        }
+    }
     namespace serialization
     {
         template < class Archive >

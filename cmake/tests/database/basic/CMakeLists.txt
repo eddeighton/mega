@@ -7,6 +7,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get gtest
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/gtest/gtest_include.cmake )
 
+#get json
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -21,6 +24,7 @@ set( BASIC_DATABASE_GENERATED_HEADERS
     ${BASIC_DIR}/database/model/file_info.hxx
 
     ${BASIC_DIR}/database/model/BasicStage.hxx
+    ${BASIC_DIR}/database/model/SecondStage.hxx
 	)
 
 set( BASIC_DATABASE_GENERATED_SOURCES
@@ -31,6 +35,7 @@ set( BASIC_DATABASE_GENERATED_SOURCES
     ${BASIC_DIR}/database/model/file_info.cxx
 
     ${BASIC_DIR}/database/model/BasicStage.cxx
+    ${BASIC_DIR}/database/model/SecondStage.cxx
 )
 
 set( DATABASE_SCHEMAS 
@@ -45,6 +50,20 @@ set( COMPILER_BYPRODUCTS
     ${BASIC_DIR}/database/data/data.json 
     ${BASIC_DIR}/database/data/stages.json
     ${BASIC_DIR}/database/data/BasicStage.json
+    ${BASIC_DIR}/database/data/SecondStage.json
+    )
+
+set( TEMPLATES 
+        ${MEGA_SRC_DIR}/database/compiler/templates/data.hxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/environment.hxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/file_info.hxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/manifest.hxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/view.hxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/data.cxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/environment.cxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/file_info.cxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/manifest.cxx.jinja
+        ${MEGA_SRC_DIR}/database/compiler/templates/view.cxx.jinja
     )
 
 add_custom_command( 
@@ -57,7 +76,7 @@ add_custom_command(
         --json
         --template
         --input ${DATABASE_SCHEMAS}
-    DEPENDS ${DATABASE_SCHEMAS}
+    DEPENDS ${DATABASE_SCHEMAS} ${TEMPLATES} database_compiler_driver
     COMMENT "Generating Database" )
 
 set( MEGA_DATABASE_COMMON
@@ -112,6 +131,7 @@ link_boost( database_basic_tests program_options )
 link_boost( database_basic_tests iostreams )
 link_boost( database_basic_tests atomic )
 link_boost( database_basic_tests serialization )
+link_json( database_basic_tests )
 link_gtest( database_basic_tests )
 link_common( database_basic_tests )
 

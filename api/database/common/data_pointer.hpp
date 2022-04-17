@@ -124,6 +124,13 @@ namespace data
         mutable T*           m_pObjectPart = nullptr;
     };
 
+    template < typename T >
+    inline void to_json( nlohmann::json& j, const Ptr< T >& p )
+    {
+        const mega::io::ObjectInfo& objectInfo = p.getObjectInfo();
+        j = nlohmann::json{ { "type", objectInfo.getType() }, { "fileID", objectInfo.getFileID() }, { "index", objectInfo.getIndex() } };
+    }
+
     template < typename TTo, typename TFrom >
     inline Ptr< TTo > convert( const Ptr< TFrom >& from )
     {

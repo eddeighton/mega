@@ -140,7 +140,7 @@ namespace io
                         std::make_pair( FileInfo::{{ stage.name }}_{{ file.name }}, sourceFile ) );
                     VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), 
                         "Failed to locate compilation file of type: FileInfo::{{ stage.name }}_{{ file.name }} for source file: " << sourceFile.string() );
-                    return loadFile( loader, readOnlyFiles, sourceFile, iFind->second->getFileID() );
+                    return loadFile( loader, readOnlyFiles, iFind->second->getFileID() );
                 }
                 break;
 {% endfor %}
@@ -152,11 +152,11 @@ namespace io
     }
 
     File::PtrCst Manifest::loadFileImpl( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-        const boost::filesystem::path& sourceFile, ObjectInfo::FileID fileID , std::vector< File::Ptr >& loadedFiles ) const
+            ObjectInfo::FileID fileID , std::vector< File::Ptr >& loadedFiles ) const
     {
         for( ObjectInfo::FileID dependencyFileID : m_dependencies[ fileID ] )
         {
-            loadFileImpl( loader, readOnlyFiles, sourceFile, dependencyFileID, loadedFiles );
+            loadFileImpl( loader, readOnlyFiles, dependencyFileID, loadedFiles );
         }
 
         FileMapCst::const_iterator iFind = readOnlyFiles.find( fileID );
@@ -172,16 +172,25 @@ namespace io
     }
 
 
-    File::PtrCst Manifest::loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-        const boost::filesystem::path& sourceFile, ObjectInfo::FileID fileID ) const
+    File::PtrCst Manifest::loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, ObjectInfo::FileID fileID ) const
     {
         std::vector< File::Ptr > loadedFiles;
-        File::PtrCst pResult = loadFileImpl( loader, readOnlyFiles, sourceFile, fileID, loadedFiles );
+        File::PtrCst pResult = loadFileImpl( loader, readOnlyFiles, fileID, loadedFiles );
         for( File::Ptr pFile : loadedFiles )
         {
             pFile->load_post( *this );
         }
         return pResult;
+    }
+
+    void Manifest::loadAll( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles ) const
+    {
+        for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
+            iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
+        {
+            if( boost::filesystem::exists( i->getFilePath() ) )
+                loadFile( loader, readOnlyFiles, i->getFileID() );
+        }
     }
 
     File::Ptr Manifest::createFile( data::ObjectPartLoader& loader, FileMap& readWriteFiles,

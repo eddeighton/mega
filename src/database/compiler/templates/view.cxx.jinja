@@ -438,7 +438,12 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
 {% endfor %}{# stage.readwrite_files #}
     }
 
-    void store()
+    void load()
+    {
+        m_manifest.loadAll( *this, m_readonlyFiles );
+    }
+
+    void store() const
     {
         for ( mega::io::Manifest::FileMap::const_iterator 
                 i = m_readwriteFiles.begin(), 
@@ -446,6 +451,24 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
               i != iEnd; ++i )
         {
             i->second->store( m_manifest );
+        }
+    }
+
+    void to_json( nlohmann::json& data ) const
+    {
+        for ( mega::io::Manifest::FileMapCst::const_iterator 
+                i = m_readonlyFiles.begin(), 
+                iEnd = m_readonlyFiles.end();
+              i != iEnd; ++i )
+        {
+            i->second->to_json( m_manifest, data );
+        }
+        for ( mega::io::Manifest::FileMap::const_iterator 
+                i = m_readwriteFiles.begin(), 
+                iEnd = m_readwriteFiles.end();
+              i != iEnd; ++i )
+        {
+            i->second->to_json( m_manifest, data );
         }
     }
 
@@ -468,7 +491,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
                 else
                 {
                     pFile = m_manifest.loadFile( const_cast< Database::Pimpl&>(*this), 
-                        m_readonlyFiles, m_sourceFile, objectInfo.getFileID() );
+                        m_readonlyFiles, objectInfo.getFileID() );
                 }
             }
         }
@@ -544,9 +567,19 @@ Database::Database( const mega::io::Environment& environment, const boost::files
 {
 }
 
-void Database::store()
+void Database::load()
+{
+    m_pimpl->load();
+}
+
+void Database::store() const
 {
     m_pimpl->store();
+}
+
+void Database::to_json( nlohmann::json& data ) const
+{
+    m_pimpl->to_json( data );
 }
 
 {% for many_accessor in stage.many_accessors %}
