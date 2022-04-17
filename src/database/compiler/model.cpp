@@ -287,6 +287,7 @@ namespace db
                     Namespace::Ptr pChildNamespace = std::make_shared< Namespace >( mapping.counter );
                     pChildNamespace->m_strName     = namespace_.m_name;
                     pChildNamespace->m_strFullName = pNamespace->m_strName + "::" + namespace_.m_name;
+                    pChildNamespace->m_namespace   = pNamespace;
 
                     NamespaceMap::iterator iFind = mapping.namespaceMap.find( pChildNamespace->m_strFullName );
                     VERIFY_RTE_MSG(
@@ -938,7 +939,8 @@ namespace db
                                 Schema::ObjectPartVector reversed = baseList;
                                 std::reverse( reversed.begin(), reversed.end() );
                                 pSchema->m_upcasts.insert( std::make_pair(
-                                    Schema::ObjectPartPair{ pBase->m_base->m_primaryObjectPart, pObject->m_primaryObjectPart }, reversed ) );
+                                    Schema::ObjectPartPair{ pBase->m_base->m_primaryObjectPart, pObject->m_primaryObjectPart },
+                                    reversed ) );
                             }
                             pBase = pBase->m_base;
                         }

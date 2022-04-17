@@ -390,9 +390,9 @@ namespace driver
 
                 for ( Parser::Dimension* pParserDim : pDef->get_dimensions() )
                 {
-                    Interface::Dimension* pDimension = database.construct< Interface::Dimension >(
-                        Interface::Dimension::Args( pParserDim, pParserDim->get_id()->get_str() ) );
-                    pGroup->push_back_dimensions( pDimension );
+                    //Interface::Dimension* pDimension = database.construct< Interface::Dimension >(
+                    //    Interface::Dimension::Args( pParserDim, pParserDim->get_id()->get_str() ) );
+                    //pGroup->push_back_dimensions( pDimension );
                 }
             }
 
@@ -410,6 +410,12 @@ namespace driver
                 for ( Parser::ActionDef* pDef : pAction->get_action_defs() )
                 {
                     collectDimensions< InterfaceStage::Interface::Action, Parser::ActionDef >( database, pAction, pDef );
+
+                    const std::string& strBody = pDef->get_body();
+                    if( !strBody.empty() )
+                    {
+
+                    }
                 }
             }
             void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent ) 

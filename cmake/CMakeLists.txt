@@ -22,9 +22,6 @@ find_path( MEGA_ROOT_DIR NAMES api PATHS ${CMAKE_PARENT_PATH} )
 set( MEGA_API_DIR ${MEGA_ROOT_DIR}/api )
 set( MEGA_SRC_DIR ${MEGA_ROOT_DIR}/src )
 
-include_directories( ${MEGA_API_DIR} )
-include_directories( ${MEGA_SRC_DIR} )
-
 #enable folders within generated IDE build systems
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

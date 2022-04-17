@@ -10,6 +10,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+include_directories( ${MEGA_API_DIR} )
+include_directories( ${MEGA_SRC_DIR} )
+
 set( CLANG_PLUGIN_API ${MEGA_API_DIR}/parser/parser.hpp )
 
 set( CLANG_PLUGIN_SOURCES

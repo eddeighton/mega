@@ -65,7 +65,7 @@ namespace mega
             inline data::Ptr< T > construct( Args... args )
             {
                 T* pNewObject = new T(
-                    m_objectLoader, io::ObjectInfo( T::Type, m_info.getFileID(), m_objects.size() ),
+                    m_objectLoader, io::ObjectInfo( T::Object_Part_Type_ID, m_info.getFileID(), m_objects.size() ),
                     args... );
                 m_objects.push_back( pNewObject );
                 return data::Ptr< T >( m_objectLoader, pNewObject );

@@ -10,6 +10,9 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get handy function to preprocess files for the xmacros stuff
 include( ../preprocess_cpp.cmake )
 
+include_directories( ${MEGA_API_DIR} )
+include_directories( ${MEGA_SRC_DIR} )
+
 #get the source code
 set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 

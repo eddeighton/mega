@@ -39,6 +39,30 @@ stage InterfaceAnalysis
 // Objects
 namespace Interface
 {
+    // embedded language parts
+    namespace CPP
+    {
+        object Body -> InterfaceStage::Tree
+        {
+            value< std::string > str;
+        }
+
+        object Type -> InterfaceStage::Tree
+        {
+            value< std::string > str;
+        }
+    }
+
+    // context elements
+    object Dimension -> InterfaceStage::Tree
+    {
+        ref< Parser::Dimension > parser_dimension;
+        value< std::string > identifier;
+        ref< CPP::Type > embedded_type;
+        late< value< std::string > > actual_type -> InterfaceAnalysis::Analysis;
+    }
+
+
     // basic context types
     object ContextGroup -> InterfaceStage::Tree
     {
@@ -66,6 +90,7 @@ namespace Interface
     {
         array< ref< Parser::ActionDef > > action_defs;
         array< ref< Dimension > > dimensions;
+        late< ref< CPP::Body > > body;
     }
     object Event : Context -> InterfaceStage::Tree
     {
@@ -75,6 +100,7 @@ namespace Interface
     object Function : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::FunctionDef > > function_defs;
+        late< ref< CPP::Body > > body;
     }
     object Object : Context -> InterfaceStage::Tree
     {
@@ -86,11 +112,4 @@ namespace Interface
         array< ref< Parser::LinkDef > > link_defs;
     }
 
-    // context elements
-    object Dimension -> InterfaceStage::Tree
-    {
-        ref< Parser::Dimension > parser_dimension;
-        value< std::string > identifier;
-        late< value< std::string > > type -> InterfaceAnalysis::Analysis;
-    }
 }

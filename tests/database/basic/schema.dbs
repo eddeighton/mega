@@ -1,0 +1,18 @@
+
+///////////////////////////////////////////
+// Stages
+stage BasicStage
+{
+    source .manifest;
+    file Testing;
+}
+
+///////////////////////////////////////////
+// Objects
+namespace TestNamespace
+{
+    object TestObject -> BasicStage::Testing
+    {
+        value< std::string > name;
+    }
+}

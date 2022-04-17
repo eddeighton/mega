@@ -44,7 +44,7 @@ namespace {{ file.name }}
 {% endif %}
         enum 
         {
-            Type = {{ part.typeID }}
+            Object_Part_Type_ID = {{ part.typeID }}
         };
 {% for property in part.properties %}
         {{ property.type }} {{ property.name }};

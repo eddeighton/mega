@@ -10,6 +10,9 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #get handy function to preprocess files for the xmacros stuff
 include( ../preprocess_cpp.cmake )
 
+include_directories( ${MEGA_API_DIR} )
+include_directories( ${MEGA_SRC_DIR} )
+
 set( MEGA_DATABASE_GENERATED_HEADERS
 
     ${MEGA_API_DIR}/database/model/data.hxx
@@ -62,24 +65,7 @@ add_custom_command(
         --template
         --input ${DATABASE_SCHEMAS}
     DEPENDS ${DATABASE_SCHEMAS}
-    BYPRODUCTS ${COMPILER_BYPRODUCTS}
-    COMMON "Generating Database" )
-
-
-#add_custom_target( database_generation
-#    #COMMAND database_compiler_driver
-#    #    --api ${MEGA_API_DIR}/database/model/
-#    #    --src ${MEGA_SRC_DIR}/database/model/
-#    #    --data_dir ${MEGA_SRC_DIR}/database/data/
-#    #    --inja_dir ${MEGA_SRC_DIR}/database/compiler/templates/
-#    #    --json
-#    #    --template
-#    #    --input ${DATABASE_SCHEMAS}
-#    COMMENT "Generating database"
-#    DEPENDS ${DATABASE_SCHEMAS}
-#    SOURCES ${DATABASE_SCHEMAS}
-#)
-#add_dependencies( database_generation database_compiler_driver )
+    COMMENT "Generating Database" )
 
 set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/archive.hpp

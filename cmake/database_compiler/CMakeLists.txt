@@ -13,6 +13,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+include_directories( ${MEGA_API_DIR} )
+include_directories( ${MEGA_SRC_DIR} )
+
 set( MEGA_DATABASE_COMPILER
     ${MEGA_SRC_DIR}/database/compiler/generator.hpp
     ${MEGA_SRC_DIR}/database/compiler/generator.cpp

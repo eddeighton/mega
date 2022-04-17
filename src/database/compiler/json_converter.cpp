@@ -109,12 +109,20 @@ namespace db
 
                 // namespaces
                 {
-                    model::Namespace::Ptr pNamespace = pObject->m_namespace.lock();
-                    VERIFY_RTE( pNamespace );
-                    while ( pNamespace )
+                    std::vector< model::Namespace::Ptr > namespaces;
+                    {
+                        model::Namespace::Ptr pNamespace = pObject->m_namespace.lock();
+                        VERIFY_RTE( pNamespace );
+                        while ( pNamespace )
+                        {
+                            namespaces.push_back( pNamespace );
+                            pNamespace = pNamespace->m_namespace.lock();
+                        }
+                    }
+                    std::reverse( namespaces.begin(), namespaces.end() );
+                    for( model::Namespace::Ptr pNamespace : namespaces )
                     {
                         interface[ "namespaces" ].push_back( pNamespace->m_strName );
-                        pNamespace = pNamespace->m_namespace.lock();
                     }
                 }
 

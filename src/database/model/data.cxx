@@ -695,6 +695,83 @@ namespace Body
 }
 namespace Tree
 {
+    // struct Body : public mega::io::Object
+    Body::Body( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    Body::Body( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str)
+        :   mega::io::Object( objectInfo )
+          , str( str )
+    {
+    }
+    void Body::load( mega::io::Loader& loader )
+    {
+        loader.load( str );
+    }
+    void Body::load_post( mega::io::Loader& loader )
+    {
+    }
+    void Body::store( mega::io::Storer& storer ) const
+    {
+        storer.store( str );
+    }
+        
+    // struct Type : public mega::io::Object
+    Type::Type( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    Type::Type( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str)
+        :   mega::io::Object( objectInfo )
+          , str( str )
+    {
+    }
+    void Type::load( mega::io::Loader& loader )
+    {
+        loader.load( str );
+    }
+    void Type::load_post( mega::io::Loader& loader )
+    {
+    }
+    void Type::store( mega::io::Storer& storer ) const
+    {
+        storer.store( str );
+    }
+        
+    // struct Dimension : public mega::io::Object
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , parser_dimension( loader )
+          , embedded_type( loader )
+    {
+    }
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Dimension >& parser_dimension, const std::string& identifier, const data::Ptr< data::Tree::Type >& embedded_type)
+        :   mega::io::Object( objectInfo )
+          , parser_dimension( parser_dimension )
+          , identifier( identifier )
+          , embedded_type( embedded_type )
+    {
+    }
+    void Dimension::load( mega::io::Loader& loader )
+    {
+        loader.load( parser_dimension );
+        loader.load( identifier );
+        loader.load( embedded_type );
+        loader.load( actual_type );
+    }
+    void Dimension::load_post( mega::io::Loader& loader )
+    {
+    }
+    void Dimension::store( mega::io::Storer& storer ) const
+    {
+        storer.store( parser_dimension );
+        storer.store( identifier );
+        storer.store( embedded_type );
+        VERIFY_RTE_MSG( actual_type.has_value(), "Tree::Dimension.actual_type has NOT been set" );
+        storer.store( actual_type );
+    }
+        
     // struct ContextGroup : public mega::io::Object
     ContextGroup::ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
@@ -810,6 +887,7 @@ namespace Tree
     Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
+          , body( loader )
     {
     }
     Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
@@ -824,6 +902,7 @@ namespace Tree
         loader.load( p_Tree_Context );
         loader.load( action_defs );
         loader.load( dimensions );
+        loader.load( body );
     }
     void Action::load_post( mega::io::Loader& loader )
     {
@@ -834,6 +913,8 @@ namespace Tree
         storer.store( p_Tree_Context );
         storer.store( action_defs );
         storer.store( dimensions );
+        VERIFY_RTE_MSG( body.has_value(), "Tree::Action.body has NOT been set" );
+        storer.store( body );
     }
         
     // struct Event : public mega::io::Object
@@ -870,6 +951,7 @@ namespace Tree
     Function::Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
+          , body( loader )
     {
     }
     Function::Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::FunctionDef > >& function_defs)
@@ -882,6 +964,7 @@ namespace Tree
     {
         loader.load( p_Tree_Context );
         loader.load( function_defs );
+        loader.load( body );
     }
     void Function::load_post( mega::io::Loader& loader )
     {
@@ -891,6 +974,8 @@ namespace Tree
     {
         storer.store( p_Tree_Context );
         storer.store( function_defs );
+        VERIFY_RTE_MSG( body.has_value(), "Tree::Function.body has NOT been set" );
+        storer.store( body );
     }
         
     // struct Object : public mega::io::Object
@@ -950,35 +1035,6 @@ namespace Tree
         storer.store( link_defs );
     }
         
-    // struct Dimension : public mega::io::Object
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )
-          , parser_dimension( loader )
-    {
-    }
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Dimension >& parser_dimension, const std::string& identifier)
-        :   mega::io::Object( objectInfo )
-          , parser_dimension( parser_dimension )
-          , identifier( identifier )
-    {
-    }
-    void Dimension::load( mega::io::Loader& loader )
-    {
-        loader.load( parser_dimension );
-        loader.load( identifier );
-        loader.load( type );
-    }
-    void Dimension::load_post( mega::io::Loader& loader )
-    {
-    }
-    void Dimension::store( mega::io::Storer& storer ) const
-    {
-        storer.store( parser_dimension );
-        storer.store( identifier );
-        VERIFY_RTE_MSG( type.has_value(), "Tree::Dimension.type has NOT been set" );
-        storer.store( type );
-    }
-        
 }
 namespace Analysis
 {
@@ -1014,16 +1070,18 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 22: return new AST::SourceRoot( loader, objectInfo );
         case 23: return new AST::IncludeRoot( loader, objectInfo );
         case 24: return new AST::ObjectSourceRoot( loader, objectInfo );
-        case 25: return new Tree::ContextGroup( loader, objectInfo );
-        case 26: return new Tree::Root( loader, objectInfo );
-        case 27: return new Tree::Context( loader, objectInfo );
-        case 28: return new Tree::Abstract( loader, objectInfo );
-        case 29: return new Tree::Action( loader, objectInfo );
-        case 30: return new Tree::Event( loader, objectInfo );
-        case 31: return new Tree::Function( loader, objectInfo );
-        case 32: return new Tree::Object( loader, objectInfo );
-        case 33: return new Tree::Link( loader, objectInfo );
-        case 34: return new Tree::Dimension( loader, objectInfo );
+        case 25: return new Tree::Body( loader, objectInfo );
+        case 26: return new Tree::Type( loader, objectInfo );
+        case 27: return new Tree::Dimension( loader, objectInfo );
+        case 28: return new Tree::ContextGroup( loader, objectInfo );
+        case 29: return new Tree::Root( loader, objectInfo );
+        case 30: return new Tree::Context( loader, objectInfo );
+        case 31: return new Tree::Abstract( loader, objectInfo );
+        case 32: return new Tree::Action( loader, objectInfo );
+        case 33: return new Tree::Event( loader, objectInfo );
+        case 34: return new Tree::Function( loader, objectInfo );
+        case 35: return new Tree::Object( loader, objectInfo );
+        case 36: return new Tree::Link( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }
