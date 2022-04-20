@@ -1,0 +1,3 @@
+[submodule "retail_test"]
+	path = retail_test
+	url = https://github.com/eddeighton/retail_test.git

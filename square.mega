@@ -1,0 +1,15 @@
+
+object Square
+{    
+    dependency( cube );
+    dependency( stuff/sphere );
+
+    include test( test_include.mega );
+    //ed was here!!!
+
+    //cool
+    action nested
+    {
+
+    }
+}

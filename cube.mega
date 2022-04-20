@@ -1,0 +1,14 @@
+
+object Cube1
+{
+    //test
+    
+    function test( int parameter ) : void
+    {
+        for( int i = 0; i < 10; ++i )
+        {
+            std::cout << "Hello world" << std::endl;
+        }
+    }
+
+}
