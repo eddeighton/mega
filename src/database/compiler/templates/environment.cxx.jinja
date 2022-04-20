@@ -14,63 +14,51 @@ namespace mega
 {
 namespace io
 {
-    const std::string Environment::DB_EXTENSION( ".db" );
-    const std::string Environment::CPP_HEADER_EXTENSION( ".hpp" );
-    const std::string Environment::CPP_SOURCE_EXTENSION( ".cpp" );
-
     using Path = Environment::Path;
 
-    Environment::Environment( const Path& rootSourceDir, const Path& rootBuildDir )
+    Environment::Environment( const Path& rootSourceDir, const Path& rootBuildDir, const Path& tempDir )
         : m_rootSourceDir( rootSourceDir )
         , m_rootBuildDir( rootBuildDir )
+        , m_tempDir( tempDir )
     {
-    }
-
-    Path Environment::buildDirFromSrcDir( const Path& srcDir ) const
-    {
-        VERIFY_RTE_MSG( boost::filesystem::is_directory( srcDir ),
-                        "buildDirFromSrcDir failed due to source path is not a directory: " << srcDir.string() );
-        return m_rootBuildDir / boost::filesystem::relative( srcDir, m_rootSourceDir );
     }
 
     Path Environment::stashDir() const { return m_rootBuildDir / "stash"; }
 
-    Path Environment::rootSourceDir() const { return m_rootSourceDir; }
-
-    Path Environment::rootBuildDir() const { return m_rootBuildDir; }
-
-    Path Environment::project_manifest() const 
+    manifestFilePath Environment::project_manifest() const 
     { 
         std::ostringstream os;
-        os << "project_manifest" << manifest::extension().string(); 
-        return m_rootSourceDir / os.str();
-    }
-
-    Path Environment::source_list( const Path& buildDir ) const
-    {
-        VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDir ),
-                        "Source List path is not a directory: " << buildDir.string() );
-        return buildDir / "source_list.txt";
+        os << "project" << manifestFilePath::extension().string(); 
+        return manifestFilePath( os.str() );
     }
 
     Path Environment::dependency( const std::string& strOpaque ) const
     {
         std::ostringstream os;
-        os << strOpaque << mega::extension().string();
+        os << strOpaque << megaFilePath::extension().string();
         return Path( os.str() );
     }
 
+    ComponentListingFilePath Environment::ComponentListingFilePath_fromPath( const Path& buildDirectory ) const
+    {
+        VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDirectory ),
+                        "Source List path is not a directory: " << buildDirectory.string() );
+        return ComponentListingFilePath( boost::filesystem::relative( buildDirectory / "component.listing", m_rootBuildDir ) );
+    }
+{% for source in sources %}
+    {{ source.type }}FilePath Environment::{{ source.type }}FilePath_fromPath( const boost::filesystem::path& filePath ) const
+    {
+        return {{ source.type }}FilePath( boost::filesystem::relative( filePath, m_rootSourceDir ) );
+    }
+{% endfor %}
+
 {% for stage in stages %}
 {% for file in stage.files %}
-    Path Environment::{{ stage.name }}_{{ file.name }}( const {{ stage.source }}& source) const
+    CompilationFilePath Environment::{{ stage.name }}_{{ file.name }}( const {{ stage.source }}FilePath& source) const
     {
-        VERIFY_RTE_MSG( ( source.path() == project_manifest() ) || 
-                        boost::filesystem::is_regular_file( source.path() ),                 
-                        "Mega Source File is not regular file: " << source.path().string() );
         std::ostringstream os;                                                                
-        os << source.path().filename().string() << ".{{ stage.name }}.{{ file.name }}" << DB_EXTENSION;         
-        return boost::filesystem::edsCannonicalise(                                           
-            buildDirFromSrcDir( Path( source.path() ).remove_filename() ) / os.str() );      
+        os << source.path().filename().string() << ".{{ stage.name }}.{{ file.name }}" << CompilationFilePath::extension().string();
+        return CompilationFilePath( Path( source.path() ).remove_filename() / os.str() );      
     }
 {% endfor %}
 {% endfor %}

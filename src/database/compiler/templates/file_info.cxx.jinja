@@ -11,10 +11,10 @@ namespace io
     {
     }
 
-    FileInfo::FileInfo( Type                           fileType,
-                        ObjectInfo::FileID             fileID,
-                        const boost::filesystem::path& filePath,
-                        const boost::filesystem::path& objectSourceFilePath )
+    FileInfo::FileInfo( Type                            fileType,
+                        ObjectInfo::FileID              fileID,
+                        const CompilationFilePath&      filePath,
+                        const SourceFilePath&           objectSourceFilePath )
         : m_fileType( fileType )
         , m_fileID( fileID )
         , m_filePath( filePath )

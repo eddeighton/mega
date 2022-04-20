@@ -18,20 +18,20 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 //#include "database/model/interface.hpp"
+#include "database/common/sources.hpp"
 #include "parser/parser.hpp"
 
 #include "database/model/manifest.hxx"
-#include "database/model/environment.hxx"
 #include "database/model/ParserStage.hxx"
 #include "database/model/InterfaceStage.hxx"
 
 #include "database/common/file.hpp"
+#include "database/common/environments.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 #include "common/terminal.hpp"
-#include "common/stash.hpp"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -41,6 +41,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/dll.hpp>
 
+#include <common/hash.hpp>
 #include <common/string.hpp>
 #include <string>
 #include <vector>
@@ -59,16 +60,14 @@ namespace driver
         class BaseTask : public task::Task
         {
         public:
-            BaseTask( const RawPtrSet& dependencies, const mega::io::Environment& environment, task::Stash& stash )
+            BaseTask( const RawPtrSet& dependencies, const mega::io::Environment& environment )
                 : task::Task( dependencies )
                 , m_environment( environment )
-                , m_stash( stash )
             {
             }
 
         protected:
             const mega::io::Environment& m_environment;
-            task::Stash&                 m_stash;
         };
 
         const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&           filePath,
@@ -76,7 +75,7 @@ namespace driver
         {
             for ( const mega::io::FileInfo& fileInfo : fileInfos )
             {
-                if ( fileInfo.getFilePath() == filePath )
+                if ( fileInfo.getFilePath().path() == filePath )
                 {
                     return fileInfo;
                 }
@@ -88,11 +87,10 @@ namespace driver
         {
         public:
             Task_ParseAST( const mega::io::Environment&             environment,
-                           task::Stash&                             stash,
                            const boost::filesystem::path&           parserDll,
-                           const boost::filesystem::path&           sourceFilePath,
+                           const mega::io::megaFilePath&            sourceFilePath,
                            const std::vector< mega::io::FileInfo >& fileInfos )
-                : BaseTask( {}, environment, stash )
+                : BaseTask( {}, environment )
                 , m_parserDLL( parserDll )
                 , m_sourceFilePath( sourceFilePath )
                 , m_fileInfos( fileInfos )
@@ -101,7 +99,7 @@ namespace driver
 
             ParserStage::Parser::ContextDef* parseInputFile( ParserStage::Database&                    database,
                                                              const ParserStage::Components::Component* pComponent,
-                                                             const boost::filesystem::path&            sourceFilePath,
+                                                             const mega::io::megaFilePath&             sourceFilePath,
                                                              std::ostream&                             osError,
                                                              std::ostream&                             osWarn )
             {
@@ -111,20 +109,22 @@ namespace driver
                     pParserInterface = boost::dll::import_symbol< EG_PARSER_INTERFACE >( m_parserDLL, "g_parserSymbol" );
                 }
 
-                ParserStage::Parser::ContextDef* pContextDef = pParserInterface->parseEGSourceFile(
-                    database, sourceFilePath, pComponent->get_includeDirectories(), osError, osWarn );
+                ParserStage::Parser::ContextDef* pContextDef
+                    = pParserInterface->parseEGSourceFile( database, m_environment.rootSourceDir() / sourceFilePath.path(),
+                                                           pComponent->get_includeDirectories(), osError, osWarn );
                 return pContextDef;
             }
 
             virtual void run( task::Progress& taskProgress )
             {
                 // ParserStage::Parser::Root
+                const mega::io::CompilationFilePath astFile  = m_environment.ParserStage_AST( m_sourceFilePath );
+                const mega::io::CompilationFilePath bodyFile = m_environment.ParserStage_Body( m_sourceFilePath );
+
+                taskProgress.start( "Task_ParseAST", m_sourceFilePath.path(), astFile.path() );
+
                 using namespace ParserStage;
-
                 Database database( m_environment, m_sourceFilePath );
-
-                taskProgress.start(
-                    "Task_ParseAST", m_sourceFilePath, m_environment.ParserStage_AST( mega::io::mega( m_sourceFilePath ) ) );
 
                 std::ostringstream osError, osWarn;
 
@@ -134,14 +134,14 @@ namespace driver
                     {
                         for ( const boost::filesystem::path& sourceFile : pIter->get_sourceFiles() )
                         {
-                            if ( sourceFile == m_sourceFilePath )
+                            if ( m_environment.megaFilePath_fromPath( sourceFile ) == m_sourceFilePath )
                             {
                                 pComponent = pIter;
                                 break;
                             }
                         }
                     }
-                    VERIFY_RTE_MSG( pComponent, "Failed to locate component for source file: " << m_sourceFilePath.string() );
+                    VERIFY_RTE_MSG( pComponent, "Failed to locate component for source file: " << m_sourceFilePath.path().string() );
                 }
 
                 using namespace ParserStage::Parser;
@@ -149,9 +149,9 @@ namespace driver
                 ContextDef* pContextDef = parseInputFile( database, pComponent, m_sourceFilePath, osError, osWarn );
 
                 ObjectSourceRoot* pObjectSrcRoot = database.construct< ObjectSourceRoot >(
-                    ObjectSourceRoot::Args{ SourceRoot::Args{ m_sourceFilePath, pComponent, pContextDef } } );
+                    ObjectSourceRoot::Args{ SourceRoot::Args{ m_sourceFilePath.path(), pComponent, pContextDef } } );
 
-                m_rootFiles.insert( std::make_pair( m_sourceFilePath, pObjectSrcRoot ) );
+                m_rootFiles.insert( std::make_pair( m_sourceFilePath.path(), pObjectSrcRoot ) );
 
                 // greedy algorithm to parse transitive closure of include files
                 {
@@ -165,8 +165,9 @@ namespace driver
                             FileRootMap::const_iterator iFind = m_rootFiles.find( pInclude->get_megaSourceFilePath() );
                             if ( iFind == m_rootFiles.end() )
                             {
-                                ContextDef* pIncludeContextDef
-                                    = parseInputFile( database, pComponent, pInclude->get_megaSourceFilePath(), osError, osWarn );
+                                ContextDef* pIncludeContextDef = parseInputFile(
+                                    database, pComponent, m_environment.megaFilePath_fromPath( pInclude->get_megaSourceFilePath() ),
+                                    osError, osWarn );
 
                                 IncludeRoot* pIncludeRoot = database.construct< IncludeRoot >( { IncludeRoot::Args{
                                     SourceRoot::Args{ pInclude->get_megaSourceFilePath(), pComponent, pIncludeContextDef }, pInclude } } );
@@ -199,14 +200,41 @@ namespace driver
                         // Warning
                         taskProgress.msg( osWarn.str() );
                     }
-                    database.store();
-                    taskProgress.succeeded();
-                }
 
-                taskProgress.succeeded();
+                    bool bRestored = true;
+                    {
+                        const common::HashCode astHashCode = database.save_AST_to_temp();
+                        m_environment.setBuildHashCode( astFile, astHashCode );
+                        if ( !m_environment.restore( astFile, astHashCode ) )
+                        {
+                            m_environment.temp_to_real( astFile );
+                            m_environment.stash( astFile, astHashCode );
+                            bRestored = false;
+                        }
+                    }
+                    {
+                        const common::HashCode bodyHashCode = database.save_Body_to_temp();
+                        m_environment.setBuildHashCode( bodyFile, bodyHashCode );
+                        if ( !m_environment.restore( bodyFile, bodyHashCode ) )
+                        {
+                            m_environment.temp_to_real( bodyFile );
+                            m_environment.stash( bodyFile, bodyHashCode );
+                            bRestored = false;
+                        }
+                    }
+
+                    if ( bRestored )
+                    {
+                        taskProgress.cached();
+                    }
+                    else
+                    {
+                        taskProgress.succeeded();
+                    }
+                }
             }
 
-            const boost::filesystem::path&           m_sourceFilePath;
+            const mega::io::megaFilePath&            m_sourceFilePath;
             const std::vector< mega::io::FileInfo >& m_fileInfos;
             const boost::filesystem::path            m_parserDLL;
             using FileRootMap = std::map< boost::filesystem::path, ParserStage::Parser::SourceRoot* >;
@@ -216,11 +244,10 @@ namespace driver
         class Task_ObjectInterfaceGen : public BaseTask
         {
         public:
-            Task_ObjectInterfaceGen( task::Task::RawPtr             pDependency,
-                                     const mega::io::Environment&   environment,
-                                     task::Stash&                   stash,
-                                     const boost::filesystem::path& sourceFilePath )
-                : BaseTask( { pDependency }, environment, stash )
+            Task_ObjectInterfaceGen( task::Task::RawPtr            pDependency,
+                                     const mega::io::Environment&  environment,
+                                     const mega::io::megaFilePath& sourceFilePath )
+                : BaseTask( { pDependency }, environment )
                 , m_sourceFilePath( sourceFilePath )
             {
             }
@@ -336,7 +363,7 @@ namespace driver
                             []( Database& database, const std::string& name, ContextGroup* pParent, Parser::EventDef* pEventDef ) -> Event*
                             {
                                 return database.construct< Event >( Event::Args(
-                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pEventDef }, {}) );
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pEventDef }, {} ) );
                             },
                             []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
                     }
@@ -383,16 +410,16 @@ namespace driver
                 }
             }
 
-            template< typename TContextGroup, typename TParserDef >
+            template < typename TContextGroup, typename TParserDef >
             void collectDimensions( InterfaceStage::Database& database, TContextGroup* pGroup, TParserDef* pDef )
             {
                 using namespace InterfaceStage;
 
                 for ( Parser::Dimension* pParserDim : pDef->get_dimensions() )
                 {
-                    //Interface::Dimension* pDimension = database.construct< Interface::Dimension >(
-                    //    Interface::Dimension::Args( pParserDim, pParserDim->get_id()->get_str() ) );
-                    //pGroup->push_back_dimensions( pDimension );
+                    // Interface::Dimension* pDimension = database.construct< Interface::Dimension >(
+                    //     Interface::Dimension::Args( pParserDim, pParserDim->get_id()->get_str() ) );
+                    // pGroup->push_back_dimensions( pDimension );
                 }
             }
 
@@ -412,14 +439,13 @@ namespace driver
                     collectDimensions< InterfaceStage::Interface::Action, Parser::ActionDef >( database, pAction, pDef );
 
                     const std::string& strBody = pDef->get_body();
-                    if( !strBody.empty() )
+                    if ( !strBody.empty() )
                     {
-
                     }
                 }
             }
-            void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent ) 
-            { 
+            void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent )
+            {
                 using namespace InterfaceStage;
                 for ( Parser::EventDef* pDef : pEvent->get_event_defs() )
                 {
@@ -438,19 +464,24 @@ namespace driver
                     collectDimensions< InterfaceStage::Interface::Object, Parser::ObjectDef >( database, pObject, pDef );
                 }
             }
-            void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink ) 
-            { 
-                using namespace InterfaceStage;
-            }
+            void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink ) { using namespace InterfaceStage; }
 
             virtual void run( task::Progress& taskProgress )
             {
+                const mega::io::CompilationFilePath treePath = m_environment.InterfaceStage_Tree( m_sourceFilePath );
+                taskProgress.start( "Task_ObjectInterfaceGen", m_sourceFilePath.path(), treePath.path() );
+
+                const common::HashCode hashCode = m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) );
+
+                if ( m_environment.restore( treePath, hashCode ) )
+                {
+                    m_environment.setBuildHashCode( treePath, hashCode );
+                    taskProgress.cached();
+                    return;
+                }
+
                 using namespace InterfaceStage;
-
                 Database database( m_environment, m_sourceFilePath );
-
-                taskProgress.start(
-                    "Task_ObjectInterfaceGen", m_sourceFilePath, m_environment.InterfaceStage_Tree( mega::io::mega( m_sourceFilePath ) ) );
 
                 Parser::ObjectSourceRoot* pRoot = database.one< Parser::ObjectSourceRoot >( m_sourceFilePath );
                 VERIFY_RTE( pRoot );
@@ -488,20 +519,21 @@ namespace driver
                     onLink( database, pLink );
                 }
 
-                database.store();
+                const common::HashCode fileHashCode = database.save_Tree_to_temp();
+                m_environment.setBuildHashCode( treePath, fileHashCode );
+                m_environment.temp_to_real( treePath );
+                m_environment.stash( treePath, hashCode );
 
                 taskProgress.succeeded();
             }
-            const boost::filesystem::path& m_sourceFilePath;
+            const mega::io::megaFilePath& m_sourceFilePath;
         };
 
         class Task_DependencyAnalysis : public BaseTask
         {
         public:
-            Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks,
-                                     const mega::io::Environment& environment,
-                                     task::Stash&                 stash )
-                : BaseTask( parserTasks, environment, stash )
+            Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::Environment& environment )
+                : BaseTask( parserTasks, environment )
             {
             }
             /*
@@ -683,11 +715,10 @@ namespace driver
         class Task_ObjectInterfaceAnalysis : public BaseTask
         {
         public:
-            Task_ObjectInterfaceAnalysis( task::Task::RawPtrSet          dependencies,
-                                          const mega::io::Environment&   environment,
-                                          task::Stash&                   stash,
-                                          const boost::filesystem::path& sourceFilePath )
-                : BaseTask( dependencies, environment, stash )
+            Task_ObjectInterfaceAnalysis( task::Task::RawPtrSet         dependencies,
+                                          const mega::io::Environment&  environment,
+                                          const mega::io::megaFilePath& sourceFilePath )
+                : BaseTask( dependencies, environment )
                 , m_sourceFilePath( sourceFilePath )
             {
             }
@@ -717,12 +748,12 @@ namespace driver
 
                 taskProgress.succeeded();
             }
-            const boost::filesystem::path& m_sourceFilePath;
+            const mega::io::megaFilePath& m_sourceFilePath;
         };
 
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path rootSourceDir, rootBuildDir, parserDll;
+            boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, tempDir = boost::filesystem::temp_directory_path();
             std::string             projectName;
 
             namespace po = boost::program_options;
@@ -751,41 +782,39 @@ namespace driver
             }
             else
             {
-                mega::io::Environment environment( rootSourceDir, rootBuildDir );
-                task::Stash           stash( environment.stashDir() );
+                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
 
                 VERIFY_RTE_MSG( boost::filesystem::exists( parserDll ), "Failed to locate parser DLL: " << parserDll );
 
                 // load the manifest
-                const mega::io::Environment::Path projectManifestPath = environment.project_manifest();
-                mega::io::Manifest                manifest( projectManifestPath );
+                const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
+                mega::io::Manifest               manifest( environment, projectManifestPath );
 
                 task::Task::PtrVector tasks;
                 task::Task::RawPtrSet parserTasks;
                 task::Task::RawPtrSet interfaceGenTasks;
-                for ( const boost::filesystem::path& sourceFilePath : manifest.getSourceFiles() )
+                for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                 {
-                    Task_ParseAST* pTask
-                        = new Task_ParseAST( environment, stash, parserDll, sourceFilePath, manifest.getCompilationFileInfos() );
+                    Task_ParseAST* pTask = new Task_ParseAST( environment, parserDll, sourceFilePath, manifest.getCompilationFileInfos() );
                     parserTasks.insert( pTask );
                     tasks.push_back( task::Task::Ptr( pTask ) );
 
-                    Task_ObjectInterfaceGen* pInterfaceGenTask = new Task_ObjectInterfaceGen( pTask, environment, stash, sourceFilePath );
+                    Task_ObjectInterfaceGen* pInterfaceGenTask = new Task_ObjectInterfaceGen( pTask, environment, sourceFilePath );
                     interfaceGenTasks.insert( pInterfaceGenTask );
                     tasks.push_back( task::Task::Ptr( pInterfaceGenTask ) );
                 }
 
                 VERIFY_RTE_MSG( !tasks.empty(), "No input source code found" );
 
-                Task_DependencyAnalysis* pDependencyAnalysisTask = new Task_DependencyAnalysis( interfaceGenTasks, environment, stash );
+                /*Task_DependencyAnalysis* pDependencyAnalysisTask = new Task_DependencyAnalysis( interfaceGenTasks, environment );
                 tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
 
-                for ( const boost::filesystem::path& sourceFilePath : manifest.getSourceFiles() )
+                for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                 {
                     Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis
-                        = new Task_ObjectInterfaceAnalysis( { pDependencyAnalysisTask }, environment, stash, sourceFilePath );
+                        = new Task_ObjectInterfaceAnalysis( { pDependencyAnalysisTask }, environment, sourceFilePath );
                     tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
-                }
+                }*/
 
                 task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
                 task::run( pSchedule, std::cout );

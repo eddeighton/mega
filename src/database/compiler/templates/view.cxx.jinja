@@ -297,16 +297,16 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
     };
     using InterfaceMap = std::unordered_map< mega::io::ObjectInfo, SuperTypePtr, ObjectInfoHash, ObjectInfoEquality >;
 
-    Pimpl( const mega::io::Environment& environment, const boost::filesystem::path& sourceFile )
+    Pimpl( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
         :   m_environment( environment ),
             m_sourceFile( sourceFile ),
-            m_manifest( m_environment.project_manifest() )
+            m_manifest( m_environment, m_environment.project_manifest() )
     {
         create();
     }
 
 {% for many_accessor in stage.many_accessors %}
-    std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+    std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const
     {
         std::vector< {{ many_accessor.type }}* > result;
         {
@@ -315,10 +315,10 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
             if( sourceFile == m_sourceFile )
                 pFile = m_pFile_{{ many_accessor.file }};
             else
-                pFile = m_manifest.loadFile( const_cast< Database::Pimpl&>(*this), 
+                pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
                     m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
 {% else %}
-            pFile = m_manifest.loadFile( const_cast< Database::Pimpl&>(*this), 
+            pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
                 m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
 {% endif %}
             for( mega::io::Object* pObject : pFile->range() )
@@ -335,7 +335,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
     }
 {% endfor %}{# stage.accessors #}
 {% for one_accessor in stage.one_accessors %}
-    {{ one_accessor.type }}* one_{{ one_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+    {{ one_accessor.type }}* one_{{ one_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const
     {
         std::vector< {{ one_accessor.type }}* > result = many_{{ one_accessor.longname }}( sourceFile );
         VERIFY_RTE_MSG( !result.empty(), "Singular accessor for {{ one_accessor.type }} found none" );
@@ -344,7 +344,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
     }
 {% endfor %}{# stage.accessors #}
 {% for one_opt_accessor in stage.one_opt_accessors %}
-    {{ one_opt_accessor.type }}* > oneOpt_{{ one_opt_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+    {{ one_opt_accessor.type }}* > oneOpt_{{ one_opt_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const
     {
         std::vector< {{ one_opt_accessor.type }}* > result = many_{{ one_opt_accessor.longname }}( sourceFile );
         VERIFY_RTE_MSG( result.size() > 1U, "Singular accessor for {{ one_accessor.type }} found many" );
@@ -433,26 +433,22 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
     void create()
     {
 {% for file in stage.readwrite_files %}
-        m_pFile_{{ file.name }} = m_manifest.createFile( const_cast< Database::Pimpl&>(*this), 
+        m_pFile_{{ file.name }} = m_manifest.createFile( m_environment, const_cast< Database::Pimpl&>(*this), 
             m_readwriteFiles, m_sourceFile, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
 {% endfor %}{# stage.readwrite_files #}
     }
 
     void load()
     {
-        m_manifest.loadAll( *this, m_readonlyFiles );
+        m_manifest.loadAll( m_environment, *this, m_readonlyFiles );
     }
 
-    void store() const
+{% for file in stage.readwrite_files %}
+    common::HashCode save_{{ file.name }}_to_temp() const
     {
-        for ( mega::io::Manifest::FileMap::const_iterator 
-                i = m_readwriteFiles.begin(), 
-                iEnd = m_readwriteFiles.end();
-              i != iEnd; ++i )
-        {
-            i->second->store( m_manifest );
-        }
+        return m_pFile_{{ file.name }}->save_temp( m_manifest );
     }
+{% endfor %}{# stage.readwrite_files #}
 
     void to_json( nlohmann::json& data ) const
     {
@@ -490,7 +486,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
                 }
                 else
                 {
-                    pFile = m_manifest.loadFile( const_cast< Database::Pimpl&>(*this), 
+                    pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
                         m_readonlyFiles, objectInfo.getFileID() );
                 }
             }
@@ -550,7 +546,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
 {% endfor %}{# stage.interface_conversions #}
 
     const mega::io::Environment& m_environment;
-    boost::filesystem::path m_sourceFile;
+    mega::io::SourceFilePath m_sourceFile;
     const mega::io::Manifest m_manifest;
 
     mega::io::Manifest::FileMap m_readwriteFiles;
@@ -562,7 +558,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
 {% endfor %}
 };
 
-Database::Database( const mega::io::Environment& environment, const boost::filesystem::path& sourceFile )
+Database::Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
 :   m_pimpl( new Pimpl( environment, sourceFile ) )
 {
 }
@@ -572,10 +568,12 @@ void Database::load()
     m_pimpl->load();
 }
 
-void Database::store() const
+{% for file in stage.readwrite_files %}
+common::HashCode Database::save_{{ file.name }}_to_temp() const
 {
-    m_pimpl->store();
+    return m_pimpl->save_{{ file.name }}_to_temp();
 }
+{% endfor %}{# stage.readwrite_files #}
 
 void Database::to_json( nlohmann::json& data ) const
 {
@@ -583,19 +581,19 @@ void Database::to_json( nlohmann::json& data ) const
 }
 
 {% for many_accessor in stage.many_accessors %}
-std::vector< {{ many_accessor.type }}* > Database::many_{{ many_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+std::vector< {{ many_accessor.type }}* > Database::many_{{ many_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const
 {
     return m_pimpl->many_{{ many_accessor.longname }}( sourceFile );
 }
 {% endfor %}{# stage.accessors #}
 {% for one_accessor in stage.one_accessors %}
-{{ one_accessor.type }}* Database::one_{{ one_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+{{ one_accessor.type }}* Database::one_{{ one_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const
 {
     return m_pimpl->one_{{ one_accessor.longname }}( sourceFile );
 }
 {% endfor %}{# stage.accessors #}
 {% for one_opt_accessor in stage.one_opt_accessors %}
-{{ one_opt_accessor.type }}* > Database::oneOpt_{{ one_opt_accessor.longname }}( const boost::filesystem::path& sourceFile ) const
+{{ one_opt_accessor.type }}* > Database::oneOpt_{{ one_opt_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const
 {
     return m_pimpl->oneOpt_{{ one_opt_accessor.longname }}( sourceFile );
 }

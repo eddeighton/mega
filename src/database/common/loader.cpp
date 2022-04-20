@@ -22,6 +22,7 @@
 
 #include "common/file.hpp"
 
+#include "database/common/sources.hpp"
 #include "database/model/file_info.hxx"
 #include "database/model/manifest.hxx"
 
@@ -41,16 +42,15 @@ namespace mega
 {
     namespace io
     {
-        Loader::Loader( const Manifest& manifest, const boost::filesystem::path& filePath, ::data::ObjectPartLoader& loader )
-            : m_runtimeManifest( manifest )
-            , m_pFileStream( boost::filesystem::createBinaryInputFileStream( filePath ) )
+        Loader::Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader )
+            : m_pFileStream( fileSystem.read( filePath ) ) 
             , m_archive( *m_pFileStream, loader )
         {
             Manifest loadedManifest;
             m_archive >> loadedManifest;
 
             // calculate mapping from the old fileIDs in the file to the new runtime ones in the
-            // m_runtimeManifest
+            // runtimeManifest
             std::size_t szHighest = 0U;
             for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
             {
@@ -63,16 +63,19 @@ namespace mega
 
             for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
             {
-                for ( const FileInfo& runtimeFileInfo : m_runtimeManifest.getCompilationFileInfos() )
+                bool bFound = false;
+                for ( const FileInfo& runtimeFileInfo : runtimeManifest.getCompilationFileInfos() )
                 {
                     if ( runtimeFileInfo.getFilePath() == fileInfo.getFilePath() )
                     {
                         VERIFY_RTE( fileInfo.getFileID() != ObjectInfo::NO_FILE );
                         VERIFY_RTE( runtimeFileInfo.getFileID() != ObjectInfo::NO_FILE );
                         m_archive.m_fileIDLoadedToRuntime[ fileInfo.getFileID() ] = runtimeFileInfo.getFileID();
+                        bFound = true;
                         break;
                     }
                 }
+                VERIFY_RTE_MSG( bFound, "Failed to locate: " << fileInfo.getFilePath().path().string() << " in runtime manifest" );
             }
         }
 

@@ -3,6 +3,8 @@
 
 #include "database/common/component_info.hpp"
 #include "database/common/archive.hpp"
+#include "database/common/environments.hpp"
+#include "database/common/sources.hpp"
 
 #include "database/model/ComponentListing.hxx"
 #include "database/model/ParserStage.hxx"
@@ -17,13 +19,13 @@
 class DatabaseTest : public ::testing::Test
 {
 public:
-    boost::filesystem::path tempDir;
-    mega::io::Environment   environment;
-    boost::filesystem::path srcFile;
+    boost::filesystem::path    tempDir;
+    mega::io::BuildEnvironment environment;
+    boost::filesystem::path    srcFile;
 
     DatabaseTest()
         : tempDir( boost::filesystem::temp_directory_path() )
-        , environment( tempDir, tempDir )
+        , environment( tempDir, tempDir, tempDir )
         , srcFile( tempDir / "test1.mega" )
     {
         std::ofstream of( srcFile.native() );
@@ -45,9 +47,9 @@ public:
                 componentInfoPaths.push_back( componentInfoPath );
             }
 
-            const mega::io::Manifest          manifest( environment, componentInfoPaths );
-            const mega::io::Environment::Path projectManifestPath = environment.project_manifest();
-            manifest.save( projectManifestPath );
+            const mega::io::Manifest         manifest( environment, componentInfoPaths );
+            const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
+            //manifest.save( environment, projectManifestPath );
         }
     }
 };
@@ -212,7 +214,8 @@ TEST_F( DatabaseTest, ArrayOfPointers )
         Opaque* pOpaque4 = database.construct< Opaque >( Opaque::Args( "testopaque4" ) );
 
         Dimension* pDim = database.construct< Dimension >(
-            Dimension::Args( true, "test", "int", "otherstring", pOpaque1, std::vector< Opaque* >{ pOpaque3, pOpaque2, pOpaque4 }, {}, {}) );
+            Dimension::Args( true, "test", "int", "otherstring", pOpaque1, std::vector< Opaque* >{ pOpaque3, pOpaque2, pOpaque4 }, {}, {})
+);
 
         database.store();
     }
@@ -296,20 +299,18 @@ TEST_F( DatabaseTest, MapOfPointers )
 TEST_F( DatabaseTest, Inserter )
 {
     {
-        //using namespace ComponentListing;
-        //Database database( environment );
-//
-        //using namespace ComponentListing::Components;
-//
-        //Component::Args args( "test", "somepath", {}, {});
-        //Component* pComponent = database.construct< Component >( args );
-//
-        //ASSERT_TRUE( pComponent->get_includeDirectories().empty() );
-//
-        //pComponent->push_back_includeDirectories("testpath");
-//
-        //ASSERT_EQ( pComponent->get_includeDirectories().front(), "testpath" );
-        
+        // using namespace ComponentListing;
+        // Database database( environment );
+        //
+        // using namespace ComponentListing::Components;
+        //
+        // Component::Args args( "test", "somepath", {}, {});
+        // Component* pComponent = database.construct< Component >( args );
+        //
+        // ASSERT_TRUE( pComponent->get_includeDirectories().empty() );
+        //
+        // pComponent->push_back_includeDirectories("testpath");
+        //
+        // ASSERT_EQ( pComponent->get_includeDirectories().front(), "testpath" );
     }
-
 }

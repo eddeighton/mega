@@ -10,8 +10,6 @@
 
 #include "nlohmann/json.hpp"
 
-#include "boost/filesystem/path.hpp"
-
 #include <string>
 #include <cstddef>
 #include <cstdint>

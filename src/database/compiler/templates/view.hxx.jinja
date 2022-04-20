@@ -3,15 +3,16 @@
 
 #include "database/model/environment.hxx"
 
-#include "nlohmann/json.hpp"
+#include "common/hash.hpp"
 
-#include <boost/filesystem/path.hpp>
+#include "nlohmann/json.hpp"
 
 #include <string>
 #include <optional>
 #include <memory>
 #include <variant>
 #include <vector>
+#include <utility>
 #include <map>
 #include <set>
 #include <unordered_map>
@@ -85,35 +86,37 @@ namespace {{ stage.name }}
     {
     public:
         struct Pimpl;
-        Database( const mega::io::Environment& environment, const boost::filesystem::path& sourceFile );
+        Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile );
         
         template< typename T >
-        inline std::vector< T* > many( const boost::filesystem::path& sourceFile ) const;
+        inline std::vector< T* > many( const mega::io::SourceFilePath& sourceFile ) const;
 
         template< typename T >
-        inline T* one( const boost::filesystem::path& sourceFile ) const;
+        inline T* one( const mega::io::SourceFilePath& sourceFile ) const;
 
         template< typename T >
-        inline T* oneOpt( const boost::filesystem::path& sourceFile ) const;
+        inline T* oneOpt( const mega::io::SourceFilePath& sourceFile ) const;
 
         template< typename T >
         inline T* construct( const typename T::Args& arguments );
 
         void load();
 
-        void store() const;
+{% for file in stage.readwrite_files %}
+        common::HashCode save_{{ file.name }}_to_temp() const;
+{% endfor %}{# stage.readwrite_files #}
 
         void to_json( nlohmann::json& data ) const;
 
     private:
 {% for many_accessor in stage.many_accessors %}
-        std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}( const boost::filesystem::path& sourceFile ) const;
+        std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const;
 {% endfor %}{# stage.accessors #}
 {% for one_accessor in stage.one_accessors %}
-        {{ one_accessor.type }}* one_{{ one_accessor.longname }}( const boost::filesystem::path& sourceFile ) const;
+        {{ one_accessor.type }}* one_{{ one_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const;
 {% endfor %}{# stage.accessors #}
 {% for one_opt_accessor in stage.one_opt_accessors %}
-        {{ one_opt_accessor.type }}* > oneOpt_{{ one_opt_accessor.longname }}( const boost::filesystem::path& sourceFile ) const;
+        {{ one_opt_accessor.type }}* > oneOpt_{{ one_opt_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const;
 {% endfor %}{# stage.accessors #}
 {% for constructor in stage.constructors %}
         {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments );
@@ -162,21 +165,21 @@ namespace {{ stage.name }}
 {% endfor %}{# stage.constructors #}
 {% for many_accessor in stage.many_accessors %}
     template<>
-    inline std::vector< {{ many_accessor.type }}* > Database::many< {{ many_accessor.type }} >( const boost::filesystem::path& sourceFile ) const
+    inline std::vector< {{ many_accessor.type }}* > Database::many< {{ many_accessor.type }} >( const mega::io::SourceFilePath& sourceFile ) const
     {
         return many_{{ many_accessor.longname }}( sourceFile );
     }
 {% endfor %}{# stage.accessors #}
 {% for one_accessor in stage.one_accessors %}
     template<>
-    inline {{ one_accessor.type }}* Database::one< {{ one_accessor.type }} >( const boost::filesystem::path& sourceFile ) const
+    inline {{ one_accessor.type }}* Database::one< {{ one_accessor.type }} >( const mega::io::SourceFilePath& sourceFile ) const
     {
         return one_{{ one_accessor.longname }}( sourceFile );
     }
 {% endfor %}{# stage.accessors #}
 {% for one_opt_accessor in stage.one_opt_accessors %}
     template<>
-    inline {{ one_opt_accessor.type }}* > Database::oneOpt< {{ one_opt_accessor.type }} >( const boost::filesystem::path& sourceFile ) const
+    inline {{ one_opt_accessor.type }}* > Database::oneOpt< {{ one_opt_accessor.type }} >( const mega::io::SourceFilePath& sourceFile ) const
     {
         return oneOpt_{{ one_opt_accessor.longname }}( sourceFile );
     }

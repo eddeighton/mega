@@ -4,6 +4,7 @@
 #include "database/common/object_info.hpp"
 #include "database/common/object.hpp"
 #include "database/common/archive.hpp"
+#include "database/common/sources.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -41,13 +42,13 @@ namespace io
         FileInfo();
         FileInfo( Type                           fileType,
                   ObjectInfo::FileID             fileID,
-                  const boost::filesystem::path& filePath,
-                  const boost::filesystem::path& objectSourceFilePath );
+                  const CompilationFilePath& filePath,
+                  const SourceFilePath& objectSourceFilePath );
 
-        Type                           getFileType() const { return m_fileType; }
-        ObjectInfo::FileID             getFileID() const { return m_fileID; }
-        const boost::filesystem::path& getFilePath() const { return m_filePath; }
-        const boost::filesystem::path& getObjectSourceFilePath() const { return m_objectSourceFilePath; }
+        Type                            getFileType() const { return m_fileType; }
+        ObjectInfo::FileID              getFileID() const { return m_fileID; }
+        const CompilationFilePath&      getFilePath() const { return m_filePath; }
+        const SourceFilePath&           getObjectSourceFilePath() const { return m_objectSourceFilePath; }
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
@@ -62,8 +63,8 @@ namespace io
     private:
         Type                    m_fileType;
         ObjectInfo::FileID      m_fileID;
-        boost::filesystem::path m_filePath;
-        boost::filesystem::path m_objectSourceFilePath;
+        CompilationFilePath     m_filePath;
+        SourceFilePath          m_objectSourceFilePath;
     };
 
 } // namespace io

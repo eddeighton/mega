@@ -319,9 +319,9 @@ public:
             VERIFY_RTE( getSourceText( startLoc, endLoc, strType ) );
             args.type = strType;
         }
+        args.id = parse_identifier( database );
         parse_semicolon();
 
-        args.id = parse_identifier( database );
         return database.construct< Dimension >( args );
     }
 
@@ -410,7 +410,7 @@ public:
             else
             {
                 const boost::filesystem::path filePath = resolveFilePath( strFile );
-                if ( boost::filesystem::extension( filePath ) == mega::io::mega::extension() )
+                if ( boost::filesystem::extension( filePath ) == mega::io::megaFilePath::extension() )
                 {
                     if ( pIdentifier )
                         pResult = database.construct< MegaIncludeNested >(

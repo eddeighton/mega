@@ -21,8 +21,7 @@
 
 #include "database/common/component_info.hpp"
 #include "database/common/archive.hpp"
-
-#include "database/model/environment.hxx"
+#include "database/common/environments.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
@@ -33,85 +32,95 @@
 #include <boost/filesystem.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
+#include <common/hash.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
 
 namespace driver
 {
-namespace list
-{
-    class BaseTask : public task::Task
+    namespace list
     {
-    public:
-        BaseTask( const mega::io::Environment& environment,
-                  task::Stash&                 stash,
-                  const RawPtrSet&             dependencies )
-            : task::Task( dependencies )
-            , m_environment( environment )
-            , m_stash( stash )
+        class BaseTask : public task::Task
         {
-        }
-
-    protected:
-        const mega::io::Environment& m_environment;
-        task::Stash&                 m_stash;
-    };
-
-    class Task_ComponentInfoToManifest : public BaseTask
-    {
-    public:
-        Task_ComponentInfoToManifest(
-            const mega::io::Environment&                  environment,
-            task::Stash&                                  stash,
-            const std::string&                            strComponentName,
-            const boost::filesystem::path&                srcDir,
-            const boost::filesystem::path&                buildDir,
-            const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
-            const std::vector< boost::filesystem::path >& includeDirectories )
-            : BaseTask( environment, stash, {} )
-            , m_srcDir( srcDir )
-            , m_buildDir( buildDir )
-            , m_componentInfo( strComponentName, srcDir, inputMegaSourceFiles, includeDirectories )
-        {
-        }
-
-        virtual void run( task::Progress& taskProgress )
-        {
-            // inputMegaSourceFiles
-            const mega::io::Environment::Path sourceListPath
-                = m_environment.source_list( m_buildDir );
-
-            taskProgress.start( "Task_ComponentInfoToManifest", m_srcDir, sourceListPath );
-
-            std::ofstream outputFileStream(
-                sourceListPath.native().c_str(), std::ios_base::trunc | std::ios_base::out | std::ios_base::binary);
-            if ( !outputFileStream.good() )
+        public:
+            BaseTask( const mega::io::Environment& environment, task::Stash& stash, const RawPtrSet& dependencies )
+                : task::Task( dependencies )
+                , m_environment( environment )
+                , m_stash( stash )
             {
-                THROW_RTE( "Failed to write to file: " << sourceListPath.string() );
             }
-            mega::OutputArchiveType oa( outputFileStream );
-            oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
 
-            taskProgress.succeeded();
-        }
+        protected:
+            const mega::io::Environment& m_environment;
+            task::Stash&                 m_stash;
+        };
 
-    private:
-        const boost::filesystem::path m_srcDir;
-        const boost::filesystem::path m_buildDir;
-        mega::io::ComponentInfo       m_componentInfo;
-    };
-
-    void command( bool bHelp, const std::vector< std::string >& args )
-    {
-        boost::filesystem::path    rootSourceDir, rootBuildDir, sourceDir, buildDir;
-        std::string                strComponentName, strIncludeDirectories;
-        std::vector< std::string > objectSourceFileNames;
-
-        namespace po = boost::program_options;
-        po::options_description commandOptions( " List input mega source files" );
+        class Task_ComponentInfoToManifest : public BaseTask
         {
-            // clang-format off
+        public:
+            Task_ComponentInfoToManifest( const mega::io::Environment&                  environment,
+                                          task::Stash&                                  stash,
+                                          const std::string&                            strComponentName,
+                                          const boost::filesystem::path&                srcDir,
+                                          const boost::filesystem::path&                buildDir,
+                                          const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
+                                          const std::vector< boost::filesystem::path >& includeDirectories )
+                : BaseTask( environment, stash, {} )
+                , m_srcDir( srcDir )
+                , m_buildDir( buildDir )
+                , m_componentInfo( strComponentName, srcDir, inputMegaSourceFiles, includeDirectories )
+            {
+            }
+
+            virtual void run( task::Progress& taskProgress )
+            {
+                // inputMegaSourceFiles
+                const mega::io::ComponentListingFilePath componentListingFilePath
+                    = m_environment.ComponentListingFilePath_fromPath( m_buildDir );
+
+                taskProgress.start( "Task_ComponentInfoToManifest", m_srcDir, componentListingFilePath.path() );
+
+                boost::filesystem::path tempFile;
+                {
+                    std::unique_ptr< boost::filesystem::ofstream > pOfstream
+                        = m_environment.write_temp( componentListingFilePath, tempFile );
+                    mega::OutputArchiveType oa( *pOfstream );
+                    oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
+                }
+
+                common::HashCode hashCode = common::hash_file( tempFile );
+                m_environment.setBuildHashCode( componentListingFilePath, hashCode );
+
+                if ( m_environment.restore( componentListingFilePath, hashCode ) )
+                {
+                    taskProgress.cached();
+                    return;
+                }
+                else
+                {
+                    m_environment.temp_to_real( componentListingFilePath );
+                    m_environment.stash( componentListingFilePath, hashCode );
+                    taskProgress.succeeded();
+                }
+            }
+
+        private:
+            const boost::filesystem::path m_srcDir;
+            const boost::filesystem::path m_buildDir;
+            mega::io::ComponentInfo       m_componentInfo;
+        };
+
+        void command( bool bHelp, const std::vector< std::string >& args )
+        {
+            boost::filesystem::path    rootSourceDir, rootBuildDir, sourceDir, buildDir, tempDir = boost::filesystem::temp_directory_path();
+            std::string                strComponentName, strIncludeDirectories;
+            std::vector< std::string > objectSourceFileNames;
+
+            namespace po = boost::program_options;
+            po::options_description commandOptions( " List input mega source files" );
+            {
+                // clang-format off
             commandOptions.add_options()
                 ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),             "Root source directory" )
                 ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),              "Root build directory" )
@@ -121,48 +130,40 @@ namespace list
                 ( "include_dirs",   po::value< std::string >( &strIncludeDirectories ),                 "Include directories ( semicolon delimited )" )
                 ( "src",            po::value< std::vector< std::string > >( &objectSourceFileNames ),  "Mega source file names" )
                 ;
-            // clang-format on
+                // clang-format on
+            }
+
+            po::positional_options_description p;
+            p.add( "src", -1 );
+
+            po::variables_map vm;
+            po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
+            po::notify( vm );
+
+            if ( bHelp )
+            {
+                std::cout << commandOptions << "\n";
+            }
+            else
+            {
+                // tokenize semi colon delimited names into absolute mega source file paths
+                const std::vector< boost::filesystem::path > inputSourceFiles = pathListToFiles( sourceDir, objectSourceFileNames );
+                const std::vector< boost::filesystem::path > includeDirectories
+                    = pathListToFolders( parsePathList( strIncludeDirectories ) );
+
+                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
+
+                task::Stash stash( environment.stashDir() );
+
+                task::Task::PtrVector tasks;
+
+                Task_ComponentInfoToManifest* pTask = new Task_ComponentInfoToManifest(
+                    environment, stash, strComponentName, sourceDir, buildDir, inputSourceFiles, includeDirectories );
+                tasks.push_back( task::Task::Ptr( pTask ) );
+
+                task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
+                task::run( pSchedule, std::cout );
+            }
         }
-
-        po::positional_options_description p;
-        p.add( "src", -1 );
-
-        po::variables_map vm;
-        po::store(
-            po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
-        po::notify( vm );
-
-        if ( bHelp )
-        {
-            std::cout << commandOptions << "\n";
-        }
-        else
-        {
-            // tokenize semi colon delimited names into absolute mega source file paths
-            const std::vector< boost::filesystem::path > inputSourceFiles
-                = pathListToFiles( sourceDir, objectSourceFileNames );
-            const std::vector< boost::filesystem::path > includeDirectories
-                = pathListToFolders( parsePathList( strIncludeDirectories ) );
-
-            mega::io::Environment environment( rootSourceDir, rootBuildDir );
-
-            task::Stash stash( environment.stashDir() );
-
-            task::Task::PtrVector tasks;
-
-            Task_ComponentInfoToManifest* pTask
-                = new Task_ComponentInfoToManifest( environment,
-                                                    stash,
-                                                    strComponentName,
-                                                    sourceDir,
-                                                    buildDir,
-                                                    inputSourceFiles,
-                                                    includeDirectories );
-            tasks.push_back( task::Task::Ptr( pTask ) );
-
-            task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
-            task::run( pSchedule, std::cout );
-        }
-    }
-} // namespace list
+    } // namespace list
 } // namespace driver

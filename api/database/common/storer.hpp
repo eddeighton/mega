@@ -23,6 +23,7 @@
 #include "archive.hpp"
 #include "object.hpp"
 #include "data_pointer.hpp"
+#include "file_system.hpp"
 
 #include "database/model/manifest.hxx"
 
@@ -44,17 +45,15 @@ namespace mega
         class Storer
         {
         public:
-            Storer( const boost::filesystem::path& filePath, const Manifest& manifest );
+            Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, const Manifest& manifest, boost::filesystem::path& tempFile );
 
             template < class T >
             inline void store( const T& value )
             {
-                m_archive & value;
+                m_archive& value;
             }
 
         private:
-            const boost::filesystem::path                  m_targetFilePath;
-            const Manifest&                                m_manifest;
             std::unique_ptr< boost::filesystem::ofstream > m_pFileStream;
             boost::archive::MegaOArchive                   m_archive;
         };

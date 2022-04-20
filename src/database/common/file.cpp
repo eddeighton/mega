@@ -5,13 +5,14 @@
 #include "database/common/storer.hpp"
 
 #include "database/model/data.hxx"
+#include <common/hash.hpp>
 
 namespace mega
 {
     namespace io
     {
 
-        void File::preload( Loader& loader, const Manifest& manifest )
+        void File::preload( Loader& loader )
         {
             try
             {
@@ -44,15 +45,15 @@ namespace mega
             }
             catch ( boost::archive::archive_exception& ex )
             {
-                THROW_RTE( "Exception from boost archive when loading: " << m_info.getFilePath().string() );
+                THROW_RTE( "Exception from boost archive when loading: " << m_info.getFilePath().path().string() );
             }
         }
 
         void File::load( const Manifest& manifest )
         {
             VERIFY_RTE( !m_pLoader );
-            m_pLoader = std::make_shared< Loader >( manifest, m_info.getFilePath(), m_objectLoader );
-            preload( *m_pLoader, manifest );
+            m_pLoader = std::make_shared< Loader >( m_fileSystem, manifest, m_info.getFilePath(), m_objectLoader );
+            preload( *m_pLoader );
             for ( Object* pObject : m_objects )
             {
                 pObject->load( *m_pLoader );
@@ -69,27 +70,31 @@ namespace mega
             m_pLoader.reset();
         }
 
-        void File::store( const Manifest& manifest ) const
+        common::HashCode File::save_temp( const Manifest& manifest ) const
         {
-            Storer storer( m_info.getFilePath(), manifest );
+            boost::filesystem::path tempFile;
+            {
+                Storer storer( m_fileSystem, m_info.getFilePath(), manifest, tempFile );
 
-            storer.store( m_objects.size() );
-            for ( Object* pObject : m_objects )
-            {
-                storer.store( pObject->getObjectInfo() );
+                storer.store( m_objects.size() );
+                for ( Object* pObject : m_objects )
+                {
+                    storer.store( pObject->getObjectInfo() );
+                }
+                for ( Object* pObject : m_objects )
+                {
+                    pObject->store( storer );
+                }
             }
-            for ( Object* pObject : m_objects )
-            {
-                pObject->store( storer );
-            }
+            return common::hash_file( tempFile );
         }
 
         void File::to_json( const Manifest& manifest, nlohmann::json& data ) const
         {
-            nlohmann::json file = nlohmann::json::object( { { "filepath", getFilePath() },
+            nlohmann::json file = nlohmann::json::object( { { "filepath", getFilePath().path().string() },
                                                             { "filetype", getType() },
                                                             { "fileID", getFileID() },
-                                                            { "source", getObjectSourceFilePath() },
+                                                            { "source", getObjectSourceFilePath().path().string() },
                                                             { "objects", nlohmann::json::array() } } );
 
             for ( Object* pObject : m_objects )

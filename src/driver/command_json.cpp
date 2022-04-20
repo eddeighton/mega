@@ -23,8 +23,7 @@
 
 #include "database/common/component_info.hpp"
 #include "database/common/archive.hpp"
-
-#include "database/model/environment.hxx"
+#include "database/common/environments.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
@@ -47,7 +46,7 @@ namespace json
 {
     void command( bool bHelp, const std::vector< std::string >& args )
     {
-        boost::filesystem::path    rootSourceDir, rootBuildDir, outputFilePath;
+        boost::filesystem::path    rootSourceDir, rootBuildDir, outputFilePath, tempDir = boost::filesystem::temp_directory_path();
 
         namespace po = boost::program_options;
         po::options_description commandOptions( " List input mega source files" );
@@ -72,7 +71,7 @@ namespace json
         }
         else
         {
-            mega::io::Environment environment( rootSourceDir, rootBuildDir );
+            mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
 
             task::Stash stash( environment.stashDir() );
 

@@ -36,13 +36,11 @@ namespace mega
 {
 namespace io
 {
-    Storer::Storer( const boost::filesystem::path& filePath, const Manifest& manifest )
-        : m_targetFilePath( filePath )
-        , m_manifest( manifest )
-        , m_pFileStream( boost::filesystem::createBinaryOutputFileStream( filePath ) )
+    Storer::Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, const Manifest& manifest, boost::filesystem::path& tempFile )
+        : m_pFileStream( fileSystem.write_temp( filePath, tempFile ) )
         , m_archive( *m_pFileStream )
     {
-        m_archive << m_manifest;
+        m_archive << manifest;
     }
     
 } // namespace io

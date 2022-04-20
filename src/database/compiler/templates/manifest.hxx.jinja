@@ -1,6 +1,7 @@
 #ifndef IO_MANIFEST_26_MAR_2022
 #define IO_MANIFEST_26_MAR_2022
 
+#include "database/common/sources.hpp"
 #include "database/common/object.hpp"
 #include "database/common/archive.hpp"
 #include "database/common/object_info.hpp"
@@ -8,6 +9,8 @@
 
 #include "database/model/environment.hxx"
 #include "database/model/file_info.hxx"
+
+#include "common/hash.hpp"
 
 #include <boost/filesystem/path.hpp>
 
@@ -27,59 +30,60 @@ namespace io
     class Manifest
     {
     public:
-        using PtrCst            = std::shared_ptr< const Manifest >;
-        using FileVector        = std::vector< boost::filesystem::path >;
-        using FileInfoVector    = std::vector< FileInfo >;
-        using FileTypeMap       = std::map< std::pair< FileInfo::Type, boost::filesystem::path >, FileInfoVector::const_iterator >;
-        using FileIDVector      = std::vector< ObjectInfo::FileID >;
-        using FileDependencies  = std::vector< FileIDVector >;
-        using FileMap           = std::map< ObjectInfo::FileID, File::Ptr >;
-        using FileMapCst        = std::map< ObjectInfo::FileID, File::PtrCst >;
+        using PtrCst                = std::shared_ptr< const Manifest >;
+        using MegaSourceFileVector  = std::vector< megaFilePath >;
+        using FileInfoVector        = std::vector< FileInfo >;
+        using FileTypeMap           = std::map< std::pair< FileInfo::Type, SourceFilePath >, FileInfoVector::const_iterator >;
+        using FileIDVector          = std::vector< ObjectInfo::FileID >;
+        using FileDependencies      = std::vector< FileIDVector >;
+        using FileMap               = std::map< ObjectInfo::FileID, File::Ptr >;
+        using FileMapCst            = std::map< ObjectInfo::FileID, File::PtrCst >;
 
         Manifest();
 
         // Load an existing manifest from the specified file.
-        Manifest( const boost::filesystem::path& filepath );
+        Manifest( const Environment& environment, const manifestFilePath& filepath );
 
         // Construct a manifest from the source and build directory by
         // recursively analysing existing source listing files.
         Manifest( const Environment& environment, const std::vector< boost::filesystem::path >& sourceListings );
 
-        const FileVector& getSourceFiles() const { return m_sourceFiles; }
+        const MegaSourceFileVector& getMegaSourceFiles() const { return m_megaSourceFiles; }
         const FileInfoVector& getCompilationFileInfos() const { return m_compilationFileInfos; }
 
-        File::PtrCst loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-            const boost::filesystem::path& sourceFile, FileInfo::Type fileType ) const;
+        File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
+            const SourceFilePath& sourceFile, FileInfo::Type fileType ) const;
 
-        File::PtrCst loadFile( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles,
+        File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles,
             ObjectInfo::FileID fileID ) const;
 
-        void loadAll( data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles ) const;
+        void loadAll( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles ) const;
         
-        File::Ptr createFile( data::ObjectPartLoader& loader, FileMap& readWriteFiles,
-            const boost::filesystem::path& sourceFile, FileInfo::Type fileType ) const;
+        File::Ptr createFile( const Environment& environment, data::ObjectPartLoader& loader, FileMap& readWriteFiles,
+            const SourceFilePath& sourceFile, FileInfo::Type fileType ) const;
 
-        void load( const boost::filesystem::path& filepath );
-        void save( const boost::filesystem::path& filepath ) const;
+        void load( const Environment& environment, const manifestFilePath& filepath );
+        common::HashCode save_temp( const Environment& environment, const manifestFilePath& filepath ) const;
 
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
-            archive& boost::serialization::make_nvp( "sourceFiles", m_sourceFiles );
+            archive& boost::serialization::make_nvp( "sourceFiles", m_megaSourceFiles );
             archive& boost::serialization::make_nvp( "compilationFileInfos", m_compilationFileInfos );
         }
 
     private: 
-        File::PtrCst loadFileImpl( data::ObjectPartLoader& loader, 
+        File::PtrCst loadFileImpl( const Environment& environment, 
+            data::ObjectPartLoader& loader, 
             FileMapCst& readOnlyFiles, 
             ObjectInfo::FileID fileID, 
             std::vector< File::Ptr >& loadedFiles ) const;
         void initialiseLookupTables();
         
-        FileVector m_sourceFiles;
-        FileInfoVector m_compilationFileInfos;
-        FileTypeMap m_fileTypeMap;
-        FileDependencies m_dependencies;
+        MegaSourceFileVector    m_megaSourceFiles;
+        FileInfoVector          m_compilationFileInfos;
+        FileTypeMap             m_fileTypeMap;
+        FileDependencies        m_dependencies;
     };
 
 } // namespace io

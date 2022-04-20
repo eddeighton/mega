@@ -17,11 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "command_utils.hpp"
 
 #include "database/common/component_info.hpp"
 #include "database/common/archive.hpp"
+#include "database/common/environments.hpp"
 
 #include "database/model/manifest.hxx"
 #include "database/model/environment.hxx"
@@ -32,6 +32,7 @@
 #include "common/assert_verify.hpp"
 #include "common/terminal.hpp"
 #include "common/stash.hpp"
+#include "common/hash.hpp"
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
@@ -49,18 +50,14 @@ namespace driver
         class BaseTask : public task::Task
         {
         public:
-            BaseTask( const mega::io::Environment& environment,
-                      task::Stash&                 stash,
-                      const RawPtrSet&             dependencies )
+            BaseTask( const mega::io::Environment& environment, const RawPtrSet& dependencies )
                 : task::Task( dependencies )
                 , m_environment( environment )
-                , m_stash( stash )
             {
             }
 
         protected:
             const mega::io::Environment& m_environment;
-            task::Stash&                 m_stash;
         };
 
         class Task_GenerateManifest : public BaseTask
@@ -68,30 +65,33 @@ namespace driver
             const std::vector< boost::filesystem::path >& m_componentInfoPaths;
 
         public:
-            Task_GenerateManifest(
-                const mega::io::Environment&                  environment,
-                task::Stash&                                  stash,
-                const std::vector< boost::filesystem::path >& componentInfoPaths )
-                : BaseTask( environment, stash, {} )
+            Task_GenerateManifest( const mega::io::Environment&                  environment,
+                                   const std::vector< boost::filesystem::path >& componentInfoPaths )
+                : BaseTask( environment, {} )
                 , m_componentInfoPaths( componentInfoPaths )
             {
             }
             virtual void run( task::Progress& taskProgress )
             {
-                const mega::io::Environment::Path projectManifestPath
-                    = m_environment.project_manifest();
+                const mega::io::manifestFilePath projectManifestPath = m_environment.project_manifest();
 
-                taskProgress.start(
-                    "Task_GenerateManifest", m_environment.rootBuildDir(), projectManifestPath );
+                taskProgress.start( "Task_GenerateManifest", boost::filesystem::path{}, projectManifestPath.path() );
 
                 const mega::io::Manifest manifest( m_environment, m_componentInfoPaths );
-                manifest.save( projectManifestPath );
+                const common::HashCode   hashCode = manifest.save_temp( m_environment, projectManifestPath );
+                m_environment.setBuildHashCode( projectManifestPath, hashCode );
 
-                VERIFY_RTE_MSG(
-                    boost::filesystem::exists( projectManifestPath ),
-                    "Failed to create manifest file: " << projectManifestPath.string() );
-
-                taskProgress.succeeded();
+                if ( m_environment.restore( projectManifestPath, hashCode ) )
+                {
+                    taskProgress.cached();
+                    return;
+                }
+                else
+                {
+                    m_environment.temp_to_real( projectManifestPath );
+                    m_environment.stash( projectManifestPath, hashCode );
+                    taskProgress.succeeded();
+                }
             }
         };
 
@@ -100,12 +100,10 @@ namespace driver
             const std::vector< boost::filesystem::path >& m_componentInfoPaths;
 
         public:
-            Task_GenerateComponents(
-                Task_GenerateManifest*                        pTask,
-                const mega::io::Environment&                  environment,
-                task::Stash&                                  stash,
-                const std::vector< boost::filesystem::path >& componentInfoPaths )
-                : BaseTask( environment, stash, { pTask } )
+            Task_GenerateComponents( Task_GenerateManifest*                        pTask,
+                                     const mega::io::Environment&                  environment,
+                                     const std::vector< boost::filesystem::path >& componentInfoPaths )
+                : BaseTask( environment, { pTask } )
                 , m_componentInfoPaths( componentInfoPaths )
             {
             }
@@ -114,12 +112,25 @@ namespace driver
             {
                 using namespace mega;
 
-                const io::Environment::Path projectManifestPath = m_environment.project_manifest();
+                const io::manifestFilePath    projectManifestPath = m_environment.project_manifest();
+                const io::CompilationFilePath componentsListing   = m_environment.ComponentListing_Components( projectManifestPath );
 
-                taskProgress.start( "Task_GenerateComponents",
-                                    m_environment.rootBuildDir(),
-                                    m_environment.ComponentListing_Components( mega::io::manifest{ projectManifestPath } ) );
+                taskProgress.start( "Task_GenerateComponents", projectManifestPath.path(), componentsListing.path() );
 
+
+                common::HashCode hashCode = m_environment.getBuildHashCode( projectManifestPath );
+                for ( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
+                {
+                    hashCode = common::hash_combine( hashCode, common::hash_file( componentInfoPath ) );
+                }
+
+                if ( m_environment.restore( componentsListing, hashCode ) )
+                {
+                    m_environment.setBuildHashCode( componentsListing );
+                    taskProgress.cached();
+                    return;
+                }
+                
                 using namespace ComponentListing;
                 Database database( m_environment, projectManifestPath );
 
@@ -127,10 +138,9 @@ namespace driver
                 {
                     io::ComponentInfo componentInfo;
                     {
-                        VERIFY_RTE_MSG( boost::filesystem::exists( componentInfoPath ),
-                                        "Failed to locate file: " << componentInfoPath.string() );
-                        std::ifstream inputFileStream( componentInfoPath.native().c_str(),
-                                                       std::ios::in | std::ios_base::binary );
+                        VERIFY_RTE_MSG(
+                            boost::filesystem::exists( componentInfoPath ), "Failed to locate file: " << componentInfoPath.string() );
+                        std::ifstream inputFileStream( componentInfoPath.native().c_str(), std::ios::in | std::ios_base::binary );
                         if ( !inputFileStream.good() )
                         {
                             THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
@@ -139,16 +149,19 @@ namespace driver
                         ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
                     };
 
-                    Components::Component* pComponent = database.construct< Components::Component >(
-                        Components::Component::Args( componentInfo.getName(),
-                                                     componentInfo.getDirectory(),
-                                                     componentInfo.getIncludeDirectories(),
-                                                     componentInfo.getSourceFiles() ) );
+                    Components::Component* pComponent
+                        = database.construct< Components::Component >( Components::Component::Args( componentInfo.getName(),
+                                                                                                    componentInfo.getDirectory(),
+                                                                                                    componentInfo.getIncludeDirectories(),
+                                                                                                    componentInfo.getSourceFiles() ) );
 
                     VERIFY_RTE( pComponent->get_name() == componentInfo.getName() );
                 }
 
-                database.store();
+                const common::HashCode fileHashCode = database.save_Components_to_temp();
+                m_environment.setBuildHashCode( componentsListing, fileHashCode );
+                m_environment.temp_to_real( componentsListing );
+                m_environment.stash( componentsListing, hashCode );
 
                 taskProgress.succeeded();
             }
@@ -156,14 +169,14 @@ namespace driver
 
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path rootSourceDir, rootBuildDir;
+            boost::filesystem::path rootSourceDir, rootBuildDir, tempDir = boost::filesystem::temp_directory_path();
             std::string             projectName, strComponentInfoPaths;
 
             namespace po = boost::program_options;
             po::options_description commandOptions( " Compile Mega Project Interface" );
             {
                 // clang-format off
-            commandOptions.add_options()
+                commandOptions.add_options()
                 ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ), "Root source directory" )
                 ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),  "Root build directory" )
                 ( "project",        po::value< std::string >( &projectName ),               "Mega Project Name" )
@@ -176,9 +189,7 @@ namespace driver
             p.add( "components", -1 );
 
             po::variables_map vm;
-            po::store(
-                po::command_line_parser( args ).options( commandOptions ).positional( p ).run(),
-                vm );
+            po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
             po::notify( vm );
 
             if ( bHelp )
@@ -187,21 +198,16 @@ namespace driver
             }
             else
             {
-                mega::io::Environment environment( rootSourceDir, rootBuildDir );
+                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
 
-                task::Stash stash( environment.stashDir() );
-
-                const std::vector< boost::filesystem::path > componentInfoPaths
-                    = pathListToFiles( parsePathList( strComponentInfoPaths ) );
+                const std::vector< boost::filesystem::path > componentInfoPaths = pathListToFiles( parsePathList( strComponentInfoPaths ) );
 
                 task::Task::PtrVector tasks;
 
-                Task_GenerateManifest* pTask
-                    = new Task_GenerateManifest( environment, stash, componentInfoPaths );
+                Task_GenerateManifest* pTask = new Task_GenerateManifest( environment, componentInfoPaths );
                 tasks.push_back( task::Task::Ptr( pTask ) );
 
-                Task_GenerateComponents* pTaskComponents
-                    = new Task_GenerateComponents( pTask, environment, stash, componentInfoPaths );
+                Task_GenerateComponents* pTaskComponents = new Task_GenerateComponents( pTask, environment, componentInfoPaths );
                 tasks.push_back( task::Task::Ptr( pTaskComponents ) );
 
                 task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

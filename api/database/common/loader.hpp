@@ -24,6 +24,8 @@
 #include "object_info.hpp"
 #include "object.hpp"
 #include "data_pointer.hpp"
+#include "sources.hpp"
+#include "file_system.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -49,7 +51,7 @@ namespace mega
         class Loader
         {
         public:
-            Loader( const Manifest& manifest, const boost::filesystem::path& filePath, ::data::ObjectPartLoader& loader );
+            Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader );
 
             template < typename T >
             void load( T& value )
@@ -58,7 +60,6 @@ namespace mega
             }
 
         private:
-            const Manifest&                                m_runtimeManifest;
             std::unique_ptr< boost::filesystem::ifstream > m_pFileStream;
             boost::archive::MegaIArchive                   m_archive;
         };
