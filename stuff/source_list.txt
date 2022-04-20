@@ -1,3 +1,0 @@
-1
-/workspace/root/src/megatest/src/stuff/sphere.mega
-/workspace/root/src/megatest/src/stuff/triangle.mega

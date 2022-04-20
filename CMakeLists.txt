@@ -18,5 +18,5 @@ link_spdlog( MegaTestComponent1 )
 link_boost( MegaTestComponent1 filesystem )
 
 add_subdirectory(stuff)
-add_subdirectory(retail)
+add_subdirectory(retail_test)
 
