@@ -29,7 +29,7 @@ namespace io
     Path Environment::buildDirFromSrcDir( const Path& srcDir ) const
     {
         VERIFY_RTE_MSG( boost::filesystem::is_directory( srcDir ),
-                        "Source path is not a directory: " << srcDir.string() );
+                        "buildDirFromSrcDir failed due to source path is not a directory: " << srcDir.string() );
         return m_rootBuildDir / boost::filesystem::relative( srcDir, m_rootSourceDir );
     }
 
