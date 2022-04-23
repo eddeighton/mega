@@ -20,19 +20,18 @@
 #include "command_utils.hpp"
 
 #include "database/common/component_info.hpp"
-#include "database/common/archive.hpp"
+#include "database/common/serialisation.hpp"
 #include "database/common/environments.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
-#include "common/stash.hpp"
+#include <common/hash.hpp>
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-#include <common/hash.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -44,29 +43,26 @@ namespace driver
         class BaseTask : public task::Task
         {
         public:
-            BaseTask( const mega::io::Environment& environment, task::Stash& stash, const RawPtrSet& dependencies )
+            BaseTask( const mega::io::BuildEnvironment& environment, const RawPtrSet& dependencies )
                 : task::Task( dependencies )
                 , m_environment( environment )
-                , m_stash( stash )
             {
             }
 
         protected:
-            const mega::io::Environment& m_environment;
-            task::Stash&                 m_stash;
+            const mega::io::BuildEnvironment& m_environment;
         };
 
         class Task_ComponentInfoToManifest : public BaseTask
         {
         public:
-            Task_ComponentInfoToManifest( const mega::io::Environment&                  environment,
-                                          task::Stash&                                  stash,
+            Task_ComponentInfoToManifest( const mega::io::BuildEnvironment&             environment,
                                           const std::string&                            strComponentName,
                                           const boost::filesystem::path&                srcDir,
                                           const boost::filesystem::path&                buildDir,
                                           const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
                                           const std::vector< boost::filesystem::path >& includeDirectories )
-                : BaseTask( environment, stash, {} )
+                : BaseTask( environment, {} )
                 , m_srcDir( srcDir )
                 , m_buildDir( buildDir )
                 , m_componentInfo( strComponentName, srcDir, inputMegaSourceFiles, includeDirectories )
@@ -83,9 +79,8 @@ namespace driver
 
                 boost::filesystem::path tempFile;
                 {
-                    std::unique_ptr< boost::filesystem::ofstream > pOfstream
-                        = m_environment.write_temp( componentListingFilePath, tempFile );
-                    mega::OutputArchiveType oa( *pOfstream );
+                    std::unique_ptr< std::ostream > pOfstream = m_environment.write_temp( componentListingFilePath, tempFile );
+                    mega::OutputArchiveType         oa( *pOfstream );
                     oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
                 }
 
@@ -153,12 +148,10 @@ namespace driver
 
                 mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
 
-                task::Stash stash( environment.stashDir() );
-
                 task::Task::PtrVector tasks;
 
                 Task_ComponentInfoToManifest* pTask = new Task_ComponentInfoToManifest(
-                    environment, stash, strComponentName, sourceDir, buildDir, inputSourceFiles, includeDirectories );
+                    environment, strComponentName, sourceDir, buildDir, inputSourceFiles, includeDirectories );
                 tasks.push_back( task::Task::Ptr( pTask ) );
 
                 task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

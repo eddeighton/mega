@@ -2,7 +2,7 @@
 #ifndef SOURCES_15_APRIL_2022
 #define SOURCES_15_APRIL_2022
 
-#include "archive.hpp"
+#include "serialisation.hpp"
 
 #include "boost/filesystem/path.hpp"
 
@@ -40,8 +40,7 @@ namespace mega
 
         class SourceFilePath : public FilePath
         {
-            
-            friend class Environment;
+            friend class BuildEnvironment;
         protected:
             SourceFilePath( const boost::filesystem::path& filePath )
                 : FilePath( filePath )
@@ -65,6 +64,7 @@ namespace mega
             static boost::filesystem::path EXTENSION;
             
             friend class Environment;
+            friend class BuildEnvironment;
             manifestFilePath( const boost::filesystem::path& filePath )
                 : SourceFilePath( filePath )
             {
@@ -88,7 +88,7 @@ namespace mega
         {
             static boost::filesystem::path EXTENSION;
             
-            friend class Environment;
+            friend class BuildEnvironment;
             megaFilePath( const boost::filesystem::path& filePath )
                 : SourceFilePath( filePath )
             {
@@ -133,7 +133,7 @@ namespace mega
         class ComponentListingFilePath : public BuildFilePath
         {
             static boost::filesystem::path EXTENSION;
-            friend class Environment;
+            friend class BuildEnvironment;
             
             ComponentListingFilePath( const boost::filesystem::path& filePath )
                 : BuildFilePath( filePath )

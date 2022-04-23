@@ -1314,7 +1314,6 @@ namespace Tree
         loader.load( parser_dimension );
         loader.load( identifier );
         loader.load( embedded_type );
-        loader.load( actual_type );
     }
     void Dimension::load_post( mega::io::Loader& loader )
     {
@@ -1324,8 +1323,6 @@ namespace Tree
         storer.store( parser_dimension );
         storer.store( identifier );
         storer.store( embedded_type );
-        VERIFY_RTE_MSG( actual_type.has_value(), "Tree::Dimension.actual_type has NOT been set" );
-        storer.store( actual_type );
     }
     void Dimension::to_json( nlohmann::json& part ) const
     {
@@ -1351,11 +1348,6 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "embedded_type", embedded_type } } );
-            part[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "actual_type", actual_type.value() } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -1793,9 +1785,6 @@ namespace Tree
         }
     }
         
-}
-namespace Analysis
-{
 }
 
 

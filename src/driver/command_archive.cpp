@@ -19,17 +19,14 @@
 
 #include "command_utils.hpp"
 
-#include "database/model/FinalStage.hxx"
-
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/environments.hpp"
+#include "database/common/archive.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
-
-#include "nlohmann/json.hpp"
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
@@ -42,7 +39,7 @@
 
 namespace driver
 {
-    namespace json
+    namespace archive
     {
         void command( bool bHelp, const std::vector< std::string >& args )
         {
@@ -55,7 +52,7 @@ namespace driver
             commandOptions.add_options()
                 ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),     "Source directory" )
                 ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),      "Build directory" )
-                ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),    "JSON file to generate" )
+                ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),    "Archive file to generate" )
                 ;
                 // clang-format on
             }
@@ -71,19 +68,9 @@ namespace driver
             else
             {
                 mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
-
-                using namespace FinalStage;
-
-                Database database( environment, environment.project_manifest() );
-                database.load();
-
-                {
-                    nlohmann::json data;
-                    database.to_json( data );
-                    std::ofstream os( outputFilePath.native(), std::ios_base::trunc | std::ios_base::out );
-                    os << data;
-                }
+                const mega::io::Manifest manifest( environment, environment.project_manifest() );
+                mega::io::ReadArchive::compile_archive( outputFilePath, manifest, rootSourceDir, rootBuildDir );
             }
         }
-    } // namespace json
+    } // namespace archive
 } // namespace driver

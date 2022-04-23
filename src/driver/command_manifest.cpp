@@ -20,7 +20,7 @@
 #include "command_utils.hpp"
 
 #include "database/common/component_info.hpp"
-#include "database/common/archive.hpp"
+#include "database/common/serialisation.hpp"
 #include "database/common/environments.hpp"
 
 #include "database/model/manifest.hxx"
@@ -50,14 +50,14 @@ namespace driver
         class BaseTask : public task::Task
         {
         public:
-            BaseTask( const mega::io::Environment& environment, const RawPtrSet& dependencies )
+            BaseTask( const mega::io::BuildEnvironment& environment, const RawPtrSet& dependencies )
                 : task::Task( dependencies )
                 , m_environment( environment )
             {
             }
 
         protected:
-            const mega::io::Environment& m_environment;
+            const mega::io::BuildEnvironment& m_environment;
         };
 
         class Task_GenerateManifest : public BaseTask
@@ -65,7 +65,7 @@ namespace driver
             const std::vector< boost::filesystem::path >& m_componentInfoPaths;
 
         public:
-            Task_GenerateManifest( const mega::io::Environment&                  environment,
+            Task_GenerateManifest( const mega::io::BuildEnvironment&             environment,
                                    const std::vector< boost::filesystem::path >& componentInfoPaths )
                 : BaseTask( environment, {} )
                 , m_componentInfoPaths( componentInfoPaths )
@@ -101,7 +101,7 @@ namespace driver
 
         public:
             Task_GenerateComponents( Task_GenerateManifest*                        pTask,
-                                     const mega::io::Environment&                  environment,
+                                     const mega::io::BuildEnvironment&             environment,
                                      const std::vector< boost::filesystem::path >& componentInfoPaths )
                 : BaseTask( environment, { pTask } )
                 , m_componentInfoPaths( componentInfoPaths )
@@ -117,7 +117,6 @@ namespace driver
 
                 taskProgress.start( "Task_GenerateComponents", projectManifestPath.path(), componentsListing.path() );
 
-
                 common::HashCode hashCode = m_environment.getBuildHashCode( projectManifestPath );
                 for ( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
                 {
@@ -130,7 +129,7 @@ namespace driver
                     taskProgress.cached();
                     return;
                 }
-                
+
                 using namespace ComponentListing;
                 Database database( m_environment, projectManifestPath );
 

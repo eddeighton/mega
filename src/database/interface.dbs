@@ -18,7 +18,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Link > >;
 }
-
+/*
 stage InterfaceAnalysis
 {
     source .mega;
@@ -32,7 +32,7 @@ stage InterfaceAnalysis
     persource accessor array< ref< Interface::Function > >;
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Link > >;
-}
+}*/
 
 ///////////////////////////////////////////
 ///////////////////////////////////////////
@@ -59,7 +59,7 @@ namespace Interface
         ref< Parser::Dimension > parser_dimension;
         value< std::string > identifier;
         ref< CPP::Type > embedded_type;
-        late< value< std::string > > actual_type -> InterfaceAnalysis::Analysis;
+        //late< value< std::string > > actual_type -> InterfaceAnalysis::Analysis;
     }
 
 

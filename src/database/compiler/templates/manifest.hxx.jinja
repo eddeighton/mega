@@ -3,7 +3,7 @@
 
 #include "database/common/sources.hpp"
 #include "database/common/object.hpp"
-#include "database/common/archive.hpp"
+#include "database/common/serialisation.hpp"
 #include "database/common/object_info.hpp"
 #include "database/common/file.hpp"
 
@@ -26,6 +26,7 @@ namespace mega
 namespace io
 {
     class Component;
+    class BuildEnvironment;
 
     class Manifest
     {
@@ -46,8 +47,9 @@ namespace io
 
         // Construct a manifest from the source and build directory by
         // recursively analysing existing source listing files.
-        Manifest( const Environment& environment, const std::vector< boost::filesystem::path >& sourceListings );
+        Manifest( const BuildEnvironment& environment, const std::vector< boost::filesystem::path >& sourceListings );
 
+        const manifestFilePath& getManifestFilePath() const { return m_manifestFilePath; }
         const MegaSourceFileVector& getMegaSourceFiles() const { return m_megaSourceFiles; }
         const FileInfoVector& getCompilationFileInfos() const { return m_compilationFileInfos; }
 
@@ -68,6 +70,7 @@ namespace io
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
+            archive& boost::serialization::make_nvp( "manifestFilePath", m_manifestFilePath );
             archive& boost::serialization::make_nvp( "sourceFiles", m_megaSourceFiles );
             archive& boost::serialization::make_nvp( "compilationFileInfos", m_compilationFileInfos );
         }
@@ -80,6 +83,7 @@ namespace io
             std::vector< File::Ptr >& loadedFiles ) const;
         void initialiseLookupTables();
         
+        manifestFilePath        m_manifestFilePath;
         MegaSourceFileVector    m_megaSourceFiles;
         FileInfoVector          m_compilationFileInfos;
         FileTypeMap             m_fileTypeMap;

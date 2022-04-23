@@ -60,14 +60,14 @@ namespace driver
         class BaseTask : public task::Task
         {
         public:
-            BaseTask( const RawPtrSet& dependencies, const mega::io::Environment& environment )
+            BaseTask( const RawPtrSet& dependencies, const mega::io::BuildEnvironment& environment )
                 : task::Task( dependencies )
                 , m_environment( environment )
             {
             }
 
         protected:
-            const mega::io::Environment& m_environment;
+            const mega::io::BuildEnvironment& m_environment;
         };
 
         const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&           filePath,
@@ -86,7 +86,7 @@ namespace driver
         class Task_ParseAST : public BaseTask
         {
         public:
-            Task_ParseAST( const mega::io::Environment&             environment,
+            Task_ParseAST( const mega::io::BuildEnvironment&        environment,
                            const boost::filesystem::path&           parserDll,
                            const mega::io::megaFilePath&            sourceFilePath,
                            const std::vector< mega::io::FileInfo >& fileInfos )
@@ -244,9 +244,9 @@ namespace driver
         class Task_ObjectInterfaceGen : public BaseTask
         {
         public:
-            Task_ObjectInterfaceGen( task::Task::RawPtr            pDependency,
-                                     const mega::io::Environment&  environment,
-                                     const mega::io::megaFilePath& sourceFilePath )
+            Task_ObjectInterfaceGen( task::Task::RawPtr                pDependency,
+                                     const mega::io::BuildEnvironment& environment,
+                                     const mega::io::megaFilePath&     sourceFilePath )
                 : BaseTask( { pDependency }, environment )
                 , m_sourceFilePath( sourceFilePath )
             {
@@ -532,7 +532,7 @@ namespace driver
         class Task_DependencyAnalysis : public BaseTask
         {
         public:
-            Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::Environment& environment )
+            Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::BuildEnvironment& environment )
                 : BaseTask( parserTasks, environment )
             {
             }
@@ -715,9 +715,9 @@ namespace driver
         class Task_ObjectInterfaceAnalysis : public BaseTask
         {
         public:
-            Task_ObjectInterfaceAnalysis( task::Task::RawPtrSet         dependencies,
-                                          const mega::io::Environment&  environment,
-                                          const mega::io::megaFilePath& sourceFilePath )
+            Task_ObjectInterfaceAnalysis( task::Task::RawPtrSet             dependencies,
+                                          const mega::io::BuildEnvironment& environment,
+                                          const mega::io::megaFilePath&     sourceFilePath )
                 : BaseTask( dependencies, environment )
                 , m_sourceFilePath( sourceFilePath )
             {

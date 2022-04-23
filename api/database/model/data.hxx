@@ -72,9 +72,6 @@ namespace Tree
     struct Object;
     struct Link;
 }
-namespace Analysis
-{
-}
 
 // definitions
 namespace Components
@@ -533,7 +530,6 @@ namespace Tree
         data::Ptr< data::AST::Dimension > parser_dimension;
         std::string identifier;
         data::Ptr< data::Tree::Type > embedded_type;
-        std::optional< std::string > actual_type;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
@@ -688,9 +684,6 @@ namespace Tree
         virtual void store( mega::io::Storer& storer ) const;
         virtual void to_json( nlohmann::json& data ) const;
     };
-}
-namespace Analysis
-{
 }
 
 template <>

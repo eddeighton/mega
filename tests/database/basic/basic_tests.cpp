@@ -13,7 +13,7 @@
 #include "database/model/environment.hxx"
 
 #include "database/common/component_info.hpp"
-#include "database/common/archive.hpp"
+#include "database/common/serialisation.hpp"
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>

@@ -2,7 +2,8 @@
 #include "database/model/manifest.hxx"
 
 #include "database/common/component_info.hpp"
-#include "database/common/archive.hpp"
+#include "database/common/serialisation.hpp"
+#include "database/common/environments.hpp"
 
 #include "database/model/environment.hxx"
 #include "database/model/file_info.hxx"
@@ -26,20 +27,21 @@ namespace io
         load( environment, filepath ); 
     }
 
-    Manifest::Manifest( const Environment& environment,
+    Manifest::Manifest( const BuildEnvironment& environment,
                         const std::vector< boost::filesystem::path >& componentInfos )
     {
         ObjectInfo::FileID compilationFileID = 0;
 
+        m_manifestFilePath = environment.project_manifest();
+
 {% for source in sources %}
 {% if source.type == "manifest" %}
-        const manifestFilePath manifestPath = environment.project_manifest();
 {% for file in source.files %}
         {
             FileInfo compilationFileInfo( FileInfo::{{ file.stage }}_{{ file.name }}, 
                 compilationFileID++, 
-                environment.{{ file.stage }}_{{ file.name }}( manifestPath ),
-                manifestPath );
+                environment.{{ file.stage }}_{{ file.name }}( m_manifestFilePath ),
+                m_manifestFilePath );
             m_compilationFileInfos.push_back( compilationFileInfo );
         }
 {% endfor %}
@@ -192,8 +194,7 @@ namespace io
         for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
             iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
         {
-            if( boost::filesystem::exists( i->getFilePath().path() ) )
-                loadFile( environment, loader, readOnlyFiles, i->getFileID() );
+            loadFile( environment, loader, readOnlyFiles, i->getFileID() );
         }
     }
 
@@ -212,7 +213,7 @@ namespace io
     
     void Manifest::load( const Environment& environment, const manifestFilePath& manifestFilePath )
     {
-        std::unique_ptr< boost::filesystem::ifstream > pIfStream =
+        std::unique_ptr< std::istream > pIfStream =
             environment.read( manifestFilePath );
         InputArchiveType ia( *pIfStream );
         ia >> boost::serialization::make_nvp( "manifest", *this );
@@ -223,7 +224,7 @@ namespace io
     {
         boost::filesystem::path tempFilePath;
         {
-            std::unique_ptr< boost::filesystem::ofstream > pOfStream =
+            std::unique_ptr< std::ostream > pOfStream =
                 environment.write_temp( manifestFilePath, tempFilePath );
             OutputArchiveType oa( *pOfStream );
             oa << boost::serialization::make_nvp( "manifest", *this );

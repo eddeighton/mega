@@ -20,7 +20,7 @@
 #ifndef STORER_18_04_2019
 #define STORER_18_04_2019
 
-#include "archive.hpp"
+#include "serialisation.hpp"
 #include "object.hpp"
 #include "data_pointer.hpp"
 #include "file_system.hpp"
@@ -30,8 +30,8 @@
 #include "common/assert_verify.hpp"
 
 #include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
 
+#include <ostream>
 #include <memory>
 #include <optional>
 #include <set>
@@ -54,7 +54,7 @@ namespace mega
             }
 
         private:
-            std::unique_ptr< boost::filesystem::ofstream > m_pFileStream;
+            std::unique_ptr< std::ostream > m_pFileStream;
             boost::archive::MegaOArchive                   m_archive;
         };
     } // namespace io

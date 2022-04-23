@@ -15,33 +15,18 @@ namespace io
     class Environment : public FileSystem
     {
     public:
-        using Path = boost::filesystem::path;
-
-        Environment( const Path& rootSourceDir, const Path& rootBuildDir, const Path& tempDir );
-
-        Path stashDir() const;
-
-        const Path& rootSourceDir() const { return m_rootSourceDir; }
-        const Path& rootBuildDir() const { return m_rootBuildDir; }
-
-        manifestFilePath project_manifest() const;
-        Path dependency( const std::string& strOpaque ) const;
-
-        ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;
-{% for source in sources %}
-        {{ source.type }}FilePath {{ source.type }}FilePath_fromPath( const boost::filesystem::path& filePath ) const;
-{% endfor %}
-
+        manifestFilePath project_manifest() const 
+        { 
+            std::ostringstream os;
+            os << "project" << manifestFilePath::extension().string(); 
+            return manifestFilePath( os.str() );
+        }
+        
 {% for stage in stages %}
 {% for file in stage.files %}
         CompilationFilePath {{ stage.name }}_{{ file.name }}( const {{ stage.source }}FilePath& source) const;
 {% endfor %}
 {% endfor %}
-
-    protected:
-        const Path& m_rootSourceDir;
-        const Path& m_rootBuildDir;
-        const Path& m_tempDir;
 
     };
 } // namespace io

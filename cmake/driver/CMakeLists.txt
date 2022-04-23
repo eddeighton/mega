@@ -21,10 +21,13 @@ set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
 set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_utils.hpp
+
+		${DRIVER_SOURCE_DIR}/command_archive.cpp
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_list.cpp
 		${DRIVER_SOURCE_DIR}/command_manifest.cpp
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
+		
 		${DRIVER_SOURCE_DIR}/main.cpp
 	)
 	

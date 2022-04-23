@@ -1,6 +1,10 @@
 #ifndef ENVIRONMENTS_22_APRIL_2022
 #define ENVIRONMENTS_22_APRIL_2022
 
+#include "database/common/archive.hpp"
+#include "database/common/serialisation.hpp"
+#include "database/common/sources.hpp"
+
 #include "database/model/environment.hxx"
 
 #include "common/stash.hpp"
@@ -14,6 +18,11 @@ namespace mega
     {
         class BuildEnvironment : public Environment
         {
+            using Path = boost::filesystem::path;
+            
+            const Path& m_rootSourceDir;
+            const Path& m_rootBuildDir;
+            const Path& m_tempDir;
             mutable task::Stash m_stash;
 
             boost::filesystem::path toPath( const ComponentListingFilePath& key ) const { return m_rootBuildDir / key.path(); }
@@ -31,24 +40,52 @@ namespace mega
                 boost::filesystem::copy_file( from, to );
             }
 
+            Path stashDir() const { return m_rootBuildDir / "stash"; }
         public:
             BuildEnvironment( const Path& rootSourceDir, const Path& rootBuildDir, const Path& tempDir )
-                : Environment( rootSourceDir, rootBuildDir, tempDir )
+                : m_rootSourceDir( rootSourceDir )
+                , m_rootBuildDir( rootBuildDir )
+                , m_tempDir( tempDir )
                 , m_stash( stashDir() )
             {
                 // m_stash.loadBuildHashCodes( );
             }
 
+            const Path& rootSourceDir() const { return m_rootSourceDir; }
+            const Path& rootBuildDir() const { return m_rootBuildDir; }
+
+            Path dependency( const std::string& strOpaque ) const
+            {
+                std::ostringstream os;
+                os << strOpaque << megaFilePath::extension().string();
+                return Path( os.str() );
+            }
+
+            ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const
+            {
+                VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDirectory ),
+                                "Source List path is not a directory: " << buildDirectory.string() );
+                return ComponentListingFilePath( boost::filesystem::relative( buildDirectory / "component.listing", m_rootBuildDir ) );
+            }
+            manifestFilePath manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const
+            {
+                return manifestFilePath( boost::filesystem::relative( filePath, m_rootSourceDir ) );
+            }
+            megaFilePath megaFilePath_fromPath( const boost::filesystem::path& filePath ) const
+            {
+                return megaFilePath( boost::filesystem::relative( filePath, m_rootSourceDir ) );
+            }
+
             // stash
-            virtual common::HashCode getBuildHashCode( const ComponentListingFilePath& key ) const
+            common::HashCode getBuildHashCode( const ComponentListingFilePath& key ) const
             {
                 return m_stash.getBuildHashCode( toPath( key ) );
             }
-            virtual void setBuildHashCode( const ComponentListingFilePath& key, common::HashCode hashCode ) const
+            void setBuildHashCode( const ComponentListingFilePath& key, common::HashCode hashCode ) const
             {
                 m_stash.setBuildHashCode( toPath( key ), hashCode );
             }
-            virtual void setBuildHashCode( const ComponentListingFilePath& key ) const
+            void setBuildHashCode( const ComponentListingFilePath& key ) const
             {
                 m_stash.setBuildHashCode( toPath( key ), common::hash_file( toPath( key ) ) );
             }
@@ -61,15 +98,15 @@ namespace mega
                 return m_stash.restore( toPath( file ), code );
             }
 
-            virtual common::HashCode getBuildHashCode( const CompilationFilePath& key ) const
+            common::HashCode getBuildHashCode( const CompilationFilePath& key ) const
             {
                 return m_stash.getBuildHashCode( toPath( key ) );
             }
-            virtual void setBuildHashCode( const CompilationFilePath& key, common::HashCode hashCode ) const
+            void setBuildHashCode( const CompilationFilePath& key, common::HashCode hashCode ) const
             {
                 m_stash.setBuildHashCode( toPath( key ), hashCode );
             }
-            virtual void setBuildHashCode( const CompilationFilePath& key ) const
+            void setBuildHashCode( const CompilationFilePath& key ) const
             {
                 m_stash.setBuildHashCode( toPath( key ), common::hash_file( toPath( key ) ) );
             }
@@ -79,15 +116,15 @@ namespace mega
                 return m_stash.restore( toPath( file ), code );
             }
 
-            virtual common::HashCode getBuildHashCode( const SourceFilePath& key ) const
+            common::HashCode getBuildHashCode( const SourceFilePath& key ) const
             {
                 return m_stash.getBuildHashCode( toPath( key ) );
             }
-            virtual void setBuildHashCode( const SourceFilePath& key, common::HashCode hashCode ) const
+            void setBuildHashCode( const SourceFilePath& key, common::HashCode hashCode ) const
             {
                 m_stash.setBuildHashCode( toPath( key ), hashCode );
             }
-            virtual void setBuildHashCode( const SourceFilePath& key ) const
+            void setBuildHashCode( const SourceFilePath& key ) const
             {
                 m_stash.setBuildHashCode( toPath( key ), common::hash_file( toPath( key ) ) );
             }
@@ -97,12 +134,12 @@ namespace mega
                 return m_stash.restore( toPath( file ), code );
             }
 
-            // file io
-            virtual std::unique_ptr< boost::filesystem::ifstream > read( const ComponentListingFilePath& filePath ) const
+            // FileSystem
+            virtual std::unique_ptr< std::istream > read( const ComponentListingFilePath& filePath ) const
             {
                 return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
             }
-            virtual std::unique_ptr< boost::filesystem::ofstream > write_temp( const ComponentListingFilePath& filePath,
+            virtual std::unique_ptr< std::ostream > write_temp( const ComponentListingFilePath& filePath,
                                                                                boost::filesystem::path&        tempFilePath ) const
             {
                 tempFilePath = m_tempDir / filePath.path();
@@ -113,11 +150,11 @@ namespace mega
                 copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
             }
 
-            virtual std::unique_ptr< boost::filesystem::ifstream > read( const CompilationFilePath& filePath ) const
+            virtual std::unique_ptr< std::istream > read( const CompilationFilePath& filePath ) const
             {
                 return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
             }
-            virtual std::unique_ptr< boost::filesystem::ofstream > write_temp( const CompilationFilePath& filePath,
+            virtual std::unique_ptr< std::ostream > write_temp( const CompilationFilePath& filePath,
                                                                                boost::filesystem::path&   tempFilePath ) const
             {
                 tempFilePath = m_tempDir / filePath.path();
@@ -128,11 +165,11 @@ namespace mega
                 copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
             }
 
-            virtual std::unique_ptr< boost::filesystem::ifstream > read( const SourceFilePath& filePath ) const
+            virtual std::unique_ptr< std::istream > read( const SourceFilePath& filePath ) const
             {
                 return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
             }
-            virtual std::unique_ptr< boost::filesystem::ofstream > write_temp( const SourceFilePath&  filePath,
+            virtual std::unique_ptr< std::ostream > write_temp( const SourceFilePath&  filePath,
                                                                                boost::filesystem::path& tempFilePath ) const
             {
                 tempFilePath = m_tempDir / filePath.path();
@@ -143,66 +180,61 @@ namespace mega
                 copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
             }
         };
-        /*
-                class RetailEnvironment : public Environment
-                {
-                    task::Stash& m_stash;
-                public:
-                    RetailEnvironment( const Path& rootSourceDir, const Path& rootBuildDir, const Path& tempDir, task::Stash& stash )
-                        :   Environment( rootSourceDir, rootBuildDir, tempDir ),
-                            m_stash( stash )
-                    {
-                    }
 
-                    // stash
-                    virtual common::HashCode getBuildHashCode( const boost::filesystem::path& key ) const
-                    {
-                        return m_stash.getBuildHashCode( key );
-                    }
-                    virtual void setBuildHashCode( const boost::filesystem::path& key, common::HashCode hashCode )
-                    {
-                        m_stash.setBuildHashCode(key, hashCode);
-                    }
-                    virtual void loadBuildHashCodes( const boost::filesystem::path& file )
-                    {
-                        m_stash.loadBuildHashCodes( file );
-                    }
-                    virtual void saveBuildHashCodes( const boost::filesystem::path& file ) const
-                    {
-                        m_stash.saveBuildHashCodes( file );
-                    }
+        class RetailEnvironment : public Environment
+        {
+            ReadArchive m_fileArchive;
+        public:
+            RetailEnvironment( const boost::filesystem::path& archiveFilePath )
+                :   m_fileArchive( archiveFilePath )
+            {
+            }
 
-                    // file io
-                    virtual std::unique_ptr< boost::filesystem::ifstream > read( const CompilationFilePath& filePath ) const
-                    {
-                        return boost::filesystem::createBinaryInputFileStream( m_rootBuildDir / filePath.path() );
-                    }
-                    virtual std::unique_ptr< boost::filesystem::ofstream > write_temp( const CompilationFilePath& filePath,
-           boost::filesystem::path& tempFilePath ) const
-                    {
-                        tempFilePath = m_tempDir / filePath.path();
-                        return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
-                    }
-                    virtual void temp_to_real( const CompilationFilePath& filePath ) const
-                    {
-                        boost::filesystem::copy_file( m_tempDir / filePath.path(), m_rootBuildDir / filePath.path() );
-                    }
 
-                    virtual std::unique_ptr< boost::filesystem::ifstream > read( const SourceFilePath& filePath ) const
-                    {
-                        return boost::filesystem::createBinaryInputFileStream( m_rootSourceDir / filePath.path() );
-                    }
-                    virtual std::unique_ptr< boost::filesystem::ofstream > write_temp( const SourceFilePath& filePath,
-           boost::filesystem::path& tempFilePath ) const
-                    {
-                        tempFilePath = m_tempDir / filePath.path();
-                        return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
-                    }
-                    virtual void temp_to_real( const SourceFilePath& filePath ) const
-                    {
-                        boost::filesystem::copy_file( m_tempDir / filePath.path(), m_rootSourceDir / filePath.path() );
-                    }
-                };*/
+            // FileSystem
+            virtual std::unique_ptr< std::istream > read( const ComponentListingFilePath& filePath ) const
+            {
+                return m_fileArchive.read( filePath );
+            }
+            virtual std::unique_ptr< std::ostream > write_temp( const ComponentListingFilePath& filePath,
+                                                                               boost::filesystem::path&        tempFilePath ) const
+            {
+                THROW_RTE( "Invalid use of retail environment" );
+            }
+            virtual void temp_to_real( const ComponentListingFilePath& filePath ) const
+            {
+                THROW_RTE( "Invalid use of retail environment" );
+            }
+
+            virtual std::unique_ptr< std::istream > read( const CompilationFilePath& filePath ) const
+            {
+                return m_fileArchive.read( filePath );
+            }
+            virtual std::unique_ptr< std::ostream > write_temp( const CompilationFilePath& filePath,
+                                                                               boost::filesystem::path&   tempFilePath ) const
+            {
+                THROW_RTE( "Invalid use of retail environment" );
+            }
+            virtual void temp_to_real( const CompilationFilePath& filePath ) const
+            {
+                THROW_RTE( "Invalid use of retail environment" );
+            }
+
+            virtual std::unique_ptr< std::istream > read( const SourceFilePath& filePath ) const
+            {
+                return m_fileArchive.read( filePath );
+            }
+            virtual std::unique_ptr< std::ostream > write_temp( const SourceFilePath&  filePath,
+                                                                               boost::filesystem::path& tempFilePath ) const
+            {
+                THROW_RTE( "Invalid use of retail environment" );
+            }
+            virtual void temp_to_real( const SourceFilePath& filePath ) const
+            {
+                THROW_RTE( "Invalid use of retail environment" );
+            }
+        };
+        
     } // namespace io
 } // namespace mega
 

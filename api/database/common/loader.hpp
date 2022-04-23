@@ -20,7 +20,7 @@
 #ifndef LOADER_18_04_2019
 #define LOADER_18_04_2019
 
-#include "archive.hpp"
+#include "serialisation.hpp"
 #include "object_info.hpp"
 #include "object.hpp"
 #include "data_pointer.hpp"
@@ -30,8 +30,8 @@
 #include "common/assert_verify.hpp"
 
 #include <boost/filesystem/path.hpp>
-#include <boost/filesystem/fstream.hpp>
 
+#include <istream>
 #include <memory>
 #include <optional>
 #include <set>
@@ -60,7 +60,7 @@ namespace mega
             }
 
         private:
-            std::unique_ptr< boost::filesystem::ifstream > m_pFileStream;
+            std::unique_ptr< std::istream > m_pFileStream;
             boost::archive::MegaIArchive                   m_archive;
         };
 

@@ -80,7 +80,7 @@ add_custom_command(
     COMMENT "Generating Database" )
 
 set( MEGA_DATABASE_COMMON
-${MEGA_API_DIR}/database/common/archive.hpp
+${MEGA_API_DIR}/database/common/serialisation.hpp
 ${MEGA_API_DIR}/database/common/component_info.hpp
 ${MEGA_API_DIR}/database/common/data_pointer.hpp
 ${MEGA_API_DIR}/database/common/file.hpp

@@ -14,10 +14,7 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 #get handy function to preprocess files for the xmacros stuff
-include( ../preprocess_cpp.cmake )
-
-include_directories( ${MEGA_API_DIR} )
-include_directories( ${MEGA_SRC_DIR} )
+#include( ../preprocess_cpp.cmake )
 
 set( MEGA_DATABASE_GENERATED_HEADERS
 
@@ -70,6 +67,7 @@ set( TEMPLATES
     ${MEGA_SRC_DIR}/database/compiler/templates/file_info.hxx.jinja
     ${MEGA_SRC_DIR}/database/compiler/templates/manifest.hxx.jinja
     ${MEGA_SRC_DIR}/database/compiler/templates/view.hxx.jinja
+    
     ${MEGA_SRC_DIR}/database/compiler/templates/data.cxx.jinja
     ${MEGA_SRC_DIR}/database/compiler/templates/environment.cxx.jinja
     ${MEGA_SRC_DIR}/database/compiler/templates/file_info.cxx.jinja
@@ -95,17 +93,21 @@ set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/archive.hpp
     ${MEGA_API_DIR}/database/common/component_info.hpp
     ${MEGA_API_DIR}/database/common/data_pointer.hpp
+    ${MEGA_API_DIR}/database/common/environments.hpp
+    ${MEGA_API_DIR}/database/common/file_system.hpp
     ${MEGA_API_DIR}/database/common/file.hpp
     ${MEGA_API_DIR}/database/common/generics.hpp
     ${MEGA_API_DIR}/database/common/loader.hpp
     ${MEGA_API_DIR}/database/common/object_info.hpp
     ${MEGA_API_DIR}/database/common/object_loader.hpp
     ${MEGA_API_DIR}/database/common/object.hpp
-    ${MEGA_API_DIR}/database/common/storer.hpp
+    ${MEGA_API_DIR}/database/common/serialisation.hpp
     ${MEGA_API_DIR}/database/common/sources.hpp
+    ${MEGA_API_DIR}/database/common/storer.hpp
 	)
 
 set( MEGA_DATABASE_SOURCES
+    ${MEGA_SRC_DIR}/database/common/archive.cpp
     ${MEGA_SRC_DIR}/database/common/sources.cpp
     ${MEGA_SRC_DIR}/database/common/component_info.cpp
     ${MEGA_SRC_DIR}/database/common/file.cpp
@@ -124,6 +126,7 @@ add_library( database
 add_dependencies( database database_compiler_driver )
 #add_dependencies( database database_generation )
 
+target_include_directories( database PUBLIC ${MEGA_API_DIR} )
 
 target_compile_definitions(database PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
 set_target_properties( database PROPERTIES FOLDER database )
@@ -138,17 +141,17 @@ link_json( database )
 link_common( database )
 
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
-install( FILES ${MEGA_DATABASE_COMMON} DESTINATION include/database/io )
+install( FILES ${MEGA_DATABASE_COMMON} DESTINATION include/database/common )
 install( FILES ${MEGA_DATABASE_GENERATED_HEADERS} DESTINATION include/database/model )
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )
 
-add_c_preprocessor_command( OUTPUT stages.hpp.i SOURCE ${MEGA_API_DIR}/database/io/stages.hpp TARGET database )
-add_custom_target( PreprocessStages
-	SOURCES stages.hpp.i
-	COMMENT "Proprocessing stages.hpp")
-
-add_c_preprocessor_command( OUTPUT file_info.hxx.i SOURCE ${MEGA_API_DIR}/database/io/file_info.hxx TARGET database )
-add_custom_target( PreprocessFileInfo
-    SOURCES file_info.hxx.i
-    COMMENT "Proprocessing file_info.hxx")
+#add_c_preprocessor_command( OUTPUT stages.hpp.i SOURCE ${MEGA_API_DIR}/database/io/stages.hpp TARGET database )
+#add_custom_target( PreprocessStages
+#	SOURCES stages.hpp.i
+#	COMMENT "Proprocessing stages.hpp")
+#
+#add_c_preprocessor_command( OUTPUT file_info.hxx.i SOURCE ${MEGA_API_DIR}/database/io/file_info.hxx TARGET database )
+#add_custom_target( PreprocessFileInfo
+#    SOURCES file_info.hxx.i
+#    COMMENT "Proprocessing file_info.hxx")
