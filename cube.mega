@@ -8,3 +8,12 @@ object Cube1
         std::cout << "This is cool" << std::endl;
     }
 }
+
+object Cube2
+{
+}
+
+
+object Cube3
+{
+}
