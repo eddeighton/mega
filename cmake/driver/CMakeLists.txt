@@ -26,6 +26,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_utils.hpp
 
 		${DRIVER_SOURCE_DIR}/command_archive.cpp
+		${DRIVER_SOURCE_DIR}/command_graph.cpp
 		${DRIVER_SOURCE_DIR}/command_inja.cpp
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_list.cpp
@@ -61,3 +62,4 @@ link_inja( mega )
 link_common( mega )
 
 install( TARGETS mega DESTINATION bin)
+install( FILES ${DRIVER_SOURCE_DIR}/graphviz.jinja DESTINATION templates )

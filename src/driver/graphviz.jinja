@@ -1,0 +1,22 @@
+digraph
+{
+    fontname="Helvetica,Arial,sans-serif"
+    rankdir=LR;
+    node [ shape=record style=filled fillcolor=gray color=darkblue];
+    edge [ ];
+    graph [splines=true overlap=false]
+    ratio = auto;
+    concentrate=True;
+
+{% for node in nodes %}
+    "{{ node.name }}" [
+        label = "{{ node.label }}{% for property in node.properties %}|{{ property.name }}: {{ property.value }}{% endfor %}"
+        shape = "record"
+    ];
+{% endfor %}
+
+{% for edge in edges %}
+    {{ edge.from }} -> {{ edge.to }} [color="#{{ edge.colour }}"]
+{% endfor %}
+}
+
