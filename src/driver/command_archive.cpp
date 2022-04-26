@@ -46,7 +46,7 @@ namespace driver
             boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath, tempDir = boost::filesystem::temp_directory_path();
 
             namespace po = boost::program_options;
-            po::options_description commandOptions( " List input mega source files" );
+            po::options_description commandOptions( " Generate retail archive" );
             {
                 // clang-format off
             commandOptions.add_options()

@@ -53,8 +53,7 @@ namespace driver
 
 enum MainCommand
 {
-#define COMMAND( cmd, desc ) \
-    eCmd_##cmd,
+#define COMMAND( cmd, desc ) eCmd_##cmd,
 #include "commands.hxx"
 #undef COMMAND
     TOTAL_MAIN_COMMANDS
@@ -81,8 +80,7 @@ int main( int argc, const char* argv[] )
         {
             bool bGeneralWait = false;
 
-#define COMMAND( cmd, desc ) \
-    bool bCmd_##cmd = false;
+#define COMMAND( cmd, desc ) bool bCmd_##cmd = false;
 #include "commands.hxx"
 #undef COMMAND
 
@@ -90,14 +88,14 @@ int main( int argc, const char* argv[] )
             {
                 genericOptions.add_options()
 
-                    ( "help", "Produce general or command help message" )( "wait", po::bool_switch( &bGeneralWait ), "Wait at startup for attaching a debugger" );
+                    ( "help", "Produce general or command help message" )(
+                        "wait", po::bool_switch( &bGeneralWait ), "Wait at startup for attaching a debugger" );
             }
 
             po::options_description commandOptions( " Commands" );
             {
                 commandOptions.add_options()
-#define COMMAND( cmd, desc ) \
-    ( #cmd, po::bool_switch( &bCmd_##cmd ), desc )
+#define COMMAND( cmd, desc ) ( #cmd, po::bool_switch( &bCmd_##cmd ), desc )
 #include "commands.hxx"
 #undef COMMAND
                     ;
@@ -123,7 +121,8 @@ int main( int argc, const char* argv[] )
             po::positional_options_description p;
             p.add( "args", -1 );
 
-            po::parsed_options parsedOptions = po::command_line_parser( argc, argv ).options( allOptions ).positional( p ).allow_unregistered().run();
+            po::parsed_options parsedOptions
+                = po::command_line_parser( argc, argv ).options( allOptions ).positional( p ).allow_unregistered().run();
 
             po::store( parsedOptions, vm );
             po::notify( vm );
@@ -135,11 +134,12 @@ int main( int argc, const char* argv[] )
                 std::cin >> c;
             }
 
-#define COMMAND( cmd, desc )    \
-    if ( bCmd_##cmd )           \
-    {                           \
-        cmds.set( eCmd_##cmd ); \
-        mainCmd = eCmd_##cmd;   \
+#define COMMAND( cmd, desc )                                                                   \
+    if ( bCmd_##cmd )                                                                          \
+    {                                                                                          \
+        cmds.set( eCmd_##cmd );                                                                \
+        VERIFY_RTE_MSG( mainCmd == TOTAL_MAIN_COMMANDS, "Duplicate main commands specified" ); \
+        mainCmd = eCmd_##cmd;                                                                  \
     }
 #include "commands.hxx"
 #undef COMMAND
@@ -157,19 +157,19 @@ int main( int argc, const char* argv[] )
 #include "commands.hxx"
 #undef COMMAND
 
-                //  case eCmd_Debug           : command_debug(  bShowHelp, commandArguments );                   break;
-                //  case eCmd_Info            : command_info(   bShowHelp, commandArguments );                   break;
-            case TOTAL_MAIN_COMMANDS:
-            default:
-                if ( vm.count( "help" ) )
-                {
-                    std::cout << visibleOptions << "\n";
-                }
-                else
-                {
-                    std::cout << "Invalid command. Type '--help' for options\n";
-                    return 1;
-                }
+                    //  case eCmd_Debug           : command_debug(  bShowHelp, commandArguments );                   break;
+                    //  case eCmd_Info            : command_info(   bShowHelp, commandArguments );                   break;
+                case TOTAL_MAIN_COMMANDS:
+                default:
+                    if ( vm.count( "help" ) )
+                    {
+                        std::cout << visibleOptions << "\n";
+                    }
+                    else
+                    {
+                        std::cout << "Invalid command. Type '--help' for options\n";
+                        return 1;
+                    }
             }
             return 0;
         }
@@ -187,8 +187,7 @@ int main( int argc, const char* argv[] )
         }
         catch ( ... )
         {
-            std::cout << "Unknown error.\n"
-                      << std::endl;
+            std::cout << "Unknown error.\n" << std::endl;
             std::cout << boost::stacktrace::stacktrace() << std::endl;
             return 1;
         }

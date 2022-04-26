@@ -172,7 +172,7 @@ namespace driver
             std::string             projectName, strComponentInfoPaths;
 
             namespace po = boost::program_options;
-            po::options_description commandOptions( " Compile Mega Project Interface" );
+            po::options_description commandOptions( " Generate Mega Project Manifest" );
             {
                 // clang-format off
                 commandOptions.add_options()

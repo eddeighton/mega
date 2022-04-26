@@ -7,6 +7,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -23,6 +26,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_utils.hpp
 
 		${DRIVER_SOURCE_DIR}/command_archive.cpp
+		${DRIVER_SOURCE_DIR}/command_inja.cpp
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_list.cpp
 		${DRIVER_SOURCE_DIR}/command_manifest.cpp
@@ -53,6 +57,7 @@ link_boost( mega filesystem )
 link_boost( mega iostreams )
 link_boost( mega serialization )
 link_json( mega )
+link_inja( mega )
 link_common( mega )
 
 install( TARGETS mega DESTINATION bin)
