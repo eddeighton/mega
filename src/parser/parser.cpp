@@ -11,6 +11,7 @@
 #include "common/assert_verify.hpp"
 
 #include "clang/Basic/LLVM.h"
+#include "clang/Basic/TokenKinds.h"
 
 #include <boost/config.hpp> // for BOOST_SYMBOL_EXPORT
 #include <boost/algorithm/string.hpp>
@@ -63,7 +64,7 @@ public:
         if ( Tok.is( clang::tok::identifier ) )
         {
             clang::IdentifierInfo* pIdentifier = Tok.getIdentifierInfo();
-            str = pIdentifier->getName();
+            str                                = pIdentifier->getName();
             ConsumeToken();
         }
         else
@@ -75,6 +76,8 @@ public:
 
     ScopedIdentifier* parse_scopedIdentifier( Database& database )
     {
+        const std::string strLocation = Tok.getLocation().printToString( sm );
+
         std::vector< Identifier* > identifiers;
         identifiers.push_back( parse_identifier( database ) );
         while ( Tok.is( clang::tok::coloncolon ) )
@@ -84,14 +87,13 @@ public:
             if ( Tok.is( clang::tok::identifier ) )
             {
                 identifiers.push_back( parse_identifier( database ) );
-                ConsumeToken();
             }
             else
             {
                 MEGA_PARSER_ERROR( "Expected identifier" );
             }
         }
-        return database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ identifiers } );
+        return database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ identifiers, strLocation } );
     }
     // void parse_visibility( Database& session, input::Visibility* pVisibility )
     //{
@@ -137,7 +139,7 @@ public:
             if ( !Tok.is( clang::tok::r_paren ) )
             {
                 clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc = Tok.getEndLoc();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
                 ConsumeAnyToken();
 
                 while ( !isEofOrEom() && !Tok.is( clang::tok::r_paren ) )
@@ -173,7 +175,7 @@ public:
             ConsumeAnyToken();
 
             clang::SourceLocation startLoc = Tok.getLocation();
-            clang::SourceLocation endLoc = Tok.getEndLoc();
+            clang::SourceLocation endLoc   = Tok.getEndLoc();
             ConsumeAnyToken();
 
             while ( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
@@ -204,7 +206,7 @@ public:
                 bFoundComma = false;
 
                 clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc = Tok.getEndLoc();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
                 ConsumeAnyToken();
 
                 while ( !isEofOrEom() && !Tok.isOneOf( clang::tok::semi, clang::tok::comma, clang::tok::l_brace ) )
@@ -277,7 +279,7 @@ public:
             T.consumeOpen();
 
             clang::SourceLocation startLoc = Tok.getLocation();
-            clang::SourceLocation endLoc = Tok.getEndLoc();
+            clang::SourceLocation endLoc   = Tok.getEndLoc();
             ConsumeAnyToken();
 
             while ( !isEofOrEom() && !Tok.is( clang::tok::r_square ) )
@@ -305,7 +307,7 @@ public:
         args.isConst = bIsConst;
         {
             clang::SourceLocation startLoc = Tok.getLocation();
-            clang::SourceLocation endLoc = Tok.getEndLoc();
+            clang::SourceLocation endLoc   = Tok.getEndLoc();
 
             clang::Token next = NextToken();
             while ( !next.is( clang::tok::semi ) )
@@ -371,10 +373,10 @@ public:
 
         // include name( file );
         // optional identifier
-        Identifier* pIdentifier = nullptr;
+        ScopedIdentifier* pIdentifier = nullptr;
         if ( Tok.is( clang::tok::identifier ) )
         {
-            pIdentifier = parse_identifier( database );
+            pIdentifier = parse_scopedIdentifier( database );
         }
 
         BalancedDelimiterTracker T( *this, clang::tok::l_paren );
@@ -382,7 +384,7 @@ public:
         T.consumeOpen();
 
         clang::SourceLocation startLoc = Tok.getLocation();
-        clang::SourceLocation endLoc = Tok.getEndLoc();
+        clang::SourceLocation endLoc   = Tok.getEndLoc();
 
         while ( !Tok.is( clang::tok::r_paren ) )
         {
@@ -449,7 +451,7 @@ public:
         T.consumeOpen();
 
         clang::SourceLocation startLoc = Tok.getLocation();
-        clang::SourceLocation endLoc = Tok.getEndLoc();
+        clang::SourceLocation endLoc   = Tok.getEndLoc();
 
         while ( !Tok.is( clang::tok::r_paren ) )
         {
@@ -548,29 +550,29 @@ public:
         return pNewAction;
     }*/
 
-    ContextDef::Args defaultBody() const
+    ContextDef::Args defaultBody( ScopedIdentifier* pScopedIdentifier ) const
     {
-        ContextDef::Args body;
-        body.children = std::vector< ContextDef* >{};
-        body.dimensions = std::vector< Dimension* >{};
-        body.includes = std::vector< Include* >{};
-        body.dependencies = std::vector< Dependency* >{};
-        body.body = std::string{};
+        ContextDef::Args body( pScopedIdentifier,
+                               std::vector< ContextDef* >{},
+                               std::vector< Dimension* >{},
+                               std::vector< Include* >{},
+                               std::vector< Dependency* >{},
+                               std::string{} );
         return body;
     }
 
-    AbstractDef* parse_abstract( Database& database )
+    NamespaceDef* parse_namespace( Database& database )
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
 
-        ContextDef::Args body = defaultBody();
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
                 BalancedDelimiterTracker T( *this, clang::tok::l_brace );
                 T.consumeOpen();
-                body = parse_context_body( database );
+                body = parse_context_body( database, pScopedIdentifier );
                 T.consumeClose();
             }
             else
@@ -579,7 +581,30 @@ public:
             }
         }
 
-        return database.construct< AbstractDef >( AbstractDef::Args{ body, pScopedIdentifier } );
+        return database.construct< NamespaceDef >( NamespaceDef::Args{ body } );
+    }
+
+    AbstractDef* parse_abstract( Database& database )
+    {
+        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
+        parse_comment();
+
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
+        {
+            if ( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                body = parse_context_body( database, pScopedIdentifier );
+                T.consumeClose();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected body in abstract" );
+            }
+        }
+
+        return database.construct< AbstractDef >( AbstractDef::Args{ body } );
     }
 
     EventDef* parse_event( Database& database )
@@ -591,13 +616,13 @@ public:
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
-        ContextDef::Args body = defaultBody();
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
                 BalancedDelimiterTracker T( *this, clang::tok::l_brace );
                 T.consumeOpen();
-                body = parse_context_body( database );
+                body = parse_context_body( database, pScopedIdentifier );
                 T.consumeClose();
             }
             else if ( Tok.is( clang::tok::semi ) )
@@ -610,7 +635,7 @@ public:
             }
         }
 
-        return database.construct< EventDef >( EventDef::Args{ body, pScopedIdentifier, pSize, pInheritance } );
+        return database.construct< EventDef >( EventDef::Args{ body, pSize, pInheritance } );
     }
 
     FunctionDef* parse_function( Database& database )
@@ -622,13 +647,13 @@ public:
         ReturnType* pReturnType = parse_returnType( database );
         parse_comment();
 
-        ContextDef::Args body = defaultBody();
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
                 BalancedDelimiterTracker T( *this, clang::tok::l_brace );
                 T.consumeOpen();
-                body = parse_context_body( database );
+                body = parse_context_body( database, pScopedIdentifier );
                 T.consumeClose();
             }
             else if ( Tok.is( clang::tok::semi ) )
@@ -641,7 +666,7 @@ public:
             }
         }
 
-        return database.construct< FunctionDef >( FunctionDef::Args{ body, pScopedIdentifier, pArgumentList, pReturnType } );
+        return database.construct< FunctionDef >( FunctionDef::Args{ body, pArgumentList, pReturnType } );
     }
 
     ObjectDef* parse_object( Database& database )
@@ -653,13 +678,13 @@ public:
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
-        ContextDef::Args body = defaultBody();
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
                 BalancedDelimiterTracker T( *this, clang::tok::l_brace );
                 T.consumeOpen();
-                body = parse_context_body( database );
+                body = parse_context_body( database, pScopedIdentifier );
                 T.consumeClose();
             }
             else if ( Tok.is( clang::tok::semi ) )
@@ -672,7 +697,7 @@ public:
             }
         }
 
-        return database.construct< ObjectDef >( ObjectDef::Args{ body, pScopedIdentifier, pSize, pInheritance } );
+        return database.construct< ObjectDef >( ObjectDef::Args{ body, pSize, pInheritance } );
     }
 
     LinkDef* parse_link( Database& database )
@@ -684,13 +709,13 @@ public:
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
-        ContextDef::Args body = defaultBody();
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
                 BalancedDelimiterTracker T( *this, clang::tok::l_brace );
                 T.consumeOpen();
-                body = parse_context_body( database );
+                body = parse_context_body( database, pScopedIdentifier );
                 T.consumeClose();
             }
             else if ( Tok.is( clang::tok::semi ) )
@@ -703,7 +728,7 @@ public:
             }
         }
 
-        return database.construct< LinkDef >( LinkDef::Args{ body, pScopedIdentifier, pSize, pInheritance } );
+        return database.construct< LinkDef >( LinkDef::Args{ body, pSize, pInheritance } );
     }
 
     ActionDef* parse_action( Database& database )
@@ -715,13 +740,13 @@ public:
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
-        ContextDef::Args body = defaultBody();
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
         {
             if ( Tok.is( clang::tok::l_brace ) )
             {
                 BalancedDelimiterTracker T( *this, clang::tok::l_brace );
                 T.consumeOpen();
-                body = parse_context_body( database );
+                body = parse_context_body( database, pScopedIdentifier );
                 T.consumeClose();
             }
             else if ( Tok.is( clang::tok::semi ) )
@@ -734,7 +759,7 @@ public:
             }
         }
 
-        return database.construct< ActionDef >( ActionDef::Args{ body, pScopedIdentifier, pSize, pInheritance } );
+        return database.construct< ActionDef >( ActionDef::Args{ body, pSize, pInheritance } );
     }
 
     /*
@@ -778,9 +803,9 @@ public:
                     }
 */
 
-    ContextDef::Args parse_context_body( Database& database )
+    ContextDef::Args parse_context_body( Database& database, ScopedIdentifier* pScopedIdentifier )
     {
-        ContextDef::Args bodyArgs = defaultBody();
+        ContextDef::Args bodyArgs = defaultBody( pScopedIdentifier );
 
         braceStack.push_back( BraceCount );
 
@@ -788,7 +813,12 @@ public:
 
         while ( !isEofOrEom() )
         {
-            if ( Tok.is( clang::tok::kw_abstract ) )
+            if ( Tok.is( clang::tok::kw_namespace ) )
+            {
+                ConsumeToken();
+                bodyArgs.children.value().push_back( parse_namespace( database ) );
+            }
+            else if ( Tok.is( clang::tok::kw_abstract ) )
             {
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_abstract( database ) );
@@ -871,7 +901,7 @@ public:
             else
             {
                 clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc = Tok.getEndLoc();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
                 ConsumeAnyToken();
 
                 while
@@ -937,7 +967,10 @@ public:
 
     ContextDef* parse_file( Database& database )
     {
-        ContextDef::Args args = parse_context_body( database );
+        const std::string strLocation = Tok.getLocation().printToString( sm );
+        ScopedIdentifier* pID
+            = database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ std::vector< Identifier* >{}, strLocation } );
+        ContextDef::Args args = parse_context_body( database, pID );
         return database.construct< ContextDef >( args );
     }
 };
@@ -955,7 +988,7 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
         sourceDir.remove_filename();
 
         ParserDiagnosticSystem                               pds( sourceDir, osError, osWarn );
-        std::shared_ptr< clang::FileManager >                pFileManager = get_clang_fileManager( pds );
+        std::shared_ptr< clang::FileManager >                pFileManager       = get_clang_fileManager( pds );
         llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > pDiagnosticsEngine = get_llvm_diagnosticEngine( pds );
 
         // check file exists
@@ -973,7 +1006,7 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
         Stuff stuff( headerSearchOptions, includeDirectories, pFileManager, pDiagnosticsEngine, sourceFile );
 
         MegaParser parser( stuff, pDiagnosticsEngine );
-        parser.ConsumeAnyToken( true);
+        parser.ConsumeAnyToken( true );
 
         return parser.parse_file( database );
     }

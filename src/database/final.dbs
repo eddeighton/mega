@@ -5,11 +5,5 @@ stage FinalStage
     source .mega;
     dependency InterfaceStage;
 
-
-    global accessor array< ref< Interface::Abstract > >;
-    global accessor array< ref< Interface::Action > >;
-    global accessor array< ref< Interface::Event > >;
-    global accessor array< ref< Interface::Function > >;
-    global accessor array< ref< Interface::Object > >;
-    global accessor array< ref< Interface::Link > >;
+    global accessor array< ref< Interface::Root > >;
 }

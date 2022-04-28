@@ -117,7 +117,7 @@ namespace io
                 {
 {% for dependency in file.dependencies %}
                     FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
-                        std::make_pair( FileInfo::{{ stage.name }}_{{ file.name }}, fileInfo.getObjectSourceFilePath() ) );
+                        std::make_pair( FileInfo::{{ dependency.stage }}_{{ dependency.name }}, fileInfo.getObjectSourceFilePath() ) );
                     VERIFY_RTE( iFind != m_fileTypeMap.end() );
                     m_dependencies[ fileInfo.getFileID() ].push_back( iFind->second->getFileID() );
 {% endfor %}

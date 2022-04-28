@@ -11,6 +11,7 @@ stage InterfaceStage
 
     persource accessor ref< Parser::ObjectSourceRoot >;
 
+    persource accessor array< ref< Interface::Namespace > >;
     persource accessor array< ref< Interface::Abstract > >;
     persource accessor array< ref< Interface::Action > >;
     persource accessor array< ref< Interface::Event > >;
@@ -18,6 +19,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Link > >;
 }
+
 /*
 stage InterfaceAnalysis
 {
@@ -54,11 +56,8 @@ namespace Interface
     }
 
     // context elements
-    object Dimension -> InterfaceStage::Tree
+    object Dimension : Parser::Dimension -> InterfaceStage::Tree
     {
-        ref< Parser::Dimension > parser_dimension;
-        value< std::string > identifier;
-        ref< CPP::Type > embedded_type;
         //late< value< std::string > > actual_type -> InterfaceAnalysis::Analysis;
     }
 
@@ -81,6 +80,12 @@ namespace Interface
     }
 
     // main context types
+    object Namespace : Context -> InterfaceStage::Tree
+    {
+        value< bool > is_global;
+        array< ref< Parser::ContextDef > > namespace_defs;
+        array< ref< Dimension > > dimensions;
+    }
     object Abstract : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::AbstractDef > > abstract_defs;
@@ -106,6 +111,7 @@ namespace Interface
     {
         array< ref< Parser::ObjectDef > > object_defs;
         array< ref< Dimension > > dimensions;
+        array< ref< Object > > dependencies;
     }
     object Link : Context -> InterfaceStage::Tree
     {

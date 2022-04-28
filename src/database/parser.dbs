@@ -44,6 +44,7 @@ namespace Parser
     object ScopedIdentifier -> ParserStage::AST
     {
         array< ref< Identifier > > ids;
+        value< std::string > location;
     }
 
     object ArgumentList -> ParserStage::AST
@@ -93,7 +94,7 @@ namespace Parser
 
     object MegaIncludeNested : MegaInclude -> ParserStage::AST
     {
-        ref< Identifier > id;
+        ref< ScopedIdentifier > id;
     }
 
     object CPPInclude : Include -> ParserStage::AST
@@ -108,6 +109,7 @@ namespace Parser
 
     object ContextDef -> ParserStage::AST
     {
+        ref< ScopedIdentifier > id;
         array< ref< ContextDef > > children;
         array< ref< Dimension > > dimensions;
         array< ref< Include > > includes;
@@ -115,42 +117,40 @@ namespace Parser
         value< std::string > body -> ParserStage::Body;
     }
 
+    object NamespaceDef : ContextDef -> ParserStage::AST
+    {
+    }
+
     object AbstractDef : ContextDef -> ParserStage::AST
     {
-        ref< ScopedIdentifier > id;
     }
 
     object ActionDef : ContextDef -> ParserStage::AST
     {
-        ref< ScopedIdentifier > id;
         ref< Size > size;
         ref< Inheritance > inheritance;
     }
 
     object EventDef : ContextDef -> ParserStage::AST
     {
-        ref< ScopedIdentifier > id;
         ref< Size > size;
         ref< Inheritance > inheritance;
     }
 
     object FunctionDef : ContextDef -> ParserStage::AST
     {
-        ref< ScopedIdentifier > id;
         ref< ArgumentList > argumentList;
         ref< ReturnType > returnType;
     }
 
     object ObjectDef : ContextDef -> ParserStage::AST
     {
-        ref< ScopedIdentifier > id;
         ref< Size > size;
         ref< Inheritance > inheritance;
     }
 
     object LinkDef : ContextDef -> ParserStage::AST
     {
-        ref< ScopedIdentifier > id;
         ref< Size > size;
         ref< Inheritance > inheritance;
     }
@@ -164,7 +164,6 @@ namespace Parser
 
     object IncludeRoot : SourceRoot -> ParserStage::AST
     {
-        ref< MegaInclude > include;
     }
 
     object ObjectSourceRoot : SourceRoot -> ParserStage::AST

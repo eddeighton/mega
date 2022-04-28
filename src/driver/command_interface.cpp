@@ -53,6 +53,13 @@ std::ostream& operator<<( std::ostream& os, const std::vector< std::string >& na
     return os;
 }
 
+#define VERIFY_PARSER( expression, msg, location )                                                          \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( if ( !( expression ) ) {                                               \
+        std::ostringstream _os2;                                                                            \
+        _os2 << common::COLOUR_RED_BEGIN << msg << ". Source Location: " << location << common::COLOUR_END; \
+        throw std::runtime_error( _os2.str() );                                                             \
+    } )
+
 namespace driver
 {
     namespace interface
@@ -170,7 +177,7 @@ namespace driver
                                     osError, osWarn );
 
                                 IncludeRoot* pIncludeRoot = database.construct< IncludeRoot >( { IncludeRoot::Args{
-                                    SourceRoot::Args{ pInclude->get_megaSourceFilePath(), pComponent, pIncludeContextDef }, pInclude } } );
+                                    SourceRoot::Args{ pInclude->get_megaSourceFilePath(), pComponent, pIncludeContextDef } } } );
 
                                 pInclude->set_root( pIncludeRoot );
 
@@ -296,7 +303,8 @@ namespace driver
                     if ( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
                     {
                         pInterfaceContextGroup = dynamic_database_cast< TInterfaceContextType >( pContextGroup );
-                        VERIFY_RTE_MSG( pInterfaceContextGroup, "Context definition of identifier: " << name << " with mixed types" );
+                        VERIFY_PARSER( pInterfaceContextGroup, "Context definition of identifier: " << name << " with mixed types",
+                                       pContextDef->get_id()->get_location() );
                         aggregateFunctor( pInterfaceContextGroup, pContextDef );
                     }
                     else
@@ -307,30 +315,117 @@ namespace driver
                             Name parentName = name;
                             parentName.pop_back();
                             pParent = findContextGroup( parentName, namedContexts );
-                            VERIFY_RTE_MSG( pParent, "Failed to locate parent for: " << name );
+                            VERIFY_PARSER( pParent, "Failed to locate parent for: " << name, pContextDef->get_id()->get_location() );
                         }
                         pInterfaceContextGroup = constructorFunctor( database, name.back(), pParent, pContextDef );
+                        pParent->push_back_children( pInterfaceContextGroup );
                         namedContexts.insert( std::make_pair( name, pInterfaceContextGroup ) );
                     }
                 }
                 recurse( database, pRoot, pInterfaceContextGroup, pContextDef, name, namedContexts );
             }
 
+            struct isGlobalNamespace
+            {
+                bool operator()( InterfaceStage::Interface::ContextGroup* pParent )
+                {
+                    using namespace InterfaceStage;
+                    using namespace InterfaceStage::Interface;
+
+                    if ( Root* pParentContext = dynamic_database_cast< Root >( pParent ) )
+                    {
+                        return true;
+                    }
+                    else if ( Namespace* pParentNamespace = dynamic_database_cast< Namespace >( pParent ) )
+                    {
+                        return isGlobalNamespace()( pParentNamespace->get_parent() );
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            };
+
             void recurse( InterfaceStage::Database&                database,
                           InterfaceStage::Interface::Root*         pRoot,
                           InterfaceStage::Interface::ContextGroup* pGroup,
-                          InterfaceStage::Parser::ContextDef*      pContext,
+                          InterfaceStage::Parser::ContextDef*      pContextDef,
                           const Name&                              currentName,
                           NameResMap&                              namedContexts )
             {
                 using namespace InterfaceStage;
                 using namespace InterfaceStage::Interface;
 
-                VERIFY_RTE( pContext );
+                VERIFY_RTE( pContextDef );
 
-                for ( Parser::ContextDef* pChildContext : pContext->get_children() )
+                for ( Parser::Include* pInclude : pContextDef->get_includes() )
                 {
-                    if ( Parser::AbstractDef* pAbstractDef = dynamic_database_cast< Parser::AbstractDef >( pChildContext ) )
+                    if ( Parser::MegaIncludeNested* pNestedInclude = dynamic_database_cast< Parser::MegaIncludeNested >( pInclude ) )
+                    {
+                        Parser::IncludeRoot* pIncludeRoot       = pNestedInclude->get_root();
+                        Parser::ContextDef*  pIncludeContextDef = pIncludeRoot->get_ast();
+                        // NOTE: use of ContextDef here instead of NamespaceDef due to how
+                        //  include root only has ContextDef*
+
+                        const Name name                   = fromParserID( currentName, pNestedInclude->get_id()->get_ids() );
+                        Namespace* pInterfaceContextGroup = nullptr;
+                        {
+                            if ( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
+                            {
+                                pInterfaceContextGroup = dynamic_database_cast< Namespace >( pContextGroup );
+                                VERIFY_PARSER( pInterfaceContextGroup, "Context definition of identifier: " << name << " with mixed types",
+                                               pContextDef->get_id()->get_location() );
+                                pInterfaceContextGroup->push_back_namespace_defs( pIncludeContextDef );
+                            }
+                            else
+                            {
+                                Interface::ContextGroup* pParent = pRoot;
+                                if ( name.size() > 1U )
+                                {
+                                    Name parentName = name;
+                                    parentName.pop_back();
+                                    pParent = findContextGroup( parentName, namedContexts );
+                                    VERIFY_PARSER(
+                                        pParent, "Failed to locate parent for: " << name, pContextDef->get_id()->get_location() );
+                                }
+
+                                const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
+
+                                pInterfaceContextGroup = database.construct< Namespace >(
+                                    Namespace::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name.back(), pParent ),
+                                                     bIsGlobalNamespace, { pIncludeContextDef }, {} ) );
+                                pParent->push_back_children( pInterfaceContextGroup );
+                                namedContexts.insert( std::make_pair( name, pInterfaceContextGroup ) );
+                            }
+                        }
+                        recurse( database, pRoot, pInterfaceContextGroup, pIncludeContextDef, name, namedContexts );
+                    }
+                    else if ( Parser::MegaIncludeInline* pInlineInclude = dynamic_database_cast< Parser::MegaIncludeInline >( pInclude ) )
+                    {
+                        Parser::IncludeRoot* pIncludeRoot = pInlineInclude->get_root();
+                        recurse( database, pRoot, pGroup, pIncludeRoot->get_ast(), currentName, namedContexts );
+                    }
+                }
+
+                for ( Parser::ContextDef* pChildContext : pContextDef->get_children() )
+                {
+                    if ( Parser::NamespaceDef* pNamespaceDef = dynamic_database_cast< Parser::NamespaceDef >( pChildContext ) )
+                    {
+                        constructOrAggregate< Parser::NamespaceDef, Namespace >(
+                            database, pRoot, pNamespaceDef, currentName, namedContexts,
+                            []( Database& database, const std::string& name, ContextGroup* pParent,
+                                Parser::ContextDef* pNamespaceDef ) -> Namespace*
+                            {
+                                const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
+                                return database.construct< Namespace >(
+                                    Namespace::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                                                     bIsGlobalNamespace, { pNamespaceDef }, {} ) );
+                            },
+                            []( Namespace* pNamespace, Parser::ContextDef* pNamespaceDef )
+                            { pNamespace->push_back_namespace_defs( pNamespaceDef ); } );
+                    }
+                    else if ( Parser::AbstractDef* pAbstractDef = dynamic_database_cast< Parser::AbstractDef >( pChildContext ) )
                     {
                         constructOrAggregate< Parser::AbstractDef, Abstract >(
                             database, pRoot, pAbstractDef, currentName, namedContexts,
@@ -388,7 +483,7 @@ namespace driver
                                 Parser::ObjectDef* pObjectDef ) -> Object*
                             {
                                 return database.construct< Object >( Object::Args(
-                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pObjectDef }, {} ) );
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pObjectDef }, {}, {} ) );
                             },
                             []( Object* pObject, Parser::ObjectDef* pObjectDef ) { pObject->push_back_object_defs( pObjectDef ); } );
                     }
@@ -417,12 +512,40 @@ namespace driver
 
                 for ( Parser::Dimension* pParserDim : pDef->get_dimensions() )
                 {
-                    // Interface::Dimension* pDimension = database.construct< Interface::Dimension >(
-                    //     Interface::Dimension::Args( pParserDim, pParserDim->get_id()->get_str() ) );
-                    // pGroup->push_back_dimensions( pDimension );
+                    std::vector< Interface::Dimension* > existing = pGroup->get_dimensions();
+                    for ( Interface::Dimension* pExistingDimension : existing )
+                    {
+                        VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
+                                       "Context has duplicate dimensions", pDef->get_id()->get_location() );
+                    }
+                    Interface::Dimension* pDimension
+                        = database.construct< Interface::Dimension >( Interface::Dimension::Args( pParserDim ) );
+                    pGroup->push_back_dimensions( pDimension );
                 }
             }
 
+            void onNamespace( InterfaceStage::Database& database, InterfaceStage::Interface::Namespace* pNamespace )
+            {
+                using namespace InterfaceStage;
+                for ( Parser::ContextDef* pDef : pNamespace->get_namespace_defs() )
+                {
+                    if ( pNamespace->get_is_global() )
+                    {
+                        VERIFY_PARSER( pDef->get_dimensions().empty(), "Global namespace has dimensions", pDef->get_id()->get_location() );
+                        VERIFY_PARSER( pDef->get_dependencies().empty(), "Global namespace has dependencies", pDef->get_id()->get_location() );
+                    }
+                    else
+                    {
+                        collectDimensions< InterfaceStage::Interface::Namespace, Parser::ContextDef >( database, pNamespace, pDef );
+
+
+                    }
+
+                    VERIFY_PARSER( pDef->get_body().empty(), "Namespace has body", pDef->get_id()->get_location() );
+
+                }
+
+            }
             void onAbstract( InterfaceStage::Database& database, InterfaceStage::Interface::Abstract* pAbstract )
             {
                 using namespace InterfaceStage;
@@ -494,6 +617,10 @@ namespace driver
 
                 recurse( database, pInterfaceRoot, pInterfaceRoot, pRoot->get_ast(), currentName, namedContexts );
 
+                for ( Interface::Namespace* pNamespace : database.many< Interface::Namespace >( m_sourceFilePath ) )
+                {
+                    onNamespace( database, pNamespace );
+                }
                 for ( Interface::Abstract* pAbstract : database.many< Interface::Abstract >( m_sourceFilePath ) )
                 {
                     onAbstract( database, pAbstract );

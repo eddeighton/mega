@@ -44,6 +44,127 @@ namespace driver
 {
     namespace graph
     {
+        std::string getContextFullTypeName( FinalStage::Interface::Context* pContext )
+        {
+            using namespace FinalStage;
+
+            std::ostringstream os;
+
+            bool bFirst = true;
+            while ( pContext )
+            {
+                if ( !bFirst )
+                {
+                    os << "_";
+                }
+                else
+                {
+                    bFirst = false;
+                }
+                os << pContext->get_identifier();
+                pContext = dynamic_database_cast< Interface::Context >( pContext->get_parent() );
+            }
+
+            return os.str();
+        }
+
+        void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interface::Dimension* >& dimensions )
+        {
+            using namespace FinalStage;
+            using namespace FinalStage::Interface;
+            for ( Dimension* pDimension : dimensions )
+            {
+                nlohmann::json property = nlohmann::json::object(
+                    { { "name", pDimension->get_id()->get_str() }, { "value", pDimension->get_type() } } );
+                node[ "properties" ].push_back( property );
+            }
+        }
+
+        void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
+        {
+            using namespace FinalStage;
+            using namespace FinalStage::Interface;
+
+            std::ostringstream os;
+            if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+            {
+                os << "Namespace: " << pContext->get_identifier();
+            }
+            else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+            {
+                os << "Abstract: " << pContext->get_identifier();
+            }
+            else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+            {
+                os << "Action: " << pContext->get_identifier();
+            }
+            else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+            {
+                os << "Event: " << pContext->get_identifier();
+            }
+            else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+            {
+                os << "Function: " << pContext->get_identifier();
+            }
+            else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+            {
+                os << "Object: " << pContext->get_identifier();
+            }
+            else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+            {
+                os << "Link: " << pContext->get_identifier();
+            }
+            else
+            {
+                THROW_RTE( "Unknown context type" );
+            }
+
+            nlohmann::json node = nlohmann::json::object(
+                { { "name", getContextFullTypeName( pContext ) }, { "label", os.str() }, { "properties", nlohmann::json::array() } } );
+
+            if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+            {
+                addProperties( node, pNamespace->get_dimensions() );
+            }
+            else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+            {
+            }
+            else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+            {
+                addProperties( node, pAction->get_dimensions() );
+            }
+            else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+            {
+                addProperties( node, pEvent->get_dimensions() );
+            }
+            else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+            {
+            }
+            else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+            {
+                addProperties( node, pObject->get_dimensions() );
+            }
+            else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+            {
+            }
+            else
+            {
+                THROW_RTE( "Unknown context type" );
+            }
+
+            data[ "nodes" ].push_back( node );
+
+            for ( Interface::Context* pChildContext : pContext->get_children() )
+            {
+                recurse( data, pChildContext );
+
+                nlohmann::json edge = nlohmann::json::object( { { "from", getContextFullTypeName( pContext ) },
+                                                                { "to", getContextFullTypeName( pChildContext ) },
+                                                                { "colour", "000000" } } );
+                data[ "edges" ].push_back( edge );
+            }
+        }
+
         void command( bool bHelp, const std::vector< std::string >& args )
         {
             std::string             strGraphType;
@@ -89,13 +210,12 @@ namespace driver
                             for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                             {
                                 Database database( environment, sourceFilePath );
-                                for ( const Interface::Object* pObject : database.many< Interface::Object >( sourceFilePath ) )
+                                for ( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
                                 {
-                                    nlohmann::json node = nlohmann::json::object( { { "name", pObject->get_identifier() },
-                                                                                    { "label", pObject->get_identifier() },
-                                                                                    { "properties", nlohmann::json::array() } } );
-
-                                    data[ "nodes" ].push_back( node );
+                                    for ( Interface::Context* pChildContext : pRoot->get_children() )
+                                    {
+                                        recurse( data, pChildContext );
+                                    }
                                 }
                             }
 
