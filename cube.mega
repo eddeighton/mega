@@ -7,12 +7,61 @@ object Cube1
     {
         std::cout << "This is cool" << std::endl;
     }
+    action CoolStuff2
+    {
+        std::cout << "This is cool" << std::endl;
+        action CoolStuff3
+        {
+            std::cout << "This is cool" << std::endl;
+        }
+    }
 }
 
-object Cube2
+namespace test
 {
+    object Cube2
+    {
+        namespace nested
+        {
+            action CoolStuff1
+            {
+                std::cout << "This is cool" << std::endl;
+            }
+
+            event Test;
+            event Other;
+            event HasData
+            {
+                dim int foobar;
+            }
+        }
+
+        namespace nested
+        {
+            action CoolStuff2
+            {
+                std::cout << "This is cool" << std::endl;
+            }
+        }
+
+        action CoolStuff2
+        {
+            std::cout << "This is cool" << std::endl;
+            action CoolStuff3
+            {
+                std::cout << "This is cool" << std::endl;
+            }
+        }
+    }
 }
 
+event test::Cube2::nested::Test
+{
+    dim int foo1;
+    dim int foo2;
+    dim int foo3;
+    dim int foo4;
+}
 
 object Cube3
 {
