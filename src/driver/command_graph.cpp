@@ -68,11 +68,11 @@ namespace driver
             return os.str();
         }
 
-        void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interface::Dimension* >& dimensions )
+        void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interface::DimensionInitial* >& dimensions )
         {
             using namespace FinalStage;
             using namespace FinalStage::Interface;
-            for ( Dimension* pDimension : dimensions )
+            for ( DimensionInitial* pDimension : dimensions )
             {
                 nlohmann::json property = nlohmann::json::object(
                     { { "name", pDimension->get_id()->get_str() }, { "value", pDimension->get_type() } } );

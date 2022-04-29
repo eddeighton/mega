@@ -1182,29 +1182,29 @@ namespace Body
 }
 namespace Tree
 {
-    // struct Dimension : public mega::io::Object
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+    // struct DimensionInitial : public mega::io::Object
+    DimensionInitial::DimensionInitial( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
           , p_AST_Dimension( loader )
     {
     }
-    void Dimension::load( mega::io::Loader& loader )
+    void DimensionInitial::load( mega::io::Loader& loader )
     {
         loader.load( p_AST_Dimension );
     }
-    void Dimension::load_post( mega::io::Loader& loader )
+    void DimensionInitial::load_post( mega::io::Loader& loader )
     {
         p_AST_Dimension->m_pInheritance = this;
     }
-    void Dimension::store( mega::io::Storer& storer ) const
+    void DimensionInitial::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Dimension );
     }
-    void Dimension::to_json( nlohmann::json& part ) const
+    void DimensionInitial::to_json( nlohmann::json& part ) const
     {
         part = nlohmann::json::object(
             { 
-                { "partname", "Dimension" },
+                { "partname", "DimensionInitial" },
                 { "filetype" , "Tree" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -1356,7 +1356,7 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Namespace::Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& is_global, const std::vector< data::Ptr< data::AST::ContextDef > >& namespace_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+    Namespace::Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& is_global, const std::vector< data::Ptr< data::AST::ContextDef > >& namespace_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , is_global( is_global )
@@ -1416,7 +1416,7 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Abstract::Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::AbstractDef > >& abstract_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+    Abstract::Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::AbstractDef > >& abstract_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , abstract_defs( abstract_defs )
@@ -1468,7 +1468,7 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+    Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , action_defs( action_defs )
@@ -1520,7 +1520,7 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Event::Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::EventDef > >& event_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+    Event::Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::EventDef > >& event_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , event_defs( event_defs )
@@ -1616,7 +1616,7 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Object::Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
+    Object::Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , object_defs( object_defs )
@@ -1861,37 +1861,37 @@ namespace DPGraph
 }
 namespace Clang
 {
-    // struct DimensionFinal : public mega::io::Object
-    DimensionFinal::DimensionFinal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+    // struct Dimension : public mega::io::Object
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
-          , p_Tree_Dimension( loader )
+          , p_Tree_DimensionInitial( loader )
     {
     }
-    DimensionFinal::DimensionFinal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canonical_type)
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canonical_type)
         :   mega::io::Object( objectInfo )
-          , p_Tree_Dimension( loader )
+          , p_Tree_DimensionInitial( loader )
           , canonical_type( canonical_type )
     {
     }
-    void DimensionFinal::load( mega::io::Loader& loader )
+    void Dimension::load( mega::io::Loader& loader )
     {
-        loader.load( p_Tree_Dimension );
+        loader.load( p_Tree_DimensionInitial );
         loader.load( canonical_type );
     }
-    void DimensionFinal::load_post( mega::io::Loader& loader )
+    void Dimension::load_post( mega::io::Loader& loader )
     {
-        p_Tree_Dimension->m_pInheritance = this;
+        p_Tree_DimensionInitial->m_pInheritance = this;
     }
-    void DimensionFinal::store( mega::io::Storer& storer ) const
+    void Dimension::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_Tree_Dimension );
+        storer.store( p_Tree_DimensionInitial );
         storer.store( canonical_type );
     }
-    void DimensionFinal::to_json( nlohmann::json& part ) const
+    void Dimension::to_json( nlohmann::json& part ) const
     {
         part = nlohmann::json::object(
             { 
-                { "partname", "DimensionFinal" },
+                { "partname", "Dimension" },
                 { "filetype" , "Clang" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -1938,7 +1938,7 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 23: return new AST::SourceRoot( loader, objectInfo );
         case 24: return new AST::IncludeRoot( loader, objectInfo );
         case 25: return new AST::ObjectSourceRoot( loader, objectInfo );
-        case 26: return new Tree::Dimension( loader, objectInfo );
+        case 26: return new Tree::DimensionInitial( loader, objectInfo );
         case 28: return new Tree::ContextGroup( loader, objectInfo );
         case 29: return new Tree::Root( loader, objectInfo );
         case 30: return new Tree::Context( loader, objectInfo );
@@ -1952,7 +1952,7 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 38: return new DPGraph::Glob( loader, objectInfo );
         case 39: return new DPGraph::ObjectDependencies( loader, objectInfo );
         case 40: return new DPGraph::Analysis( loader, objectInfo );
-        case 27: return new Clang::DimensionFinal( loader, objectInfo );
+        case 27: return new Clang::Dimension( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

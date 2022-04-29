@@ -78,18 +78,20 @@ namespace driver
                 taskProgress.start( "Task_GenerateManifest", boost::filesystem::path{}, projectManifestPath.path() );
 
                 const mega::io::Manifest manifest( m_environment, m_componentInfoPaths );
-                const common::HashCode   hashCode = manifest.save_temp( m_environment, projectManifestPath );
-                m_environment.setBuildHashCode( projectManifestPath, hashCode );
+                const task::FileHash hashCode = manifest.save_temp( m_environment, projectManifestPath );
+                const task::DeterminantHash determinant( hashCode );
 
-                if ( m_environment.restore( projectManifestPath, hashCode ) )
+                if ( m_environment.restore( projectManifestPath, determinant ) )
                 {
+                    m_environment.setBuildHashCode( projectManifestPath, hashCode );
                     taskProgress.cached();
                     return;
                 }
                 else
                 {
                     m_environment.temp_to_real( projectManifestPath );
-                    m_environment.stash( projectManifestPath, hashCode );
+                    m_environment.setBuildHashCode( projectManifestPath, hashCode );
+                    m_environment.stash( projectManifestPath, determinant );
                     taskProgress.succeeded();
                 }
             }
@@ -117,13 +119,13 @@ namespace driver
 
                 taskProgress.start( "Task_GenerateComponents", projectManifestPath.path(), componentsListing.path() );
 
-                common::HashCode hashCode = m_environment.getBuildHashCode( projectManifestPath );
+                task::DeterminantHash determinant = m_environment.getBuildHashCode( projectManifestPath );
                 for ( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
                 {
-                    hashCode = common::hash_combine( hashCode, common::hash_file( componentInfoPath ) );
+                    determinant ^= componentInfoPath;
                 }
 
-                if ( m_environment.restore( componentsListing, hashCode ) )
+                if ( m_environment.restore( componentsListing, determinant ) )
                 {
                     m_environment.setBuildHashCode( componentsListing );
                     taskProgress.cached();
@@ -157,10 +159,10 @@ namespace driver
                     VERIFY_RTE( pComponent->get_name() == componentInfo.getName() );
                 }
 
-                const common::HashCode fileHashCode = database.save_Components_to_temp();
+                const task::FileHash fileHashCode = database.save_Components_to_temp();
                 m_environment.setBuildHashCode( componentsListing, fileHashCode );
                 m_environment.temp_to_real( componentsListing );
-                m_environment.stash( componentsListing, hashCode );
+                m_environment.stash( componentsListing, determinant );
 
                 taskProgress.succeeded();
             }

@@ -13,6 +13,7 @@
 #include "database/model/file_info.hxx"
 
 #include "common/hash.hpp"
+#include "common/stash.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -65,7 +66,7 @@ namespace mega
 
             void load( const Manifest& manifest );
             void load_post( const Manifest& manifest );
-            common::HashCode save_temp( const Manifest& manifest ) const;
+            task::FileHash save_temp( const Manifest& manifest ) const;
             void to_json( const Manifest& manifest, nlohmann::json& data ) const;
 
             template < typename T, typename... Args >

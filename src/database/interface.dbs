@@ -56,11 +56,11 @@ stage InterfaceAnalysisStage
 namespace Interface
 {
     // context elements
-    object Dimension : Parser::Dimension -> InterfaceStage::Tree
+    object DimensionInitial : Parser::Dimension -> InterfaceStage::Tree
     {
     }
 
-    object DimensionFinal : Dimension -> InterfaceAnalysisStage::Clang
+    object Dimension : DimensionInitial -> InterfaceAnalysisStage::Clang
     {
         value< std::string > canonical_type;
     }
@@ -87,22 +87,22 @@ namespace Interface
     {
         value< bool > is_global;
         array< ref< Parser::ContextDef > > namespace_defs;
-        array< ref< Dimension > > dimensions;
+        array< ref< DimensionInitial > > dimensions;
     }
     object Abstract : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::AbstractDef > > abstract_defs;
-        array< ref< Dimension > > dimensions;
+        array< ref< DimensionInitial > > dimensions;
     }
     object Action : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::ActionDef > > action_defs;
-        array< ref< Dimension > > dimensions;
+        array< ref< DimensionInitial > > dimensions;
     }
     object Event : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::EventDef > > event_defs;
-        array< ref< Dimension > > dimensions;
+        array< ref< DimensionInitial > > dimensions;
     }
     object Function : Context -> InterfaceStage::Tree
     {
@@ -111,7 +111,7 @@ namespace Interface
     object Object : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::ObjectDef > > object_defs;
-        array< ref< Dimension > > dimensions;
+        array< ref< DimensionInitial > > dimensions;
     }
     object Link : Context -> InterfaceStage::Tree
     {

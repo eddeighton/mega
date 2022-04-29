@@ -70,7 +70,7 @@ namespace mega
             m_pLoader.reset();
         }
 
-        common::HashCode File::save_temp( const Manifest& manifest ) const
+        task::FileHash File::save_temp( const Manifest& manifest ) const
         {
             boost::filesystem::path tempFile;
             {
@@ -86,7 +86,7 @@ namespace mega
                     pObject->store( storer );
                 }
             }
-            return common::hash_file( tempFile );
+            return task::FileHash( tempFile );
         }
 
         void File::to_json( const Manifest& manifest, nlohmann::json& data ) const

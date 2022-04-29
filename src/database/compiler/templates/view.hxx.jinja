@@ -4,6 +4,7 @@
 #include "database/model/environment.hxx"
 
 #include "common/hash.hpp"
+#include "common/stash.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -103,7 +104,7 @@ namespace {{ stage.name }}
         void load();
 
 {% for file in stage.readwrite_files %}
-        common::HashCode save_{{ file.name }}_to_temp() const;
+        task::FileHash save_{{ file.name }}_to_temp() const;
 {% endfor %}{# stage.readwrite_files #}
 
         void to_json( nlohmann::json& data ) const;

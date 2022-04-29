@@ -220,7 +220,7 @@ namespace io
         initialiseLookupTables();
     }
 
-    common::HashCode Manifest::save_temp( const Environment& environment, const manifestFilePath& manifestFilePath ) const
+    task::FileHash Manifest::save_temp( const Environment& environment, const manifestFilePath& manifestFilePath ) const
     {
         boost::filesystem::path tempFilePath;
         {
@@ -229,7 +229,7 @@ namespace io
             OutputArchiveType oa( *pOfStream );
             oa << boost::serialization::make_nvp( "manifest", *this );
         }
-        return common::hash_file( tempFilePath );
+        return task::FileHash( tempFilePath );
     }
 
 } // namespace io

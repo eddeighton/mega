@@ -284,11 +284,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
     {
         std::size_t operator()( const mega::io::ObjectInfo& objectInfo ) const
         {
-            static auto hashgenerator =  std::hash<std::int32_t>{};
-            return common::hash_combine( {
-                hashgenerator(objectInfo.getType()),
-                hashgenerator(objectInfo.getFileID()),
-                hashgenerator(objectInfo.getIndex()) } );
+            return common::Hash( objectInfo.getType(), objectInfo.getFileID(), objectInfo.getIndex() ).get();
         }
     };
     struct ObjectInfoEquality
@@ -449,7 +445,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
     }
 
 {% for file in stage.readwrite_files %}
-    common::HashCode save_{{ file.name }}_to_temp() const
+    task::FileHash save_{{ file.name }}_to_temp() const
     {
         return m_pFile_{{ file.name }}->save_temp( m_manifest );
     }
@@ -574,7 +570,7 @@ void Database::load()
 }
 
 {% for file in stage.readwrite_files %}
-common::HashCode Database::save_{{ file.name }}_to_temp() const
+task::FileHash Database::save_{{ file.name }}_to_temp() const
 {
     return m_pimpl->save_{{ file.name }}_to_temp();
 }

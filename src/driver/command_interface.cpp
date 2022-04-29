@@ -49,6 +49,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/dll.hpp>
 
+#include <common/stash.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -215,9 +216,9 @@ namespace driver
                         taskProgress.msg( osWarn.str() );
                     }
 
-                    bool bRestored = true;
+                    bool bRestored = false;
                     {
-                        const common::HashCode astHashCode = database.save_AST_to_temp();
+                        const task::FileHash astHashCode = database.save_AST_to_temp();
                         m_environment.setBuildHashCode( astFile, astHashCode );
                         if ( !m_environment.restore( astFile, astHashCode ) )
                         {
@@ -227,7 +228,7 @@ namespace driver
                         }
                     }
                     {
-                        const common::HashCode bodyHashCode = database.save_Body_to_temp();
+                        const task::FileHash bodyHashCode = database.save_Body_to_temp();
                         m_environment.setBuildHashCode( bodyFile, bodyHashCode );
                         if ( !m_environment.restore( bodyFile, bodyHashCode ) )
                         {
@@ -518,14 +519,14 @@ namespace driver
 
                 for ( Parser::Dimension* pParserDim : pDef->get_dimensions() )
                 {
-                    std::vector< Interface::Dimension* > existing = pGroup->get_dimensions();
-                    for ( Interface::Dimension* pExistingDimension : existing )
+                    std::vector< Interface::DimensionInitial* > existing = pGroup->get_dimensions();
+                    for ( Interface::DimensionInitial* pExistingDimension : existing )
                     {
                         VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
                                        "Context has duplicate dimensions", pDef->get_id() );
                     }
-                    Interface::Dimension* pDimension
-                        = database.construct< Interface::Dimension >( Interface::Dimension::Args( pParserDim ) );
+                    Interface::DimensionInitial* pDimension
+                        = database.construct< Interface::DimensionInitial >( Interface::DimensionInitial::Args( pParserDim ) );
                     pGroup->push_back_dimensions( pDimension );
                 }
             }
@@ -607,11 +608,14 @@ namespace driver
                 const mega::io::CompilationFilePath treePath = m_environment.InterfaceStage_Tree( m_sourceFilePath );
                 taskProgress.start( "Task_ObjectInterfaceGen", m_sourceFilePath.path(), treePath.path() );
 
-                const common::HashCode hashCode = m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) );
+                const task::FileHash parserStageASTHashCode = 
+                    m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) );
 
-                if ( m_environment.restore( treePath, hashCode ) )
+                const task::DeterminantHash determinant( parserStageASTHashCode );
+
+                if ( m_environment.restore( treePath, determinant ) )
                 {
-                    m_environment.setBuildHashCode( treePath, hashCode );
+                    m_environment.setBuildHashCode( treePath );
                     taskProgress.cached();
                     return;
                 }
@@ -659,10 +663,10 @@ namespace driver
                     onLink( database, pLink );
                 }
 
-                const common::HashCode fileHashCode = database.save_Tree_to_temp();
+                const task::FileHash fileHashCode = database.save_Tree_to_temp();
                 m_environment.setBuildHashCode( treePath, fileHashCode );
                 m_environment.temp_to_real( treePath );
-                m_environment.stash( treePath, hashCode );
+                m_environment.stash( treePath, determinant );
 
                 taskProgress.succeeded();
             }
@@ -713,7 +717,7 @@ namespace driver
 
                 DependencyAnalysis::Dependencies::ObjectDependencies* operator()( DependencyAnalysis::Database& database,
                                                                                   const mega::io::megaFilePath& sourceFilePath,
-                                                                                  const common::HashCode        interfaceHash,
+                                                                                  const task::FileHash        interfaceHash,
                                                                                   const PathSet&                sourceFiles ) const
                 {
                     using namespace DependencyAnalysis;
@@ -752,7 +756,7 @@ namespace driver
                     }
 
                     ObjectDependencies* pDependencies = database.construct< ObjectDependencies >(
-                        ObjectDependencies::Args{ sourceFilePath, interfaceHash, globs, resolution } );
+                        ObjectDependencies::Args{ sourceFilePath, interfaceHash.get(), globs, resolution } );
 
                     return pDependencies;
                 }
@@ -819,17 +823,15 @@ namespace driver
                     = m_environment.DependencyAnalysis_DPGraph( manifestFilePath );
                 taskProgress.start( "Task_DependencyAnalysis", manifestFilePath.path(), dependencyCompilationFilePath.path() );
 
-                common::HashCode combinedHash = 0U;
+                task::DeterminantHash determinant;
                 for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
                 {
-                    const common::HashCode interfaceHash
-                        = m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
-                    combinedHash = common::hash_combine( combinedHash, interfaceHash );
+                    determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
                 }
 
-                if ( m_environment.restore( dependencyCompilationFilePath, combinedHash ) )
+                if ( m_environment.restore( dependencyCompilationFilePath, determinant ) )
                 {
-                    m_environment.setBuildHashCode( dependencyCompilationFilePath, combinedHash );
+                    m_environment.setBuildHashCode( dependencyCompilationFilePath );
                     taskProgress.cached();
                     return;
                 }
@@ -884,7 +886,7 @@ namespace driver
                                     OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) -> bool
                                 {
                                     const Old::Dependencies::ObjectDependencies* pDependencies = *i;
-                                    const common::HashCode interfaceHash = env.getBuildHashCode( env.ParserStage_AST( *j ) );
+                                    const task::FileHash interfaceHash = env.getBuildHashCode( env.ParserStage_AST( *j ) );
                                     if ( interfaceHash == pDependencies->get_hash_code() )
                                     {
                                         // since the code is NOT modified - can re use the globs from previous result
@@ -919,7 +921,7 @@ namespace driver
                                 {
                                     // a new source file is added so must analysis from the ground up
                                     const mega::io::megaFilePath megaFilePath = *j;
-                                    const common::HashCode interfaceHash      = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
+                                    const task::FileHash interfaceHash      = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
                                     newDependencies.push_back(
                                         CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
 
@@ -935,7 +937,7 @@ namespace driver
                                     // since the code is modified - must re analyse ALL dependencies from the ground up
                                     const Old::Dependencies::ObjectDependencies* pDependencies = *i;
                                     const mega::io::megaFilePath                 megaFilePath  = pDependencies->get_source_file();
-                                    const common::HashCode interfaceHash = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
+                                    const task::FileHash interfaceHash = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
                                     newDependencies.push_back(
                                         CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
                                 } );
@@ -944,10 +946,10 @@ namespace driver
                         newDatabase.construct< New::Dependencies::Analysis >( New::Dependencies::Analysis::Args{ newDependencies } );
                     }
 
-                    const common::HashCode fileHashCode = newDatabase.save_DPGraph_to_temp();
+                    const task::FileHash fileHashCode = newDatabase.save_DPGraph_to_temp();
                     m_environment.setBuildHashCode( dependencyCompilationFilePath, fileHashCode );
                     m_environment.temp_to_real( dependencyCompilationFilePath );
-                    m_environment.stash( dependencyCompilationFilePath, combinedHash );
+                    m_environment.stash( dependencyCompilationFilePath, determinant );
 
                     taskProgress.succeeded();
                 }
@@ -963,7 +965,7 @@ namespace driver
                             const PathSet sourceFiles = getSortedSourceFiles();
                             for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
                             {
-                                const common::HashCode interfaceHash
+                                const task::FileHash interfaceHash
                                     = m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
                                 dependencies.push_back(
                                     CalculateDependencies( m_environment )( database, sourceFilePath, interfaceHash, sourceFiles ) );
@@ -972,10 +974,10 @@ namespace driver
                         database.construct< Analysis >( Analysis::Args{ dependencies } );
                     }
 
-                    const common::HashCode fileHashCode = database.save_DPGraph_to_temp();
+                    const task::FileHash fileHashCode = database.save_DPGraph_to_temp();
                     m_environment.setBuildHashCode( dependencyCompilationFilePath, fileHashCode );
                     m_environment.temp_to_real( dependencyCompilationFilePath );
-                    m_environment.stash( dependencyCompilationFilePath, combinedHash );
+                    m_environment.stash( dependencyCompilationFilePath, determinant );
 
                     taskProgress.succeeded();
                 }
@@ -1007,15 +1009,15 @@ namespace driver
 
             virtual void run( task::Progress& taskProgress )
             {
-                const mega::io::CompilationFilePath interfaceAnalysisFile
-                    = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
-                taskProgress.start( "Task_ObjectInterfaceAnalysis", m_sourceFilePath.path(), interfaceAnalysisFile.path() );
+                const mega::io::CompilationFilePath interfaceTreeFile     = m_environment.InterfaceStage_Tree( m_sourceFilePath );
+                const mega::io::CompilationFilePath interfaceAnalysisFile = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
+                taskProgress.start( "Task_ObjectInterfaceAnalysis", interfaceTreeFile.path(), interfaceAnalysisFile.path() );
 
-                common::HashCode combinedHash = 0U;
+                const task::DeterminantHash determinant = m_environment.getBuildHashCode( interfaceTreeFile );
 
-                if ( m_environment.restore( interfaceAnalysisFile, combinedHash ) )
+                if ( m_environment.restore( interfaceAnalysisFile, determinant ) )
                 {
-                    m_environment.setBuildHashCode( interfaceAnalysisFile, combinedHash );
+                    m_environment.setBuildHashCode( interfaceAnalysisFile );
                     taskProgress.cached();
                     return;
                 }
@@ -1027,11 +1029,10 @@ namespace driver
 
                 // generate interface
 
-
-                const common::HashCode fileHashCode = database.save_Clang_to_temp();
+                const task::FileHash fileHashCode = database.save_Clang_to_temp();
                 m_environment.setBuildHashCode( interfaceAnalysisFile, fileHashCode );
                 m_environment.temp_to_real( interfaceAnalysisFile );
-                m_environment.stash( interfaceAnalysisFile, combinedHash );
+                m_environment.stash( interfaceAnalysisFile, determinant );
 
                 taskProgress.succeeded();
             }
@@ -1047,7 +1048,7 @@ namespace driver
             po::options_description commandOptions( " Compile Mega Project Interface" );
             {
                 // clang-format off
-            commandOptions.add_options()
+                commandOptions.add_options()
                 ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ), "Root source directory" )
                 ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),  "Root build directory" )
                 ( "project",        po::value< std::string >( &projectName ),               "Mega Project Name" )

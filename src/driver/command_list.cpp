@@ -32,6 +32,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
+#include <common/stash.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -84,18 +85,19 @@ namespace driver
                     oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
                 }
 
-                common::HashCode hashCode = common::hash_file( tempFile );
-                m_environment.setBuildHashCode( componentListingFilePath, hashCode );
+                const task::DeterminantHash determinant( tempFile );
 
-                if ( m_environment.restore( componentListingFilePath, hashCode ) )
+                if ( m_environment.restore( componentListingFilePath, determinant ) )
                 {
+                    m_environment.setBuildHashCode( componentListingFilePath );
                     taskProgress.cached();
                     return;
                 }
                 else
                 {
                     m_environment.temp_to_real( componentListingFilePath );
-                    m_environment.stash( componentListingFilePath, hashCode );
+                    m_environment.setBuildHashCode( componentListingFilePath );
+                    m_environment.stash( componentListingFilePath, determinant );
                     taskProgress.succeeded();
                 }
             }
