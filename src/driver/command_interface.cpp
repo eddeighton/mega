@@ -25,6 +25,8 @@
 #include "database/model/ParserStage.hxx"
 #include "database/model/InterfaceStage.hxx"
 #include "database/model/DependencyAnalysis.hxx"
+#include "database/model/DependencyAnalysisView.hxx"
+#include "database/model/InterfaceAnalysisStage.hxx"
 
 #include "database/common/file.hpp"
 #include "database/common/glob.hpp"
@@ -34,8 +36,9 @@
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 #include "common/terminal.hpp"
-#include <common/hash.hpp>
-#include <common/string.hpp>
+#include "common/hash.hpp"
+#include "common/string.hpp"
+#include "common/stl.hpp"
 
 #include <boost/filesystem/file_status.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -679,30 +682,135 @@ namespace driver
             }
 
             using GlobVector = std::vector< mega::io::Glob >;
+            using PathSet    = std::set< mega::io::megaFilePath >;
 
-            void collectDependencies( DependencyAnalysis::Parser::ContextDef* pContextDef, GlobVector& dependencyGlobs )
+            struct CalculateDependencies
             {
-                using namespace DependencyAnalysis;
-
-                for ( Parser::Dependency* pDependency : pContextDef->get_dependencies() )
+                const mega::io::BuildEnvironment& m_environment;
+                CalculateDependencies( const mega::io::BuildEnvironment& env )
+                    : m_environment( env )
                 {
-                    VERIFY_PARSER( !pDependency->get_str().empty(), "Empty dependency", pContextDef->get_id() );
-                    boost::filesystem::path sourceFilePath = pContextDef->get_id()->get_source_file();
-                    VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
-                    VERIFY_RTE( sourceFilePath.has_parent_path() );
-                    dependencyGlobs.push_back( mega::io::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContextDef } );
                 }
 
-                for ( Parser::ContextDef* pContext : pContextDef->get_children() )
+                void collectDependencies( DependencyAnalysis::Parser::ContextDef* pContextDef, GlobVector& dependencyGlobs ) const
                 {
-                    collectDependencies( pContext, dependencyGlobs );
+                    using namespace DependencyAnalysis;
+
+                    for ( Parser::Dependency* pDependency : pContextDef->get_dependencies() )
+                    {
+                        VERIFY_PARSER( !pDependency->get_str().empty(), "Empty dependency", pContextDef->get_id() );
+                        boost::filesystem::path sourceFilePath = pContextDef->get_id()->get_source_file();
+                        VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
+                        VERIFY_RTE( sourceFilePath.has_parent_path() );
+                        dependencyGlobs.push_back( mega::io::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContextDef } );
+                    }
+
+                    for ( Parser::ContextDef* pContext : pContextDef->get_children() )
+                    {
+                        collectDependencies( pContext, dependencyGlobs );
+                    }
                 }
+
+                DependencyAnalysis::Dependencies::ObjectDependencies* operator()( DependencyAnalysis::Database& database,
+                                                                                  const mega::io::megaFilePath& sourceFilePath,
+                                                                                  const common::HashCode        interfaceHash,
+                                                                                  const PathSet&                sourceFiles ) const
+                {
+                    using namespace DependencyAnalysis;
+                    using namespace DependencyAnalysis::Dependencies;
+
+                    GlobVector       dependencyGlobs;
+                    Interface::Root* pRoot = database.one< Interface::Root >( sourceFilePath );
+                    collectDependencies( pRoot->get_root()->get_ast(), dependencyGlobs );
+
+                    std::vector< Glob* >     globs;
+                    mega::io::FilePathVector matchedFilePaths;
+                    for ( const mega::io::Glob& glob : dependencyGlobs )
+                    {
+                        try
+                        {
+                            mega::io::resolveGlob( glob, m_environment.rootSourceDir(), matchedFilePaths );
+                        }
+                        catch ( mega::io::GlobException& ex )
+                        {
+                            VERIFY_PARSER( false, "Dependency error: " << ex.what(),
+                                           reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                        }
+                        catch ( boost::filesystem::filesystem_error& ex )
+                        {
+                            VERIFY_PARSER( false, "Dependency error: " << ex.what(),
+                                           reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                        }
+                        globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
+                    }
+
+                    mega::io::FilePathVector resolution;
+                    for ( const boost::filesystem::path& filePath : matchedFilePaths )
+                    {
+                        if ( sourceFiles.count( m_environment.megaFilePath_fromPath( filePath ) ) )
+                            resolution.push_back( filePath );
+                    }
+
+                    ObjectDependencies* pDependencies = database.construct< ObjectDependencies >(
+                        ObjectDependencies::Args{ sourceFilePath, interfaceHash, globs, resolution } );
+
+                    return pDependencies;
+                }
+
+                DependencyAnalysis::Dependencies::ObjectDependencies*
+                operator()( DependencyAnalysis::Database&                                   database,
+                            const DependencyAnalysisView::Dependencies::ObjectDependencies* pOldDependencies,
+                            const PathSet&                                                  sourceFiles ) const
+                {
+                    using namespace DependencyAnalysis;
+                    using namespace DependencyAnalysis::Dependencies;
+
+                    std::vector< Glob* >     globs;
+                    mega::io::FilePathVector matchedFilePaths;
+
+                    for ( DependencyAnalysisView::Dependencies::Glob* pOldGlob : pOldDependencies->get_globs() )
+                    {
+                        const mega::io::Glob glob{ pOldGlob->get_location(), pOldGlob->get_glob(), nullptr };
+                        try
+                        {
+                            mega::io::resolveGlob( glob, m_environment.rootSourceDir(), matchedFilePaths );
+                        }
+                        catch ( mega::io::GlobException& ex )
+                        {
+                            VERIFY_PARSER( false, "Dependency error: " << ex.what(),
+                                           reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                        }
+                        catch ( boost::filesystem::filesystem_error& ex )
+                        {
+                            VERIFY_PARSER( false, "Dependency error: " << ex.what(),
+                                           reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                        }
+                        globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
+                    }
+
+                    mega::io::FilePathVector resolution;
+                    for ( const boost::filesystem::path& filePath : matchedFilePaths )
+                    {
+                        if ( sourceFiles.count( m_environment.megaFilePath_fromPath( filePath ) ) )
+                            resolution.push_back( filePath );
+                    }
+
+                    ObjectDependencies* pDependencies = database.construct< ObjectDependencies >( ObjectDependencies::Args{
+                        pOldDependencies->get_source_file(), pOldDependencies->get_hash_code(), globs, resolution } );
+
+                    return pDependencies;
+                }
+            };
+
+            PathSet getSortedSourceFiles() const
+            {
+                PathSet sourceFiles;
+                for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+                {
+                    sourceFiles.insert( sourceFilePath );
+                }
+                return sourceFiles;
             }
-
-            // foobar -> matches foobar
-            // foobar/* -> matches all files in foobar/
-            // foo/*/bar -> matches all files called bar in all folders of foo
-            // foo/** -> matches everything in subtree of foo
 
             virtual void run( task::Progress& taskProgress )
             {
@@ -726,12 +834,122 @@ namespace driver
                     return;
                 }
 
-                // load previous one...
-
+                // try loading previous one...
                 if ( m_environment.exists( dependencyCompilationFilePath ) )
                 {
-                    // previous dependency analysis exists
-                    taskProgress.failed();
+                    // attempt to load previous dependency analysis
+                    namespace Old = DependencyAnalysisView;
+                    namespace New = DependencyAnalysis;
+
+                    New::Database newDatabase( m_environment, manifestFilePath );
+                    {
+                        Old::Database oldDatabase( m_environment, manifestFilePath );
+
+                        const Old::Dependencies::Analysis* pOldAnalysis
+                            = oldDatabase.one< Old::Dependencies::Analysis >( manifestFilePath );
+                        VERIFY_RTE( pOldAnalysis );
+                        using OldDependenciesVector              = std::vector< Old::Dependencies::ObjectDependencies* >;
+                        const OldDependenciesVector dependencies = pOldAnalysis->get_objects();
+                        const PathSet               sourceFiles  = getSortedSourceFiles();
+
+                        struct Compare
+                        {
+                            const mega::io::Environment& env;
+                            Compare( const mega::io::Environment& env )
+                                : env( env )
+                            {
+                            }
+                            bool operator()( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) const
+                            {
+                                const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                                return pDependencies->get_source_file() < *j;
+                            }
+                            bool opposite( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) const
+                            {
+                                const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                                return *j < pDependencies->get_source_file();
+                            }
+                        } comparator( m_environment );
+
+                        using NewDependenciesVector = std::vector< New::Dependencies::ObjectDependencies* >;
+                        NewDependenciesVector newDependencies;
+                        {
+                            generics::matchGetUpdates(
+                                dependencies.begin(), dependencies.end(), sourceFiles.begin(), sourceFiles.end(),
+                                // const Compare& cmp
+                                comparator,
+
+                                // const Update& shouldUpdate
+                                [ &env = m_environment, &newDependencies, &newDatabase, &sourceFiles, &taskProgress ](
+                                    OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) -> bool
+                                {
+                                    const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                                    const common::HashCode interfaceHash = env.getBuildHashCode( env.ParserStage_AST( *j ) );
+                                    if ( interfaceHash == pDependencies->get_hash_code() )
+                                    {
+                                        // since the code is NOT modified - can re use the globs from previous result
+                                        newDependencies.push_back(
+                                            CalculateDependencies( env )( newDatabase, pDependencies, sourceFiles ) );
+
+                                        std::ostringstream os;
+                                        os << "\tPartially reusing dependencies for: " << j->path().string();
+                                        taskProgress.msg( os.str() );
+                                        return false;
+                                    }
+                                    else
+                                    {
+                                        std::ostringstream os;
+                                        os << "\tRecalculating dependencies for: " << j->path().string();
+                                        taskProgress.msg( os.str() );
+                                        return true;
+                                    }
+                                },
+
+                                // const Removal& rem
+                                []( OldDependenciesVector::const_iterator i )
+                                {
+                                    // a source file has been removed - can ignor this since
+                                    // recreating the dependency analysis and only attempting to
+                                    // reuse the globs
+                                },
+
+                                // const Addition& add
+                                [ &env = m_environment, &newDatabase, &newDependencies, &sourceFiles,
+                                  &taskProgress ]( PathSet::const_iterator j )
+                                {
+                                    // a new source file is added so must analysis from the ground up
+                                    const mega::io::megaFilePath megaFilePath = *j;
+                                    const common::HashCode interfaceHash      = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
+                                    newDependencies.push_back(
+                                        CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
+
+                                    std::ostringstream os;
+                                    os << "\tAdding dependencies for: " << megaFilePath.path().string();
+                                    taskProgress.msg( os.str() );
+                                },
+
+                                // const Updated& updatesNeeded
+                                [ &env = m_environment, &newDatabase, &newDependencies,
+                                  &sourceFiles ]( OldDependenciesVector::const_iterator i )
+                                {
+                                    // since the code is modified - must re analyse ALL dependencies from the ground up
+                                    const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                                    const mega::io::megaFilePath                 megaFilePath  = pDependencies->get_source_file();
+                                    const common::HashCode interfaceHash = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
+                                    newDependencies.push_back(
+                                        CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
+                                } );
+                        }
+
+                        newDatabase.construct< New::Dependencies::Analysis >( New::Dependencies::Analysis::Args{ newDependencies } );
+                    }
+
+                    const common::HashCode fileHashCode = newDatabase.save_DPGraph_to_temp();
+                    m_environment.setBuildHashCode( dependencyCompilationFilePath, fileHashCode );
+                    m_environment.temp_to_real( dependencyCompilationFilePath );
+                    m_environment.stash( dependencyCompilationFilePath, combinedHash );
+
+                    taskProgress.succeeded();
                 }
                 else
                 {
@@ -739,61 +957,20 @@ namespace driver
                     using namespace DependencyAnalysis::Dependencies;
 
                     Database database( m_environment, manifestFilePath );
-
-                    std::set< boost::filesystem::path > sourceFiles;
-                    for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
                     {
-                        sourceFiles.insert( sourceFilePath.path() );
-                    }
-
-                    std::vector< ObjectDependencies* > dependencies;
-                    {
-                        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+                        std::vector< ObjectDependencies* > dependencies;
                         {
-                            GlobVector       dependencyGlobs;
-                            Interface::Root* pRoot = database.one< Interface::Root >( sourceFilePath );
-                            collectDependencies( pRoot->get_root()->get_ast(), dependencyGlobs );
-
-                            std::vector< Glob* > globs;
-
-                            mega::io::FilePathVector matchedFilePaths;
-                            for ( const mega::io::Glob& glob : dependencyGlobs )
+                            const PathSet sourceFiles = getSortedSourceFiles();
+                            for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
                             {
-                                try
-                                {
-                                    mega::io::resolveGlob( glob, m_environment.rootSourceDir(), matchedFilePaths );
-                                }
-                                catch ( mega::io::GlobException& ex )
-                                {
-                                    VERIFY_PARSER( false, "Dependency error: " << ex.what(),
-                                                   reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
-                                }
-                                catch ( boost::filesystem::filesystem_error& ex )
-                                {
-                                    VERIFY_PARSER( false, "Dependency error: " << ex.what(),
-                                                   reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
-                                }
-                                globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
+                                const common::HashCode interfaceHash
+                                    = m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
+                                dependencies.push_back(
+                                    CalculateDependencies( m_environment )( database, sourceFilePath, interfaceHash, sourceFiles ) );
                             }
-
-                            mega::io::FilePathVector resolution;
-                            for ( const boost::filesystem::path& filePath : matchedFilePaths )
-                            {
-                                if ( sourceFiles.count( filePath ) )
-                                    resolution.push_back( filePath );
-                            }
-
-                            const common::HashCode interfaceHash
-                                = m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
-
-                            ObjectDependencies* pDependencies = database.construct< ObjectDependencies >(
-                                ObjectDependencies::Args{ sourceFilePath.path(), interfaceHash, globs, resolution } );
-
-                            dependencies.push_back( pDependencies );
                         }
+                        database.construct< Analysis >( Analysis::Args{ dependencies } );
                     }
-
-                    Analysis* pAnalysis = database.construct< Analysis >( Analysis::Args{ dependencies } );
 
                     const common::HashCode fileHashCode = database.save_DPGraph_to_temp();
                     m_environment.setBuildHashCode( dependencyCompilationFilePath, fileHashCode );
@@ -830,14 +1007,31 @@ namespace driver
 
             virtual void run( task::Progress& taskProgress )
             {
-                // mega::io::Database< mega::io::stage::Stage_ObjectAnalysis > database(
-                //     m_environment, m_sourceFilePath );
+                const mega::io::CompilationFilePath interfaceAnalysisFile
+                    = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
+                taskProgress.start( "Task_ObjectInterfaceAnalysis", m_sourceFilePath.path(), interfaceAnalysisFile.path() );
 
-                // taskProgress.start( "Task_ObjectInterfaceAnalysis",
-                //                     m_sourceFilePath,
-                //                     m_environment.Analysis_ObjectAnalysis( m_sourceFilePath ) );
+                common::HashCode combinedHash = 0U;
 
-                // database.store();
+                if ( m_environment.restore( interfaceAnalysisFile, combinedHash ) )
+                {
+                    m_environment.setBuildHashCode( interfaceAnalysisFile, combinedHash );
+                    taskProgress.cached();
+                    return;
+                }
+
+                using namespace InterfaceAnalysisStage;
+                using namespace InterfaceAnalysisStage::Interface;
+
+                Database database( m_environment, m_sourceFilePath );
+
+                // generate interface
+
+
+                const common::HashCode fileHashCode = database.save_Clang_to_temp();
+                m_environment.setBuildHashCode( interfaceAnalysisFile, fileHashCode );
+                m_environment.temp_to_real( interfaceAnalysisFile );
+                m_environment.stash( interfaceAnalysisFile, combinedHash );
 
                 taskProgress.succeeded();
             }
@@ -902,12 +1096,12 @@ namespace driver
                 Task_DependencyAnalysis* pDependencyAnalysisTask = new Task_DependencyAnalysis( interfaceGenTasks, environment, manifest );
                 tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
 
-                /*for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+                for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                 {
                     Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis
                         = new Task_ObjectInterfaceAnalysis( { pDependencyAnalysisTask }, environment, sourceFilePath );
                     tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
-                }*/
+                }
 
                 task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
                 task::run( pSchedule, std::cout );

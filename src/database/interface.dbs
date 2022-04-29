@@ -28,8 +28,26 @@ stage DependencyAnalysis
     file DPGraph;
 
     global accessor ref< Dependencies::Analysis >;
-
     persource accessor ref< Interface::Root >;
+}
+
+stage DependencyAnalysisView
+{
+    source .manifest;
+    dependency DependencyAnalysis;
+
+    global accessor ref< Dependencies::Analysis >;
+    persource accessor ref< Interface::Root >;
+}
+
+stage InterfaceAnalysisStage
+{
+    source .mega;
+    dependency DependencyAnalysisView;
+
+    file Clang;
+
+    persource accessor ref< Parser::ObjectSourceRoot >;
 }
 
 ///////////////////////////////////////////
@@ -40,9 +58,12 @@ namespace Interface
     // context elements
     object Dimension : Parser::Dimension -> InterfaceStage::Tree
     {
-        //late< value< std::string > > actual_type -> InterfaceAnalysis::Analysis;
     }
 
+    object DimensionFinal : Dimension -> InterfaceAnalysisStage::Clang
+    {
+        value< std::string > canonical_type;
+    }
 
     // basic context types
     object ContextGroup -> InterfaceStage::Tree
@@ -109,7 +130,7 @@ namespace Dependencies
 
     object ObjectDependencies -> DependencyAnalysis::DPGraph
     {
-        value< boost::filesystem::path > source_file;
+        value< mega::io::megaFilePath > source_file;
         value< std::size_t > hash_code;
         array< ref< Glob > > globs;
         array< value< boost::filesystem::path > > resolution;

@@ -182,4 +182,15 @@ namespace mega
     } // namespace io
 } // namespace mega
 
+namespace mega
+{
+    namespace io
+    {
+        inline void to_json( nlohmann::json& j, const megaFilePath& p )
+        {
+            j = nlohmann::json{ { "megaFilePath", p.path().string() } };
+        }
+    }
+}
+
 #endif // SOURCES_15_APRIL_2022

@@ -534,6 +534,9 @@ namespace db
 
                         ctor[ "bases" ].push_back( base );
                         bases_reversed.push_back( pBase );
+
+                        if( !pBase->ownsPrimaryObjectPart() )
+                            break;
                         pBase = pBase->m_base;
                     }
                     std::reverse( bases_reversed.begin(), bases_reversed.end() );

@@ -1761,7 +1761,7 @@ namespace DPGraph
         :   mega::io::Object( objectInfo )
     {
     }
-    ObjectDependencies::ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Glob > >& globs, const std::vector< boost::filesystem::path >& resolution)
+    ObjectDependencies::ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Glob > >& globs, const std::vector< boost::filesystem::path >& resolution)
         :   mega::io::Object( objectInfo )
           , source_file( source_file )
           , hash_code( hash_code )
@@ -1859,6 +1859,53 @@ namespace DPGraph
     }
         
 }
+namespace Clang
+{
+    // struct DimensionFinal : public mega::io::Object
+    DimensionFinal::DimensionFinal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Dimension( loader )
+    {
+    }
+    DimensionFinal::DimensionFinal( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canonical_type)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_Dimension( loader )
+          , canonical_type( canonical_type )
+    {
+    }
+    void DimensionFinal::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Dimension );
+        loader.load( canonical_type );
+    }
+    void DimensionFinal::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_Dimension->m_pInheritance = this;
+    }
+    void DimensionFinal::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Dimension );
+        storer.store( canonical_type );
+    }
+    void DimensionFinal::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "DimensionFinal" },
+                { "filetype" , "Clang" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "canonical_type", canonical_type } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+}
 
 
 mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1892,19 +1939,20 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 24: return new AST::IncludeRoot( loader, objectInfo );
         case 25: return new AST::ObjectSourceRoot( loader, objectInfo );
         case 26: return new Tree::Dimension( loader, objectInfo );
-        case 27: return new Tree::ContextGroup( loader, objectInfo );
-        case 28: return new Tree::Root( loader, objectInfo );
-        case 29: return new Tree::Context( loader, objectInfo );
-        case 30: return new Tree::Namespace( loader, objectInfo );
-        case 31: return new Tree::Abstract( loader, objectInfo );
-        case 32: return new Tree::Action( loader, objectInfo );
-        case 33: return new Tree::Event( loader, objectInfo );
-        case 34: return new Tree::Function( loader, objectInfo );
-        case 35: return new Tree::Object( loader, objectInfo );
-        case 36: return new Tree::Link( loader, objectInfo );
-        case 37: return new DPGraph::Glob( loader, objectInfo );
-        case 38: return new DPGraph::ObjectDependencies( loader, objectInfo );
-        case 39: return new DPGraph::Analysis( loader, objectInfo );
+        case 28: return new Tree::ContextGroup( loader, objectInfo );
+        case 29: return new Tree::Root( loader, objectInfo );
+        case 30: return new Tree::Context( loader, objectInfo );
+        case 31: return new Tree::Namespace( loader, objectInfo );
+        case 32: return new Tree::Abstract( loader, objectInfo );
+        case 33: return new Tree::Action( loader, objectInfo );
+        case 34: return new Tree::Event( loader, objectInfo );
+        case 35: return new Tree::Function( loader, objectInfo );
+        case 36: return new Tree::Object( loader, objectInfo );
+        case 37: return new Tree::Link( loader, objectInfo );
+        case 38: return new DPGraph::Glob( loader, objectInfo );
+        case 39: return new DPGraph::ObjectDependencies( loader, objectInfo );
+        case 40: return new DPGraph::Analysis( loader, objectInfo );
+        case 27: return new Clang::DimensionFinal( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }
