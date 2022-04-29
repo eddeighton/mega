@@ -3,7 +3,7 @@ object Square
 {    
     dependency( cube.mega );
     dependency( stuff/sphere.mega );
-    dependency( stuff/sphere.mega );
+    dependency( stuff/triangle.mega );
 
     include test( test_include.mega );
     //ed was here!!!

@@ -21,6 +21,9 @@ namespace test
 {
     object Cube2
     {
+        dependency( stuff/sphere.mega );
+        dependency( stuff/triangle.mega );
+        
         namespace nested
         {
             action CoolStuff1
