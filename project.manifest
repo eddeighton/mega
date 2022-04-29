@@ -32,7 +32,7 @@
 		</item>
 	</sourceFiles>
 	<compilationFileInfos class_id="5" tracking_level="0" version="0">
-		<count>13</count>
+		<count>14</count>
 		<item_version>0</item_version>
 		<item class_id="6" tracking_level="0" version="0">
 			<fileType>0</fileType>
@@ -49,8 +49,22 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
-			<fileType>1</fileType>
+			<fileType>4</fileType>
 			<fileID>1</fileID>
+			<filePath>
+				<compilation_file_path>
+					<string>project.manifest.DependencyAnalysis.DPGraph.db</string>
+				</compilation_file_path>
+			</filePath>
+			<objectSourceFilePath>
+				<source_file_path>
+					<string>project.manifest</string>
+				</source_file_path>
+			</objectSourceFilePath>
+		</item>
+		<item>
+			<fileType>1</fileType>
+			<fileID>2</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>cube.mega.ParserStage.AST.db</string>
@@ -64,7 +78,7 @@
 		</item>
 		<item>
 			<fileType>2</fileType>
-			<fileID>2</fileID>
+			<fileID>3</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>cube.mega.ParserStage.Body.db</string>
@@ -78,7 +92,7 @@
 		</item>
 		<item>
 			<fileType>3</fileType>
-			<fileID>3</fileID>
+			<fileID>4</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>cube.mega.InterfaceStage.Tree.db</string>
@@ -92,7 +106,7 @@
 		</item>
 		<item>
 			<fileType>1</fileType>
-			<fileID>4</fileID>
+			<fileID>5</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>square.mega.ParserStage.AST.db</string>
@@ -106,7 +120,7 @@
 		</item>
 		<item>
 			<fileType>2</fileType>
-			<fileID>5</fileID>
+			<fileID>6</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>square.mega.ParserStage.Body.db</string>
@@ -120,7 +134,7 @@
 		</item>
 		<item>
 			<fileType>3</fileType>
-			<fileID>6</fileID>
+			<fileID>7</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>square.mega.InterfaceStage.Tree.db</string>
@@ -134,7 +148,7 @@
 		</item>
 		<item>
 			<fileType>1</fileType>
-			<fileID>7</fileID>
+			<fileID>8</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/sphere.mega.ParserStage.AST.db</string>
@@ -148,7 +162,7 @@
 		</item>
 		<item>
 			<fileType>2</fileType>
-			<fileID>8</fileID>
+			<fileID>9</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/sphere.mega.ParserStage.Body.db</string>
@@ -162,7 +176,7 @@
 		</item>
 		<item>
 			<fileType>3</fileType>
-			<fileID>9</fileID>
+			<fileID>10</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/sphere.mega.InterfaceStage.Tree.db</string>
@@ -176,7 +190,7 @@
 		</item>
 		<item>
 			<fileType>1</fileType>
-			<fileID>10</fileID>
+			<fileID>11</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/triangle.mega.ParserStage.AST.db</string>
@@ -190,7 +204,7 @@
 		</item>
 		<item>
 			<fileType>2</fileType>
-			<fileID>11</fileID>
+			<fileID>12</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/triangle.mega.ParserStage.Body.db</string>
@@ -204,7 +218,7 @@
 		</item>
 		<item>
 			<fileType>3</fileType>
-			<fileID>12</fileID>
+			<fileID>13</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/triangle.mega.InterfaceStage.Tree.db</string>

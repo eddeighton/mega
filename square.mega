@@ -1,8 +1,9 @@
 
 object Square
 {    
-    dependency( cube );
-    dependency( stuff/sphere );
+    dependency( cube.mega );
+    dependency( stuff/sphere.mega );
+    dependency( stuff/sphere.mega );
 
     include test( test_include.mega );
     //ed was here!!!
@@ -10,6 +11,6 @@ object Square
     //cool
     action nested
     {
-
+        // foobar
     }
 }
