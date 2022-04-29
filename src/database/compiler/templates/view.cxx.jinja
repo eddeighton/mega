@@ -28,7 +28,10 @@ namespace {{ stage.name }}
     } //{{ namespace }}
 {% endfor %}{#interface.namespaces#}
 {% endfor %}{# stage.interfaces #}
+}
 
+namespace
+{
 class SuperTypeBase
 {
 public:
@@ -267,11 +270,13 @@ bool {{ stype.name }}::is_{{ interface.fullname }}() const
 }
 {% endfor %}{# stype.interfaces #}
 {% endfor %}{# stage.supertypes #}
-
+}
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Database implementation
+namespace {{ stage.name }}
+{
 struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
 {
     using SuperTypePtr = std::unique_ptr< SuperTypeBase >;

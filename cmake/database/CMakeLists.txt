@@ -26,6 +26,7 @@ set( MEGA_DATABASE_GENERATED_HEADERS
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
     ${MEGA_API_DIR}/database/model/ParserStage.hxx
     ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
+    ${MEGA_API_DIR}/database/model/DependencyAnalysis.hxx
     ${MEGA_API_DIR}/database/model/FinalStage.hxx
 	)
 
@@ -39,6 +40,7 @@ set( MEGA_DATABASE_GENERATED_SOURCES
     ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
     ${MEGA_SRC_DIR}/database/model/ParserStage.cxx
     ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
+    ${MEGA_SRC_DIR}/database/model/DependencyAnalysis.cxx
     ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
 )
 
@@ -58,6 +60,7 @@ set( COMPILER_BYPRODUCTS
     ComponentListing.json
     ParserStage.json
     InterfaceStage.json
+    DependencyAnalysis.json
     FinalStage.json
     )
 
@@ -96,6 +99,7 @@ set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/environments.hpp
     ${MEGA_API_DIR}/database/common/file_system.hpp
     ${MEGA_API_DIR}/database/common/file.hpp
+    ${MEGA_API_DIR}/database/common/glob.hpp
     ${MEGA_API_DIR}/database/common/generics.hpp
     ${MEGA_API_DIR}/database/common/loader.hpp
     ${MEGA_API_DIR}/database/common/object_info.hpp
@@ -111,6 +115,7 @@ set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/common/sources.cpp
     ${MEGA_SRC_DIR}/database/common/component_info.cpp
     ${MEGA_SRC_DIR}/database/common/file.cpp
+    ${MEGA_SRC_DIR}/database/common/glob.cpp
     ${MEGA_SRC_DIR}/database/common/loader.cpp
     ${MEGA_SRC_DIR}/database/common/object.cpp
     ${MEGA_SRC_DIR}/database/common/storer.cpp

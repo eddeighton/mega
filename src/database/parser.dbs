@@ -44,7 +44,8 @@ namespace Parser
     object ScopedIdentifier -> ParserStage::AST
     {
         array< ref< Identifier > > ids;
-        value< std::string > location;
+        value< std::string > source_file;
+        value< std::size_t > line_number;
     }
 
     object ArgumentList -> ParserStage::AST
@@ -145,13 +146,11 @@ namespace Parser
 
     object ObjectDef : ContextDef -> ParserStage::AST
     {
-        ref< Size > size;
         ref< Inheritance > inheritance;
     }
 
     object LinkDef : ContextDef -> ParserStage::AST
     {
-        ref< Size > size;
         ref< Inheritance > inheritance;
     }
 

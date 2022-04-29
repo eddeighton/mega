@@ -76,7 +76,10 @@ public:
 
     ScopedIdentifier* parse_scopedIdentifier( Database& database )
     {
-        const std::string strLocation = Tok.getLocation().printToString( sm );
+        const std::string strFileName  = sm.getFilename( Tok.getLocation() );
+        const std::size_t szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
+
+        // const std::string strLocation = Tok.getLocation().printToString( sm );
 
         std::vector< Identifier* > identifiers;
         identifiers.push_back( parse_identifier( database ) );
@@ -93,7 +96,7 @@ public:
                 MEGA_PARSER_ERROR( "Expected identifier" );
             }
         }
-        return database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ identifiers, strLocation } );
+        return database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
     }
     // void parse_visibility( Database& session, input::Visibility* pVisibility )
     //{
@@ -231,43 +234,6 @@ public:
 
         return database.construct< Inheritance >( Inheritance::Args{ strings } );
     }
-    /*
-        // for export body
-        Body* parse_body( Database& database )
-        {
-            std::string strBody;
-            if ( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-
-                braceStack.push_back( BraceCount );
-
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc = Tok.getEndLoc();
-                ConsumeAnyToken();
-
-                while ( !isEofOrEom() && !( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) ) )
-                {
-                    endLoc = Tok.getEndLoc();
-                    ConsumeAnyToken();
-                }
-
-                if ( !getSourceText( startLoc, endLoc, strBody ) )
-                {
-                    MEGA_PARSER_ERROR( "Error parsing body" );
-                }
-
-                if ( !BraceCount == braceStack.back() )
-                {
-                    MEGA_PARSER_ERROR( "Brace count mismatch" );
-                }
-                braceStack.pop_back();
-
-                T.consumeClose();
-            }
-            return database.construct< Body >( Body::Args{ strBody } );
-        }*/
 
     Size* parse_size( Database& database )
     {
@@ -468,87 +434,6 @@ public:
 
         return database.construct< Dependency >( Dependency::Args{ strDependency } );
     }
-    /*
-        void parse_using( Database& session, input::Using* pUsing )
-        {
-            // using T = expression;
-            parse_identifier( pUsing->m_strIdentifier );
-
-            if ( Tok.is( clang::tok::equal ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected equals after using" );
-            }
-
-            // parse the type
-            {
-                clang::SourceLocation startLoc = Tok.getLocation();
-                clang::SourceLocation endLoc = Tok.getEndLoc();
-
-                while ( !Tok.is( clang::tok::semi ) )
-                {
-                    endLoc = Tok.getEndLoc();
-                    ConsumeToken();
-                }
-
-                pUsing->m_pType = session.construct< input::Opaque >();
-                if ( !getSourceText( startLoc, endLoc, pUsing->m_pType->m_str ) )
-                {
-                    MEGA_PARSER_ERROR( "Error parsing using statement" );
-                }
-            }
-
-            if ( !TryConsumeToken( clang::tok::semi ) )
-            {
-                // Diag( Tok.getLocation(), clang::diag::err_expected_less_after ) << "template";
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
-        }*/
-
-    /*
-    void parse_export( Database& session, input::Export* pExport )
-    {
-        // export name( parameter list ) : returnType
-        //{
-        //   impl;
-        // }
-
-        // identifier
-        parse_identifier( pExport->m_strIdentifier );
-
-        // parse optional argument list
-        parse_argumentList( session, pExport->m_pParameters );
-        Parser::ArgumentList
-
-        // return type
-        parse_returnType( session, pExport->m_pReturnType );
-
-        parse_comment();
-
-        // now get the body
-        std::string strBody;
-        parse_body( session, strBody );
-
-        if ( strBody.empty() )
-        {
-            MEGA_PARSER_ERROR( "Expected body for export" );
-        }
-
-        input::Body* pBody = session.construct< input::Body >();
-        pBody->m_pContext = pExport;
-        pBody->m_str = strBody;
-    }
-    */
-
-    /*input::Context* constructContext( Database& session, input::Context* pParentAction )
-    {
-        input::Context* pNewAction = session.construct< input::Context >();
-        pParentAction->m_elements.push_back( pNewAction );
-        return pNewAction;
-    }*/
 
     ContextDef::Args defaultBody( ScopedIdentifier* pScopedIdentifier ) const
     {
@@ -673,8 +558,6 @@ public:
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
-        Size* pSize = parse_size( database );
-        parse_comment();
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
@@ -697,15 +580,13 @@ public:
             }
         }
 
-        return database.construct< ObjectDef >( ObjectDef::Args{ body, pSize, pInheritance } );
+        return database.construct< ObjectDef >( ObjectDef::Args{ body, pInheritance } );
     }
 
     LinkDef* parse_link( Database& database )
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
-        Size* pSize = parse_size( database );
-        parse_comment();
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
@@ -728,7 +609,7 @@ public:
             }
         }
 
-        return database.construct< LinkDef >( LinkDef::Args{ body, pSize, pInheritance } );
+        return database.construct< LinkDef >( LinkDef::Args{ body, pInheritance } );
     }
 
     ActionDef* parse_action( Database& database )
@@ -761,47 +642,6 @@ public:
 
         return database.construct< ActionDef >( ActionDef::Args{ body, pSize, pInheritance } );
     }
-
-    /*
-                    void handle_function_return_type( Database& session, input::Context* pContext )
-                    {
-                        if ( pContext->m_inheritance.size() != 1U )
-                        {
-                            MEGA_PARSER_ERROR( "Function requires explicit return type" );
-                        }
-                    }
-
-                    void add_link_base( Database& session, input::Context* pContext )
-                    {
-                        if ( pContext->m_inheritance.size() != 1U )
-                        {
-                            MEGA_PARSER_ERROR( "Link requires single inheritance" );
-                        }
-
-                        bool bFound = false;
-                        {
-                            for ( const input::Element* pExisting : pContext->m_elements )
-                            {
-                                if ( const input::Dimension* pDim = dynamic_cast< const input::Dimension* >( pExisting ) )
-                                {
-                                    if ( pDim->getIdentifier() == EG_LINK_DIMENSION )
-                                    {
-                                        bFound = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if ( !bFound )
-                        {
-                            // add the nested link reference dimension
-                            input::Dimension* pLinkDimension = session.construct< input::Dimension >();
-                            pContext->m_elements.push_back( pLinkDimension );
-                            pLinkDimension->m_pType = pContext->m_inheritance.front();
-                            pLinkDimension->m_strIdentifier = EG_LINK_DIMENSION;
-                        }
-                    }
-*/
 
     ContextDef::Args parse_context_body( Database& database, ScopedIdentifier* pScopedIdentifier )
     {
@@ -872,27 +712,6 @@ public:
                 Dependency* pDependency = parse_dependency( database );
                 bodyArgs.dependencies.value().push_back( pDependency );
             }
-            /*else if ( Tok.is( clang::tok::kw_using ) )
-            {
-                ConsumeToken();
-                input::Using* pUsing = session.construct< input::Using >();
-                pContext->m_elements.push_back( pUsing );
-                parse_using( session, pUsing );
-            }
-            else if ( Tok.is( clang::tok::kw_export ) )
-            {
-                ConsumeToken();
-                input::Export* pExport = session.construct< input::Export >();
-                pContext->m_elements.push_back( pExport );
-                parse_export( session, pExport );
-            }
-            else if ( Tok.is( clang::tok::kw_public ) || Tok.is( clang::tok::kw_private ) )
-            {
-                // ConsumeToken();
-                input::Visibility* pVisibility = session.construct< input::Visibility >();
-                pContext->m_elements.push_back( pVisibility );
-                parse_visibility( session, pVisibility );
-            }*/
             else if ( Tok.is( clang::tok::r_brace ) && ( BraceCount == braceStack.back() ) )
             {
                 // leave the r_brace to be consumed by parent
@@ -924,10 +743,6 @@ public:
                             clang::tok::kw_link,
                             clang::tok::kw_include,
                             clang::tok::kw_dependency
-                            //clang::tok::kw_using,
-                            //clang::tok::kw_export,
-                            //clang::tok::kw_public,
-                            //clang::tok::kw_private
                         )
                     ) &&
                     !(
@@ -969,7 +784,7 @@ public:
     {
         const std::string strLocation = Tok.getLocation().printToString( sm );
         ScopedIdentifier* pID
-            = database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ std::vector< Identifier* >{}, strLocation } );
+            = database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ std::vector< Identifier* >{}, strLocation, 0U } );
         ContextDef::Args args = parse_context_body( database, pID );
         return database.construct< ContextDef >( args );
     }

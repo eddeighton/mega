@@ -53,23 +53,63 @@ namespace db
             return os.str();
         }
 
-        std::string FunctionInserter::getParams() const
+        std::string FunctionInserter::getParams( const std::string& strStageNamespace ) const
         {
             std::ostringstream os;
             model::Type::Ptr   pType = m_property->m_type;
             if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
             {
-                os << pArray->m_underlyingType->getViewType( true ) << " value ";
+                os << pArray->m_underlyingType->getViewType( strStageNamespace, true ) << " value ";
             }
             else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
             {
                 model::Type::Ptr pFrom = pMap->m_fromType;
                 model::Type::Ptr pTo   = pMap->m_toType;
-                os << pFrom->getViewType( true ) << " key , " << pTo->getViewType( true ) << " value ";
+                os << pFrom->getViewType( strStageNamespace, true ) << " key , " << pTo->getViewType( strStageNamespace, true )
+                   << " value ";
             }
             else
             {
                 THROW_RTE( "Unsupported inserter type" );
+            }
+            return os.str();
+        }
+
+        std::string Interface::delimitTypeName( const std::string& strStageNamespace, const std::string& str ) const
+        {
+            Object::Ptr pObject = m_object.lock();
+
+            std::vector< Namespace::Ptr > namespaces;
+            {
+                Namespace::Ptr pIter = pObject->m_namespace.lock();
+                while ( pIter )
+                {
+                    namespaces.push_back( pIter );
+                    pIter = pIter->m_namespace.lock();
+                }
+                std::reverse( namespaces.begin(), namespaces.end() );
+            }
+
+            std::ostringstream os;
+            {
+                os << strStageNamespace << str;
+                for ( Namespace::Ptr pNamespace : namespaces )
+                {
+                    os << pNamespace->m_strName << str;
+                }
+                os << pObject->m_strName;
+            }
+
+            return os.str();
+        }
+
+        std::string SuperInterface::getTypeName() const
+        {
+            std::ostringstream os;
+            os << "super";
+            for ( model::Interface::Ptr pInterface : m_interfaces )
+            {
+                os << "_" << pInterface->delimitTypeName( m_stage.lock()->m_strName, "_" );
             }
             return os.str();
         }
@@ -837,7 +877,8 @@ namespace db
                         // work out the function groups
                         for ( Function::Ptr pFunction : pInterface->m_functions )
                         {
-                            pSuperInterface->m_functions.insert( std::make_pair( pFunction->getMangledName(), pFunction ) );
+                            pSuperInterface->m_functions.insert(
+                                std::make_pair( pFunction->getMangledName( pStage->m_strName ), pFunction ) );
                         }
                     }
 

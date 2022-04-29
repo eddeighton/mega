@@ -24,15 +24,20 @@
 #include "database/model/manifest.hxx"
 #include "database/model/ParserStage.hxx"
 #include "database/model/InterfaceStage.hxx"
+#include "database/model/DependencyAnalysis.hxx"
 
 #include "database/common/file.hpp"
+#include "database/common/glob.hpp"
 #include "database/common/environments.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 #include "common/terminal.hpp"
+#include <common/hash.hpp>
+#include <common/string.hpp>
 
+#include <boost/filesystem/file_status.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/process/environment.hpp>
@@ -41,8 +46,6 @@
 #include <boost/tokenizer.hpp>
 #include <boost/dll.hpp>
 
-#include <common/hash.hpp>
-#include <common/string.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -53,11 +56,12 @@ std::ostream& operator<<( std::ostream& os, const std::vector< std::string >& na
     return os;
 }
 
-#define VERIFY_PARSER( expression, msg, location )                                                          \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( if ( !( expression ) ) {                                               \
-        std::ostringstream _os2;                                                                            \
-        _os2 << common::COLOUR_RED_BEGIN << msg << ". Source Location: " << location << common::COLOUR_END; \
-        throw std::runtime_error( _os2.str() );                                                             \
+#define VERIFY_PARSER( expression, msg, scoped_id )                                                             \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( if ( !( expression ) ) {                                                   \
+        std::ostringstream _os2;                                                                                \
+        _os2 << common::COLOUR_RED_BEGIN << msg << ". Source Location: " << scoped_id->get_source_file() << ":" \
+             << scoped_id->get_line_number() << common::COLOUR_END;                                             \
+        throw std::runtime_error( _os2.str() );                                                                 \
     } )
 
 namespace driver
@@ -304,7 +308,7 @@ namespace driver
                     {
                         pInterfaceContextGroup = dynamic_database_cast< TInterfaceContextType >( pContextGroup );
                         VERIFY_PARSER( pInterfaceContextGroup, "Context definition of identifier: " << name << " with mixed types",
-                                       pContextDef->get_id()->get_location() );
+                                       pContextDef->get_id() );
                         aggregateFunctor( pInterfaceContextGroup, pContextDef );
                     }
                     else
@@ -315,7 +319,7 @@ namespace driver
                             Name parentName = name;
                             parentName.pop_back();
                             pParent = findContextGroup( parentName, namedContexts );
-                            VERIFY_PARSER( pParent, "Failed to locate parent for: " << name, pContextDef->get_id()->get_location() );
+                            VERIFY_PARSER( pParent, "Failed to locate parent for: " << name, pContextDef->get_id() );
                         }
                         pInterfaceContextGroup = constructorFunctor( database, name.back(), pParent, pContextDef );
                         pParent->push_back_children( pInterfaceContextGroup );
@@ -375,7 +379,7 @@ namespace driver
                             {
                                 pInterfaceContextGroup = dynamic_database_cast< Namespace >( pContextGroup );
                                 VERIFY_PARSER( pInterfaceContextGroup, "Context definition of identifier: " << name << " with mixed types",
-                                               pContextDef->get_id()->get_location() );
+                                               pContextDef->get_id() );
                                 pInterfaceContextGroup->push_back_namespace_defs( pIncludeContextDef );
                             }
                             else
@@ -386,8 +390,7 @@ namespace driver
                                     Name parentName = name;
                                     parentName.pop_back();
                                     pParent = findContextGroup( parentName, namedContexts );
-                                    VERIFY_PARSER(
-                                        pParent, "Failed to locate parent for: " << name, pContextDef->get_id()->get_location() );
+                                    VERIFY_PARSER( pParent, "Failed to locate parent for: " << name, pContextDef->get_id() );
                                 }
 
                                 const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
@@ -483,7 +486,7 @@ namespace driver
                                 Parser::ObjectDef* pObjectDef ) -> Object*
                             {
                                 return database.construct< Object >( Object::Args(
-                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pObjectDef }, {}, {} ) );
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pObjectDef }, {} ) );
                             },
                             []( Object* pObject, Parser::ObjectDef* pObjectDef ) { pObject->push_back_object_defs( pObjectDef ); } );
                     }
@@ -516,7 +519,7 @@ namespace driver
                     for ( Interface::Dimension* pExistingDimension : existing )
                     {
                         VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
-                                       "Context has duplicate dimensions", pDef->get_id()->get_location() );
+                                       "Context has duplicate dimensions", pDef->get_id() );
                     }
                     Interface::Dimension* pDimension
                         = database.construct< Interface::Dimension >( Interface::Dimension::Args( pParserDim ) );
@@ -531,21 +534,18 @@ namespace driver
                 {
                     if ( pNamespace->get_is_global() )
                     {
-                        VERIFY_PARSER( pDef->get_dimensions().empty(), "Global namespace has dimensions", pDef->get_id()->get_location() );
-                        VERIFY_PARSER( pDef->get_dependencies().empty(), "Global namespace has dependencies", pDef->get_id()->get_location() );
+                        VERIFY_PARSER( pDef->get_dimensions().empty(), "Global namespace has dimensions", pDef->get_id() );
+                        VERIFY_PARSER( pDef->get_dependencies().empty(), "Global namespace has dependencies", pDef->get_id() );
                     }
                     else
                     {
                         collectDimensions< InterfaceStage::Interface::Namespace, Parser::ContextDef >( database, pNamespace, pDef );
-
-
                     }
 
-                    VERIFY_PARSER( pDef->get_body().empty(), "Namespace has body", pDef->get_id()->get_location() );
-
+                    VERIFY_PARSER( pDef->get_body().empty(), "Namespace has body", pDef->get_id() );
                 }
-
             }
+
             void onAbstract( InterfaceStage::Database& database, InterfaceStage::Interface::Abstract* pAbstract )
             {
                 using namespace InterfaceStage;
@@ -557,19 +557,17 @@ namespace driver
             void onAction( InterfaceStage::Database& database, InterfaceStage::Interface::Action* pAction )
             {
                 using namespace InterfaceStage;
+
+                std::optional< std::size_t > szSizeOpt;
                 for ( Parser::ActionDef* pDef : pAction->get_action_defs() )
                 {
                     collectDimensions< InterfaceStage::Interface::Action, Parser::ActionDef >( database, pAction, pDef );
-
-                    const std::string& strBody = pDef->get_body();
-                    if ( !strBody.empty() )
-                    {
-                    }
                 }
             }
             void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent )
             {
                 using namespace InterfaceStage;
+                std::optional< std::size_t > szSizeOpt;
                 for ( Parser::EventDef* pDef : pEvent->get_event_defs() )
                 {
                     collectDimensions< InterfaceStage::Interface::Event, Parser::EventDef >( database, pEvent, pDef );
@@ -578,6 +576,11 @@ namespace driver
             void onFunction( InterfaceStage::Database& database, InterfaceStage::Interface::Function* pFunction )
             {
                 using namespace InterfaceStage;
+
+                for ( Parser::FunctionDef* pDef : pFunction->get_function_defs() )
+                {
+                    VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
+                }
             }
             void onObject( InterfaceStage::Database& database, InterfaceStage::Interface::Object* pObject )
             {
@@ -587,7 +590,14 @@ namespace driver
                     collectDimensions< InterfaceStage::Interface::Object, Parser::ObjectDef >( database, pObject, pDef );
                 }
             }
-            void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink ) { using namespace InterfaceStage; }
+            void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink )
+            {
+                using namespace InterfaceStage;
+                for ( Parser::LinkDef* pDef : pLink->get_link_defs() )
+                {
+                    VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
+                }
+            }
 
             virtual void run( task::Progress& taskProgress )
             {
@@ -658,184 +668,140 @@ namespace driver
 
         class Task_DependencyAnalysis : public BaseTask
         {
+            const mega::io::Manifest& m_manifest;
+
         public:
-            Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::BuildEnvironment& environment )
+            Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::BuildEnvironment& environment,
+                                     const mega::io::Manifest& manifest )
                 : BaseTask( parserTasks, environment )
+                , m_manifest( manifest )
             {
             }
-            /*
-                    using DependencyMap = std::map< const mega::input::Dependency*, const mega::input::Root*,
-                                                    mega::io::CompareIndexedObjects >;
 
-                    const mega::input::Root*
-                    resolveDependency( const std::vector< const mega::input::Root* >& roots,
-                                       const boost::filesystem::path&                 filepath )
-                    {
-                        struct FindRoot
-                        {
-                            const mega::input::Root*
-                            operator()( const std::vector< const mega::input::Root* >& roots,
-                                        const boost::filesystem::path&                 filepath ) const
-                            {
-                                auto iFind = std::find_if( roots.begin(), roots.end(),
-                                                           [ &filepath ]( const mega::input::Root* pRoot )
-                                                           { return pRoot->getFilePath() == filepath; } );
-                                if ( iFind != roots.end() )
-                                    return *iFind;
-                                else
-                                    return nullptr;
-                            }
-                        };
+            using GlobVector = std::vector< mega::io::Glob >;
 
-                        if ( boost::filesystem::exists( filepath ) )
-                        {
-                            const mega::input::Root* pRoot = FindRoot()( roots, filepath );
-                            VERIFY_RTE_MSG( pRoot, "Failed to locate dependency file: " << filepath.string() );
-                            return pRoot;
-                        }
-                        return nullptr;
-                    }
+            void collectDependencies( DependencyAnalysis::Parser::ContextDef* pContextDef, GlobVector& dependencyGlobs )
+            {
+                using namespace DependencyAnalysis;
 
-                    void resolveDependencies( const std::vector< const mega::input::Root* >& roots,
-                                              const mega::input::Root*                       pRoot,
-                                              const mega::input::Context*                    pContext,
-                                              DependencyMap&                                 dependencyMap )
-                    {
-                        using namespace mega::input;
+                for ( Parser::Dependency* pDependency : pContextDef->get_dependencies() )
+                {
+                    VERIFY_PARSER( !pDependency->get_str().empty(), "Empty dependency", pContextDef->get_id() );
+                    boost::filesystem::path sourceFilePath = pContextDef->get_id()->get_source_file();
+                    VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
+                    VERIFY_RTE( sourceFilePath.has_parent_path() );
+                    dependencyGlobs.push_back( mega::io::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContextDef } );
+                }
 
-                        for ( const Element* pChild : pContext->getElements() )
-                        {
-                            if ( const Dependency* pDependency = dynamic_cast< const Dependency* >( pChild ) )
-                            {
-                                const boost::filesystem::path relativePath
-                                    = m_environment.dependency( pDependency->getOpaque()->getStr() );
+                for ( Parser::ContextDef* pContext : pContextDef->get_children() )
+                {
+                    collectDependencies( pContext, dependencyGlobs );
+                }
+            }
 
-                                // try current directory of root
-                                boost::filesystem::path curDir = pRoot->getFilePath();
-                                curDir.remove_filename();
+            // foobar -> matches foobar
+            // foobar/* -> matches all files in foobar/
+            // foo/*/bar -> matches all files called bar in all folders of foo
+            // foo/** -> matches everything in subtree of foo
 
-                                if ( const mega::input::Root* pDependencyRoot
-                                     = resolveDependency( roots, curDir / relativePath ) )
-                                {
-                                    dependencyMap.insert( std::make_pair( pDependency, pDependencyRoot ) );
-                                }
-                                else if ( const mega::input::Root* pDependencyRoot = resolveDependency(
-                                              roots, m_environment.rootSourceDir() / relativePath ) )
-                                {
-                                    dependencyMap.insert( std::make_pair( pDependency, pDependencyRoot ) );
-                                }
-                                else
-                                {
-                                    // try the include directories
-                                    bool bFound = false;
-                                    for ( const boost::filesystem::path& includeDir :
-                                          pRoot->m_pComponent->getIncludeDirectories() )
-                                    {
-                                        if ( const mega::input::Root* pDependencyRoot
-                                             = resolveDependency( roots, includeDir / relativePath ) )
-                                        {
-                                            dependencyMap.insert(
-                                                std::make_pair( pDependency, pDependencyRoot ) );
-                                            bFound = true;
-                                            break;
-                                        }
-                                    }
-                                    VERIFY_RTE_MSG(
-                                        bFound, "Failed to locate dependency: "
-                                                    << pDependency->getOpaque()->getStr()
-                                                    << " in file: " << pRoot->getFilePath().string() );
-                                }
-                            }
-                            else if ( const Context* pChildContext = dynamic_cast< const Context* >( pChild ) )
-                            {
-                                resolveDependencies( roots, pRoot, pChildContext, dependencyMap );
-                            }
-                        }
-                    }
-
-                    using DependenciesMap
-                        = std::multimap< const mega::input::Root*, const mega::input::Dependency*,
-                                         mega::io::CompareIndexedObjects >;
-
-                    void collectDependencies( const std::vector< const mega::input::Root* >& roots,
-                                              const mega::input::Root*                       pRoot,
-                                              const mega::input::Context*                    pContext,
-                                              DependenciesMap&                               dependencies )
-                    {
-                        using namespace mega::input;
-
-                        for ( const Element* pChild : pContext->getElements() )
-                        {
-                            if ( const Dependency* pDependency = dynamic_cast< const Dependency* >( pChild ) )
-                            {
-                                dependencies.insert( std::make_pair( pRoot, pDependency ) );
-                            }
-                            else if ( const MegaInclude* pInclude
-                                      = dynamic_cast< const MegaInclude* >( pChild ) )
-                            {
-                                VERIFY_RTE( pInclude->m_pIncludeRoot );
-                                collectDependencies( roots, pRoot, pInclude->m_pIncludeRoot, dependencies );
-                            }
-                            else if ( const Context* pChildContext = dynamic_cast< const Context* >( pChild ) )
-                            {
-                                collectDependencies( roots, pRoot, pChildContext, dependencies );
-                            }
-                        }
-                    }
-            */
             virtual void run( task::Progress& taskProgress )
             {
-                // mega::io::Database< mega::io::stage::Stage_DependencyAnalysis > database(
-                //     m_environment );
+                const mega::io::manifestFilePath    manifestFilePath = m_environment.project_manifest();
+                const mega::io::CompilationFilePath dependencyCompilationFilePath
+                    = m_environment.DependencyAnalysis_DPGraph( manifestFilePath );
+                taskProgress.start( "Task_DependencyAnalysis", manifestFilePath.path(), dependencyCompilationFilePath.path() );
 
-                /*
-                            taskProgress.start( "Task_DependencyAnalysis",
-                                                m_environment.ComponentListing_Components(),
-                                                m_environment.Dependencies_DependencyAnalysis() );
+                common::HashCode combinedHash = 0U;
+                for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+                {
+                    const common::HashCode interfaceHash
+                        = m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
+                    combinedHash = common::hash_combine( combinedHash, interfaceHash );
+                }
 
-                            using namespace mega;
-                            mega::DependencyAnalysis* pDA = database.construct< mega::DependencyAnalysis >();
+                if ( m_environment.restore( dependencyCompilationFilePath, combinedHash ) )
+                {
+                    m_environment.setBuildHashCode( dependencyCompilationFilePath, combinedHash );
+                    taskProgress.cached();
+                    return;
+                }
 
-                            const std::vector< const mega::input::Root* > roots
-                                = database.many_cst< mega::input::Root >();
+                // load previous one...
 
-                            DependencyMap dependencyMap;
-                            for ( const mega::input::Root* pRoot : roots )
+                if ( m_environment.exists( dependencyCompilationFilePath ) )
+                {
+                    // previous dependency analysis exists
+                    taskProgress.failed();
+                }
+                else
+                {
+                    using namespace DependencyAnalysis;
+                    using namespace DependencyAnalysis::Dependencies;
+
+                    Database database( m_environment, manifestFilePath );
+
+                    std::set< boost::filesystem::path > sourceFiles;
+                    for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+                    {
+                        sourceFiles.insert( sourceFilePath.path() );
+                    }
+
+                    std::vector< ObjectDependencies* > dependencies;
+                    {
+                        for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+                        {
+                            GlobVector       dependencyGlobs;
+                            Interface::Root* pRoot = database.one< Interface::Root >( sourceFilePath );
+                            collectDependencies( pRoot->get_root()->get_ast(), dependencyGlobs );
+
+                            std::vector< Glob* > globs;
+
+                            mega::io::FilePathVector matchedFilePaths;
+                            for ( const mega::io::Glob& glob : dependencyGlobs )
                             {
-                                resolveDependencies( roots, pRoot, pRoot, dependencyMap );
-                            }
-
-                            DependenciesMap dependenciesMap;
-                            for ( const mega::input::Root* pRoot : roots )
-                            {
-                                if ( pRoot->getRootType() == eObjectSrcRoot )
+                                try
                                 {
-                                    collectDependencies( roots, pRoot, pRoot, dependenciesMap );
+                                    mega::io::resolveGlob( glob, m_environment.rootSourceDir(), matchedFilePaths );
                                 }
-                            }
-
-                            for ( const mega::input::Root* pRoot : roots )
-                            {
-                                if ( pRoot->getRootType() == eObjectSrcRoot )
+                                catch ( mega::io::GlobException& ex )
                                 {
-                                    for ( DependenciesMap::const_iterator i = dependenciesMap.lower_bound( pRoot ),
-                                                                          iUpper
-                                                                          = dependenciesMap.upper_bound( pRoot );
-                                          i != iUpper;
-                                          ++i )
-                                    {
-                                        auto iFind = dependencyMap.find( i->second );
-                                        VERIFY_RTE( iFind != dependencyMap.end() );
-                                        pDA->m_dependencies.insert( std::make_pair( pRoot, iFind->second ) );
-                                        // std::ostringstream os;
-                                        // os << pRoot->getFilePath() << "->" << iFind->second->getFilePath();
-                                        // taskProgress.msg( os.str() );
-                                    }
+                                    VERIFY_PARSER( false, "Dependency error: " << ex.what(),
+                                                   reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
                                 }
+                                catch ( boost::filesystem::filesystem_error& ex )
+                                {
+                                    VERIFY_PARSER( false, "Dependency error: " << ex.what(),
+                                                   reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
+                                }
+                                globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
                             }
 
-                            database.store();*/
-                taskProgress.succeeded();
+                            mega::io::FilePathVector resolution;
+                            for ( const boost::filesystem::path& filePath : matchedFilePaths )
+                            {
+                                if ( sourceFiles.count( filePath ) )
+                                    resolution.push_back( filePath );
+                            }
+
+                            const common::HashCode interfaceHash
+                                = m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
+
+                            ObjectDependencies* pDependencies = database.construct< ObjectDependencies >(
+                                ObjectDependencies::Args{ sourceFilePath.path(), interfaceHash, globs, resolution } );
+
+                            dependencies.push_back( pDependencies );
+                        }
+                    }
+
+                    Analysis* pAnalysis = database.construct< Analysis >( Analysis::Args{ dependencies } );
+
+                    const common::HashCode fileHashCode = database.save_DPGraph_to_temp();
+                    m_environment.setBuildHashCode( dependencyCompilationFilePath, fileHashCode );
+                    m_environment.temp_to_real( dependencyCompilationFilePath );
+                    m_environment.stash( dependencyCompilationFilePath, combinedHash );
+
+                    taskProgress.succeeded();
+                }
             }
         };
 
@@ -933,10 +899,10 @@ namespace driver
 
                 VERIFY_RTE_MSG( !tasks.empty(), "No input source code found" );
 
-                /*Task_DependencyAnalysis* pDependencyAnalysisTask = new Task_DependencyAnalysis( interfaceGenTasks, environment );
+                Task_DependencyAnalysis* pDependencyAnalysisTask = new Task_DependencyAnalysis( interfaceGenTasks, environment, manifest );
                 tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
 
-                for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+                /*for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                 {
                     Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis
                         = new Task_ObjectInterfaceAnalysis( { pDependencyAnalysisTask }, environment, sourceFilePath );

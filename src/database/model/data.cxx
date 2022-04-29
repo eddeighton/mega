@@ -118,16 +118,18 @@ namespace AST
         :   mega::io::Object( objectInfo )
     {
     }
-    ScopedIdentifier::ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Identifier > >& ids, const std::string& location)
+    ScopedIdentifier::ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Identifier > >& ids, const std::string& source_file, const std::size_t& line_number)
         :   mega::io::Object( objectInfo )
           , ids( ids )
-          , location( location )
+          , source_file( source_file )
+          , line_number( line_number )
     {
     }
     void ScopedIdentifier::load( mega::io::Loader& loader )
     {
         loader.load( ids );
-        loader.load( location );
+        loader.load( source_file );
+        loader.load( line_number );
     }
     void ScopedIdentifier::load_post( mega::io::Loader& loader )
     {
@@ -135,7 +137,8 @@ namespace AST
     void ScopedIdentifier::store( mega::io::Storer& storer ) const
     {
         storer.store( ids );
-        storer.store( location );
+        storer.store( source_file );
+        storer.store( line_number );
     }
     void ScopedIdentifier::to_json( nlohmann::json& part ) const
     {
@@ -155,7 +158,12 @@ namespace AST
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "location", location } } );
+                { "source_file", source_file } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "line_number", line_number } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -963,21 +971,18 @@ namespace AST
     ObjectDef::ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
-          , size( loader )
           , inheritance( loader )
     {
     }
-    ObjectDef::ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance)
+    ObjectDef::ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Inheritance >& inheritance)
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
-          , size( size )
           , inheritance( inheritance )
     {
     }
     void ObjectDef::load( mega::io::Loader& loader )
     {
         loader.load( p_AST_ContextDef );
-        loader.load( size );
         loader.load( inheritance );
     }
     void ObjectDef::load_post( mega::io::Loader& loader )
@@ -987,7 +992,6 @@ namespace AST
     void ObjectDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_ContextDef );
-        storer.store( size );
         storer.store( inheritance );
     }
     void ObjectDef::to_json( nlohmann::json& part ) const
@@ -1003,11 +1007,6 @@ namespace AST
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            part[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
             part[ "properties" ].push_back( property );
         }
@@ -1017,21 +1016,18 @@ namespace AST
     LinkDef::LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
-          , size( loader )
           , inheritance( loader )
     {
     }
-    LinkDef::LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance)
+    LinkDef::LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Inheritance >& inheritance)
         :   mega::io::Object( objectInfo )
           , p_AST_ContextDef( loader )
-          , size( size )
           , inheritance( inheritance )
     {
     }
     void LinkDef::load( mega::io::Loader& loader )
     {
         loader.load( p_AST_ContextDef );
-        loader.load( size );
         loader.load( inheritance );
     }
     void LinkDef::load_post( mega::io::Loader& loader )
@@ -1041,7 +1037,6 @@ namespace AST
     void LinkDef::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_ContextDef );
-        storer.store( size );
         storer.store( inheritance );
     }
     void LinkDef::to_json( nlohmann::json& part ) const
@@ -1055,11 +1050,6 @@ namespace AST
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
-            part[ "properties" ].push_back( property );
-        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
@@ -1192,84 +1182,6 @@ namespace Body
 }
 namespace Tree
 {
-    // struct Body : public mega::io::Object
-    Body::Body( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )
-    {
-    }
-    Body::Body( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str)
-        :   mega::io::Object( objectInfo )
-          , str( str )
-    {
-    }
-    void Body::load( mega::io::Loader& loader )
-    {
-        loader.load( str );
-    }
-    void Body::load_post( mega::io::Loader& loader )
-    {
-    }
-    void Body::store( mega::io::Storer& storer ) const
-    {
-        storer.store( str );
-    }
-    void Body::to_json( nlohmann::json& part ) const
-    {
-        part = nlohmann::json::object(
-            { 
-                { "partname", "Body" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "str", str } } );
-            part[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Type : public mega::io::Object
-    Type::Type( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )
-    {
-    }
-    Type::Type( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str)
-        :   mega::io::Object( objectInfo )
-          , str( str )
-    {
-    }
-    void Type::load( mega::io::Loader& loader )
-    {
-        loader.load( str );
-    }
-    void Type::load_post( mega::io::Loader& loader )
-    {
-    }
-    void Type::store( mega::io::Storer& storer ) const
-    {
-        storer.store( str );
-    }
-    void Type::to_json( nlohmann::json& part ) const
-    {
-        part = nlohmann::json::object(
-            { 
-                { "partname", "Type" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "str", str } } );
-            part[ "properties" ].push_back( property );
-        }
-    }
-        
     // struct Dimension : public mega::io::Object
     Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
@@ -1704,12 +1616,11 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Object::Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions, const std::vector< data::Ptr< data::Tree::Object > >& dependencies)
+    Object::Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , object_defs( object_defs )
           , dimensions( dimensions )
-          , dependencies( dependencies )
     {
     }
     void Object::load( mega::io::Loader& loader )
@@ -1717,7 +1628,6 @@ namespace Tree
         loader.load( p_Tree_Context );
         loader.load( object_defs );
         loader.load( dimensions );
-        loader.load( dependencies );
     }
     void Object::load_post( mega::io::Loader& loader )
     {
@@ -1728,7 +1638,6 @@ namespace Tree
         storer.store( p_Tree_Context );
         storer.store( object_defs );
         storer.store( dimensions );
-        storer.store( dependencies );
     }
     void Object::to_json( nlohmann::json& part ) const
     {
@@ -1749,11 +1658,6 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimensions", dimensions } } );
-            part[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "dependencies", dependencies } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -1803,6 +1707,158 @@ namespace Tree
     }
         
 }
+namespace DPGraph
+{
+    // struct Glob : public mega::io::Object
+    Glob::Glob( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    Glob::Glob( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& location, const std::string& glob)
+        :   mega::io::Object( objectInfo )
+          , location( location )
+          , glob( glob )
+    {
+    }
+    void Glob::load( mega::io::Loader& loader )
+    {
+        loader.load( location );
+        loader.load( glob );
+    }
+    void Glob::load_post( mega::io::Loader& loader )
+    {
+    }
+    void Glob::store( mega::io::Storer& storer ) const
+    {
+        storer.store( location );
+        storer.store( glob );
+    }
+    void Glob::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Glob" },
+                { "filetype" , "DPGraph" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "location", location } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "glob", glob } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct ObjectDependencies : public mega::io::Object
+    ObjectDependencies::ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    ObjectDependencies::ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Glob > >& globs, const std::vector< boost::filesystem::path >& resolution)
+        :   mega::io::Object( objectInfo )
+          , source_file( source_file )
+          , hash_code( hash_code )
+          , globs( globs )
+          , resolution( resolution )
+    {
+    }
+    void ObjectDependencies::load( mega::io::Loader& loader )
+    {
+        loader.load( source_file );
+        loader.load( hash_code );
+        loader.load( globs );
+        loader.load( resolution );
+    }
+    void ObjectDependencies::load_post( mega::io::Loader& loader )
+    {
+    }
+    void ObjectDependencies::store( mega::io::Storer& storer ) const
+    {
+        storer.store( source_file );
+        storer.store( hash_code );
+        storer.store( globs );
+        storer.store( resolution );
+    }
+    void ObjectDependencies::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ObjectDependencies" },
+                { "filetype" , "DPGraph" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "source_file", source_file } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "hash_code", hash_code } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "globs", globs } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "resolution", resolution } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Analysis : public mega::io::Object
+    Analysis::Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    Analysis::Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::ObjectDependencies > >& objects)
+        :   mega::io::Object( objectInfo )
+          , objects( objects )
+    {
+    }
+    void Analysis::load( mega::io::Loader& loader )
+    {
+        loader.load( objects );
+    }
+    void Analysis::load_post( mega::io::Loader& loader )
+    {
+    }
+    void Analysis::store( mega::io::Storer& storer ) const
+    {
+        storer.store( objects );
+    }
+    void Analysis::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Analysis" },
+                { "filetype" , "DPGraph" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "objects", objects } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+}
 
 
 mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
@@ -1835,19 +1891,20 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 23: return new AST::SourceRoot( loader, objectInfo );
         case 24: return new AST::IncludeRoot( loader, objectInfo );
         case 25: return new AST::ObjectSourceRoot( loader, objectInfo );
-        case 26: return new Tree::Body( loader, objectInfo );
-        case 27: return new Tree::Type( loader, objectInfo );
-        case 28: return new Tree::Dimension( loader, objectInfo );
-        case 29: return new Tree::ContextGroup( loader, objectInfo );
-        case 30: return new Tree::Root( loader, objectInfo );
-        case 31: return new Tree::Context( loader, objectInfo );
-        case 32: return new Tree::Namespace( loader, objectInfo );
-        case 33: return new Tree::Abstract( loader, objectInfo );
-        case 34: return new Tree::Action( loader, objectInfo );
-        case 35: return new Tree::Event( loader, objectInfo );
-        case 36: return new Tree::Function( loader, objectInfo );
-        case 37: return new Tree::Object( loader, objectInfo );
-        case 38: return new Tree::Link( loader, objectInfo );
+        case 26: return new Tree::Dimension( loader, objectInfo );
+        case 27: return new Tree::ContextGroup( loader, objectInfo );
+        case 28: return new Tree::Root( loader, objectInfo );
+        case 29: return new Tree::Context( loader, objectInfo );
+        case 30: return new Tree::Namespace( loader, objectInfo );
+        case 31: return new Tree::Abstract( loader, objectInfo );
+        case 32: return new Tree::Action( loader, objectInfo );
+        case 33: return new Tree::Event( loader, objectInfo );
+        case 34: return new Tree::Function( loader, objectInfo );
+        case 35: return new Tree::Object( loader, objectInfo );
+        case 36: return new Tree::Link( loader, objectInfo );
+        case 37: return new DPGraph::Glob( loader, objectInfo );
+        case 38: return new DPGraph::ObjectDependencies( loader, objectInfo );
+        case 39: return new DPGraph::Analysis( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

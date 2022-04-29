@@ -69,21 +69,21 @@ namespace db
                 writeJSON( dataDir / "stages.json", data );
             }
 
-            nlohmann::json writeFunctionSignature( model::Function::Ptr pFunction )
+            nlohmann::json writeFunctionSignature( model::Stage::Ptr pStage, model::Function::Ptr pFunction )
             {
                 nlohmann::json function;
                 function[ "name" ]       = pFunction->getName();
-                function[ "returntype" ] = pFunction->getReturnType();
-                function[ "params" ]     = pFunction->getParams();
+                function[ "returntype" ] = pFunction->getReturnType( pStage->m_strName );
+                function[ "params" ]     = pFunction->getParams( pStage->m_strName );
                 return function;
             }
 
-            nlohmann::json writeInterface( model::Interface::Ptr pInterface )
+            nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr pInterface )
             {
                 model::Object::Ptr pObject   = pInterface->m_object.lock();
                 nlohmann::json     interface = nlohmann::json::object( {
                     { "name", pObject->m_strName },
-                    { "fullname", pInterface->delimitTypeName( "_" ) },
+                    { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
                     { "readwrite", pInterface->m_isReadWrite },
                     { "functions", nlohmann::json::array() },
                     { "args_ctors", nlohmann::json::array() },
@@ -95,7 +95,7 @@ namespace db
                 if ( pInterface->m_base )
                 {
                     interface[ "has_base" ] = true;
-                    interface[ "base" ]     = pInterface->m_base->delimitTypeName( "::" );
+                    interface[ "base" ]     = pInterface->m_base->delimitTypeName( pStage->m_strName, "::" );
                 }
                 else
                 {
@@ -104,7 +104,7 @@ namespace db
 
                 for ( model::Interface::Ptr pOtherInterface : pInterface->m_superInterface.lock()->m_interfaces )
                 {
-                    interface[ "tests" ].push_back( pOtherInterface->delimitTypeName( "_" ) );
+                    interface[ "tests" ].push_back( pOtherInterface->delimitTypeName( pStage->m_strName, "_" ) );
                 }
 
                 // namespaces
@@ -120,7 +120,7 @@ namespace db
                         }
                     }
                     std::reverse( namespaces.begin(), namespaces.end() );
-                    for( model::Namespace::Ptr pNamespace : namespaces )
+                    for ( model::Namespace::Ptr pNamespace : namespaces )
                     {
                         interface[ "namespaces" ].push_back( pNamespace->m_strName );
                     }
@@ -129,7 +129,7 @@ namespace db
                 // functions
                 for ( model::Function::Ptr pFunction : pInterface->m_functions )
                 {
-                    interface[ "functions" ].push_back( writeFunctionSignature( pFunction ) );
+                    interface[ "functions" ].push_back( writeFunctionSignature( pStage, pFunction ) );
                 }
 
                 // args
@@ -149,7 +149,7 @@ namespace db
                         {
                             std::ostringstream osBaseArgs;
                             {
-                                osBaseArgs << pInterface->m_base->delimitTypeName( "::" ) << "::Args";
+                                osBaseArgs << pInterface->m_base->delimitTypeName( pStage->m_strName, "::" ) << "::Args";
                             }
                             {
                                 nlohmann::json ctorBaseArgs = nlohmann::json::object( { { "params", nlohmann::json::array() } } );
@@ -160,9 +160,10 @@ namespace db
 
                                 for ( model::Property::Ptr pProperty : pInterface->m_args )
                                 {
-                                    nlohmann::json param = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                                                    { "type", pProperty->m_type->getViewType( true ) },
-                                                                                    { "value", pProperty->m_strName } } );
+                                    nlohmann::json param
+                                        = nlohmann::json::object( { { "name", pProperty->m_strName },
+                                                                    { "type", pProperty->m_type->getViewType( pStage->m_strName, true ) },
+                                                                    { "value", pProperty->m_strName } } );
                                     ctorBaseArgs[ "params" ].push_back( param );
                                 }
 
@@ -170,7 +171,7 @@ namespace db
                             }
                             std::ostringstream osBasePointer;
                             {
-                                osBasePointer << pInterface->m_base->delimitTypeName( "::" ) << "*";
+                                osBasePointer << pInterface->m_base->delimitTypeName( pStage->m_strName, "::" ) << "*";
                             }
                             {
                                 nlohmann::json ctorBasePointer = nlohmann::json::object( { { "params", nlohmann::json::array() } } );
@@ -181,9 +182,10 @@ namespace db
 
                                 for ( model::Property::Ptr pProperty : pInterface->m_args )
                                 {
-                                    nlohmann::json param = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                                                    { "type", pProperty->m_type->getViewType( true ) },
-                                                                                    { "value", pProperty->m_strName } } );
+                                    nlohmann::json param
+                                        = nlohmann::json::object( { { "name", pProperty->m_strName },
+                                                                    { "type", pProperty->m_type->getViewType( pStage->m_strName, true ) },
+                                                                    { "value", pProperty->m_strName } } );
                                     ctorBasePointer[ "params" ].push_back( param );
                                 }
 
@@ -204,7 +206,7 @@ namespace db
                         {
                             std::ostringstream osBasePointer;
                             {
-                                osBasePointer << pInterface->m_base->delimitTypeName( "::" ) << "*";
+                                osBasePointer << pInterface->m_base->delimitTypeName( pStage->m_strName, "::" ) << "*";
                             }
                             {
                                 nlohmann::json ctorBasePointer = nlohmann::json::object( { { "params", nlohmann::json::array() } } );
@@ -215,9 +217,10 @@ namespace db
 
                                 for ( model::Property::Ptr pProperty : pInterface->m_args )
                                 {
-                                    nlohmann::json param = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                                                    { "type", pProperty->m_type->getViewType( true ) },
-                                                                                    { "value", pProperty->m_strName } } );
+                                    nlohmann::json param
+                                        = nlohmann::json::object( { { "name", pProperty->m_strName },
+                                                                    { "type", pProperty->m_type->getViewType( pStage->m_strName, true ) },
+                                                                    { "value", pProperty->m_strName } } );
                                     ctorBasePointer[ "params" ].push_back( param );
                                 }
 
@@ -235,9 +238,10 @@ namespace db
 
                         for ( model::Property::Ptr pProperty : pInterface->m_args )
                         {
-                            nlohmann::json param = nlohmann::json::object( { { "name", pProperty->m_strName },
-                                                                            { "type", pProperty->m_type->getViewType( true ) },
-                                                                            { "value", pProperty->m_strName } } );
+                            nlohmann::json param
+                                = nlohmann::json::object( { { "name", pProperty->m_strName },
+                                                            { "type", pProperty->m_type->getViewType( pStage->m_strName, true ) },
+                                                            { "value", pProperty->m_strName } } );
                             ctor[ "params" ].push_back( param );
                         }
 
@@ -247,7 +251,7 @@ namespace db
                     for ( model::Property::Ptr pProperty : pInterface->m_args )
                     {
                         std::ostringstream osType;
-                        osType << "std::optional< " << pProperty->m_type->getViewType( false ) << " >";
+                        osType << "std::optional< " << pProperty->m_type->getViewType( pStage->m_strName, false ) << " >";
                         nlohmann::json value = nlohmann::json::object( { { "name", pProperty->m_strName }, { "type", osType.str() } } );
                         interface[ "args_values" ].push_back( value );
                     }
@@ -279,7 +283,7 @@ namespace db
                 {
                     model::PrimaryObjectPart::Ptr pPart      = pInterface->getPrimaryObjectPart();
                     model::SuperInterface::Ptr    pSuper     = pInterface->m_superInterface.lock();
-                    nlohmann::json                conversion = nlohmann::json::object( { { "type", pInterface->delimitTypeName( "::" ) },
+                    nlohmann::json                conversion = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
                                                                           { "file", pPart->m_file.lock()->m_strName },
                                                                           { "supertype", pSuper->getTypeName() },
                                                                           { "object", pPart->m_object.lock()->m_strName } } );
@@ -301,8 +305,8 @@ namespace db
                         const bool bReadWrite = std::find( pStage->m_files.begin(), pStage->m_files.end(), pFile ) != pStage->m_files.end();
 
                         nlohmann::json accessor
-                            = nlohmann::json::object( { { "type", pInterface->delimitTypeName( "::" ) },
-                                                        { "longname", pInterface->delimitTypeName( "_" ) },
+                            = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
+                                                        { "longname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
                                                         { "read_write", bReadWrite },
                                                         { "object", pPrimaryPart->m_object.lock()->m_strName },
                                                         { "file", pPrimaryPart->m_file.lock()->m_strName },
@@ -331,8 +335,8 @@ namespace db
                             {
                                 manyAccessors.insert( pInterface );
                                 nlohmann::json accessor
-                                    = nlohmann::json::object( { { "type", pInterface->delimitTypeName( "::" ) },
-                                                                { "longname", pInterface->delimitTypeName( "_" ) },
+                                    = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
+                                                                { "longname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
                                                                 { "read_write", bReadWrite },
                                                                 { "object", pPrimaryPart->m_object.lock()->m_strName },
                                                                 { "file", pPrimaryPart->m_file.lock()->m_strName },
@@ -393,8 +397,7 @@ namespace db
                                 else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                                 {
                                     model::Object::Ptr pObject = pRef->m_object;
-                                    osExpression << pStage->m_strName
-                                                 << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
+                                    osExpression << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
                                                  << " >( database, arguments." << pProperty->m_strName << ".value() )";
                                     osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                                     osErrorMsg << pProperty->m_strName << " is not initialised";
@@ -420,8 +423,7 @@ namespace db
                                     else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                                     {
                                         model::Object::Ptr pObject = pToRef->m_object;
-                                        osExpression << pStage->m_strName
-                                                     << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
+                                        osExpression << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
                                                      << " >( database, arguments." << pProperty->m_strName << ".value() )";
                                         osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                                         osErrorMsg << pProperty->m_strName << " is not initialised";
@@ -437,8 +439,7 @@ namespace db
                                     {
                                         // osExpression << "arguments." << pProperty->m_strName << ".value()";
                                         model::Object::Ptr pObject = pFromRef->m_object;
-                                        osExpression << pStage->m_strName
-                                                     << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
+                                        osExpression << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
                                                      << " >( database, arguments." << pProperty->m_strName << ".value() )";
                                         osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                                         osErrorMsg << pProperty->m_strName << " is not initialised";
@@ -499,12 +500,12 @@ namespace db
                 for ( model::Constructor::Ptr pConstructor : pStage->m_constructors )
                 {
                     std::ostringstream os;
-                    os << "construct_" << pConstructor->m_interface->delimitTypeName( "_" );
+                    os << "construct_" << pConstructor->m_interface->delimitTypeName( pStage->m_strName, "_" );
 
                     model::Interface::Ptr      pInterface      = pConstructor->m_interface;
                     model::SuperInterface::Ptr pSuperInterface = pInterface->m_superInterface.lock();
 
-                    nlohmann::json ctor = nlohmann::json::object( { { "return_type", pConstructor->m_interface->delimitTypeName( "::" ) },
+                    nlohmann::json ctor = nlohmann::json::object( { { "return_type", pConstructor->m_interface->delimitTypeName( pStage->m_strName, "::" ) },
                                                                     { "function_name", os.str() },
                                                                     { "super_type_name", pSuperInterface->getTypeName() },
                                                                     { "bases", nlohmann::json::array() },
@@ -515,7 +516,7 @@ namespace db
                     std::vector< model::Interface::Ptr > bases_reversed;
                     while ( pBase )
                     {
-                        nlohmann::json base = nlohmann::json::object( { { "typename", pBase->delimitTypeName( "::" ) },
+                        nlohmann::json base = nlohmann::json::object( { { "typename", pBase->delimitTypeName( pStage->m_strName, "::" ) },
                                                                         { "owns_primary_part", pBase->ownsPrimaryObjectPart() },
                                                                         { "parts", nlohmann::json::array() } } );
 
@@ -539,7 +540,7 @@ namespace db
                     for ( model::Interface::Ptr pBase : bases_reversed )
                     {
                         nlohmann::json base = nlohmann::json::object(
-                            { { "typename", pBase->delimitTypeName( "::" ) }, { "owns_primary_part", pBase->ownsPrimaryObjectPart() } } );
+                            { { "typename", pBase->delimitTypeName( pStage->m_strName, "::" ) }, { "owns_primary_part", pBase->ownsPrimaryObjectPart() } } );
 
                         model::PrimaryObjectPart::Ptr pPrimaryPart = pBase->getPrimaryObjectPart();
                         base[ "primary_part" ] = nlohmann::json::object( { { "object", pPrimaryPart->m_object.lock()->m_strName },
@@ -590,10 +591,10 @@ namespace db
                             model::Interface::Ptr pInterface = pStage->getInterface( pObject );
 
                             if ( pType->m_bLate )
-                                osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
                                                << " >( m_converter, data.value() );";
                             else
-                                osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
                                                << " >( m_converter, data );";
                         }
                         else
@@ -620,11 +621,11 @@ namespace db
                                 model::Interface::Ptr pInterface = pStage->getInterface( pObject );
 
                                 if ( pType->m_bLate )
-                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
                                                    << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
                                                    << " >( m_converter, data.value() );";
                                 else
-                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
                                                    << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
                                                    << " >( m_converter, data );";
                             }
@@ -640,11 +641,11 @@ namespace db
                                 model::Object::Ptr    pObject    = pFromRef->m_object;
                                 model::Interface::Ptr pInterface = pStage->getInterface( pObject );
                                 if ( pType->m_bLate )
-                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
                                                    << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
                                                    << " >( m_converter, data.value() );";
                                 else
-                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( "::" )
+                                    osFunctionBody << "return toInterface< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
                                                    << ", data::Ptr< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << " >"
                                                    << " >( m_converter, data );";
                             }
@@ -729,7 +730,7 @@ namespace db
 
                                 osFunctionBody << "data = "
                                                << "toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << ", "
-                                               << pInterface->delimitTypeName( "::" ) << " >( m_converter, value );";
+                                               << pInterface->delimitTypeName( pStage->m_strName, "::" ) << " >( m_converter, value );";
                             }
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
@@ -830,7 +831,7 @@ namespace db
                     for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
                     {
                         nlohmann::json cast = nlohmann::json::object(
-                            { { "type", pInterface->delimitTypeName( "::" ) }, { "fullname", pInterface->delimitTypeName( "_" ) } } );
+                            { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) }, { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) } } );
                         stage[ "casts" ].push_back( cast );
                     }
                 }
@@ -847,8 +848,8 @@ namespace db
                     {
                         model::ObjectPart::Ptr pPrimaryObjectPart = pInterface->m_object.lock()->m_primaryObjectPart;
 
-                        nlohmann::json interface = nlohmann::json::object( { { "name", pInterface->delimitTypeName( "::" ) },
-                                                                             { "fullname", pInterface->delimitTypeName( "_" ) },
+                        nlohmann::json interface = nlohmann::json::object( { { "name", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
+                                                                             { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
                                                                              { "part", pPrimaryObjectPart->getDataType( "::" ) },
                                                                              { "casts", nlohmann::json::array() } } );
 
@@ -887,10 +888,10 @@ namespace db
 
                         nlohmann::json function
                             = nlohmann::json::object( { { "name", pFunction->getName() },
-                                                        { "returntype", pFunction->getReturnType() },
+                                                        { "returntype", pFunction->getReturnType( pStage->m_strName ) },
                                                         { "propertytype", pFunction->m_property->m_type->getDataType( false ) },
                                                         { "property", pFunction->m_property->m_strName },
-                                                        { "params", pFunction->getParams() },
+                                                        { "params", pFunction->getParams( pStage->m_strName ) },
                                                         { "body", writeFunctionBody( pStage, pFunction ) } } );
 
                         std::set< model::Interface::Ptr, model::CountedObjectComparator< model::Interface::Ptr > > remaining;
@@ -1005,7 +1006,7 @@ namespace db
 
                     for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
                     {
-                        stage[ "interfaces" ].push_back( writeInterface( pInterface ) );
+                        stage[ "interfaces" ].push_back( writeInterface( pStage, pInterface ) );
                     }
 
                     writeAccessors( stage, pStage );

@@ -60,8 +60,6 @@ namespace Body
 }
 namespace Tree
 {
-    struct Body;
-    struct Type;
     struct Dimension;
     struct ContextGroup;
     struct Root;
@@ -73,6 +71,12 @@ namespace Tree
     struct Function;
     struct Object;
     struct Link;
+}
+namespace DPGraph
+{
+    struct Glob;
+    struct ObjectDependencies;
+    struct Analysis;
 }
 
 // definitions
@@ -117,13 +121,14 @@ namespace AST
     struct ScopedIdentifier : public mega::io::Object
     {
         ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Identifier > >& ids, const std::string& location);
+        ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Identifier > >& ids, const std::string& source_file, const std::size_t& line_number);
         enum 
         {
             Object_Part_Type_ID = 2
         };
         std::vector< data::Ptr< data::AST::Identifier > > ids;
-        std::string location;
+        std::string source_file;
+        std::size_t line_number;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
@@ -416,12 +421,11 @@ namespace AST
     struct ObjectDef : public mega::io::Object
     {
         ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance);
+        ObjectDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Inheritance >& inheritance);
         enum 
         {
             Object_Part_Type_ID = 21
         };
-        data::Ptr< data::AST::Size > size;
         data::Ptr< data::AST::Inheritance > inheritance;
         Ptr< AST::ContextDef > p_AST_ContextDef;
         mega::io::Object* m_pInheritance = nullptr;
@@ -433,12 +437,11 @@ namespace AST
     struct LinkDef : public mega::io::Object
     {
         LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Size >& size, const data::Ptr< data::AST::Inheritance >& inheritance);
+        LinkDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Inheritance >& inheritance);
         enum 
         {
             Object_Part_Type_ID = 22
         };
-        data::Ptr< data::AST::Size > size;
         data::Ptr< data::AST::Inheritance > inheritance;
         Ptr< AST::ContextDef > p_AST_ContextDef;
         mega::io::Object* m_pInheritance = nullptr;
@@ -498,42 +501,12 @@ namespace Body
 }
 namespace Tree
 {
-    struct Body : public mega::io::Object
-    {
-        Body( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Body( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
-        enum 
-        {
-            Object_Part_Type_ID = 26
-        };
-        std::string str;
-        mega::io::Object* m_pInheritance = nullptr;
-        virtual void load( mega::io::Loader& loader );
-        virtual void load_post( mega::io::Loader& loader );
-        virtual void store( mega::io::Storer& storer ) const;
-        virtual void to_json( nlohmann::json& data ) const;
-    };
-    struct Type : public mega::io::Object
-    {
-        Type( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Type( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& str);
-        enum 
-        {
-            Object_Part_Type_ID = 27
-        };
-        std::string str;
-        mega::io::Object* m_pInheritance = nullptr;
-        virtual void load( mega::io::Loader& loader );
-        virtual void load_post( mega::io::Loader& loader );
-        virtual void store( mega::io::Storer& storer ) const;
-        virtual void to_json( nlohmann::json& data ) const;
-    };
     struct Dimension : public mega::io::Object
     {
         Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 28
+            Object_Part_Type_ID = 26
         };
         Ptr< AST::Dimension > p_AST_Dimension;
         mega::io::Object* m_pInheritance = nullptr;
@@ -548,7 +521,7 @@ namespace Tree
         ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Tree::Context > >& children);
         enum 
         {
-            Object_Part_Type_ID = 29
+            Object_Part_Type_ID = 27
         };
         std::vector< data::Ptr< data::Tree::Context > > children;
         mega::io::Object* m_pInheritance = nullptr;
@@ -563,7 +536,7 @@ namespace Tree
         Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ObjectSourceRoot >& root);
         enum 
         {
-            Object_Part_Type_ID = 30
+            Object_Part_Type_ID = 28
         };
         data::Ptr< data::AST::ObjectSourceRoot > root;
         Ptr< Tree::ContextGroup > p_Tree_ContextGroup;
@@ -579,7 +552,7 @@ namespace Tree
         Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const data::Ptr< data::Tree::ContextGroup >& parent);
         enum 
         {
-            Object_Part_Type_ID = 31
+            Object_Part_Type_ID = 29
         };
         std::string identifier;
         data::Ptr< data::Tree::ContextGroup > parent;
@@ -596,7 +569,7 @@ namespace Tree
         Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& is_global, const std::vector< data::Ptr< data::AST::ContextDef > >& namespace_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 32
+            Object_Part_Type_ID = 30
         };
         bool is_global;
         std::vector< data::Ptr< data::AST::ContextDef > > namespace_defs;
@@ -614,7 +587,7 @@ namespace Tree
         Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::AbstractDef > >& abstract_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 33
+            Object_Part_Type_ID = 31
         };
         std::vector< data::Ptr< data::AST::AbstractDef > > abstract_defs;
         std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
@@ -631,7 +604,7 @@ namespace Tree
         Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 34
+            Object_Part_Type_ID = 32
         };
         std::vector< data::Ptr< data::AST::ActionDef > > action_defs;
         std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
@@ -648,7 +621,7 @@ namespace Tree
         Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::EventDef > >& event_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 35
+            Object_Part_Type_ID = 33
         };
         std::vector< data::Ptr< data::AST::EventDef > > event_defs;
         std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
@@ -665,7 +638,7 @@ namespace Tree
         Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::FunctionDef > >& function_defs);
         enum 
         {
-            Object_Part_Type_ID = 36
+            Object_Part_Type_ID = 34
         };
         std::vector< data::Ptr< data::AST::FunctionDef > > function_defs;
         Ptr< Tree::Context > p_Tree_Context;
@@ -678,14 +651,13 @@ namespace Tree
     struct Object : public mega::io::Object
     {
         Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions, const std::vector< data::Ptr< data::Tree::Object > >& dependencies);
+        Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::Dimension > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 37
+            Object_Part_Type_ID = 35
         };
         std::vector< data::Ptr< data::AST::ObjectDef > > object_defs;
         std::vector< data::Ptr< data::Tree::Dimension > > dimensions;
-        std::vector< data::Ptr< data::Tree::Object > > dependencies;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -699,10 +671,62 @@ namespace Tree
         Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::LinkDef > >& link_defs);
         enum 
         {
-            Object_Part_Type_ID = 38
+            Object_Part_Type_ID = 36
         };
         std::vector< data::Ptr< data::AST::LinkDef > > link_defs;
         Ptr< Tree::Context > p_Tree_Context;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+}
+namespace DPGraph
+{
+    struct Glob : public mega::io::Object
+    {
+        Glob( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Glob( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& location, const std::string& glob);
+        enum 
+        {
+            Object_Part_Type_ID = 37
+        };
+        boost::filesystem::path location;
+        std::string glob;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct ObjectDependencies : public mega::io::Object
+    {
+        ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Glob > >& globs, const std::vector< boost::filesystem::path >& resolution);
+        enum 
+        {
+            Object_Part_Type_ID = 38
+        };
+        boost::filesystem::path source_file;
+        std::size_t hash_code;
+        std::vector< data::Ptr< data::DPGraph::Glob > > globs;
+        std::vector< boost::filesystem::path > resolution;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Analysis : public mega::io::Object
+    {
+        Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::ObjectDependencies > >& objects);
+        enum 
+        {
+            Object_Part_Type_ID = 39
+        };
+        std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > objects;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
@@ -964,18 +988,6 @@ inline Ptr< AST::ObjectSourceRoot > convert( const Ptr< AST::ObjectSourceRoot >&
 }
 
 template <>
-inline Ptr< Tree::Body > convert( const Ptr< Tree::Body >& from )
-{
-    return from;
-}
-
-template <>
-inline Ptr< Tree::Type > convert( const Ptr< Tree::Type >& from )
-{
-    return from;
-}
-
-template <>
 inline Ptr< AST::Dimension > convert( const Ptr< Tree::Dimension >& from )
 {
     return from->p_AST_Dimension;
@@ -1139,6 +1151,24 @@ inline Ptr< Tree::Context > convert( const Ptr< Tree::Link >& from )
 
 template <>
 inline Ptr< Tree::Link > convert( const Ptr< Tree::Link >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< DPGraph::Glob > convert( const Ptr< DPGraph::Glob >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< DPGraph::ObjectDependencies > convert( const Ptr< DPGraph::ObjectDependencies >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< DPGraph::Analysis > convert( const Ptr< DPGraph::Analysis >& from )
 {
     return from;
 }

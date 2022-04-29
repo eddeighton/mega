@@ -20,41 +20,23 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Link > >;
 }
 
-/*
-stage InterfaceAnalysis
+stage DependencyAnalysis
 {
-    source .mega;
+    source .manifest;
     dependency InterfaceStage;
 
-    file Analysis;
+    file DPGraph;
 
-    persource accessor array< ref< Interface::Abstract > >;
-    persource accessor array< ref< Interface::Action > >;
-    persource accessor array< ref< Interface::Event > >;
-    persource accessor array< ref< Interface::Function > >;
-    persource accessor array< ref< Interface::Object > >;
-    persource accessor array< ref< Interface::Link > >;
-}*/
+    global accessor ref< Dependencies::Analysis >;
+
+    persource accessor ref< Interface::Root >;
+}
 
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 // Objects
 namespace Interface
 {
-    // embedded language parts
-    namespace CPP
-    {
-        object Body -> InterfaceStage::Tree
-        {
-            value< std::string > str;
-        }
-
-        object Type -> InterfaceStage::Tree
-        {
-            value< std::string > str;
-        }
-    }
-
     // context elements
     object Dimension : Parser::Dimension -> InterfaceStage::Tree
     {
@@ -95,7 +77,6 @@ namespace Interface
     {
         array< ref< Parser::ActionDef > > action_defs;
         array< ref< Dimension > > dimensions;
-        //late< ref< CPP::Body > > body;
     }
     object Event : Context -> InterfaceStage::Tree
     {
@@ -105,17 +86,38 @@ namespace Interface
     object Function : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::FunctionDef > > function_defs;
-        //late< ref< CPP::Body > > body;
     }
     object Object : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::ObjectDef > > object_defs;
         array< ref< Dimension > > dimensions;
-        array< ref< Object > > dependencies;
     }
     object Link : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::LinkDef > > link_defs;
+    }
+
+}
+
+namespace Dependencies
+{
+    object Glob -> DependencyAnalysis::DPGraph
+    {
+        value< boost::filesystem::path > location;
+        value< std::string > glob;
+    }
+
+    object ObjectDependencies -> DependencyAnalysis::DPGraph
+    {
+        value< boost::filesystem::path > source_file;
+        value< std::size_t > hash_code;
+        array< ref< Glob > > globs;
+        array< value< boost::filesystem::path > > resolution;
+    }
+
+    object Analysis -> DependencyAnalysis::DPGraph
+    {
+        array< ref< ObjectDependencies > > objects;
     }
 
 }

@@ -53,14 +53,14 @@ namespace mega
 
             const Path& rootSourceDir() const { return m_rootSourceDir; }
             const Path& rootBuildDir() const { return m_rootBuildDir; }
-
+/*
             Path dependency( const std::string& strOpaque ) const
             {
                 std::ostringstream os;
                 os << strOpaque << megaFilePath::extension().string();
                 return Path( os.str() );
             }
-
+*/
             ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const
             {
                 VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDirectory ),
@@ -114,6 +114,10 @@ namespace mega
             bool restore( const CompilationFilePath& file, const common::HashCode& code ) const
             {
                 return m_stash.restore( toPath( file ), code );
+            }
+            bool exists( const CompilationFilePath& compilationFile ) const
+            {
+                return boost::filesystem::exists( toPath( compilationFile ) );
             }
 
             common::HashCode getBuildHashCode( const SourceFilePath& key ) const

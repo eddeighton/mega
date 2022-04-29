@@ -54,12 +54,12 @@ namespace db
 
             void setLate() { m_bLate = true; }
 
-            virtual std::string getViewType( bool bAsArg ) const = 0;
-            virtual std::string getDataType( bool bAsArg ) const = 0;
-            virtual bool        isCtorParam() const              = 0;
-            virtual bool        isGet() const                    = 0;
-            virtual bool        isSet() const                    = 0;
-            virtual bool        isInsert() const                 = 0;
+            virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const = 0;
+            virtual std::string getDataType( bool bAsArg ) const                                       = 0;
+            virtual bool        isCtorParam() const                                                    = 0;
+            virtual bool        isGet() const                                                          = 0;
+            virtual bool        isSet() const                                                          = 0;
+            virtual bool        isInsert() const                                                       = 0;
         };
 
         class File;
@@ -78,7 +78,7 @@ namespace db
             {
             }
 
-            bool isCtorParam() const { return !(m_type->m_bLate || !m_type->isCtorParam() ); }
+            bool isCtorParam() const { return !( m_type->m_bLate || !m_type->isCtorParam() ); }
             bool isGet() const { return m_type->isGet(); }
             bool isSet() const { return m_type->isSet(); }
             bool isInsert() const { return m_type->isInsert(); }
@@ -198,14 +198,14 @@ namespace db
             Property::Ptr              m_property;
             std::weak_ptr< Interface > m_interface;
 
-            virtual std::string getName() const       = 0;
-            virtual std::string getReturnType() const = 0;
-            virtual std::string getParams() const     = 0;
+            virtual std::string getName() const                                             = 0;
+            virtual std::string getReturnType( const std::string& strStageNamespace ) const = 0;
+            virtual std::string getParams( const std::string& strStageNamespace ) const     = 0;
 
-            inline std::string getMangledName() const
+            inline std::string getMangledName( const std::string& strStageNamespace ) const
             {
                 std::ostringstream os;
-                os << getReturnType() << getName() << getParams();
+                os << getReturnType( strStageNamespace ) << getName() << getParams( strStageNamespace );
                 return os.str();
             }
         };
@@ -223,13 +223,13 @@ namespace db
                 os << "get_" << m_property->m_strName;
                 return os.str();
             }
-            virtual std::string getReturnType() const
+            virtual std::string getReturnType( const std::string& strStageNamespace ) const
             {
                 std::ostringstream os;
-                os << m_property->m_type->getViewType( true );
+                os << m_property->m_type->getViewType( strStageNamespace, true );
                 return os.str();
             }
-            virtual std::string getParams() const
+            virtual std::string getParams( const std::string& strStageNamespace ) const
             {
                 std::ostringstream os;
                 return os.str();
@@ -249,11 +249,11 @@ namespace db
                 os << "set_" << m_property->m_strName;
                 return os.str();
             }
-            virtual std::string getReturnType() const { return "void"; }
-            virtual std::string getParams() const
+            virtual std::string getReturnType( const std::string& strStageNamespace ) const { return "void"; }
+            virtual std::string getParams( const std::string& strStageNamespace ) const
             {
                 std::ostringstream os;
-                os << m_property->m_type->getViewType( true ) << " value ";
+                os << m_property->m_type->getViewType( strStageNamespace, true ) << " value ";
                 return os.str();
             }
         };
@@ -266,8 +266,8 @@ namespace db
             {
             }
             virtual std::string getName() const;
-            virtual std::string getReturnType() const { return "void"; }
-            virtual std::string getParams() const;
+            virtual std::string getReturnType( const std::string& strStageNamespace ) const { return "void"; }
+            virtual std::string getParams( const std::string& strStageNamespace ) const;
         };
 
         class SuperInterface;
@@ -288,32 +288,7 @@ namespace db
             std::vector< ObjectPart::Ptr >  m_readWriteObjectParts;
             bool                            m_isReadWrite;
 
-            std::string delimitTypeName( const std::string& str ) const
-            {
-                Object::Ptr pObject = m_object.lock();
-
-                std::vector< Namespace::Ptr > namespaces;
-                {
-                    Namespace::Ptr pIter = pObject->m_namespace.lock();
-                    while ( pIter )
-                    {
-                        namespaces.push_back( pIter );
-                        pIter = pIter->m_namespace.lock();
-                    }
-                    std::reverse( namespaces.begin(), namespaces.end() );
-                }
-
-                std::ostringstream os;
-                {
-                    for ( Namespace::Ptr pNamespace : namespaces )
-                    {
-                        os << pNamespace->m_strName << str;
-                    }
-                    os << pObject->m_strName;
-                }
-
-                return os.str();
-            }
+            std::string delimitTypeName( const std::string& strStageNamespace, const std::string& str ) const;
 
             inline PrimaryObjectPart::Ptr getPrimaryObjectPart() const
             {
@@ -321,6 +296,7 @@ namespace db
                 VERIFY_RTE( pPart );
                 return pPart;
             }
+
             inline bool ownsPrimaryObjectPart() const
             {
                 ObjectPart::Ptr pPrimaryObjectPart = getPrimaryObjectPart();
@@ -350,16 +326,7 @@ namespace db
             using FunctionMultiMap = std::multimap< std::string, Function::Ptr >;
             FunctionMultiMap m_functions;
 
-            std::string getTypeName() const
-            {
-                std::ostringstream os;
-                os << "super";
-                for ( model::Interface::Ptr pInterface : m_interfaces )
-                {
-                    os << "_" << pInterface->delimitTypeName( "_" );
-                }
-                return os.str();
-            }
+            std::string getTypeName() const;
         };
 
         class StageFunction : public CountedObject
@@ -408,7 +375,7 @@ namespace db
             {
             }
             using Ptr = std::shared_ptr< Source >;
-            std::string m_strName;
+            std::string                           m_strName;
             std::vector< std::weak_ptr< Stage > > m_stages;
         };
 
@@ -504,7 +471,10 @@ namespace db
             using Ptr = std::shared_ptr< ValueType >;
             std::string m_cppType;
 
-            virtual std::string getViewType( bool bAsArg ) const { return bAsArg ? toConstRef( m_cppType ) : m_cppType; }
+            virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const
+            {
+                return bAsArg ? toConstRef( m_cppType ) : m_cppType;
+            }
             virtual std::string getDataType( bool bAsArg ) const
             {
                 if ( m_bLate )
@@ -530,11 +500,12 @@ namespace db
             using Ptr = std::shared_ptr< RefType >;
             Object::Ptr m_object;
 
-            virtual std::string getViewType( bool bAsArg ) const
+            virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const
             {
                 VERIFY_RTE( m_object );
                 std::ostringstream os;
-                os << m_object->m_namespace.lock()->m_strFullName << "::" << m_object->m_strName << "*";
+                os << "::" << strStageNamespace << "::" << m_object->m_namespace.lock()->m_strFullName << "::" << m_object->m_strName
+                   << "*";
                 return os.str();
             }
             virtual std::string getDataType( bool bAsArg ) const
@@ -566,13 +537,13 @@ namespace db
             using Ptr = std::shared_ptr< ArrayType >;
             Type::Ptr m_underlyingType;
 
-            virtual std::string getViewType( bool bAsArg ) const
+            virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const
             {
                 VERIFY_RTE( m_underlyingType );
                 std::ostringstream os;
-                os << "std::vector< " << m_underlyingType->getViewType( false ) << " >";
+                os << "std::vector< " << m_underlyingType->getViewType( strStageNamespace, false ) << " >";
 
-                if( std::dynamic_pointer_cast< RefType >( m_underlyingType ) )
+                if ( std::dynamic_pointer_cast< RefType >( m_underlyingType ) )
                 {
                     return os.str();
                 }
@@ -612,14 +583,15 @@ namespace db
             Type::Ptr m_toType;
             Type::Ptr m_predicate;
 
-            virtual std::string getViewType( bool bAsArg ) const
+            virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const
             {
                 VERIFY_RTE( m_fromType );
                 VERIFY_RTE( m_toType );
                 std::ostringstream os;
-                os << "std::map< " << m_fromType->getViewType( false ) << ", " << m_toType->getViewType( false ) << " >";
+                os << "std::map< " << m_fromType->getViewType( strStageNamespace, false ) << ", "
+                   << m_toType->getViewType( strStageNamespace, false ) << " >";
 
-                if( std::dynamic_pointer_cast< RefType >( m_fromType ) || std::dynamic_pointer_cast< RefType >( m_toType ) )
+                if ( std::dynamic_pointer_cast< RefType >( m_fromType ) || std::dynamic_pointer_cast< RefType >( m_toType ) )
                 {
                     return os.str();
                 }
