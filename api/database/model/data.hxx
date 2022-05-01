@@ -64,6 +64,7 @@ namespace Tree
     struct InheritanceTrait;
     struct ReturnTypeTrait;
     struct ArgumentListTrait;
+    struct SizeTrait;
     struct ContextGroup;
     struct Root;
     struct Context;
@@ -363,10 +364,12 @@ namespace AST
     struct AbstractDef : public mega::io::Object
     {
         AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        AbstractDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Inheritance >& inheritance);
         enum 
         {
             Object_Part_Type_ID = 17
         };
+        data::Ptr< data::AST::Inheritance > inheritance;
         Ptr< AST::ContextDef > p_AST_ContextDef;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -564,13 +567,27 @@ namespace Tree
         virtual void store( mega::io::Storer& storer ) const;
         virtual void to_json( nlohmann::json& data ) const;
     };
+    struct SizeTrait : public mega::io::Object
+    {
+        SizeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 31
+        };
+        Ptr< AST::Size > p_AST_Size;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
     struct ContextGroup : public mega::io::Object
     {
         ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Tree::Context > >& children);
         enum 
         {
-            Object_Part_Type_ID = 31
+            Object_Part_Type_ID = 32
         };
         std::vector< data::Ptr< data::Tree::Context > > children;
         mega::io::Object* m_pInheritance = nullptr;
@@ -585,7 +602,7 @@ namespace Tree
         Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::ObjectSourceRoot >& root);
         enum 
         {
-            Object_Part_Type_ID = 32
+            Object_Part_Type_ID = 33
         };
         data::Ptr< data::AST::ObjectSourceRoot > root;
         Ptr< Tree::ContextGroup > p_Tree_ContextGroup;
@@ -601,7 +618,7 @@ namespace Tree
         Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const data::Ptr< data::Tree::ContextGroup >& parent);
         enum 
         {
-            Object_Part_Type_ID = 33
+            Object_Part_Type_ID = 34
         };
         std::string identifier;
         data::Ptr< data::Tree::ContextGroup > parent;
@@ -618,11 +635,11 @@ namespace Tree
         Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& is_global, const std::vector< data::Ptr< data::AST::ContextDef > >& namespace_defs);
         enum 
         {
-            Object_Part_Type_ID = 34
+            Object_Part_Type_ID = 35
         };
         bool is_global;
         std::vector< data::Ptr< data::AST::ContextDef > > namespace_defs;
-        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimensions;
+        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimension_traits;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -636,10 +653,11 @@ namespace Tree
         Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::AbstractDef > >& abstract_defs);
         enum 
         {
-            Object_Part_Type_ID = 35
+            Object_Part_Type_ID = 36
         };
         std::vector< data::Ptr< data::AST::AbstractDef > > abstract_defs;
-        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimensions;
+        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimension_traits;
+        std::optional< std::optional< data::Ptr< data::Tree::InheritanceTrait > > > inheritance_trait;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -653,10 +671,12 @@ namespace Tree
         Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs);
         enum 
         {
-            Object_Part_Type_ID = 36
+            Object_Part_Type_ID = 37
         };
         std::vector< data::Ptr< data::AST::ActionDef > > action_defs;
-        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimensions;
+        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimension_traits;
+        std::optional< std::optional< data::Ptr< data::Tree::InheritanceTrait > > > inheritance_trait;
+        std::optional< std::optional< data::Ptr< data::Tree::SizeTrait > > > size_trait;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -670,10 +690,12 @@ namespace Tree
         Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::EventDef > >& event_defs);
         enum 
         {
-            Object_Part_Type_ID = 37
+            Object_Part_Type_ID = 38
         };
         std::vector< data::Ptr< data::AST::EventDef > > event_defs;
-        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimensions;
+        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimension_traits;
+        std::optional< std::optional< data::Ptr< data::Tree::InheritanceTrait > > > inheritance_trait;
+        std::optional< std::optional< data::Ptr< data::Tree::SizeTrait > > > size_trait;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -687,9 +709,11 @@ namespace Tree
         Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::FunctionDef > >& function_defs);
         enum 
         {
-            Object_Part_Type_ID = 38
+            Object_Part_Type_ID = 39
         };
         std::vector< data::Ptr< data::AST::FunctionDef > > function_defs;
+        std::optional< data::Ptr< data::Tree::ReturnTypeTrait > > return_type_trait;
+        std::optional< data::Ptr< data::Tree::ArgumentListTrait > > arguments_trait;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -703,10 +727,11 @@ namespace Tree
         Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs);
         enum 
         {
-            Object_Part_Type_ID = 39
+            Object_Part_Type_ID = 40
         };
         std::vector< data::Ptr< data::AST::ObjectDef > > object_defs;
-        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimensions;
+        std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimension_traits;
+        std::optional< std::optional< data::Ptr< data::Tree::InheritanceTrait > > > inheritance_trait;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -720,9 +745,10 @@ namespace Tree
         Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::LinkDef > >& link_defs);
         enum 
         {
-            Object_Part_Type_ID = 40
+            Object_Part_Type_ID = 41
         };
         std::vector< data::Ptr< data::AST::LinkDef > > link_defs;
+        std::optional< data::Ptr< data::Tree::InheritanceTrait > > link_inheritance_trait;
         Ptr< Tree::Context > p_Tree_Context;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
@@ -739,7 +765,7 @@ namespace DPGraph
         Glob( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& location, const std::string& glob);
         enum 
         {
-            Object_Part_Type_ID = 41
+            Object_Part_Type_ID = 42
         };
         boost::filesystem::path location;
         std::string glob;
@@ -755,7 +781,7 @@ namespace DPGraph
         ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Glob > >& globs, const std::vector< boost::filesystem::path >& resolution);
         enum 
         {
-            Object_Part_Type_ID = 42
+            Object_Part_Type_ID = 43
         };
         mega::io::megaFilePath source_file;
         std::size_t hash_code;
@@ -773,7 +799,7 @@ namespace DPGraph
         Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::ObjectDependencies > >& objects);
         enum 
         {
-            Object_Part_Type_ID = 43
+            Object_Part_Type_ID = 44
         };
         std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > objects;
         mega::io::Object* m_pInheritance = nullptr;
@@ -1122,6 +1148,18 @@ inline Ptr< Tree::ArgumentListTrait > convert( const Ptr< Tree::ArgumentListTrai
 }
 
 template <>
+inline Ptr< AST::Size > convert( const Ptr< Tree::SizeTrait >& from )
+{
+    return from->p_AST_Size;
+}
+
+template <>
+inline Ptr< Tree::SizeTrait > convert( const Ptr< Tree::SizeTrait >& from )
+{
+    return from;
+}
+
+template <>
 inline Ptr< Tree::ContextGroup > convert( const Ptr< Tree::ContextGroup >& from )
 {
     return from;
@@ -1340,6 +1378,22 @@ struct UpCast< TVariant, Ptr< Tree::InheritanceTrait >, Ptr< AST::Inheritance > 
         else
         {
             return Ptr< AST::Inheritance >( from, from );
+        }
+    }
+};
+
+template < typename TVariant >
+struct UpCast< TVariant, Ptr< Tree::SizeTrait >, Ptr< AST::Size > >
+{
+    inline TVariant operator()( Ptr< AST::Size >& from ) const
+    {
+        if( Tree::SizeTrait* p1 = dynamic_cast< Tree::SizeTrait* >( from->m_pInheritance ) )
+        {
+            return Ptr< Tree::SizeTrait >( from, p1 );
+        }
+        else
+        {
+            return Ptr< AST::Size >( from, from );
         }
     }
 };

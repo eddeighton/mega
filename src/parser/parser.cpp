@@ -150,8 +150,7 @@ public:
                     endLoc = Tok.getEndLoc();
                     ConsumeAnyToken();
                 }
-                std::string str;
-                if ( !getSourceText( startLoc, endLoc, str ) )
+                if ( !getSourceText( startLoc, endLoc, strArguments ) )
                 {
                     MEGA_PARSER_ERROR( "Error parsing argument list" );
                 }
@@ -473,6 +472,8 @@ public:
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
+        Inheritance* pInheritance = parse_inheritance( database );
+        parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
         {
@@ -489,7 +490,7 @@ public:
             }
         }
 
-        return database.construct< AbstractDef >( AbstractDef::Args{ body } );
+        return database.construct< AbstractDef >( AbstractDef::Args{ body, pInheritance } );
     }
 
     EventDef* parse_event( Database& database )

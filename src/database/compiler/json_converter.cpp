@@ -722,7 +722,7 @@ namespace db
                         {
                             model::Object::Ptr pObject = pRef->m_object;
                             osFunctionBody << "data = toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                           << ">( m_converter, value.value() );\n";
+                                           << ">( m_converter, value );\n";
                         }
                         else
                         {

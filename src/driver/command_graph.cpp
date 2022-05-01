@@ -124,25 +124,31 @@ namespace driver
 
             if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
             {
-                addProperties( node, pNamespace->get_dimensions() );
+                addProperties( node, pNamespace->get_dimension_traits() );
             }
             else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
             {
             }
             else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
             {
-                addProperties( node, pAction->get_dimensions() );
+                addProperties( node, pAction->get_dimension_traits() );
             }
             else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
             {
-                addProperties( node, pEvent->get_dimensions() );
+                addProperties( node, pEvent->get_dimension_traits() );
             }
             else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
             {
+                nlohmann::json arguments
+                    = nlohmann::json::object( { { "name", "arguments" }, { "value", pFunction->get_arguments_trait()->get_str() } } );
+                node[ "properties" ].push_back( arguments );
+                nlohmann::json return_type
+                    = nlohmann::json::object( { { "name", "return type" }, { "value", pFunction->get_return_type_trait()->get_str() } } );
+                node[ "properties" ].push_back( return_type );
             }
             else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
             {
-                addProperties( node, pObject->get_dimensions() );
+                addProperties( node, pObject->get_dimension_traits() );
             }
             else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
             {

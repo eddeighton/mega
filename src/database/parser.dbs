@@ -124,6 +124,7 @@ namespace Parser
 
     object AbstractDef : ContextDef -> ParserStage::AST
     {
+        ref< Inheritance > inheritance;
     }
 
     object ActionDef : ContextDef -> ParserStage::AST

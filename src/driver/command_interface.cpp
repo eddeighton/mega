@@ -520,95 +520,201 @@ namespace driver
                 }
             }
 
-            template < typename TContextGroup, typename TParserDef >
-            void collectDimensions( InterfaceStage::Database& database, TContextGroup* pGroup, TParserDef* pDef )
+            void collectDimensionTraits( InterfaceStage::Database& database, InterfaceStage::Parser::ContextDef* pDef,
+                                         std::vector< InterfaceStage::Interface::DimensionTrait* >& dimensions )
             {
                 using namespace InterfaceStage;
 
                 for ( Parser::Dimension* pParserDim : pDef->get_dimensions() )
                 {
-                    std::vector< Interface::DimensionTrait* > existing = pGroup->get_dimensions();
-                    for ( Interface::DimensionTrait* pExistingDimension : existing )
+                    for ( Parser::Dimension* pExistingDimension : dimensions )
                     {
                         VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
                                        "Context has duplicate dimensions", pDef->get_id() );
                     }
-                    Interface::DimensionTrait* pDimension
-                        = database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args( pParserDim ) );
-                    pGroup->push_back_dimensions( pDimension );
+                    dimensions.push_back(
+                        database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args( pParserDim ) ) );
+                }
+            }
+
+            template < typename TParserType >
+            void collectInheritanceTrait( InterfaceStage::Database& database, TParserType* pContextDef,
+                                          std::optional< InterfaceStage::Interface::InheritanceTrait* >& inheritance )
+            {
+                using namespace InterfaceStage;
+                Parser::Inheritance*              pInheritanceDef = pContextDef->get_inheritance();
+                const std::vector< std::string >& strings         = pInheritanceDef->get_strings();
+                if ( !strings.empty() )
+                {
+                    VERIFY_PARSER( !inheritance.has_value(), "Duplicate inheritance specified", pContextDef->get_id() );
+                    inheritance = database.construct< Interface::InheritanceTrait >( Interface::InheritanceTrait::Args{ pInheritanceDef } );
+                }
+            }
+
+            template < typename TParserType >
+            void collectSizeTrait( InterfaceStage::Database& database, TParserType* pContextDef,
+                                   std::optional< InterfaceStage::Interface::SizeTrait* >& size )
+            {
+                using namespace InterfaceStage;
+                Parser::Size*      pSizeDef = pContextDef->get_size();
+                const std::string& str      = pSizeDef->get_str();
+                if ( !str.empty() )
+                {
+                    VERIFY_PARSER( !size.has_value(), "Duplicate size specified", pContextDef->get_id() );
+                    size = database.construct< Interface::SizeTrait >( Interface::SizeTrait::Args{ pSizeDef } );
                 }
             }
 
             void onNamespace( InterfaceStage::Database& database, InterfaceStage::Interface::Namespace* pNamespace )
             {
                 using namespace InterfaceStage;
-                for ( Parser::ContextDef* pDef : pNamespace->get_namespace_defs() )
+                std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
                 {
-                    if ( pNamespace->get_is_global() )
+                    for ( Parser::ContextDef* pDef : pNamespace->get_namespace_defs() )
                     {
-                        VERIFY_PARSER( pDef->get_dimensions().empty(), "Global namespace has dimensions", pDef->get_id() );
-                        VERIFY_PARSER( pDef->get_dependencies().empty(), "Global namespace has dependencies", pDef->get_id() );
-                    }
-                    else
-                    {
-                        collectDimensions< InterfaceStage::Interface::Namespace, Parser::ContextDef >( database, pNamespace, pDef );
-                    }
+                        if ( pNamespace->get_is_global() )
+                        {
+                            VERIFY_PARSER( pDef->get_dimensions().empty(), "Global namespace has dimensions", pDef->get_id() );
+                            VERIFY_PARSER( pDef->get_dependencies().empty(), "Global namespace has dependencies", pDef->get_id() );
+                        }
+                        else
+                        {
+                            collectDimensionTraits( database, pDef, dimensions );
+                        }
 
-                    VERIFY_PARSER( pDef->get_body().empty(), "Namespace has body", pDef->get_id() );
+                        VERIFY_PARSER( pDef->get_body().empty(), "Namespace has body", pDef->get_id() );
+                    }
                 }
+
+                pNamespace->set_dimension_traits( dimensions );
             }
 
             void onAbstract( InterfaceStage::Database& database, InterfaceStage::Interface::Abstract* pAbstract )
             {
                 using namespace InterfaceStage;
+                std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
+                std::optional< Interface::InheritanceTrait* >             inheritance;
                 for ( Parser::AbstractDef* pDef : pAbstract->get_abstract_defs() )
                 {
-                    collectDimensions< InterfaceStage::Interface::Abstract, Parser::AbstractDef >( database, pAbstract, pDef );
+                    collectDimensionTraits( database, pDef, dimensions );
+                    collectInheritanceTrait( database, pDef, inheritance );
                 }
+
+                pAbstract->set_dimension_traits( dimensions );
+                pAbstract->set_inheritance_trait( inheritance );
             }
             void onAction( InterfaceStage::Database& database, InterfaceStage::Interface::Action* pAction )
             {
                 using namespace InterfaceStage;
 
-                std::optional< std::size_t > szSizeOpt;
+                std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
+                std::optional< Interface::InheritanceTrait* >             inheritance;
+                std::optional< Interface::SizeTrait* >                    size;
                 for ( Parser::ActionDef* pDef : pAction->get_action_defs() )
                 {
-                    collectDimensions< InterfaceStage::Interface::Action, Parser::ActionDef >( database, pAction, pDef );
+                    collectDimensionTraits( database, pDef, dimensions );
+                    collectInheritanceTrait( database, pDef, inheritance );
+                    collectSizeTrait( database, pDef, size );
                 }
+
+                pAction->set_dimension_traits( dimensions );
+                pAction->set_inheritance_trait( inheritance );
+                pAction->set_size_trait( size );
             }
             void onEvent( InterfaceStage::Database& database, InterfaceStage::Interface::Event* pEvent )
             {
                 using namespace InterfaceStage;
-                std::optional< std::size_t > szSizeOpt;
+                std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
+                std::optional< Interface::InheritanceTrait* >             inheritance;
+                std::optional< Interface::SizeTrait* >                    size;
                 for ( Parser::EventDef* pDef : pEvent->get_event_defs() )
                 {
-                    collectDimensions< InterfaceStage::Interface::Event, Parser::EventDef >( database, pEvent, pDef );
+                    collectDimensionTraits( database, pDef, dimensions );
+                    collectInheritanceTrait( database, pDef, inheritance );
+                    collectSizeTrait( database, pDef, size );
                 }
+
+                pEvent->set_dimension_traits( dimensions );
+                pEvent->set_inheritance_trait( inheritance );
+                pEvent->set_size_trait( size );
             }
             void onFunction( InterfaceStage::Database& database, InterfaceStage::Interface::Function* pFunction )
             {
                 using namespace InterfaceStage;
 
+                Interface::ArgumentListTrait* pArgumentListTrait = nullptr;
+                Interface::ReturnTypeTrait*   pReturnTypeTrait   = nullptr;
+
+                std::string strArguments, strReturnType;
                 for ( Parser::FunctionDef* pDef : pFunction->get_function_defs() )
                 {
                     VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
+
+                    Parser::ArgumentList* pArguments = pDef->get_argumentList();
+                    //if ( !pArguments->get_str().empty() )
+                    {
+                        if ( !pArgumentListTrait )
+                        {
+                            pArgumentListTrait
+                                = database.construct< Interface::ArgumentListTrait >( Interface::ArgumentListTrait::Args{ pArguments } );
+                            strArguments = pArguments->get_str();
+                        }
+                        else
+                        {
+                            VERIFY_PARSER( strArguments == pArguments->get_str(), "Function arguments mismatch", pDef->get_id() );
+                        }
+                    }
+
+                    Parser::ReturnType* pReturnType = pDef->get_returnType();
+                    //if ( !pReturnType->get_str().empty() )
+                    {
+                        if ( !pReturnTypeTrait )
+                        {
+                            pReturnTypeTrait
+                                = database.construct< Interface::ReturnTypeTrait >( Interface::ReturnTypeTrait::Args{ pReturnType } );
+                            strReturnType = pReturnType->get_str();
+                        }
+                        else
+                        {
+                            VERIFY_PARSER( strReturnType == pReturnType->get_str(), "Return type mismatch", pDef->get_id() );
+                        }
+                    }
                 }
+
+                VERIFY_PARSER( pArgumentListTrait, "Function missing argument list", pFunction->get_function_defs().front()->get_id() );
+                VERIFY_PARSER( pReturnTypeTrait, "Function missing return type", pFunction->get_function_defs().front()->get_id() );
+
+                pFunction->set_arguments_trait( pArgumentListTrait );
+                pFunction->set_return_type_trait( pReturnTypeTrait );
             }
             void onObject( InterfaceStage::Database& database, InterfaceStage::Interface::Object* pObject )
             {
                 using namespace InterfaceStage;
+                std::vector< InterfaceStage::Interface::DimensionTrait* > dimensions;
+                std::optional< Interface::InheritanceTrait* >             inheritance;
                 for ( Parser::ObjectDef* pDef : pObject->get_object_defs() )
                 {
-                    collectDimensions< InterfaceStage::Interface::Object, Parser::ObjectDef >( database, pObject, pDef );
+                    collectDimensionTraits( database, pDef, dimensions );
+                    collectInheritanceTrait( database, pDef, inheritance );
+                    VERIFY_PARSER( pDef->get_body().empty(), "Object has body", pDef->get_id() );
                 }
+
+                pObject->set_dimension_traits( dimensions );
+                pObject->set_inheritance_trait( inheritance );
             }
             void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink )
             {
                 using namespace InterfaceStage;
+                std::optional< Interface::InheritanceTrait* > inheritance;
                 for ( Parser::LinkDef* pDef : pLink->get_link_defs() )
                 {
                     VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
+                    collectInheritanceTrait( database, pDef, inheritance );
+                    VERIFY_PARSER( pDef->get_body().empty(), "Link has body", pDef->get_id() );
                 }
+                VERIFY_PARSER(
+                    inheritance.has_value(), "Link missing inheritance specification", pLink->get_link_defs().front()->get_id() );
+                pLink->set_link_inheritance_trait( inheritance.value() );
             }
 
             virtual void run( task::Progress& taskProgress )
@@ -1070,8 +1176,6 @@ namespace driver
                 else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
                 {
                     templateEngine.renderContext( contextData, os );
-
-                    //pAction->get_dimensions()
                 }
                 else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
                 {
