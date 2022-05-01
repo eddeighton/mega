@@ -92,7 +92,8 @@ namespace db
 
             std::ostringstream os;
             {
-                os << strStageNamespace << str;
+                if ( !strStageNamespace.empty() )
+                    os << strStageNamespace << str;
                 for ( Namespace::Ptr pNamespace : namespaces )
                 {
                     os << pNamespace->m_strName << str;
@@ -109,7 +110,8 @@ namespace db
             os << "super";
             for ( model::Interface::Ptr pInterface : m_interfaces )
             {
-                os << "_" << pInterface->delimitTypeName( m_stage.lock()->m_strName, "_" );
+                // m_stage.lock()->m_strName
+                os << "_" << pInterface->delimitTypeName( "", "_" );
             }
             return os.str();
         }
@@ -163,6 +165,25 @@ namespace db
                 SourceMap                     sourceMap;
             };
 
+            void expandCPPType( const schema::Type& type, std::ostream& os )
+            {
+                common::delimit( type.m_idList.begin(), type.m_idList.end(), "::", os );
+                if ( !type.m_children.empty() )
+                {
+                    bool bFirst = true;
+                    os << "< ";
+                    for ( const schema::Type& nested : type.m_children )
+                    {
+                        if ( bFirst )
+                            bFirst = false;
+                        else
+                            os << ", ";
+                        expandCPPType( nested, os );
+                    }
+                    os << " >";
+                }
+            }
+
             Type::Ptr getType( const schema::Type& type, Mapping& mapping, Namespace::Ptr pNamespace )
             {
                 if ( type.m_idList.size() == 1U )
@@ -175,14 +196,27 @@ namespace db
                         if ( type.m_children.size() == 1U )
                         {
                             const schema::Type& cppType = type.m_children.front();
-                            if ( cppType.m_children.empty() && !cppType.m_idList.empty() )
+                            if ( !cppType.m_idList.empty() )
                             {
                                 std::ostringstream osCPPTypeName;
-                                common::delimit( cppType.m_idList.begin(), cppType.m_idList.end(), "::", osCPPTypeName );
-
+                                expandCPPType( cppType, osCPPTypeName );
                                 ValueType::Ptr pValueType = std::make_shared< ValueType >( mapping.counter );
                                 pValueType->m_cppType     = osCPPTypeName.str();
                                 return pValueType;
+                            }
+                        }
+                    }
+                    else if ( strID == "opt" )
+                    {
+                        // opt< value< cpptype > >
+                        if ( type.m_children.size() == 1U )
+                        {
+                            const schema::Type& underlyingType = type.m_children.front();
+                            if ( !underlyingType.m_children.empty() && !underlyingType.m_idList.empty() )
+                            {
+                                OptType::Ptr pArray      = std::make_shared< OptType >( mapping.counter );
+                                pArray->m_underlyingType = getType( underlyingType, mapping, pNamespace );
+                                return pArray;
                             }
                         }
                     }

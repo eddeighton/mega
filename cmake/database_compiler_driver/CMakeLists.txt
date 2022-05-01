@@ -23,6 +23,7 @@ link_boost( database_compiler_driver program_options )
 link_common( database_compiler_driver ) 
 
 target_link_libraries(database_compiler_driver database_compiler)
+target_link_libraries(database_compiler_driver utilities)
 
 install( TARGETS database_compiler_driver DESTINATION bin)
 

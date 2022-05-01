@@ -39,10 +39,11 @@
 //#include <boost/archive/text_iarchive.hpp>
 
 #include <optional>
+#include <type_traits>
 
 namespace mega
 {
-    using InputArchiveType = boost::archive::xml_iarchive;
+    using InputArchiveType  = boost::archive::xml_iarchive;
     using OutputArchiveType = boost::archive::xml_oarchive;
     // using InputArchiveType = boost::archive::text_iarchive;
     // using OutputArchiveType = boost::archive::text_oarchive;
@@ -78,11 +79,8 @@ namespace boost
 {
     namespace filesystem
     {
-        inline void to_json( nlohmann::json& j, const boost::filesystem::path& p )
-        {
-            j = nlohmann::json{ { "path", p.string() } };
-        }
-    }
+        inline void to_json( nlohmann::json& j, const boost::filesystem::path& p ) { j = nlohmann::json{ { "path", p.string() } }; }
+    } // namespace filesystem
     namespace serialization
     {
         template < class Archive >
@@ -122,15 +120,29 @@ namespace boost
         {
             if ( Archive::is_saving::value )
             {
-                VERIFY_RTE( optionalValue );
-                ar& optionalValue.value();
+                if ( optionalValue.has_value() )
+                {
+                    bool bTrueIsTrue = true;
+                    ar&  bTrueIsTrue;
+                    ar&  optionalValue.value();
+                }
+                else
+                {
+                    bool bFalseIsFalse = false;
+                    ar&  bFalseIsFalse;
+                }
             }
 
             if ( Archive::is_loading::value )
             {
-                T   temp;
-                ar& temp;
-                optionalValue = temp;
+                bool bHasValue = false;
+                ar&  bHasValue;
+                if ( bHasValue )
+                {
+                    T   temp;
+                    ar& temp;
+                    optionalValue = temp;
+                }
             }
         }
 

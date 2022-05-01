@@ -25,7 +25,7 @@ public:
 
     DatabaseTest()
         : tempDir( boost::filesystem::temp_directory_path() )
-        , environment( tempDir, tempDir, tempDir )
+        , environment( tempDir, tempDir )
         , srcFile( tempDir / "test1.mega" )
     {
         std::ofstream of( srcFile.native() );

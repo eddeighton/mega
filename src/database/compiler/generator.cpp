@@ -4,6 +4,8 @@
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
+#include "utilities/clang_format.hpp"
+
 #include "nlohmann/json.hpp"
 
 #include "inja/inja.hpp"
@@ -43,19 +45,24 @@ namespace db
                         // view.hxx
                         try
                         {
-                            std::ostringstream osOutput;
+                            std::string strOutput;
                             {
+                                std::ostringstream osOutput;
                                 inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
                                 injaEnv.set_trim_blocks( true );
                                 const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
                                 const auto                    data     = loadJson( jsonFile );
                                 inja::Template                tmp      = injaEnv.parse_template( "/view.hxx.jinja" );
                                 injaEnv.render_to( osOutput, tmp, data );
+                                strOutput = osOutput.str();
+
+                                mega::utilities::clang_format( strOutput, std::optional<boost::filesystem::path>() );
                             }
                             std::ostringstream osTargetFile;
                             osTargetFile << "/" << filePath.filename().replace_extension( ".hxx" ).string();
+
                             boost::filesystem::updateFileIfChanged(
-                                env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), osOutput.str() );
+                                env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
                         }
                         catch ( std::exception& ex )
                         {
@@ -67,19 +74,23 @@ namespace db
                         // view.cxx
                         try
                         {
-                            std::ostringstream osOutput;
+                            std::string strOutput;
                             {
+                                std::ostringstream osOutput;
                                 inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
                                 injaEnv.set_trim_blocks( true );
                                 const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
                                 const auto                    data     = loadJson( jsonFile );
                                 inja::Template                tmp      = injaEnv.parse_template( "/view.cxx.jinja" );
                                 injaEnv.render_to( osOutput, tmp, data );
+                                strOutput = osOutput.str();
+
+                                mega::utilities::clang_format( strOutput, std::optional<boost::filesystem::path>() );
                             }
                             std::ostringstream osTargetFile;
                             osTargetFile << "/" << filePath.filename().replace_extension( ".cxx" ).string();
                             boost::filesystem::updateFileIfChanged(
-                                env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), osOutput.str() );
+                                env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
                         }
                         catch ( std::exception& ex )
                         {

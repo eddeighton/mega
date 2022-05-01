@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <memory>
+#include <optional>
 
 #include "common/backtrace.hpp"
 

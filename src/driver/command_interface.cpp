@@ -29,8 +29,11 @@
 #include "database/model/InterfaceAnalysisStage.hxx"
 
 #include "database/common/file.hpp"
-#include "database/common/glob.hpp"
 #include "database/common/environments.hpp"
+
+#include "utilities/clang_format.hpp"
+#include "utilities/glob.hpp"
+#include "utilities/clang_format.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
@@ -39,6 +42,12 @@
 #include "common/hash.hpp"
 #include "common/string.hpp"
 #include "common/stl.hpp"
+
+#include "nlohmann/json.hpp"
+
+#include "inja/inja.hpp"
+#include "inja/environment.hpp"
+#include "inja/template.hpp"
 
 #include <boost/filesystem/file_status.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -401,7 +410,7 @@ namespace driver
 
                                 pInterfaceContextGroup = database.construct< Namespace >(
                                     Namespace::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name.back(), pParent ),
-                                                     bIsGlobalNamespace, { pIncludeContextDef }, {} ) );
+                                                     bIsGlobalNamespace, { pIncludeContextDef } ) );
                                 pParent->push_back_children( pInterfaceContextGroup );
                                 namedContexts.insert( std::make_pair( name, pInterfaceContextGroup ) );
                             }
@@ -427,7 +436,7 @@ namespace driver
                                 const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
                                 return database.construct< Namespace >(
                                     Namespace::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
-                                                     bIsGlobalNamespace, { pNamespaceDef }, {} ) );
+                                                     bIsGlobalNamespace, { pNamespaceDef } ) );
                             },
                             []( Namespace* pNamespace, Parser::ContextDef* pNamespaceDef )
                             { pNamespace->push_back_namespace_defs( pNamespaceDef ); } );
@@ -439,9 +448,8 @@ namespace driver
                             []( Database& database, const std::string& name, ContextGroup* pParent,
                                 Parser::AbstractDef* pAbstractDef ) -> Abstract*
                             {
-                                return database.construct< Abstract >(
-                                    Abstract::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
-                                                    { pAbstractDef }, {} ) );
+                                return database.construct< Abstract >( Abstract::Args(
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pAbstractDef } ) );
                             },
                             []( Abstract* pAbstract, Parser::AbstractDef* pAbstractDef )
                             { pAbstract->push_back_abstract_defs( pAbstractDef ); } );
@@ -454,7 +462,7 @@ namespace driver
                                 Parser::ActionDef* pActionDef ) -> Action*
                             {
                                 return database.construct< Action >( Action::Args(
-                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pActionDef }, {} ) );
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pActionDef } ) );
                             },
                             []( Action* pAction, Parser::ActionDef* pActionDef ) { pAction->push_back_action_defs( pActionDef ); } );
                     }
@@ -465,7 +473,7 @@ namespace driver
                             []( Database& database, const std::string& name, ContextGroup* pParent, Parser::EventDef* pEventDef ) -> Event*
                             {
                                 return database.construct< Event >( Event::Args(
-                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pEventDef }, {} ) );
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pEventDef } ) );
                             },
                             []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
                     }
@@ -490,7 +498,7 @@ namespace driver
                                 Parser::ObjectDef* pObjectDef ) -> Object*
                             {
                                 return database.construct< Object >( Object::Args(
-                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pObjectDef }, {} ) );
+                                    Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ), { pObjectDef } ) );
                             },
                             []( Object* pObject, Parser::ObjectDef* pObjectDef ) { pObject->push_back_object_defs( pObjectDef ); } );
                     }
@@ -519,14 +527,14 @@ namespace driver
 
                 for ( Parser::Dimension* pParserDim : pDef->get_dimensions() )
                 {
-                    std::vector< Interface::DimensionInitial* > existing = pGroup->get_dimensions();
-                    for ( Interface::DimensionInitial* pExistingDimension : existing )
+                    std::vector< Interface::DimensionTrait* > existing = pGroup->get_dimensions();
+                    for ( Interface::DimensionTrait* pExistingDimension : existing )
                     {
                         VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
                                        "Context has duplicate dimensions", pDef->get_id() );
                     }
-                    Interface::DimensionInitial* pDimension
-                        = database.construct< Interface::DimensionInitial >( Interface::DimensionInitial::Args( pParserDim ) );
+                    Interface::DimensionTrait* pDimension
+                        = database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args( pParserDim ) );
                     pGroup->push_back_dimensions( pDimension );
                 }
             }
@@ -608,8 +616,8 @@ namespace driver
                 const mega::io::CompilationFilePath treePath = m_environment.InterfaceStage_Tree( m_sourceFilePath );
                 taskProgress.start( "Task_ObjectInterfaceGen", m_sourceFilePath.path(), treePath.path() );
 
-                const task::FileHash parserStageASTHashCode = 
-                    m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) );
+                const task::FileHash parserStageASTHashCode
+                    = m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) );
 
                 const task::DeterminantHash determinant( parserStageASTHashCode );
 
@@ -685,7 +693,7 @@ namespace driver
             {
             }
 
-            using GlobVector = std::vector< mega::io::Glob >;
+            using GlobVector = std::vector< mega::utilities::Glob >;
             using PathSet    = std::set< mega::io::megaFilePath >;
 
             struct CalculateDependencies
@@ -706,7 +714,8 @@ namespace driver
                         boost::filesystem::path sourceFilePath = pContextDef->get_id()->get_source_file();
                         VERIFY_RTE( boost::filesystem::exists( sourceFilePath ) );
                         VERIFY_RTE( sourceFilePath.has_parent_path() );
-                        dependencyGlobs.push_back( mega::io::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContextDef } );
+                        dependencyGlobs.push_back(
+                            mega::utilities::Glob{ sourceFilePath.parent_path(), pDependency->get_str(), pContextDef } );
                     }
 
                     for ( Parser::ContextDef* pContext : pContextDef->get_children() )
@@ -717,7 +726,7 @@ namespace driver
 
                 DependencyAnalysis::Dependencies::ObjectDependencies* operator()( DependencyAnalysis::Database& database,
                                                                                   const mega::io::megaFilePath& sourceFilePath,
-                                                                                  const task::FileHash        interfaceHash,
+                                                                                  const task::FileHash          interfaceHash,
                                                                                   const PathSet&                sourceFiles ) const
                 {
                     using namespace DependencyAnalysis;
@@ -727,15 +736,15 @@ namespace driver
                     Interface::Root* pRoot = database.one< Interface::Root >( sourceFilePath );
                     collectDependencies( pRoot->get_root()->get_ast(), dependencyGlobs );
 
-                    std::vector< Glob* >     globs;
-                    mega::io::FilePathVector matchedFilePaths;
-                    for ( const mega::io::Glob& glob : dependencyGlobs )
+                    std::vector< Glob* >            globs;
+                    mega::utilities::FilePathVector matchedFilePaths;
+                    for ( const mega::utilities::Glob& glob : dependencyGlobs )
                     {
                         try
                         {
-                            mega::io::resolveGlob( glob, m_environment.rootSourceDir(), matchedFilePaths );
+                            mega::utilities::resolveGlob( glob, m_environment.rootSourceDir(), matchedFilePaths );
                         }
-                        catch ( mega::io::GlobException& ex )
+                        catch ( mega::utilities::GlobException& ex )
                         {
                             VERIFY_PARSER( false, "Dependency error: " << ex.what(),
                                            reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
@@ -748,7 +757,7 @@ namespace driver
                         globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
                     }
 
-                    mega::io::FilePathVector resolution;
+                    mega::utilities::FilePathVector resolution;
                     for ( const boost::filesystem::path& filePath : matchedFilePaths )
                     {
                         if ( sourceFiles.count( m_environment.megaFilePath_fromPath( filePath ) ) )
@@ -769,17 +778,17 @@ namespace driver
                     using namespace DependencyAnalysis;
                     using namespace DependencyAnalysis::Dependencies;
 
-                    std::vector< Glob* >     globs;
-                    mega::io::FilePathVector matchedFilePaths;
+                    std::vector< Glob* >            globs;
+                    mega::utilities::FilePathVector matchedFilePaths;
 
                     for ( DependencyAnalysisView::Dependencies::Glob* pOldGlob : pOldDependencies->get_globs() )
                     {
-                        const mega::io::Glob glob{ pOldGlob->get_location(), pOldGlob->get_glob(), nullptr };
+                        const mega::utilities::Glob glob{ pOldGlob->get_location(), pOldGlob->get_glob(), nullptr };
                         try
                         {
-                            mega::io::resolveGlob( glob, m_environment.rootSourceDir(), matchedFilePaths );
+                            mega::utilities::resolveGlob( glob, m_environment.rootSourceDir(), matchedFilePaths );
                         }
-                        catch ( mega::io::GlobException& ex )
+                        catch ( mega::utilities::GlobException& ex )
                         {
                             VERIFY_PARSER( false, "Dependency error: " << ex.what(),
                                            reinterpret_cast< Parser::ContextDef* >( glob.pDiagnostic )->get_id() );
@@ -792,7 +801,7 @@ namespace driver
                         globs.push_back( database.construct< Glob >( Glob::Args{ glob.source_file, glob.glob } ) );
                     }
 
-                    mega::io::FilePathVector resolution;
+                    mega::utilities::FilePathVector resolution;
                     for ( const boost::filesystem::path& filePath : matchedFilePaths )
                     {
                         if ( sourceFiles.count( m_environment.megaFilePath_fromPath( filePath ) ) )
@@ -921,7 +930,7 @@ namespace driver
                                 {
                                     // a new source file is added so must analysis from the ground up
                                     const mega::io::megaFilePath megaFilePath = *j;
-                                    const task::FileHash interfaceHash      = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
+                                    const task::FileHash interfaceHash        = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
                                     newDependencies.push_back(
                                         CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
 
@@ -984,6 +993,163 @@ namespace driver
             }
         };
 
+        class Task_ObjectInterfaceGeneration : public BaseTask
+        {
+        public:
+            Task_ObjectInterfaceGeneration( task::Task::RawPtrSet             dependencies,
+                                            const mega::io::BuildEnvironment& environment,
+                                            const mega::io::megaFilePath&     sourceFilePath )
+                : BaseTask( dependencies, environment )
+                , m_sourceFilePath( sourceFilePath )
+            {
+            }
+
+            class TemplateEngine
+            {
+                const mega::io::BuildEnvironment& m_environment;
+                ::inja::Environment&              m_injaEnvironment;
+                ::inja::Template                  m_contextTemplate;
+                ::inja::Template                  m_namespaceTemplate;
+                ::inja::Template                  m_interfaceTemplate;
+
+            public:
+                TemplateEngine( const mega::io::BuildEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
+                    : m_environment( buildEnvironment )
+                    , m_injaEnvironment( injaEnv )
+                    , m_contextTemplate( m_injaEnvironment.parse_template( m_environment.ContextTemplate().native() ) )
+                    , m_namespaceTemplate( m_injaEnvironment.parse_template( m_environment.NamespaceTemplate().native() ) )
+                    , m_interfaceTemplate( m_injaEnvironment.parse_template( m_environment.InterfaceTemplate().native() ) )
+                {
+                }
+
+                void renderContext( const nlohmann::json& data, std::ostream& os ) const
+                {
+                    m_injaEnvironment.render_to( os, m_contextTemplate, data );
+                }
+
+                void renderNamespace( const nlohmann::json& data, std::ostream& os ) const
+                {
+                    m_injaEnvironment.render_to( os, m_namespaceTemplate, data );
+                }
+
+                void renderInterface( const nlohmann::json& data, std::ostream& os ) const
+                {
+                    m_injaEnvironment.render_to( os, m_interfaceTemplate, data );
+                }
+            };
+
+            void recurse( TemplateEngine& templateEngine, InterfaceAnalysisStage::Interface::Context* pContext, std::ostream& os )
+            {
+                using namespace InterfaceAnalysisStage;
+                using namespace InterfaceAnalysisStage::Interface;
+
+                std::ostringstream osNested;
+                for ( Context* pNestedContext : pContext->get_children() )
+                {
+                    recurse( templateEngine, pNestedContext, osNested );
+                }
+
+                nlohmann::json contextData(
+                    { { "name", pContext->get_identifier() }, { "traits", nlohmann::json::array() }, { "nested", osNested.str() } } );
+
+                if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+                {
+                    if ( pNamespace->get_is_global() )
+                    {
+                        templateEngine.renderNamespace( contextData, os );
+                    }
+                    else
+                    {
+                        templateEngine.renderContext( contextData, os );
+                    }
+                }
+                else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+                {
+                    templateEngine.renderContext( contextData, os );
+                }
+                else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+                {
+                    templateEngine.renderContext( contextData, os );
+
+                    //pAction->get_dimensions()
+                }
+                else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+                {
+                    templateEngine.renderContext( contextData, os );
+                }
+                else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+                {
+                    templateEngine.renderContext( contextData, os );
+                }
+                else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+                {
+                    templateEngine.renderContext( contextData, os );
+                }
+                else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+                {
+                    templateEngine.renderContext( contextData, os );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown context type" );
+                }
+            }
+
+            virtual void run( task::Progress& taskProgress )
+            {
+                const mega::io::CompilationFilePath        interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
+                const mega::io::GeneratedHPPSourceFilePath interfaceHeader   = m_environment.Interface( m_sourceFilePath );
+                taskProgress.start( "Task_ObjectInterfaceGeneration", interfaceTreeFile.path(), interfaceHeader.path() );
+
+                const task::DeterminantHash determinant = m_environment.getBuildHashCode( interfaceTreeFile );
+
+                /*if ( m_environment.restore( interfaceHeader, determinant ) )
+                {
+                    m_environment.setBuildHashCode( interfaceHeader );
+                    taskProgress.cached();
+                    return;
+                }*/
+
+                using namespace InterfaceAnalysisStage;
+                using namespace InterfaceAnalysisStage::Interface;
+
+                Database database( m_environment, m_sourceFilePath );
+
+                ::inja::Environment injaEnvironment;
+                {
+                    injaEnvironment.set_trim_blocks( true );
+                }
+
+                TemplateEngine templateEngine( m_environment, injaEnvironment );
+
+                std::ostringstream os;
+                {
+                    Interface::Root* pRoot = database.one< Interface::Root >( m_sourceFilePath );
+                    for ( Context* pContext : pRoot->get_children() )
+                    {
+                        recurse( templateEngine, pContext, os );
+                    }
+                }
+
+                // clang-format
+                std::string strInterface = os.str();
+                mega::utilities::clang_format( strInterface, std::optional< boost::filesystem::path >() );
+
+                // generate the interface header
+                {
+                    nlohmann::json interfaceData( { { "interface", strInterface }, { "guard", determinant.get() } } );
+                    std::unique_ptr< boost::filesystem::ofstream > pOStream = m_environment.write( interfaceHeader );
+                    templateEngine.renderInterface( interfaceData, *pOStream );
+                }
+
+                m_environment.setBuildHashCode( interfaceHeader );
+                m_environment.stash( interfaceHeader, determinant );
+
+                taskProgress.succeeded();
+            }
+            const mega::io::megaFilePath& m_sourceFilePath;
+        };
+
         class Task_ObjectInterfaceAnalysis : public BaseTask
         {
         public:
@@ -1041,7 +1207,7 @@ namespace driver
 
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, tempDir = boost::filesystem::temp_directory_path();
+            boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, templatesDir;
             std::string             projectName;
 
             namespace po = boost::program_options;
@@ -1053,6 +1219,7 @@ namespace driver
                 ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),  "Root build directory" )
                 ( "project",        po::value< std::string >( &projectName ),               "Mega Project Name" )
                 ( "parser_dll",     po::value< boost::filesystem::path >( &parserDll ),     "Parser DLL Path" )
+                ( "templates",      po::value< boost::filesystem::path >( &templatesDir ),  "Inja Templates directory" )
                 ;
                 // clang-format on
             }
@@ -1070,7 +1237,7 @@ namespace driver
             }
             else
             {
-                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
+                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, templatesDir );
 
                 VERIFY_RTE_MSG( boost::filesystem::exists( parserDll ), "Failed to locate parser DLL: " << parserDll );
 
@@ -1099,8 +1266,12 @@ namespace driver
 
                 for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                 {
+                    Task_ObjectInterfaceGeneration* pInterfaceGen
+                        = new Task_ObjectInterfaceGeneration( { pDependencyAnalysisTask }, environment, sourceFilePath );
+                    tasks.push_back( task::Task::Ptr( pInterfaceGen ) );
+
                     Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis
-                        = new Task_ObjectInterfaceAnalysis( { pDependencyAnalysisTask }, environment, sourceFilePath );
+                        = new Task_ObjectInterfaceAnalysis( { pInterfaceGen }, environment, sourceFilePath );
                     tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
                 }
 

@@ -19,60 +19,51 @@
 #include <boost/filesystem/operations.hpp>
 
 #include <fstream>
+#include <optional>
 
 class BasicDBTest : public ::testing::Test
 {
 public:
-    boost::filesystem::path tempDir;
-    mega::io::BuildEnvironment   environment;
-    boost::filesystem::path srcFile;
+    boost::filesystem::path    tempDir;
+    mega::io::BuildEnvironment environment;
 
     BasicDBTest()
-        : tempDir( boost::filesystem::temp_directory_path() )
-        , environment( tempDir, tempDir, tempDir )
-        , srcFile( tempDir / "test1.mega" )
+        : tempDir( boost::filesystem::temp_directory_path() / "testing" )
+        , environment( tempDir, tempDir )
     {
-        std::ofstream of( srcFile.native() );
-        of << "Hello world";
     }
-
     void SetUp()
     {
-        // create a manifest
-        {
-            std::vector< boost::filesystem::path > componentInfoPaths;
-            /*{
-                mega::io::ComponentInfo componentInfo(
-                    "test", tempDir, mega::io::ComponentInfo::PathArray{ srcFile }, mega::io::ComponentInfo::PathArray{} );
-                const boost::filesystem::path componentInfoPath = tempDir / "test.txt";
-                std::ofstream                 of( componentInfoPath.native() );
-                mega::OutputArchiveType       oa( of );
-                oa << boost::serialization::make_nvp( "componentInfo", componentInfo );
-                componentInfoPaths.push_back( componentInfoPath );
-            }*/
-
-            const mega::io::Manifest          manifest( environment, componentInfoPaths );
-            const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
-            //manifest.save( environment, projectManifestPath );
-        }
+        std::vector< boost::filesystem::path > componentInfoPaths;
+        const mega::io::Manifest         manifest( environment, componentInfoPaths );
+        const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
+        manifest.save_temp( environment, projectManifestPath );
+        environment.temp_to_real( projectManifestPath );
     }
 };
 
-TEST_F( BasicDBTest, LoadPointerToSelf )
+TEST_F( BasicDBTest, BasicTypes )
 {
-   /* {
+    {
         using namespace BasicStage;
+        using namespace BasicStage::TestNamespace;
+
         Database database( environment, environment.project_manifest() );
 
-        TestNamespace::TestObject* pTestObject
-            = database.construct< TestNamespace::TestObject >( TestNamespace::TestObject::Args( "test" ) );
+        TestObject* pTestObject = database.construct< TestObject >( TestObject::Args( "test", {}, std::nullopt, {}, std::nullopt  ) );
 
         ASSERT_TRUE( pTestObject );
-        ASSERT_EQ( pTestObject->get_name(), "test" );
+        ASSERT_EQ( pTestObject->get_string(), "test" );
+        ASSERT_TRUE( !pTestObject->get_optional_string().has_value() );
 
-        pTestObject->set_self( pTestObject );
+        pTestObject->set_optional_reference( pTestObject );
+        pTestObject->set_late_reference( pTestObject );
+        pTestObject->push_back_late_array_of_references( pTestObject );
+        pTestObject->push_back_late_array_of_references( pTestObject );
+        pTestObject->push_back_late_array_of_references( pTestObject );
 
-        database.store();
+        database.save_Testing_to_temp();
+        environment.temp_to_real( environment.BasicStage_Testing( environment.project_manifest() ) );
     }
     {
         using namespace SecondStage;
@@ -80,6 +71,13 @@ TEST_F( BasicDBTest, LoadPointerToSelf )
 
         TestNamespace::TestObject* pTestObject = database.one< TestNamespace::TestObject >( environment.project_manifest() );
         ASSERT_TRUE( pTestObject );
-        ASSERT_EQ( pTestObject->get_self(), pTestObject );
-    }*/
+        ASSERT_EQ( pTestObject->get_string(), "test" );
+        ASSERT_TRUE( !pTestObject->get_optional_string().has_value() );
+        ASSERT_EQ( pTestObject->get_optional_reference().value(), pTestObject );
+        ASSERT_EQ( pTestObject->get_late_reference(), pTestObject );
+        ASSERT_EQ( pTestObject->get_late_array_of_references().size(), 3 );
+        ASSERT_EQ( pTestObject->get_late_array_of_references()[ 0 ], pTestObject );
+        ASSERT_EQ( pTestObject->get_late_array_of_references()[ 1 ], pTestObject );
+        ASSERT_EQ( pTestObject->get_late_array_of_references()[ 2 ], pTestObject );
+    }
 }

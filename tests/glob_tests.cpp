@@ -1,6 +1,6 @@
 
 
-#include "database/common/glob.hpp"
+#include "utilities/glob.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -42,9 +42,9 @@ TEST( Glob, Empty )
     create_file( f1 );
 
     {
-        mega::io::Glob           glob = { cwd / "sandbox/a", "c/foobar", nullptr };
-        mega::io::FilePathVector results;
-        mega::io::resolveGlob( glob, srcDir, results );
+        mega::utilities::Glob           glob = { cwd / "sandbox/a", "c/foobar", nullptr };
+        mega::utilities::FilePathVector results;
+        mega::utilities::resolveGlob( glob, srcDir, results );
         ASSERT_TRUE( results.empty() );
     }
 
@@ -63,9 +63,9 @@ TEST( Glob, Absolute )
     create_file( f1 );
 
     {
-        mega::io::Glob           glob = { cwd / "sandbox/a", "/a/b/foobar", nullptr };
-        mega::io::FilePathVector results;
-        mega::io::resolveGlob( glob, srcDir, results );
+        mega::utilities::Glob           glob = { cwd / "sandbox/a", "/a/b/foobar", nullptr };
+        mega::utilities::FilePathVector results;
+        mega::utilities::resolveGlob( glob, srcDir, results );
         ASSERT_EQ( results.size(), 1U );
         ASSERT_EQ( results.front(), f1 );
     }
@@ -86,9 +86,9 @@ TEST( Glob, SingleMatch )
     ASSERT_TRUE( boost::filesystem::exists( f1 ) );
 
     {
-        mega::io::Glob           glob = { cwd / "sandbox/a", "b/foobar", nullptr };
-        mega::io::FilePathVector results;
-        mega::io::resolveGlob( glob, srcDir, results );
+        mega::utilities::Glob           glob = { cwd / "sandbox/a", "b/foobar", nullptr };
+        mega::utilities::FilePathVector results;
+        mega::utilities::resolveGlob( glob, srcDir, results );
         ASSERT_EQ( results.size(), 1U );
         ASSERT_EQ( results.front(), f1 );
     }
@@ -109,9 +109,9 @@ TEST( Glob, WildCardMatch )
     ASSERT_TRUE( boost::filesystem::exists( f1 ) );
 
     {
-        mega::io::Glob           glob = { cwd / "sandbox/a", "b/*", nullptr };
-        mega::io::FilePathVector results;
-        mega::io::resolveGlob( glob, srcDir, results );
+        mega::utilities::Glob           glob = { cwd / "sandbox/a", "b/*", nullptr };
+        mega::utilities::FilePathVector results;
+        mega::utilities::resolveGlob( glob, srcDir, results );
         ASSERT_EQ( results.size(), 1U );
         ASSERT_EQ( results.front(), f1 );
     }
@@ -133,9 +133,9 @@ TEST( Glob, MultiWildCard )
     create_files( cwd / "sandbox/a/d/", 3 );
 
     {
-        mega::io::Glob           glob = { cwd / "sandbox/a", "b/*", nullptr };
-        mega::io::FilePathVector results;
-        mega::io::resolveGlob( glob, srcDir, results );
+        mega::utilities::Glob           glob = { cwd / "sandbox/a", "b/*", nullptr };
+        mega::utilities::FilePathVector results;
+        mega::utilities::resolveGlob( glob, srcDir, results );
         ASSERT_EQ( results.size(), 5U );
     }
 
@@ -160,9 +160,9 @@ TEST( Glob, Branching )
     create_files( cwd / "sandbox/a/d/f", 7 );
 
     {
-        mega::io::Glob           glob = { cwd / "sandbox/a", "*/*/test_file_1", nullptr };
-        mega::io::FilePathVector results;
-        mega::io::resolveGlob( glob, srcDir, results );
+        mega::utilities::Glob           glob = { cwd / "sandbox/a", "*/*/test_file_1", nullptr };
+        mega::utilities::FilePathVector results;
+        mega::utilities::resolveGlob( glob, srcDir, results );
         ASSERT_EQ( results.size(), 2U );
     }
 
@@ -187,9 +187,9 @@ TEST( Glob, Glob )
     create_files( cwd / "sandbox/a/c/f", 7 );
 
     {
-        mega::io::Glob           glob = { cwd / "sandbox/a", "c/**", nullptr };
-        mega::io::FilePathVector results;
-        mega::io::resolveGlob( glob, srcDir, results );
+        mega::utilities::Glob           glob = { cwd / "sandbox/a", "c/**", nullptr };
+        mega::utilities::FilePathVector results;
+        mega::utilities::resolveGlob( glob, srcDir, results );
         ASSERT_EQ( results.size(), 4 + 6 + 7 );
     }
 

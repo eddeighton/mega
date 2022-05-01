@@ -9,7 +9,7 @@
 
 namespace mega
 {
-    namespace io
+    namespace utilities
     {
         struct Glob
         {

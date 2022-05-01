@@ -178,6 +178,54 @@ namespace mega
             static const boost::filesystem::path& extension() { return EXTENSION; }
         };
 
+        class GeneratedHPPSourceFilePath : public BuildFilePath
+        {
+            static boost::filesystem::path EXTENSION;
+            friend class BuildEnvironment;
+            
+            GeneratedHPPSourceFilePath( const boost::filesystem::path& filePath )
+                : BuildFilePath( filePath )
+            {
+            }
+
+        public:
+            GeneratedHPPSourceFilePath() {}
+
+            bool operator==( const GeneratedHPPSourceFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
+            bool operator<( const GeneratedHPPSourceFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "generated_hxx_file_path", m_filePath );
+            }
+            static const boost::filesystem::path& extension() { return EXTENSION; }
+        };
+
+        class GeneratedCPPSourceFilePath : public BuildFilePath
+        {
+            static boost::filesystem::path EXTENSION;
+            friend class BuildEnvironment;
+            
+            GeneratedCPPSourceFilePath( const boost::filesystem::path& filePath )
+                : BuildFilePath( filePath )
+            {
+            }
+
+        public:
+            GeneratedCPPSourceFilePath() {}
+
+            bool operator==( const GeneratedCPPSourceFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
+            bool operator<( const GeneratedCPPSourceFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "generated_cxx_file_path", m_filePath );
+            }
+            static const boost::filesystem::path& extension() { return EXTENSION; }
+        };
+
 
     } // namespace io
 } // namespace mega

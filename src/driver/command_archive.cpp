@@ -43,7 +43,7 @@ namespace driver
     {
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath, tempDir = boost::filesystem::temp_directory_path();
+            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath;
 
             namespace po = boost::program_options;
             po::options_description commandOptions( " Generate retail archive" );
@@ -67,7 +67,7 @@ namespace driver
             }
             else
             {
-                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
+                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
                 const mega::io::Manifest manifest( environment, environment.project_manifest() );
                 mega::io::ReadArchive::compile_archive( outputFilePath, manifest, rootSourceDir, rootBuildDir );
             }

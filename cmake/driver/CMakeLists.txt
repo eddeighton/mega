@@ -22,6 +22,14 @@ include_directories( ${MEGA_SRC_DIR} )
 #get the source code
 set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
+set( JINJA_TEMPLATES 
+	${DRIVER_SOURCE_DIR}/graphviz.jinja 
+	${DRIVER_SOURCE_DIR}/context.jinja 
+	${DRIVER_SOURCE_DIR}/namespace.jinja 
+	${DRIVER_SOURCE_DIR}/interface.jinja 
+	)
+
+
 set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_utils.hpp
 
@@ -48,6 +56,7 @@ add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 target_compile_definitions(mega PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
 
 target_link_libraries( mega database )
+target_link_libraries( mega utilities )
 
 set_target_properties( mega PROPERTIES FOLDER driver )
 
@@ -62,4 +71,4 @@ link_inja( mega )
 link_common( mega )
 
 install( TARGETS mega DESTINATION bin)
-install( FILES ${DRIVER_SOURCE_DIR}/graphviz.jinja DESTINATION templates )
+install( FILES ${JINJA_TEMPLATES} DESTINATION templates )

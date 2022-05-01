@@ -34,5 +34,6 @@ add_subdirectory(database_compiler_driver)
 
 add_subdirectory(parser)
 add_subdirectory(database)
+add_subdirectory(utilities)
 add_subdirectory(driver)
 add_subdirectory(tests)

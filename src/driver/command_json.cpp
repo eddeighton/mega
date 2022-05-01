@@ -46,7 +46,7 @@ namespace driver
     {
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath, tempDir = boost::filesystem::temp_directory_path();
+            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath;
 
             namespace po = boost::program_options;
             po::options_description commandOptions( " Generate database json file" );
@@ -70,7 +70,7 @@ namespace driver
             }
             else
             {
-                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
+                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
 
                 using namespace FinalStage;
 

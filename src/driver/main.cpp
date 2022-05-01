@@ -31,8 +31,6 @@
 #include "boost/process.hpp"
 #pragma warning( pop )
 
-#include <boost/stacktrace.hpp>
-
 #include <cstdlib>
 
 #include <iostream>
@@ -176,19 +174,16 @@ int main( int argc, const char* argv[] )
         catch ( boost::program_options::error& e )
         {
             std::cout << "Invalid input. " << e.what() << "\nType '--help' for options" << std::endl;
-            std::cout << boost::stacktrace::stacktrace() << std::endl;
             return 1;
         }
         catch ( std::exception& e )
         {
             std::cout << "Error: " << e.what() << std::endl;
-            std::cout << boost::stacktrace::stacktrace() << std::endl;
             return 1;
         }
         catch ( ... )
         {
             std::cout << "Unknown error.\n" << std::endl;
-            std::cout << boost::stacktrace::stacktrace() << std::endl;
             return 1;
         }
     }

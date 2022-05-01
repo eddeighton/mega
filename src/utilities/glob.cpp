@@ -1,5 +1,5 @@
 
-#include "database/common/glob.hpp"
+#include "utilities/glob.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/terminal.hpp"
@@ -18,7 +18,7 @@
 
 namespace mega
 {
-    namespace io
+    namespace utilities
     {
         void recurseFiles( const boost::filesystem::path&             location,
                            std::vector< std::string >::const_iterator i,
@@ -144,6 +144,6 @@ namespace mega
             }
         }
 
-    } // namespace io
+    } // namespace utilities
 
 } // namespace mega

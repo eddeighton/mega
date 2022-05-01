@@ -1,0 +1,38 @@
+struct {{ name }}
+{
+    eg::reference data;
+    {{ name }}
+    (
+        data.instance = 0;
+        data.type = 0;
+        data.timestamp = eg::INVALID_TIMESTAMP;
+    );
+    {{ name }}( const eg::reference& reference )
+        :   data( reference )
+    {
+    }
+    inline bool operator==( const {{ name }}& cmp ) const
+    {
+        return data == cmp.data;
+    }
+    inline bool operator!=( const {{ name }}& cmp ) const
+    {
+        return !(data == cmp.data);
+    }
+    inline bool operator<( const {{ name }}& cmp ) const
+    {
+        return data < cmp.data;
+    }
+    operator ::eg::ReferenceState() const;
+    bool operator==( ::eg::ReferenceState cmp ) const;
+    bool operator!=( ::eg::ReferenceState cmp ) const;
+    eg::ActionCoroutine operator()() const;
+    static {{ name }} null() { return {{ name }}(); }
+    template< typename TypePath, typename Operation, typename... Args >
+    typename eg::result_type< {{ name }}, TypePath, Operation >::Type invoke( Args... args ) const;
+{% for trait in traits %}
+    struct trait;
+{% endfor %}
+
+    {{ nested }}
+};

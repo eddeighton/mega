@@ -19,7 +19,15 @@ namespace TestNamespace
 {
     object TestObject -> BasicStage::Testing
     {
-        value< std::string > name;
-        late< ref< TestObject > > self;
+        value< std::string > string;
+        array< value< std::string > > array_of_string;
+        opt< value< std::string > > optional_string;
+
+        //ref< TestObject > reference;
+        array< ref< TestObject > > array_of_references;
+        opt< ref< TestObject > > optional_reference;
+
+        late< ref< TestObject > > late_reference;
+        late< array< ref< TestObject > > > late_array_of_references;
     }
 }

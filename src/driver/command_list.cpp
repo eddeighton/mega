@@ -110,7 +110,7 @@ namespace driver
 
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path    rootSourceDir, rootBuildDir, sourceDir, buildDir, tempDir = boost::filesystem::temp_directory_path();
+            boost::filesystem::path    rootSourceDir, rootBuildDir, sourceDir, buildDir;
             std::string                strComponentName, strIncludeDirectories;
             std::vector< std::string > objectSourceFileNames;
 
@@ -148,7 +148,7 @@ namespace driver
                 const std::vector< boost::filesystem::path > includeDirectories
                     = pathListToFolders( parsePathList( strIncludeDirectories ) );
 
-                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
+                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
 
                 task::Task::PtrVector tasks;
 

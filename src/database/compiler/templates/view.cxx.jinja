@@ -43,119 +43,138 @@ class {{ stype.name }};
 
 struct PointerConverter
 {
+{#
 {% for object_part in stage.super_conversions %}
     virtual {{ object_part.supertype }}* toSuper( const data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} >& pData ) const = 0;
     virtual data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} > toData_{{ object_part.file }}_{{ object_part.object }}( {{ object_part.supertype }}* pSuper ) const = 0;
-{% endfor %}{# stage.super_conversions #}
+{% endfor %}
+#}
 {% for interface_conversion in stage.interface_conversions %}
-    virtual {{ interface_conversion.type }}* toInterface( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const = 0;
+    virtual {{ interface_conversion.type }}* toView( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const = 0;
     virtual data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} > toData( {{ interface_conversion.type }}* pInterface ) const = 0;
 {% endfor %}{# stage.interface_conversions #}
 };
 
 // conversion generics
-template< typename TTo, typename TFrom >
-inline data::Ptr< TTo > toData( PointerConverter& converter, TFrom* pFrom )
+template< typename TToData, typename TFromView >
+inline data::Ptr< TToData > toData( PointerConverter& converter, TFromView* pFrom )
 {
     return converter.toData( pFrom );
 }
 
-// conversion generics
-template< typename TTo, typename TFrom >
-inline TTo toInterface( PointerConverter& converter, const TFrom& from )
+template< typename TToView, typename TFromData >
+inline TToView* toView( PointerConverter& converter, const TFromData& from )
 {
-    return converter.toInterface( from );
+    return converter.toView( from );
 }
 
-template< typename TTo, typename TFrom >
-inline std::vector< data::Ptr< TTo > > toData( PointerConverter& converter, const std::vector< TFrom* >& from )
+template< typename TToData, typename TFromView >
+inline std::optional< data::Ptr< TToData > > toData( PointerConverter& converter, std::optional< TFromView* > pFrom )
 {
-    std::vector< data::Ptr< TTo > > result;
-    for( typename std::vector< TFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    if( pFrom.has_value() )
+        return std::optional< data::Ptr< TToData > >( toData< TToData, TFromView >( converter, pFrom.value() ) );
+    else
+        return std::optional< data::Ptr< TToData > >();
+}
+
+template< typename TToView, typename TFromData >
+inline std::optional< TToView* > toView( PointerConverter& converter, const std::optional< TFromData >& from )
+{
+    if( from.has_value() )
+        return std::optional< TToView* >( toView< TToView, TFromData >( converter, from.value() ) );
+    else
+        return std::optional< TToView* >();
+}
+
+template< typename TToData, typename TFromView >
+inline std::vector< data::Ptr< TToData > > toData( PointerConverter& converter, const std::vector< TFromView* >& from )
+{
+    std::vector< data::Ptr< TToData > > result;
+    for( TFromView* pFrom : from )
     {
-        result.push_back( toData< TTo, TFrom >( converter, *i ) );
+        result.push_back( toData< TToData, TFromView >( converter, pFrom ) );
     }
     return result;
 }
 
-template< typename TTo, typename TFrom >
-inline std::vector< TTo* > toInterface( PointerConverter& converter, const std::vector< TFrom >& from )
+template< typename TToView, typename TFromData >
+inline std::vector< TToView* > toView( PointerConverter& converter, const std::vector< TFromData >& from )
 {
-    std::vector< TTo* > result;
-    for( typename std::vector< TFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    std::vector< TToView* > result;
+    for( const TFromData& fromData : from )
     {
-        result.push_back( toInterface< TTo*, TFrom >( converter, *i ) );
+        result.push_back( toView< TToView, TFromData >( converter, fromData ) );
     }
     return result;
 }
 
 
-template< typename TTo, typename TFrom, typename TKey >
-inline std::map< TKey, data::Ptr< TTo > > toData( PointerConverter& converter, const std::map< TKey, TFrom* >& from )
+template< typename TToData, typename TFromView, typename TKey >
+inline std::map< TKey, data::Ptr< TToData > > toData( PointerConverter& converter, const std::map< TKey, TFromView* >& from )
 {
-    std::map< TKey, data::Ptr< TTo > > result;
-    for( typename std::map< TKey, TFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    std::map< TKey, data::Ptr< TToData > > result;
+    for( typename std::map< TKey, TFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
-        result.insert( std::make_pair( i->first, toData< TTo, TFrom >( converter, i->second ) ) );
+        result.insert( std::make_pair( i->first, toData< TToData, TFromView >( converter, i->second ) ) );
     }
     return result;
 }
 
-template< typename TTo, typename TFrom, typename TKey >
-inline std::map< TKey, TTo* > toInterface( PointerConverter& converter, const std::map< TKey, TFrom >& from )
+template< typename TToView, typename TFromData, typename TKey >
+inline std::map< TKey, TToView* > toView( PointerConverter& converter, const std::map< TKey, TFromData >& from )
 {
-    std::map< TKey, TTo* > result;
-    for( typename std::map< TKey, TFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    std::map< TKey, TToView* > result;
+    for( typename std::map< TKey, TFromData >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
-        result.insert( std::make_pair( i->first, toInterface< TTo*, TFrom >( converter, i->second ) ) );
+        result.insert( std::make_pair( i->first, toView< TToView, TFromData >( converter, i->second ) ) );
     }
     return result;
 }
 
-template< typename TTo, typename TFrom, typename TValue >
-inline std::map< data::Ptr< TTo >, TValue > toData( PointerConverter& converter, const std::map< TFrom*, TValue >& from )
+template< typename TToData, typename TFromView, typename TValue >
+inline std::map< data::Ptr< TToData >, TValue > toData( PointerConverter& converter, const std::map< TFromView*, TValue >& from )
 {
-    std::map< data::Ptr< TTo >, TValue > result;
-    for( typename std::map< TFrom*, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    std::map< data::Ptr< TToData >, TValue > result;
+    for( typename std::map< TFromView*, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
-        result.insert( std::make_pair( toData< TTo, TFrom >( converter, i->first ), i->second ) );
+        result.insert( std::make_pair( toData< TToData, TFromView >( converter, i->first ), i->second ) );
     }
     return result;
 }
 
-template< typename TTo, typename TFrom, typename TValue >
-inline std::map< TTo*, TValue > toInterface( PointerConverter& converter, const std::map< TFrom, TValue >& from )
+template< typename TToView, typename TFromData, typename TValue >
+inline std::map< TToView*, TValue > toView( PointerConverter& converter, const std::map< TFromData, TValue >& from )
 {
-    std::map< TTo*, TValue > result;
-    for( typename std::map< TFrom, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    std::map< TToView*, TValue > result;
+    for( typename std::map< TFromData, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
-        result.insert( std::make_pair( toInterface< TTo*, TFrom >( converter, i->first ), i->second ) );
+        result.insert( std::make_pair( toView< TToView, TFromData >( converter, i->first ), i->second ) );
     }
     return result;
 }
 
-template< typename TKeyTo, typename TKeyFrom, typename TValueTo, typename TValueFrom >
-inline std::map< data::Ptr< TKeyTo >, data::Ptr< TValueTo > > toData( PointerConverter& converter, const std::map< TKeyFrom*, TValueFrom* >& from )
+template< typename TKeyToData, typename TKeyFromView, typename TValueToData, typename TValueFromView >
+inline std::map< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > toData( PointerConverter& converter, const std::map< TKeyFromView*, TValueFromView* >& from )
 {
-    std::map< data::Ptr< TKeyTo >, data::Ptr< TValueTo > > result;
-    for( typename std::map< TKeyFrom*, TValueFrom* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    std::map< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > result;
+    for( typename std::map< TKeyFromView*, TValueFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
         result.insert( std::make_pair( 
-            toData< TKeyTo, TKeyFrom >( converter, i->first ), 
-            toData< TValueTo, TValueFrom >( converter, i->second ) ) );
+            toData< TKeyToData, TKeyFromView >( converter, i->first ), 
+            toData< TValueToData, TValueFromView >( converter, i->second ) ) );
     }
     return result;
 }
 
-template< typename TKeyTo, typename TKeyFrom, typename TValueTo, typename TValueFrom >
-inline std::map< TKeyTo*, TValueTo* > toInterface( PointerConverter& converter, const std::map< TKeyFrom, TValueFrom >& from )
+template< typename TKeyToView, typename TKeyFromData, typename TValueToView, typename TValueFromData >
+inline std::map< TKeyToView*, TValueToView* > toView( PointerConverter& converter, const std::map< TKeyFromData, TValueFromData >& from )
 {
-    std::map< TKeyTo*, TValueTo > result;
-    for( typename std::map< TKeyFrom, TValueFrom >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    std::map< TKeyToView*, TValueToView* > result;
+    for( typename std::map< TKeyFromData, TValueFromData >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
         result.insert( std::make_pair( 
-            toInterface< TKeyTo*, TKeyFrom >( converter, i->first ), 
-            toInterface< TValueTo*, TValueFrom >( converter, i->second )) );
+            toView< TKeyToView, TKeyFromData >( converter, i->first ), 
+            toView< TValueToView, TValueFromData >( converter, i->second )) );
     }
     return result;
 }
@@ -228,7 +247,7 @@ void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} 
                 data::convert< data::{{ variant.dataobjectpart }} >( data );
             return part->{{ function.property }};
 {% else %}
-            THROW_RTE( "Invalid function call: {{ function.returntype }} {{ stype.name }}::{{ function.name }}({{function.params }}) const" );
+            THROW_RTE( "Invalid function call" );
 {% endif %}
         }
 {% endfor %}{# function.bodies #}
@@ -328,7 +347,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
                     dynamic_cast< data::{{ many_accessor.file }}::{{ many_accessor.object }}* >( pObject ) )
                 {
                     data::Ptr< data::{{ many_accessor.file }}::{{ many_accessor.object }} > pData( const_cast<Database::Pimpl&>(*this), pFound );
-                    result.push_back( toSuper( pData ) );
+                    result.push_back( ::toView< {{ many_accessor.type }} >( const_cast< Database::Pimpl&>(*this), pData ) );
                 }
             }
         }
@@ -494,7 +513,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
         }
         return pFile->getObject( objectInfo.getIndex() );
     }
-
+{#
 {% for super_conversion in stage.super_conversions %}
     virtual {{ super_conversion.supertype }}* toSuper( const data::Ptr< data::{{ super_conversion.file }}::{{ super_conversion.object }} >& pData ) const
     {
@@ -518,10 +537,10 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
     {
         return data::convert< data::{{ super_conversion.file }}::{{ super_conversion.object }} >( pSuper->m_data );
     }
-{% endfor %}{# stage.super_conversions #}
-
+{% endfor %}
+#}
 {% for interface_conversion in stage.interface_conversions %}
-    virtual {{ interface_conversion.type }}* toInterface( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const
+    virtual {{ interface_conversion.type }}* toView( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const
     {
         InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
         if( iFind != m_interfaceHash.end() )

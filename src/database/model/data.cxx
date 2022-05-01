@@ -3,6 +3,35 @@
 
 #include "nlohmann/json.hpp"
 
+namespace nlohmann {
+    template <typename T>
+    struct adl_serializer< std::optional<T> > 
+    {
+        static void to_json(json& j, const std::optional<T>& opt) 
+        {
+            if (!opt.has_value()) 
+            {
+                j = nullptr;
+            } 
+            else 
+            {
+                j = opt.value();
+            }
+        }
+        static void from_json(const json& j, std::optional<T>& opt) 
+        {
+            if (j.is_null()) 
+            {
+                opt = std::optional<T>();
+            } 
+            else 
+            {
+                opt = j.get<T>();
+            }
+        }
+    };
+}
+
 namespace data
 {
 
@@ -1182,29 +1211,122 @@ namespace Body
 }
 namespace Tree
 {
-    // struct DimensionInitial : public mega::io::Object
-    DimensionInitial::DimensionInitial( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+    // struct DimensionTrait : public mega::io::Object
+    DimensionTrait::DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
           , p_AST_Dimension( loader )
     {
     }
-    void DimensionInitial::load( mega::io::Loader& loader )
+    void DimensionTrait::load( mega::io::Loader& loader )
     {
         loader.load( p_AST_Dimension );
     }
-    void DimensionInitial::load_post( mega::io::Loader& loader )
+    void DimensionTrait::load_post( mega::io::Loader& loader )
     {
         p_AST_Dimension->m_pInheritance = this;
     }
-    void DimensionInitial::store( mega::io::Storer& storer ) const
+    void DimensionTrait::store( mega::io::Storer& storer ) const
     {
         storer.store( p_AST_Dimension );
     }
-    void DimensionInitial::to_json( nlohmann::json& part ) const
+    void DimensionTrait::to_json( nlohmann::json& part ) const
     {
         part = nlohmann::json::object(
             { 
-                { "partname", "DimensionInitial" },
+                { "partname", "DimensionTrait" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct InheritanceTrait : public mega::io::Object
+    InheritanceTrait::InheritanceTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_AST_Inheritance( loader )
+    {
+    }
+    void InheritanceTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_Inheritance );
+    }
+    void InheritanceTrait::load_post( mega::io::Loader& loader )
+    {
+        p_AST_Inheritance->m_pInheritance = this;
+    }
+    void InheritanceTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_Inheritance );
+    }
+    void InheritanceTrait::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "InheritanceTrait" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct ReturnTypeTrait : public mega::io::Object
+    ReturnTypeTrait::ReturnTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_AST_ReturnType( loader )
+    {
+    }
+    void ReturnTypeTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_ReturnType );
+    }
+    void ReturnTypeTrait::load_post( mega::io::Loader& loader )
+    {
+        p_AST_ReturnType->m_pInheritance = this;
+    }
+    void ReturnTypeTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_ReturnType );
+    }
+    void ReturnTypeTrait::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ReturnTypeTrait" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct ArgumentListTrait : public mega::io::Object
+    ArgumentListTrait::ArgumentListTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_AST_ArgumentList( loader )
+    {
+    }
+    void ArgumentListTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_ArgumentList );
+    }
+    void ArgumentListTrait::load_post( mega::io::Loader& loader )
+    {
+        p_AST_ArgumentList->m_pInheritance = this;
+    }
+    void ArgumentListTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_ArgumentList );
+    }
+    void ArgumentListTrait::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "ArgumentListTrait" },
                 { "filetype" , "Tree" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -1356,12 +1478,11 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Namespace::Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& is_global, const std::vector< data::Ptr< data::AST::ContextDef > >& namespace_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
+    Namespace::Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& is_global, const std::vector< data::Ptr< data::AST::ContextDef > >& namespace_defs)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , is_global( is_global )
           , namespace_defs( namespace_defs )
-          , dimensions( dimensions )
     {
     }
     void Namespace::load( mega::io::Loader& loader )
@@ -1380,6 +1501,7 @@ namespace Tree
         storer.store( p_Tree_Context );
         storer.store( is_global );
         storer.store( namespace_defs );
+        VERIFY_RTE_MSG( dimensions.has_value(), "Tree::Namespace.dimensions has NOT been set" );
         storer.store( dimensions );
     }
     void Namespace::to_json( nlohmann::json& part ) const
@@ -1405,7 +1527,7 @@ namespace Tree
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
+                { "dimensions", dimensions.value() } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -1416,11 +1538,10 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Abstract::Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::AbstractDef > >& abstract_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
+    Abstract::Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::AbstractDef > >& abstract_defs)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , abstract_defs( abstract_defs )
-          , dimensions( dimensions )
     {
     }
     void Abstract::load( mega::io::Loader& loader )
@@ -1437,6 +1558,7 @@ namespace Tree
     {
         storer.store( p_Tree_Context );
         storer.store( abstract_defs );
+        VERIFY_RTE_MSG( dimensions.has_value(), "Tree::Abstract.dimensions has NOT been set" );
         storer.store( dimensions );
     }
     void Abstract::to_json( nlohmann::json& part ) const
@@ -1457,7 +1579,7 @@ namespace Tree
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
+                { "dimensions", dimensions.value() } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -1468,11 +1590,10 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
+    Action::Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > >& action_defs)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , action_defs( action_defs )
-          , dimensions( dimensions )
     {
     }
     void Action::load( mega::io::Loader& loader )
@@ -1489,6 +1610,7 @@ namespace Tree
     {
         storer.store( p_Tree_Context );
         storer.store( action_defs );
+        VERIFY_RTE_MSG( dimensions.has_value(), "Tree::Action.dimensions has NOT been set" );
         storer.store( dimensions );
     }
     void Action::to_json( nlohmann::json& part ) const
@@ -1509,7 +1631,7 @@ namespace Tree
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
+                { "dimensions", dimensions.value() } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -1520,11 +1642,10 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Event::Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::EventDef > >& event_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
+    Event::Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::EventDef > >& event_defs)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , event_defs( event_defs )
-          , dimensions( dimensions )
     {
     }
     void Event::load( mega::io::Loader& loader )
@@ -1541,6 +1662,7 @@ namespace Tree
     {
         storer.store( p_Tree_Context );
         storer.store( event_defs );
+        VERIFY_RTE_MSG( dimensions.has_value(), "Tree::Event.dimensions has NOT been set" );
         storer.store( dimensions );
     }
     void Event::to_json( nlohmann::json& part ) const
@@ -1561,7 +1683,7 @@ namespace Tree
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
+                { "dimensions", dimensions.value() } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -1616,11 +1738,10 @@ namespace Tree
           , p_Tree_Context( loader )
     {
     }
-    Object::Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs, const std::vector< data::Ptr< data::Tree::DimensionInitial > >& dimensions)
+    Object::Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > >& object_defs)
         :   mega::io::Object( objectInfo )
           , p_Tree_Context( loader )
           , object_defs( object_defs )
-          , dimensions( dimensions )
     {
     }
     void Object::load( mega::io::Loader& loader )
@@ -1637,6 +1758,7 @@ namespace Tree
     {
         storer.store( p_Tree_Context );
         storer.store( object_defs );
+        VERIFY_RTE_MSG( dimensions.has_value(), "Tree::Object.dimensions has NOT been set" );
         storer.store( dimensions );
     }
     void Object::to_json( nlohmann::json& part ) const
@@ -1657,7 +1779,7 @@ namespace Tree
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "dimensions", dimensions } } );
+                { "dimensions", dimensions.value() } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -1864,27 +1986,27 @@ namespace Clang
     // struct Dimension : public mega::io::Object
     Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
-          , p_Tree_DimensionInitial( loader )
+          , p_Tree_DimensionTrait( loader )
     {
     }
     Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canonical_type)
         :   mega::io::Object( objectInfo )
-          , p_Tree_DimensionInitial( loader )
+          , p_Tree_DimensionTrait( loader )
           , canonical_type( canonical_type )
     {
     }
     void Dimension::load( mega::io::Loader& loader )
     {
-        loader.load( p_Tree_DimensionInitial );
+        loader.load( p_Tree_DimensionTrait );
         loader.load( canonical_type );
     }
     void Dimension::load_post( mega::io::Loader& loader )
     {
-        p_Tree_DimensionInitial->m_pInheritance = this;
+        p_Tree_DimensionTrait->m_pInheritance = this;
     }
     void Dimension::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_Tree_DimensionInitial );
+        storer.store( p_Tree_DimensionTrait );
         storer.store( canonical_type );
     }
     void Dimension::to_json( nlohmann::json& part ) const
@@ -1938,20 +2060,23 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 23: return new AST::SourceRoot( loader, objectInfo );
         case 24: return new AST::IncludeRoot( loader, objectInfo );
         case 25: return new AST::ObjectSourceRoot( loader, objectInfo );
-        case 26: return new Tree::DimensionInitial( loader, objectInfo );
-        case 28: return new Tree::ContextGroup( loader, objectInfo );
-        case 29: return new Tree::Root( loader, objectInfo );
-        case 30: return new Tree::Context( loader, objectInfo );
-        case 31: return new Tree::Namespace( loader, objectInfo );
-        case 32: return new Tree::Abstract( loader, objectInfo );
-        case 33: return new Tree::Action( loader, objectInfo );
-        case 34: return new Tree::Event( loader, objectInfo );
-        case 35: return new Tree::Function( loader, objectInfo );
-        case 36: return new Tree::Object( loader, objectInfo );
-        case 37: return new Tree::Link( loader, objectInfo );
-        case 38: return new DPGraph::Glob( loader, objectInfo );
-        case 39: return new DPGraph::ObjectDependencies( loader, objectInfo );
-        case 40: return new DPGraph::Analysis( loader, objectInfo );
+        case 26: return new Tree::DimensionTrait( loader, objectInfo );
+        case 28: return new Tree::InheritanceTrait( loader, objectInfo );
+        case 29: return new Tree::ReturnTypeTrait( loader, objectInfo );
+        case 30: return new Tree::ArgumentListTrait( loader, objectInfo );
+        case 31: return new Tree::ContextGroup( loader, objectInfo );
+        case 32: return new Tree::Root( loader, objectInfo );
+        case 33: return new Tree::Context( loader, objectInfo );
+        case 34: return new Tree::Namespace( loader, objectInfo );
+        case 35: return new Tree::Abstract( loader, objectInfo );
+        case 36: return new Tree::Action( loader, objectInfo );
+        case 37: return new Tree::Event( loader, objectInfo );
+        case 38: return new Tree::Function( loader, objectInfo );
+        case 39: return new Tree::Object( loader, objectInfo );
+        case 40: return new Tree::Link( loader, objectInfo );
+        case 41: return new DPGraph::Glob( loader, objectInfo );
+        case 42: return new DPGraph::ObjectDependencies( loader, objectInfo );
+        case 43: return new DPGraph::Analysis( loader, objectInfo );
         case 27: return new Clang::Dimension( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );

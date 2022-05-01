@@ -47,7 +47,7 @@ stage InterfaceAnalysisStage
 
     file Clang;
 
-    persource accessor ref< Parser::ObjectSourceRoot >;
+    persource accessor ref< Interface::Root >;
 }
 
 ///////////////////////////////////////////
@@ -55,14 +55,28 @@ stage InterfaceAnalysisStage
 // Objects
 namespace Interface
 {
-    // context elements
-    object DimensionInitial : Parser::Dimension -> InterfaceStage::Tree
+    // context traits
+    object DimensionTrait : Parser::Dimension -> InterfaceStage::Tree
     {
     }
 
-    object Dimension : DimensionInitial -> InterfaceAnalysisStage::Clang
+    object Dimension : DimensionTrait -> InterfaceAnalysisStage::Clang
     {
         value< std::string > canonical_type;
+    }
+
+    object InheritanceTrait : Parser::Inheritance -> InterfaceStage::Tree
+    {
+    }
+
+    object ReturnTypeTrait : Parser::ReturnType -> InterfaceStage::Tree
+    {
+
+    }
+
+    object ArgumentListTrait : Parser::ArgumentList -> InterfaceStage::Tree
+    {
+
     }
 
     // basic context types
@@ -87,22 +101,25 @@ namespace Interface
     {
         value< bool > is_global;
         array< ref< Parser::ContextDef > > namespace_defs;
-        array< ref< DimensionInitial > > dimensions;
+        late< array< ref< DimensionTrait > > > dimensions;
     }
     object Abstract : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::AbstractDef > > abstract_defs;
-        array< ref< DimensionInitial > > dimensions;
+        late< array< ref< DimensionTrait > > > dimensions;
+        //late< opt< ref< InheritanceTrait > > > inheritance;
     }
     object Action : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::ActionDef > > action_defs;
-        array< ref< DimensionInitial > > dimensions;
+        late< array< ref< DimensionTrait > > > dimensions;
+        //late< opt< ref< InheritanceTrait > > > inheritance;
     }
     object Event : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::EventDef > > event_defs;
-        array< ref< DimensionInitial > > dimensions;
+        late< array< ref< DimensionTrait > > > dimensions;
+        //late< opt< ref< InheritanceTrait > > > inheritance;
     }
     object Function : Context -> InterfaceStage::Tree
     {
@@ -111,11 +128,13 @@ namespace Interface
     object Object : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::ObjectDef > > object_defs;
-        array< ref< DimensionInitial > > dimensions;
+        late< array< ref< DimensionTrait > > > dimensions;
+        //late< opt< ref< InheritanceTrait > > > inheritance;
     }
     object Link : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::LinkDef > > link_defs;
+        //late< ref< InheritanceTrait > > inheritance;
     }
 
 }

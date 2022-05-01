@@ -55,11 +55,18 @@ namespace db
             void setLate() { m_bLate = true; }
 
             virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const = 0;
-            virtual std::string getDataType( bool bAsArg ) const                                       = 0;
-            virtual bool        isCtorParam() const                                                    = 0;
-            virtual bool        isGet() const                                                          = 0;
-            virtual bool        isSet() const                                                          = 0;
-            virtual bool        isInsert() const                                                       = 0;
+
+            enum DatabaseTypeFormat
+            {
+                eNormal,
+                eNormal_NoLate,
+                eAsArgument
+            };
+            virtual std::string getDatabaseType( DatabaseTypeFormat ) const = 0;
+            virtual bool        isCtorParam() const                         = 0;
+            virtual bool        isGet() const                               = 0;
+            virtual bool        isSet() const                               = 0;
+            virtual bool        isInsert() const                            = 0;
         };
 
         class File;
@@ -475,14 +482,19 @@ namespace db
             {
                 return bAsArg ? toConstRef( m_cppType ) : m_cppType;
             }
-            virtual std::string getDataType( bool bAsArg ) const
+            virtual std::string getDatabaseType( DatabaseTypeFormat formatType ) const
             {
-                if ( m_bLate )
-                    return toOptional( m_cppType );
-                else if ( bAsArg )
-                    return toConstRef( m_cppType );
-                else
-                    return m_cppType;
+                switch ( formatType )
+                {
+                    case eNormal:
+                        return m_bLate ? toOptional( m_cppType ) : m_cppType;
+                    case eNormal_NoLate:
+                        return m_cppType;
+                    case eAsArgument:
+                        return toConstRef( m_cppType );
+                    default:
+                        THROW_RTE( "Unknown format type" );
+                }
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -508,18 +520,73 @@ namespace db
                    << "*";
                 return os.str();
             }
-            virtual std::string getDataType( bool bAsArg ) const
+            virtual std::string getDatabaseType( DatabaseTypeFormat formatType ) const
             {
                 VERIFY_RTE( m_object );
+
                 std::ostringstream os;
                 os << "data::Ptr< data::" << m_object->m_primaryFile.lock()->m_strName << "::" << m_object->m_strName << " >";
 
-                if ( m_bLate )
-                    return toOptional( os.str() );
-                else if ( bAsArg )
-                    return toConstRef( os.str() );
-                else
+                switch ( formatType )
+                {
+                    case eNormal:
+                        return m_bLate ? toOptional( os.str() ) : os.str();
+                    case eNormal_NoLate:
+                        return os.str();
+                    case eAsArgument:
+                        return toConstRef( os.str() );
+                    default:
+                        THROW_RTE( "Unknown format type" );
+                }
+            }
+            virtual bool isCtorParam() const { return true; }
+            virtual bool isGet() const { return true; }
+            virtual bool isSet() const { return true; }
+            virtual bool isInsert() const { return false; }
+        };
+
+        class OptType : public Type
+        {
+        public:
+            OptType( std::size_t& szCounter )
+                : Type( szCounter )
+            {
+            }
+            using Ptr = std::shared_ptr< OptType >;
+            Type::Ptr m_underlyingType;
+
+            virtual std::string getViewType( const std::string& strStageNamespace, bool bAsArg ) const
+            {
+                VERIFY_RTE( m_underlyingType );
+                std::ostringstream os;
+                os << "std::optional< " << m_underlyingType->getViewType( strStageNamespace, false ) << " >";
+
+                if ( std::dynamic_pointer_cast< RefType >( m_underlyingType ) )
+                {
                     return os.str();
+                }
+                else
+                {
+                    return bAsArg ? toConstRef( os.str() ) : os.str();
+                }
+            }
+            virtual std::string getDatabaseType( DatabaseTypeFormat formatType ) const
+            {
+                VERIFY_RTE( m_underlyingType );
+                std::ostringstream os;
+                os << "std::optional< " << m_underlyingType->getDatabaseType( eNormal ) << " >";
+
+                switch ( formatType )
+                {
+                    case eNormal:
+                        return m_bLate ? toOptional( os.str() ) : os.str();
+                    case eNormal_NoLate:
+                        return os.str();
+                    case eAsArgument:
+                        return toConstRef( os.str() );
+                    default:
+                        THROW_RTE( "Unknown format type" );
+                }
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -552,18 +619,23 @@ namespace db
                     return bAsArg ? toConstRef( os.str() ) : os.str();
                 }
             }
-            virtual std::string getDataType( bool bAsArg ) const
+            virtual std::string getDatabaseType( DatabaseTypeFormat formatType ) const
             {
                 VERIFY_RTE( m_underlyingType );
                 std::ostringstream os;
-                os << "std::vector< " << m_underlyingType->getDataType( false ) << " >";
+                os << "std::vector< " << m_underlyingType->getDatabaseType( eNormal ) << " >";
 
-                if ( m_bLate )
-                    return toOptional( os.str() );
-                else if ( bAsArg )
-                    return toConstRef( os.str() );
-                else
-                    return os.str();
+                switch ( formatType )
+                {
+                    case eNormal:
+                        return m_bLate ? toOptional( os.str() ) : os.str();
+                    case eNormal_NoLate:
+                        return os.str();
+                    case eAsArgument:
+                        return toConstRef( os.str() );
+                    default:
+                        THROW_RTE( "Unknown format type" );
+                }
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -600,19 +672,24 @@ namespace db
                     return bAsArg ? toConstRef( os.str() ) : os.str();
                 }
             }
-            virtual std::string getDataType( bool bAsArg ) const
+            virtual std::string getDatabaseType( DatabaseTypeFormat formatType ) const
             {
                 VERIFY_RTE( m_fromType );
                 VERIFY_RTE( m_toType );
                 std::ostringstream os;
-                os << "std::map< " << m_fromType->getDataType( false ) << ", " << m_toType->getDataType( false ) << " >";
+                os << "std::map< " << m_fromType->getDatabaseType( eNormal ) << ", " << m_toType->getDatabaseType( eNormal ) << " >";
 
-                if ( m_bLate )
-                    return toOptional( os.str() );
-                else if ( bAsArg )
-                    return toConstRef( os.str() );
-                else
-                    return os.str();
+                switch ( formatType )
+                {
+                    case eNormal:
+                        return m_bLate ? toOptional( os.str() ) : os.str();
+                    case eNormal_NoLate:
+                        return os.str();
+                    case eAsArgument:
+                        return toConstRef( os.str() );
+                    default:
+                        THROW_RTE( "Unknown format type" );
+                }
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }

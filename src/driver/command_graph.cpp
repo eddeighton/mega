@@ -68,14 +68,14 @@ namespace driver
             return os.str();
         }
 
-        void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interface::DimensionInitial* >& dimensions )
+        void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
         {
             using namespace FinalStage;
             using namespace FinalStage::Interface;
-            for ( DimensionInitial* pDimension : dimensions )
+            for ( DimensionTrait* pDimension : dimensions )
             {
-                nlohmann::json property = nlohmann::json::object(
-                    { { "name", pDimension->get_id()->get_str() }, { "value", pDimension->get_type() } } );
+                nlohmann::json property
+                    = nlohmann::json::object( { { "name", pDimension->get_id()->get_str() }, { "value", pDimension->get_type() } } );
                 node[ "properties" ].push_back( property );
             }
         }
@@ -168,15 +168,15 @@ namespace driver
         void command( bool bHelp, const std::vector< std::string >& args )
         {
             std::string             strGraphType;
-            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath, tempDir = boost::filesystem::temp_directory_path();
+            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath;
 
             namespace po = boost::program_options;
             po::options_description commandOptions( " Generate graph json data" );
             {
                 // clang-format off
                 commandOptions.add_options()
-                    ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),     "Source directory" )
-                    ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),      "Build directory" )
+                    ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),                     "Source directory" )
+                    ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),                      "Build directory" )
                     ( "type",       po::value< std::string >( &strGraphType )->default_value( "interface" ),    "graph type" )
                     ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),                    "output file to generate" )
                     ;
@@ -199,7 +199,7 @@ namespace driver
                     {
                         if ( strGraphType == "interface" )
                         {
-                            mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
+                            mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
                             mega::io::Manifest         manifest( environment, environment.project_manifest() );
 
                             using namespace FinalStage;

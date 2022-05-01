@@ -170,7 +170,7 @@ namespace driver
 
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path rootSourceDir, rootBuildDir, tempDir = boost::filesystem::temp_directory_path();
+            boost::filesystem::path rootSourceDir, rootBuildDir;
             std::string             projectName, strComponentInfoPaths;
 
             namespace po = boost::program_options;
@@ -199,7 +199,7 @@ namespace driver
             }
             else
             {
-                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, tempDir );
+                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
 
                 const std::vector< boost::filesystem::path > componentInfoPaths = pathListToFiles( parsePathList( strComponentInfoPaths ) );
 

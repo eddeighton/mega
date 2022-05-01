@@ -105,7 +105,6 @@ set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/environments.hpp
     ${MEGA_API_DIR}/database/common/file_system.hpp
     ${MEGA_API_DIR}/database/common/file.hpp
-    ${MEGA_API_DIR}/database/common/glob.hpp
     ${MEGA_API_DIR}/database/common/generics.hpp
     ${MEGA_API_DIR}/database/common/loader.hpp
     ${MEGA_API_DIR}/database/common/object_info.hpp
@@ -121,7 +120,6 @@ set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/common/sources.cpp
     ${MEGA_SRC_DIR}/database/common/component_info.cpp
     ${MEGA_SRC_DIR}/database/common/file.cpp
-    ${MEGA_SRC_DIR}/database/common/glob.cpp
     ${MEGA_SRC_DIR}/database/common/loader.cpp
     ${MEGA_SRC_DIR}/database/common/object.cpp
     ${MEGA_SRC_DIR}/database/common/storer.cpp

@@ -10,7 +10,7 @@
 #include "common/stash.hpp"
 #include "common/file.hpp"
 
-#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem.hpp>
 
 namespace mega
 {
@@ -22,12 +22,14 @@ namespace mega
 
             const Path&         m_rootSourceDir;
             const Path&         m_rootBuildDir;
-            const Path&         m_tempDir;
+            const std::optional< Path >m_templatesDir;
+            const Path          m_tempDir;
             mutable task::Stash m_stash;
 
             boost::filesystem::path toPath( const ComponentListingFilePath& key ) const { return m_rootBuildDir / key.path(); }
             boost::filesystem::path toPath( const CompilationFilePath& key ) const { return m_rootBuildDir / key.path(); }
             boost::filesystem::path toPath( const SourceFilePath& key ) const { return m_rootSourceDir / key.path(); }
+            boost::filesystem::path toPath( const BuildFilePath& key ) const { return m_rootBuildDir / key.path(); }
 
             void copyToTargetPath( const boost::filesystem::path& from, const boost::filesystem::path& to ) const
             {
@@ -43,10 +45,20 @@ namespace mega
             Path stashDir() const { return m_rootBuildDir / "stash"; }
 
         public:
-            BuildEnvironment( const Path& rootSourceDir, const Path& rootBuildDir, const Path& tempDir )
+            BuildEnvironment( const Path& rootSourceDir, const Path& rootBuildDir )
                 : m_rootSourceDir( rootSourceDir )
                 , m_rootBuildDir( rootBuildDir )
-                , m_tempDir( tempDir )
+                , m_tempDir( boost::filesystem::temp_directory_path() )
+                , m_stash( stashDir() )
+            {
+                // m_stash.loadBuildHashCodes( );
+            }
+
+            BuildEnvironment( const Path& rootSourceDir, const Path& rootBuildDir, const Path& templatesDir )
+                : m_rootSourceDir( rootSourceDir )
+                , m_rootBuildDir( rootBuildDir )
+                , m_templatesDir( templatesDir )
+                , m_tempDir( boost::filesystem::temp_directory_path() )
                 , m_stash( stashDir() )
             {
                 // m_stash.loadBuildHashCodes( );
@@ -54,14 +66,58 @@ namespace mega
 
             const Path& rootSourceDir() const { return m_rootSourceDir; }
             const Path& rootBuildDir() const { return m_rootBuildDir; }
-            /*
-                        Path dependency( const std::string& strOpaque ) const
-                        {
-                            std::ostringstream os;
-                            os << strOpaque << megaFilePath::extension().string();
-                            return Path( os.str() );
-                        }
-            */
+
+            Path ContextTemplate() const
+            {
+                VERIFY_RTE( m_templatesDir.has_value() );
+                Path result = m_templatesDir.value() / "context.jinja";
+                VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+                return result;
+            }
+            
+            Path NamespaceTemplate() const
+            {
+                VERIFY_RTE( m_templatesDir.has_value() );
+                Path result = m_templatesDir.value() / "namespace.jinja";
+                VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+                return result;
+            }
+            
+            Path InterfaceTemplate() const
+            {
+                VERIFY_RTE( m_templatesDir.has_value() );
+                Path result = m_templatesDir.value() / "interface.jinja";
+                VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+                return result;
+            }
+
+            GeneratedHPPSourceFilePath Interface( const megaFilePath& source ) const
+            {
+                std::ostringstream os;
+                os << source.path().filename().string() << ".interface" << GeneratedHPPSourceFilePath::extension().string();
+                auto dirPath = source.path();
+                dirPath.remove_filename();
+                return GeneratedHPPSourceFilePath( dirPath / os.str() );
+            }
+
+            GeneratedHPPSourceFilePath Operations( const megaFilePath& source ) const
+            {
+                std::ostringstream os;
+                os << source.path().filename().string() << ".operations" << GeneratedHPPSourceFilePath::extension().string();
+                auto dirPath = source.path();
+                dirPath.remove_filename();
+                return GeneratedHPPSourceFilePath( dirPath / os.str() );
+            }
+
+            GeneratedCPPSourceFilePath Implementation( const megaFilePath& source ) const
+            {
+                std::ostringstream os;
+                os << source.path().filename().string() << ".impl" << GeneratedCPPSourceFilePath::extension().string();
+                auto dirPath = source.path();
+                dirPath.remove_filename();
+                return GeneratedCPPSourceFilePath( dirPath / os.str() );
+            }
+
             ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const
             {
                 VERIFY_RTE_MSG(
@@ -76,66 +132,55 @@ namespace mega
             {
                 return megaFilePath( boost::filesystem::relative( filePath, m_rootSourceDir ) );
             }
+            
 
-            // stash
-            task::FileHash getBuildHashCode( const ComponentListingFilePath& key ) const
+            ////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////
+            // Generic FilePath handling
+            template < typename TFilePathType >
+            bool exists( const TFilePathType& filePath ) const
             {
-                return m_stash.getBuildHashCode( toPath( key ) );
-            }
-            void setBuildHashCode( const ComponentListingFilePath& key, task::FileHash hashCode ) const
-            {
-                m_stash.setBuildHashCode( toPath( key ), hashCode );
-            }
-            void setBuildHashCode( const ComponentListingFilePath& key ) const
-            {
-                m_stash.setBuildHashCode( toPath( key ), task::FileHash( toPath( key ) ) );
-            }
-            void stash( const ComponentListingFilePath& file, task::DeterminantHash hashCode ) const
-            {
-                m_stash.stash( toPath( file ), hashCode );
-            }
-            bool restore( const ComponentListingFilePath& file, task::DeterminantHash hashCode ) const
-            {
-                return m_stash.restore( toPath( file ), hashCode );
+                return boost::filesystem::exists( toPath( filePath ) );
             }
 
-            task::FileHash getBuildHashCode( const CompilationFilePath& key ) const { return m_stash.getBuildHashCode( toPath( key ) ); }
-            void           setBuildHashCode( const CompilationFilePath& key, task::FileHash hashCode ) const
+            template < typename TFilePathType >
+            task::FileHash getBuildHashCode( const TFilePathType& filePath ) const
             {
-                m_stash.setBuildHashCode( toPath( key ), hashCode );
-            }
-            void setBuildHashCode( const CompilationFilePath& key ) const
-            {
-                m_stash.setBuildHashCode( toPath( key ), task::FileHash( toPath( key ) ) );
-            }
-            void stash( const CompilationFilePath& file, task::DeterminantHash hashCode ) const
-            {
-                m_stash.stash( toPath( file ), hashCode );
-            }
-            bool restore( const CompilationFilePath& file, task::DeterminantHash hashCode ) const
-            {
-                return m_stash.restore( toPath( file ), hashCode );
-            }
-            bool exists( const CompilationFilePath& compilationFile ) const
-            {
-                return boost::filesystem::exists( toPath( compilationFile ) );
+                return m_stash.getBuildHashCode( toPath( filePath ) );
             }
 
-            task::FileHash getBuildHashCode( const SourceFilePath& key ) const { return m_stash.getBuildHashCode( toPath( key ) ); }
-            void           setBuildHashCode( const SourceFilePath& key, task::FileHash hashCode ) const
+            template < typename TFilePathType >
+            void setBuildHashCode( const TFilePathType& filePath, task::FileHash hashCode ) const
             {
-                m_stash.setBuildHashCode( toPath( key ), hashCode );
-            }
-            void setBuildHashCode( const SourceFilePath& key ) const
-            {
-                m_stash.setBuildHashCode( toPath( key ), task::FileHash( toPath( key ) ) );
-            }
-            void stash( const SourceFilePath& file, task::DeterminantHash hashCode ) const { m_stash.stash( toPath( file ), hashCode ); }
-            bool restore( const SourceFilePath& file, task::DeterminantHash hashCode ) const
-            {
-                return m_stash.restore( toPath( file ), hashCode );
+                m_stash.setBuildHashCode( toPath( filePath ), hashCode );
             }
 
+            template < typename TFilePathType >
+            void setBuildHashCode( const TFilePathType& filePath ) const
+            {
+                m_stash.setBuildHashCode( toPath( filePath ), task::FileHash( toPath( filePath ) ) );
+            }
+
+            template < typename TFilePathType >
+            void stash( const TFilePathType& filePath, task::DeterminantHash hashCode ) const
+            {
+                m_stash.stash( toPath( filePath ), hashCode );
+            }
+
+            template < typename TFilePathType >
+            bool restore( const TFilePathType& filePath, task::DeterminantHash hashCode ) const
+            {
+                return m_stash.restore( toPath( filePath ), hashCode );
+            }
+
+            template < typename TFilePathType >
+            std::unique_ptr< boost::filesystem::ofstream > write( const TFilePathType& filePath ) const
+            {
+                return boost::filesystem::createNewFileStream( toPath( filePath ) );
+            }
+
+            ////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////
             // FileSystem
             virtual std::unique_ptr< std::istream > read( const ComponentListingFilePath& filePath ) const
             {
