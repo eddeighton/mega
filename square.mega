@@ -13,4 +13,9 @@ object Square
     {
         // foobar
     }
+
+    function foobar( int iValue, float fValue ) : void
+    {
+        // do stuff
+    }
 }
