@@ -7,14 +7,6 @@ object Cube1
     {
         std::cout << "This is cool" << std::endl;
     }
-    action CoolStuff2
-    {
-        std::cout << "This is cool" << std::endl;
-        action CoolStuff3
-        {
-            std::cout << "This is cool" << std::endl;
-        }
-    }
 }
 
 namespace test
@@ -24,48 +16,20 @@ namespace test
         dependency( stuff/sphere.mega );
         dependency( stuff/triangle.mega );
         
-        namespace nested
+        namespace nested2
         {
             action CoolStuff1
             {
                 std::cout << "This is cool" << std::endl;
             }
-
-            event Test;
-            event Other;
-            event HasData
-            {
-                dim int foobar;
-            }
         }
 
-        namespace nested
+        namespace nested8
         {
             action CoolStuff2
             {
                 std::cout << "This is cool" << std::endl;
             }
         }
-
-        action CoolStuff2
-        {
-            std::cout << "This is cool" << std::endl;
-            action CoolStuff3
-            {
-                std::cout << "This is cool" << std::endl;
-            }
-        }
     }
-}
-
-event test::Cube2::nested::Test
-{
-    dim int foo1;
-    dim int foo2;
-    dim int foo3;
-    dim int foo4;
-}
-
-object Cube3
-{
 }

@@ -7,13 +7,6 @@ object Square
 
     include test( test_include.mega );
     //ed was here!!!
-
-    //cool
-    action nested
-    {
-        // foobar
-    }
-
     function foobar( int iValue, float fValue ) : void
     {
         // do stuff
