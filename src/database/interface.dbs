@@ -20,6 +20,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Link > >;
 }
 
+
 stage InterfaceAnalysisStage
 {
     source .mega;
@@ -28,6 +29,7 @@ stage InterfaceAnalysisStage
     file Clang;
 
     persource accessor ref< Interface::Root >;
+    global accessor ref< Symbols::SymbolTable >;
 }
 
 ///////////////////////////////////////////

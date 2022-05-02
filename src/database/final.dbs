@@ -3,7 +3,7 @@
 stage FinalStage
 {
     source .mega;
-    dependency InterfaceStage;
+    dependency InterfaceAnalysisStage;
 
     global accessor array< ref< Interface::Root > >;
     global accessor ref< Symbols::SymbolTable >;
