@@ -10,7 +10,7 @@ digraph
 
 {% for node in nodes %}
     "{{ node.name }}" [
-        label = "{{ node.label }}{% for property in node.properties %}|{{ property.name }}: {{ property.value }}{% endfor %}"
+        label = "{{ node.label }}({{ node.symbol }}){% for property in node.properties %}|{{ property.name }}({{ property.symbol }}): {{ property.value }}{% endfor %}"
         shape = "record"
     ];
 {% endfor %}

@@ -17,6 +17,7 @@
 
 namespace {{ stage.name }}
 {
+    InterfaceBaseClass::~InterfaceBaseClass(){}
 {% for interface in stage.interfaces %}
 {% for namespace in interface.namespaces %}
     namespace {{ namespace }}
@@ -73,6 +74,7 @@ public:
 {% for interface in stype.interfaces %}
     virtual bool is_{{ interface.fullname }}() const;
 {% endfor %}{# stype.interfaces #}
+    virtual const mega::io::ObjectInfo& _get_object_info() const;
 };
 {% endfor %}{# stage.supertypes #}
 
@@ -137,128 +139,144 @@ struct SuperFactory
 };
 
 // conversion generics
-template< typename TToData, typename TFromView >
-inline data::Ptr< TToData > toData( SuperFactory& factory, TFromView* pFrom )
+template< typename TFromView >
+inline data::Ptr< typename traits< TFromView >::DataType > toData( SuperFactory& factory, TFromView* pFrom )
 {
+    using TToData = typename traits< TFromView >::DataType;
     using SuperType   = typename traits< TToData >::SuperType;
     SuperType *pSuper = dynamic_cast< SuperType * >( pFrom );
     return data::convert< TToData >( pSuper->m_data );
 }
 
-template< typename TToView, typename TFromData >
-inline TToView* toView( SuperFactory& factory, const data::Ptr< TFromData > &from )
+template< typename TFromData >
+inline typename traits< TFromData >::ViewType* toView( SuperFactory& factory, const data::Ptr< TFromData > &from )
 {
+    using TToView = typename traits< TFromData >::ViewType;
     using SuperType = typename traits< TFromData >::SuperType;
     return factory.findOrConstruct< SuperType, TFromData >( from );
 }
 
-template< typename TToData, typename TFromView >
-inline std::optional< data::Ptr< TToData > > toData( SuperFactory& factory, std::optional< TFromView* > pFrom )
+template< typename TFromView >
+inline std::optional< data::Ptr< typename traits< TFromView >::DataType > > toData( SuperFactory& factory, std::optional< TFromView* > pFrom )
 {
+    using TToData = typename traits< TFromView >::DataType;
     if( pFrom.has_value() )
-        return std::optional< data::Ptr< TToData > >( toData< TToData, TFromView >( factory, pFrom.value() ) );
+        return std::optional< data::Ptr< TToData > >( toData( factory, pFrom.value() ) );
     else
         return std::optional< data::Ptr< TToData > >();
 }
 
-template< typename TToView, typename TFromData >
-inline std::optional< TToView* > toView( SuperFactory& factory, const std::optional< TFromData >& from )
+template< typename TFromData >
+inline std::optional< typename traits< TFromData >::ViewType* > toView( SuperFactory& factory, const std::optional< TFromData >& from )
 {
+    using TToView = typename traits< TFromData >::ViewType;
     if( from.has_value() )
-        return std::optional< TToView* >( toView< TToView, TFromData >( factory, from.value() ) );
+        return std::optional< TToView* >( toView( factory, from.value() ) );
     else
         return std::optional< TToView* >();
 }
 
-template< typename TToData, typename TFromView >
-inline std::vector< data::Ptr< TToData > > toData( SuperFactory& factory, const std::vector< TFromView* >& from )
+template< typename TFromView >
+inline std::vector< data::Ptr< typename traits< TFromView >::DataType > > toData( SuperFactory& factory, const std::vector< TFromView* >& from )
 {
+    using TToData = typename traits< TFromView >::DataType;
     std::vector< data::Ptr< TToData > > result;
     for( TFromView* pFrom : from )
     {
-        result.push_back( toData< TToData, TFromView >( factory, pFrom ) );
+        result.push_back( toData( factory, pFrom ) );
     }
     return result;
 }
 
-template< typename TToView, typename TFromData >
-inline std::vector< TToView* > toView( SuperFactory& factory, const std::vector< data::Ptr< TFromData > >& from )
+template< typename TFromData >
+inline std::vector< typename traits< TFromData >::ViewType* > toView( SuperFactory& factory, const std::vector< data::Ptr< TFromData > >& from )
 {
+    using TToView = typename traits< TFromData >::ViewType;
     std::vector< TToView* > result;
     for( const data::Ptr< TFromData >& fromData : from )
     {
-        result.push_back( toView< TToView, TFromData >( factory, fromData ) );
+        result.push_back( toView( factory, fromData ) );
     }
     return result;
 }
 
 
-template< typename TToData, typename TFromView, typename TKey >
-inline std::map< TKey, data::Ptr< TToData > > toData( SuperFactory& factory, const std::map< TKey, TFromView* >& from )
+template< typename TFromView, typename TKey >
+inline std::map< TKey, data::Ptr< typename traits< TFromView >::DataType > > toData( SuperFactory& factory, const std::map< TKey, TFromView* >& from )
 {
+    using TToData = typename traits< TFromView >::DataType;
     std::map< TKey, data::Ptr< TToData > > result;
     for( typename std::map< TKey, TFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
-        result.insert( std::make_pair( i->first, toData< TToData, TFromView >( factory, i->second ) ) );
+        result.insert( std::make_pair( i->first, toData( factory, i->second ) ) );
     }
     return result;
 }
 
-template< typename TToView, typename TFromData, typename TKey >
-inline std::map< TKey, TToView* > toView( SuperFactory& factory, const std::map< TKey, data::Ptr< TFromData > >& from )
+template< typename TFromData, typename TKey >
+inline std::map< TKey, typename traits< TFromData >::ViewType* > toView( SuperFactory& factory, const std::map< TKey, data::Ptr< TFromData > >& from )
 {
+    using TToView = typename traits< TFromData >::ViewType;
     std::map< TKey, TToView* > result;
     for( typename std::map< TKey, data::Ptr< TFromData > >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
-        result.insert( std::make_pair( i->first, toView< TToView, TFromData >( factory, i->second ) ) );
+        result.insert( std::make_pair( i->first, toView( factory, i->second ) ) );
     }
     return result;
 }
 
-template< typename TToData, typename TFromView, typename TValue >
-inline std::map< data::Ptr< TToData >, TValue > toData( SuperFactory& factory, const std::map< TFromView*, TValue >& from )
+template< typename TFromView, typename TValue >
+inline std::map< data::Ptr< typename traits< TFromView >::DataType >, TValue > toData( SuperFactory& factory, const std::map< TFromView*, TValue >& from )
 {
+    using TToData = typename traits< TFromView >::DataType;
     std::map< data::Ptr< TToData >, TValue > result;
     for( typename std::map< TFromView*, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
-        result.insert( std::make_pair( toData< TToData, TFromView >( factory, i->first ), i->second ) );
+        result.insert( std::make_pair( toData( factory, i->first ), i->second ) );
     }
     return result;
 }
 
-template< typename TToView, typename TFromData, typename TValue >
-inline std::map< TToView*, TValue > toView( SuperFactory& factory, const std::map< data::Ptr< TFromData >, TValue >& from )
+template< typename TFromData, typename TValue >
+inline std::map< typename traits< TFromData >::ViewType*, TValue > toView( SuperFactory& factory, const std::map< data::Ptr< TFromData >, TValue >& from )
 {
+    using TToView = typename traits< TFromData >::ViewType;
     std::map< TToView*, TValue > result;
     for( typename std::map< data::Ptr< TFromData >, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
-        result.insert( std::make_pair( toView< TToView, TFromData >( factory, i->first ), i->second ) );
+        result.insert( std::make_pair( toView( factory, i->first ), i->second ) );
     }
     return result;
 }
 
-template< typename TKeyToData, typename TKeyFromView, typename TValueToData, typename TValueFromView >
-inline std::map< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > toData( SuperFactory& factory, const std::map< TKeyFromView*, TValueFromView* >& from )
+template< typename TKeyFromView, typename TValueFromView >
+inline std::map< data::Ptr< typename traits< TKeyFromView >::DataType >, data::Ptr< typename traits< TValueFromView >::DataType > > toData( SuperFactory& factory, const std::map< TKeyFromView*, TValueFromView* >& from )
 {
+    using TKeyToData = typename traits< TKeyFromView >::DataType;
+    using TValueToData = typename traits< TValueFromView >::DataType;
+
     std::map< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > result;
     for( typename std::map< TKeyFromView*, TValueFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
         result.insert( std::make_pair( 
-            toData< TKeyToData, TKeyFromView >( factory, i->first ), 
-            toData< TValueToData, TValueFromView >( factory, i->second ) ) );
+            toData( factory, i->first ), 
+            toData( factory, i->second ) ) );
     }
     return result;
 }
 
-template< typename TKeyToView, typename TKeyFromData, typename TValueToView, typename TValueFromData >
-inline std::map< TKeyToView*, TValueToView* > toView( SuperFactory& factory, const std::map< data::Ptr< TKeyFromData >, data::Ptr< TValueFromData > >& from )
+template< typename TKeyFromData, typename TValueFromData >
+inline std::map< typename traits< TKeyFromData >::ViewType*, typename traits< TValueFromData >::ViewType* > toView( SuperFactory& factory, const std::map< data::Ptr< TKeyFromData >, data::Ptr< TValueFromData > >& from )
 {
+    using TKeyToView = typename traits< TKeyFromData >::ViewType;
+    using TValueToView = typename traits< TValueFromData >::ViewType;
+
     std::map< TKeyToView*, TValueToView* > result;
     for( typename std::map< data::Ptr< TKeyFromData >, data::Ptr< TValueFromData > >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
         result.insert( std::make_pair( 
-            toView< TKeyToView, TKeyFromData >( factory, i->first ), 
-            toView< TValueToView, TValueFromData >( factory, i->second )) );
+            toView( factory, i->first ), 
+            toView( factory, i->second )) );
     }
     return result;
 }
@@ -336,6 +354,10 @@ bool {{ stype.name }}::is_{{ interface.fullname }}() const
     }
 }
 {% endfor %}{# stype.interfaces #}
+const mega::io::ObjectInfo& {{ stype.name }}::_get_object_info() const
+{
+    return std::visit( []( auto&& arg ) -> const mega::io::ObjectInfo& { return arg.getObjectInfo(); }, m_data );
+}
 {% endfor %}{# stage.supertypes #}
 }
 
@@ -376,7 +398,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                     dynamic_cast< data::{{ many_accessor.file }}::{{ many_accessor.object }}* >( pObject ) )
                 {
                     data::Ptr< data::{{ many_accessor.file }}::{{ many_accessor.object }} > pData( const_cast<Database::Pimpl&>(*this), pFound );
-                    result.push_back( ::toView< {{ many_accessor.type }} >( const_cast< Database::Pimpl&>(*this), pData ) );
+                    result.push_back( toView( const_cast< Database::Pimpl&>(*this), pData ) );
                 }
             }
         }
@@ -473,6 +495,18 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
         return dynamic_cast< {{ constructor.return_type }}* >( pSuper );
     }
 {% endfor %}{# stage.constructors#}
+
+    InterfaceBaseClass* convert_impl( const mega::io::ObjectInfo& objectInfo ) const
+    {
+        switch( objectInfo.getType() )
+        {
+{% for interface_conversion in stage.interface_conversions %}
+            case {{ interface_conversion.index }}: return toView( const_cast< Database::Pimpl&>(*this),
+                data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >( const_cast< Database::Pimpl&>(*this), objectInfo ) );
+{% endfor %}
+            default: THROW_RTE( "Unknown object type" );
+        }
+    }
 
     void create()
     {
@@ -596,5 +630,8 @@ std::vector< {{ many_accessor.type }}* > Database::many_{{ many_accessor.longnam
     return m_pimpl->{{ constructor.function_name }}( arguments );
 }
 {% endfor %}{# stage.constructors #}
-
+InterfaceBaseClass* Database::convert_impl( const mega::io::ObjectInfo& objectInfo ) const
+{
+    return m_pimpl->convert_impl( objectInfo );
+}
 }

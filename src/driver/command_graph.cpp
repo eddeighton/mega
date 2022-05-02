@@ -44,6 +44,8 @@ namespace driver
 {
     namespace graph
     {
+        using SymbolMap = std::map< std::string, ::FinalStage::Symbols::Symbol* >;
+
         std::string getContextFullTypeName( FinalStage::Interface::Context* pContext )
         {
             using namespace FinalStage;
@@ -68,24 +70,34 @@ namespace driver
             return os.str();
         }
 
-        void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
+        void addProperties( nlohmann::json& node, const SymbolMap& symbols,
+                            const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
         {
             using namespace FinalStage;
             using namespace FinalStage::Interface;
             for ( DimensionTrait* pDimension : dimensions )
             {
-                nlohmann::json property
-                    = nlohmann::json::object( { { "name", pDimension->get_id()->get_str() }, { "value", pDimension->get_type() } } );
+                SymbolMap::const_iterator iFind = symbols.find( pDimension->get_id()->get_str() );
+                VERIFY_RTE( iFind != symbols.end() );
+                Symbols::Symbol* pSymbol = iFind->second;
+
+                nlohmann::json property = nlohmann::json::object(
+                    { { "name", pDimension->get_id()->get_str() }, { "symbol", pSymbol->get_id() }, { "value", pDimension->get_type() } } );
                 node[ "properties" ].push_back( property );
             }
         }
 
-        void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
+        void recurse( nlohmann::json& data, const SymbolMap& symbols, FinalStage::Interface::Context* pContext )
         {
             using namespace FinalStage;
             using namespace FinalStage::Interface;
 
             std::ostringstream os;
+
+            SymbolMap::const_iterator iFind = symbols.find( pContext->get_identifier() );
+            VERIFY_RTE( iFind != symbols.end() );
+            Symbols::Symbol* pSymbol = iFind->second;
+
             if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
             {
                 os << "Namespace: " << pContext->get_identifier();
@@ -119,36 +131,38 @@ namespace driver
                 THROW_RTE( "Unknown context type" );
             }
 
-            nlohmann::json node = nlohmann::json::object(
-                { { "name", getContextFullTypeName( pContext ) }, { "label", os.str() }, { "properties", nlohmann::json::array() } } );
+            nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName( pContext ) },
+                                                            { "label", os.str() },
+                                                            { "symbol", pSymbol->get_id() },
+                                                            { "properties", nlohmann::json::array() } } );
 
             if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
             {
-                addProperties( node, pNamespace->get_dimension_traits() );
+                addProperties( node, symbols, pNamespace->get_dimension_traits() );
             }
             else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
             {
             }
             else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
             {
-                addProperties( node, pAction->get_dimension_traits() );
+                addProperties( node, symbols, pAction->get_dimension_traits() );
             }
             else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
             {
-                addProperties( node, pEvent->get_dimension_traits() );
+                addProperties( node, symbols, pEvent->get_dimension_traits() );
             }
             else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
             {
-                nlohmann::json arguments
-                    = nlohmann::json::object( { { "name", "arguments" }, { "value", pFunction->get_arguments_trait()->get_str() } } );
+                nlohmann::json arguments = nlohmann::json::object(
+                    { { "name", "arguments" }, { "symbol", "" }, { "value", pFunction->get_arguments_trait()->get_str() } } );
                 node[ "properties" ].push_back( arguments );
-                nlohmann::json return_type
-                    = nlohmann::json::object( { { "name", "return type" }, { "value", pFunction->get_return_type_trait()->get_str() } } );
+                nlohmann::json return_type = nlohmann::json::object(
+                    { { "name", "return type" }, { "symbol", "" }, { "value", pFunction->get_return_type_trait()->get_str() } } );
                 node[ "properties" ].push_back( return_type );
             }
             else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
             {
-                addProperties( node, pObject->get_dimension_traits() );
+                addProperties( node, symbols, pObject->get_dimension_traits() );
             }
             else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
             {
@@ -162,7 +176,7 @@ namespace driver
 
             for ( Interface::Context* pChildContext : pContext->get_children() )
             {
-                recurse( data, pChildContext );
+                recurse( data, symbols, pChildContext );
 
                 nlohmann::json edge = nlohmann::json::object( { { "from", getContextFullTypeName( pContext ) },
                                                                 { "to", getContextFullTypeName( pChildContext ) },
@@ -215,12 +229,16 @@ namespace driver
 
                             for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                             {
-                                Database database( environment, sourceFilePath );
+                                Database              database( environment, sourceFilePath );
+                                Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
+
+                                const std::map< std::string, ::FinalStage::Symbols::Symbol* > symbols = pSymbolTable->get_symbols();
+
                                 for ( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
                                 {
                                     for ( Interface::Context* pChildContext : pRoot->get_children() )
                                     {
-                                        recurse( data, pChildContext );
+                                        recurse( data, symbols, pChildContext );
                                     }
                                 }
                             }

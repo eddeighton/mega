@@ -6,4 +6,5 @@ stage FinalStage
     dependency InterfaceStage;
 
     global accessor array< ref< Interface::Root > >;
+    global accessor ref< Symbols::SymbolTable >;
 }

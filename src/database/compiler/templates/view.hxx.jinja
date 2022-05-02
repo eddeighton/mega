@@ -23,6 +23,14 @@ namespace {{ stage.name }}
     template< typename TFrom, typename TTo >
     struct PointerCast;
 
+    class Database;
+
+    class InterfaceBaseClass
+    {
+    public:
+        virtual ~InterfaceBaseClass() = 0;
+    };
+
     // forward declarations
 {% for interface in stage.interfaces %}
 {% for namespace in interface.namespaces %}
@@ -42,7 +50,7 @@ namespace {{ stage.name }}
     namespace {{ namespace }}
     { 
 {% endfor %}{#interface.namespaces#}
-        class {{ interface.name }}{% if interface.has_base %} : public virtual {{ interface.base }}{% endif %}
+        class {{ interface.name }} : public virtual InterfaceBaseClass{% if interface.has_base %}, public virtual {{ interface.base }}{% endif %}
 
         {
         protected:
@@ -71,6 +79,7 @@ namespace {{ stage.name }}
 {% for function in interface.functions %}
             virtual {{ function.returntype }} {{ function.name }}({{ function.params }}) const = 0;
 {% endfor %}{#interface.functions#}
+            virtual const mega::io::ObjectInfo& _get_object_info() const = 0;
         private:
             template< typename TFrom, typename TTo >
             friend struct ::{{ stage.name }}::PointerCast;
@@ -101,6 +110,12 @@ namespace {{ stage.name }}
         template< typename T >
         inline T* construct( const typename T::Args& arguments );
 
+        template< typename T, typename TFrom >
+        inline T* convert( const TFrom* pFrom ) const
+        {
+            return dynamic_cast< T* >( convert_impl( pFrom->_get_object_info() ) );
+        }
+
         void load();
 
 {% for file in stage.readwrite_files %}
@@ -122,7 +137,7 @@ namespace {{ stage.name }}
 {% for constructor in stage.constructors %}
         {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments );
 {% endfor %}{# stage.constructors #}
-
+        InterfaceBaseClass* convert_impl( const mega::io::ObjectInfo& objectInfo ) const;
     private:
         std::shared_ptr< Pimpl > m_pimpl;
     };

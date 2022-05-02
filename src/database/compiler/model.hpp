@@ -492,9 +492,9 @@ namespace db
                         return m_cppType;
                     case eAsArgument:
                         return toConstRef( m_cppType );
-                    default:
-                        THROW_RTE( "Unknown format type" );
                 }
+                THROW_RTE( "Unknown format type" );
+                return "";
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -535,9 +535,9 @@ namespace db
                         return os.str();
                     case eAsArgument:
                         return toConstRef( os.str() );
-                    default:
-                        THROW_RTE( "Unknown format type" );
                 }
+                THROW_RTE( "Unknown format type" );
+                return "";
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -584,9 +584,9 @@ namespace db
                         return os.str();
                     case eAsArgument:
                         return toConstRef( os.str() );
-                    default:
-                        THROW_RTE( "Unknown format type" );
                 }
+                THROW_RTE( "Unknown format type" );
+                return "";
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -633,9 +633,9 @@ namespace db
                         return os.str();
                     case eAsArgument:
                         return toConstRef( os.str() );
-                    default:
-                        THROW_RTE( "Unknown format type" );
                 }
+                THROW_RTE( "Unknown format type" );
+                return "";
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }
@@ -687,9 +687,9 @@ namespace db
                         return os.str();
                     case eAsArgument:
                         return toConstRef( os.str() );
-                    default:
-                        THROW_RTE( "Unknown format type" );
                 }
+                THROW_RTE( "Unknown format type" );
+                return "";
             }
             virtual bool isCtorParam() const { return true; }
             virtual bool isGet() const { return true; }

@@ -67,22 +67,27 @@ namespace Symbols
 {
     object Symbol -> SymbolAnalysis::SymbolTable
     {
+        // each symbol represents a unique string 
+        // and MUST have a unique id
+        value< std::string > symbol;
         value< std::size_t > id;
         array< ref< Interface::Context > > contexts;
         array< ref< Interface::DimensionTrait > > dimensions;
-        ref< SymbolSet > symbol_set;
     }
 
     object SymbolSet -> SymbolAnalysis::SymbolTable
     {
-        array< ref< Symbol > > symbols;
+        map< value< std::string >, ref< Symbol > > symbols;
         value< mega::io::megaFilePath > source_file;
         value< std::size_t > hash_code;
+
+        map< ref< Interface::Context >        , ref< Symbol > > contexts;
+        map< ref< Interface::DimensionTrait > , ref< Symbol > > dimensions;
     }
 
     object SymbolTable -> SymbolAnalysis::SymbolTable
     {
-        map< value< mega::io::megaFilePath >, ref< SymbolSet > > symbols;
-        //multimap< value< std::string >, ref< Symbol > > symbols;
+        map< value< mega::io::megaFilePath >, ref< SymbolSet > > symbol_sets;
+        map< value< std::string >, ref< Symbol > > symbols;
     }
 }

@@ -839,15 +839,15 @@ namespace SymbolTable
     struct Symbol : public mega::io::Object
     {
         Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::size_t& id, const std::vector< data::Ptr< data::Tree::Context > >& contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > >& dimensions, const data::Ptr< data::SymbolTable::SymbolSet >& symbol_set);
+        Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& symbol, const std::size_t& id, const std::vector< data::Ptr< data::Tree::Context > >& contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > >& dimensions);
         enum 
         {
             Object_Part_Type_ID = 45
         };
+        std::string symbol;
         std::size_t id;
         std::vector< data::Ptr< data::Tree::Context > > contexts;
         std::vector< data::Ptr< data::Tree::DimensionTrait > > dimensions;
-        data::Ptr< data::SymbolTable::SymbolSet > symbol_set;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
@@ -857,14 +857,16 @@ namespace SymbolTable
     struct SymbolSet : public mega::io::Object
     {
         SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::SymbolTable::Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code);
+        SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > >& contexts, const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > >& dimensions);
         enum 
         {
             Object_Part_Type_ID = 46
         };
-        std::vector< data::Ptr< data::SymbolTable::Symbol > > symbols;
+        std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > symbols;
         mega::io::megaFilePath source_file;
         std::size_t hash_code;
+        std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > > contexts;
+        std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > dimensions;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
@@ -874,12 +876,13 @@ namespace SymbolTable
     struct SymbolTable : public mega::io::Object
     {
         SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > >& symbols);
+        SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >& symbols);
         enum 
         {
             Object_Part_Type_ID = 47
         };
-        std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > symbols;
+        std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > symbol_sets;
+        std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > symbols;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );

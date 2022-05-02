@@ -287,7 +287,8 @@ namespace db
                         = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
                                                     { "file", pPart->m_file.lock()->m_strName },
                                                     { "supertype", pSuper->getTypeName() },
-                                                    { "object", pPart->m_object.lock()->m_strName } } );
+                                                    { "object", pPart->m_object.lock()->m_strName },
+                                                    { "index", pPart->m_typeID } } );
                     stage[ "interface_conversions" ].push_back( conversion );
                 }
             }
@@ -376,8 +377,7 @@ namespace db
                             if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
                             {
                                 model::Object::Ptr pObject = pRef->m_object;
-                                osExpression << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                             << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
                                 osValidation << "arguments." << pProperty->m_strName << ".has_value() && arguments." << pProperty->m_strName
                                              << ".value()";
                                 osErrorMsg << pProperty->m_strName << " is not initialised";
@@ -400,8 +400,7 @@ namespace db
                                 else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                                 {
                                     model::Object::Ptr pObject = pRef->m_object;
-                                    osExpression << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                                 << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                    osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
                                     osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                                     osErrorMsg << pProperty->m_strName << " is not initialised";
                                 }
@@ -422,8 +421,7 @@ namespace db
                                 else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                                 {
                                     model::Object::Ptr pObject = pRef->m_object;
-                                    osExpression << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                                 << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                    osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
                                     osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                                     osErrorMsg << pProperty->m_strName << " is not initialised";
                                 }
@@ -448,8 +446,7 @@ namespace db
                                     else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                                     {
                                         model::Object::Ptr pObject = pToRef->m_object;
-                                        osExpression << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                                     << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                        osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
                                         osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                                         osErrorMsg << pProperty->m_strName << " is not initialised";
                                     }
@@ -462,42 +459,20 @@ namespace db
                                 {
                                     if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                                     {
-                                        // osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                        model::Object::Ptr pObject = pFromRef->m_object;
-                                        osExpression << "::toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                                     << " >( database, arguments." << pProperty->m_strName << ".value() )";
+                                        osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
                                         osValidation << "arguments." << pProperty->m_strName << ".has_value()";
                                         osErrorMsg << pProperty->m_strName << " is not initialised";
                                     }
                                     else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                                     {
-                                        THROW_RTE( "Unsupported type for map from type" );
+                                        osExpression << "::toData( database, arguments." << pProperty->m_strName << ".value() )";
+                                        osValidation << "arguments." << pProperty->m_strName << ".has_value()";
+                                        osErrorMsg << pProperty->m_strName << " is not initialised";
                                     }
                                     else
                                     {
                                         THROW_RTE( "Unsupported type for map from type" );
                                     }
-
-                                    /*if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
-                                    {
-                                        osExpression << "arguments." << pProperty->m_strName << ".value()";
-                                    }
-                                    else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
-                                    {
-                                        model::Object::Ptr pObject = pToRef->m_object;
-                                        osExpression << pStage->m_strName << "::toData< data::" <<
-                                    pObject->m_primaryObjectPart->getDataType(
-                                    "::" ) << " >( database, arguments." << pProperty->m_strName << ".value() )";
-                                    }
-                                    else
-                                    {
-                                        THROW_RTE( "Unsupported type for map from type" );
-                                    }*/
-
-                                    // model::Object::Ptr pObject = pRef->m_object;
-                                    // osExpression << pStage->m_strName << "::toData< data::" << pObject->m_primaryObjectPart->getDataType(
-                                    // "::" ) <<
-                                    //     " >( database, arguments." << pProperty->m_strName << ".value() )";
                                 }
                                 else
                                 {
@@ -606,8 +581,7 @@ namespace db
                     {
                         model::Object::Ptr    pObject    = pRef->m_object;
                         model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-                        osFunctionBody << "return toView< " << pInterface->delimitTypeName( pStage->m_strName, "::" ) << ">( m_factory, "
-                                       << strData << " );";
+                        osFunctionBody << "return toView( m_factory, " << strData << " );";
                     }
                     else if ( model::OptType::Ptr pOptional = std::dynamic_pointer_cast< model::OptType >( pType ) )
                     {
@@ -618,11 +592,7 @@ namespace db
                         }
                         else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                         {
-                            model::Object::Ptr    pObject    = pRef->m_object;
-                            model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-
-                            osFunctionBody << "return " << strData << ".has_value() ? toView< "
-                                           << pInterface->delimitTypeName( pStage->m_strName, "::" ) << " >( m_factory, " << strData
+                            osFunctionBody << "return " << strData << ".has_value() ? toView( m_factory, " << strData
                                            << ".value() ) : nullptr;";
                         }
                         else
@@ -639,11 +609,7 @@ namespace db
                         }
                         else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                         {
-                            model::Object::Ptr    pObject    = pRef->m_object;
-                            model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-
-                            osFunctionBody << "return toView< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
-                                           << " >( m_factory, " << strData << " );";
+                            osFunctionBody << "return toView( m_factory, " << strData << " );";
                         }
                         else
                         {
@@ -662,11 +628,7 @@ namespace db
                             }
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
-                                model::Object::Ptr    pObject    = pToRef->m_object;
-                                model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-
-                                osFunctionBody << "return toView< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
-                                               << " >( m_factory, " << strData << " );";
+                                osFunctionBody << "return toView( m_factory, " << strData << " );";
                             }
                             else
                             {
@@ -677,14 +639,11 @@ namespace db
                         {
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
-                                model::Object::Ptr    pObject    = pFromRef->m_object;
-                                model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-                                osFunctionBody << "return toView< " << pInterface->delimitTypeName( pStage->m_strName, "::" )
-                                               << " >( m_factory, " << strData << " );";
+                                osFunctionBody << "return toView( m_factory, " << strData << " );";
                             }
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
-                                THROW_RTE( "Unsupported type for map from type" );
+                                osFunctionBody << "return toView( m_factory, " << strData << " );";
                             }
                             else
                             {
@@ -710,8 +669,7 @@ namespace db
                     else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
                     {
                         model::Object::Ptr pObject = pRef->m_object;
-                        osFunctionBody << "data = toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                       << ">( m_factory, value );\n";
+                        osFunctionBody << "data = toData( m_factory, value );\n";
                     }
                     else if ( model::OptType::Ptr pOptional = std::dynamic_pointer_cast< model::OptType >( pType ) )
                     {
@@ -723,8 +681,7 @@ namespace db
                         else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                         {
                             model::Object::Ptr pObject = pRef->m_object;
-                            osFunctionBody << "data = toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                           << ">( m_factory, value );\n";
+                            osFunctionBody << "data = toData( m_factory, value );\n";
                         }
                         else
                         {
@@ -741,8 +698,7 @@ namespace db
                         else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                         {
                             model::Object::Ptr pObject = pRef->m_object;
-                            osFunctionBody << "data = toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                           << ">( m_factory, value );\n";
+                            osFunctionBody << "data = toData( m_factory, value );\n";
                         }
                         else
                         {
@@ -762,8 +718,7 @@ namespace db
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
                                 model::Object::Ptr pObject = pToRef->m_object;
-                                osFunctionBody << "data = toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                               << " >( m_factory, value );\n";
+                                osFunctionBody << "data = toData( m_factory, value );\n";
                             }
                             else
                             {
@@ -774,14 +729,11 @@ namespace db
                         {
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
-                                model::Object::Ptr    pObject    = pFromRef->m_object;
-                                model::Interface::Ptr pInterface = pStage->getInterface( pObject );
-                                osFunctionBody << "data = toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" ) << ", "
-                                               << pInterface->delimitTypeName( pStage->m_strName, "::" ) << " >( m_factory, value );";
+                                osFunctionBody << "data = toData( m_factory, value );";
                             }
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
-                                THROW_RTE( "Unsupported type for map from type" );
+                                osFunctionBody << "data = toData( m_factory, value );";
                             }
                             else
                             {
@@ -814,8 +766,7 @@ namespace db
                         else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
                         {
                             model::Object::Ptr pObject = pRef->m_object;
-                            osFunctionBody << strData << ".push_back( toData< data::" << pObject->m_primaryObjectPart->getDataType( "::" )
-                                           << " >( m_factory, value ) );";
+                            osFunctionBody << strData << ".push_back( toData( m_factory, value ) );";
                         }
                         else
                         {
@@ -838,8 +789,7 @@ namespace db
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
                                 model::Object::Ptr pObject = pToRef->m_object;
-                                osFunctionBody << strData << ".insert( std::make_pair( key, toData< data::"
-                                               << pObject->m_primaryObjectPart->getDataType( "::" ) << " >( m_factory, value ) ) );";
+                                osFunctionBody << strData << ".insert( std::make_pair( key, toData( m_factory, value ) ) );";
                             }
                             else
                             {
@@ -851,12 +801,11 @@ namespace db
                             model::Object::Ptr pObject = pFromRef->m_object;
                             if ( model::ValueType::Ptr pToValue = std::dynamic_pointer_cast< model::ValueType >( pTo ) )
                             {
-                                osFunctionBody << strData << ".insert( std::make_pair( toData< data::"
-                                               << pObject->m_primaryObjectPart->getDataType( "::" ) << " >( m_factory, key ), value ) );";
+                                osFunctionBody << strData << ".insert( std::make_pair( toData( m_factory, key ), value ) );";
                             }
                             else if ( model::RefType::Ptr pToRef = std::dynamic_pointer_cast< model::RefType >( pTo ) )
                             {
-                                THROW_RTE( "Unsupported type for map from type" );
+                                osFunctionBody << strData << ".insert( std::make_pair( toData( m_factory, key ), toData( m_factory, value ) ) );";
                             }
                             else
                             {

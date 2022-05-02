@@ -2153,33 +2153,32 @@ namespace SymbolTable
     // struct Symbol : public mega::io::Object
     Symbol::Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
-          , symbol_set( loader )
     {
     }
-    Symbol::Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::size_t& id, const std::vector< data::Ptr< data::Tree::Context > >& contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > >& dimensions, const data::Ptr< data::SymbolTable::SymbolSet >& symbol_set)
+    Symbol::Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& symbol, const std::size_t& id, const std::vector< data::Ptr< data::Tree::Context > >& contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > >& dimensions)
         :   mega::io::Object( objectInfo )
+          , symbol( symbol )
           , id( id )
           , contexts( contexts )
           , dimensions( dimensions )
-          , symbol_set( symbol_set )
     {
     }
     void Symbol::load( mega::io::Loader& loader )
     {
+        loader.load( symbol );
         loader.load( id );
         loader.load( contexts );
         loader.load( dimensions );
-        loader.load( symbol_set );
     }
     void Symbol::load_post( mega::io::Loader& loader )
     {
     }
     void Symbol::store( mega::io::Storer& storer ) const
     {
+        storer.store( symbol );
         storer.store( id );
         storer.store( contexts );
         storer.store( dimensions );
-        storer.store( symbol_set );
     }
     void Symbol::to_json( nlohmann::json& part ) const
     {
@@ -2192,6 +2191,11 @@ namespace SymbolTable
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "symbol", symbol } } );
+            part[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "id", id } } );
@@ -2207,11 +2211,6 @@ namespace SymbolTable
                 { "dimensions", dimensions } } );
             part[ "properties" ].push_back( property );
         }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "symbol_set", symbol_set } } );
-            part[ "properties" ].push_back( property );
-        }
     }
         
     // struct SymbolSet : public mega::io::Object
@@ -2219,11 +2218,13 @@ namespace SymbolTable
         :   mega::io::Object( objectInfo )
     {
     }
-    SymbolSet::SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::SymbolTable::Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code)
+    SymbolSet::SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > >& contexts, const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > >& dimensions)
         :   mega::io::Object( objectInfo )
           , symbols( symbols )
           , source_file( source_file )
           , hash_code( hash_code )
+          , contexts( contexts )
+          , dimensions( dimensions )
     {
     }
     void SymbolSet::load( mega::io::Loader& loader )
@@ -2231,6 +2232,8 @@ namespace SymbolTable
         loader.load( symbols );
         loader.load( source_file );
         loader.load( hash_code );
+        loader.load( contexts );
+        loader.load( dimensions );
     }
     void SymbolSet::load_post( mega::io::Loader& loader )
     {
@@ -2240,6 +2243,8 @@ namespace SymbolTable
         storer.store( symbols );
         storer.store( source_file );
         storer.store( hash_code );
+        storer.store( contexts );
+        storer.store( dimensions );
     }
     void SymbolSet::to_json( nlohmann::json& part ) const
     {
@@ -2267,6 +2272,16 @@ namespace SymbolTable
                 { "hash_code", hash_code } } );
             part[ "properties" ].push_back( property );
         }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "contexts", contexts } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
     }
         
     // struct SymbolTable : public mega::io::Object
@@ -2274,13 +2289,15 @@ namespace SymbolTable
         :   mega::io::Object( objectInfo )
     {
     }
-    SymbolTable::SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > >& symbols)
+    SymbolTable::SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >& symbols)
         :   mega::io::Object( objectInfo )
+          , symbol_sets( symbol_sets )
           , symbols( symbols )
     {
     }
     void SymbolTable::load( mega::io::Loader& loader )
     {
+        loader.load( symbol_sets );
         loader.load( symbols );
     }
     void SymbolTable::load_post( mega::io::Loader& loader )
@@ -2288,6 +2305,7 @@ namespace SymbolTable
     }
     void SymbolTable::store( mega::io::Storer& storer ) const
     {
+        storer.store( symbol_sets );
         storer.store( symbols );
     }
     void SymbolTable::to_json( nlohmann::json& part ) const
@@ -2301,6 +2319,11 @@ namespace SymbolTable
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "symbol_sets", symbol_sets } } );
+            part[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbols", symbols } } );
