@@ -1,0 +1,88 @@
+
+stage DependencyAnalysis
+{
+    source .manifest;
+    dependency InterfaceStage;
+
+    file DPGraph;
+
+    global accessor ref< Dependencies::Analysis >;
+    persource accessor ref< Interface::Root >;
+}
+
+stage DependencyAnalysisView
+{
+    source .manifest;
+    dependency DependencyAnalysis;
+
+    global accessor ref< Dependencies::Analysis >;
+    persource accessor ref< Interface::Root >;
+}
+
+stage SymbolAnalysis
+{
+    source .manifest;
+    dependency DependencyAnalysisView;
+
+    file SymbolTable;
+
+    global accessor ref< Symbols::SymbolTable >;
+    persource accessor ref< Interface::DimensionTrait >;
+    persource accessor ref< Interface::Context >;
+}
+
+stage SymbolAnalysisView
+{
+    source .manifest;
+    dependency SymbolAnalysis;
+
+    global accessor ref< Symbols::SymbolTable >;
+    persource accessor ref< Interface::DimensionTrait >;
+    persource accessor ref< Interface::Context >;
+}
+
+namespace Dependencies
+{
+    object Glob -> DependencyAnalysis::DPGraph
+    {
+        value< boost::filesystem::path > location;
+        value< std::string > glob;
+    }
+
+    object ObjectDependencies -> DependencyAnalysis::DPGraph
+    {
+        value< mega::io::megaFilePath > source_file;
+        value< std::size_t > hash_code;
+        array< ref< Glob > > globs;
+        array< value< boost::filesystem::path > > resolution;
+    }
+
+    object Analysis -> DependencyAnalysis::DPGraph
+    {
+        array< ref< ObjectDependencies > > objects;
+    }
+}
+
+namespace Symbols
+{
+    object Symbol -> SymbolAnalysis::SymbolTable
+    {
+        value< std::size_t > id;
+        array< ref< Interface::Context > > contexts;
+        array< ref< Interface::DimensionTrait > > dimensions;
+        ref< SymbolSet > symbol_set;
+    }
+
+    object SymbolSet -> SymbolAnalysis::SymbolTable
+    {
+        array< ref< Symbol > > symbols;
+        value< mega::io::megaFilePath > source_file;
+        value< std::size_t > hash_code;
+    }
+
+    object SymbolTable -> SymbolAnalysis::SymbolTable
+    {
+        map< value< mega::io::megaFilePath >, ref< SymbolSet > > symbols;
+        //multimap< value< std::string >, ref< Symbol > > symbols;
+    }
+}

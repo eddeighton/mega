@@ -76,15 +76,21 @@ namespace Tree
     struct Object;
     struct Link;
 }
+namespace Clang
+{
+    struct Dimension;
+}
 namespace DPGraph
 {
     struct Glob;
     struct ObjectDependencies;
     struct Analysis;
 }
-namespace Clang
+namespace SymbolTable
 {
-    struct Dimension;
+    struct Symbol;
+    struct SymbolSet;
+    struct SymbolTable;
 }
 
 // definitions
@@ -757,6 +763,25 @@ namespace Tree
         virtual void to_json( nlohmann::json& data ) const;
     };
 }
+namespace Clang
+{
+    struct Dimension : public mega::io::Object
+    {
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canonical_type);
+        enum 
+        {
+            Object_Part_Type_ID = 27
+        };
+        std::string canonical_type;
+        Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+}
 namespace DPGraph
 {
     struct Glob : public mega::io::Object
@@ -809,18 +834,52 @@ namespace DPGraph
         virtual void to_json( nlohmann::json& data ) const;
     };
 }
-namespace Clang
+namespace SymbolTable
 {
-    struct Dimension : public mega::io::Object
+    struct Symbol : public mega::io::Object
     {
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canonical_type);
+        Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::size_t& id, const std::vector< data::Ptr< data::Tree::Context > >& contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > >& dimensions, const data::Ptr< data::SymbolTable::SymbolSet >& symbol_set);
         enum 
         {
-            Object_Part_Type_ID = 27
+            Object_Part_Type_ID = 45
         };
-        std::string canonical_type;
-        Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait;
+        std::size_t id;
+        std::vector< data::Ptr< data::Tree::Context > > contexts;
+        std::vector< data::Ptr< data::Tree::DimensionTrait > > dimensions;
+        data::Ptr< data::SymbolTable::SymbolSet > symbol_set;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct SymbolSet : public mega::io::Object
+    {
+        SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::SymbolTable::Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code);
+        enum 
+        {
+            Object_Part_Type_ID = 46
+        };
+        std::vector< data::Ptr< data::SymbolTable::Symbol > > symbols;
+        mega::io::megaFilePath source_file;
+        std::size_t hash_code;
+        mega::io::Object* m_pInheritance = nullptr;
+        virtual void load( mega::io::Loader& loader );
+        virtual void load_post( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct SymbolTable : public mega::io::Object
+    {
+        SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > >& symbols);
+        enum 
+        {
+            Object_Part_Type_ID = 47
+        };
+        std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > symbols;
         mega::io::Object* m_pInheritance = nullptr;
         virtual void load( mega::io::Loader& loader );
         virtual void load_post( mega::io::Loader& loader );
@@ -1329,6 +1388,24 @@ inline Ptr< DPGraph::ObjectDependencies > convert( const Ptr< DPGraph::ObjectDep
 
 template <>
 inline Ptr< DPGraph::Analysis > convert( const Ptr< DPGraph::Analysis >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< SymbolTable::Symbol > convert( const Ptr< SymbolTable::Symbol >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< SymbolTable::SymbolSet > convert( const Ptr< SymbolTable::SymbolSet >& from )
+{
+    return from;
+}
+
+template <>
+inline Ptr< SymbolTable::SymbolTable > convert( const Ptr< SymbolTable::SymbolTable >& from )
 {
     return from;
 }

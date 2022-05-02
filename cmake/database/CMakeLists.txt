@@ -28,6 +28,8 @@ set( MEGA_DATABASE_GENERATED_HEADERS
     ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
     ${MEGA_API_DIR}/database/model/DependencyAnalysis.hxx
     ${MEGA_API_DIR}/database/model/DependencyAnalysisView.hxx
+    ${MEGA_API_DIR}/database/model/SymbolAnalysis.hxx
+    ${MEGA_API_DIR}/database/model/SymbolAnalysisView.hxx
     ${MEGA_API_DIR}/database/model/InterfaceAnalysisStage.hxx
     ${MEGA_API_DIR}/database/model/FinalStage.hxx
 	)
@@ -44,6 +46,8 @@ set( MEGA_DATABASE_GENERATED_SOURCES
     ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysis.cxx
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysisView.cxx
+    ${MEGA_SRC_DIR}/database/model/SymbolAnalysis.cxx
+    ${MEGA_SRC_DIR}/database/model/SymbolAnalysisView.cxx
     ${MEGA_SRC_DIR}/database/model/InterfaceAnalysisStage.cxx
     ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
 )
@@ -51,6 +55,7 @@ set( MEGA_DATABASE_GENERATED_SOURCES
 set( DATABASE_SCHEMAS 
         ${MEGA_SRC_DIR}/database/parser.dbs
         ${MEGA_SRC_DIR}/database/interface.dbs
+        ${MEGA_SRC_DIR}/database/analysis.dbs
         ${MEGA_SRC_DIR}/database/final.dbs
         )
 
@@ -66,6 +71,8 @@ set( COMPILER_BYPRODUCTS
     InterfaceStage.json
     DependencyAnalysis.json
     DependencyAnalysisView.json
+    SymbolAnalysis.json
+    SymbolAnalysisView.json
     InterfaceAnalysisStage.json
     FinalStage.json
     )

@@ -37,147 +37,8 @@ class SuperTypeBase
 public:
     virtual ~SuperTypeBase(){}
 };
-{% for stype in stage.supertypes %}
-class {{ stype.name }};
-{% endfor %}
 
-struct PointerConverter
-{
-{#
-{% for object_part in stage.super_conversions %}
-    virtual {{ object_part.supertype }}* toSuper( const data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} >& pData ) const = 0;
-    virtual data::Ptr< data::{{ object_part.file }}::{{ object_part.object }} > toData_{{ object_part.file }}_{{ object_part.object }}( {{ object_part.supertype }}* pSuper ) const = 0;
-{% endfor %}
-#}
-{% for interface_conversion in stage.interface_conversions %}
-    virtual {{ interface_conversion.type }}* toView( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const = 0;
-    virtual data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} > toData( {{ interface_conversion.type }}* pInterface ) const = 0;
-{% endfor %}{# stage.interface_conversions #}
-};
-
-// conversion generics
-template< typename TToData, typename TFromView >
-inline data::Ptr< TToData > toData( PointerConverter& converter, TFromView* pFrom )
-{
-    return converter.toData( pFrom );
-}
-
-template< typename TToView, typename TFromData >
-inline TToView* toView( PointerConverter& converter, const TFromData& from )
-{
-    return converter.toView( from );
-}
-
-template< typename TToData, typename TFromView >
-inline std::optional< data::Ptr< TToData > > toData( PointerConverter& converter, std::optional< TFromView* > pFrom )
-{
-    if( pFrom.has_value() )
-        return std::optional< data::Ptr< TToData > >( toData< TToData, TFromView >( converter, pFrom.value() ) );
-    else
-        return std::optional< data::Ptr< TToData > >();
-}
-
-template< typename TToView, typename TFromData >
-inline std::optional< TToView* > toView( PointerConverter& converter, const std::optional< TFromData >& from )
-{
-    if( from.has_value() )
-        return std::optional< TToView* >( toView< TToView, TFromData >( converter, from.value() ) );
-    else
-        return std::optional< TToView* >();
-}
-
-template< typename TToData, typename TFromView >
-inline std::vector< data::Ptr< TToData > > toData( PointerConverter& converter, const std::vector< TFromView* >& from )
-{
-    std::vector< data::Ptr< TToData > > result;
-    for( TFromView* pFrom : from )
-    {
-        result.push_back( toData< TToData, TFromView >( converter, pFrom ) );
-    }
-    return result;
-}
-
-template< typename TToView, typename TFromData >
-inline std::vector< TToView* > toView( PointerConverter& converter, const std::vector< TFromData >& from )
-{
-    std::vector< TToView* > result;
-    for( const TFromData& fromData : from )
-    {
-        result.push_back( toView< TToView, TFromData >( converter, fromData ) );
-    }
-    return result;
-}
-
-
-template< typename TToData, typename TFromView, typename TKey >
-inline std::map< TKey, data::Ptr< TToData > > toData( PointerConverter& converter, const std::map< TKey, TFromView* >& from )
-{
-    std::map< TKey, data::Ptr< TToData > > result;
-    for( typename std::map< TKey, TFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
-    {
-        result.insert( std::make_pair( i->first, toData< TToData, TFromView >( converter, i->second ) ) );
-    }
-    return result;
-}
-
-template< typename TToView, typename TFromData, typename TKey >
-inline std::map< TKey, TToView* > toView( PointerConverter& converter, const std::map< TKey, TFromData >& from )
-{
-    std::map< TKey, TToView* > result;
-    for( typename std::map< TKey, TFromData >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
-    {
-        result.insert( std::make_pair( i->first, toView< TToView, TFromData >( converter, i->second ) ) );
-    }
-    return result;
-}
-
-template< typename TToData, typename TFromView, typename TValue >
-inline std::map< data::Ptr< TToData >, TValue > toData( PointerConverter& converter, const std::map< TFromView*, TValue >& from )
-{
-    std::map< data::Ptr< TToData >, TValue > result;
-    for( typename std::map< TFromView*, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
-    {
-        result.insert( std::make_pair( toData< TToData, TFromView >( converter, i->first ), i->second ) );
-    }
-    return result;
-}
-
-template< typename TToView, typename TFromData, typename TValue >
-inline std::map< TToView*, TValue > toView( PointerConverter& converter, const std::map< TFromData, TValue >& from )
-{
-    std::map< TToView*, TValue > result;
-    for( typename std::map< TFromData, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
-    {
-        result.insert( std::make_pair( toView< TToView, TFromData >( converter, i->first ), i->second ) );
-    }
-    return result;
-}
-
-template< typename TKeyToData, typename TKeyFromView, typename TValueToData, typename TValueFromView >
-inline std::map< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > toData( PointerConverter& converter, const std::map< TKeyFromView*, TValueFromView* >& from )
-{
-    std::map< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > result;
-    for( typename std::map< TKeyFromView*, TValueFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
-    {
-        result.insert( std::make_pair( 
-            toData< TKeyToData, TKeyFromView >( converter, i->first ), 
-            toData< TValueToData, TValueFromView >( converter, i->second ) ) );
-    }
-    return result;
-}
-
-template< typename TKeyToView, typename TKeyFromData, typename TValueToView, typename TValueFromData >
-inline std::map< TKeyToView*, TValueToView* > toView( PointerConverter& converter, const std::map< TKeyFromData, TValueFromData >& from )
-{
-    std::map< TKeyToView*, TValueToView* > result;
-    for( typename std::map< TKeyFromData, TValueFromData >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
-    {
-        result.insert( std::make_pair( 
-            toView< TKeyToView, TKeyFromData >( converter, i->first ), 
-            toView< TValueToView, TValueFromData >( converter, i->second )) );
-    }
-    return result;
-}
+class SuperFactory;
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
@@ -190,7 +51,7 @@ class {{ stype.name }} : public SuperTypeBase,
 {% endfor %}
 
 {
-    PointerConverter& m_converter;
+    SuperFactory& m_factory;
 public:
     using DataVariant = std::variant
     < 
@@ -202,7 +63,7 @@ public:
     >;
     mutable DataVariant m_data;
 {% for interface in stype.interfaces %}
-    {{ stype.name }}( PointerConverter& converter, const data::Ptr< data::{{ interface.part }} >& data );
+    {{ stype.name }}( SuperFactory& factory, const data::Ptr< data::{{ interface.part }} >& data );
     void reconstruct( const data::Ptr< data::{{ interface.part }} >& data );
 {% endfor %}{# stype.interfaces #}
     virtual ~{{ stype.name }}();
@@ -215,13 +76,200 @@ public:
 };
 {% endfor %}{# stage.supertypes #}
 
+
+template< typename T >
+struct traits;
+
+{% for interface_conversion in stage.interface_conversions %}
+template<>
+struct traits< {{ interface_conversion.type }} >
+{
+    using DataType = data::{{ interface_conversion.file }}::{{ interface_conversion.object }};
+    using SuperType = {{ interface_conversion.supertype }};
+};
+template<>
+struct traits< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >
+{
+    using ViewType = {{ interface_conversion.type }};
+    using SuperType = {{ interface_conversion.supertype }};
+};
+{% endfor %}{# stage.interface_conversions #}
+
+struct SuperFactory
+{
+    using SuperTypePtr = std::unique_ptr< SuperTypeBase >;
+    struct ObjectInfoHash
+    {
+        std::size_t operator()( const mega::io::ObjectInfo& objectInfo ) const
+        {
+            return common::Hash( objectInfo.getType(), objectInfo.getFileID(), objectInfo.getIndex() ).get();
+        }
+    };
+    struct ObjectInfoEquality
+    {
+        std::size_t operator()( const mega::io::ObjectInfo& left, const mega::io::ObjectInfo& right ) const
+        {
+            return  left.getType()      == right.getType() &&
+                    left.getFileID()    == right.getFileID() &&
+                    left.getIndex()     == right.getIndex() ;
+        }
+    };
+    using InterfaceMap = std::unordered_map< mega::io::ObjectInfo, SuperTypePtr, ObjectInfoHash, ObjectInfoEquality >;
+    mutable InterfaceMap m_interfaceHash;
+
+    template< typename TSuper, typename TData >
+    TSuper* findOrConstruct( const data::Ptr< TData > &pData ) const
+    {
+        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
+        if( iFind != m_interfaceHash.end() )
+        {
+            TSuper* pSuper = dynamic_cast< TSuper* >( iFind->second.get() );
+            VERIFY_RTE( pSuper );
+            return pSuper;
+        }
+        else
+        {
+            TSuper *pSuper = new TSuper( const_cast< SuperFactory& >( *this ), pData );
+            m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
+            return pSuper;
+        }
+    }
+};
+
+// conversion generics
+template< typename TToData, typename TFromView >
+inline data::Ptr< TToData > toData( SuperFactory& factory, TFromView* pFrom )
+{
+    using SuperType   = typename traits< TToData >::SuperType;
+    SuperType *pSuper = dynamic_cast< SuperType * >( pFrom );
+    return data::convert< TToData >( pSuper->m_data );
+}
+
+template< typename TToView, typename TFromData >
+inline TToView* toView( SuperFactory& factory, const data::Ptr< TFromData > &from )
+{
+    using SuperType = typename traits< TFromData >::SuperType;
+    return factory.findOrConstruct< SuperType, TFromData >( from );
+}
+
+template< typename TToData, typename TFromView >
+inline std::optional< data::Ptr< TToData > > toData( SuperFactory& factory, std::optional< TFromView* > pFrom )
+{
+    if( pFrom.has_value() )
+        return std::optional< data::Ptr< TToData > >( toData< TToData, TFromView >( factory, pFrom.value() ) );
+    else
+        return std::optional< data::Ptr< TToData > >();
+}
+
+template< typename TToView, typename TFromData >
+inline std::optional< TToView* > toView( SuperFactory& factory, const std::optional< TFromData >& from )
+{
+    if( from.has_value() )
+        return std::optional< TToView* >( toView< TToView, TFromData >( factory, from.value() ) );
+    else
+        return std::optional< TToView* >();
+}
+
+template< typename TToData, typename TFromView >
+inline std::vector< data::Ptr< TToData > > toData( SuperFactory& factory, const std::vector< TFromView* >& from )
+{
+    std::vector< data::Ptr< TToData > > result;
+    for( TFromView* pFrom : from )
+    {
+        result.push_back( toData< TToData, TFromView >( factory, pFrom ) );
+    }
+    return result;
+}
+
+template< typename TToView, typename TFromData >
+inline std::vector< TToView* > toView( SuperFactory& factory, const std::vector< data::Ptr< TFromData > >& from )
+{
+    std::vector< TToView* > result;
+    for( const data::Ptr< TFromData >& fromData : from )
+    {
+        result.push_back( toView< TToView, TFromData >( factory, fromData ) );
+    }
+    return result;
+}
+
+
+template< typename TToData, typename TFromView, typename TKey >
+inline std::map< TKey, data::Ptr< TToData > > toData( SuperFactory& factory, const std::map< TKey, TFromView* >& from )
+{
+    std::map< TKey, data::Ptr< TToData > > result;
+    for( typename std::map< TKey, TFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( i->first, toData< TToData, TFromView >( factory, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TToView, typename TFromData, typename TKey >
+inline std::map< TKey, TToView* > toView( SuperFactory& factory, const std::map< TKey, data::Ptr< TFromData > >& from )
+{
+    std::map< TKey, TToView* > result;
+    for( typename std::map< TKey, data::Ptr< TFromData > >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( i->first, toView< TToView, TFromData >( factory, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TToData, typename TFromView, typename TValue >
+inline std::map< data::Ptr< TToData >, TValue > toData( SuperFactory& factory, const std::map< TFromView*, TValue >& from )
+{
+    std::map< data::Ptr< TToData >, TValue > result;
+    for( typename std::map< TFromView*, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( toData< TToData, TFromView >( factory, i->first ), i->second ) );
+    }
+    return result;
+}
+
+template< typename TToView, typename TFromData, typename TValue >
+inline std::map< TToView*, TValue > toView( SuperFactory& factory, const std::map< data::Ptr< TFromData >, TValue >& from )
+{
+    std::map< TToView*, TValue > result;
+    for( typename std::map< data::Ptr< TFromData >, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( toView< TToView, TFromData >( factory, i->first ), i->second ) );
+    }
+    return result;
+}
+
+template< typename TKeyToData, typename TKeyFromView, typename TValueToData, typename TValueFromView >
+inline std::map< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > toData( SuperFactory& factory, const std::map< TKeyFromView*, TValueFromView* >& from )
+{
+    std::map< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > result;
+    for( typename std::map< TKeyFromView*, TValueFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( 
+            toData< TKeyToData, TKeyFromView >( factory, i->first ), 
+            toData< TValueToData, TValueFromView >( factory, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TKeyToView, typename TKeyFromData, typename TValueToView, typename TValueFromData >
+inline std::map< TKeyToView*, TValueToView* > toView( SuperFactory& factory, const std::map< data::Ptr< TKeyFromData >, data::Ptr< TValueFromData > >& from )
+{
+    std::map< TKeyToView*, TValueToView* > result;
+    for( typename std::map< data::Ptr< TKeyFromData >, data::Ptr< TValueFromData > >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( 
+            toView< TKeyToView, TKeyFromData >( factory, i->first ), 
+            toView< TValueToView, TValueFromData >( factory, i->second )) );
+    }
+    return result;
+}
+
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 // Super type definitions
 {% for stype in stage.supertypes %}
 {% for interface in stype.interfaces %}
-{{ stype.name }}::{{ stype.name }}( PointerConverter& converter, const data::Ptr< data::{{ interface.part }} >& data )
-    :   m_converter( converter ),
+{{ stype.name }}::{{ stype.name }}( SuperFactory& factory, const data::Ptr< data::{{ interface.part }} >& data )
+    :   m_factory( factory ),
         m_data( data )
 {
 }
@@ -296,27 +344,8 @@ bool {{ stype.name }}::is_{{ interface.fullname }}() const
 // Database implementation
 namespace {{ stage.name }}
 {
-struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
+struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
 {
-    using SuperTypePtr = std::unique_ptr< SuperTypeBase >;
-    struct ObjectInfoHash
-    {
-        std::size_t operator()( const mega::io::ObjectInfo& objectInfo ) const
-        {
-            return common::Hash( objectInfo.getType(), objectInfo.getFileID(), objectInfo.getIndex() ).get();
-        }
-    };
-    struct ObjectInfoEquality
-    {
-        std::size_t operator()( const mega::io::ObjectInfo& left, const mega::io::ObjectInfo& right ) const
-        {
-            return  left.getType()      == right.getType() &&
-                    left.getFileID()    == right.getFileID() &&
-                    left.getIndex()     == right.getIndex() ;
-        }
-    };
-    using InterfaceMap = std::unordered_map< mega::io::ObjectInfo, SuperTypePtr, ObjectInfoHash, ObjectInfoEquality >;
-
     Pimpl( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
         :   m_environment( environment ),
             m_sourceFile( sourceFile ),
@@ -438,14 +467,9 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
 {% endif %}
 {% endfor %}{# constructor.bases #}
         if( pSuper == nullptr )
-        {
-            pSuper = new SuperType( *this, pPrimaryObjectPart );
-            m_interfaceHash[ pPrimaryObjectPart.getObjectInfo() ] = SuperTypePtr( pSuper );
-        }
+            pSuper = findOrConstruct< SuperType >( pPrimaryObjectPart );
         else
-        {
             pSuper->reconstruct( pPrimaryObjectPart );
-        }
         return dynamic_cast< {{ constructor.return_type }}* >( pSuper );
     }
 {% endfor %}{# stage.constructors#}
@@ -513,57 +537,6 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
         }
         return pFile->getObject( objectInfo.getIndex() );
     }
-{#
-{% for super_conversion in stage.super_conversions %}
-    virtual {{ super_conversion.supertype }}* toSuper( const data::Ptr< data::{{ super_conversion.file }}::{{ super_conversion.object }} >& pData ) const
-    {
-        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
-        if( iFind != m_interfaceHash.end() )
-        {
-            {{ super_conversion.supertype }}* pSuper = dynamic_cast< {{ super_conversion.supertype }}* >( iFind->second.get() );
-            VERIFY_RTE( pSuper );
-            return pSuper;
-        }
-        else
-        {
-            using SuperType = {{ super_conversion.supertype }};
-            SuperType* pSuper = new SuperType( const_cast<Database::Pimpl&>(*this), pData );
-            m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
-            return pSuper;
-        }
-    }
-    virtual data::Ptr< data::{{ super_conversion.file }}::{{ super_conversion.object }} > 
-        toData_{{ super_conversion.file }}_{{ super_conversion.object }}( {{ super_conversion.supertype }}* pSuper ) const
-    {
-        return data::convert< data::{{ super_conversion.file }}::{{ super_conversion.object }} >( pSuper->m_data );
-    }
-{% endfor %}
-#}
-{% for interface_conversion in stage.interface_conversions %}
-    virtual {{ interface_conversion.type }}* toView( const data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >& pData ) const
-    {
-        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
-        if( iFind != m_interfaceHash.end() )
-        {
-            {{ interface_conversion.type }}* pSuper = dynamic_cast< {{ interface_conversion.type }}* >( iFind->second.get() );
-            VERIFY_RTE( pSuper );
-            return pSuper;
-        }
-        else
-        {
-            using SuperType = {{ interface_conversion.supertype }};
-            SuperType* pSuper = new SuperType( const_cast<Database::Pimpl&>(*this), pData );
-            m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
-            return pSuper;
-        }
-    }
-    virtual data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} > toData( {{ interface_conversion.type }}* pInterface ) const
-    {
-        using SuperType = {{ interface_conversion.supertype }};
-        SuperType* pSuper = dynamic_cast< SuperType* >( pInterface );
-        return data::convert< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >( pSuper->m_data );
-    }
-{% endfor %}{# stage.interface_conversions #}
 
     const mega::io::Environment& m_environment;
     mega::io::SourceFilePath m_sourceFile;
@@ -571,7 +544,6 @@ struct Database::Pimpl : public data::ObjectPartLoader, public PointerConverter
 
     mega::io::Manifest::FileMap m_readwriteFiles;
     mutable mega::io::Manifest::FileMapCst m_readonlyFiles;
-    mutable InterfaceMap m_interfaceHash;
 
 {% for file in stage.readwrite_files %}
     std::shared_ptr< mega::io::File > m_pFile_{{ file.name }};

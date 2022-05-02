@@ -26,6 +26,8 @@
 #include "database/model/InterfaceStage.hxx"
 #include "database/model/DependencyAnalysis.hxx"
 #include "database/model/DependencyAnalysisView.hxx"
+#include "database/model/SymbolAnalysis.hxx"
+#include "database/model/SymbolAnalysisView.hxx"
 #include "database/model/InterfaceAnalysisStage.hxx"
 
 #include "database/common/file.hpp"
@@ -651,7 +653,7 @@ namespace driver
                     VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
 
                     Parser::ArgumentList* pArguments = pDef->get_argumentList();
-                    //if ( !pArguments->get_str().empty() )
+                    // if ( !pArguments->get_str().empty() )
                     {
                         if ( !pArgumentListTrait )
                         {
@@ -666,7 +668,7 @@ namespace driver
                     }
 
                     Parser::ReturnType* pReturnType = pDef->get_returnType();
-                    //if ( !pReturnType->get_str().empty() )
+                    // if ( !pReturnType->get_str().empty() )
                     {
                         if ( !pReturnTypeTrait )
                         {
@@ -1099,6 +1101,327 @@ namespace driver
             }
         };
 
+        class Task_SymbolAnalysis : public BaseTask
+        {
+            const mega::io::Manifest& m_manifest;
+
+        public:
+            Task_SymbolAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::BuildEnvironment& environment,
+                                 const mega::io::Manifest& manifest )
+                : BaseTask( parserTasks, environment )
+                , m_manifest( manifest )
+            {
+            }
+
+            using PathSet = std::set< mega::io::megaFilePath >;
+            PathSet getSortedSourceFiles() const
+            {
+                PathSet sourceFiles;
+                for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+                {
+                    sourceFiles.insert( sourceFilePath );
+                }
+                return sourceFiles;
+            }
+
+            using SymbolMap = std::multimap< std::string, SymbolAnalysis::Symbols::Symbol* >;
+
+            struct SymbolCollector
+            {
+                void collectSymbol( SymbolAnalysis::Database& database, SymbolAnalysis::Symbols::SymbolSet* pSymbolSet,
+                                    const std::string& strIdentifier, SymbolMap& symbols, std::size_t& szCounter,
+                                    SymbolAnalysis::Interface::Context*        pContext,
+                                    SymbolAnalysis::Interface::DimensionTrait* pDimension = nullptr ) const
+                {
+                    using namespace SymbolAnalysis;
+
+                    VERIFY_RTE( pContext || pDimension );
+
+                    SymbolMap::iterator iFindLower = symbols.lower_bound( strIdentifier );
+                    SymbolMap::iterator iFindUpper = symbols.upper_bound( strIdentifier );
+
+                    std::optional< std::size_t > szID;
+                    Symbols::Symbol*             pExistingSymbol = nullptr;
+                    if ( iFindLower != iFindUpper )
+                    {
+                        for ( SymbolMap::iterator i = iFindLower; i != iFindUpper; ++i )
+                        {
+                            if ( szID.has_value() )
+                            {
+                                VERIFY_RTE( szID.value() == i->second->get_id() );
+                            }
+                            else
+                            {
+                                szID = i->second->get_id();
+                            }
+                            if ( i->second->get_symbol_set() == pSymbolSet )
+                            {
+                                pExistingSymbol = i->second;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // new symbol
+                        szID = szCounter;
+                        ++szCounter;
+                    }
+
+                    if ( pExistingSymbol )
+                    {
+                        if ( pContext )
+                            pExistingSymbol->push_back_contexts( pContext );
+                        if ( pDimension )
+                            pExistingSymbol->push_back_dimensions( pDimension );
+                    }
+                    else
+                    {
+                        std::vector< Interface::Context* > contexts;
+                        if ( pContext )
+                            contexts.push_back( pContext );
+                        std::vector< Interface::DimensionTrait* > dimensions;
+                        if ( pDimension )
+                            dimensions.push_back( pDimension );
+
+                        Symbols::Symbol* pNewSymbol = database.construct< Symbols::Symbol >(
+                            Symbols::Symbol::Args( szID.value(), contexts, dimensions, pSymbolSet ) );
+                        pSymbolSet->push_back_symbols( pNewSymbol );
+
+                        symbols.insert( std::make_pair( strIdentifier, pNewSymbol ) );
+                    }
+                }
+
+                void operator()( SymbolAnalysis::Database& database, SymbolAnalysis::Symbols::SymbolSet* pSymbolSet, SymbolMap& symbols,
+                                 std::size_t& szCounter ) const
+                {
+                    using namespace SymbolAnalysis;
+                    for ( Interface::Context* pContext : database.many< Interface::Context >( pSymbolSet->get_source_file() ) )
+                    {
+                        collectSymbol( database, pSymbolSet, pContext->get_identifier(), symbols, szCounter, pContext, nullptr );
+                    }
+                    for ( Interface::DimensionTrait* pDimension :
+                          database.many< Interface::DimensionTrait >( pSymbolSet->get_source_file() ) )
+                    {
+                        collectSymbol( database, pSymbolSet, pDimension->get_id()->get_str(), symbols, szCounter, nullptr, pDimension );
+                    }
+                }
+            };
+
+            virtual void run( task::Progress& taskProgress )
+            {
+                const mega::io::manifestFilePath    manifestFilePath      = m_environment.project_manifest();
+                const mega::io::CompilationFilePath symbolCompilationFile = m_environment.SymbolAnalysis_SymbolTable( manifestFilePath );
+                taskProgress.start( "Task_SymbolAnalysis", manifestFilePath.path(), symbolCompilationFile.path() );
+
+                task::DeterminantHash determinant;
+                for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
+                {
+                    determinant ^= m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) );
+                }
+
+                if ( m_environment.restore( symbolCompilationFile, determinant ) )
+                {
+                    m_environment.setBuildHashCode( symbolCompilationFile );
+                    taskProgress.cached();
+                    return;
+                }
+
+                // try loading previous one...
+                if ( m_environment.exists( symbolCompilationFile ) )
+                {
+                    // attempt to reuse previous symbol analysis
+                    namespace Old = SymbolAnalysisView;
+                    namespace New = SymbolAnalysis;
+
+                    New::Database newDatabase( m_environment, manifestFilePath );
+                    {
+                        Old::Database oldDatabase( m_environment, manifestFilePath );
+
+                        const Old::Symbols::SymbolTable* pOldAnalysis = oldDatabase.one< Old::Symbols::SymbolTable >( manifestFilePath );
+                        VERIFY_RTE( pOldAnalysis );
+                        using OldSymbolsMap                = std::map< mega::io::megaFilePath, Old::Symbols::SymbolSet* >;
+                        const OldSymbolsMap oldSymbolsMaps = pOldAnalysis->get_symbols();
+                        const PathSet       sourceFiles    = getSortedSourceFiles();
+
+                        SymbolMap                                                    symbolMap;
+                        std::size_t                                                  szCounter = 0U;
+                        std::map< mega::io::megaFilePath, New::Symbols::SymbolSet* > symbolSetMap;
+
+                        {
+                            struct Compare
+                            {
+                                const mega::io::Environment& env;
+                                Compare( const mega::io::Environment& env )
+                                    : env( env )
+                                {
+                                }
+                                bool operator()( OldSymbolsMap::const_iterator i, PathSet::const_iterator j ) const { return i->first < *j; }
+                                bool opposite( OldSymbolsMap::const_iterator i, PathSet::const_iterator j ) const { return *j < i->first; }
+                            } comparator( m_environment );
+                            
+                            generics::matchGetUpdates(
+                                oldSymbolsMaps.begin(), oldSymbolsMaps.end(), sourceFiles.begin(), sourceFiles.end(),
+                                // const Compare& cmp
+                                comparator,
+
+                                // const Update& shouldUpdate
+                                [ &env = m_environment, &newDatabase, &taskProgress, &symbolMap, &szCounter, &symbolSetMap ](
+                                    OldSymbolsMap::const_iterator i, PathSet::const_iterator j ) -> bool
+                                {
+                                    // const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                                    const task::FileHash interfaceHash = env.getBuildHashCode( env.InterfaceStage_Tree( *j ) );
+                                    if ( interfaceHash == i->second->get_hash_code() )
+                                    {
+                                        // since the code is NOT modified - can re use
+                                        Old::Symbols::SymbolSet* pOldSymbolSet = i->second;
+                                        {
+                                            New::Symbols::SymbolSet* pNewSymbolSet
+                                                = newDatabase.construct< New::Symbols::SymbolSet >( New::Symbols::SymbolSet::Args(
+                                                    {}, pOldSymbolSet->get_source_file(), pOldSymbolSet->get_hash_code() ) );
+                                            {
+                                                std::vector< New::Symbols::Symbol* > copiedSymbols;
+                                                for ( Old::Symbols::Symbol* pOldSymbol : pOldSymbolSet->get_symbols() )
+                                                {
+                                                    std::optional< std::string >            strIdentifierOpt;
+                                                    std::vector< New::Interface::Context* > newContexts;
+                                                    for ( Old::Interface::Context* pOldContext : pOldSymbol->get_contexts() )
+                                                    {
+                                                        if( !strIdentifierOpt.has_value() )
+                                                            strIdentifierOpt = pOldContext->get_identifier();
+
+                                                        //pOldContext->
+                                                        
+                                                    }
+
+                                                    std::vector< New::Interface::DimensionTrait* > newDimensions;
+                                                    for ( Old::Interface::DimensionTrait* pDimensionTrait : pOldSymbol->get_dimensions() )
+                                                    {
+                                                        if( !strIdentifierOpt.has_value() )
+                                                            strIdentifierOpt = pDimensionTrait->get_id()->get_str();
+                                                    }
+
+                                                    New::Symbols::Symbol* pNewSymbol
+                                                        = newDatabase.construct< New::Symbols::Symbol >( New::Symbols::Symbol::Args(
+                                                            pOldSymbol->get_id(), newContexts, newDimensions, pNewSymbolSet ) );
+                                                    copiedSymbols.push_back( pNewSymbol );
+                                                    VERIFY_RTE( strIdentifierOpt.has_value() );
+                                                    symbolMap.insert( std::make_pair( strIdentifierOpt.value(), pNewSymbol ) );
+                                                }
+                                                pNewSymbolSet->set_symbols( copiedSymbols );
+                                            }
+                                            symbolSetMap.insert( std::make_pair( *j, pNewSymbolSet ) );
+                                        }
+
+                                        std::ostringstream os;
+                                        os << "\tPartially reusing symbols for: " << j->path().string();
+                                        taskProgress.msg( os.str() );
+                                        return false;
+                                    }
+                                    else
+                                    {
+                                        std::ostringstream os;
+                                        os << "\tRecalculating symbols for: " << j->path().string();
+                                        taskProgress.msg( os.str() );
+                                        return true;
+                                    }
+                                },
+
+                                // const Removal& rem
+                                []( OldSymbolsMap::const_iterator i )
+                                {
+                                    // a source file has been removed - can ignor this since
+                                    // recreating the dependency analysis and only attempting to
+                                    // reuse the globs
+                                },
+
+                                // const Addition& add
+                                [ &env = m_environment, &newDatabase, &taskProgress, &symbolMap, &szCounter,
+                                  &symbolSetMap ]( PathSet::const_iterator j )
+                                {
+                                    // a new source file is added so must analysis from the ground up
+                                    const mega::io::megaFilePath megaFilePath = *j;
+                                    const task::FileHash interfaceHash = env.getBuildHashCode( env.InterfaceStage_Tree( megaFilePath ) );
+
+                                    New::Symbols::SymbolSet* pSymbolSet = newDatabase.construct< New::Symbols::SymbolSet >(
+                                        New::Symbols::SymbolSet::Args( {}, megaFilePath, interfaceHash.get() ) );
+
+                                    SymbolCollector()( newDatabase, pSymbolSet, symbolMap, szCounter );
+                                    symbolSetMap.insert( std::make_pair( megaFilePath, pSymbolSet ) );
+
+                                    std::ostringstream os;
+                                    os << "\tAdded symbols for: " << megaFilePath.path().string();
+                                    taskProgress.msg( os.str() );
+                                },
+
+                                // const Updated& updatesNeeded
+                                [ &env = m_environment, &newDatabase, &taskProgress, &symbolMap, &szCounter,
+                                  &symbolSetMap ]( OldSymbolsMap::const_iterator i )
+                                {
+                                    // Old::Symbols::SymbolSet* pOldSymbolSet = i->second;
+                                    //  a new source file is added so must analysis from the ground up
+                                    const mega::io::megaFilePath megaFilePath = i->first;
+                                    const task::FileHash interfaceHash = env.getBuildHashCode( env.InterfaceStage_Tree( megaFilePath ) );
+
+                                    New::Symbols::SymbolSet* pSymbolSet = newDatabase.construct< New::Symbols::SymbolSet >(
+                                        New::Symbols::SymbolSet::Args( {}, megaFilePath, interfaceHash.get() ) );
+
+                                    SymbolCollector()( newDatabase, pSymbolSet, symbolMap, szCounter );
+                                    symbolSetMap.insert( std::make_pair( megaFilePath, pSymbolSet ) );
+
+                                    std::ostringstream os;
+                                    os << "\tUpdated symbols for: " << megaFilePath.path().string();
+                                    taskProgress.msg( os.str() );
+                                } );
+                        }
+                        newDatabase.construct< New::Symbols::SymbolTable >( New::Symbols::SymbolTable::Args( symbolSetMap ) );
+                    }
+
+                    const task::FileHash fileHashCode = newDatabase.save_SymbolTable_to_temp();
+                    m_environment.setBuildHashCode( symbolCompilationFile, fileHashCode );
+                    m_environment.temp_to_real( symbolCompilationFile );
+                    m_environment.stash( symbolCompilationFile, determinant );
+
+                    taskProgress.succeeded();
+                }
+                else
+                {
+                    using namespace SymbolAnalysis;
+                    using namespace SymbolAnalysis::Symbols;
+
+                    Database database( m_environment, manifestFilePath );
+                    {
+                        SymbolMap                                               symbolMap;
+                        std::size_t                                             szCounter = 0U;
+                        std::map< mega::io::megaFilePath, Symbols::SymbolSet* > symbolSetMap;
+                        {
+                            for ( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
+                            {
+                                const task::FileHash interfaceHash
+                                    = m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) );
+
+                                using OldSymbolsMap = std::map< mega::io::megaFilePath, Symbols::SymbolSet* >;
+
+                                Symbols::SymbolSet* pSymbolSet = database.construct< Symbols::SymbolSet >(
+                                    Symbols::SymbolSet::Args( {}, sourceFilePath, interfaceHash.get() ) );
+
+                                SymbolCollector()( database, pSymbolSet, symbolMap, szCounter );
+
+                                symbolSetMap.insert( std::make_pair( sourceFilePath, pSymbolSet ) );
+                            }
+                        }
+                        database.construct< SymbolTable >( SymbolTable::Args( symbolSetMap ) );
+                    }
+
+                    const task::FileHash fileHashCode = database.save_SymbolTable_to_temp();
+                    m_environment.setBuildHashCode( symbolCompilationFile, fileHashCode );
+                    m_environment.temp_to_real( symbolCompilationFile );
+                    m_environment.stash( symbolCompilationFile, determinant );
+
+                    taskProgress.succeeded();
+                }
+            }
+        };
+
         class Task_ObjectInterfaceGeneration : public BaseTask
         {
         public:
@@ -1368,10 +1691,13 @@ namespace driver
                 Task_DependencyAnalysis* pDependencyAnalysisTask = new Task_DependencyAnalysis( interfaceGenTasks, environment, manifest );
                 tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
 
+                Task_SymbolAnalysis* pSymbolAnalysisTask = new Task_SymbolAnalysis( { pDependencyAnalysisTask }, environment, manifest );
+                tasks.push_back( task::Task::Ptr( pSymbolAnalysisTask ) );
+
                 for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                 {
                     Task_ObjectInterfaceGeneration* pInterfaceGen
-                        = new Task_ObjectInterfaceGeneration( { pDependencyAnalysisTask }, environment, sourceFilePath );
+                        = new Task_ObjectInterfaceGeneration( { pSymbolAnalysisTask }, environment, sourceFilePath );
                     tasks.push_back( task::Task::Ptr( pInterfaceGen ) );
 
                     Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis

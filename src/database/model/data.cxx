@@ -1949,6 +1949,53 @@ namespace Tree
     }
         
 }
+namespace Clang
+{
+    // struct Dimension : public mega::io::Object
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+          , p_Tree_DimensionTrait( loader )
+    {
+    }
+    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canonical_type)
+        :   mega::io::Object( objectInfo )
+          , p_Tree_DimensionTrait( loader )
+          , canonical_type( canonical_type )
+    {
+    }
+    void Dimension::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_DimensionTrait );
+        loader.load( canonical_type );
+    }
+    void Dimension::load_post( mega::io::Loader& loader )
+    {
+        p_Tree_DimensionTrait->m_pInheritance = this;
+    }
+    void Dimension::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_DimensionTrait );
+        storer.store( canonical_type );
+    }
+    void Dimension::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Dimension" },
+                { "filetype" , "Clang" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "canonical_type", canonical_type } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+}
 namespace DPGraph
 {
     // struct Glob : public mega::io::Object
@@ -2101,40 +2148,45 @@ namespace DPGraph
     }
         
 }
-namespace Clang
+namespace SymbolTable
 {
-    // struct Dimension : public mega::io::Object
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+    // struct Symbol : public mega::io::Object
+    Symbol::Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
-          , p_Tree_DimensionTrait( loader )
+          , symbol_set( loader )
     {
     }
-    Dimension::Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& canonical_type)
+    Symbol::Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::size_t& id, const std::vector< data::Ptr< data::Tree::Context > >& contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > >& dimensions, const data::Ptr< data::SymbolTable::SymbolSet >& symbol_set)
         :   mega::io::Object( objectInfo )
-          , p_Tree_DimensionTrait( loader )
-          , canonical_type( canonical_type )
+          , id( id )
+          , contexts( contexts )
+          , dimensions( dimensions )
+          , symbol_set( symbol_set )
     {
     }
-    void Dimension::load( mega::io::Loader& loader )
+    void Symbol::load( mega::io::Loader& loader )
     {
-        loader.load( p_Tree_DimensionTrait );
-        loader.load( canonical_type );
+        loader.load( id );
+        loader.load( contexts );
+        loader.load( dimensions );
+        loader.load( symbol_set );
     }
-    void Dimension::load_post( mega::io::Loader& loader )
+    void Symbol::load_post( mega::io::Loader& loader )
     {
-        p_Tree_DimensionTrait->m_pInheritance = this;
     }
-    void Dimension::store( mega::io::Storer& storer ) const
+    void Symbol::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_Tree_DimensionTrait );
-        storer.store( canonical_type );
+        storer.store( id );
+        storer.store( contexts );
+        storer.store( dimensions );
+        storer.store( symbol_set );
     }
-    void Dimension::to_json( nlohmann::json& part ) const
+    void Symbol::to_json( nlohmann::json& part ) const
     {
         part = nlohmann::json::object(
             { 
-                { "partname", "Dimension" },
-                { "filetype" , "Clang" },
+                { "partname", "Symbol" },
+                { "filetype" , "SymbolTable" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
                 { "index", getIndex() }, 
@@ -2142,7 +2194,116 @@ namespace Clang
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "canonical_type", canonical_type } } );
+                { "id", id } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "contexts", contexts } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "symbol_set", symbol_set } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct SymbolSet : public mega::io::Object
+    SymbolSet::SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    SymbolSet::SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::SymbolTable::Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code)
+        :   mega::io::Object( objectInfo )
+          , symbols( symbols )
+          , source_file( source_file )
+          , hash_code( hash_code )
+    {
+    }
+    void SymbolSet::load( mega::io::Loader& loader )
+    {
+        loader.load( symbols );
+        loader.load( source_file );
+        loader.load( hash_code );
+    }
+    void SymbolSet::load_post( mega::io::Loader& loader )
+    {
+    }
+    void SymbolSet::store( mega::io::Storer& storer ) const
+    {
+        storer.store( symbols );
+        storer.store( source_file );
+        storer.store( hash_code );
+    }
+    void SymbolSet::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "SymbolSet" },
+                { "filetype" , "SymbolTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "symbols", symbols } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "source_file", source_file } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "hash_code", hash_code } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct SymbolTable : public mega::io::Object
+    SymbolTable::SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )
+    {
+    }
+    SymbolTable::SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > >& symbols)
+        :   mega::io::Object( objectInfo )
+          , symbols( symbols )
+    {
+    }
+    void SymbolTable::load( mega::io::Loader& loader )
+    {
+        loader.load( symbols );
+    }
+    void SymbolTable::load_post( mega::io::Loader& loader )
+    {
+    }
+    void SymbolTable::store( mega::io::Storer& storer ) const
+    {
+        storer.store( symbols );
+    }
+    void SymbolTable::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "SymbolTable" },
+                { "filetype" , "SymbolTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "symbols", symbols } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -2195,10 +2356,13 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 39: return new Tree::Function( loader, objectInfo );
         case 40: return new Tree::Object( loader, objectInfo );
         case 41: return new Tree::Link( loader, objectInfo );
+        case 27: return new Clang::Dimension( loader, objectInfo );
         case 42: return new DPGraph::Glob( loader, objectInfo );
         case 43: return new DPGraph::ObjectDependencies( loader, objectInfo );
         case 44: return new DPGraph::Analysis( loader, objectInfo );
-        case 27: return new Clang::Dimension( loader, objectInfo );
+        case 45: return new SymbolTable::Symbol( loader, objectInfo );
+        case 46: return new SymbolTable::SymbolSet( loader, objectInfo );
+        case 47: return new SymbolTable::SymbolTable( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

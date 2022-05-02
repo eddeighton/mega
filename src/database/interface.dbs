@@ -20,30 +20,10 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Link > >;
 }
 
-stage DependencyAnalysis
-{
-    source .manifest;
-    dependency InterfaceStage;
-
-    file DPGraph;
-
-    global accessor ref< Dependencies::Analysis >;
-    persource accessor ref< Interface::Root >;
-}
-
-stage DependencyAnalysisView
-{
-    source .manifest;
-    dependency DependencyAnalysis;
-
-    global accessor ref< Dependencies::Analysis >;
-    persource accessor ref< Interface::Root >;
-}
-
 stage InterfaceAnalysisStage
 {
     source .mega;
-    dependency DependencyAnalysisView;
+    dependency SymbolAnalysisView;
 
     file Clang;
 
@@ -144,29 +124,6 @@ namespace Interface
     {
         array< ref< Parser::LinkDef > > link_defs;
         late< ref< InheritanceTrait > > link_inheritance_trait;
-    }
-
-}
-
-namespace Dependencies
-{
-    object Glob -> DependencyAnalysis::DPGraph
-    {
-        value< boost::filesystem::path > location;
-        value< std::string > glob;
-    }
-
-    object ObjectDependencies -> DependencyAnalysis::DPGraph
-    {
-        value< mega::io::megaFilePath > source_file;
-        value< std::size_t > hash_code;
-        array< ref< Glob > > globs;
-        array< value< boost::filesystem::path > > resolution;
-    }
-
-    object Analysis -> DependencyAnalysis::DPGraph
-    {
-        array< ref< ObjectDependencies > > objects;
     }
 
 }
