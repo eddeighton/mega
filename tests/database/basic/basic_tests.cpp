@@ -222,8 +222,9 @@ TEST_F( BasicDBTest, DatabaseErrors )
         ASSERT_THROW( database.construct< OtherObject >( OtherObject::Args( pTestObject, 2, 3 ) ), std::runtime_error );
 
         TestInherit* pInherit = database.construct< TestInherit >( TestInherit::Args( pTestObject, 123 ) );
-
         ASSERT_THROW( database.construct< TestInherit >( TestInherit::Args( pTestObject, 123 ) ), std::runtime_error );
+
+        ASSERT_EQ( pInherit, pTestObject );
 
         database.save_SecondFile_to_temp();
         m_pEnvironment->temp_to_real( m_pEnvironment->SecondStage_SecondFile( m_pEnvironment->project_manifest() ) );
@@ -238,7 +239,13 @@ TEST_F( BasicDBTest, DatabaseErrors )
 
         OtherObject* pTestObject = database.one< OtherObject >( m_pEnvironment->project_manifest() );
         TestInherit* pInherited  = database.one< TestInherit >( m_pEnvironment->project_manifest() );
-        ASSERT_EQ( pTestObject, pInherited );
+        TestInherit* pOther      = dynamic_database_cast< TestInherit >( pTestObject );
+        ASSERT_TRUE( pOther );
+        ASSERT_TRUE( pInherited );
+        ASSERT_EQ( pOther->_get_object_info().getFileID(),  pInherited->_get_object_info().getFileID() );
+        ASSERT_EQ( pOther->_get_object_info().getType(),    pInherited->_get_object_info().getType() );
+        ASSERT_EQ( pOther->_get_object_info().getIndex(),   pInherited->_get_object_info().getIndex() );
+        ASSERT_EQ( pOther, pInherited );
 
         ASSERT_THROW( pInherited->get_third_stage_inherited_value(), std::runtime_error );
         pInherited = database.construct< TestInherit >( TestInherit::Args( pInherited, 234 ) );

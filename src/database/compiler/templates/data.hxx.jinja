@@ -73,7 +73,12 @@ inline Ptr< {{ conversion.to }} > convert( const Ptr< {{ conversion.from }} >& f
     return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
 }
 {% endfor %}{# conversions #}
-
+{% for conversion in base_conversions %}
+inline Ptr< {{ conversion.to }} > to_base( const Ptr< {{ conversion.from }} >& from )
+{
+    return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
+}
+{% endfor %}{# base_conversions #}
 {% for upcast in up_casts %}
 template < typename TVariant >
 struct UpCast< TVariant, Ptr< {{ upcast.to }} >, Ptr< {{ upcast.from }} > >

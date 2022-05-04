@@ -145,7 +145,7 @@ add_dependencies( database database_compiler_driver )
 target_include_directories( database PUBLIC ${MEGA_API_DIR} )
 
 set_target_properties( database PROPERTIES FOLDER database )
-set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
+#set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 link_boost( database filesystem )
 link_boost( database iostreams )

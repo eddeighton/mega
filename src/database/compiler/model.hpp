@@ -296,7 +296,7 @@ public:
     virtual std::string getParams( const std::string& strStageNamespace ) const;
 };
 
-class SuperInterface;
+class SuperType;
 class Interface : public CountedObject
 {
 public:
@@ -305,14 +305,14 @@ public:
         : CountedObject( szCounter )
     {
     }
-    std::weak_ptr< SuperInterface > m_superInterface;
-    std::weak_ptr< Object >         m_object;
-    std::vector< Function::Ptr >    m_functions;
-    std::vector< Property::Ptr >    m_args;
-    Interface::Ptr                  m_base;
-    std::vector< ObjectPart::Ptr >  m_readOnlyObjectParts;
-    std::vector< ObjectPart::Ptr >  m_readWriteObjectParts;
-    bool                            m_isReadWrite;
+    std::weak_ptr< SuperType >     m_superInterface;
+    std::weak_ptr< Object >        m_object;
+    std::vector< Function::Ptr >   m_functions;
+    std::vector< Property::Ptr >   m_args;
+    Interface::Ptr                 m_base;
+    std::vector< ObjectPart::Ptr > m_readOnlyObjectParts;
+    std::vector< ObjectPart::Ptr > m_readWriteObjectParts;
+    bool                           m_isReadWrite;
 
     std::string delimitTypeName( const std::string& strStageNamespace, const std::string& str ) const;
 
@@ -340,7 +340,7 @@ public:
     {
         for ( model::ObjectPart::Ptr pPart : m_readWriteObjectParts )
         {
-            if( std::dynamic_pointer_cast< InheritedObjectPart >( pPart ) )
+            if ( std::dynamic_pointer_cast< InheritedObjectPart >( pPart ) )
             {
                 return true;
             }
@@ -349,14 +349,14 @@ public:
     }
 };
 
-class SuperInterface : public CountedObject
+class SuperType : public CountedObject
 {
 public:
-    SuperInterface( std::size_t& szCounter )
+    SuperType( std::size_t& szCounter )
         : CountedObject( szCounter )
     {
     }
-    using Ptr = std::shared_ptr< SuperInterface >;
+    using Ptr = std::shared_ptr< SuperType >;
 
     std::weak_ptr< Stage >        m_stage;
     std::vector< Interface::Ptr > m_interfaces;
@@ -437,10 +437,10 @@ public:
     std::vector< Accessor::Ptr >    m_accessors;
     std::vector< Constructor::Ptr > m_constructors;
 
-    std::vector< Interface::Ptr >      m_interfaceTopological;
-    std::vector< Interface::Ptr >      m_readOnlyInterfaces;
-    std::vector< Interface::Ptr >      m_readWriteInterfaces;
-    std::vector< SuperInterface::Ptr > m_superInterfaces;
+    std::vector< Interface::Ptr > m_interfaceTopological;
+    std::vector< Interface::Ptr > m_readOnlyInterfaces;
+    std::vector< Interface::Ptr > m_readWriteInterfaces;
+    std::vector< SuperType::Ptr > m_superTypes;
 
     void getDependencies( std::vector< Ptr >& dependencies )
     {
@@ -495,6 +495,7 @@ public:
     using ConversionMap = std::map< ObjectPartPair, ObjectPartVector, CountedObjectPairComparator< ObjectPartPair > >;
 
     ConversionMap m_conversions;
+    ConversionMap m_base_conversions;
     ConversionMap m_upcasts;
 };
 

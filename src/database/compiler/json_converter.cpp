@@ -297,7 +297,7 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
         {
             for ( model::ObjectPart::Ptr pPart : pFile->m_parts )
             {
-                model::SuperInterface::Ptr pSuper
+                model::SuperType::Ptr pSuper
                     = pStage->getInterface( pPart->m_object.lock() )->m_superInterface.lock();
                 nlohmann::json conversion
                     = nlohmann::json::object( { { "type_id", pPart->m_typeID },
@@ -311,7 +311,7 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
     for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
     {
         model::PrimaryObjectPart::Ptr pPart  = pInterface->getPrimaryObjectPart();
-        model::SuperInterface::Ptr    pSuper = pInterface->m_superInterface.lock();
+        model::SuperType::Ptr    pSuper = pInterface->m_superInterface.lock();
         nlohmann::json                conversion
             = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
                                         { "file", pPart->m_file.lock()->m_strName },
@@ -544,7 +544,7 @@ void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
         os << "construct_" << pConstructor->m_interface->delimitTypeName( pStage->m_strName, "_" );
 
         model::Interface::Ptr      pInterface      = pConstructor->m_interface;
-        model::SuperInterface::Ptr pSuperInterface = pInterface->m_superInterface.lock();
+        model::SuperType::Ptr pSuperInterface = pInterface->m_superInterface.lock();
 
         const bool bIsReconstructor = !pInterface->ownsPrimaryObjectPart();
         //  = ( !pInterface->ownsPrimaryObjectPart() )
@@ -559,42 +559,53 @@ void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
               { "reconstructor", bIsReconstructor } } );
 
         // add self to list
-        model::Interface::Ptr                pBase = pInterface;
-        std::vector< model::Interface::Ptr > bases_reversed;
-        while ( pBase )
+
+        std::vector< nlohmann::json > bases;
         {
-            nlohmann::json base
-                = nlohmann::json::object( { { "typename", pBase->delimitTypeName( pStage->m_strName, "::" ) },
-                                            { "owns_primary_part", pBase->ownsPrimaryObjectPart() },
-                                            { "parts", nlohmann::json::array() } } );
-
-            model::PrimaryObjectPart::Ptr pPrimaryPart = pBase->getPrimaryObjectPart();
-
-            base[ "primary_part" ] = writeCtorPart( pStage, pPrimaryPart, false );
-            // VERIFY_RTE( pBase->m_readOnlyObjectParts.empty() );
-            for ( model::ObjectPart::Ptr pPart : pBase->m_readWriteObjectParts )
+            model::Interface::Ptr pBase = pInterface;
+            while ( pBase )
             {
-                if ( model::InheritedObjectPart::Ptr pSecondaryPart
-                     = std::dynamic_pointer_cast< model::InheritedObjectPart >( pPart ) )
+                nlohmann::json base
+                    = nlohmann::json::object( { { "typename", pBase->delimitTypeName( pStage->m_strName, "::" ) },
+                                                { "owns_primary_part", pBase->ownsPrimaryObjectPart() },
+                                                { "parts", nlohmann::json::array() },
+                                                { "is_primary_part_base", false } } );
+
+                base[ "primary_part" ] = writeCtorPart( pStage, pBase->getPrimaryObjectPart(), false );
+                if( pBase->m_base )
                 {
-                    base[ "parts" ].push_back( writeCtorPart( pStage, pPart, true ) );
+                    base[ "is_primary_part_base" ] = true;
+                    base[ "primary_part_base" ] = writeCtorPart( pStage, pBase->m_base->getPrimaryObjectPart(), false );
                 }
-                else if ( model::AggregatedObjectPart::Ptr pSecondaryPart
-                          = std::dynamic_pointer_cast< model::AggregatedObjectPart >( pPart ) )
+                // VERIFY_RTE( pBase->m_readOnlyObjectParts.empty() );
+                for ( model::ObjectPart::Ptr pPart : pBase->m_readWriteObjectParts )
                 {
-                    base[ "parts" ].push_back( writeCtorPart( pStage, pPart, false ) );
+                    if ( model::InheritedObjectPart::Ptr pSecondaryPart
+                         = std::dynamic_pointer_cast< model::InheritedObjectPart >( pPart ) )
+                    {
+                        base[ "parts" ].push_back( writeCtorPart( pStage, pPart, true ) );
+                    }
+                    else if ( model::AggregatedObjectPart::Ptr pSecondaryPart
+                              = std::dynamic_pointer_cast< model::AggregatedObjectPart >( pPart ) )
+                    {
+                        base[ "parts" ].push_back( writeCtorPart( pStage, pPart, false ) );
+                    }
                 }
+                bases.push_back( base );
+                if ( !pBase->ownsPrimaryObjectPart() )
+                    break;
+                pBase = pBase->m_base;
             }
-
-            ctor[ "bases" ].push_back( base );
-            bases_reversed.push_back( pBase );
-
-            if ( !pBase->ownsPrimaryObjectPart() )
-                break;
-            pBase = pBase->m_base;
         }
-        std::reverse( bases_reversed.begin(), bases_reversed.end() );
-        for ( model::Interface::Ptr pBase : bases_reversed )
+        for ( const nlohmann::json& base : bases )
+            ctor[ "bases" ].push_back( base );
+        std::reverse( bases.begin(), bases.end() );
+        for ( const nlohmann::json& base : bases )
+            ctor[ "bases_reverse" ].push_back( base );
+
+        // std::reverse( bases_reversed.begin(), bases_reversed.end() );
+
+        /*for ( model::Interface::Ptr pBase : bases_reversed )
         {
             nlohmann::json base
                 = nlohmann::json::object( { { "typename", pBase->delimitTypeName( pStage->m_strName, "::" ) },
@@ -605,7 +616,7 @@ void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
                                                                { "file", pPrimaryPart->m_file.lock()->m_strName } } );
 
             ctor[ "bases_reverse" ].push_back( base );
-        }
+        }*/
 
         stage[ "constructors" ].push_back( ctor );
     }
@@ -886,7 +897,7 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
 
 void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
 {
-    for ( model::SuperInterface::Ptr pSuperType : pStage->m_superInterfaces )
+    for ( model::SuperType::Ptr pSuperType : pStage->m_superTypes )
     {
         for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
         {
@@ -897,7 +908,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
         }
     }
 
-    for ( model::SuperInterface::Ptr pSuperType : pStage->m_superInterfaces )
+    for ( model::SuperType::Ptr pSuperType : pStage->m_superTypes )
     {
         const std::string strSuperTypeName = pSuperType->getTypeName();
 
@@ -941,7 +952,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
 
         // the functions on the super type are groups by their mangled function name
         // TODO: ignore return type and insead check returns types are the same
-        for ( model::SuperInterface::FunctionMultiMap::iterator iLower = pSuperType->m_functions.begin(),
+        for ( model::SuperType::FunctionMultiMap::iterator iLower = pSuperType->m_functions.begin(),
                                                                 iEnd   = pSuperType->m_functions.end();
               iLower != iEnd; )
         {
@@ -970,7 +981,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
 
             // functions in the group are where an inherited interface explicitly has the function
             // NOTE: this DOES NOT include how interfaces inherit others
-            for ( model::SuperInterface::FunctionMultiMap::iterator iUpper
+            for ( model::SuperType::FunctionMultiMap::iterator iUpper
                   = pSuperType->m_functions.upper_bound( iLower->first );
                   iLower != iUpper;
                   ++iLower )
@@ -1087,6 +1098,7 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
 {
     nlohmann::json data( { { "files", nlohmann::json::array() },
                            { "conversions", nlohmann::json::array() },
+                           { "base_conversions", nlohmann::json::array() },
                            { "up_casts", nlohmann::json::array() } } );
 
     data[ "guard" ] = "DATABASE_DATA_GUARD_4_APRIL_2022";
@@ -1261,6 +1273,29 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
             }
 
             data[ "conversions" ].push_back( conversion );
+        }
+    }
+
+    // base_conversions
+    {
+        for ( model::Schema::ConversionMap::const_iterator i    = pSchema->m_base_conversions.begin(),
+                                                           iEnd = pSchema->m_base_conversions.end();
+              i != iEnd;
+              ++i )
+        {
+            const model::Schema::ObjectPartPair&   parts    = i->first;
+            const model::Schema::ObjectPartVector& sequence = i->second;
+
+            nlohmann::json conversion = nlohmann::json::object( { { "from", parts.first->getDataType( "::" ) },
+                                                                  { "to", parts.second->getDataType( "::" ) },
+                                                                  { "pointers", nlohmann::json::array() } } );
+
+            for ( model::ObjectPart::Ptr pPart : sequence )
+            {
+                conversion[ "pointers" ].push_back( pPart->getPointerName() );
+            }
+
+            data[ "base_conversions" ].push_back( conversion );
         }
     }
 

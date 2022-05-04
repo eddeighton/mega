@@ -111,7 +111,7 @@ std::string Interface::delimitTypeName( const std::string& strStageNamespace, co
     return os.str();
 }
 
-std::string SuperInterface::getTypeName() const
+std::string SuperType::getTypeName() const
 {
     std::ostringstream os;
     os << "super";
@@ -952,10 +952,10 @@ void superInterfaces( Mapping& mapping, Schema::Ptr pSchema )
         }
         for ( const std::vector< Interface::Ptr >& group : disjointInheritanceSets )
         {
-            SuperInterface::Ptr pSuperInterface = std::make_shared< SuperInterface >( mapping.counter );
+            SuperType::Ptr pSuperInterface = std::make_shared< SuperType >( mapping.counter );
             pSuperInterface->m_stage            = pStage;
             pSuperInterface->m_interfaces       = group;
-            pStage->m_superInterfaces.push_back( pSuperInterface );
+            pStage->m_superTypes.push_back( pSuperInterface );
 
             for ( Interface::Ptr pInterface : pSuperInterface->m_interfaces )
             {
@@ -1030,6 +1030,13 @@ void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
             std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pObject->m_primaryObjectPart },
                             Schema::ObjectPartVector{} ) );
 
+        if( !pObject->m_base )
+        {
+            pSchema->m_base_conversions.insert(
+                std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pObject->m_primaryObjectPart },
+                                Schema::ObjectPartVector{} ) );
+        }
+
         for ( ObjectPart::Ptr pSecondary : pObject->m_secondaryParts )
         {
             pSchema->m_conversions.insert(
@@ -1045,6 +1052,12 @@ void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
 
                 pSchema->m_conversions.insert( std::make_pair(
                     Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart }, baseList ) );
+
+                if( !pBase->m_base )
+                {
+                    pSchema->m_base_conversions.insert( std::make_pair(
+                        Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart }, baseList ) );
+                }
 
                 for ( ObjectPart::Ptr pSecondary : pBase->m_secondaryParts )
                 {

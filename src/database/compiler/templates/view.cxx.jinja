@@ -119,20 +119,22 @@ struct SuperFactory
     using InterfaceMap = std::unordered_map< mega::io::ObjectInfo, SuperTypePtr, ObjectInfoHash, ObjectInfoEquality >;
     mutable InterfaceMap m_interfaceHash;
 
-    template< typename TSuper, typename TData >
+    template< typename TSuper, typename TView, typename TData >
     TSuper* findOrConstruct( const data::Ptr< TData > &pData ) const
     {
-        InterfaceMap::const_iterator iFind = m_interfaceHash.find( pData->getObjectInfo() );
+        auto basePtr = data::to_base( pData );
+        InterfaceMap::const_iterator iFind = m_interfaceHash.find( basePtr.getObjectInfo() );
         if( iFind != m_interfaceHash.end() )
         {
             TSuper* pSuper = dynamic_cast< TSuper* >( iFind->second.get() );
             VERIFY_RTE( pSuper );
+            TView* pView = {{ stage.name }}::dynamic_database_cast< TView >( pSuper );
             return pSuper;
         }
         else
         {
             TSuper *pSuper = new TSuper( const_cast< SuperFactory& >( *this ), pData );
-            m_interfaceHash[ pData->getObjectInfo() ] = SuperTypePtr( pSuper );
+            m_interfaceHash[ basePtr.getObjectInfo() ] = SuperTypePtr( pSuper );
             return pSuper;
         }
     }
@@ -153,7 +155,7 @@ inline typename traits< TFromData >::ViewType* toView( SuperFactory& factory, co
 {
     using TToView = typename traits< TFromData >::ViewType;
     using SuperType = typename traits< TFromData >::SuperType;
-    return factory.findOrConstruct< SuperType, TFromData >( from );
+    return factory.findOrConstruct< SuperType, TToView, TFromData >( from );
 }
 
 template< typename TFromView >
@@ -460,21 +462,26 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                     {
         {% endif %}{# base.owns_primary_part #}
     {% endif %}{# not loop.is_first or ( constructor.reconstructor ) #}
+{% endfor %}{# constructor.bases #}
+{% for base in constructor.bases_reverse%}
+    {% if not loop.is_first %}
+            auto visitorResult = std::visit( visitor, arguments.base.value() );
+    {% endif %} {#not loop.is_first#}
     {% if base.owns_primary_part or ( constructor.reconstructor ) %}
             // primary part: {{ base.typename }}
         {% if constructor.reconstructor %}
             data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart = toData( database, std::visit( []( auto&& arg ) -> 
                 {{ base.typename }}* { return arg; }, arguments.base.value() ) );
-        {% endif %}
-        {% if not constructor.reconstructor %}
+            pSuper = dynamic_cast< SuperType* >( toView( database, pPrimaryObjectPart ) );
+        {% else %}
             {% for arg in base.primary_part.args %}
-            {% if arg.validation %}
-                VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
-            {% endif %}
+                {% if arg.validation %}
+                    VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
+                {% endif %}
             {% endfor %}{# arg in base.primary_part.args #}
-                data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
-                    database.m_pFile_{{ base.primary_part.file }}->construct< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >
-                        ({% for arg in base.primary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
+            data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
+                database.m_pFile_{{ base.primary_part.file }}->construct< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >
+                    ({% for arg in base.primary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
         {% endif %}
         {% for secondary_part in base.parts %}
             {% for arg in secondary_part.args %}
@@ -491,30 +498,28 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
 
         {% endfor %}{# base.parts #}
     {% endif %}{# base.owns_primary_part  or ( constructor.reconstructor ) #}
-{% endfor %}{# constructor.bases #}
-{% for base in constructor.bases_reverse%}
+
+    {% if ( not loop.is_first ) %}
+            {% if base.is_primary_part_base %}
+                pPrimaryObjectPart->p_{{ base.primary_part_base.file }}_{{ base.primary_part_base.object }} = visitorResult;
+                pPrimaryObjectPart->set_inheritance_pointer();
+            {% endif %} {#constructor.reconstructor#}
+    {% endif %}{# not loop.is_first or ( constructor.reconstructor ) #}
+
     {% if ( not loop.is_last ) or ( constructor.reconstructor ) %}
         {% if base.owns_primary_part or ( constructor.reconstructor ) %}
                         return pPrimaryObjectPart;
                     }
         {% endif %}{# base.owns_primary_part #}
                 } visitor( database, pSuper );
-
         {% if constructor.reconstructor %}
-                data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
-                    visitor( arguments );
-        {% endif %}
-        {% if not constructor.reconstructor %}
-                pPrimaryObjectPart->p_{{ base.primary_part.file }}_{{ base.primary_part.object }} =
-                    std::visit( visitor, arguments.base.value() );
-                pPrimaryObjectPart->set_inheritance_pointer();
+                data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart = visitor( arguments );
         {% endif %} {#constructor.reconstructor#}
     {% endif %} {# ( not loop.is_last ) or ( constructor.reconstructor ) #}
 {% endfor %}{# constructor.bases #}
         if( pSuper == nullptr )
-            pSuper = findOrConstruct< SuperType >( pPrimaryObjectPart );
-        else
-            pSuper->reconstruct( pPrimaryObjectPart );
+            pSuper = findOrConstruct< SuperType, {{ constructor.return_type }} >( pPrimaryObjectPart );
+        pSuper->reconstruct( pPrimaryObjectPart );
         return dynamic_cast< {{ constructor.return_type }}* >( pSuper );
     }
 {% endfor %}{# stage.constructors#}
