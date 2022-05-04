@@ -49,7 +49,7 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
-			<fileType>5</fileType>
+			<fileType>4</fileType>
 			<fileID>1</fileID>
 			<filePath>
 				<compilation_file_path>
@@ -63,7 +63,7 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
-			<fileType>6</fileType>
+			<fileType>5</fileType>
 			<fileID>2</fileID>
 			<filePath>
 				<compilation_file_path>
@@ -119,7 +119,7 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
-			<fileType>4</fileType>
+			<fileType>6</fileType>
 			<fileID>6</fileID>
 			<filePath>
 				<compilation_file_path>
@@ -175,7 +175,7 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
-			<fileType>4</fileType>
+			<fileType>6</fileType>
 			<fileID>10</fileID>
 			<filePath>
 				<compilation_file_path>
@@ -231,7 +231,7 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
-			<fileType>4</fileType>
+			<fileType>6</fileType>
 			<fileID>14</fileID>
 			<filePath>
 				<compilation_file_path>
@@ -287,7 +287,7 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
-			<fileType>4</fileType>
+			<fileType>6</fileType>
 			<fileID>18</fileID>
 			<filePath>
 				<compilation_file_path>
