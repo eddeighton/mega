@@ -111,6 +111,23 @@ std::string Interface::delimitTypeName( const std::string& strStageNamespace, co
     return os.str();
 }
 
+std::string Object::inheritanceGroupVariant() const
+{
+    std::ostringstream os;
+    os << "std::variant< ";
+    bool bFirst = true;
+    for( WeakPtr pObjectWeak : *m_pInheritanceGroup )
+    {
+        if( bFirst )
+            bFirst = false;
+        else
+            os << ", ";
+        os << "data::Ptr< data::" << pObjectWeak.lock()->m_primaryObjectPart->getDataType("::") << " >";
+    }
+    os << " >";
+    return os.str();
+}
+
 std::string SuperType::getTypeName() const
 {
     std::ostringstream os;
@@ -894,7 +911,81 @@ void stageInterfaces( Mapping& mapping, Schema::Ptr pSchema )
     }
 }
 
-void superInterfaces( Mapping& mapping, Schema::Ptr pSchema )
+void objectGroups( Mapping& mapping, Schema::Ptr pSchema )
+{
+    std::set< Object::Ptr, CountedObjectComparator< Object::Ptr > > open_objects;
+    {
+        std::vector< Object::Ptr > objects;
+        {
+            for ( Namespace::Ptr pNamespace : pSchema->m_namespaces )
+            {
+                getObjects( pNamespace, objects );
+            }
+        }
+        for( Object::Ptr pObject : objects )
+        {
+            open_objects.insert( pObject );
+        }
+    }
+    std::vector< std::set< Object::Ptr > > groups;
+    while( !open_objects.empty() )
+    {
+        for( Object::Ptr pObject : open_objects )
+        {
+            bool bFound = false;
+            for( std::set< Object::Ptr >& group : groups )
+            {
+                if( pObject->m_base )
+                {
+                    for( Object::Ptr pGroupMember : group )
+                    {
+                        if( pObject->m_base == pGroupMember )
+                        {
+                            bFound = true;
+                            group.insert( pObject );
+                            open_objects.erase( pObject );
+                            break;
+                        }
+                    }
+                }
+                if( bFound )
+                    break;
+                for( Object::Ptr pGroupMember : group )
+                {
+                    if( pGroupMember->m_base == pObject )
+                    {
+                        bFound = true;
+                        group.insert( pObject );
+                        open_objects.erase( pObject );
+                        break;
+                    }
+                }
+                if( bFound )
+                    break;
+            }
+            if( !bFound )
+            {
+                groups.push_back( std::set< Object::Ptr >{ pObject } );
+                open_objects.erase( pObject );
+            }
+            break;
+        }
+    }
+
+    for( std::set< Object::Ptr >& group : groups )
+    {
+        Object::WeakObjectPtrSetPtr pGroup =
+            std::make_shared< Object::WeakObjectPtrSet >();
+        for( Object::Ptr pObject : group )
+        {
+            pGroup->insert( pObject );
+            pObject->m_pInheritanceGroup = pGroup;
+        }
+    }
+
+}
+
+void superTypes( Mapping& mapping, Schema::Ptr pSchema )
 {
     // calculate the stage super interfaces
     for ( Stage::Ptr pStage : pSchema->m_stages )
@@ -952,19 +1043,26 @@ void superInterfaces( Mapping& mapping, Schema::Ptr pSchema )
         }
         for ( const std::vector< Interface::Ptr >& group : disjointInheritanceSets )
         {
-            SuperType::Ptr pSuperInterface = std::make_shared< SuperType >( mapping.counter );
-            pSuperInterface->m_stage            = pStage;
-            pSuperInterface->m_interfaces       = group;
-            pStage->m_superTypes.push_back( pSuperInterface );
+            SuperType::Ptr pSuperType = std::make_shared< SuperType >( mapping.counter );
+            pSuperType->m_stage            = pStage;
+            pSuperType->m_interfaces       = group;
+            pStage->m_superTypes.push_back( pSuperType );
 
-            for ( Interface::Ptr pInterface : pSuperInterface->m_interfaces )
+            for ( Interface::Ptr pInterface : pSuperType->m_interfaces )
             {
-                pInterface->m_superInterface = pSuperInterface;
+                pInterface->m_superInterface = pSuperType;
+
+                if( !pInterface->m_base )
+                {
+                    Object::Ptr pObject = pInterface->m_object.lock();
+                    VERIFY_RTE( !pSuperType->m_base_object );
+                    pSuperType->m_base_object = pObject;
+                }
 
                 // work out the function groups
                 for ( Function::Ptr pFunction : pInterface->m_functions )
                 {
-                    pSuperInterface->m_functions.insert(
+                    pSuperType->m_functions.insert(
                         std::make_pair( pFunction->getMangledName( pStage->m_strName ), pFunction ) );
                 }
             }
@@ -1180,7 +1278,9 @@ Schema::Ptr from_ast( const ::db::schema::Schema& schema )
 
     stageInterfaces( mapping, pSchema );
 
-    superInterfaces( mapping, pSchema );
+    objectGroups( mapping, pSchema );
+
+    superTypes( mapping, pSchema );
 
     objectPartConversions( mapping, pSchema );
 

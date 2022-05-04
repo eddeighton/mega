@@ -56,7 +56,10 @@ namespace {{ file.name }}
 {% for pointer in part.raw_pointers %}
         Ptr< {{ pointer.typename }} > {{ pointer.longname }};
 {% endfor %}{#part.raw_pointers#}
-        mega::io::Object* m_pInheritance = nullptr;
+{% if part.has_inheritance %}
+        {{ part.inheritance_variant }} m_inheritance;
+{% endif %}
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
@@ -79,27 +82,20 @@ inline Ptr< {{ conversion.to }} > to_base( const Ptr< {{ conversion.from }} >& f
     return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
 }
 {% endfor %}{# base_conversions #}
-{% for upcast in up_casts %}
-template < typename TVariant >
-struct UpCast< TVariant, Ptr< {{ upcast.to }} >, Ptr< {{ upcast.from }} > >
+
+template < typename TVariant > 
+inline TVariant to_upper( TVariant &from )
 {
-    inline TVariant operator()( Ptr< {{ upcast.from }} >& from ) const
+    TVariant up_most = from;
+    for( ;; )
     {
-{% for cast in upcast.casts %}
-        if( {{ cast.type }}* {{ cast.var }} = dynamic_cast< {{ cast.type }}* >( {{ cast.from_var }}->m_pInheritance ) )
-        {
-{% endfor %}
-            return Ptr< {{ upcast.to }} >( from, {{ upcast.final_var }} );
-{% for cast in upcast.casts_reversed %}
-        }
-        else
-        {
-            return Ptr< {{ cast.type }} >( from, {{ cast.var }} );
-        }
-{% endfor %}
+        TVariant up_most_next = std::visit( []( auto&& arg ) -> TVariant { return arg->m_inheritance; }, up_most );
+        if( up_most_next == up_most )
+            break;
+        up_most = up_most_next;
     }
-};
-{% endfor %}
+    return up_most;
+}
 
 class Factory
 {

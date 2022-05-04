@@ -239,6 +239,7 @@ TEST_F( BasicDBTest, DatabaseErrors )
 
         OtherObject* pTestObject = database.one< OtherObject >( m_pEnvironment->project_manifest() );
         TestInherit* pInherited  = database.one< TestInherit >( m_pEnvironment->project_manifest() );
+        ASSERT_EQ( pTestObject, pInherited );
         TestInherit* pOther      = dynamic_database_cast< TestInherit >( pTestObject );
         ASSERT_TRUE( pOther );
         ASSERT_TRUE( pInherited );
@@ -254,6 +255,7 @@ TEST_F( BasicDBTest, DatabaseErrors )
         ASSERT_THROW( pTestObject->get_third_stage_value(), std::runtime_error );
         pTestObject = database.construct< OtherObject >( OtherObject::Args( pTestObject, 4 ) );
         ASSERT_THROW( database.construct< OtherObject >( OtherObject::Args( pTestObject, 4 ) ), std::runtime_error );
+        ASSERT_EQ( pTestObject, pInherited );
 
         database.save_FourthFile_to_temp();
         m_pEnvironment->temp_to_real( m_pEnvironment->ThirdStage_FourthFile( m_pEnvironment->project_manifest() ) );

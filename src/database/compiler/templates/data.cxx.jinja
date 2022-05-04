@@ -41,7 +41,7 @@ namespace {{ file.name }}
 {% for part in file.parts %}
     // struct {{ part.name }} : public mega::io::Object
     {{ part.name }}::{{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )
+        :   mega::io::Object( objectInfo ){% if part.has_inheritance %}, m_inheritance( data::Ptr< data::{{ file.name }}::{{ part.name }} >( loader, this ) ){% endif %}
 {% for pointer in part.data_pointers %}
           , {{ pointer.longname }}( loader )
 {% endfor %}{#part.pointers#}
@@ -57,7 +57,7 @@ namespace {{ file.name }}
     }
 {% if length(part.properties) %}
     {{ part.name }}::{{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.initialisations %}, {{ property.argtype }} {{ property.name }}{% endfor %} )
-        :   mega::io::Object( objectInfo )
+        :   mega::io::Object( objectInfo ){% if part.has_inheritance %}, m_inheritance( data::Ptr< data::{{ file.name }}::{{ part.name }} >( loader, this ) ){% endif %}
 {% for pointer in part.data_pointers %}
 {% if pointer.no_ctor_arg %}
           , {{ pointer.longname }}( loader )
@@ -72,6 +72,14 @@ namespace {{ file.name }}
     {
     }
 {% endif %}{# length(part.properties) #}
+    bool {{ part.name }}::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+{% if part.has_inheritance %}
+        return m_inheritance == {{ part.inheritance_variant }}{ data::Ptr< data::{{ file.name }}::{{ part.name }} >( loader, const_cast< {{ part.name }}* >( this ) ) };
+{% else %}
+        return false;
+{% endif %} 
+    }
     void {{ part.name }}::set_inheritance_pointer()
     {
 {% if part.has_base %}

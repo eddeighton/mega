@@ -47,21 +47,14 @@ class SuperFactory;
 {% for stype in stage.supertypes %}
 class {{ stype.name }} : public SuperTypeBase,
 {% for interface in stype.interfaces %}
-    public virtual {{ interface.name }}{% if not loop.is_last %}, 
+    public virtual {{ stage.name }}::{{ interface.name }}{% if not loop.is_last %}, 
 {% endif %}
 {% endfor %}
 
 {
     SuperFactory& m_factory;
 public:
-    using DataVariant = std::variant
-    < 
-{% for interface in stype.interfaces %} 
-        data::Ptr< data::{{ interface.part }} > {% if not loop.is_last %}, 
-{% endif %}
-{% endfor %} 
-
-    >;
+    using DataVariant = {{ stype.variant_type }};
     mutable DataVariant m_data;
 {% for interface in stype.interfaces %}
     {{ stype.name }}( SuperFactory& factory, const data::Ptr< data::{{ interface.part }} >& data );
@@ -72,7 +65,7 @@ public:
     {{ function.returntype }} {{ function.name }}({{function.params }}) const;
 {% endfor %}{# stype.functions #}
 {% for interface in stype.interfaces %}
-    virtual bool is_{{ interface.fullname }}() const;
+    virtual bool is_{{ stage.name }}_{{ interface.fullname }}() const;
 {% endfor %}{# stype.interfaces #}
     virtual const mega::io::ObjectInfo& _get_object_info() const;
 };
@@ -330,32 +323,19 @@ void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} 
 {% endfor %}{# stype.functions #}
 
 {% for interface in stype.interfaces %}
-bool {{ stype.name }}::is_{{ interface.fullname }}() const
+bool {{ stype.name }}::is_{{ stage.name }}_{{ interface.fullname }}() const
 {
+    m_data = data::to_upper( m_data );
+    struct Visit
     {
-        struct Visit
-        {
 {% for cast in interface.casts %}
-            DataVariant operator()( data::Ptr< data::{{ cast.type }} >& p ) const
-            {
-                return data::UpCast< DataVariant, data::Ptr< data::{{ interface.part }} >, data::Ptr< data::{{ cast.type }} > >()( p );
-            }
-{% endfor %}
-        } visitor;
-        m_data = std::visit( visitor, m_data );
-    }
-    {
-        struct Visit
+        bool operator()( const data::Ptr< data::{{ cast.type }} >& p ) const
         {
-{% for cast in interface.casts %}
-            bool operator()( const data::Ptr< data::{{ cast.type }} >& p ) const
-            {
-                return {{ cast.truth }};
-            }
+            return {{ cast.truth }};
+        }
 {% endfor %}
-        } visitor;
-        return std::visit( visitor, m_data );
-    }
+    } visitor;
+    return std::visit( visitor, m_data );
 }
 {% endfor %}{# stype.interfaces #}
 const mega::io::ObjectInfo& {{ stype.name }}::_get_object_info() const
@@ -453,7 +433,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                         pSuper = dynamic_cast< SuperType* >( pExisting );
                         VERIFY_RTE( pSuper );
                         auto ptr = data::convert< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >( pSuper->m_data );
-                        VERIFY_RTE_MSG( !ptr->m_pInheritance, "Object already derived from: {{ base.typename }} while constructing type: {{ constructor.return_type }}" );
+                        VERIFY_RTE_MSG( ptr->test_inheritance_pointer( database ), "Object already derived from: {{ base.typename }} while constructing type: {{ constructor.return_type }}" );
                         return ptr;
                     }
         {% endif %}

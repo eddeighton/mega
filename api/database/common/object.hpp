@@ -33,6 +33,10 @@
 
 #include "nlohmann/json.hpp"
 
+namespace data
+{
+    class ObjectPartLoader;
+}
 namespace mega
 {
 namespace io
@@ -47,6 +51,7 @@ namespace io
 
         virtual ~Object();
 
+        virtual bool test_inheritance_pointer( ::data::ObjectPartLoader &loader ) const = 0;
         virtual void set_inheritance_pointer() = 0;
         virtual void load( Loader& loader ) = 0;
         virtual void store( Storer& storer ) const = 0;

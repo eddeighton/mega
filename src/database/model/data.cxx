@@ -37,12 +37,21 @@ namespace data
     namespace Components
     {
         // struct Component : public mega::io::Object
-        Component::Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        Component::Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Component >( loader, this ) )
+        {
+        }
         Component::Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &name,
                               const boost::filesystem::path &directory, const std::vector< boost::filesystem::path > &includeDirectories,
                               const std::vector< boost::filesystem::path > &sourceFiles )
-            : mega::io::Object( objectInfo ), name( name ), directory( directory ), includeDirectories( includeDirectories ), sourceFiles( sourceFiles )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Component >( loader, this ) ), name( name ), directory( directory ),
+              includeDirectories( includeDirectories ), sourceFiles( sourceFiles )
         {
+        }
+        bool Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Components::Component > >{
+                                        data::Ptr< data::Components::Component >( loader, const_cast< Component * >( this ) )};
         }
         void Component::set_inheritance_pointer() {}
         void Component::load( mega::io::Loader &loader )
@@ -89,10 +98,18 @@ namespace data
     namespace AST
     {
         // struct Identifier : public mega::io::Object
-        Identifier::Identifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
-        Identifier::Identifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), str( str )
+        Identifier::Identifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Identifier >( loader, this ) )
         {
+        }
+        Identifier::Identifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Identifier >( loader, this ) ), str( str )
+        {
+        }
+        bool Identifier::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Identifier > >{data::Ptr< data::AST::Identifier >( loader, const_cast< Identifier * >( this ) )};
         }
         void Identifier::set_inheritance_pointer() {}
         void Identifier::load( mega::io::Loader &loader ) { loader.load( str ); }
@@ -112,12 +129,21 @@ namespace data
         }
 
         // struct ScopedIdentifier : public mega::io::Object
-        ScopedIdentifier::ScopedIdentifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        ScopedIdentifier::ScopedIdentifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ScopedIdentifier >( loader, this ) )
+        {
+        }
         ScopedIdentifier::ScopedIdentifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                                             const std::vector< data::Ptr< data::AST::Identifier > > &ids, const std::string &source_file,
                                             const std::size_t &line_number )
-            : mega::io::Object( objectInfo ), ids( ids ), source_file( source_file ), line_number( line_number )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ScopedIdentifier >( loader, this ) ), ids( ids ), source_file( source_file ),
+              line_number( line_number )
         {
+        }
+        bool ScopedIdentifier::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ScopedIdentifier > >{
+                                        data::Ptr< data::AST::ScopedIdentifier >( loader, const_cast< ScopedIdentifier * >( this ) )};
         }
         void ScopedIdentifier::set_inheritance_pointer() {}
         void ScopedIdentifier::load( mega::io::Loader &loader )
@@ -155,10 +181,18 @@ namespace data
         }
 
         // struct ArgumentList : public mega::io::Object
-        ArgumentList::ArgumentList( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
-        ArgumentList::ArgumentList( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), str( str )
+        ArgumentList::ArgumentList( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ArgumentList >( loader, this ) )
         {
+        }
+        ArgumentList::ArgumentList( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ArgumentList >( loader, this ) ), str( str )
+        {
+        }
+        bool ArgumentList::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > >{
+                                        data::Ptr< data::AST::ArgumentList >( loader, const_cast< ArgumentList * >( this ) )};
         }
         void ArgumentList::set_inheritance_pointer() {}
         void ArgumentList::load( mega::io::Loader &loader ) { loader.load( str ); }
@@ -178,10 +212,18 @@ namespace data
         }
 
         // struct ReturnType : public mega::io::Object
-        ReturnType::ReturnType( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
-        ReturnType::ReturnType( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), str( str )
+        ReturnType::ReturnType( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ReturnType >( loader, this ) )
         {
+        }
+        ReturnType::ReturnType( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ReturnType >( loader, this ) ), str( str )
+        {
+        }
+        bool ReturnType::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > >{
+                                        data::Ptr< data::AST::ReturnType >( loader, const_cast< ReturnType * >( this ) )};
         }
         void ReturnType::set_inheritance_pointer() {}
         void ReturnType::load( mega::io::Loader &loader ) { loader.load( str ); }
@@ -201,10 +243,18 @@ namespace data
         }
 
         // struct Inheritance : public mega::io::Object
-        Inheritance::Inheritance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
-        Inheritance::Inheritance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< std::string > &strings )
-            : mega::io::Object( objectInfo ), strings( strings )
+        Inheritance::Inheritance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Inheritance >( loader, this ) )
         {
+        }
+        Inheritance::Inheritance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< std::string > &strings )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Inheritance >( loader, this ) ), strings( strings )
+        {
+        }
+        bool Inheritance::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > >{
+                                        data::Ptr< data::AST::Inheritance >( loader, const_cast< Inheritance * >( this ) )};
         }
         void Inheritance::set_inheritance_pointer() {}
         void Inheritance::load( mega::io::Loader &loader ) { loader.load( strings ); }
@@ -224,8 +274,19 @@ namespace data
         }
 
         // struct Size : public mega::io::Object
-        Size::Size( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
-        Size::Size( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str ) : mega::io::Object( objectInfo ), str( str ) {}
+        Size::Size( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Size >( loader, this ) )
+        {
+        }
+        Size::Size( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Size >( loader, this ) ), str( str )
+        {
+        }
+        bool Size::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > >{
+                                        data::Ptr< data::AST::Size >( loader, const_cast< Size * >( this ) )};
+        }
         void Size::set_inheritance_pointer() {}
         void Size::load( mega::io::Loader &loader ) { loader.load( str ); }
         void Size::store( mega::io::Storer &storer ) const { storer.store( str ); }
@@ -244,11 +305,20 @@ namespace data
         }
 
         // struct Dimension : public mega::io::Object
-        Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), id( loader ) {}
+        Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Dimension >( loader, this ) ), id( loader )
+        {
+        }
         Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const bool &isConst,
                               const data::Ptr< data::AST::Identifier > &id, const std::string &type )
-            : mega::io::Object( objectInfo ), isConst( isConst ), id( id ), type( type )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Dimension >( loader, this ) ), isConst( isConst ), id( id ), type( type )
         {
+        }
+        bool Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > >{
+                       data::Ptr< data::AST::Dimension >( loader, const_cast< Dimension * >( this ) )};
         }
         void Dimension::set_inheritance_pointer() {}
         void Dimension::load( mega::io::Loader &loader )
@@ -286,7 +356,17 @@ namespace data
         }
 
         // struct Include : public mega::io::Object
-        Include::Include( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        Include::Include( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Include >( loader, this ) )
+        {
+        }
+        bool Include::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
+                       data::Ptr< data::AST::Include >( loader, const_cast< Include * >( this ) )};
+        }
         void Include::set_inheritance_pointer() {}
         void Include::load( mega::io::Loader &loader ) {}
         void Include::store( mega::io::Storer &storer ) const {}
@@ -302,14 +382,21 @@ namespace data
 
         // struct SystemInclude : public mega::io::Object
         SystemInclude::SystemInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_Include( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::SystemInclude >( loader, this ) ), p_AST_Include( loader )
         {
         }
         SystemInclude::SystemInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), p_AST_Include( loader ), str( str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::SystemInclude >( loader, this ) ), p_AST_Include( loader ), str( str )
         {
         }
-        void SystemInclude::set_inheritance_pointer() { p_AST_Include->m_pInheritance = this; }
+        bool SystemInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
+                       data::Ptr< data::AST::SystemInclude >( loader, const_cast< SystemInclude * >( this ) )};
+        }
+        void SystemInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = Ptr< AST::SystemInclude >( p_AST_Include, this ); }
         void SystemInclude::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_Include );
@@ -336,14 +423,22 @@ namespace data
 
         // struct MegaInclude : public mega::io::Object
         MegaInclude::MegaInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_Include( loader ), root( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaInclude >( loader, this ) ), p_AST_Include( loader ), root( loader )
         {
         }
         MegaInclude::MegaInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &megaSourceFilePath )
-            : mega::io::Object( objectInfo ), p_AST_Include( loader ), megaSourceFilePath( megaSourceFilePath )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaInclude >( loader, this ) ), p_AST_Include( loader ),
+              megaSourceFilePath( megaSourceFilePath )
         {
         }
-        void MegaInclude::set_inheritance_pointer() { p_AST_Include->m_pInheritance = this; }
+        bool MegaInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
+                       data::Ptr< data::AST::MegaInclude >( loader, const_cast< MegaInclude * >( this ) )};
+        }
+        void MegaInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = Ptr< AST::MegaInclude >( p_AST_Include, this ); }
         void MegaInclude::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_Include );
@@ -377,10 +472,17 @@ namespace data
 
         // struct MegaIncludeInline : public mega::io::Object
         MegaIncludeInline::MegaIncludeInline( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_MegaInclude( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaIncludeInline >( loader, this ) ), p_AST_MegaInclude( loader )
         {
         }
-        void MegaIncludeInline::set_inheritance_pointer() { p_AST_MegaInclude->m_pInheritance = this; }
+        bool MegaIncludeInline::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
+                       data::Ptr< data::AST::MegaIncludeInline >( loader, const_cast< MegaIncludeInline * >( this ) )};
+        }
+        void MegaIncludeInline::set_inheritance_pointer() { p_AST_MegaInclude->m_inheritance = Ptr< AST::MegaIncludeInline >( p_AST_MegaInclude, this ); }
         void MegaIncludeInline::load( mega::io::Loader &loader ) { loader.load( p_AST_MegaInclude ); }
         void MegaIncludeInline::store( mega::io::Storer &storer ) const { storer.store( p_AST_MegaInclude ); }
         void MegaIncludeInline::to_json( nlohmann::json &part ) const
@@ -395,15 +497,23 @@ namespace data
 
         // struct MegaIncludeNested : public mega::io::Object
         MegaIncludeNested::MegaIncludeNested( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_MegaInclude( loader ), id( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaIncludeNested >( loader, this ) ), p_AST_MegaInclude( loader ),
+              id( loader )
         {
         }
         MegaIncludeNested::MegaIncludeNested( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                                               const data::Ptr< data::AST::ScopedIdentifier > &id )
-            : mega::io::Object( objectInfo ), p_AST_MegaInclude( loader ), id( id )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaIncludeNested >( loader, this ) ), p_AST_MegaInclude( loader ), id( id )
         {
         }
-        void MegaIncludeNested::set_inheritance_pointer() { p_AST_MegaInclude->m_pInheritance = this; }
+        bool MegaIncludeNested::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
+                       data::Ptr< data::AST::MegaIncludeNested >( loader, const_cast< MegaIncludeNested * >( this ) )};
+        }
+        void MegaIncludeNested::set_inheritance_pointer() { p_AST_MegaInclude->m_inheritance = Ptr< AST::MegaIncludeNested >( p_AST_MegaInclude, this ); }
         void MegaIncludeNested::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_MegaInclude );
@@ -429,12 +539,23 @@ namespace data
         }
 
         // struct CPPInclude : public mega::io::Object
-        CPPInclude::CPPInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_AST_Include( loader ) {}
-        CPPInclude::CPPInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &cppSourceFilePath )
-            : mega::io::Object( objectInfo ), p_AST_Include( loader ), cppSourceFilePath( cppSourceFilePath )
+        CPPInclude::CPPInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::CPPInclude >( loader, this ) ), p_AST_Include( loader )
         {
         }
-        void CPPInclude::set_inheritance_pointer() { p_AST_Include->m_pInheritance = this; }
+        CPPInclude::CPPInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &cppSourceFilePath )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::CPPInclude >( loader, this ) ), p_AST_Include( loader ),
+              cppSourceFilePath( cppSourceFilePath )
+        {
+        }
+        bool CPPInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
+                       data::Ptr< data::AST::CPPInclude >( loader, const_cast< CPPInclude * >( this ) )};
+        }
+        void CPPInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = Ptr< AST::CPPInclude >( p_AST_Include, this ); }
         void CPPInclude::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_Include );
@@ -460,10 +581,18 @@ namespace data
         }
 
         // struct Dependency : public mega::io::Object
-        Dependency::Dependency( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
-        Dependency::Dependency( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), str( str )
+        Dependency::Dependency( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Dependency >( loader, this ) )
         {
+        }
+        Dependency::Dependency( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Dependency >( loader, this ) ), str( str )
+        {
+        }
+        bool Dependency::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Dependency > >{data::Ptr< data::AST::Dependency >( loader, const_cast< Dependency * >( this ) )};
         }
         void Dependency::set_inheritance_pointer() {}
         void Dependency::load( mega::io::Loader &loader ) { loader.load( str ); }
@@ -484,7 +613,7 @@ namespace data
 
         // struct ContextDef : public mega::io::Object
         ContextDef::ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Body_ContextDef( loader ), id( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ContextDef >( loader, this ) ), p_Body_ContextDef( loader ), id( loader )
         {
         }
         ContextDef::ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ScopedIdentifier > &id,
@@ -492,9 +621,16 @@ namespace data
                                 const std::vector< data::Ptr< data::AST::Dimension > > & dimensions,
                                 const std::vector< data::Ptr< data::AST::Include > > &   includes,
                                 const std::vector< data::Ptr< data::AST::Dependency > > &dependencies )
-            : mega::io::Object( objectInfo ), p_Body_ContextDef( loader ), id( id ), children( children ), dimensions( dimensions ), includes( includes ),
-              dependencies( dependencies )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ContextDef >( loader, this ) ), p_Body_ContextDef( loader ), id( id ),
+              children( children ), dimensions( dimensions ), includes( includes ), dependencies( dependencies )
         {
+        }
+        bool ContextDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
+                                        data::Ptr< data::AST::ContextDef >( loader, const_cast< ContextDef * >( this ) )};
         }
         void ContextDef::set_inheritance_pointer() {}
         void ContextDef::load( mega::io::Loader &loader )
@@ -547,10 +683,17 @@ namespace data
 
         // struct NamespaceDef : public mega::io::Object
         NamespaceDef::NamespaceDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::NamespaceDef >( loader, this ) ), p_AST_ContextDef( loader )
         {
         }
-        void NamespaceDef::set_inheritance_pointer() { p_AST_ContextDef->m_pInheritance = this; }
+        bool NamespaceDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
+                                        data::Ptr< data::AST::NamespaceDef >( loader, const_cast< NamespaceDef * >( this ) )};
+        }
+        void NamespaceDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = Ptr< AST::NamespaceDef >( p_AST_ContextDef, this ); }
         void NamespaceDef::load( mega::io::Loader &loader ) { loader.load( p_AST_ContextDef ); }
         void NamespaceDef::store( mega::io::Storer &storer ) const { storer.store( p_AST_ContextDef ); }
         void NamespaceDef::to_json( nlohmann::json &part ) const
@@ -565,14 +708,23 @@ namespace data
 
         // struct AbstractDef : public mega::io::Object
         AbstractDef::AbstractDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), inheritance( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::AbstractDef >( loader, this ) ), p_AST_ContextDef( loader ),
+              inheritance( loader )
         {
         }
         AbstractDef::AbstractDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), inheritance( inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::AbstractDef >( loader, this ) ), p_AST_ContextDef( loader ),
+              inheritance( inheritance )
         {
         }
-        void AbstractDef::set_inheritance_pointer() { p_AST_ContextDef->m_pInheritance = this; }
+        bool AbstractDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
+                                        data::Ptr< data::AST::AbstractDef >( loader, const_cast< AbstractDef * >( this ) )};
+        }
+        void AbstractDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = Ptr< AST::AbstractDef >( p_AST_ContextDef, this ); }
         void AbstractDef::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_ContextDef );
@@ -599,15 +751,24 @@ namespace data
 
         // struct ActionDef : public mega::io::Object
         ActionDef::ActionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), size( loader ), inheritance( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ActionDef >( loader, this ) ), p_AST_ContextDef( loader ), size( loader ),
+              inheritance( loader )
         {
         }
         ActionDef::ActionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Size > &size,
                               const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), size( size ), inheritance( inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ActionDef >( loader, this ) ), p_AST_ContextDef( loader ), size( size ),
+              inheritance( inheritance )
         {
         }
-        void ActionDef::set_inheritance_pointer() { p_AST_ContextDef->m_pInheritance = this; }
+        bool ActionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
+                                        data::Ptr< data::AST::ActionDef >( loader, const_cast< ActionDef * >( this ) )};
+        }
+        void ActionDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = Ptr< AST::ActionDef >( p_AST_ContextDef, this ); }
         void ActionDef::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_ContextDef );
@@ -640,15 +801,24 @@ namespace data
 
         // struct EventDef : public mega::io::Object
         EventDef::EventDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), size( loader ), inheritance( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::EventDef >( loader, this ) ), p_AST_ContextDef( loader ), size( loader ),
+              inheritance( loader )
         {
         }
         EventDef::EventDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Size > &size,
                             const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), size( size ), inheritance( inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::EventDef >( loader, this ) ), p_AST_ContextDef( loader ), size( size ),
+              inheritance( inheritance )
         {
         }
-        void EventDef::set_inheritance_pointer() { p_AST_ContextDef->m_pInheritance = this; }
+        bool EventDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
+                                        data::Ptr< data::AST::EventDef >( loader, const_cast< EventDef * >( this ) )};
+        }
+        void EventDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = Ptr< AST::EventDef >( p_AST_ContextDef, this ); }
         void EventDef::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_ContextDef );
@@ -681,15 +851,24 @@ namespace data
 
         // struct FunctionDef : public mega::io::Object
         FunctionDef::FunctionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), argumentList( loader ), returnType( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::FunctionDef >( loader, this ) ), p_AST_ContextDef( loader ),
+              argumentList( loader ), returnType( loader )
         {
         }
         FunctionDef::FunctionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ArgumentList > &argumentList,
                                   const data::Ptr< data::AST::ReturnType > &returnType )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), argumentList( argumentList ), returnType( returnType )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::FunctionDef >( loader, this ) ), p_AST_ContextDef( loader ),
+              argumentList( argumentList ), returnType( returnType )
         {
         }
-        void FunctionDef::set_inheritance_pointer() { p_AST_ContextDef->m_pInheritance = this; }
+        bool FunctionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
+                                        data::Ptr< data::AST::FunctionDef >( loader, const_cast< FunctionDef * >( this ) )};
+        }
+        void FunctionDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = Ptr< AST::FunctionDef >( p_AST_ContextDef, this ); }
         void FunctionDef::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_ContextDef );
@@ -722,14 +901,23 @@ namespace data
 
         // struct ObjectDef : public mega::io::Object
         ObjectDef::ObjectDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), inheritance( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ObjectDef >( loader, this ) ), p_AST_ContextDef( loader ),
+              inheritance( loader )
         {
         }
         ObjectDef::ObjectDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), inheritance( inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ObjectDef >( loader, this ) ), p_AST_ContextDef( loader ),
+              inheritance( inheritance )
         {
         }
-        void ObjectDef::set_inheritance_pointer() { p_AST_ContextDef->m_pInheritance = this; }
+        bool ObjectDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
+                                        data::Ptr< data::AST::ObjectDef >( loader, const_cast< ObjectDef * >( this ) )};
+        }
+        void ObjectDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = Ptr< AST::ObjectDef >( p_AST_ContextDef, this ); }
         void ObjectDef::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_ContextDef );
@@ -756,14 +944,23 @@ namespace data
 
         // struct LinkDef : public mega::io::Object
         LinkDef::LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), inheritance( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::LinkDef >( loader, this ) ), p_AST_ContextDef( loader ),
+              inheritance( loader )
         {
         }
         LinkDef::LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), p_AST_ContextDef( loader ), inheritance( inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::LinkDef >( loader, this ) ), p_AST_ContextDef( loader ),
+              inheritance( inheritance )
         {
         }
-        void LinkDef::set_inheritance_pointer() { p_AST_ContextDef->m_pInheritance = this; }
+        bool LinkDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
+                                        data::Ptr< data::AST::LinkDef >( loader, const_cast< LinkDef * >( this ) )};
+        }
+        void LinkDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = Ptr< AST::LinkDef >( p_AST_ContextDef, this ); }
         void LinkDef::load( mega::io::Loader &loader )
         {
             loader.load( p_AST_ContextDef );
@@ -790,13 +987,20 @@ namespace data
 
         // struct SourceRoot : public mega::io::Object
         SourceRoot::SourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), component( loader ), ast( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::SourceRoot >( loader, this ) ), component( loader ), ast( loader )
         {
         }
         SourceRoot::SourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &sourceFile,
                                 const data::Ptr< data::Components::Component > &component, const data::Ptr< data::AST::ContextDef > &ast )
-            : mega::io::Object( objectInfo ), sourceFile( sourceFile ), component( component ), ast( ast )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::SourceRoot >( loader, this ) ), sourceFile( sourceFile ),
+              component( component ), ast( ast )
         {
+        }
+        bool SourceRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
+                       data::Ptr< data::AST::SourceRoot >( loader, const_cast< SourceRoot * >( this ) )};
         }
         void SourceRoot::set_inheritance_pointer() {}
         void SourceRoot::load( mega::io::Loader &loader )
@@ -835,10 +1039,16 @@ namespace data
 
         // struct IncludeRoot : public mega::io::Object
         IncludeRoot::IncludeRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_SourceRoot( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::IncludeRoot >( loader, this ) ), p_AST_SourceRoot( loader )
         {
         }
-        void IncludeRoot::set_inheritance_pointer() { p_AST_SourceRoot->m_pInheritance = this; }
+        bool IncludeRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
+                       data::Ptr< data::AST::IncludeRoot >( loader, const_cast< IncludeRoot * >( this ) )};
+        }
+        void IncludeRoot::set_inheritance_pointer() { p_AST_SourceRoot->m_inheritance = Ptr< AST::IncludeRoot >( p_AST_SourceRoot, this ); }
         void IncludeRoot::load( mega::io::Loader &loader ) { loader.load( p_AST_SourceRoot ); }
         void IncludeRoot::store( mega::io::Storer &storer ) const { storer.store( p_AST_SourceRoot ); }
         void IncludeRoot::to_json( nlohmann::json &part ) const
@@ -853,10 +1063,16 @@ namespace data
 
         // struct ObjectSourceRoot : public mega::io::Object
         ObjectSourceRoot::ObjectSourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_SourceRoot( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ObjectSourceRoot >( loader, this ) ), p_AST_SourceRoot( loader )
         {
         }
-        void ObjectSourceRoot::set_inheritance_pointer() { p_AST_SourceRoot->m_pInheritance = this; }
+        bool ObjectSourceRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
+                       data::Ptr< data::AST::ObjectSourceRoot >( loader, const_cast< ObjectSourceRoot * >( this ) )};
+        }
+        void ObjectSourceRoot::set_inheritance_pointer() { p_AST_SourceRoot->m_inheritance = Ptr< AST::ObjectSourceRoot >( p_AST_SourceRoot, this ); }
         void ObjectSourceRoot::load( mega::io::Loader &loader ) { loader.load( p_AST_SourceRoot ); }
         void ObjectSourceRoot::store( mega::io::Storer &storer ) const { storer.store( p_AST_SourceRoot ); }
         void ObjectSourceRoot::to_json( nlohmann::json &part ) const
@@ -878,6 +1094,7 @@ namespace data
             : mega::io::Object( objectInfo ), body( body )
         {
         }
+        bool ContextDef::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
         void ContextDef::set_inheritance_pointer() {}
         void ContextDef::load( mega::io::Loader &loader ) { loader.load( body ); }
         void ContextDef::store( mega::io::Storer &storer ) const { storer.store( body ); }
@@ -900,10 +1117,16 @@ namespace data
     {
         // struct DimensionTrait : public mega::io::Object
         DimensionTrait::DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_Dimension( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::DimensionTrait >( loader, this ) ), p_AST_Dimension( loader )
         {
         }
-        void DimensionTrait::set_inheritance_pointer() { p_AST_Dimension->m_pInheritance = this; }
+        bool DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > >{
+                       data::Ptr< data::Tree::DimensionTrait >( loader, const_cast< DimensionTrait * >( this ) )};
+        }
+        void DimensionTrait::set_inheritance_pointer() { p_AST_Dimension->m_inheritance = Ptr< Tree::DimensionTrait >( p_AST_Dimension, this ); }
         void DimensionTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Dimension ); }
         void DimensionTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Dimension ); }
         void DimensionTrait::to_json( nlohmann::json &part ) const
@@ -918,10 +1141,15 @@ namespace data
 
         // struct InheritanceTrait : public mega::io::Object
         InheritanceTrait::InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_Inheritance( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::InheritanceTrait >( loader, this ) ), p_AST_Inheritance( loader )
         {
         }
-        void InheritanceTrait::set_inheritance_pointer() { p_AST_Inheritance->m_pInheritance = this; }
+        bool InheritanceTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > >{
+                                        data::Ptr< data::Tree::InheritanceTrait >( loader, const_cast< InheritanceTrait * >( this ) )};
+        }
+        void InheritanceTrait::set_inheritance_pointer() { p_AST_Inheritance->m_inheritance = Ptr< Tree::InheritanceTrait >( p_AST_Inheritance, this ); }
         void InheritanceTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Inheritance ); }
         void InheritanceTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Inheritance ); }
         void InheritanceTrait::to_json( nlohmann::json &part ) const
@@ -936,10 +1164,15 @@ namespace data
 
         // struct ReturnTypeTrait : public mega::io::Object
         ReturnTypeTrait::ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ReturnType( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::ReturnTypeTrait >( loader, this ) ), p_AST_ReturnType( loader )
         {
         }
-        void ReturnTypeTrait::set_inheritance_pointer() { p_AST_ReturnType->m_pInheritance = this; }
+        bool ReturnTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > >{
+                                        data::Ptr< data::Tree::ReturnTypeTrait >( loader, const_cast< ReturnTypeTrait * >( this ) )};
+        }
+        void ReturnTypeTrait::set_inheritance_pointer() { p_AST_ReturnType->m_inheritance = Ptr< Tree::ReturnTypeTrait >( p_AST_ReturnType, this ); }
         void ReturnTypeTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_ReturnType ); }
         void ReturnTypeTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_ReturnType ); }
         void ReturnTypeTrait::to_json( nlohmann::json &part ) const
@@ -954,10 +1187,15 @@ namespace data
 
         // struct ArgumentListTrait : public mega::io::Object
         ArgumentListTrait::ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_AST_ArgumentList( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::ArgumentListTrait >( loader, this ) ), p_AST_ArgumentList( loader )
         {
         }
-        void ArgumentListTrait::set_inheritance_pointer() { p_AST_ArgumentList->m_pInheritance = this; }
+        bool ArgumentListTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > >{
+                                        data::Ptr< data::Tree::ArgumentListTrait >( loader, const_cast< ArgumentListTrait * >( this ) )};
+        }
+        void ArgumentListTrait::set_inheritance_pointer() { p_AST_ArgumentList->m_inheritance = Ptr< Tree::ArgumentListTrait >( p_AST_ArgumentList, this ); }
         void ArgumentListTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_ArgumentList ); }
         void ArgumentListTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_ArgumentList ); }
         void ArgumentListTrait::to_json( nlohmann::json &part ) const
@@ -971,8 +1209,16 @@ namespace data
         }
 
         // struct SizeTrait : public mega::io::Object
-        SizeTrait::SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_AST_Size( loader ) {}
-        void SizeTrait::set_inheritance_pointer() { p_AST_Size->m_pInheritance = this; }
+        SizeTrait::SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::SizeTrait >( loader, this ) ), p_AST_Size( loader )
+        {
+        }
+        bool SizeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > >{
+                                        data::Ptr< data::Tree::SizeTrait >( loader, const_cast< SizeTrait * >( this ) )};
+        }
+        void SizeTrait::set_inheritance_pointer() { p_AST_Size->m_inheritance = Ptr< Tree::SizeTrait >( p_AST_Size, this ); }
         void SizeTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Size ); }
         void SizeTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Size ); }
         void SizeTrait::to_json( nlohmann::json &part ) const
@@ -986,11 +1232,22 @@ namespace data
         }
 
         // struct ContextGroup : public mega::io::Object
-        ContextGroup::ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        ContextGroup::ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::ContextGroup >( loader, this ) )
+        {
+        }
         ContextGroup::ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                                     const std::vector< data::Ptr< data::Tree::Context > > &children )
-            : mega::io::Object( objectInfo ), children( children )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::ContextGroup >( loader, this ) ), children( children )
         {
+        }
+        bool ContextGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                 data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                 data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                 data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::ContextGroup >( loader, const_cast< ContextGroup * >( this ) )};
         }
         void ContextGroup::set_inheritance_pointer() {}
         void ContextGroup::load( mega::io::Loader &loader ) { loader.load( children ); }
@@ -1011,14 +1268,21 @@ namespace data
 
         // struct Root : public mega::io::Object
         Root::Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_ContextGroup( loader ), root( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Root >( loader, this ) ), p_Tree_ContextGroup( loader ), root( loader )
         {
         }
         Root::Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ObjectSourceRoot > &root )
-            : mega::io::Object( objectInfo ), p_Tree_ContextGroup( loader ), root( root )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Root >( loader, this ) ), p_Tree_ContextGroup( loader ), root( root )
         {
         }
-        void Root::set_inheritance_pointer() { p_Tree_ContextGroup->m_pInheritance = this; }
+        bool Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Root >( loader, const_cast< Root * >( this ) )};
+        }
+        void Root::set_inheritance_pointer() { p_Tree_ContextGroup->m_inheritance = Ptr< Tree::Root >( p_Tree_ContextGroup, this ); }
         void Root::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_ContextGroup );
@@ -1045,15 +1309,23 @@ namespace data
 
         // struct Context : public mega::io::Object
         Context::Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_ContextGroup( loader ), parent( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Context >( loader, this ) ), p_Tree_ContextGroup( loader ), parent( loader )
         {
         }
         Context::Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &identifier,
                           const data::Ptr< data::Tree::ContextGroup > &parent )
-            : mega::io::Object( objectInfo ), p_Tree_ContextGroup( loader ), identifier( identifier ), parent( parent )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Context >( loader, this ) ), p_Tree_ContextGroup( loader ),
+              identifier( identifier ), parent( parent )
         {
         }
-        void Context::set_inheritance_pointer() { p_Tree_ContextGroup->m_pInheritance = this; }
+        bool Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Context >( loader, const_cast< Context * >( this ) )};
+        }
+        void Context::set_inheritance_pointer() { p_Tree_ContextGroup->m_inheritance = Ptr< Tree::Context >( p_Tree_ContextGroup, this ); }
         void Context::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_ContextGroup );
@@ -1085,13 +1357,25 @@ namespace data
         }
 
         // struct Namespace : public mega::io::Object
-        Namespace::Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_Tree_Context( loader ) {}
-        Namespace::Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const bool &is_global,
-                              const std::vector< data::Ptr< data::AST::ContextDef > > &namespace_defs )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), is_global( is_global ), namespace_defs( namespace_defs )
+        Namespace::Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Namespace >( loader, this ) ), p_Tree_Context( loader )
         {
         }
-        void Namespace::set_inheritance_pointer() { p_Tree_Context->m_pInheritance = this; }
+        Namespace::Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const bool &is_global,
+                              const std::vector< data::Ptr< data::AST::ContextDef > > &namespace_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Namespace >( loader, this ) ), p_Tree_Context( loader ),
+              is_global( is_global ), namespace_defs( namespace_defs )
+        {
+        }
+        bool Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                 data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                 data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                 data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Namespace >( loader, const_cast< Namespace * >( this ) )};
+        }
+        void Namespace::set_inheritance_pointer() { p_Tree_Context->m_inheritance = Ptr< Tree::Namespace >( p_Tree_Context, this ); }
         void Namespace::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_Context );
@@ -1130,13 +1414,25 @@ namespace data
         }
 
         // struct Abstract : public mega::io::Object
-        Abstract::Abstract( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_Tree_Context( loader ) {}
-        Abstract::Abstract( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                            const std::vector< data::Ptr< data::AST::AbstractDef > > &abstract_defs )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), abstract_defs( abstract_defs )
+        Abstract::Abstract( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Abstract >( loader, this ) ), p_Tree_Context( loader )
         {
         }
-        void Abstract::set_inheritance_pointer() { p_Tree_Context->m_pInheritance = this; }
+        Abstract::Abstract( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                            const std::vector< data::Ptr< data::AST::AbstractDef > > &abstract_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Abstract >( loader, this ) ), p_Tree_Context( loader ),
+              abstract_defs( abstract_defs )
+        {
+        }
+        bool Abstract::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                 data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                 data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                 data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Abstract >( loader, const_cast< Abstract * >( this ) )};
+        }
+        void Abstract::set_inheritance_pointer() { p_Tree_Context->m_inheritance = Ptr< Tree::Abstract >( p_Tree_Context, this ); }
         void Abstract::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_Context );
@@ -1176,12 +1472,23 @@ namespace data
         }
 
         // struct Action : public mega::io::Object
-        Action::Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_Tree_Context( loader ) {}
-        Action::Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > > &action_defs )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), action_defs( action_defs )
+        Action::Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Action >( loader, this ) ), p_Tree_Context( loader )
         {
         }
-        void Action::set_inheritance_pointer() { p_Tree_Context->m_pInheritance = this; }
+        Action::Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > > &action_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Action >( loader, this ) ), p_Tree_Context( loader ),
+              action_defs( action_defs )
+        {
+        }
+        bool Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Action >( loader, const_cast< Action * >( this ) )};
+        }
+        void Action::set_inheritance_pointer() { p_Tree_Context->m_inheritance = Ptr< Tree::Action >( p_Tree_Context, this ); }
         void Action::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_Context );
@@ -1228,12 +1535,23 @@ namespace data
         }
 
         // struct Event : public mega::io::Object
-        Event::Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_Tree_Context( loader ) {}
-        Event::Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::EventDef > > &event_defs )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), event_defs( event_defs )
+        Event::Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Event >( loader, this ) ), p_Tree_Context( loader )
         {
         }
-        void Event::set_inheritance_pointer() { p_Tree_Context->m_pInheritance = this; }
+        Event::Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::EventDef > > &event_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Event >( loader, this ) ), p_Tree_Context( loader ),
+              event_defs( event_defs )
+        {
+        }
+        bool Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Event >( loader, const_cast< Event * >( this ) )};
+        }
+        void Event::set_inheritance_pointer() { p_Tree_Context->m_inheritance = Ptr< Tree::Event >( p_Tree_Context, this ); }
         void Event::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_Context );
@@ -1281,15 +1599,25 @@ namespace data
 
         // struct Function : public mega::io::Object
         Function::Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), return_type_trait( loader ), arguments_trait( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Function >( loader, this ) ), p_Tree_Context( loader ),
+              return_type_trait( loader ), arguments_trait( loader )
         {
         }
         Function::Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                             const std::vector< data::Ptr< data::AST::FunctionDef > > &function_defs )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), function_defs( function_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Function >( loader, this ) ), p_Tree_Context( loader ),
+              function_defs( function_defs )
         {
         }
-        void Function::set_inheritance_pointer() { p_Tree_Context->m_pInheritance = this; }
+        bool Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                 data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                 data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                 data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Function >( loader, const_cast< Function * >( this ) )};
+        }
+        void Function::set_inheritance_pointer() { p_Tree_Context->m_inheritance = Ptr< Tree::Function >( p_Tree_Context, this ); }
         void Function::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_Context );
@@ -1329,12 +1657,23 @@ namespace data
         }
 
         // struct Object : public mega::io::Object
-        Object::Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_Tree_Context( loader ) {}
-        Object::Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > > &object_defs )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), object_defs( object_defs )
+        Object::Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Object >( loader, this ) ), p_Tree_Context( loader )
         {
         }
-        void Object::set_inheritance_pointer() { p_Tree_Context->m_pInheritance = this; }
+        Object::Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > > &object_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Object >( loader, this ) ), p_Tree_Context( loader ),
+              object_defs( object_defs )
+        {
+        }
+        bool Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Object >( loader, const_cast< Object * >( this ) )};
+        }
+        void Object::set_inheritance_pointer() { p_Tree_Context->m_inheritance = Ptr< Tree::Object >( p_Tree_Context, this ); }
         void Object::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_Context );
@@ -1375,14 +1714,22 @@ namespace data
 
         // struct Link : public mega::io::Object
         Link::Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), link_inheritance_trait( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Link >( loader, this ) ), p_Tree_Context( loader ),
+              link_inheritance_trait( loader )
         {
         }
         Link::Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::LinkDef > > &link_defs )
-            : mega::io::Object( objectInfo ), p_Tree_Context( loader ), link_defs( link_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Link >( loader, this ) ), p_Tree_Context( loader ), link_defs( link_defs )
         {
         }
-        void Link::set_inheritance_pointer() { p_Tree_Context->m_pInheritance = this; }
+        bool Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Link >( loader, const_cast< Link * >( this ) )};
+        }
+        void Link::set_inheritance_pointer() { p_Tree_Context->m_inheritance = Ptr< Tree::Link >( p_Tree_Context, this ); }
         void Link::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_Context );
@@ -1418,10 +1765,17 @@ namespace data
     namespace DPGraph
     {
         // struct Glob : public mega::io::Object
-        Glob::Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
-        Glob::Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &location, const std::string &glob )
-            : mega::io::Object( objectInfo ), location( location ), glob( glob )
+        Glob::Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Glob >( loader, this ) )
         {
+        }
+        Glob::Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &location, const std::string &glob )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Glob >( loader, this ) ), location( location ), glob( glob )
+        {
+        }
+        bool Glob::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::DPGraph::Glob > >{data::Ptr< data::DPGraph::Glob >( loader, const_cast< Glob * >( this ) )};
         }
         void Glob::set_inheritance_pointer() {}
         void Glob::load( mega::io::Loader &loader )
@@ -1453,12 +1807,21 @@ namespace data
         }
 
         // struct ObjectDependencies : public mega::io::Object
-        ObjectDependencies::ObjectDependencies( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        ObjectDependencies::ObjectDependencies( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::ObjectDependencies >( loader, this ) )
+        {
+        }
         ObjectDependencies::ObjectDependencies( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const mega::io::megaFilePath &source_file,
                                                 const std::size_t &hash_code, const std::vector< data::Ptr< data::DPGraph::Glob > > &globs,
                                                 const std::vector< boost::filesystem::path > &resolution )
-            : mega::io::Object( objectInfo ), source_file( source_file ), hash_code( hash_code ), globs( globs ), resolution( resolution )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::ObjectDependencies >( loader, this ) ), source_file( source_file ),
+              hash_code( hash_code ), globs( globs ), resolution( resolution )
         {
+        }
+        bool ObjectDependencies::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::DPGraph::ObjectDependencies > >{
+                                        data::Ptr< data::DPGraph::ObjectDependencies >( loader, const_cast< ObjectDependencies * >( this ) )};
         }
         void ObjectDependencies::set_inheritance_pointer() {}
         void ObjectDependencies::load( mega::io::Loader &loader )
@@ -1502,11 +1865,19 @@ namespace data
         }
 
         // struct Analysis : public mega::io::Object
-        Analysis::Analysis( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        Analysis::Analysis( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Analysis >( loader, this ) )
+        {
+        }
         Analysis::Analysis( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                             const std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > &objects )
-            : mega::io::Object( objectInfo ), objects( objects )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Analysis >( loader, this ) ), objects( objects )
         {
+        }
+        bool Analysis::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::DPGraph::Analysis > >{data::Ptr< data::DPGraph::Analysis >( loader, const_cast< Analysis * >( this ) )};
         }
         void Analysis::set_inheritance_pointer() {}
         void Analysis::load( mega::io::Loader &loader ) { loader.load( objects ); }
@@ -1529,12 +1900,21 @@ namespace data
     namespace SymbolTable
     {
         // struct Symbol : public mega::io::Object
-        Symbol::Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        Symbol::Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbol >( loader, this ) )
+        {
+        }
         Symbol::Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &symbol, const std::size_t &id,
                         const std::vector< data::Ptr< data::Tree::Context > > &       contexts,
                         const std::vector< data::Ptr< data::Tree::DimensionTrait > > &dimensions )
-            : mega::io::Object( objectInfo ), symbol( symbol ), id( id ), contexts( contexts ), dimensions( dimensions )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbol >( loader, this ) ), symbol( symbol ), id( id ),
+              contexts( contexts ), dimensions( dimensions )
         {
+        }
+        bool Symbol::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::SymbolTable::Symbol > >{data::Ptr< data::SymbolTable::Symbol >( loader, const_cast< Symbol * >( this ) )};
         }
         void Symbol::set_inheritance_pointer() {}
         void Symbol::load( mega::io::Loader &loader )
@@ -1578,15 +1958,23 @@ namespace data
         }
 
         // struct SymbolSet : public mega::io::Object
-        SymbolSet::SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        SymbolSet::SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolSet >( loader, this ) )
+        {
+        }
         SymbolSet::SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                               const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &symbols, const mega::io::megaFilePath &source_file,
                               const std::size_t &                                                                                hash_code,
                               const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > > &       contexts,
                               const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > &dimensions )
-            : mega::io::Object( objectInfo ), symbols( symbols ), source_file( source_file ), hash_code( hash_code ), contexts( contexts ),
-              dimensions( dimensions )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolSet >( loader, this ) ), symbols( symbols ),
+              source_file( source_file ), hash_code( hash_code ), contexts( contexts ), dimensions( dimensions )
         {
+        }
+        bool SymbolSet::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::SymbolTable::SymbolSet > >{
+                                        data::Ptr< data::SymbolTable::SymbolSet >( loader, const_cast< SymbolSet * >( this ) )};
         }
         void SymbolSet::set_inheritance_pointer() {}
         void SymbolSet::load( mega::io::Loader &loader )
@@ -1636,12 +2024,21 @@ namespace data
         }
 
         // struct SymbolTable : public mega::io::Object
-        SymbolTable::SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        SymbolTable::SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolTable >( loader, this ) )
+        {
+        }
         SymbolTable::SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                                   const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > &symbol_sets,
                                   const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &              symbols )
-            : mega::io::Object( objectInfo ), symbol_sets( symbol_sets ), symbols( symbols )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolTable >( loader, this ) ), symbol_sets( symbol_sets ),
+              symbols( symbols )
         {
+        }
+        bool SymbolTable::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::SymbolTable::SymbolTable > >{
+                                        data::Ptr< data::SymbolTable::SymbolTable >( loader, const_cast< SymbolTable * >( this ) )};
         }
         void SymbolTable::set_inheritance_pointer() {}
         void SymbolTable::load( mega::io::Loader &loader )
@@ -1677,14 +2074,21 @@ namespace data
     {
         // struct Dimension : public mega::io::Object
         Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_DimensionTrait( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Dimension >( loader, this ) ), p_Tree_DimensionTrait( loader )
         {
         }
         Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &canonical_type )
-            : mega::io::Object( objectInfo ), p_Tree_DimensionTrait( loader ), canonical_type( canonical_type )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Clang::Dimension >( loader, this ) ), p_Tree_DimensionTrait( loader ),
+              canonical_type( canonical_type )
         {
         }
-        void Dimension::set_inheritance_pointer() { p_Tree_DimensionTrait->m_pInheritance = this; }
+        bool Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > >{
+                       data::Ptr< data::Clang::Dimension >( loader, const_cast< Dimension * >( this ) )};
+        }
+        void Dimension::set_inheritance_pointer() { p_Tree_DimensionTrait->m_inheritance = Ptr< Clang::Dimension >( p_Tree_DimensionTrait, this ); }
         void Dimension::load( mega::io::Loader &loader )
         {
             loader.load( p_Tree_DimensionTrait );

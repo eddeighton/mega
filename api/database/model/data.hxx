@@ -104,15 +104,16 @@ namespace data
             {
                 Object_Part_Type_ID = 0
             };
-            std::string                            name;
-            boost::filesystem::path                directory;
-            std::vector< boost::filesystem::path > includeDirectories;
-            std::vector< boost::filesystem::path > sourceFiles;
-            mega::io::Object *                     m_pInheritance = nullptr;
-            virtual void                           set_inheritance_pointer();
-            virtual void                           load( mega::io::Loader &loader );
-            virtual void                           store( mega::io::Storer &storer ) const;
-            virtual void                           to_json( nlohmann::json &data ) const;
+            std::string                                              name;
+            boost::filesystem::path                                  directory;
+            std::vector< boost::filesystem::path >                   includeDirectories;
+            std::vector< boost::filesystem::path >                   sourceFiles;
+            std::variant< data::Ptr< data::Components::Component > > m_inheritance;
+            virtual bool                                             test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                             set_inheritance_pointer();
+            virtual void                                             load( mega::io::Loader &loader );
+            virtual void                                             store( mega::io::Storer &storer ) const;
+            virtual void                                             to_json( nlohmann::json &data ) const;
         };
     } // namespace Components
     namespace AST
@@ -125,12 +126,13 @@ namespace data
             {
                 Object_Part_Type_ID = 1
             };
-            std::string       str;
-            mega::io::Object *m_pInheritance = nullptr;
-            virtual void      set_inheritance_pointer();
-            virtual void      load( mega::io::Loader &loader );
-            virtual void      store( mega::io::Storer &storer ) const;
-            virtual void      to_json( nlohmann::json &data ) const;
+            std::string                                        str;
+            std::variant< data::Ptr< data::AST::Identifier > > m_inheritance;
+            virtual bool                                       test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                       set_inheritance_pointer();
+            virtual void                                       load( mega::io::Loader &loader );
+            virtual void                                       store( mega::io::Storer &storer ) const;
+            virtual void                                       to_json( nlohmann::json &data ) const;
         };
         struct ScopedIdentifier : public mega::io::Object
         {
@@ -141,14 +143,15 @@ namespace data
             {
                 Object_Part_Type_ID = 2
             };
-            std::vector< data::Ptr< data::AST::Identifier > > ids;
-            std::string                                       source_file;
-            std::size_t                                       line_number;
-            mega::io::Object *                                m_pInheritance = nullptr;
-            virtual void                                      set_inheritance_pointer();
-            virtual void                                      load( mega::io::Loader &loader );
-            virtual void                                      store( mega::io::Storer &storer ) const;
-            virtual void                                      to_json( nlohmann::json &data ) const;
+            std::vector< data::Ptr< data::AST::Identifier > >        ids;
+            std::string                                              source_file;
+            std::size_t                                              line_number;
+            std::variant< data::Ptr< data::AST::ScopedIdentifier > > m_inheritance;
+            virtual bool                                             test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                             set_inheritance_pointer();
+            virtual void                                             load( mega::io::Loader &loader );
+            virtual void                                             store( mega::io::Storer &storer ) const;
+            virtual void                                             to_json( nlohmann::json &data ) const;
         };
         struct ArgumentList : public mega::io::Object
         {
@@ -158,12 +161,13 @@ namespace data
             {
                 Object_Part_Type_ID = 3
             };
-            std::string       str;
-            mega::io::Object *m_pInheritance = nullptr;
-            virtual void      set_inheritance_pointer();
-            virtual void      load( mega::io::Loader &loader );
-            virtual void      store( mega::io::Storer &storer ) const;
-            virtual void      to_json( nlohmann::json &data ) const;
+            std::string                                                                                      str;
+            std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct ReturnType : public mega::io::Object
         {
@@ -173,12 +177,13 @@ namespace data
             {
                 Object_Part_Type_ID = 4
             };
-            std::string       str;
-            mega::io::Object *m_pInheritance = nullptr;
-            virtual void      set_inheritance_pointer();
-            virtual void      load( mega::io::Loader &loader );
-            virtual void      store( mega::io::Storer &storer ) const;
-            virtual void      to_json( nlohmann::json &data ) const;
+            std::string                                                                                  str;
+            std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Inheritance : public mega::io::Object
         {
@@ -188,12 +193,13 @@ namespace data
             {
                 Object_Part_Type_ID = 5
             };
-            std::vector< std::string > strings;
-            mega::io::Object *         m_pInheritance = nullptr;
-            virtual void               set_inheritance_pointer();
-            virtual void               load( mega::io::Loader &loader );
-            virtual void               store( mega::io::Storer &storer ) const;
-            virtual void               to_json( nlohmann::json &data ) const;
+            std::vector< std::string >                                                                     strings;
+            std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Size : public mega::io::Object
         {
@@ -203,12 +209,13 @@ namespace data
             {
                 Object_Part_Type_ID = 6
             };
-            std::string       str;
-            mega::io::Object *m_pInheritance = nullptr;
-            virtual void      set_inheritance_pointer();
-            virtual void      load( mega::io::Loader &loader );
-            virtual void      store( mega::io::Storer &storer ) const;
-            virtual void      to_json( nlohmann::json &data ) const;
+            std::string                                                                      str;
+            std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > > m_inheritance;
+            virtual bool                                                                     test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                                                     set_inheritance_pointer();
+            virtual void                                                                     load( mega::io::Loader &loader );
+            virtual void                                                                     store( mega::io::Storer &storer ) const;
+            virtual void                                                                     to_json( nlohmann::json &data ) const;
         };
         struct Dimension : public mega::io::Object
         {
@@ -219,14 +226,15 @@ namespace data
             {
                 Object_Part_Type_ID = 7
             };
-            bool                               isConst;
-            data::Ptr< data::AST::Identifier > id;
-            std::string                        type;
-            mega::io::Object *                 m_pInheritance = nullptr;
-            virtual void                       set_inheritance_pointer();
-            virtual void                       load( mega::io::Loader &loader );
-            virtual void                       store( mega::io::Storer &storer ) const;
-            virtual void                       to_json( nlohmann::json &data ) const;
+            bool                                                                                                                            isConst;
+            data::Ptr< data::AST::Identifier >                                                                                              id;
+            std::string                                                                                                                     type;
+            std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Include : public mega::io::Object
         {
@@ -235,11 +243,14 @@ namespace data
             {
                 Object_Part_Type_ID = 8
             };
-            mega::io::Object *m_pInheritance = nullptr;
-            virtual void      set_inheritance_pointer();
-            virtual void      load( mega::io::Loader &loader );
-            virtual void      store( mega::io::Storer &storer ) const;
-            virtual void      to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                          data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct SystemInclude : public mega::io::Object
         {
@@ -251,11 +262,14 @@ namespace data
             };
             std::string         str;
             Ptr< AST::Include > p_AST_Include;
-            mega::io::Object *  m_pInheritance = nullptr;
-            virtual void        set_inheritance_pointer();
-            virtual void        load( mega::io::Loader &loader );
-            virtual void        store( mega::io::Storer &storer ) const;
-            virtual void        to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                          data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct MegaInclude : public mega::io::Object
         {
@@ -268,11 +282,14 @@ namespace data
             boost::filesystem::path                              megaSourceFilePath;
             std::optional< data::Ptr< data::AST::IncludeRoot > > root;
             Ptr< AST::Include >                                  p_AST_Include;
-            mega::io::Object *                                   m_pInheritance = nullptr;
-            virtual void                                         set_inheritance_pointer();
-            virtual void                                         load( mega::io::Loader &loader );
-            virtual void                                         store( mega::io::Storer &storer ) const;
-            virtual void                                         to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                          data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct MegaIncludeInline : public mega::io::Object
         {
@@ -282,11 +299,14 @@ namespace data
                 Object_Part_Type_ID = 11
             };
             Ptr< AST::MegaInclude > p_AST_MegaInclude;
-            mega::io::Object *      m_pInheritance = nullptr;
-            virtual void            set_inheritance_pointer();
-            virtual void            load( mega::io::Loader &loader );
-            virtual void            store( mega::io::Storer &storer ) const;
-            virtual void            to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                          data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct MegaIncludeNested : public mega::io::Object
         {
@@ -298,11 +318,14 @@ namespace data
             };
             data::Ptr< data::AST::ScopedIdentifier > id;
             Ptr< AST::MegaInclude >                  p_AST_MegaInclude;
-            mega::io::Object *                       m_pInheritance = nullptr;
-            virtual void                             set_inheritance_pointer();
-            virtual void                             load( mega::io::Loader &loader );
-            virtual void                             store( mega::io::Storer &storer ) const;
-            virtual void                             to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                          data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct CPPInclude : public mega::io::Object
         {
@@ -314,11 +337,14 @@ namespace data
             };
             boost::filesystem::path cppSourceFilePath;
             Ptr< AST::Include >     p_AST_Include;
-            mega::io::Object *      m_pInheritance = nullptr;
-            virtual void            set_inheritance_pointer();
-            virtual void            load( mega::io::Loader &loader );
-            virtual void            store( mega::io::Storer &storer ) const;
-            virtual void            to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
+                          data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Dependency : public mega::io::Object
         {
@@ -328,12 +354,13 @@ namespace data
             {
                 Object_Part_Type_ID = 14
             };
-            std::string       str;
-            mega::io::Object *m_pInheritance = nullptr;
-            virtual void      set_inheritance_pointer();
-            virtual void      load( mega::io::Loader &loader );
-            virtual void      store( mega::io::Storer &storer ) const;
-            virtual void      to_json( nlohmann::json &data ) const;
+            std::string                                        str;
+            std::variant< data::Ptr< data::AST::Dependency > > m_inheritance;
+            virtual bool                                       test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                       set_inheritance_pointer();
+            virtual void                                       load( mega::io::Loader &loader );
+            virtual void                                       store( mega::io::Storer &storer ) const;
+            virtual void                                       to_json( nlohmann::json &data ) const;
         };
         struct ContextDef : public mega::io::Object
         {
@@ -351,11 +378,15 @@ namespace data
             std::vector< data::Ptr< data::AST::Include > >    includes;
             std::vector< data::Ptr< data::AST::Dependency > > dependencies;
             Ptr< Body::ContextDef >                           p_Body_ContextDef;
-            mega::io::Object *                                m_pInheritance = nullptr;
-            virtual void                                      set_inheritance_pointer();
-            virtual void                                      load( mega::io::Loader &loader );
-            virtual void                                      store( mega::io::Storer &storer ) const;
-            virtual void                                      to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct NamespaceDef : public mega::io::Object
         {
@@ -365,11 +396,15 @@ namespace data
                 Object_Part_Type_ID = 17
             };
             Ptr< AST::ContextDef > p_AST_ContextDef;
-            mega::io::Object *     m_pInheritance = nullptr;
-            virtual void           set_inheritance_pointer();
-            virtual void           load( mega::io::Loader &loader );
-            virtual void           store( mega::io::Storer &storer ) const;
-            virtual void           to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct AbstractDef : public mega::io::Object
         {
@@ -381,11 +416,15 @@ namespace data
             };
             data::Ptr< data::AST::Inheritance > inheritance;
             Ptr< AST::ContextDef >              p_AST_ContextDef;
-            mega::io::Object *                  m_pInheritance = nullptr;
-            virtual void                        set_inheritance_pointer();
-            virtual void                        load( mega::io::Loader &loader );
-            virtual void                        store( mega::io::Storer &storer ) const;
-            virtual void                        to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct ActionDef : public mega::io::Object
         {
@@ -399,11 +438,15 @@ namespace data
             data::Ptr< data::AST::Size >        size;
             data::Ptr< data::AST::Inheritance > inheritance;
             Ptr< AST::ContextDef >              p_AST_ContextDef;
-            mega::io::Object *                  m_pInheritance = nullptr;
-            virtual void                        set_inheritance_pointer();
-            virtual void                        load( mega::io::Loader &loader );
-            virtual void                        store( mega::io::Storer &storer ) const;
-            virtual void                        to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct EventDef : public mega::io::Object
         {
@@ -417,11 +460,15 @@ namespace data
             data::Ptr< data::AST::Size >        size;
             data::Ptr< data::AST::Inheritance > inheritance;
             Ptr< AST::ContextDef >              p_AST_ContextDef;
-            mega::io::Object *                  m_pInheritance = nullptr;
-            virtual void                        set_inheritance_pointer();
-            virtual void                        load( mega::io::Loader &loader );
-            virtual void                        store( mega::io::Storer &storer ) const;
-            virtual void                        to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct FunctionDef : public mega::io::Object
         {
@@ -435,11 +482,15 @@ namespace data
             data::Ptr< data::AST::ArgumentList > argumentList;
             data::Ptr< data::AST::ReturnType >   returnType;
             Ptr< AST::ContextDef >               p_AST_ContextDef;
-            mega::io::Object *                   m_pInheritance = nullptr;
-            virtual void                         set_inheritance_pointer();
-            virtual void                         load( mega::io::Loader &loader );
-            virtual void                         store( mega::io::Storer &storer ) const;
-            virtual void                         to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct ObjectDef : public mega::io::Object
         {
@@ -451,11 +502,15 @@ namespace data
             };
             data::Ptr< data::AST::Inheritance > inheritance;
             Ptr< AST::ContextDef >              p_AST_ContextDef;
-            mega::io::Object *                  m_pInheritance = nullptr;
-            virtual void                        set_inheritance_pointer();
-            virtual void                        load( mega::io::Loader &loader );
-            virtual void                        store( mega::io::Storer &storer ) const;
-            virtual void                        to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct LinkDef : public mega::io::Object
         {
@@ -467,11 +522,15 @@ namespace data
             };
             data::Ptr< data::AST::Inheritance > inheritance;
             Ptr< AST::ContextDef >              p_AST_ContextDef;
-            mega::io::Object *                  m_pInheritance = nullptr;
-            virtual void                        set_inheritance_pointer();
-            virtual void                        load( mega::io::Loader &loader );
-            virtual void                        store( mega::io::Storer &storer ) const;
-            virtual void                        to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct SourceRoot : public mega::io::Object
         {
@@ -482,14 +541,15 @@ namespace data
             {
                 Object_Part_Type_ID = 24
             };
-            boost::filesystem::path                  sourceFile;
-            data::Ptr< data::Components::Component > component;
-            data::Ptr< data::AST::ContextDef >       ast;
-            mega::io::Object *                       m_pInheritance = nullptr;
-            virtual void                             set_inheritance_pointer();
-            virtual void                             load( mega::io::Loader &loader );
-            virtual void                             store( mega::io::Storer &storer ) const;
-            virtual void                             to_json( nlohmann::json &data ) const;
+            boost::filesystem::path                                                                                                           sourceFile;
+            data::Ptr< data::Components::Component >                                                                                          component;
+            data::Ptr< data::AST::ContextDef >                                                                                                ast;
+            std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct IncludeRoot : public mega::io::Object
         {
@@ -498,12 +558,13 @@ namespace data
             {
                 Object_Part_Type_ID = 25
             };
-            Ptr< AST::SourceRoot > p_AST_SourceRoot;
-            mega::io::Object *     m_pInheritance = nullptr;
-            virtual void           set_inheritance_pointer();
-            virtual void           load( mega::io::Loader &loader );
-            virtual void           store( mega::io::Storer &storer ) const;
-            virtual void           to_json( nlohmann::json &data ) const;
+            Ptr< AST::SourceRoot >                                                                                                            p_AST_SourceRoot;
+            std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct ObjectSourceRoot : public mega::io::Object
         {
@@ -512,12 +573,13 @@ namespace data
             {
                 Object_Part_Type_ID = 26
             };
-            Ptr< AST::SourceRoot > p_AST_SourceRoot;
-            mega::io::Object *     m_pInheritance = nullptr;
-            virtual void           set_inheritance_pointer();
-            virtual void           load( mega::io::Loader &loader );
-            virtual void           store( mega::io::Storer &storer ) const;
-            virtual void           to_json( nlohmann::json &data ) const;
+            Ptr< AST::SourceRoot >                                                                                                            p_AST_SourceRoot;
+            std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
     } // namespace AST
     namespace Body
@@ -530,12 +592,12 @@ namespace data
             {
                 Object_Part_Type_ID = 16
             };
-            std::string       body;
-            mega::io::Object *m_pInheritance = nullptr;
-            virtual void      set_inheritance_pointer();
-            virtual void      load( mega::io::Loader &loader );
-            virtual void      store( mega::io::Storer &storer ) const;
-            virtual void      to_json( nlohmann::json &data ) const;
+            std::string  body;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
     } // namespace Body
     namespace Tree
@@ -547,12 +609,13 @@ namespace data
             {
                 Object_Part_Type_ID = 27
             };
-            Ptr< AST::Dimension > p_AST_Dimension;
-            mega::io::Object *    m_pInheritance = nullptr;
-            virtual void          set_inheritance_pointer();
-            virtual void          load( mega::io::Loader &loader );
-            virtual void          store( mega::io::Storer &storer ) const;
-            virtual void          to_json( nlohmann::json &data ) const;
+            Ptr< AST::Dimension >                                                                                                           p_AST_Dimension;
+            std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct InheritanceTrait : public mega::io::Object
         {
@@ -561,12 +624,13 @@ namespace data
             {
                 Object_Part_Type_ID = 29
             };
-            Ptr< AST::Inheritance > p_AST_Inheritance;
-            mega::io::Object *      m_pInheritance = nullptr;
-            virtual void            set_inheritance_pointer();
-            virtual void            load( mega::io::Loader &loader );
-            virtual void            store( mega::io::Storer &storer ) const;
-            virtual void            to_json( nlohmann::json &data ) const;
+            Ptr< AST::Inheritance >                                                                        p_AST_Inheritance;
+            std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct ReturnTypeTrait : public mega::io::Object
         {
@@ -575,12 +639,13 @@ namespace data
             {
                 Object_Part_Type_ID = 30
             };
-            Ptr< AST::ReturnType > p_AST_ReturnType;
-            mega::io::Object *     m_pInheritance = nullptr;
-            virtual void           set_inheritance_pointer();
-            virtual void           load( mega::io::Loader &loader );
-            virtual void           store( mega::io::Storer &storer ) const;
-            virtual void           to_json( nlohmann::json &data ) const;
+            Ptr< AST::ReturnType >                                                                       p_AST_ReturnType;
+            std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct ArgumentListTrait : public mega::io::Object
         {
@@ -589,12 +654,13 @@ namespace data
             {
                 Object_Part_Type_ID = 31
             };
-            Ptr< AST::ArgumentList > p_AST_ArgumentList;
-            mega::io::Object *       m_pInheritance = nullptr;
-            virtual void             set_inheritance_pointer();
-            virtual void             load( mega::io::Loader &loader );
-            virtual void             store( mega::io::Storer &storer ) const;
-            virtual void             to_json( nlohmann::json &data ) const;
+            Ptr< AST::ArgumentList >                                                                         p_AST_ArgumentList;
+            std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct SizeTrait : public mega::io::Object
         {
@@ -603,12 +669,13 @@ namespace data
             {
                 Object_Part_Type_ID = 32
             };
-            Ptr< AST::Size >  p_AST_Size;
-            mega::io::Object *m_pInheritance = nullptr;
-            virtual void      set_inheritance_pointer();
-            virtual void      load( mega::io::Loader &loader );
-            virtual void      store( mega::io::Storer &storer ) const;
-            virtual void      to_json( nlohmann::json &data ) const;
+            Ptr< AST::Size >                                                                 p_AST_Size;
+            std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > > m_inheritance;
+            virtual bool                                                                     test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                                                     set_inheritance_pointer();
+            virtual void                                                                     load( mega::io::Loader &loader );
+            virtual void                                                                     store( mega::io::Storer &storer ) const;
+            virtual void                                                                     to_json( nlohmann::json &data ) const;
         };
         struct ContextGroup : public mega::io::Object
         {
@@ -619,11 +686,15 @@ namespace data
                 Object_Part_Type_ID = 33
             };
             std::vector< data::Ptr< data::Tree::Context > > children;
-            mega::io::Object *                              m_pInheritance = nullptr;
-            virtual void                                    set_inheritance_pointer();
-            virtual void                                    load( mega::io::Loader &loader );
-            virtual void                                    store( mega::io::Storer &storer ) const;
-            virtual void                                    to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Root : public mega::io::Object
         {
@@ -635,11 +706,15 @@ namespace data
             };
             data::Ptr< data::AST::ObjectSourceRoot > root;
             Ptr< Tree::ContextGroup >                p_Tree_ContextGroup;
-            mega::io::Object *                       m_pInheritance = nullptr;
-            virtual void                             set_inheritance_pointer();
-            virtual void                             load( mega::io::Loader &loader );
-            virtual void                             store( mega::io::Storer &storer ) const;
-            virtual void                             to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Context : public mega::io::Object
         {
@@ -653,11 +728,15 @@ namespace data
             std::string                           identifier;
             data::Ptr< data::Tree::ContextGroup > parent;
             Ptr< Tree::ContextGroup >             p_Tree_ContextGroup;
-            mega::io::Object *                    m_pInheritance = nullptr;
-            virtual void                          set_inheritance_pointer();
-            virtual void                          load( mega::io::Loader &loader );
-            virtual void                          store( mega::io::Storer &storer ) const;
-            virtual void                          to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Namespace : public mega::io::Object
         {
@@ -672,11 +751,15 @@ namespace data
             std::vector< data::Ptr< data::AST::ContextDef > >                       namespace_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > > dimension_traits;
             Ptr< Tree::Context >                                                    p_Tree_Context;
-            mega::io::Object *                                                      m_pInheritance = nullptr;
-            virtual void                                                            set_inheritance_pointer();
-            virtual void                                                            load( mega::io::Loader &loader );
-            virtual void                                                            store( mega::io::Storer &storer ) const;
-            virtual void                                                            to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Abstract : public mega::io::Object
         {
@@ -691,11 +774,15 @@ namespace data
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
             std::optional< std::optional< data::Ptr< data::Tree::InheritanceTrait > > > inheritance_trait;
             Ptr< Tree::Context >                                                        p_Tree_Context;
-            mega::io::Object *                                                          m_pInheritance = nullptr;
-            virtual void                                                                set_inheritance_pointer();
-            virtual void                                                                load( mega::io::Loader &loader );
-            virtual void                                                                store( mega::io::Storer &storer ) const;
-            virtual void                                                                to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Action : public mega::io::Object
         {
@@ -710,11 +797,15 @@ namespace data
             std::optional< std::optional< data::Ptr< data::Tree::InheritanceTrait > > > inheritance_trait;
             std::optional< std::optional< data::Ptr< data::Tree::SizeTrait > > >        size_trait;
             Ptr< Tree::Context >                                                        p_Tree_Context;
-            mega::io::Object *                                                          m_pInheritance = nullptr;
-            virtual void                                                                set_inheritance_pointer();
-            virtual void                                                                load( mega::io::Loader &loader );
-            virtual void                                                                store( mega::io::Storer &storer ) const;
-            virtual void                                                                to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Event : public mega::io::Object
         {
@@ -729,11 +820,15 @@ namespace data
             std::optional< std::optional< data::Ptr< data::Tree::InheritanceTrait > > > inheritance_trait;
             std::optional< std::optional< data::Ptr< data::Tree::SizeTrait > > >        size_trait;
             Ptr< Tree::Context >                                                        p_Tree_Context;
-            mega::io::Object *                                                          m_pInheritance = nullptr;
-            virtual void                                                                set_inheritance_pointer();
-            virtual void                                                                load( mega::io::Loader &loader );
-            virtual void                                                                store( mega::io::Storer &storer ) const;
-            virtual void                                                                to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Function : public mega::io::Object
         {
@@ -748,11 +843,15 @@ namespace data
             std::optional< data::Ptr< data::Tree::ReturnTypeTrait > >   return_type_trait;
             std::optional< data::Ptr< data::Tree::ArgumentListTrait > > arguments_trait;
             Ptr< Tree::Context >                                        p_Tree_Context;
-            mega::io::Object *                                          m_pInheritance = nullptr;
-            virtual void                                                set_inheritance_pointer();
-            virtual void                                                load( mega::io::Loader &loader );
-            virtual void                                                store( mega::io::Storer &storer ) const;
-            virtual void                                                to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Object : public mega::io::Object
         {
@@ -766,11 +865,15 @@ namespace data
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
             std::optional< std::optional< data::Ptr< data::Tree::InheritanceTrait > > > inheritance_trait;
             Ptr< Tree::Context >                                                        p_Tree_Context;
-            mega::io::Object *                                                          m_pInheritance = nullptr;
-            virtual void                                                                set_inheritance_pointer();
-            virtual void                                                                load( mega::io::Loader &loader );
-            virtual void                                                                store( mega::io::Storer &storer ) const;
-            virtual void                                                                to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct Link : public mega::io::Object
         {
@@ -783,11 +886,15 @@ namespace data
             std::vector< data::Ptr< data::AST::LinkDef > >             link_defs;
             std::optional< data::Ptr< data::Tree::InheritanceTrait > > link_inheritance_trait;
             Ptr< Tree::Context >                                       p_Tree_Context;
-            mega::io::Object *                                         m_pInheritance = nullptr;
-            virtual void                                               set_inheritance_pointer();
-            virtual void                                               load( mega::io::Loader &loader );
-            virtual void                                               store( mega::io::Storer &storer ) const;
-            virtual void                                               to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
     } // namespace Tree
     namespace DPGraph
@@ -800,13 +907,14 @@ namespace data
             {
                 Object_Part_Type_ID = 43
             };
-            boost::filesystem::path location;
-            std::string             glob;
-            mega::io::Object *      m_pInheritance = nullptr;
-            virtual void            set_inheritance_pointer();
-            virtual void            load( mega::io::Loader &loader );
-            virtual void            store( mega::io::Storer &storer ) const;
-            virtual void            to_json( nlohmann::json &data ) const;
+            boost::filesystem::path                          location;
+            std::string                                      glob;
+            std::variant< data::Ptr< data::DPGraph::Glob > > m_inheritance;
+            virtual bool                                     test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                     set_inheritance_pointer();
+            virtual void                                     load( mega::io::Loader &loader );
+            virtual void                                     store( mega::io::Storer &storer ) const;
+            virtual void                                     to_json( nlohmann::json &data ) const;
         };
         struct ObjectDependencies : public mega::io::Object
         {
@@ -818,15 +926,16 @@ namespace data
             {
                 Object_Part_Type_ID = 44
             };
-            mega::io::megaFilePath                          source_file;
-            std::size_t                                     hash_code;
-            std::vector< data::Ptr< data::DPGraph::Glob > > globs;
-            std::vector< boost::filesystem::path >          resolution;
-            mega::io::Object *                              m_pInheritance = nullptr;
-            virtual void                                    set_inheritance_pointer();
-            virtual void                                    load( mega::io::Loader &loader );
-            virtual void                                    store( mega::io::Storer &storer ) const;
-            virtual void                                    to_json( nlohmann::json &data ) const;
+            mega::io::megaFilePath                                         source_file;
+            std::size_t                                                    hash_code;
+            std::vector< data::Ptr< data::DPGraph::Glob > >                globs;
+            std::vector< boost::filesystem::path >                         resolution;
+            std::variant< data::Ptr< data::DPGraph::ObjectDependencies > > m_inheritance;
+            virtual bool                                                   test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                                   set_inheritance_pointer();
+            virtual void                                                   load( mega::io::Loader &loader );
+            virtual void                                                   store( mega::io::Storer &storer ) const;
+            virtual void                                                   to_json( nlohmann::json &data ) const;
         };
         struct Analysis : public mega::io::Object
         {
@@ -838,7 +947,8 @@ namespace data
                 Object_Part_Type_ID = 45
             };
             std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > objects;
-            mega::io::Object *                                            m_pInheritance = nullptr;
+            std::variant< data::Ptr< data::DPGraph::Analysis > >          m_inheritance;
+            virtual bool                                                  test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void                                                  set_inheritance_pointer();
             virtual void                                                  load( mega::io::Loader &loader );
             virtual void                                                  store( mega::io::Storer &storer ) const;
@@ -860,7 +970,8 @@ namespace data
             std::size_t                                            id;
             std::vector< data::Ptr< data::Tree::Context > >        contexts;
             std::vector< data::Ptr< data::Tree::DimensionTrait > > dimensions;
-            mega::io::Object *                                     m_pInheritance = nullptr;
+            std::variant< data::Ptr< data::SymbolTable::Symbol > > m_inheritance;
+            virtual bool                                           test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void                                           set_inheritance_pointer();
             virtual void                                           load( mega::io::Loader &loader );
             virtual void                                           store( mega::io::Storer &storer ) const;
@@ -882,11 +993,12 @@ namespace data
             std::size_t                                                                                 hash_code;
             std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > >        contexts;
             std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > dimensions;
-            mega::io::Object *                                                                          m_pInheritance = nullptr;
-            virtual void                                                                                set_inheritance_pointer();
-            virtual void                                                                                load( mega::io::Loader &loader );
-            virtual void                                                                                store( mega::io::Storer &storer ) const;
-            virtual void                                                                                to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::SymbolTable::SymbolSet > >                                   m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
         struct SymbolTable : public mega::io::Object
         {
@@ -900,7 +1012,8 @@ namespace data
             };
             std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > symbol_sets;
             std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               symbols;
-            mega::io::Object *                                                            m_pInheritance = nullptr;
+            std::variant< data::Ptr< data::SymbolTable::SymbolTable > >                   m_inheritance;
+            virtual bool                                                                  test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void                                                                  set_inheritance_pointer();
             virtual void                                                                  load( mega::io::Loader &loader );
             virtual void                                                                  store( mega::io::Storer &storer ) const;
@@ -919,11 +1032,12 @@ namespace data
             };
             std::string                 canonical_type;
             Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait;
-            mega::io::Object *          m_pInheritance = nullptr;
-            virtual void                set_inheritance_pointer();
-            virtual void                load( mega::io::Loader &loader );
-            virtual void                store( mega::io::Storer &storer ) const;
-            virtual void                to_json( nlohmann::json &data ) const;
+            std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > > m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
         };
     } // namespace Clang
 
@@ -1070,622 +1184,19 @@ namespace data
     inline Ptr< SymbolTable::Symbol >         to_base( const Ptr< SymbolTable::Symbol > &from ) { return from; }
     inline Ptr< SymbolTable::SymbolSet >      to_base( const Ptr< SymbolTable::SymbolSet > &from ) { return from; }
     inline Ptr< SymbolTable::SymbolTable >    to_base( const Ptr< SymbolTable::SymbolTable > &from ) { return from; }
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::ArgumentListTrait >, Ptr< AST::ArgumentList > >
+
+    template < typename TVariant > inline TVariant to_upper( TVariant &from )
     {
-        inline TVariant operator()( Ptr< AST::ArgumentList > &from ) const
+        TVariant up_most = from;
+        for( ;; )
         {
-            if( Tree::ArgumentListTrait *p1 = dynamic_cast< Tree::ArgumentListTrait * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::ArgumentListTrait >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ArgumentList >( from, from );
-            }
+            TVariant up_most_next = std::visit( []( auto &&arg ) -> TVariant { return arg->m_inheritance; }, up_most );
+            if( up_most_next == up_most )
+                break;
+            up_most = up_most_next;
         }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::ReturnTypeTrait >, Ptr< AST::ReturnType > >
-    {
-        inline TVariant operator()( Ptr< AST::ReturnType > &from ) const
-        {
-            if( Tree::ReturnTypeTrait *p1 = dynamic_cast< Tree::ReturnTypeTrait * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::ReturnTypeTrait >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ReturnType >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::InheritanceTrait >, Ptr< AST::Inheritance > >
-    {
-        inline TVariant operator()( Ptr< AST::Inheritance > &from ) const
-        {
-            if( Tree::InheritanceTrait *p1 = dynamic_cast< Tree::InheritanceTrait * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::InheritanceTrait >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::Inheritance >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::SizeTrait >, Ptr< AST::Size > >
-    {
-        inline TVariant operator()( Ptr< AST::Size > &from ) const
-        {
-            if( Tree::SizeTrait *p1 = dynamic_cast< Tree::SizeTrait * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::SizeTrait >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::Size >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::DimensionTrait >, Ptr< AST::Dimension > >
-    {
-        inline TVariant operator()( Ptr< AST::Dimension > &from ) const
-        {
-            if( Tree::DimensionTrait *p1 = dynamic_cast< Tree::DimensionTrait * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::DimensionTrait >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::Dimension >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Clang::Dimension >, Ptr< AST::Dimension > >
-    {
-        inline TVariant operator()( Ptr< AST::Dimension > &from ) const
-        {
-            if( Tree::DimensionTrait *p1 = dynamic_cast< Tree::DimensionTrait * >( from->m_pInheritance ) )
-            {
-                if( Clang::Dimension *p2 = dynamic_cast< Clang::Dimension * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< Clang::Dimension >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< Tree::DimensionTrait >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< AST::Dimension >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::SystemInclude >, Ptr< AST::Include > >
-    {
-        inline TVariant operator()( Ptr< AST::Include > &from ) const
-        {
-            if( AST::SystemInclude *p1 = dynamic_cast< AST::SystemInclude * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::SystemInclude >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::Include >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::MegaInclude >, Ptr< AST::Include > >
-    {
-        inline TVariant operator()( Ptr< AST::Include > &from ) const
-        {
-            if( AST::MegaInclude *p1 = dynamic_cast< AST::MegaInclude * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::MegaInclude >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::Include >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::MegaIncludeInline >, Ptr< AST::Include > >
-    {
-        inline TVariant operator()( Ptr< AST::Include > &from ) const
-        {
-            if( AST::MegaInclude *p1 = dynamic_cast< AST::MegaInclude * >( from->m_pInheritance ) )
-            {
-                if( AST::MegaIncludeInline *p2 = dynamic_cast< AST::MegaIncludeInline * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< AST::MegaIncludeInline >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< AST::MegaInclude >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< AST::Include >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::MegaIncludeNested >, Ptr< AST::Include > >
-    {
-        inline TVariant operator()( Ptr< AST::Include > &from ) const
-        {
-            if( AST::MegaInclude *p1 = dynamic_cast< AST::MegaInclude * >( from->m_pInheritance ) )
-            {
-                if( AST::MegaIncludeNested *p2 = dynamic_cast< AST::MegaIncludeNested * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< AST::MegaIncludeNested >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< AST::MegaInclude >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< AST::Include >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::CPPInclude >, Ptr< AST::Include > >
-    {
-        inline TVariant operator()( Ptr< AST::Include > &from ) const
-        {
-            if( AST::CPPInclude *p1 = dynamic_cast< AST::CPPInclude * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::CPPInclude >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::Include >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::MegaIncludeInline >, Ptr< AST::MegaInclude > >
-    {
-        inline TVariant operator()( Ptr< AST::MegaInclude > &from ) const
-        {
-            if( AST::MegaIncludeInline *p1 = dynamic_cast< AST::MegaIncludeInline * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::MegaIncludeInline >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::MegaInclude >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::MegaIncludeNested >, Ptr< AST::MegaInclude > >
-    {
-        inline TVariant operator()( Ptr< AST::MegaInclude > &from ) const
-        {
-            if( AST::MegaIncludeNested *p1 = dynamic_cast< AST::MegaIncludeNested * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::MegaIncludeNested >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::MegaInclude >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::NamespaceDef >, Ptr< AST::ContextDef > >
-    {
-        inline TVariant operator()( Ptr< AST::ContextDef > &from ) const
-        {
-            if( AST::NamespaceDef *p1 = dynamic_cast< AST::NamespaceDef * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::NamespaceDef >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ContextDef >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::AbstractDef >, Ptr< AST::ContextDef > >
-    {
-        inline TVariant operator()( Ptr< AST::ContextDef > &from ) const
-        {
-            if( AST::AbstractDef *p1 = dynamic_cast< AST::AbstractDef * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::AbstractDef >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ContextDef >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::ActionDef >, Ptr< AST::ContextDef > >
-    {
-        inline TVariant operator()( Ptr< AST::ContextDef > &from ) const
-        {
-            if( AST::ActionDef *p1 = dynamic_cast< AST::ActionDef * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::ActionDef >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ContextDef >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::EventDef >, Ptr< AST::ContextDef > >
-    {
-        inline TVariant operator()( Ptr< AST::ContextDef > &from ) const
-        {
-            if( AST::EventDef *p1 = dynamic_cast< AST::EventDef * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::EventDef >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ContextDef >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::FunctionDef >, Ptr< AST::ContextDef > >
-    {
-        inline TVariant operator()( Ptr< AST::ContextDef > &from ) const
-        {
-            if( AST::FunctionDef *p1 = dynamic_cast< AST::FunctionDef * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::FunctionDef >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ContextDef >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::ObjectDef >, Ptr< AST::ContextDef > >
-    {
-        inline TVariant operator()( Ptr< AST::ContextDef > &from ) const
-        {
-            if( AST::ObjectDef *p1 = dynamic_cast< AST::ObjectDef * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::ObjectDef >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ContextDef >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::LinkDef >, Ptr< AST::ContextDef > >
-    {
-        inline TVariant operator()( Ptr< AST::ContextDef > &from ) const
-        {
-            if( AST::LinkDef *p1 = dynamic_cast< AST::LinkDef * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::LinkDef >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::ContextDef >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::IncludeRoot >, Ptr< AST::SourceRoot > >
-    {
-        inline TVariant operator()( Ptr< AST::SourceRoot > &from ) const
-        {
-            if( AST::IncludeRoot *p1 = dynamic_cast< AST::IncludeRoot * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::IncludeRoot >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::SourceRoot >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< AST::ObjectSourceRoot >, Ptr< AST::SourceRoot > >
-    {
-        inline TVariant operator()( Ptr< AST::SourceRoot > &from ) const
-        {
-            if( AST::ObjectSourceRoot *p1 = dynamic_cast< AST::ObjectSourceRoot * >( from->m_pInheritance ) )
-            {
-                return Ptr< AST::ObjectSourceRoot >( from, p1 );
-            }
-            else
-            {
-                return Ptr< AST::SourceRoot >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Clang::Dimension >, Ptr< Tree::DimensionTrait > >
-    {
-        inline TVariant operator()( Ptr< Tree::DimensionTrait > &from ) const
-        {
-            if( Clang::Dimension *p1 = dynamic_cast< Clang::Dimension * >( from->m_pInheritance ) )
-            {
-                return Ptr< Clang::Dimension >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::DimensionTrait >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Root >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Root *p1 = dynamic_cast< Tree::Root * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Root >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Context >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Context *p1 = dynamic_cast< Tree::Context * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Context >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Namespace >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Context *p1 = dynamic_cast< Tree::Context * >( from->m_pInheritance ) )
-            {
-                if( Tree::Namespace *p2 = dynamic_cast< Tree::Namespace * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< Tree::Namespace >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< Tree::Context >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Abstract >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Context *p1 = dynamic_cast< Tree::Context * >( from->m_pInheritance ) )
-            {
-                if( Tree::Abstract *p2 = dynamic_cast< Tree::Abstract * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< Tree::Abstract >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< Tree::Context >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Action >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Context *p1 = dynamic_cast< Tree::Context * >( from->m_pInheritance ) )
-            {
-                if( Tree::Action *p2 = dynamic_cast< Tree::Action * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< Tree::Action >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< Tree::Context >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Event >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Context *p1 = dynamic_cast< Tree::Context * >( from->m_pInheritance ) )
-            {
-                if( Tree::Event *p2 = dynamic_cast< Tree::Event * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< Tree::Event >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< Tree::Context >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Function >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Context *p1 = dynamic_cast< Tree::Context * >( from->m_pInheritance ) )
-            {
-                if( Tree::Function *p2 = dynamic_cast< Tree::Function * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< Tree::Function >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< Tree::Context >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Object >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Context *p1 = dynamic_cast< Tree::Context * >( from->m_pInheritance ) )
-            {
-                if( Tree::Object *p2 = dynamic_cast< Tree::Object * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< Tree::Object >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< Tree::Context >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Link >, Ptr< Tree::ContextGroup > >
-    {
-        inline TVariant operator()( Ptr< Tree::ContextGroup > &from ) const
-        {
-            if( Tree::Context *p1 = dynamic_cast< Tree::Context * >( from->m_pInheritance ) )
-            {
-                if( Tree::Link *p2 = dynamic_cast< Tree::Link * >( p1->m_pInheritance ) )
-                {
-                    return Ptr< Tree::Link >( from, p2 );
-                }
-                else
-                {
-                    return Ptr< Tree::Context >( from, p1 );
-                }
-            }
-            else
-            {
-                return Ptr< Tree::ContextGroup >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Namespace >, Ptr< Tree::Context > >
-    {
-        inline TVariant operator()( Ptr< Tree::Context > &from ) const
-        {
-            if( Tree::Namespace *p1 = dynamic_cast< Tree::Namespace * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Namespace >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::Context >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Abstract >, Ptr< Tree::Context > >
-    {
-        inline TVariant operator()( Ptr< Tree::Context > &from ) const
-        {
-            if( Tree::Abstract *p1 = dynamic_cast< Tree::Abstract * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Abstract >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::Context >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Action >, Ptr< Tree::Context > >
-    {
-        inline TVariant operator()( Ptr< Tree::Context > &from ) const
-        {
-            if( Tree::Action *p1 = dynamic_cast< Tree::Action * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Action >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::Context >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Event >, Ptr< Tree::Context > >
-    {
-        inline TVariant operator()( Ptr< Tree::Context > &from ) const
-        {
-            if( Tree::Event *p1 = dynamic_cast< Tree::Event * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Event >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::Context >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Function >, Ptr< Tree::Context > >
-    {
-        inline TVariant operator()( Ptr< Tree::Context > &from ) const
-        {
-            if( Tree::Function *p1 = dynamic_cast< Tree::Function * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Function >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::Context >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Object >, Ptr< Tree::Context > >
-    {
-        inline TVariant operator()( Ptr< Tree::Context > &from ) const
-        {
-            if( Tree::Object *p1 = dynamic_cast< Tree::Object * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Object >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::Context >( from, from );
-            }
-        }
-    };
-    template < typename TVariant > struct UpCast< TVariant, Ptr< Tree::Link >, Ptr< Tree::Context > >
-    {
-        inline TVariant operator()( Ptr< Tree::Context > &from ) const
-        {
-            if( Tree::Link *p1 = dynamic_cast< Tree::Link * >( from->m_pInheritance ) )
-            {
-                return Ptr< Tree::Link >( from, p1 );
-            }
-            else
-            {
-                return Ptr< Tree::Context >( from, from );
-            }
-        }
-    };
+        return up_most;
+    }
 
     class Factory
     {

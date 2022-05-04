@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 namespace db
 {
@@ -35,6 +36,13 @@ class CountedObjectComparator
 {
 public:
     bool operator()( T left, T right ) const { return left->getCounter() < right->getCounter(); }
+};
+
+template < typename T >
+class CountedObjectComparatorWeak
+{
+public:
+    bool operator()( T left, T right ) const { return left.lock()->getCounter() < right.lock()->getCounter(); }
 };
 
 ///////////////////////////////////////////////////
@@ -163,7 +171,13 @@ public:
     {
     }
     using Ptr = std::shared_ptr< Object >;
+    using WeakPtr = std::weak_ptr< Object >;
 
+    using WeakObjectPtrSet = std::set< WeakPtr, CountedObjectComparatorWeak< Object::WeakPtr > >;
+    using WeakObjectPtrSetPtr = std::shared_ptr< WeakObjectPtrSet >;
+    WeakObjectPtrSetPtr m_pInheritanceGroup;
+
+    std::string inheritanceGroupVariant() const;
     std::string delimitTypeName( const std::string& str ) const;
 
     std::string                m_strName;
@@ -358,6 +372,8 @@ public:
     }
     using Ptr = std::shared_ptr< SuperType >;
 
+    Object::Ptr m_base_object;
+
     std::weak_ptr< Stage >        m_stage;
     std::vector< Interface::Ptr > m_interfaces;
 
@@ -453,13 +469,19 @@ public:
             dependencies.push_back( pThis );
     }
 
-    Interface::Ptr getInterface( Object::Ptr pObject ) const
+    Interface::Ptr isInterface( Object::Ptr pObject ) const
     {
         for ( Interface::Ptr pInterface : m_interfaceTopological )
         {
             if ( pInterface->m_object.lock() == pObject )
                 return pInterface;
         }
+        return Interface::Ptr();
+    }
+    Interface::Ptr getInterface( Object::Ptr pObject ) const
+    {
+        if( Interface::Ptr pInterface = isInterface( pObject ) )
+            return pInterface;
         THROW_RTE( "Failed to locate interface for object: " << pObject->delimitTypeName( "::" )
                                                              << " in stage: " << m_strName );
     }

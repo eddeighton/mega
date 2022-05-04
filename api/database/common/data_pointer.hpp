@@ -92,6 +92,7 @@ namespace data
         inline T* operator->() const { return get(); }
 
         inline bool operator<( const Ptr& cmp ) const { return m_objectInfo < cmp.m_objectInfo; }
+        inline bool operator==( const Ptr& cmp ) const { return m_objectInfo == cmp.m_objectInfo; }
 
         const mega::io::ObjectInfo& getObjectInfo() const { return m_objectInfo; }
 

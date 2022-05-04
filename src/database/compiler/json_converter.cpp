@@ -297,9 +297,8 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
         {
             for ( model::ObjectPart::Ptr pPart : pFile->m_parts )
             {
-                model::SuperType::Ptr pSuper
-                    = pStage->getInterface( pPart->m_object.lock() )->m_superInterface.lock();
-                nlohmann::json conversion
+                model::SuperType::Ptr pSuper = pStage->getInterface( pPart->m_object.lock() )->m_superInterface.lock();
+                nlohmann::json        conversion
                     = nlohmann::json::object( { { "type_id", pPart->m_typeID },
                                                 { "supertype", pSuper->getTypeName() },
                                                 { "file", pFile->m_strName },
@@ -311,7 +310,7 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
     for ( model::Interface::Ptr pInterface : pStage->m_interfaceTopological )
     {
         model::PrimaryObjectPart::Ptr pPart  = pInterface->getPrimaryObjectPart();
-        model::SuperType::Ptr    pSuper = pInterface->m_superInterface.lock();
+        model::SuperType::Ptr         pSuper = pInterface->m_superInterface.lock();
         nlohmann::json                conversion
             = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
                                         { "file", pPart->m_file.lock()->m_strName },
@@ -543,7 +542,7 @@ void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
         std::ostringstream os;
         os << "construct_" << pConstructor->m_interface->delimitTypeName( pStage->m_strName, "_" );
 
-        model::Interface::Ptr      pInterface      = pConstructor->m_interface;
+        model::Interface::Ptr pInterface      = pConstructor->m_interface;
         model::SuperType::Ptr pSuperInterface = pInterface->m_superInterface.lock();
 
         const bool bIsReconstructor = !pInterface->ownsPrimaryObjectPart();
@@ -572,7 +571,7 @@ void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
                                                 { "is_primary_part_base", false } } );
 
                 base[ "primary_part" ] = writeCtorPart( pStage, pBase->getPrimaryObjectPart(), false );
-                if( pBase->m_base )
+                if ( pBase->m_base )
                 {
                     base[ "is_primary_part_base" ] = true;
                     base[ "primary_part_base" ] = writeCtorPart( pStage, pBase->m_base->getPrimaryObjectPart(), false );
@@ -912,48 +911,55 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
     {
         const std::string strSuperTypeName = pSuperType->getTypeName();
 
-        nlohmann::json stype = nlohmann::json::object( { { "name", strSuperTypeName },
-                                                         { "interfaces", nlohmann::json::array() },
-                                                         { "functions", nlohmann::json::array() } } );
+        nlohmann::json stype
+            = nlohmann::json::object( { { "name", strSuperTypeName },
+                                        { "interfaces", nlohmann::json::array() },
+                                        { "variant_type", pSuperType->m_base_object->inheritanceGroupVariant() },
+                                        { "functions", nlohmann::json::array() } } );
 
-        for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
         {
-            model::ObjectPart::Ptr pPrimaryObjectPart = pInterface->m_object.lock()->m_primaryObjectPart;
-
-            nlohmann::json interface = nlohmann::json::object(
-                { { "name", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
-                  { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
-                  { "part", pPrimaryObjectPart->getDataType( "::" ) },
-                  { "casts", nlohmann::json::array() } } );
-
-            for ( model::Interface::Ptr pOtherInterfaces : pSuperType->m_interfaces )
+            std::set< model::Object::Ptr, model::CountedObjectComparator< model::Object::Ptr > > objects;
+            for ( model::Object::WeakPtr pObject : *pSuperType->m_base_object->m_pInheritanceGroup )
             {
-                model::ObjectPart::Ptr pOtherPrimaryObjectPart = pOtherInterfaces->m_object.lock()->m_primaryObjectPart;
-
-                bool bCastOK = false;
-
-                model::Interface::Ptr pIter = pOtherInterfaces;
-                while ( pIter )
-                {
-                    if ( pIter == pInterface )
-                    {
-                        bCastOK = true;
-                        break;
-                    }
-                    pIter = pIter->m_base;
-                }
-
-                nlohmann::json cast = nlohmann::json::object(
-                    { { "type", pOtherPrimaryObjectPart->getDataType( "::" ) }, { "truth", bCastOK } } );
-                interface[ "casts" ].push_back( cast );
+                objects.insert( pObject.lock() );
             }
-            stype[ "interfaces" ].push_back( interface );
+            for ( model::Object::Ptr pObject : objects )
+            {
+                model::ObjectPart::Ptr pPrimaryObjectPart = pObject->m_primaryObjectPart;
+                if( model::Interface::Ptr pInterface = pStage->isInterface( pObject ) )
+                {
+                    nlohmann::json interface = nlohmann::json::object(
+                        { { "name", pObject->delimitTypeName( "::" ) },
+                        { "fullname", pObject->delimitTypeName( "_" ) },
+                        { "part", pPrimaryObjectPart->getDataType( "::" ) },
+                        { "casts", nlohmann::json::array() } } );
+
+                    for ( model::Object::Ptr pOtherObjects : objects )
+                    {
+                        bool bCastOK = false;
+                        model::Object::Ptr pIter = pOtherObjects;
+                        while ( pIter )
+                        {
+                            if ( pIter == pObject )
+                            {
+                                bCastOK = true;
+                                break;
+                            }
+                            pIter = pIter->m_base;
+                        }
+                        nlohmann::json cast = nlohmann::json::object(
+                            { { "type", pOtherObjects->m_primaryObjectPart->getDataType( "::" ) }, { "truth", bCastOK } } );
+                        interface[ "casts" ].push_back( cast );
+                    }
+                    stype[ "interfaces" ].push_back( interface );
+                }
+            }
         }
 
         // the functions on the super type are groups by their mangled function name
         // TODO: ignore return type and insead check returns types are the same
         for ( model::SuperType::FunctionMultiMap::iterator iLower = pSuperType->m_functions.begin(),
-                                                                iEnd   = pSuperType->m_functions.end();
+                                                           iEnd   = pSuperType->m_functions.end();
               iLower != iEnd; )
         {
             // nlohmann::json function = writeFunction( pFunction );
@@ -967,15 +973,15 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
                   { "params", pFunction->getParams( pStage->m_strName ) },
                   { "body", writeFunctionBody( pStage, pFunction ) } } );
 
-            std::set< model::Interface::Ptr, model::CountedObjectComparator< model::Interface::Ptr > > remaining;
-            using InterfaceFunctionMap = std::map< model::Interface::Ptr,
-                                                   model::Function::Ptr,
-                                                   model::CountedObjectComparator< model::Interface::Ptr > >;
+            std::set< model::Object::Ptr, model::CountedObjectComparator< model::Object::Ptr > > remaining;
+
+            using InterfaceFunctionMap = std::
+                map< model::Object::Ptr, model::Function::Ptr, model::CountedObjectComparator< model::Object::Ptr > >;
             InterfaceFunctionMap implemented;
             {
-                for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
+                for ( model::Object::WeakPtr pObject : *pSuperType->m_base_object->m_pInheritanceGroup )
                 {
-                    remaining.insert( pInterface );
+                    remaining.insert( pObject.lock() );
                 }
             }
 
@@ -988,9 +994,10 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
             {
                 model::Function::Ptr  pFunctionVariant = iLower->second;
                 model::Interface::Ptr pInterface       = pFunctionVariant->m_interface.lock();
+                model::Object::Ptr    pObject          = pInterface->m_object.lock();
                 VERIFY_RTE( pInterface );
-                remaining.erase( pInterface );
-                implemented.insert( std::make_pair( pInterface, pFunctionVariant ) );
+                remaining.erase( pObject );
+                implemented.insert( std::make_pair( pObject, pFunctionVariant ) );
 
                 nlohmann::json variant = nlohmann::json::object(
                     { { "matched", true },
@@ -1000,14 +1007,15 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
             }
             // so from the remaining interfaces in the super type either the
             // interface inherits the function or it doesnt
-            for ( model::Interface::Ptr pInterface : remaining )
+            for ( model::Object::Ptr pObject : remaining )
             {
-                // see if the interface inherited from one that implemented the function
+                // model::Interface::Ptr pInterface = pStage->getInterface( pObject );
+                //  see if the interface inherited from one that implemented the function
                 model::Function::Ptr pFunctionVariant;
 
-                if ( pInterface->m_base )
+                if ( pObject->m_base )
                 {
-                    model::Interface::Ptr pBase = pInterface->m_base;
+                    model::Object::Ptr pBase = pObject->m_base;
                     while ( pBase )
                     {
                         InterfaceFunctionMap::iterator iFind = implemented.find( pBase );
@@ -1024,7 +1032,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
                 {
                     nlohmann::json variant = nlohmann::json::object(
                         { { "matched", true },
-                          { "primaryobjectpart", pInterface->getPrimaryObjectPart()->getDataType( "::" ) },
+                          { "primaryobjectpart", pObject->m_primaryObjectPart->getDataType( "::" ) },
                           { "dataobjectpart",
                             pFunctionVariant->m_property->m_objectPart.lock()->getDataType( "::" ) } } );
                     function[ "variants" ].push_back( variant );
@@ -1033,7 +1041,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
                 {
                     nlohmann::json variant = nlohmann::json::object(
                         { { "matched", false },
-                          { "primaryobjectpart", pInterface->getPrimaryObjectPart()->getDataType( "::" ) },
+                          { "primaryobjectpart", pObject->m_primaryObjectPart->getDataType( "::" ) },
                           { "dataobjectpart", "" } } );
                     function[ "variants" ].push_back( variant );
                 }
@@ -1122,18 +1130,23 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
 
             VERIFY_RTE( pObject->m_primaryObjectPart );
 
-            nlohmann::json part = nlohmann::json::object( { { "name", pObject->m_strName },
-                                                            { "typeID", pPart->m_typeID },
-                                                            { "has_base", false },
-                                                            { "data_pointers", nlohmann::json::array() },
-                                                            { "raw_pointers", nlohmann::json::array() },
-                                                            { "properties", nlohmann::json::array() },
-                                                            { "initialisations", nlohmann::json::array() } } );
+            nlohmann::json part
+                = nlohmann::json::object( { { "name", pObject->m_strName },
+                                            { "typeID", pPart->m_typeID },
+                                            { "has_base", false },
+                                            { "has_inheritance", false },
+                                            { "inheritance_variant", pObject->inheritanceGroupVariant() },
+                                            { "data_pointers", nlohmann::json::array() },
+                                            { "raw_pointers", nlohmann::json::array() },
+                                            { "properties", nlohmann::json::array() },
+                                            { "initialisations", nlohmann::json::array() } } );
 
             if ( model::PrimaryObjectPart::Ptr pPrimaryObjectPart
                  = std::dynamic_pointer_cast< model::PrimaryObjectPart >( pPart ) )
             {
                 VERIFY_RTE( pObject->m_primaryObjectPart == pPrimaryObjectPart );
+
+                part[ "has_inheritance" ] = true;
 
                 for ( model::ObjectPart::Ptr pSecondaryPart : pObject->m_secondaryParts )
                 {
@@ -1168,10 +1181,15 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
                                                     { "typename", pBasePrimaryObjectPart->getDataType( "::" ) },
                                                     { "no_ctor_arg", true } } );
                     part[ "data_pointers" ].push_back( pointer );
-                    part[ "has_base" ]             = true;
-                    part[ "base" ]                 = pBasePrimaryObjectPart->getPointerName();
-                    part[ "inheritance_ptr" ]      = "m_pInheritance";
-                    part[ "inheritance_ptr_init" ] = "this";
+                    part[ "has_base" ]        = true;
+                    part[ "base" ]            = pBasePrimaryObjectPart->getPointerName();
+                    part[ "inheritance_ptr" ] = "m_inheritance";
+                    {
+                        std::ostringstream os;
+                        os << "Ptr< " << pPrimaryObjectPart->getDataType( "::" ) << " >( "
+                           << pBasePrimaryObjectPart->getPointerName() << ", this )";
+                        part[ "inheritance_ptr_init" ] = os.str();
+                    }
                 }
             }
             else if ( model::InheritedObjectPart::Ptr pSecondaryObjectPart
