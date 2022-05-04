@@ -311,6 +311,8 @@ void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} 
 {% if variant.matched %}
             data::Ptr< data::{{ variant.dataobjectpart }} > part = 
                 data::convert< data::{{ variant.dataobjectpart }} >( data );
+            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                "Invalid data reference in: {{ function.name }}" );
             return part->{{ function.property }};
 {% else %}
             THROW_RTE( "Invalid function call" );
@@ -387,10 +389,10 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                 pFile = m_pFile_{{ many_accessor.file }};
             else
                 pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                    m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+                    m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
 {% else %}
             pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+                m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
 {% endif %}
             for( mega::io::Object* pObject : pFile->range() )
             {
@@ -432,61 +434,82 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
         using SuperType = {{ constructor.super_type_name }};
         SuperType* pSuper = nullptr;
         Database::Pimpl& database = *this;
-
 {% for base in constructor.bases %}
-{% if not loop.is_first %}
-        struct Visitor
-        {
-            Database::Pimpl& database;
-            SuperType*& pSuper;
-            Visitor( Database::Pimpl& database, SuperType*& pSuper )
-                :   database( database ),
-                    pSuper( pSuper )
-            {}
-
-            data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( {{ base.typename }}* pExisting ) const
+    {% if ( not loop.is_first ) or ( constructor.reconstructor ) %}
+            // Ed was here
+            struct Visitor
             {
-                pSuper = dynamic_cast< SuperType* >( pExisting );
-                VERIFY_RTE( pSuper );
-                return data::convert< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >( pSuper->m_data );
-            }
-{% if base.owns_primary_part %}
-            data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( const {{ base.typename }}::Args& arguments ) const
-            {
-{% endif %}{# base.owns_primary_part #}
-{% endif %}
-{% if base.owns_primary_part %}
-        // primary part: {{ base.typename }}
-{% for arg in base.primary_part.args %}
-        VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
-{% endfor %}{# arg in base.primary_part.args #}
-        data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
-            database.m_pFile_{{ base.primary_part.file }}->construct< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >
-                ({% for arg in base.primary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
+                Database::Pimpl& database;
+                SuperType*& pSuper;
+                Visitor( Database::Pimpl& database, SuperType*& pSuper )
+                    :   database( database ),
+                        pSuper( pSuper )
+                {}
+        {% if not constructor.reconstructor %}
+                    data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( {{ base.typename }}* pExisting ) const
+                    {
+                        pSuper = dynamic_cast< SuperType* >( pExisting );
+                        VERIFY_RTE( pSuper );
+                        auto ptr = data::convert< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >( pSuper->m_data );
+                        VERIFY_RTE_MSG( !ptr->m_pInheritance, "Object already derived from: {{ base.typename }} while constructing type: {{ constructor.return_type }}" );
+                        return ptr;
+                    }
+        {% endif %}
+        {% if base.owns_primary_part or ( constructor.reconstructor ) %}
+                    data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > operator()( const {{ base.typename }}::Args& arguments ) const
+                    {
+        {% endif %}{# base.owns_primary_part #}
+    {% endif %}{# not loop.is_first or ( constructor.reconstructor ) #}
+    {% if base.owns_primary_part or ( constructor.reconstructor ) %}
+            // primary part: {{ base.typename }}
+        {% if constructor.reconstructor %}
+            data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart = toData( database, std::visit( []( auto&& arg ) -> 
+                {{ base.typename }}* { return arg; }, arguments.base.value() ) );
+        {% endif %}
+        {% if not constructor.reconstructor %}
+            {% for arg in base.primary_part.args %}
+            {% if arg.validation %}
+                VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
+            {% endif %}
+            {% endfor %}{# arg in base.primary_part.args #}
+                data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
+                    database.m_pFile_{{ base.primary_part.file }}->construct< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} >
+                        ({% for arg in base.primary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
+        {% endif %}
+        {% for secondary_part in base.parts %}
+            {% for arg in secondary_part.args %}
+            {% if arg.validation %}
+                VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
+            {% endif %}
+            {% endfor %}{# secondary_part in base.parts #}
+                // secondary part: {{ secondary_part.file }} :: {{ secondary_part.object }}
+                VERIFY_RTE_MSG( pPrimaryObjectPart->p_{{ secondary_part.file }}_{{ secondary_part.object }}.getObjectInfo().getIndex() == mega::io::ObjectInfo::NO_INDEX,
+                    "Object has already been {% if constructor.reconstructor %}reconstructed{% else %}constructed{% endif %}: {{ base.typename }}" );
+                pPrimaryObjectPart->p_{{ secondary_part.file }}_{{ secondary_part.object }} =
+                    database.m_pFile_{{ secondary_part.file }}->construct< data::{{ secondary_part.file }}::{{ secondary_part.object }} >
+                        ({% for arg in secondary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
 
-{% for secondary_part in base.parts %}
-{% for arg in secondary_part.args %}
-        VERIFY_RTE_MSG( {{ arg.validation }}, {{ arg.errormsg }} );
-{% endfor %}{# secondary_part in base.parts #}
-        // secondary part: {{ secondary_part.file }} :: {{ secondary_part.object }}
-        pPrimaryObjectPart->p_{{ secondary_part.file }}_{{ secondary_part.object }} =
-            database.m_pFile_{{ secondary_part.file }}->construct< data::{{ secondary_part.file }}::{{ secondary_part.object }} >
-                ({% for arg in secondary_part.args %}{{ arg.expression }}{% if not loop.is_last %}, {% endif %}{% endfor %});
-
-{% endfor %}{# base.parts #}
-{% endif %}{# base.owns_primary_part #}
+        {% endfor %}{# base.parts #}
+    {% endif %}{# base.owns_primary_part  or ( constructor.reconstructor ) #}
 {% endfor %}{# constructor.bases #}
 {% for base in constructor.bases_reverse%}
-{% if not loop.is_last %}
-{% if base.owns_primary_part %}
-                return pPrimaryObjectPart;
-            }
-{% endif %}{# base.owns_primary_part #}
-        } visitor( database, pSuper );
+    {% if ( not loop.is_last ) or ( constructor.reconstructor ) %}
+        {% if base.owns_primary_part or ( constructor.reconstructor ) %}
+                        return pPrimaryObjectPart;
+                    }
+        {% endif %}{# base.owns_primary_part #}
+                } visitor( database, pSuper );
 
-        pPrimaryObjectPart->p_{{ base.primary_part.file }}_{{ base.primary_part.object }} =
-            std::visit( visitor, arguments.base.value() );
-{% endif %}
+        {% if constructor.reconstructor %}
+                data::Ptr< data::{{ base.primary_part.file }}::{{ base.primary_part.object }} > pPrimaryObjectPart =
+                    visitor( arguments );
+        {% endif %}
+        {% if not constructor.reconstructor %}
+                pPrimaryObjectPart->p_{{ base.primary_part.file }}_{{ base.primary_part.object }} =
+                    std::visit( visitor, arguments.base.value() );
+                pPrimaryObjectPart->set_inheritance_pointer();
+        {% endif %} {#constructor.reconstructor#}
+    {% endif %} {# ( not loop.is_last ) or ( constructor.reconstructor ) #}
 {% endfor %}{# constructor.bases #}
         if( pSuper == nullptr )
             pSuper = findOrConstruct< SuperType >( pPrimaryObjectPart );
@@ -518,7 +541,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
 
     void load()
     {
-        m_manifest.loadAll( m_environment, *this, m_readonlyFiles );
+        m_manifest.loadAll( m_environment, *this, m_readonlyFiles, mega::io::FileInfo::{{ stage.name }} );
     }
 
 {% for file in stage.readwrite_files %}
@@ -565,7 +588,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                 else
                 {
                     pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                        m_readonlyFiles, objectInfo.getFileID() );
+                        m_readonlyFiles, mega::io::FileInfo::{{ stage.name }}, objectInfo.getFileID() );
                 }
             }
         }

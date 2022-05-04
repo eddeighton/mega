@@ -25,6 +25,8 @@ set( BASIC_DATABASE_GENERATED_HEADERS
 
     ${BASIC_DIR}/database/model/BasicStage.hxx
     ${BASIC_DIR}/database/model/SecondStage.hxx
+    ${BASIC_DIR}/database/model/ThirdStage.hxx
+    ${BASIC_DIR}/database/model/FourthStage.hxx
 	)
 
 set( BASIC_DATABASE_GENERATED_SOURCES
@@ -36,6 +38,8 @@ set( BASIC_DATABASE_GENERATED_SOURCES
 
     ${BASIC_DIR}/database/model/BasicStage.cxx
     ${BASIC_DIR}/database/model/SecondStage.cxx
+    ${BASIC_DIR}/database/model/ThirdStage.cxx
+    ${BASIC_DIR}/database/model/FourthStage.cxx
 )
 
 set( DATABASE_SCHEMAS 
@@ -51,6 +55,8 @@ set( COMPILER_BYPRODUCTS
     ${BASIC_DIR}/database/data/stages.json
     ${BASIC_DIR}/database/data/BasicStage.json
     ${BASIC_DIR}/database/data/SecondStage.json
+    ${BASIC_DIR}/database/data/ThirdStage.json
+    ${BASIC_DIR}/database/data/FourthStage.json
     )
 
 set( TEMPLATES 

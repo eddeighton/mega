@@ -106,9 +106,8 @@ public:
     {
     }
 
-    std::weak_ptr< Object > m_object;
-    std::weak_ptr< File >   m_file;
-
+    std::weak_ptr< Object >      m_object;
+    std::weak_ptr< File >        m_file;
     std::vector< Property::Ptr > m_properties;
     std::size_t                  m_typeID;
 
@@ -134,6 +133,26 @@ public:
     {
     }
     using Ptr = std::shared_ptr< SecondaryObjectPart >;
+};
+
+class InheritedObjectPart : public SecondaryObjectPart
+{
+public:
+    InheritedObjectPart( std::size_t& szCounter )
+        : SecondaryObjectPart( szCounter )
+    {
+    }
+    using Ptr = std::shared_ptr< InheritedObjectPart >;
+};
+
+class AggregatedObjectPart : public SecondaryObjectPart
+{
+public:
+    AggregatedObjectPart( std::size_t& szCounter )
+        : SecondaryObjectPart( szCounter )
+    {
+    }
+    using Ptr = std::shared_ptr< AggregatedObjectPart >;
 };
 
 class Object : public CountedObject
@@ -316,6 +335,18 @@ public:
         }
         return false;
     }
+
+    inline bool ownsInheritedSecondaryObjectPart() const
+    {
+        for ( model::ObjectPart::Ptr pPart : m_readWriteObjectParts )
+        {
+            if( std::dynamic_pointer_cast< InheritedObjectPart >( pPart ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 class SuperInterface : public CountedObject
@@ -429,7 +460,8 @@ public:
             if ( pInterface->m_object.lock() == pObject )
                 return pInterface;
         }
-        THROW_RTE( "Failed to locate interface for object: " << pObject->delimitTypeName( "::" ) << " in stage: " << m_strName );
+        THROW_RTE( "Failed to locate interface for object: " << pObject->delimitTypeName( "::" )
+                                                             << " in stage: " << m_strName );
     }
 };
 

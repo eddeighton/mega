@@ -31,8 +31,6 @@ add_library( database_compiler
                     ${MEGA_DATABASE_COMPILER}
 				)
 
-target_compile_definitions(database_compiler PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
-
 set_target_properties( database_compiler PROPERTIES FOLDER database_compiler )
 
 link_boost( database_compiler filesystem )

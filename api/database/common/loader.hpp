@@ -40,31 +40,32 @@
 
 namespace data
 {
-    class ObjectPartLoader;
+class ObjectPartLoader;
 }
 namespace mega
 {
-    namespace io
+namespace io
+{
+class Manifest;
+
+class Loader
+{
+public:
+    Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, const CompilationFilePath& filePath,
+            ::data::ObjectPartLoader& loader );
+
+    template < typename T >
+    void load( T& value )
     {
-        class Manifest;
+        m_archive& value;
+    }
 
-        class Loader
-        {
-        public:
-            Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader );
+private:
+    std::unique_ptr< std::istream > m_pFileStream;
+    boost::archive::MegaIArchive    m_archive;
+};
 
-            template < typename T >
-            void load( T& value )
-            {
-                m_archive& value;
-            }
-
-        private:
-            std::unique_ptr< std::istream > m_pFileStream;
-            boost::archive::MegaIArchive                   m_archive;
-        };
-
-    } // namespace io
+} // namespace io
 } // namespace mega
 
 #endif // LOADER_18_04_2019

@@ -12,8 +12,6 @@ include_directories( ${MEGA_SRC_DIR} )
 
 add_executable( database_compiler_driver ${MEGA_SRC_DIR}/database/compiler/main.cpp )
 
-target_compile_definitions(database_compiler_driver PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
-
 set_target_properties( database_compiler_driver PROPERTIES FOLDER database_compiler_driver )
 
 link_boost( database_compiler_driver filesystem )

@@ -1,45 +1,11 @@
 
-///////////////////////////////////////////
-///////////////////////////////////////////
-// Stages
-stage InterfaceStage
-{
-    source .mega;
-    dependency ParserStage;
 
-    file Tree;
-
-    persource accessor ref< Parser::ObjectSourceRoot >;
-
-    persource accessor array< ref< Interface::Namespace > >;
-    persource accessor array< ref< Interface::Abstract > >;
-    persource accessor array< ref< Interface::Action > >;
-    persource accessor array< ref< Interface::Event > >;
-    persource accessor array< ref< Interface::Function > >;
-    persource accessor array< ref< Interface::Object > >;
-    persource accessor array< ref< Interface::Link > >;
-}
-
-
-stage InterfaceAnalysisStage
-{
-    source .mega;
-    dependency SymbolAnalysisView;
-
-    file Clang;
-
-    persource accessor ref< Interface::Root >;
-    global accessor ref< Symbols::SymbolTable >;
-}
-
-///////////////////////////////////////////
-///////////////////////////////////////////
-// Objects
 namespace Interface
 {
     // context traits
     object DimensionTrait : Parser::Dimension -> InterfaceStage::Tree
     {
+        //value< std::size_t > symbol -> SymbolAnalysis::SymbolTable;
     }
 
     object Dimension : DimensionTrait -> InterfaceAnalysisStage::Clang
@@ -81,6 +47,7 @@ namespace Interface
     {
         value< std::string > identifier;
         ref< ContextGroup > parent;
+        //value< std::size_t > symbol -> SymbolAnalysis::SymbolTable;
     }
 
     // main context types

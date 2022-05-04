@@ -10,6 +10,7 @@
 #include "common/assert_verify.hpp"
 
 #include <variant>
+#include <type_traits>
 
 namespace data
 {
@@ -52,6 +53,14 @@ namespace data
             , m_objectInfo( pObjectPart->getObjectInfo() )
             , m_pObjectPart( pObjectPart )
         {
+        }
+
+        Ptr( T* pObjectPart )
+            : m_objectInfo( pObjectPart->getObjectInfo() )
+            , m_pObjectPart( pObjectPart )
+        {
+            VERIFY_RTE( m_pObjectPart );
+            VERIFY_RTE( m_pLoader );
         }
 
         Ptr( const Ptr& copy, const Ptr& copy2 )
@@ -116,6 +125,7 @@ namespace data
                 // load the object
                 VERIFY_RTE( m_pLoader );
                 m_pObjectPart = dynamic_cast< T* >( m_pLoader->load( m_objectInfo ) );
+                VERIFY_RTE( m_pObjectPart );
             }
             return m_pObjectPart;
         }
@@ -131,12 +141,17 @@ namespace data
         j = nlohmann::json{ { "type", objectInfo.getType() }, { "fileID", objectInfo.getFileID() }, { "index", objectInfo.getIndex() } };
     }
 
+
     template < typename TTo, typename TFrom >
     inline Ptr< TTo > convert( const Ptr< TFrom >& from )
     {
+        if constexpr( std::is_same< TTo, TFrom >::value )
+        {
+            return from;
+        }
         THROW_RTE( "Invalid conversion" );
     }
-
+    
     template < typename TTo, typename... TFromTypes >
     inline Ptr< TTo > convert( const std::variant< TFromTypes... >& from )
     {

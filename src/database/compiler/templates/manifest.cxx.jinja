@@ -116,10 +116,12 @@ namespace io
             case FileInfo::{{ stage.name }}_{{ file.name }}:
                 {
 {% for dependency in file.dependencies %}
-                    FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
-                        std::make_pair( FileInfo::{{ dependency.stage }}_{{ dependency.name }}, fileInfo.getObjectSourceFilePath() ) );
-                    VERIFY_RTE( iFind != m_fileTypeMap.end() );
-                    m_dependencies[ fileInfo.getFileID() ].push_back( iFind->second->getFileID() );
+                    {
+                        FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
+                            std::make_pair( FileInfo::{{ dependency.stage }}_{{ dependency.name }}, fileInfo.getObjectSourceFilePath() ) );
+                        VERIFY_RTE( iFind != m_fileTypeMap.end() );
+                        m_dependencies[ fileInfo.getFileID() ].push_back( iFind->second->getFileID() );
+                    }
 {% endfor %}
                 }
                 break;
@@ -134,7 +136,7 @@ namespace io
     }
 
     File::PtrCst Manifest::loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-        const SourceFilePath& sourceFile, FileInfo::Type fileType ) const
+        const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const
     {
         switch( fileType )
         {
@@ -146,7 +148,7 @@ namespace io
                         std::make_pair( FileInfo::{{ stage.name }}_{{ file.name }}, sourceFile ) );
                     VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), 
                         "Failed to locate compilation file of type: FileInfo::{{ stage.name }}_{{ file.name }} for source file: " << sourceFile.path().string() );
-                    return loadFile( environment, loader, readOnlyFiles, iFind->second->getFileID() );
+                    return loadFile( environment, loader, readOnlyFiles, stage, iFind->second->getFileID() );
                 }
                 break;
 {% endfor %}
@@ -157,14 +159,9 @@ namespace io
         }
     }
 
-    File::PtrCst Manifest::loadFileImpl( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-            ObjectInfo::FileID fileID , std::vector< File::Ptr >& loadedFiles ) const
+    File::PtrCst Manifest::loadFileImpl( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage, 
+            ObjectInfo::FileID fileID, std::vector< File::Ptr >& loadedFiles ) const
     {
-        for( ObjectInfo::FileID dependencyFileID : m_dependencies[ fileID ] )
-        {
-            loadFileImpl( environment, loader, readOnlyFiles, dependencyFileID, loadedFiles );
-        }
-
         FileMapCst::const_iterator iFind = readOnlyFiles.find( fileID );
         if( iFind != readOnlyFiles.end() )
             return iFind->second;
@@ -174,14 +171,23 @@ namespace io
         pLoadedFile->load( *this );
         readOnlyFiles.insert( std::make_pair( fileInfo.getFileID(), pLoadedFile ) );
         loadedFiles.push_back( pLoadedFile );
+
+        for( ObjectInfo::FileID dependencyFileID : m_dependencies[ fileID ] )
+        {
+            if( m_compilationFileInfos[ dependencyFileID ].getStage() < stage )
+            {
+                loadFileImpl( environment, loader, readOnlyFiles, stage, dependencyFileID, loadedFiles );
+            }
+        }
+
         return pLoadedFile;
     }
 
 
-    File::PtrCst Manifest::loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, ObjectInfo::FileID fileID ) const
+    File::PtrCst Manifest::loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage, ObjectInfo::FileID fileID ) const
     {
         std::vector< File::Ptr > loadedFiles;
-        File::PtrCst pResult = loadFileImpl( environment, loader, readOnlyFiles, fileID, loadedFiles );
+        File::PtrCst pResult = loadFileImpl( environment, loader, readOnlyFiles, stage, fileID, loadedFiles );
         for( File::Ptr pFile : loadedFiles )
         {
             pFile->load_post( *this );
@@ -189,12 +195,12 @@ namespace io
         return pResult;
     }
 
-    void Manifest::loadAll( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles ) const
+    void Manifest::loadAll( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage ) const
     {
         for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
             iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
         {
-            loadFile( environment, loader, readOnlyFiles, i->getFileID() );
+            loadFile( environment, loader, readOnlyFiles, stage, i->getFileID() );
         }
     }
 

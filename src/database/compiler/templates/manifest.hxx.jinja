@@ -39,6 +39,7 @@ namespace io
         using FileDependencies      = std::vector< FileIDVector >;
         using FileMap               = std::map< ObjectInfo::FileID, File::Ptr >;
         using FileMapCst            = std::map< ObjectInfo::FileID, File::PtrCst >;
+        using FileIDSet             = std::set< ObjectInfo::FileID >;
 
         Manifest();
 
@@ -54,12 +55,12 @@ namespace io
         const FileInfoVector& getCompilationFileInfos() const { return m_compilationFileInfos; }
 
         File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-            const SourceFilePath& sourceFile, FileInfo::Type fileType ) const;
+            const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const;
 
-        File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles,
+        File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage,
             ObjectInfo::FileID fileID ) const;
 
-        void loadAll( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles ) const;
+        void loadAll( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage ) const;
         
         File::Ptr createFile( const Environment& environment, data::ObjectPartLoader& loader, FileMap& readWriteFiles,
             const SourceFilePath& sourceFile, FileInfo::Type fileType ) const;
@@ -78,8 +79,8 @@ namespace io
     private: 
         File::PtrCst loadFileImpl( const Environment& environment, 
             data::ObjectPartLoader& loader, 
-            FileMapCst& readOnlyFiles, 
-            ObjectInfo::FileID fileID, 
+            FileMapCst& readOnlyFiles, FileInfo::Stage stage, 
+            ObjectInfo::FileID fileID,
             std::vector< File::Ptr >& loadedFiles ) const;
         void initialiseLookupTables();
         

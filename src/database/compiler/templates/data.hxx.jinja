@@ -50,12 +50,15 @@ namespace {{ file.name }}
 {% for property in part.properties %}
         {{ property.type }} {{ property.name }};
 {% endfor %}{#part.property#}
-{% for pointer in part.pointers %}
+{% for pointer in part.data_pointers %}
         Ptr< {{ pointer.typename }} > {{ pointer.longname }};
-{% endfor %}{#part.pointers#}
+{% endfor %}{#part.data_pointers#}
+{% for pointer in part.raw_pointers %}
+        Ptr< {{ pointer.typename }} > {{ pointer.longname }};
+{% endfor %}{#part.raw_pointers#}
         mega::io::Object* m_pInheritance = nullptr;
+        virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
-        virtual void load_post( mega::io::Loader& loader );
         virtual void store( mega::io::Storer& storer ) const;
         virtual void to_json( nlohmann::json& data ) const;
     };
@@ -69,7 +72,6 @@ inline Ptr< {{ conversion.to }} > convert( const Ptr< {{ conversion.from }} >& f
 {
     return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
 }
-
 {% endfor %}{# conversions #}
 
 {% for upcast in up_casts %}
@@ -92,7 +94,6 @@ struct UpCast< TVariant, Ptr< {{ upcast.to }} >, Ptr< {{ upcast.from }} > >
 {% endfor %}
     }
 };
-
 {% endfor %}
 
 class Factory

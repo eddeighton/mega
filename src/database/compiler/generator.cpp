@@ -19,90 +19,91 @@
 
 namespace db
 {
-    namespace gen
+namespace gen
+{
+namespace
+{
+nlohmann::json loadJson( const boost::filesystem::path& filePath )
+{
+    VERIFY_RTE_MSG( boost::filesystem::exists( filePath ), "Could not locate file: " << filePath.string() );
+    std::ifstream file( filePath.native(), std::ios_base::in );
+    VERIFY_RTE_MSG( !file.fail(), "Failed to open json file: " << filePath.string() );
+    return nlohmann::json::parse( std::istreambuf_iterator< char >( file ), std::istreambuf_iterator< char >() );
+}
+} // namespace
+
+void generate( const Environment& env )
+{
+    for ( boost::filesystem::directory_iterator iter( env.dataDir ); iter != boost::filesystem::directory_iterator();
+          ++iter )
     {
-        namespace
+        const boost::filesystem::path& filePath = *iter;
+        if ( !boost::filesystem::is_directory( filePath ) )
         {
-            nlohmann::json loadJson( const boost::filesystem::path& filePath )
+            if ( boost::filesystem::extension( *iter ) == ".json" && filePath.filename() != "data.json"
+                 && filePath.filename() != "stages.json" )
             {
-                VERIFY_RTE_MSG( boost::filesystem::exists( filePath ), "Could not locate file: " << filePath.string() );
-                std::ifstream file( filePath.native(), std::ios_base::in );
-                VERIFY_RTE_MSG( !file.fail(), "Failed to open json file: " << filePath.string() );
-                return nlohmann::json::parse( std::istreambuf_iterator< char >( file ), std::istreambuf_iterator< char >() );
-            }
-        } // namespace
-
-        void generate( const Environment& env )
-        {
-            for ( boost::filesystem::directory_iterator iter( env.dataDir ); iter != boost::filesystem::directory_iterator(); ++iter )
-            {
-                const boost::filesystem::path& filePath = *iter;
-                if ( !boost::filesystem::is_directory( filePath ) )
+                // view.hxx
+                try
                 {
-                    if ( boost::filesystem::extension( *iter ) == ".json" && filePath.filename() != "data.json"
-                         && filePath.filename() != "stages.json" )
+                    std::string strOutput;
                     {
-                        // view.hxx
-                        try
-                        {
-                            std::string strOutput;
-                            {
-                                std::ostringstream osOutput;
-                                inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
-                                injaEnv.set_trim_blocks( true );
-                                const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
-                                const auto                    data     = loadJson( jsonFile );
-                                inja::Template                tmp      = injaEnv.parse_template( "/view.hxx.jinja" );
-                                injaEnv.render_to( osOutput, tmp, data );
-                                strOutput = osOutput.str();
+                        std::ostringstream osOutput;
+                        inja::Environment  injaEnv( env.injaDir.native(), env.apiDir.native() );
+                        injaEnv.set_trim_blocks( true );
+                        const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
+                        const auto                    data     = loadJson( jsonFile );
+                        inja::Template                tmp      = injaEnv.parse_template( "/view.hxx.jinja" );
+                        injaEnv.render_to( osOutput, tmp, data );
+                        strOutput = osOutput.str();
 
-                                mega::utilities::clang_format( strOutput, std::optional<boost::filesystem::path>() );
-                            }
-                            std::ostringstream osTargetFile;
-                            osTargetFile << "/" << filePath.filename().replace_extension( ".hxx" ).string();
-
-                            boost::filesystem::updateFileIfChanged(
-                                env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
-                        }
-                        catch ( std::exception& ex )
-                        {
-                            THROW_RTE( "Error processing template: "
-                                       << "view.hxx.jinja"
-                                       << " with data: " << filePath.string() << " Error: " << ex.what() );
-                        }
-
-                        // view.cxx
-                        try
-                        {
-                            std::string strOutput;
-                            {
-                                std::ostringstream osOutput;
-                                inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
-                                injaEnv.set_trim_blocks( true );
-                                const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
-                                const auto                    data     = loadJson( jsonFile );
-                                inja::Template                tmp      = injaEnv.parse_template( "/view.cxx.jinja" );
-                                injaEnv.render_to( osOutput, tmp, data );
-                                strOutput = osOutput.str();
-
-                                mega::utilities::clang_format( strOutput, std::optional<boost::filesystem::path>() );
-                            }
-                            std::ostringstream osTargetFile;
-                            osTargetFile << "/" << filePath.filename().replace_extension( ".cxx" ).string();
-                            boost::filesystem::updateFileIfChanged(
-                                env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
-                        }
-                        catch ( std::exception& ex )
-                        {
-                            THROW_RTE( "Error processing template: "
-                                       << "view.cxx.jinja"
-                                       << " with data: " << filePath.string() << " Error: " << ex.what() );
-                        }
+                        mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
                     }
+                    std::ostringstream osTargetFile;
+                    osTargetFile << "/" << filePath.filename().replace_extension( ".hxx" ).string();
+
+                    boost::filesystem::updateFileIfChanged(
+                        env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
+                }
+                catch ( std::exception& ex )
+                {
+                    THROW_RTE( "Error processing template: "
+                               << "view.hxx.jinja"
+                               << " with data: " << filePath.string() << " Error: " << ex.what() );
+                }
+
+                // view.cxx
+                try
+                {
+                    std::string strOutput;
+                    {
+                        std::ostringstream osOutput;
+                        inja::Environment  injaEnv( env.injaDir.native(), env.srcDir.native() );
+                        injaEnv.set_trim_blocks( true );
+                        const boost::filesystem::path jsonFile = env.dataDir / filePath.filename();
+                        const auto                    data     = loadJson( jsonFile );
+                        inja::Template                tmp      = injaEnv.parse_template( "/view.cxx.jinja" );
+                        injaEnv.render_to( osOutput, tmp, data );
+                        strOutput = osOutput.str();
+
+                        mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
+                    }
+                    std::ostringstream osTargetFile;
+                    osTargetFile << "/" << filePath.filename().replace_extension( ".cxx" ).string();
+                    boost::filesystem::updateFileIfChanged(
+                        env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
+                }
+                catch ( std::exception& ex )
+                {
+                    THROW_RTE( "Error processing template: "
+                               << "view.cxx.jinja"
+                               << " with data: " << filePath.string() << " Error: " << ex.what() );
                 }
             }
+        }
+    }
 
-            // clang-format off
+    // clang-format off
             std::vector< std::pair< std::string, std::string > > filenames = 
             {
                 { "data"        , "data.json" },
@@ -110,60 +111,70 @@ namespace db
                 { "manifest"    , "stages.json" },    
                 { "file_info"   , "stages.json" }   
             };
-            // clang-format on
+    // clang-format on
 
-            for ( const std::pair< std::string, std::string >& names : filenames )
+    for ( const std::pair< std::string, std::string >& names : filenames )
+    {
+        const boost::filesystem::path jsonFile = env.dataDir / names.second;
+        {
+            try
             {
-                const boost::filesystem::path jsonFile = env.dataDir / names.second;
+                std::string strOutput;
                 {
-                    try
-                    {
-                        std::ostringstream osOutput;
-                        {
-                            inja::Environment injaEnv( env.injaDir.native(), env.apiDir.native() );
-                            injaEnv.set_trim_blocks( true );
-                            const auto data = loadJson( jsonFile );
+                    std::ostringstream osOutput;
+                    inja::Environment  injaEnv( env.injaDir.native(), env.apiDir.native() );
+                    injaEnv.set_trim_blocks( true );
+                    const auto data = loadJson( jsonFile );
 
-                            inja::Template headerTemplate = injaEnv.parse_template( "/" + names.first + ".hxx.jinja" );
-                            injaEnv.render_to( osOutput, headerTemplate, data );
-                        }
+                    inja::Template headerTemplate = injaEnv.parse_template( "/" + names.first + ".hxx.jinja" );
+                    injaEnv.render_to( osOutput, headerTemplate, data );
+                    strOutput = osOutput.str();
 
-                        std::ostringstream osTargetFile;
-                        osTargetFile << "/" + names.first + ".hxx";
-                        boost::filesystem::updateFileIfChanged(
-                            env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), osOutput.str() );
-                    }
-                    catch ( std::exception& ex )
-                    {
-                        THROW_RTE( "Error processing template: " << names.first << ".hxx.jinja"
-                                                                 << " with data: " << jsonFile.string() << " Error: " << ex.what() );
-                    }
+                    mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
                 }
-                {
-                    try
-                    {
-                        std::ostringstream osOutput;
-                        {
-                            inja::Environment injaEnv( env.injaDir.native(), env.srcDir.native() );
-                            injaEnv.set_trim_blocks( true );
-                            const auto data = loadJson( jsonFile );
 
-                            inja::Template sourceTemplate = injaEnv.parse_template( "/" + names.first + ".cxx.jinja" );
-                            injaEnv.render_to( osOutput, sourceTemplate, data );
-                        }
-
-                        std::ostringstream osTargetFile;
-                        osTargetFile << "/" + names.first + ".cxx";
-                        boost::filesystem::updateFileIfChanged(
-                            env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), osOutput.str() );
-                    }
-                    catch ( std::exception& ex )
-                    {
-                        THROW_RTE( "Error processing template: " << names.first << ".cxx.jinja"
-                                                                 << " with data: " << jsonFile.string() << " Error: " << ex.what() );
-                    }
-                }
+                std::ostringstream osTargetFile;
+                osTargetFile << "/" + names.first + ".hxx";
+                boost::filesystem::updateFileIfChanged(
+                    env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
+            }
+            catch ( std::exception& ex )
+            {
+                THROW_RTE( "Error processing template: " << names.first << ".hxx.jinja"
+                                                         << " with data: " << jsonFile.string()
+                                                         << " Error: " << ex.what() );
             }
         }
-    } // namespace gen
+        {
+            try
+            {
+                std::string strOutput;
+                {
+                    std::ostringstream osOutput;
+                    inja::Environment  injaEnv( env.injaDir.native(), env.srcDir.native() );
+                    injaEnv.set_trim_blocks( true );
+                    const auto data = loadJson( jsonFile );
+
+                    inja::Template sourceTemplate = injaEnv.parse_template( "/" + names.first + ".cxx.jinja" );
+                    injaEnv.render_to( osOutput, sourceTemplate, data );
+                    strOutput = osOutput.str();
+
+                    mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
+                }
+
+                std::ostringstream osTargetFile;
+                osTargetFile << "/" + names.first + ".cxx";
+                boost::filesystem::updateFileIfChanged(
+                    env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
+            }
+            catch ( std::exception& ex )
+            {
+                THROW_RTE( "Error processing template: " << names.first << ".cxx.jinja"
+                                                         << " with data: " << jsonFile.string()
+                                                         << " Error: " << ex.what() );
+            }
+        }
+    }
+}
+} // namespace gen
 } // namespace db

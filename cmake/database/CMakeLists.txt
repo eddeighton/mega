@@ -53,10 +53,10 @@ set( MEGA_DATABASE_GENERATED_SOURCES
 )
 
 set( DATABASE_SCHEMAS 
+        ${MEGA_SRC_DIR}/database/stages.dbs
         ${MEGA_SRC_DIR}/database/parser.dbs
         ${MEGA_SRC_DIR}/database/interface.dbs
         ${MEGA_SRC_DIR}/database/analysis.dbs
-        ${MEGA_SRC_DIR}/database/final.dbs
         )
 
 set( COMPILER_OUTPUTS 
@@ -144,7 +144,6 @@ add_dependencies( database database_compiler_driver )
 
 target_include_directories( database PUBLIC ${MEGA_API_DIR} )
 
-target_compile_definitions(database PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
 set_target_properties( database PROPERTIES FOLDER database )
 set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 

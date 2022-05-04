@@ -4,6 +4,7 @@
 
 #include "common/string.hpp"
 
+#include <memory>
 #include <vector>
 #include <utility>
 #include <map>
@@ -100,7 +101,7 @@ std::string Object::delimitTypeName( const std::string& str ) const
 
 std::string Interface::delimitTypeName( const std::string& strStageNamespace, const std::string& str ) const
 {
-    Object::Ptr pObject = m_object.lock();
+    Object::Ptr        pObject = m_object.lock();
     std::ostringstream os;
     {
         if ( !strStageNamespace.empty() )
@@ -142,7 +143,9 @@ class ObjectFilePairComparator
 public:
     bool operator()( const ObjectFilePair& left, const ObjectFilePair& right ) const
     {
-        return left.first->getCounter() < right.first->getCounter();
+        return ( left.first->getCounter() != right.first->getCounter() )
+                   ? ( left.first->getCounter() < right.first->getCounter() )
+                   : ( left.second < right.second );
     }
 };
 
@@ -411,16 +414,24 @@ struct NamespaceVariantVisitor : boost::static_visitor< void >
         }
         else if ( iFind == mapping.objectPartMap.end() )
         {
-            SecondaryObjectPart::Ptr pSecondaryObjectPart = std::make_shared< SecondaryObjectPart >( mapping.counter );
+            VERIFY_RTE( pObject->m_primaryObjectPart );
+
+            SecondaryObjectPart::Ptr pSecondaryObjectPart;
+
+            if ( pObject->m_primaryObjectPart->m_file.lock()->m_stage.lock() != pFile->m_stage.lock() )
+            {
+                pSecondaryObjectPart = std::make_shared< InheritedObjectPart >( mapping.counter );
+            }
+            else
+            {
+                pSecondaryObjectPart = std::make_shared< AggregatedObjectPart >( mapping.counter );
+            }
 
             pSecondaryObjectPart->m_object = pObject;
             pSecondaryObjectPart->m_file   = pFile;
             pSecondaryObjectPart->m_typeID = mapping.objectPartMap.size();
-
             pFile->m_parts.push_back( pSecondaryObjectPart );
-
             pObject->m_secondaryParts.push_back( pSecondaryObjectPart );
-
             mapping.objectPartMap.insert( std::make_pair( objectFilePair, pSecondaryObjectPart ) );
 
             return pSecondaryObjectPart;
@@ -741,17 +752,17 @@ void stageInterfaces( Mapping& mapping, Schema::Ptr pSchema )
                 {
                     Stage::Ptr pPreviousStage = pDependency.lock();
 
-                    for( Interface::Ptr p : pPreviousStage->m_readWriteInterfaces )
+                    for ( Interface::Ptr p : pPreviousStage->m_readWriteInterfaces )
                     {
-                        if( !uniqueSet.count( p ) )
+                        if ( !uniqueSet.count( p ) )
                         {
                             uniqueSet.insert( p );
                             previousInterfaces.push_back( p );
                         }
                     }
-                    for( Interface::Ptr p : pPreviousStage->m_readOnlyInterfaces )
+                    for ( Interface::Ptr p : pPreviousStage->m_readOnlyInterfaces )
                     {
-                        if( !uniqueSet.count( p ) )
+                        if ( !uniqueSet.count( p ) )
                         {
                             uniqueSet.insert( p );
                             previousInterfaces.push_back( p );
@@ -872,10 +883,13 @@ void stageInterfaces( Mapping& mapping, Schema::Ptr pSchema )
         // create stage functions
         for ( Interface::Ptr pInterface : pStage->m_readWriteInterfaces )
         {
-            Constructor::Ptr pConstructor = std::make_shared< Constructor >( mapping.counter );
-            pConstructor->m_interface     = pInterface;
-            pConstructor->m_stage         = pStage;
-            pStage->m_constructors.push_back( pConstructor );
+            if( pInterface->ownsPrimaryObjectPart() || pInterface->ownsInheritedSecondaryObjectPart() )
+            {
+                Constructor::Ptr pConstructor = std::make_shared< Constructor >( mapping.counter );
+                pConstructor->m_interface     = pInterface;
+                pConstructor->m_stage         = pStage;
+                pStage->m_constructors.push_back( pConstructor );
+            }
         }
     }
 }
@@ -971,7 +985,7 @@ void superInterfaces( Mapping& mapping, Schema::Ptr pSchema )
                     {
                         if ( pIter->m_base )
                         {
-                            if( !open.count( pIter->m_base ) )
+                            if ( !open.count( pIter->m_base ) )
                             {
                                 bFound = true;
                                 topological.push_back( pIter );
@@ -1024,7 +1038,7 @@ void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
         }
         {
             Object::Ptr              pBase = pObject->m_base;
-            Schema::ObjectPartVector baseList, reversed;
+            Schema::ObjectPartVector baseList;
             while ( pBase )
             {
                 baseList.push_back( pBase->m_primaryObjectPart );
@@ -1032,7 +1046,7 @@ void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
                 pSchema->m_conversions.insert( std::make_pair(
                     Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart }, baseList ) );
 
-                for ( ObjectPart::Ptr pSecondary : pObject->m_secondaryParts )
+                for ( ObjectPart::Ptr pSecondary : pBase->m_secondaryParts )
                 {
                     Schema::ObjectPartVector baseListPlusSecondary = baseList;
                     baseListPlusSecondary.push_back( pSecondary );
@@ -1084,6 +1098,21 @@ void fileDependencies( Mapping& mapping, Schema::Ptr pSchema )
                         File::Ptr pDependencyFile = pBase->m_primaryObjectPart->m_file.lock();
                         if ( pDependencyFile != pFile )
                             dependencies.insert( pDependencyFile );
+                    }
+                }
+                else if ( InheritedObjectPart::Ptr pInheritedSecondaryObjectPart
+                          = std::dynamic_pointer_cast< InheritedObjectPart >( pPart ) )
+                {
+                    Object::Ptr pObject         = pInheritedSecondaryObjectPart->m_object.lock();
+                    File::Ptr   pDependencyFile = pObject->m_primaryObjectPart->m_file.lock();
+                    if ( pDependencyFile != pFile )
+                        dependencies.insert( pDependencyFile );
+
+                    if ( std::find(
+                             pDependencyFile->m_dependencies.begin(), pDependencyFile->m_dependencies.end(), pFile )
+                         == pDependencyFile->m_dependencies.end() )
+                    {
+                        pDependencyFile->m_dependencies.push_back( pFile );
                     }
                 }
             }

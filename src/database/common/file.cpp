@@ -65,7 +65,7 @@ namespace mega
             VERIFY_RTE( m_pLoader );
             for ( Object* pObject : m_objects )
             {
-                pObject->load_post( *m_pLoader );
+                pObject->set_inheritance_pointer();
             }
             m_pLoader.reset();
         }

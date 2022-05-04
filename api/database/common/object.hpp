@@ -47,8 +47,8 @@ namespace io
 
         virtual ~Object();
 
+        virtual void set_inheritance_pointer() = 0;
         virtual void load( Loader& loader ) = 0;
-        virtual void load_post( Loader& loader ) = 0;
         virtual void store( Storer& storer ) const = 0;
         virtual void to_json( nlohmann::json& data ) const = 0;
 

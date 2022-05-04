@@ -9,8 +9,12 @@
 
 #include "common/stash.hpp"
 #include "common/file.hpp"
+#include "common/string.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 namespace mega
 {
@@ -44,11 +48,18 @@ namespace mega
 
             Path stashDir() const { return m_rootBuildDir / "stash"; }
 
+            Path tempDir() const
+            {
+                Path tempDir = boost::filesystem::temp_directory_path() / common::uuid();
+                boost::filesystem::create_directories( tempDir );
+                return tempDir;
+            }
+
         public:
             BuildEnvironment( const Path& rootSourceDir, const Path& rootBuildDir )
                 : m_rootSourceDir( rootSourceDir )
                 , m_rootBuildDir( rootBuildDir )
-                , m_tempDir( boost::filesystem::temp_directory_path() )
+                , m_tempDir( tempDir() )
                 , m_stash( stashDir() )
             {
                 // m_stash.loadBuildHashCodes( );
@@ -58,7 +69,7 @@ namespace mega
                 : m_rootSourceDir( rootSourceDir )
                 , m_rootBuildDir( rootBuildDir )
                 , m_templatesDir( templatesDir )
-                , m_tempDir( boost::filesystem::temp_directory_path() )
+                , m_tempDir( tempDir() )
                 , m_stash( stashDir() )
             {
                 // m_stash.loadBuildHashCodes( );

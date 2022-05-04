@@ -42,7 +42,10 @@ namespace {{ file.name }}
     // struct {{ part.name }} : public mega::io::Object
     {{ part.name }}::{{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )
-{% for pointer in part.pointers %}
+{% for pointer in part.data_pointers %}
+          , {{ pointer.longname }}( loader )
+{% endfor %}{#part.pointers#}
+{% for pointer in part.raw_pointers %}
           , {{ pointer.longname }}( loader )
 {% endfor %}{#part.pointers#}
 {% for property in part.properties %}
@@ -55,7 +58,12 @@ namespace {{ file.name }}
 {% if length(part.properties) %}
     {{ part.name }}::{{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.initialisations %}, {{ property.argtype }} {{ property.name }}{% endfor %} )
         :   mega::io::Object( objectInfo )
-{% for pointer in part.pointers %}
+{% for pointer in part.data_pointers %}
+{% if pointer.no_ctor_arg %}
+          , {{ pointer.longname }}( loader )
+{% endif %}
+{% endfor %}{#part.pointers#}
+{% for pointer in part.raw_pointers %}
           , {{ pointer.longname }}( loader )
 {% endfor %}{#part.pointers#}
 {% for property in part.initialisations %}
@@ -64,24 +72,24 @@ namespace {{ file.name }}
     {
     }
 {% endif %}{# length(part.properties) #}
+    void {{ part.name }}::set_inheritance_pointer()
+    {
+{% if part.has_base %}
+        {{ part.base }}->{{ part.inheritance_ptr }} = {{ part.inheritance_ptr_init }};
+{% endif %}
+    }
     void {{ part.name }}::load( mega::io::Loader& loader )
     {
-{% for pointer in part.pointers %}
+{% for pointer in part.data_pointers %}
         loader.load( {{ pointer.longname }} );
 {% endfor %}{#part.pointers#}
 {% for property in part.properties %}
         loader.load( {{ property.name }} );
 {% endfor %}{#part.property#}
     }
-    void {{ part.name }}::load_post( mega::io::Loader& loader )
-    {
-{% if part.has_base %}
-        {{ part.base }}->m_pInheritance = this;
-{% endif %}
-    }
     void {{ part.name }}::store( mega::io::Storer& storer ) const
     {
-{% for pointer in part.pointers %}
+{% for pointer in part.data_pointers %}
         storer.store( {{ pointer.longname }} );
 {% endfor %}{#part.pointers#}
 {% for property in part.properties %}

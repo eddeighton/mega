@@ -15,6 +15,14 @@ namespace io
     class FileInfo
     {
     public:
+        enum Stage
+        {
+{% for stage in stages %}
+            {{ stage.name }},
+{% endfor %}
+            TOTAL_STAGE_TYPES
+        };
+        
         enum Type
         {
 {% for stage in stages %}
@@ -40,11 +48,25 @@ namespace io
 
     public:
         FileInfo();
-        FileInfo( Type                           fileType,
-                  ObjectInfo::FileID             fileID,
+        FileInfo( Type                  fileType,
+                  ObjectInfo::FileID    fileID,
                   const CompilationFilePath& filePath,
                   const SourceFilePath& objectSourceFilePath );
 
+        Stage getStage() const
+        { 
+            switch( m_fileType )
+            {
+{% for stage in stages %}
+{% for file in stage.files %}
+                case {{ stage.name }}_{{ file.name }}: return {{ stage.name }};
+{% endfor %}
+{% endfor %}
+                case TOTAL_FILE_TYPES:
+                default:
+                    return TOTAL_STAGE_TYPES;
+            }
+        }
         Type                            getFileType() const { return m_fileType; }
         ObjectInfo::FileID              getFileID() const { return m_fileID; }
         const CompilationFilePath&      getFilePath() const { return m_filePath; }
@@ -53,11 +75,10 @@ namespace io
         template < class Archive >
         inline void serialize( Archive& archive, const unsigned int version )
         {
-            archive& boost::serialization::make_nvp( "fileType", m_fileType );
-            archive& boost::serialization::make_nvp( "fileID", m_fileID );
-            archive& boost::serialization::make_nvp( "filePath", m_filePath );
-            archive& boost::serialization::make_nvp(
-                "objectSourceFilePath", m_objectSourceFilePath );
+            archive& boost::serialization::make_nvp( "fileType",                m_fileType );
+            archive& boost::serialization::make_nvp( "fileID",                  m_fileID );
+            archive& boost::serialization::make_nvp( "filePath",                m_filePath );
+            archive& boost::serialization::make_nvp( "objectSourceFilePath",    m_objectSourceFilePath );
         }
 
     private:

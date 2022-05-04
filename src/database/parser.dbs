@@ -1,27 +1,6 @@
 
 ///////////////////////////////////////////
 ///////////////////////////////////////////
-// Stages
-stage ComponentListing
-{
-    source .manifest;
-    file Components;
-}
-
-stage ParserStage
-{
-    source .mega;
-    dependency ComponentListing;
-
-    file AST;
-    file Body;
-
-    global accessor array< ref< Components::Component > >;
-    persource accessor array< ref< Parser::MegaInclude > >;
-}
-
-///////////////////////////////////////////
-///////////////////////////////////////////
 // Objects
 namespace Components
 {

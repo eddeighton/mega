@@ -1,45 +1,4 @@
 
-stage DependencyAnalysis
-{
-    source .manifest;
-    dependency InterfaceStage;
-
-    file DPGraph;
-
-    global accessor ref< Dependencies::Analysis >;
-    persource accessor ref< Interface::Root >;
-}
-
-stage DependencyAnalysisView
-{
-    source .manifest;
-    dependency DependencyAnalysis;
-
-    global accessor ref< Dependencies::Analysis >;
-    persource accessor ref< Interface::Root >;
-}
-
-stage SymbolAnalysis
-{
-    source .manifest;
-    dependency DependencyAnalysisView;
-
-    file SymbolTable;
-
-    global accessor ref< Symbols::SymbolTable >;
-    persource accessor ref< Interface::DimensionTrait >;
-    persource accessor ref< Interface::Context >;
-}
-
-stage SymbolAnalysisView
-{
-    source .manifest;
-    dependency SymbolAnalysis;
-
-    global accessor ref< Symbols::SymbolTable >;
-    persource accessor ref< Interface::DimensionTrait >;
-    persource accessor ref< Interface::Context >;
-}
 
 namespace Dependencies
 {
@@ -89,5 +48,7 @@ namespace Symbols
     {
         map< value< mega::io::megaFilePath >, ref< SymbolSet > > symbol_sets;
         map< value< std::string >, ref< Symbol > > symbols;
+        //map< value< std::size_t >, ref< Interface::Context > > contexts;
+        //map< value< std::size_t >, ref< Interface::DimensionTrait > > dimensions;
     }
 }

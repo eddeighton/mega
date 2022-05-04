@@ -53,8 +53,6 @@ add_custom_target( PreprocessMain
 
 add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 
-target_compile_definitions(mega PUBLIC -DBOOST_STACKTRACE_USE_ADDR2LINE)
-
 target_link_libraries( mega database )
 target_link_libraries( mega utilities )
 

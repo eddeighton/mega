@@ -1,0 +1,101 @@
+
+///////////////////////////////////////////
+///////////////////////////////////////////
+// Stages
+stage ComponentListing
+{
+    source .manifest;
+    file Components;
+}
+
+stage ParserStage
+{
+    source .mega;
+    dependency ComponentListing;
+
+    file AST;
+    file Body;
+
+    global accessor array< ref< Components::Component > >;
+    persource accessor array< ref< Parser::MegaInclude > >;
+}
+
+stage InterfaceStage
+{
+    source .mega;
+    dependency ParserStage;
+
+    file Tree;
+
+    persource accessor ref< Parser::ObjectSourceRoot >;
+
+    persource accessor array< ref< Interface::Namespace > >;
+    persource accessor array< ref< Interface::Abstract > >;
+    persource accessor array< ref< Interface::Action > >;
+    persource accessor array< ref< Interface::Event > >;
+    persource accessor array< ref< Interface::Function > >;
+    persource accessor array< ref< Interface::Object > >;
+    persource accessor array< ref< Interface::Link > >;
+}
+
+stage DependencyAnalysis
+{
+    source .manifest;
+    dependency InterfaceStage;
+
+    file DPGraph;
+
+    global accessor ref< Dependencies::Analysis >;
+    persource accessor ref< Interface::Root >;
+}
+
+stage DependencyAnalysisView
+{
+    source .manifest;
+    dependency DependencyAnalysis;
+
+    global accessor ref< Dependencies::Analysis >;
+    persource accessor ref< Interface::Root >;
+}
+
+stage SymbolAnalysis
+{
+    source .manifest;
+    dependency DependencyAnalysis;
+
+    file SymbolTable;
+
+    global accessor ref< Symbols::SymbolTable >;
+    persource accessor ref< Interface::DimensionTrait >;
+    persource accessor ref< Interface::Context >;
+}
+
+stage SymbolAnalysisView
+{
+    source .manifest;
+    dependency SymbolAnalysis;
+
+    global accessor ref< Symbols::SymbolTable >;
+    persource accessor ref< Interface::DimensionTrait >;
+    persource accessor ref< Interface::Context >;
+}
+
+stage InterfaceAnalysisStage
+{
+    source .mega;
+    dependency SymbolAnalysis;
+
+    file Clang;
+
+    persource accessor ref< Interface::Root >;
+    global accessor ref< Symbols::SymbolTable >;
+}
+
+stage FinalStage
+{
+    source .mega;
+    dependency InterfaceAnalysisStage;
+
+    global accessor array< ref< Interface::Root > >;
+    global accessor ref< Symbols::SymbolTable >;
+}
