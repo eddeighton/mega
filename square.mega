@@ -5,10 +5,19 @@ object Square
     dependency( stuff/sphere.mega );
     dependency( stuff/triangle.mega );
 
-    include test( test_include.mega );
+    include test_include( test_include.mega );
+    
     //ed was here!!!
-    function foobar( int iValue, float fValue ) : void
+
+    function test( int iValue, float fValue ) : void
     {
         // do stuff
+        int i = 1;
+    }
+    
+    function nested2( int iValue, float fValue ) : void
+    {
+        // do stuff
+        int i = 1;
     }
 }

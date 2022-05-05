@@ -30,6 +30,16 @@ namespace test
             {
                 std::cout << "This is cool" << std::endl;
             }
+            function foobar( int iValue, float fValue ) : void
+            {
+                // do stuff
+                int i = 1;
+            }
+            function foobar2( int iValue, float fValue ) : void
+            {
+                // do stuff
+                int i = 1;
+            }
         }
     }
 }
