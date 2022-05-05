@@ -42,222 +42,216 @@
 
 namespace driver
 {
-    namespace graph
+namespace graph
+{
+std::string getContextFullTypeName( FinalStage::Interface::Context* pContext )
+{
+    using namespace FinalStage;
+
+    std::ostringstream os;
+
+    bool bFirst = true;
+    while ( pContext )
     {
-        using SymbolMap = std::map< std::string, ::FinalStage::Symbols::Symbol* >;
-
-        std::string getContextFullTypeName( FinalStage::Interface::Context* pContext )
+        if ( !bFirst )
         {
-            using namespace FinalStage;
-
-            std::ostringstream os;
-
-            bool bFirst = true;
-            while ( pContext )
-            {
-                if ( !bFirst )
-                {
-                    os << "_";
-                }
-                else
-                {
-                    bFirst = false;
-                }
-                os << pContext->get_identifier();
-                pContext = dynamic_database_cast< Interface::Context >( pContext->get_parent() );
-            }
-
-            return os.str();
+            os << "_";
         }
-
-        void addProperties( nlohmann::json& node, const SymbolMap& symbols,
-                            const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
+        else
         {
-            using namespace FinalStage;
-            using namespace FinalStage::Interface;
-            for ( DimensionTrait* pDimension : dimensions )
-            {
-                SymbolMap::const_iterator iFind = symbols.find( pDimension->get_id()->get_str() );
-                VERIFY_RTE( iFind != symbols.end() );
-                Symbols::Symbol* pSymbol = iFind->second;
-
-                nlohmann::json property = nlohmann::json::object(
-                    { { "name", pDimension->get_id()->get_str() }, { "symbol", pSymbol->get_id() }, { "value", pDimension->get_type() } } );
-                node[ "properties" ].push_back( property );
-            }
+            bFirst = false;
         }
+        os << pContext->get_identifier();
+        pContext = dynamic_database_cast< Interface::Context >( pContext->get_parent() );
+    }
 
-        void recurse( nlohmann::json& data, const SymbolMap& symbols, FinalStage::Interface::Context* pContext )
-        {
-            using namespace FinalStage;
-            using namespace FinalStage::Interface;
+    return os.str();
+}
 
-            std::ostringstream os;
+void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interface::DimensionTrait* >& dimensions )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Interface;
+    for ( DimensionTrait* pDimension : dimensions )
+    {
+        nlohmann::json property = nlohmann::json::object( { { "name", pDimension->get_id()->get_str() },
+                                                            { "type_id", pDimension->get_type_id() },
+                                                            { "symbol", pDimension->get_symbol() },
+                                                            { "value", pDimension->get_type() } } );
+        node[ "properties" ].push_back( property );
+    }
+}
 
-            SymbolMap::const_iterator iFind = symbols.find( pContext->get_identifier() );
-            VERIFY_RTE( iFind != symbols.end() );
-            Symbols::Symbol* pSymbol = iFind->second;
+void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Interface;
 
-            if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
-            {
-                os << "Namespace: " << pContext->get_identifier();
-            }
-            else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
-            {
-                os << "Abstract: " << pContext->get_identifier();
-            }
-            else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
-            {
-                os << "Action: " << pContext->get_identifier();
-            }
-            else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
-            {
-                os << "Event: " << pContext->get_identifier();
-            }
-            else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
-            {
-                os << "Function: " << pContext->get_identifier();
-            }
-            else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
-            {
-                os << "Object: " << pContext->get_identifier();
-            }
-            else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
-            {
-                os << "Link: " << pContext->get_identifier();
-            }
-            else
-            {
-                THROW_RTE( "Unknown context type" );
-            }
+    std::ostringstream os;
 
-            nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName( pContext ) },
-                                                            { "label", os.str() },
-                                                            { "symbol", pSymbol->get_id() },
-                                                            { "properties", nlohmann::json::array() } } );
+    if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+    {
+        os << "Namespace: " << pContext->get_identifier();
+    }
+    else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+    {
+        os << "Abstract: " << pContext->get_identifier();
+    }
+    else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+    {
+        os << "Action: " << pContext->get_identifier();
+    }
+    else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+    {
+        os << "Event: " << pContext->get_identifier();
+    }
+    else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+    {
+        os << "Function: " << pContext->get_identifier();
+    }
+    else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+    {
+        os << "Object: " << pContext->get_identifier();
+    }
+    else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+    {
+        os << "Link: " << pContext->get_identifier();
+    }
+    else
+    {
+        THROW_RTE( "Unknown context type" );
+    }
 
-            if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
-            {
-                addProperties( node, symbols, pNamespace->get_dimension_traits() );
-            }
-            else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
-            {
-            }
-            else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
-            {
-                addProperties( node, symbols, pAction->get_dimension_traits() );
-            }
-            else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
-            {
-                addProperties( node, symbols, pEvent->get_dimension_traits() );
-            }
-            else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
-            {
-                nlohmann::json arguments = nlohmann::json::object(
-                    { { "name", "arguments" }, { "symbol", "" }, { "value", pFunction->get_arguments_trait()->get_str() } } );
-                node[ "properties" ].push_back( arguments );
-                nlohmann::json return_type = nlohmann::json::object(
-                    { { "name", "return type" }, { "symbol", "" }, { "value", pFunction->get_return_type_trait()->get_str() } } );
-                node[ "properties" ].push_back( return_type );
-            }
-            else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
-            {
-                addProperties( node, symbols, pObject->get_dimension_traits() );
-            }
-            else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
-            {
-            }
-            else
-            {
-                THROW_RTE( "Unknown context type" );
-            }
+    nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName( pContext ) },
+                                                    { "label", os.str() },
+                                                    { "type_id", pContext->get_type_id() },
+                                                    { "symbol", pContext->get_symbol() },
+                                                    { "properties", nlohmann::json::array() } } );
 
-            data[ "nodes" ].push_back( node );
+    if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+    {
+        addProperties( node, pNamespace->get_dimension_traits() );
+    }
+    else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+    {
+    }
+    else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+    {
+        addProperties( node, pAction->get_dimension_traits() );
+    }
+    else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+    {
+        addProperties( node, pEvent->get_dimension_traits() );
+    }
+    else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+    {
+        nlohmann::json arguments
+            = nlohmann::json::object( { { "name", "arguments" },
+                                        { "type_id", "" },
+                                        { "symbol", "" },
+                                        { "value", pFunction->get_arguments_trait()->get_str() } } );
+        node[ "properties" ].push_back( arguments );
+        nlohmann::json return_type
+            = nlohmann::json::object( { { "name", "return type" },
+                                        { "type_id", "" },
+                                        { "symbol", "" },
+                                        { "value", pFunction->get_return_type_trait()->get_str() } } );
+        node[ "properties" ].push_back( return_type );
+    }
+    else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+    {
+        addProperties( node, pObject->get_dimension_traits() );
+    }
+    else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+    {
+    }
+    else
+    {
+        THROW_RTE( "Unknown context type" );
+    }
 
-            for ( Interface::Context* pChildContext : pContext->get_children() )
-            {
-                recurse( data, symbols, pChildContext );
+    data[ "nodes" ].push_back( node );
 
-                nlohmann::json edge = nlohmann::json::object( { { "from", getContextFullTypeName( pContext ) },
-                                                                { "to", getContextFullTypeName( pChildContext ) },
-                                                                { "colour", "000000" } } );
-                data[ "edges" ].push_back( edge );
-            }
-        }
+    for ( Interface::Context* pChildContext : pContext->get_children() )
+    {
+        recurse( data, pChildContext );
 
-        void command( bool bHelp, const std::vector< std::string >& args )
-        {
-            std::string             strGraphType;
-            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath;
+        nlohmann::json edge = nlohmann::json::object( { { "from", getContextFullTypeName( pContext ) },
+                                                        { "to", getContextFullTypeName( pChildContext ) },
+                                                        { "colour", "000000" } } );
+        data[ "edges" ].push_back( edge );
+    }
+}
 
-            namespace po = boost::program_options;
-            po::options_description commandOptions( " Generate graph json data" );
-            {
-                // clang-format off
+void command( bool bHelp, const std::vector< std::string >& args )
+{
+    std::string             strGraphType;
+    boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath;
+
+    namespace po = boost::program_options;
+    po::options_description commandOptions( " Generate graph json data" );
+    {
+        // clang-format off
                 commandOptions.add_options()
                     ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),                     "Source directory" )
                     ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),                      "Build directory" )
                     ( "type",       po::value< std::string >( &strGraphType )->default_value( "interface" ),    "graph type" )
                     ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),                    "output file to generate" )
                     ;
-                // clang-format on
-            }
+        // clang-format on
+    }
 
-            po::variables_map vm;
-            po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
-            po::notify( vm );
+    po::variables_map vm;
+    po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
+    po::notify( vm );
 
-            if ( bHelp )
+    if ( bHelp )
+    {
+        std::cout << commandOptions << "\n";
+    }
+    else
+    {
+        try
+        {
+            std::ostringstream osOutput;
             {
-                std::cout << commandOptions << "\n";
-            }
-            else
-            {
-                try
+                if ( strGraphType == "interface" )
                 {
-                    std::ostringstream osOutput;
+                    mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
+                    mega::io::Manifest         manifest( environment, environment.project_manifest() );
+
+                    using namespace FinalStage;
+
+                    nlohmann::json data = nlohmann::json::object(
+                        { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+
+                    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
                     {
-                        if ( strGraphType == "interface" )
+                        Database database( environment, sourceFilePath );
+                        for ( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
                         {
-                            mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
-                            mega::io::Manifest         manifest( environment, environment.project_manifest() );
-
-                            using namespace FinalStage;
-
-                            nlohmann::json data
-                                = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
-
-                            for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+                            for ( Interface::Context* pChildContext : pRoot->get_children() )
                             {
-                                Database              database( environment, sourceFilePath );
-                                Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
-
-                                const std::map< std::string, ::FinalStage::Symbols::Symbol* > symbols = pSymbolTable->get_symbols();
-
-                                for ( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
-                                {
-                                    for ( Interface::Context* pChildContext : pRoot->get_children() )
-                                    {
-                                        recurse( data, symbols, pChildContext );
-                                    }
-                                }
+                                recurse( data, pChildContext );
                             }
-
-                            osOutput << data;
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unknown graph type" );
                         }
                     }
 
-                    boost::filesystem::updateFileIfChanged( outputFilePath, osOutput.str() );
+                    osOutput << data;
                 }
-                catch ( std::exception& ex )
+                else
                 {
-                    THROW_RTE( "Error generating graph: " << ex.what() );
+                    THROW_RTE( "Unknown graph type" );
                 }
             }
+
+            boost::filesystem::updateFileIfChanged( outputFilePath, osOutput.str() );
         }
-    } // namespace graph
+        catch ( std::exception& ex )
+        {
+            THROW_RTE( "Error generating graph: " << ex.what() );
+        }
+    }
+}
+} // namespace graph
 } // namespace driver

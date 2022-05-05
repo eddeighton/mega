@@ -1186,7 +1186,7 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
                     part[ "inheritance_ptr" ] = "m_inheritance";
                     {
                         std::ostringstream os;
-                        os << "Ptr< " << pPrimaryObjectPart->getDataType( "::" ) << " >( "
+                        os << "data::Ptr< data::" << pPrimaryObjectPart->getDataType( "::" ) << " >( "
                            << pBasePrimaryObjectPart->getPointerName() << ", this )";
                         part[ "inheritance_ptr_init" ] = os.str();
                     }
@@ -1207,7 +1207,7 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
 
                 {
                     std::ostringstream os;
-                    os << "Ptr< " << pSecondaryObjectPart->getDataType( "::" ) << " >( "
+                    os << "data::Ptr< data::" << pSecondaryObjectPart->getDataType( "::" ) << " >( "
                        << pBasePrimaryObjectPart->getPointerName() << ", this )";
                     part[ "inheritance_ptr_init" ] = os.str();
                 }

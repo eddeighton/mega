@@ -87,6 +87,11 @@ namespace data
         struct SymbolSet;
         struct SymbolTable;
     } // namespace SymbolTable
+    namespace PerSourceSymbols
+    {
+        struct DimensionTrait;
+        struct Context;
+    } // namespace PerSourceSymbols
     namespace Clang
     {
         struct Dimension;
@@ -609,7 +614,8 @@ namespace data
             {
                 Object_Part_Type_ID = 27
             };
-            Ptr< AST::Dimension >                                                                                                           p_AST_Dimension;
+            Ptr< AST::Dimension >                   p_AST_Dimension;
+            Ptr< PerSourceSymbols::DimensionTrait > p_PerSourceSymbols_DimensionTrait;
             std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > > m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -622,7 +628,7 @@ namespace data
             InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 29
+                Object_Part_Type_ID = 30
             };
             Ptr< AST::Inheritance >                                                                        p_AST_Inheritance;
             std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > > m_inheritance;
@@ -637,7 +643,7 @@ namespace data
             ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 30
+                Object_Part_Type_ID = 31
             };
             Ptr< AST::ReturnType >                                                                       p_AST_ReturnType;
             std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > > m_inheritance;
@@ -652,7 +658,7 @@ namespace data
             ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 31
+                Object_Part_Type_ID = 32
             };
             Ptr< AST::ArgumentList >                                                                         p_AST_ArgumentList;
             std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > > m_inheritance;
@@ -667,7 +673,7 @@ namespace data
             SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 32
+                Object_Part_Type_ID = 33
             };
             Ptr< AST::Size >                                                                 p_AST_Size;
             std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > > m_inheritance;
@@ -683,7 +689,7 @@ namespace data
             ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::Tree::Context > > &children );
             enum
             {
-                Object_Part_Type_ID = 33
+                Object_Part_Type_ID = 34
             };
             std::vector< data::Ptr< data::Tree::Context > > children;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
@@ -702,7 +708,7 @@ namespace data
             Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ObjectSourceRoot > &root );
             enum
             {
-                Object_Part_Type_ID = 34
+                Object_Part_Type_ID = 35
             };
             data::Ptr< data::AST::ObjectSourceRoot > root;
             Ptr< Tree::ContextGroup >                p_Tree_ContextGroup;
@@ -723,11 +729,12 @@ namespace data
                      const data::Ptr< data::Tree::ContextGroup > &parent );
             enum
             {
-                Object_Part_Type_ID = 35
+                Object_Part_Type_ID = 36
             };
             std::string                           identifier;
             data::Ptr< data::Tree::ContextGroup > parent;
             Ptr< Tree::ContextGroup >             p_Tree_ContextGroup;
+            Ptr< PerSourceSymbols::Context >      p_PerSourceSymbols_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                           data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
@@ -745,7 +752,7 @@ namespace data
                        const std::vector< data::Ptr< data::AST::ContextDef > > &namespace_defs );
             enum
             {
-                Object_Part_Type_ID = 36
+                Object_Part_Type_ID = 38
             };
             bool                                                                    is_global;
             std::vector< data::Ptr< data::AST::ContextDef > >                       namespace_defs;
@@ -768,7 +775,7 @@ namespace data
                       const std::vector< data::Ptr< data::AST::AbstractDef > > &abstract_defs );
             enum
             {
-                Object_Part_Type_ID = 37
+                Object_Part_Type_ID = 39
             };
             std::vector< data::Ptr< data::AST::AbstractDef > >                          abstract_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
@@ -790,7 +797,7 @@ namespace data
             Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > > &action_defs );
             enum
             {
-                Object_Part_Type_ID = 38
+                Object_Part_Type_ID = 40
             };
             std::vector< data::Ptr< data::AST::ActionDef > >                            action_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
@@ -813,7 +820,7 @@ namespace data
             Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::EventDef > > &event_defs );
             enum
             {
-                Object_Part_Type_ID = 39
+                Object_Part_Type_ID = 41
             };
             std::vector< data::Ptr< data::AST::EventDef > >                             event_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
@@ -837,7 +844,7 @@ namespace data
                       const std::vector< data::Ptr< data::AST::FunctionDef > > &function_defs );
             enum
             {
-                Object_Part_Type_ID = 40
+                Object_Part_Type_ID = 42
             };
             std::vector< data::Ptr< data::AST::FunctionDef > >          function_defs;
             std::optional< data::Ptr< data::Tree::ReturnTypeTrait > >   return_type_trait;
@@ -859,7 +866,7 @@ namespace data
             Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > > &object_defs );
             enum
             {
-                Object_Part_Type_ID = 41
+                Object_Part_Type_ID = 43
             };
             std::vector< data::Ptr< data::AST::ObjectDef > >                            object_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
@@ -881,7 +888,7 @@ namespace data
             Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::LinkDef > > &link_defs );
             enum
             {
-                Object_Part_Type_ID = 42
+                Object_Part_Type_ID = 44
             };
             std::vector< data::Ptr< data::AST::LinkDef > >             link_defs;
             std::optional< data::Ptr< data::Tree::InheritanceTrait > > link_inheritance_trait;
@@ -905,7 +912,7 @@ namespace data
             Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &location, const std::string &glob );
             enum
             {
-                Object_Part_Type_ID = 43
+                Object_Part_Type_ID = 45
             };
             boost::filesystem::path                          location;
             std::string                                      glob;
@@ -924,7 +931,7 @@ namespace data
                                 const std::vector< boost::filesystem::path > &resolution );
             enum
             {
-                Object_Part_Type_ID = 44
+                Object_Part_Type_ID = 46
             };
             mega::io::megaFilePath                                         source_file;
             std::size_t                                                    hash_code;
@@ -944,7 +951,7 @@ namespace data
                       const std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > &objects );
             enum
             {
-                Object_Part_Type_ID = 45
+                Object_Part_Type_ID = 47
             };
             std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > objects;
             std::variant< data::Ptr< data::DPGraph::Analysis > >          m_inheritance;
@@ -960,14 +967,14 @@ namespace data
         struct Symbol : public mega::io::Object
         {
             Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
-            Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &symbol, const std::size_t &id,
+            Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &symbol, const std::int32_t &id,
                     const std::vector< data::Ptr< data::Tree::Context > > &contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > > &dimensions );
             enum
             {
-                Object_Part_Type_ID = 46
+                Object_Part_Type_ID = 48
             };
             std::string                                            symbol;
-            std::size_t                                            id;
+            std::int32_t                                           id;
             std::vector< data::Ptr< data::Tree::Context > >        contexts;
             std::vector< data::Ptr< data::Tree::DimensionTrait > > dimensions;
             std::variant< data::Ptr< data::SymbolTable::Symbol > > m_inheritance;
@@ -982,17 +989,22 @@ namespace data
             SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                        const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &symbols, const mega::io::megaFilePath &source_file,
-                       const std::size_t &hash_code, const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > > &contexts,
-                       const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > &dimensions );
+                       const std::size_t &                                                                                hash_code,
+                       const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > > &       context_symbols,
+                       const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > &dimension_symbols,
+                       const std::map< data::Ptr< data::Tree::Context >, int32_t > &                                      context_type_ids,
+                       const std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t > &                               dimension_type_ids );
             enum
             {
-                Object_Part_Type_ID = 47
+                Object_Part_Type_ID = 49
             };
             std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >                             symbols;
             mega::io::megaFilePath                                                                      source_file;
             std::size_t                                                                                 hash_code;
-            std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > >        contexts;
-            std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > dimensions;
+            std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > >        context_symbols;
+            std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > dimension_symbols;
+            std::map< data::Ptr< data::Tree::Context >, int32_t >                                       context_type_ids;
+            std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t >                                dimension_type_ids;
             std::variant< data::Ptr< data::SymbolTable::SymbolSet > >                                   m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1008,7 +1020,7 @@ namespace data
                          const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &              symbols );
             enum
             {
-                Object_Part_Type_ID = 48
+                Object_Part_Type_ID = 50
             };
             std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > symbol_sets;
             std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               symbols;
@@ -1020,6 +1032,44 @@ namespace data
             virtual void                                                                  to_json( nlohmann::json &data ) const;
         };
     } // namespace SymbolTable
+    namespace PerSourceSymbols
+    {
+        struct DimensionTrait : public mega::io::Object
+        {
+            DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait,
+                            const std::int32_t &symbol );
+            enum
+            {
+                Object_Part_Type_ID = 28
+            };
+            std::int32_t                  symbol;
+            std::optional< std::int32_t > type_id;
+            Ptr< Tree::DimensionTrait >   p_Tree_DimensionTrait;
+            virtual bool                  test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                  set_inheritance_pointer();
+            virtual void                  load( mega::io::Loader &loader );
+            virtual void                  store( mega::io::Storer &storer ) const;
+            virtual void                  to_json( nlohmann::json &data ) const;
+        };
+        struct Context : public mega::io::Object
+        {
+            Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::Context > p_Tree_Context, const std::int32_t &symbol );
+            enum
+            {
+                Object_Part_Type_ID = 37
+            };
+            std::int32_t                  symbol;
+            std::optional< std::int32_t > type_id;
+            Ptr< Tree::Context >          p_Tree_Context;
+            virtual bool                  test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                  set_inheritance_pointer();
+            virtual void                  load( mega::io::Loader &loader );
+            virtual void                  store( mega::io::Storer &storer ) const;
+            virtual void                  to_json( nlohmann::json &data ) const;
+        };
+    } // namespace PerSourceSymbols
     namespace Clang
     {
         struct Dimension : public mega::io::Object
@@ -1028,7 +1078,7 @@ namespace data
             Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &canonical_type );
             enum
             {
-                Object_Part_Type_ID = 28
+                Object_Part_Type_ID = 29
             };
             std::string                 canonical_type;
             Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait;
@@ -1041,96 +1091,121 @@ namespace data
         };
     } // namespace Clang
 
-    template <> inline Ptr< Components::Component >   convert( const Ptr< Components::Component > &from ) { return from; }
-    template <> inline Ptr< AST::Identifier >         convert( const Ptr< AST::Identifier > &from ) { return from; }
-    template <> inline Ptr< AST::ScopedIdentifier >   convert( const Ptr< AST::ScopedIdentifier > &from ) { return from; }
-    template <> inline Ptr< AST::ArgumentList >       convert( const Ptr< AST::ArgumentList > &from ) { return from; }
-    template <> inline Ptr< AST::ReturnType >         convert( const Ptr< AST::ReturnType > &from ) { return from; }
-    template <> inline Ptr< AST::Inheritance >        convert( const Ptr< AST::Inheritance > &from ) { return from; }
-    template <> inline Ptr< AST::Size >               convert( const Ptr< AST::Size > &from ) { return from; }
-    template <> inline Ptr< AST::Dimension >          convert( const Ptr< AST::Dimension > &from ) { return from; }
-    template <> inline Ptr< AST::Include >            convert( const Ptr< AST::Include > &from ) { return from; }
-    template <> inline Ptr< AST::Include >            convert( const Ptr< AST::SystemInclude > &from ) { return from->p_AST_Include; }
-    template <> inline Ptr< AST::SystemInclude >      convert( const Ptr< AST::SystemInclude > &from ) { return from; }
-    template <> inline Ptr< AST::Include >            convert( const Ptr< AST::MegaInclude > &from ) { return from->p_AST_Include; }
-    template <> inline Ptr< AST::MegaInclude >        convert( const Ptr< AST::MegaInclude > &from ) { return from; }
-    template <> inline Ptr< AST::Include >            convert( const Ptr< AST::MegaIncludeInline > &from ) { return from->p_AST_MegaInclude->p_AST_Include; }
-    template <> inline Ptr< AST::MegaInclude >        convert( const Ptr< AST::MegaIncludeInline > &from ) { return from->p_AST_MegaInclude; }
-    template <> inline Ptr< AST::MegaIncludeInline >  convert( const Ptr< AST::MegaIncludeInline > &from ) { return from; }
-    template <> inline Ptr< AST::Include >            convert( const Ptr< AST::MegaIncludeNested > &from ) { return from->p_AST_MegaInclude->p_AST_Include; }
-    template <> inline Ptr< AST::MegaInclude >        convert( const Ptr< AST::MegaIncludeNested > &from ) { return from->p_AST_MegaInclude; }
-    template <> inline Ptr< AST::MegaIncludeNested >  convert( const Ptr< AST::MegaIncludeNested > &from ) { return from; }
-    template <> inline Ptr< AST::Include >            convert( const Ptr< AST::CPPInclude > &from ) { return from->p_AST_Include; }
-    template <> inline Ptr< AST::CPPInclude >         convert( const Ptr< AST::CPPInclude > &from ) { return from; }
-    template <> inline Ptr< AST::Dependency >         convert( const Ptr< AST::Dependency > &from ) { return from; }
-    template <> inline Ptr< AST::ContextDef >         convert( const Ptr< AST::ContextDef > &from ) { return from; }
-    template <> inline Ptr< Body::ContextDef >        convert( const Ptr< AST::ContextDef > &from ) { return from->p_Body_ContextDef; }
-    template <> inline Ptr< AST::ContextDef >         convert( const Ptr< AST::NamespaceDef > &from ) { return from->p_AST_ContextDef; }
-    template <> inline Ptr< Body::ContextDef >        convert( const Ptr< AST::NamespaceDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
-    template <> inline Ptr< AST::NamespaceDef >       convert( const Ptr< AST::NamespaceDef > &from ) { return from; }
-    template <> inline Ptr< AST::ContextDef >         convert( const Ptr< AST::AbstractDef > &from ) { return from->p_AST_ContextDef; }
-    template <> inline Ptr< Body::ContextDef >        convert( const Ptr< AST::AbstractDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
-    template <> inline Ptr< AST::AbstractDef >        convert( const Ptr< AST::AbstractDef > &from ) { return from; }
-    template <> inline Ptr< AST::ContextDef >         convert( const Ptr< AST::ActionDef > &from ) { return from->p_AST_ContextDef; }
-    template <> inline Ptr< Body::ContextDef >        convert( const Ptr< AST::ActionDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
-    template <> inline Ptr< AST::ActionDef >          convert( const Ptr< AST::ActionDef > &from ) { return from; }
-    template <> inline Ptr< AST::ContextDef >         convert( const Ptr< AST::EventDef > &from ) { return from->p_AST_ContextDef; }
-    template <> inline Ptr< Body::ContextDef >        convert( const Ptr< AST::EventDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
-    template <> inline Ptr< AST::EventDef >           convert( const Ptr< AST::EventDef > &from ) { return from; }
-    template <> inline Ptr< AST::ContextDef >         convert( const Ptr< AST::FunctionDef > &from ) { return from->p_AST_ContextDef; }
-    template <> inline Ptr< Body::ContextDef >        convert( const Ptr< AST::FunctionDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
-    template <> inline Ptr< AST::FunctionDef >        convert( const Ptr< AST::FunctionDef > &from ) { return from; }
-    template <> inline Ptr< AST::ContextDef >         convert( const Ptr< AST::ObjectDef > &from ) { return from->p_AST_ContextDef; }
-    template <> inline Ptr< Body::ContextDef >        convert( const Ptr< AST::ObjectDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
-    template <> inline Ptr< AST::ObjectDef >          convert( const Ptr< AST::ObjectDef > &from ) { return from; }
-    template <> inline Ptr< AST::ContextDef >         convert( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef; }
-    template <> inline Ptr< Body::ContextDef >        convert( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
-    template <> inline Ptr< AST::LinkDef >            convert( const Ptr< AST::LinkDef > &from ) { return from; }
-    template <> inline Ptr< AST::SourceRoot >         convert( const Ptr< AST::SourceRoot > &from ) { return from; }
-    template <> inline Ptr< AST::SourceRoot >         convert( const Ptr< AST::IncludeRoot > &from ) { return from->p_AST_SourceRoot; }
-    template <> inline Ptr< AST::IncludeRoot >        convert( const Ptr< AST::IncludeRoot > &from ) { return from; }
-    template <> inline Ptr< AST::SourceRoot >         convert( const Ptr< AST::ObjectSourceRoot > &from ) { return from->p_AST_SourceRoot; }
-    template <> inline Ptr< AST::ObjectSourceRoot >   convert( const Ptr< AST::ObjectSourceRoot > &from ) { return from; }
-    template <> inline Ptr< AST::Dimension >          convert( const Ptr< Tree::DimensionTrait > &from ) { return from->p_AST_Dimension; }
-    template <> inline Ptr< Tree::DimensionTrait >    convert( const Ptr< Tree::DimensionTrait > &from ) { return from; }
-    template <> inline Ptr< AST::Dimension >          convert( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait->p_AST_Dimension; }
-    template <> inline Ptr< Tree::DimensionTrait >    convert( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait; }
-    template <> inline Ptr< Clang::Dimension >        convert( const Ptr< Clang::Dimension > &from ) { return from; }
-    template <> inline Ptr< AST::Inheritance >        convert( const Ptr< Tree::InheritanceTrait > &from ) { return from->p_AST_Inheritance; }
-    template <> inline Ptr< Tree::InheritanceTrait >  convert( const Ptr< Tree::InheritanceTrait > &from ) { return from; }
-    template <> inline Ptr< AST::ReturnType >         convert( const Ptr< Tree::ReturnTypeTrait > &from ) { return from->p_AST_ReturnType; }
-    template <> inline Ptr< Tree::ReturnTypeTrait >   convert( const Ptr< Tree::ReturnTypeTrait > &from ) { return from; }
-    template <> inline Ptr< AST::ArgumentList >       convert( const Ptr< Tree::ArgumentListTrait > &from ) { return from->p_AST_ArgumentList; }
-    template <> inline Ptr< Tree::ArgumentListTrait > convert( const Ptr< Tree::ArgumentListTrait > &from ) { return from; }
-    template <> inline Ptr< AST::Size >               convert( const Ptr< Tree::SizeTrait > &from ) { return from->p_AST_Size; }
-    template <> inline Ptr< Tree::SizeTrait >         convert( const Ptr< Tree::SizeTrait > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::ContextGroup > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Root > &from ) { return from->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Root >              convert( const Ptr< Tree::Root > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Context > &from ) { return from->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Context >           convert( const Ptr< Tree::Context > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Namespace > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Context >           convert( const Ptr< Tree::Namespace > &from ) { return from->p_Tree_Context; }
-    template <> inline Ptr< Tree::Namespace >         convert( const Ptr< Tree::Namespace > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Abstract > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Context >           convert( const Ptr< Tree::Abstract > &from ) { return from->p_Tree_Context; }
-    template <> inline Ptr< Tree::Abstract >          convert( const Ptr< Tree::Abstract > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Action > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Context >           convert( const Ptr< Tree::Action > &from ) { return from->p_Tree_Context; }
-    template <> inline Ptr< Tree::Action >            convert( const Ptr< Tree::Action > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Event > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Context >           convert( const Ptr< Tree::Event > &from ) { return from->p_Tree_Context; }
-    template <> inline Ptr< Tree::Event >             convert( const Ptr< Tree::Event > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Function > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Context >           convert( const Ptr< Tree::Function > &from ) { return from->p_Tree_Context; }
-    template <> inline Ptr< Tree::Function >          convert( const Ptr< Tree::Function > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Object > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Context >           convert( const Ptr< Tree::Object > &from ) { return from->p_Tree_Context; }
-    template <> inline Ptr< Tree::Object >            convert( const Ptr< Tree::Object > &from ) { return from; }
-    template <> inline Ptr< Tree::ContextGroup >      convert( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    template <> inline Ptr< Tree::Context >           convert( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context; }
-    template <> inline Ptr< Tree::Link >              convert( const Ptr< Tree::Link > &from ) { return from; }
-    template <> inline Ptr< DPGraph::Glob >           convert( const Ptr< DPGraph::Glob > &from ) { return from; }
+    template <> inline Ptr< Components::Component >  convert( const Ptr< Components::Component > &from ) { return from; }
+    template <> inline Ptr< AST::Identifier >        convert( const Ptr< AST::Identifier > &from ) { return from; }
+    template <> inline Ptr< AST::ScopedIdentifier >  convert( const Ptr< AST::ScopedIdentifier > &from ) { return from; }
+    template <> inline Ptr< AST::ArgumentList >      convert( const Ptr< AST::ArgumentList > &from ) { return from; }
+    template <> inline Ptr< AST::ReturnType >        convert( const Ptr< AST::ReturnType > &from ) { return from; }
+    template <> inline Ptr< AST::Inheritance >       convert( const Ptr< AST::Inheritance > &from ) { return from; }
+    template <> inline Ptr< AST::Size >              convert( const Ptr< AST::Size > &from ) { return from; }
+    template <> inline Ptr< AST::Dimension >         convert( const Ptr< AST::Dimension > &from ) { return from; }
+    template <> inline Ptr< AST::Include >           convert( const Ptr< AST::Include > &from ) { return from; }
+    template <> inline Ptr< AST::Include >           convert( const Ptr< AST::SystemInclude > &from ) { return from->p_AST_Include; }
+    template <> inline Ptr< AST::SystemInclude >     convert( const Ptr< AST::SystemInclude > &from ) { return from; }
+    template <> inline Ptr< AST::Include >           convert( const Ptr< AST::MegaInclude > &from ) { return from->p_AST_Include; }
+    template <> inline Ptr< AST::MegaInclude >       convert( const Ptr< AST::MegaInclude > &from ) { return from; }
+    template <> inline Ptr< AST::Include >           convert( const Ptr< AST::MegaIncludeInline > &from ) { return from->p_AST_MegaInclude->p_AST_Include; }
+    template <> inline Ptr< AST::MegaInclude >       convert( const Ptr< AST::MegaIncludeInline > &from ) { return from->p_AST_MegaInclude; }
+    template <> inline Ptr< AST::MegaIncludeInline > convert( const Ptr< AST::MegaIncludeInline > &from ) { return from; }
+    template <> inline Ptr< AST::Include >           convert( const Ptr< AST::MegaIncludeNested > &from ) { return from->p_AST_MegaInclude->p_AST_Include; }
+    template <> inline Ptr< AST::MegaInclude >       convert( const Ptr< AST::MegaIncludeNested > &from ) { return from->p_AST_MegaInclude; }
+    template <> inline Ptr< AST::MegaIncludeNested > convert( const Ptr< AST::MegaIncludeNested > &from ) { return from; }
+    template <> inline Ptr< AST::Include >           convert( const Ptr< AST::CPPInclude > &from ) { return from->p_AST_Include; }
+    template <> inline Ptr< AST::CPPInclude >        convert( const Ptr< AST::CPPInclude > &from ) { return from; }
+    template <> inline Ptr< AST::Dependency >        convert( const Ptr< AST::Dependency > &from ) { return from; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::ContextDef > &from ) { return from; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::ContextDef > &from ) { return from->p_Body_ContextDef; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::NamespaceDef > &from ) { return from->p_AST_ContextDef; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::NamespaceDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
+    template <> inline Ptr< AST::NamespaceDef >      convert( const Ptr< AST::NamespaceDef > &from ) { return from; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::AbstractDef > &from ) { return from->p_AST_ContextDef; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::AbstractDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
+    template <> inline Ptr< AST::AbstractDef >       convert( const Ptr< AST::AbstractDef > &from ) { return from; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::ActionDef > &from ) { return from->p_AST_ContextDef; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::ActionDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
+    template <> inline Ptr< AST::ActionDef >         convert( const Ptr< AST::ActionDef > &from ) { return from; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::EventDef > &from ) { return from->p_AST_ContextDef; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::EventDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
+    template <> inline Ptr< AST::EventDef >          convert( const Ptr< AST::EventDef > &from ) { return from; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::FunctionDef > &from ) { return from->p_AST_ContextDef; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::FunctionDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
+    template <> inline Ptr< AST::FunctionDef >       convert( const Ptr< AST::FunctionDef > &from ) { return from; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::ObjectDef > &from ) { return from->p_AST_ContextDef; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::ObjectDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
+    template <> inline Ptr< AST::ObjectDef >         convert( const Ptr< AST::ObjectDef > &from ) { return from; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
+    template <> inline Ptr< AST::LinkDef >           convert( const Ptr< AST::LinkDef > &from ) { return from; }
+    template <> inline Ptr< AST::SourceRoot >        convert( const Ptr< AST::SourceRoot > &from ) { return from; }
+    template <> inline Ptr< AST::SourceRoot >        convert( const Ptr< AST::IncludeRoot > &from ) { return from->p_AST_SourceRoot; }
+    template <> inline Ptr< AST::IncludeRoot >       convert( const Ptr< AST::IncludeRoot > &from ) { return from; }
+    template <> inline Ptr< AST::SourceRoot >        convert( const Ptr< AST::ObjectSourceRoot > &from ) { return from->p_AST_SourceRoot; }
+    template <> inline Ptr< AST::ObjectSourceRoot >  convert( const Ptr< AST::ObjectSourceRoot > &from ) { return from; }
+    template <> inline Ptr< AST::Dimension >         convert( const Ptr< Tree::DimensionTrait > &from ) { return from->p_AST_Dimension; }
+    template <> inline Ptr< Tree::DimensionTrait >   convert( const Ptr< Tree::DimensionTrait > &from ) { return from; }
+    template <> inline Ptr< PerSourceSymbols::DimensionTrait > convert( const Ptr< Tree::DimensionTrait > &from )
+    {
+        return from->p_PerSourceSymbols_DimensionTrait;
+    }
+    template <> inline Ptr< AST::Dimension >       convert( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait->p_AST_Dimension; }
+    template <> inline Ptr< Tree::DimensionTrait > convert( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait; }
+    template <> inline Ptr< PerSourceSymbols::DimensionTrait > convert( const Ptr< Clang::Dimension > &from )
+    {
+        return from->p_Tree_DimensionTrait->p_PerSourceSymbols_DimensionTrait;
+    }
+    template <> inline Ptr< Clang::Dimension >          convert( const Ptr< Clang::Dimension > &from ) { return from; }
+    template <> inline Ptr< AST::Inheritance >          convert( const Ptr< Tree::InheritanceTrait > &from ) { return from->p_AST_Inheritance; }
+    template <> inline Ptr< Tree::InheritanceTrait >    convert( const Ptr< Tree::InheritanceTrait > &from ) { return from; }
+    template <> inline Ptr< AST::ReturnType >           convert( const Ptr< Tree::ReturnTypeTrait > &from ) { return from->p_AST_ReturnType; }
+    template <> inline Ptr< Tree::ReturnTypeTrait >     convert( const Ptr< Tree::ReturnTypeTrait > &from ) { return from; }
+    template <> inline Ptr< AST::ArgumentList >         convert( const Ptr< Tree::ArgumentListTrait > &from ) { return from->p_AST_ArgumentList; }
+    template <> inline Ptr< Tree::ArgumentListTrait >   convert( const Ptr< Tree::ArgumentListTrait > &from ) { return from; }
+    template <> inline Ptr< AST::Size >                 convert( const Ptr< Tree::SizeTrait > &from ) { return from->p_AST_Size; }
+    template <> inline Ptr< Tree::SizeTrait >           convert( const Ptr< Tree::SizeTrait > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::ContextGroup > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Root > &from ) { return from->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Root >                convert( const Ptr< Tree::Root > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Context > &from ) { return from->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Context > &from ) { return from; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Context > &from ) { return from->p_PerSourceSymbols_Context; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Namespace > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Namespace > &from ) { return from->p_Tree_Context; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Namespace > &from )
+    {
+        return from->p_Tree_Context->p_PerSourceSymbols_Context;
+    }
+    template <> inline Ptr< Tree::Namespace >           convert( const Ptr< Tree::Namespace > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Abstract > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Abstract > &from ) { return from->p_Tree_Context; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Abstract > &from )
+    {
+        return from->p_Tree_Context->p_PerSourceSymbols_Context;
+    }
+    template <> inline Ptr< Tree::Abstract >            convert( const Ptr< Tree::Abstract > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Action > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Action > &from ) { return from->p_Tree_Context; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Action > &from ) { return from->p_Tree_Context->p_PerSourceSymbols_Context; }
+    template <> inline Ptr< Tree::Action >              convert( const Ptr< Tree::Action > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Event > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Event > &from ) { return from->p_Tree_Context; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Event > &from ) { return from->p_Tree_Context->p_PerSourceSymbols_Context; }
+    template <> inline Ptr< Tree::Event >               convert( const Ptr< Tree::Event > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Function > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Function > &from ) { return from->p_Tree_Context; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Function > &from )
+    {
+        return from->p_Tree_Context->p_PerSourceSymbols_Context;
+    }
+    template <> inline Ptr< Tree::Function >            convert( const Ptr< Tree::Function > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Object > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Object > &from ) { return from->p_Tree_Context; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Object > &from ) { return from->p_Tree_Context->p_PerSourceSymbols_Context; }
+    template <> inline Ptr< Tree::Object >              convert( const Ptr< Tree::Object > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context->p_PerSourceSymbols_Context; }
+    template <> inline Ptr< Tree::Link >                convert( const Ptr< Tree::Link > &from ) { return from; }
+    template <> inline Ptr< DPGraph::Glob >             convert( const Ptr< DPGraph::Glob > &from ) { return from; }
     template <> inline Ptr< DPGraph::ObjectDependencies > convert( const Ptr< DPGraph::ObjectDependencies > &from ) { return from; }
     template <> inline Ptr< DPGraph::Analysis >           convert( const Ptr< DPGraph::Analysis > &from ) { return from; }
     template <> inline Ptr< SymbolTable::Symbol >         convert( const Ptr< SymbolTable::Symbol > &from ) { return from; }

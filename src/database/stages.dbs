@@ -80,15 +80,26 @@ stage SymbolAnalysisView
     persource accessor ref< Interface::Context >;
 }
 
-stage InterfaceAnalysisStage
+stage SymbolRollout
 {
     source .mega;
     dependency SymbolAnalysis;
 
+    file PerSourceSymbols;
+
+    global accessor ref< Symbols::SymbolTable >;
+    persource accessor ref< Interface::DimensionTrait >;
+    persource accessor ref< Interface::Context >;
+}
+
+stage InterfaceAnalysisStage
+{
+    source .mega;
+    dependency SymbolRollout;
+
     file Clang;
 
     persource accessor ref< Interface::Root >;
-    global accessor ref< Symbols::SymbolTable >;
 }
 
 stage FinalStage
@@ -97,5 +108,4 @@ stage FinalStage
     dependency InterfaceAnalysisStage;
 
     global accessor array< ref< Interface::Root > >;
-    global accessor ref< Symbols::SymbolTable >;
 }
