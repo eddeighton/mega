@@ -8,6 +8,8 @@ namespace Components
     {
         value< std::string > name;
         value< boost::filesystem::path > directory;
+        array< value< std::string > > cpp_flags;
+        array< value< std::string > > cpp_defines;
         array< value< boost::filesystem::path > > includeDirectories;
         array< value< boost::filesystem::path > > sourceFiles;
     }

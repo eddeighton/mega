@@ -34,7 +34,7 @@ TEST( MegaIO, SourceListing_Empty )
 TEST( MegaIO, SourceListing_Single )
 {
     ComponentInfo::PathArray paths = { "/a/b/c/test.txt" };
-    ComponentInfo            componentInfoFrom( "test", "some/where", paths, ComponentInfo::PathArray{} );
+    ComponentInfo            componentInfoFrom( "test", {}, {}, "some/where", paths, ComponentInfo::PathArray{} );
     ComponentInfo            componentInfoTo;
 
     std::stringstream ss;
@@ -57,7 +57,7 @@ TEST( MegaIO, SourceListing_Multi )
 {
     ComponentInfo::PathArray paths = { "/a/b/c/test.txt", "/d/f/g/test.txt", "/c/foobar.txt" };
     ComponentInfo::PathArray includes = { "somewhere/place", "/other/place" };
-    ComponentInfo            componentInfoFrom( "test", "some/where", paths, ComponentInfo::PathArray{} );
+    ComponentInfo            componentInfoFrom( "test", {}, {}, "some/where", paths, ComponentInfo::PathArray{} );
     ComponentInfo            componentInfoTo;
 
     std::stringstream ss;

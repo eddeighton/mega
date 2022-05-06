@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "command_utils.hpp"
-
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/environments.hpp"

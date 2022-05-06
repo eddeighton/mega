@@ -29,6 +29,9 @@ stage InterfaceStage
 
     persource accessor ref< Parser::ObjectSourceRoot >;
 
+    persource accessor array< ref< Parser::SystemInclude > >;
+    persource accessor array< ref< Parser::CPPInclude > >;
+
     persource accessor array< ref< Interface::Namespace > >;
     persource accessor array< ref< Interface::Abstract > >;
     persource accessor array< ref< Interface::Action > >;

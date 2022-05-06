@@ -7,7 +7,8 @@ namespace mega
         boost::filesystem::path manifestFilePath::EXTENSION    = ".manifest";
         boost::filesystem::path megaFilePath::EXTENSION        = ".mega";
         boost::filesystem::path CompilationFilePath::EXTENSION = ".db";
-        boost::filesystem::path GeneratedHPPSourceFilePath::EXTENSION = ".hxx";
-        boost::filesystem::path GeneratedCPPSourceFilePath::EXTENSION = ".cxx";
+        boost::filesystem::path GeneratedHPPSourceFilePath::EXTENSION = ".hpp";
+        boost::filesystem::path GeneratedCPPSourceFilePath::EXTENSION = ".cpp";
+        boost::filesystem::path PrecompiledHeaderFile::EXTENSION = ".pch";
     } // namespace io
 } // namespace mega

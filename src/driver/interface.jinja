@@ -3,4 +3,15 @@
 
 {{ interface }}
 
+{% for struct in structs %}
+struct {% for type in struct.types %}{{ type }}{% if not loop.is_last%}::{% endif %}{% endfor %}
+{
+{% for trait in struct.traits %}
+    {{ trait }};
+{% endfor %}
+};
+{% endfor %}
+
+
+
 #endif //INTERFACE_GUARD_{{ guard }}

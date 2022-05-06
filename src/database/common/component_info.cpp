@@ -12,20 +12,22 @@ namespace mega
 {
 namespace io
 {
-    ComponentInfo::ComponentInfo()
-    {
-    }
+ComponentInfo::ComponentInfo() {}
 
-    ComponentInfo::ComponentInfo( const std::string&              strName,
-                                  const boost::filesystem::path&  directory,
-                                  const ComponentInfo::PathArray& sourceFiles,
-                                  const PathArray&                includeDirectories )
-        : m_strName( strName )
-        , m_directory( directory )
-        , m_sourceFiles( sourceFiles )
-        , m_includeDirectories( includeDirectories )
-    {
-    }
+ComponentInfo::ComponentInfo( const std::string&                strName,
+                              const std::vector< std::string >& cppFlags,
+                              const std::vector< std::string >& cppDefines,
+                              const boost::filesystem::path&    directory,
+                              const ComponentInfo::PathArray&   sourceFiles,
+                              const PathArray&                  includeDirectories )
+    : m_strName( strName )
+    , m_cppFlags( cppFlags )
+    , m_cppDefines( cppDefines )
+    , m_directory( directory )
+    , m_sourceFiles( sourceFiles )
+    , m_includeDirectories( includeDirectories )
+{
+}
 
 } // namespace io
 } // namespace mega

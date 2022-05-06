@@ -30,8 +30,10 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
     static {{ name }} null() { return {{ name }}(); }
     template< typename TypePath, typename Operation, typename... Args >
     typename eg::result_type< {{ name }}, TypePath, Operation >::Type invoke( Args... args ) const;
-{% for trait in traits %}
-    struct trait;
+
+    // Ed was here
+{% for trait_struct in trait_structs %}
+    struct [[clang::eg_type( {{ trait_struct.typeid }} )]]{{ trait_struct.name }};
 {% endfor %}
 
     {{ nested }}

@@ -17,11 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "command_utils.hpp"
-
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/environments.hpp"
+
+#include "utilities/cmake.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
@@ -39,126 +39,139 @@
 
 namespace driver
 {
-    namespace list
+namespace list
+{
+class BaseTask : public task::Task
+{
+public:
+    BaseTask( const mega::io::BuildEnvironment& environment, const RawPtrSet& dependencies )
+        : task::Task( dependencies )
+        , m_environment( environment )
     {
-        class BaseTask : public task::Task
+    }
+
+protected:
+    const mega::io::BuildEnvironment& m_environment;
+};
+
+class Task_ComponentInfoToManifest : public BaseTask
+{
+public:
+    Task_ComponentInfoToManifest( const mega::io::BuildEnvironment&             environment,
+                                  const std::string&                            strComponentName,
+                                  const std::vector< std::string >&             cppFlags,
+                                  const std::vector< std::string >&             cppDefines,
+                                  const boost::filesystem::path&                srcDir,
+                                  const boost::filesystem::path&                buildDir,
+                                  const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
+                                  const std::vector< boost::filesystem::path >& includeDirectories )
+        : BaseTask( environment, {} )
+        , m_srcDir( srcDir )
+        , m_buildDir( buildDir )
+        , m_componentInfo( strComponentName, cppFlags, cppDefines, srcDir, inputMegaSourceFiles, includeDirectories )
+    {
+    }
+
+    virtual void run( task::Progress& taskProgress )
+    {
+        // inputMegaSourceFiles
+        const mega::io::ComponentListingFilePath componentListingFilePath
+            = m_environment.ComponentListingFilePath_fromPath( m_buildDir );
+
+        taskProgress.start( "Task_ComponentInfoToManifest", m_srcDir, componentListingFilePath.path() );
+
+        boost::filesystem::path tempFile;
         {
-        public:
-            BaseTask( const mega::io::BuildEnvironment& environment, const RawPtrSet& dependencies )
-                : task::Task( dependencies )
-                , m_environment( environment )
-            {
-            }
-
-        protected:
-            const mega::io::BuildEnvironment& m_environment;
-        };
-
-        class Task_ComponentInfoToManifest : public BaseTask
-        {
-        public:
-            Task_ComponentInfoToManifest( const mega::io::BuildEnvironment&             environment,
-                                          const std::string&                            strComponentName,
-                                          const boost::filesystem::path&                srcDir,
-                                          const boost::filesystem::path&                buildDir,
-                                          const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
-                                          const std::vector< boost::filesystem::path >& includeDirectories )
-                : BaseTask( environment, {} )
-                , m_srcDir( srcDir )
-                , m_buildDir( buildDir )
-                , m_componentInfo( strComponentName, srcDir, inputMegaSourceFiles, includeDirectories )
-            {
-            }
-
-            virtual void run( task::Progress& taskProgress )
-            {
-                // inputMegaSourceFiles
-                const mega::io::ComponentListingFilePath componentListingFilePath
-                    = m_environment.ComponentListingFilePath_fromPath( m_buildDir );
-
-                taskProgress.start( "Task_ComponentInfoToManifest", m_srcDir, componentListingFilePath.path() );
-
-                boost::filesystem::path tempFile;
-                {
-                    std::unique_ptr< std::ostream > pOfstream = m_environment.write_temp( componentListingFilePath, tempFile );
-                    mega::OutputArchiveType         oa( *pOfstream );
-                    oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
-                }
-
-                const task::DeterminantHash determinant( tempFile );
-
-                if ( m_environment.restore( componentListingFilePath, determinant ) )
-                {
-                    m_environment.setBuildHashCode( componentListingFilePath );
-                    taskProgress.cached();
-                    return;
-                }
-                else
-                {
-                    m_environment.temp_to_real( componentListingFilePath );
-                    m_environment.setBuildHashCode( componentListingFilePath );
-                    m_environment.stash( componentListingFilePath, determinant );
-                    taskProgress.succeeded();
-                }
-            }
-
-        private:
-            const boost::filesystem::path m_srcDir;
-            const boost::filesystem::path m_buildDir;
-            mega::io::ComponentInfo       m_componentInfo;
-        };
-
-        void command( bool bHelp, const std::vector< std::string >& args )
-        {
-            boost::filesystem::path    rootSourceDir, rootBuildDir, sourceDir, buildDir;
-            std::string                strComponentName, strIncludeDirectories;
-            std::vector< std::string > objectSourceFileNames;
-
-            namespace po = boost::program_options;
-            po::options_description commandOptions( " List input mega source files" );
-            {
-                // clang-format off
-            commandOptions.add_options()
-                ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),             "Root source directory" )
-                ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),              "Root build directory" )
-                ( "src_dir",        po::value< boost::filesystem::path >( &sourceDir ),                 "Source directory" )
-                ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),                  "Build Directory" )
-                ( "name",           po::value< std::string >( &strComponentName ),                      "Component name" )       
-                ( "include_dirs",   po::value< std::string >( &strIncludeDirectories ),                 "Include directories ( semicolon delimited )" )
-                ( "src",            po::value< std::vector< std::string > >( &objectSourceFileNames ),  "Mega source file names" )
-                ;
-                // clang-format on
-            }
-
-            po::positional_options_description p;
-            p.add( "src", -1 );
-
-            po::variables_map vm;
-            po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
-            po::notify( vm );
-
-            if ( bHelp )
-            {
-                std::cout << commandOptions << "\n";
-            }
-            else
-            {
-                // tokenize semi colon delimited names into absolute mega source file paths
-                const std::vector< boost::filesystem::path > inputSourceFiles = pathListToFiles( sourceDir, objectSourceFileNames );
-                const std::vector< boost::filesystem::path > includeDirectories
-                    = pathListToFolders( parsePathList( strIncludeDirectories ) );
-
-                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
-
-                task::Task::PtrVector tasks;
-
-                Task_ComponentInfoToManifest* pTask = new Task_ComponentInfoToManifest(
-                    environment, strComponentName, sourceDir, buildDir, inputSourceFiles, includeDirectories );
-                tasks.push_back( task::Task::Ptr( pTask ) );
-
-                task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
-                task::run( pSchedule, std::cout );
-            }
+            std::unique_ptr< std::ostream > pOfstream = m_environment.write_temp( componentListingFilePath, tempFile );
+            mega::OutputArchiveType         oa( *pOfstream );
+            oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
         }
-    } // namespace list
+
+        const task::DeterminantHash determinant( tempFile );
+
+        if ( m_environment.restore( componentListingFilePath, determinant ) )
+        {
+            m_environment.setBuildHashCode( componentListingFilePath );
+            taskProgress.cached();
+            return;
+        }
+        else
+        {
+            m_environment.temp_to_real( componentListingFilePath );
+            m_environment.setBuildHashCode( componentListingFilePath );
+            m_environment.stash( componentListingFilePath, determinant );
+            taskProgress.succeeded();
+        }
+    }
+
+private:
+    const boost::filesystem::path m_srcDir;
+    const boost::filesystem::path m_buildDir;
+    mega::io::ComponentInfo       m_componentInfo;
+};
+
+void command( bool bHelp, const std::vector< std::string >& args )
+{
+    boost::filesystem::path    rootSourceDir, rootBuildDir, sourceDir, buildDir;
+    std::string                strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories;
+    std::vector< std::string > objectSourceFileNames;
+
+    namespace po = boost::program_options;
+    po::options_description commandOptions( " List input mega source files" );
+    {
+        // clang-format off
+        commandOptions.add_options()
+            ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),             "Root source directory" )
+            ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),              "Root build directory" )
+            ( "src_dir",        po::value< boost::filesystem::path >( &sourceDir ),                 "Source directory" )
+            ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),                  "Build Directory" )
+            ( "name",           po::value< std::string >( &strComponentName ),                      "Component name" )
+            ( "cpp_flags",      po::value< std::string >( &strCPPFlags ),                           "C++ Compiler Flags" )
+            ( "cpp_defines",    po::value< std::string >( &strCPPDefines ),                         "C++ Compiler Defines" )
+            ( "include_dirs",   po::value< std::string >( &strIncludeDirectories ),                 "Include directories ( semicolon delimited )" )
+            ( "src",            po::value< std::vector< std::string > >( &objectSourceFileNames ),  "Mega source file names" )
+            ;
+        // clang-format on
+    }
+
+    po::positional_options_description p;
+    p.add( "src", -1 );
+
+    po::variables_map vm;
+    po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
+    po::notify( vm );
+
+    if ( bHelp )
+    {
+        std::cout << commandOptions << "\n";
+    }
+    else
+    {
+        // tokenize semi colon delimited names into absolute mega source file paths
+        const std::vector< boost::filesystem::path > inputSourceFiles
+            = mega::utilities::pathListToFiles( sourceDir, objectSourceFileNames );
+        const std::vector< std::string > cppFlags   = mega::utilities::parseCMakeStringList( strCPPFlags, " " );
+        const std::vector< std::string > cppDefines = mega::utilities::parseCMakeStringList( strCPPDefines, " " );
+        const std::vector< boost::filesystem::path > includeDirectories
+            = mega::utilities::pathListToFolders( mega::utilities::parseCMakeStringList( strIncludeDirectories, ";" ) );
+
+        mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
+
+        task::Task::PtrVector tasks;
+
+        Task_ComponentInfoToManifest* pTask = new Task_ComponentInfoToManifest( environment,
+                                                                                strComponentName,
+                                                                                cppFlags,
+                                                                                cppDefines,
+                                                                                sourceDir,
+                                                                                buildDir,
+                                                                                inputSourceFiles,
+                                                                                includeDirectories );
+        tasks.push_back( task::Task::Ptr( pTask ) );
+
+        task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
+        task::run( pSchedule, std::cout );
+    }
+}
+} // namespace list
 } // namespace driver

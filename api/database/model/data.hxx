@@ -104,6 +104,7 @@ namespace data
         {
             Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &name, const boost::filesystem::path &directory,
+                       const std::vector< std::string > &cpp_flags, const std::vector< std::string > &cpp_defines,
                        const std::vector< boost::filesystem::path > &includeDirectories, const std::vector< boost::filesystem::path > &sourceFiles );
             enum
             {
@@ -111,6 +112,8 @@ namespace data
             };
             std::string                                              name;
             boost::filesystem::path                                  directory;
+            std::vector< std::string >                               cpp_flags;
+            std::vector< std::string >                               cpp_defines;
             std::vector< boost::filesystem::path >                   includeDirectories;
             std::vector< boost::filesystem::path >                   sourceFiles;
             std::variant< data::Ptr< data::Components::Component > > m_inheritance;

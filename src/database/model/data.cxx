@@ -42,10 +42,11 @@ namespace data
         {
         }
         Component::Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &name,
-                              const boost::filesystem::path &directory, const std::vector< boost::filesystem::path > &includeDirectories,
+                              const boost::filesystem::path &directory, const std::vector< std::string > &cpp_flags,
+                              const std::vector< std::string > &cpp_defines, const std::vector< boost::filesystem::path > &includeDirectories,
                               const std::vector< boost::filesystem::path > &sourceFiles )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Component >( loader, this ) ), name( name ), directory( directory ),
-              includeDirectories( includeDirectories ), sourceFiles( sourceFiles )
+              cpp_flags( cpp_flags ), cpp_defines( cpp_defines ), includeDirectories( includeDirectories ), sourceFiles( sourceFiles )
         {
         }
         bool Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -58,6 +59,8 @@ namespace data
         {
             loader.load( name );
             loader.load( directory );
+            loader.load( cpp_flags );
+            loader.load( cpp_defines );
             loader.load( includeDirectories );
             loader.load( sourceFiles );
         }
@@ -65,6 +68,8 @@ namespace data
         {
             storer.store( name );
             storer.store( directory );
+            storer.store( cpp_flags );
+            storer.store( cpp_defines );
             storer.store( includeDirectories );
             storer.store( sourceFiles );
         }
@@ -82,6 +87,14 @@ namespace data
             }
             {
                 nlohmann::json property = nlohmann::json::object( {{"directory", directory}} );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( {{"cpp_flags", cpp_flags}} );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( {{"cpp_defines", cpp_defines}} );
                 part[ "properties" ].push_back( property );
             }
             {

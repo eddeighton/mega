@@ -29,10 +29,35 @@ set( JINJA_TEMPLATES
 	${DRIVER_SOURCE_DIR}/interface.jinja 
 	)
 
+set( MEGA_LIBRARY
+	${MEGA_API_DIR}/mega/allocator.hpp
+	${MEGA_API_DIR}/mega/backtrace.hpp
+	${MEGA_API_DIR}/mega/basic_scheduler.cpp 
+	${MEGA_API_DIR}/mega/clock.cpp
+	${MEGA_API_DIR}/mega/clock.hpp
+	${MEGA_API_DIR}/mega/common_strings.hpp 
+	${MEGA_API_DIR}/mega/common.hpp
+	${MEGA_API_DIR}/mega/coroutine.hpp
+	${MEGA_API_DIR}/mega/default_traits.hpp
+	${MEGA_API_DIR}/mega/eg_common_strings.hpp
+	${MEGA_API_DIR}/mega/event_log.cpp
+	${MEGA_API_DIR}/mega/event.hpp
+	${MEGA_API_DIR}/mega/frame.cpp
+	${MEGA_API_DIR}/mega/frame.hpp
+	${MEGA_API_DIR}/mega/include.hpp
+	${MEGA_API_DIR}/mega/iterators.hpp
+	${MEGA_API_DIR}/mega/macros.hpp
+	${MEGA_API_DIR}/mega/operations.hpp
+	${MEGA_API_DIR}/mega/resource.cpp
+	${MEGA_API_DIR}/mega/resource.hpp
+	${MEGA_API_DIR}/mega/result_type.hpp
+	${MEGA_API_DIR}/mega/scheduler.hpp
+	${MEGA_API_DIR}/mega/type_path.hpp
+	${MEGA_API_DIR}/mega/variant.hpp
+)
+
 
 set( DRIVER_SOURCES
-		${DRIVER_SOURCE_DIR}/command_utils.hpp
-
 		${DRIVER_SOURCE_DIR}/command_archive.cpp
 		${DRIVER_SOURCE_DIR}/command_graph.cpp
 		${DRIVER_SOURCE_DIR}/command_inja.cpp
@@ -70,3 +95,4 @@ link_common( mega )
 
 install( TARGETS mega DESTINATION bin)
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )
+install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )

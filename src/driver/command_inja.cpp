@@ -17,11 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "command_utils.hpp"
-
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
+
+#include "utilities/cmake.hpp"
 
 #include "nlohmann/json.hpp"
 

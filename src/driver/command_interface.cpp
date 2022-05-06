@@ -37,6 +37,7 @@
 #include "utilities/clang_format.hpp"
 #include "utilities/glob.hpp"
 #include "utilities/clang_format.hpp"
+#include "utilities/clang_compilation.hpp"
 
 #include "common/scheduler.hpp"
 #include "common/file.hpp"
@@ -60,6 +61,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/dll.hpp>
+#pragma warning( push )
+#pragma warning( disable : 4996 ) // iterator thing
+#pragma warning( disable : 4244 ) // conversion to DWORD from system_clock::rep
+#include <boost/process.hpp>
+#pragma warning( pop )
 
 #include <common/stash.hpp>
 #include <string>
@@ -87,14 +93,17 @@ namespace interface
 class BaseTask : public task::Task
 {
 public:
-    BaseTask( const RawPtrSet& dependencies, const mega::io::BuildEnvironment& environment )
+    BaseTask( const RawPtrSet& dependencies, const mega::io::BuildEnvironment& environment,
+              const task::DeterminantHash toolChainHash )
         : task::Task( dependencies )
         , m_environment( environment )
+        , m_toolChainHash( toolChainHash )
     {
     }
 
 protected:
     const mega::io::BuildEnvironment& m_environment;
+    const task::DeterminantHash       m_toolChainHash;
 };
 
 const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&           filePath,
@@ -112,12 +121,19 @@ const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&          
 
 class Task_ParseAST : public BaseTask
 {
+    const boost::filesystem::path            m_parserDLL;
+    const mega::io::megaFilePath&            m_sourceFilePath;
+    const std::vector< mega::io::FileInfo >& m_fileInfos;
+    using FileRootMap = std::map< boost::filesystem::path, ParserStage::Parser::SourceRoot* >;
+    FileRootMap m_rootFiles;
+
 public:
     Task_ParseAST( const mega::io::BuildEnvironment&        environment,
+                   const task::DeterminantHash              toolChainHash,
                    const boost::filesystem::path&           parserDll,
                    const mega::io::megaFilePath&            sourceFilePath,
                    const std::vector< mega::io::FileInfo >& fileInfos )
-        : BaseTask( {}, environment )
+        : BaseTask( {}, environment, toolChainHash )
         , m_parserDLL( parserDll )
         , m_sourceFilePath( sourceFilePath )
         , m_fileInfos( fileInfos )
@@ -236,20 +252,26 @@ public:
             {
                 const task::FileHash astHashCode = database.save_AST_to_temp();
                 m_environment.setBuildHashCode( astFile, astHashCode );
-                if ( !m_environment.restore( astFile, astHashCode ) )
+
+                const task::DeterminantHash determinant( { m_toolChainHash, astHashCode } );
+
+                if ( !m_environment.restore( astFile, determinant ) )
                 {
                     m_environment.temp_to_real( astFile );
-                    m_environment.stash( astFile, astHashCode );
+                    m_environment.stash( astFile, determinant );
                     bRestored = false;
                 }
             }
             {
                 const task::FileHash bodyHashCode = database.save_Body_to_temp();
                 m_environment.setBuildHashCode( bodyFile, bodyHashCode );
-                if ( !m_environment.restore( bodyFile, bodyHashCode ) )
+
+                const task::DeterminantHash determinant( { m_toolChainHash, bodyHashCode } );
+
+                if ( !m_environment.restore( bodyFile, determinant ) )
                 {
                     m_environment.temp_to_real( bodyFile );
-                    m_environment.stash( bodyFile, bodyHashCode );
+                    m_environment.stash( bodyFile, determinant );
                     bRestored = false;
                 }
             }
@@ -264,12 +286,138 @@ public:
             }
         }
     }
+};
 
-    const mega::io::megaFilePath&            m_sourceFilePath;
-    const std::vector< mega::io::FileInfo >& m_fileInfos;
-    const boost::filesystem::path            m_parserDLL;
-    using FileRootMap = std::map< boost::filesystem::path, ParserStage::Parser::SourceRoot* >;
-    FileRootMap m_rootFiles;
+class Task_Include : public BaseTask
+{
+    const mega::io::megaFilePath& m_sourceFilePath;
+
+public:
+    Task_Include( task::Task::RawPtr pDependency, const mega::io::BuildEnvironment& environment,
+                  const task::DeterminantHash toolChainHash, const mega::io::megaFilePath& sourceFilePath )
+        : BaseTask( { pDependency }, environment, toolChainHash )
+        , m_sourceFilePath( sourceFilePath )
+    {
+    }
+
+    virtual void run( task::Progress& taskProgress )
+    {
+        const mega::io::CompilationFilePath        astFile         = m_environment.ParserStage_AST( m_sourceFilePath );
+        const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
+        taskProgress.start( "Task_Include", astFile.path(), includeFilePath.path() );
+
+        const task::DeterminantHash determinant( { m_toolChainHash, m_environment.getBuildHashCode( astFile ) } );
+
+        if ( m_environment.restore( includeFilePath, determinant ) )
+        {
+            m_environment.setBuildHashCode( includeFilePath );
+            taskProgress.cached();
+            return;
+        }
+
+        {
+            using namespace InterfaceStage;
+            using namespace InterfaceStage::Interface;
+
+            Database database( m_environment, m_sourceFilePath );
+
+            std::unique_ptr< boost::filesystem::ofstream > pOStream = m_environment.write( includeFilePath );
+
+            for ( Parser::CPPInclude* pCPPInclude : database.many< Parser::CPPInclude >( m_sourceFilePath ) )
+            {
+                *pOStream << "#include \"" << pCPPInclude->get_cppSourceFilePath().string() << "\"\n";
+            }
+
+            // mega library includes
+            *pOStream << "#include \"mega/include.hpp\"\n";
+
+            for ( Parser::SystemInclude* pSystemInclude : database.many< Parser::SystemInclude >( m_sourceFilePath ) )
+            {
+                *pOStream << "#include <" << pSystemInclude->get_str() << ">\n";
+            }
+            *pOStream << "\n";
+        }
+
+        m_environment.setBuildHashCode( includeFilePath );
+        m_environment.stash( includeFilePath, determinant );
+
+        taskProgress.succeeded();
+    }
+};
+
+class Task_IncludePCH : public BaseTask
+{
+    const boost::filesystem::path& m_compilerPath;
+    const mega::io::megaFilePath&  m_sourceFilePath;
+
+public:
+    Task_IncludePCH( task::Task::RawPtr pDependency, const mega::io::BuildEnvironment& environment,
+                     const task::DeterminantHash toolChainHash, const boost::filesystem::path& compilerPath,
+                     const mega::io::megaFilePath& sourceFilePath )
+        : BaseTask( { pDependency }, environment, toolChainHash )
+        , m_compilerPath( compilerPath )
+        , m_sourceFilePath( sourceFilePath )
+    {
+    }
+
+    virtual void run( task::Progress& taskProgress )
+    {
+        const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
+        const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.PCH( m_sourceFilePath );
+        taskProgress.start( "Task_IncludePCH", includeFilePath.path(), pchPath.path() );
+
+        const task::DeterminantHash determinant(
+            { m_toolChainHash, m_environment.getBuildHashCode( includeFilePath ) } );
+
+        if ( m_environment.restore( pchPath, determinant ) )
+        {
+            m_environment.setBuildHashCode( pchPath );
+            taskProgress.cached();
+            return;
+        }
+
+        using namespace ParserStage;
+
+        Database database( m_environment, m_sourceFilePath );
+
+        Components::Component* pComponent = nullptr;
+        {
+            for ( Components::Component* pIter :
+                  database.many< Components::Component >( m_environment.project_manifest() ) )
+            {
+                for ( const boost::filesystem::path& sourceFile : pIter->get_sourceFiles() )
+                {
+                    if ( m_environment.megaFilePath_fromPath( sourceFile ) == m_sourceFilePath )
+                    {
+                        pComponent = pIter;
+                        break;
+                    }
+                }
+            }
+            VERIFY_RTE_MSG(
+                pComponent, "Failed to locate component for source file: " << m_sourceFilePath.path().string() );
+        }
+
+        const std::string strCmd = mega::utilities::Compilation(
+            m_compilerPath, pComponent->get_cpp_flags(), pComponent->get_cpp_defines(),
+            pComponent->get_includeDirectories(), m_environment.FilePath( includeFilePath ),
+            m_environment.FilePath( pchPath ) )();
+
+        taskProgress.msg( strCmd );
+
+        const int iResult = boost::process::system( strCmd );
+        if ( iResult )
+        {
+            std::ostringstream os;
+            os << "Error compiling include files to pch for source file: " << m_sourceFilePath.path();
+            throw std::runtime_error( os.str() );
+        }
+
+        m_environment.setBuildHashCode( pchPath );
+        m_environment.stash( pchPath, determinant );
+
+        taskProgress.succeeded();
+    }
 };
 
 class Task_ObjectInterfaceGen : public BaseTask
@@ -277,8 +425,9 @@ class Task_ObjectInterfaceGen : public BaseTask
 public:
     Task_ObjectInterfaceGen( task::Task::RawPtr                pDependency,
                              const mega::io::BuildEnvironment& environment,
+                             const task::DeterminantHash       toolChainHash,
                              const mega::io::megaFilePath&     sourceFilePath )
-        : BaseTask( { pDependency }, environment )
+        : BaseTask( { pDependency }, environment, toolChainHash )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -753,7 +902,7 @@ public:
         const task::FileHash parserStageASTHashCode
             = m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) );
 
-        const task::DeterminantHash determinant( parserStageASTHashCode );
+        const task::DeterminantHash determinant( { m_toolChainHash, parserStageASTHashCode } );
 
         if ( m_environment.restore( treePath, determinant ) )
         {
@@ -821,8 +970,8 @@ class Task_DependencyAnalysis : public BaseTask
 
 public:
     Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::BuildEnvironment& environment,
-                             const mega::io::Manifest& manifest )
-        : BaseTask( parserTasks, environment )
+                             const task::DeterminantHash toolChainHash, const mega::io::Manifest& manifest )
+        : BaseTask( parserTasks, environment, toolChainHash )
         , m_manifest( manifest )
     {
     }
@@ -861,7 +1010,7 @@ public:
 
         DependencyAnalysis::Dependencies::ObjectDependencies* operator()( DependencyAnalysis::Database& database,
                                                                           const mega::io::megaFilePath& sourceFilePath,
-                                                                          const task::FileHash          interfaceHash,
+                                                                          const task::DeterminantHash   interfaceHash,
                                                                           const PathSet& sourceFiles ) const
         {
             using namespace DependencyAnalysis;
@@ -967,7 +1116,7 @@ public:
             = m_environment.DependencyAnalysis_DPGraph( manifestFilePath );
         taskProgress.start( "Task_DependencyAnalysis", manifestFilePath.path(), dependencyCompilationFilePath.path() );
 
-        task::DeterminantHash determinant;
+        task::DeterminantHash determinant( m_toolChainHash );
         for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
@@ -979,6 +1128,23 @@ public:
             taskProgress.cached();
             return;
         }
+
+        struct InterfaceHashCodeGenerator
+        {
+            const mega::io::BuildEnvironment& env;
+            task::DeterminantHash             toolChainHash;
+            InterfaceHashCodeGenerator( const mega::io::BuildEnvironment& env, task::DeterminantHash toolChainHash )
+                : env( env )
+                , toolChainHash( toolChainHash )
+            {
+            }
+            inline task::DeterminantHash operator()( const mega::io::megaFilePath& megaFilePath ) const
+            {
+                return task::DeterminantHash(
+                    { toolChainHash, env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) ) } );
+            }
+
+        } hashCodeGenerator( m_environment, m_toolChainHash );
 
         // try loading previous one...
         if ( m_environment.exists( dependencyCompilationFilePath ) )
@@ -1026,11 +1192,11 @@ public:
                         comparator,
 
                         // const Update& shouldUpdate
-                        [ &env = m_environment, &newDependencies, &newDatabase, &sourceFiles, &taskProgress ](
-                            OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) -> bool
+                        [ &env = m_environment, &hashCodeGenerator, &newDependencies, &newDatabase, &sourceFiles,
+                          &taskProgress ]( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) -> bool
                         {
                             const Old::Dependencies::ObjectDependencies* pDependencies = *i;
-                            const task::FileHash interfaceHash = env.getBuildHashCode( env.ParserStage_AST( *j ) );
+                            const task::DeterminantHash                  interfaceHash = hashCodeGenerator( *j );
                             if ( interfaceHash == pDependencies->get_hash_code() )
                             {
                                 // since the code is NOT modified - can re use the globs from previous result
@@ -1060,30 +1226,27 @@ public:
                         },
 
                         // const Addition& add
-                        [ &env = m_environment, &newDatabase, &newDependencies, &sourceFiles,
+                        [ &env = m_environment, &hashCodeGenerator, &newDatabase, &newDependencies, &sourceFiles,
                           &taskProgress ]( PathSet::const_iterator j )
                         {
                             // a new source file is added so must analysis from the ground up
-                            const mega::io::megaFilePath megaFilePath = *j;
-                            const task::FileHash         interfaceHash
-                                = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
+                            const mega::io::megaFilePath megaFilePath  = *j;
+                            const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
                             newDependencies.push_back(
                                 CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
-
                             std::ostringstream os;
                             os << "\tAdding dependencies for: " << megaFilePath.path().string();
                             taskProgress.msg( os.str() );
                         },
 
                         // const Updated& updatesNeeded
-                        [ &env = m_environment, &newDatabase, &newDependencies,
+                        [ &env = m_environment, &hashCodeGenerator, &newDatabase, &newDependencies,
                           &sourceFiles ]( OldDependenciesVector::const_iterator i )
                         {
                             // since the code is modified - must re analyse ALL dependencies from the ground up
                             const Old::Dependencies::ObjectDependencies* pDependencies = *i;
-                            const mega::io::megaFilePath megaFilePath = pDependencies->get_source_file();
-                            const task::FileHash         interfaceHash
-                                = env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) );
+                            const mega::io::megaFilePath megaFilePath  = pDependencies->get_source_file();
+                            const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
                             newDependencies.push_back(
                                 CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
                         } );
@@ -1112,8 +1275,7 @@ public:
                     const PathSet sourceFiles = getSortedSourceFiles();
                     for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
                     {
-                        const task::FileHash interfaceHash
-                            = m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
+                        const task::DeterminantHash interfaceHash = hashCodeGenerator( sourceFilePath );
                         dependencies.push_back( CalculateDependencies( m_environment )(
                             database, sourceFilePath, interfaceHash, sourceFiles ) );
                     }
@@ -1136,9 +1298,25 @@ class Task_SymbolAnalysis : public BaseTask
     const mega::io::Manifest& m_manifest;
 
 public:
+    struct InterfaceHashCodeGenerator
+    {
+        const mega::io::BuildEnvironment& env;
+        task::DeterminantHash             toolChainHash;
+        InterfaceHashCodeGenerator( const mega::io::BuildEnvironment& env, task::DeterminantHash toolChainHash )
+            : env( env )
+            , toolChainHash( toolChainHash )
+        {
+        }
+        inline task::DeterminantHash operator()( const mega::io::megaFilePath& megaFilePath ) const
+        {
+            return task::DeterminantHash(
+                { toolChainHash, env.getBuildHashCode( env.InterfaceStage_Tree( megaFilePath ) ) } );
+        }
+    };
+
     Task_SymbolAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::BuildEnvironment& environment,
-                         const mega::io::Manifest& manifest )
-        : BaseTask( parserTasks, environment )
+                         const task::DeterminantHash toolChainHashCode, const mega::io::Manifest& manifest )
+        : BaseTask( parserTasks, environment, toolChainHashCode )
         , m_manifest( manifest )
     {
     }
@@ -1329,7 +1507,7 @@ public:
             = m_environment.SymbolAnalysis_SymbolTable( manifestFilePath );
         taskProgress.start( "Task_SymbolAnalysis", manifestFilePath.path(), symbolCompilationFile.path() );
 
-        task::DeterminantHash determinant;
+        task::DeterminantHash determinant( m_toolChainHash );
         for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
             determinant ^= m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) );
@@ -1341,6 +1519,8 @@ public:
             taskProgress.cached();
             return;
         }
+
+        InterfaceHashCodeGenerator hashCodeGenerator( m_environment, m_toolChainHash );
 
         // try loading previous one...
         if ( m_environment.exists( symbolCompilationFile ) )
@@ -1389,11 +1569,12 @@ public:
                         comparator,
 
                         // const Update& shouldUpdate
-                        [ &env = m_environment, &newDatabase, &taskProgress, &symbolMap, &symbolSetMap, &typeMap ](
-                            OldSymbolsMap::const_iterator i, PathSet::const_iterator j ) -> bool
+                        [ &env = m_environment, &hashCodeGenerator, &newDatabase, &taskProgress, &symbolMap,
+                          &symbolSetMap,
+                          &typeMap ]( OldSymbolsMap::const_iterator i, PathSet::const_iterator j ) -> bool
                         {
-                            const task::FileHash interfaceHash = env.getBuildHashCode( env.InterfaceStage_Tree( *j ) );
-                            if ( interfaceHash == i->second->get_hash_code() )
+                            const task::DeterminantHash interfaceHash = hashCodeGenerator( *j );
+                            if ( interfaceHash.get() == i->second->get_hash_code() )
                             {
                                 // since the code is NOT modified - can re use
                                 Old::Symbols::SymbolSet* pOldSymbolSet = i->second;
@@ -1425,7 +1606,7 @@ public:
                                                     // could have already encountered the symbol in modified file
                                                     // but then it could already exist in previous file
                                                     // so set the symbol id
-                                                    if( pNewSymbol->get_id() == 0 )
+                                                    if ( pNewSymbol->get_id() == 0 )
                                                         pNewSymbol->set_id( pOldSymbol->get_id() );
                                                     VERIFY_RTE( pNewSymbol->get_id() == pOldSymbol->get_id() );
                                                 }
@@ -1497,13 +1678,12 @@ public:
                         },
 
                         // const Addition& add
-                        [ &env = m_environment, &newDatabase, &taskProgress, &symbolMap, &symbolSetMap,
-                          &typeMap ]( PathSet::const_iterator j )
+                        [ &env = m_environment, &hashCodeGenerator, &newDatabase, &taskProgress, &symbolMap,
+                          &symbolSetMap, &typeMap ]( PathSet::const_iterator j )
                         {
                             // a new source file is added so must analysis from the ground up
-                            const mega::io::megaFilePath megaFilePath = *j;
-                            const task::FileHash         interfaceHash
-                                = env.getBuildHashCode( env.InterfaceStage_Tree( megaFilePath ) );
+                            const mega::io::megaFilePath megaFilePath  = *j;
+                            const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
 
                             New::Symbols::SymbolSet* pSymbolSet
                                 = newDatabase.construct< New::Symbols::SymbolSet >( New::Symbols::SymbolSet::Args(
@@ -1518,14 +1698,13 @@ public:
                         },
 
                         // const Updated& updatesNeeded
-                        [ &env = m_environment, &newDatabase, &taskProgress, &symbolMap, &symbolSetMap,
-                          &typeMap ]( OldSymbolsMap::const_iterator i )
+                        [ &env = m_environment, &hashCodeGenerator, &newDatabase, &taskProgress, &symbolMap,
+                          &symbolSetMap, &typeMap ]( OldSymbolsMap::const_iterator i )
                         {
                             // Old::Symbols::SymbolSet* pOldSymbolSet = i->second;
                             //  a new source file is added so must analysis from the ground up
-                            const mega::io::megaFilePath megaFilePath = i->first;
-                            const task::FileHash         interfaceHash
-                                = env.getBuildHashCode( env.InterfaceStage_Tree( megaFilePath ) );
+                            const mega::io::megaFilePath megaFilePath  = i->first;
+                            const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
 
                             New::Symbols::SymbolSet* pSymbolSet
                                 = newDatabase.construct< New::Symbols::SymbolSet >( New::Symbols::SymbolSet::Args(
@@ -1566,8 +1745,7 @@ public:
                 {
                     for ( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
                     {
-                        const task::FileHash interfaceHash
-                            = m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) );
+                        const task::DeterminantHash interfaceHash = hashCodeGenerator( sourceFilePath );
                         using OldSymbolsMap            = std::map< mega::io::megaFilePath, Symbols::SymbolSet* >;
                         Symbols::SymbolSet* pSymbolSet = database.construct< Symbols::SymbolSet >(
                             Symbols::SymbolSet::Args( {}, sourceFilePath, interfaceHash.get(), {}, {}, {}, {} ) );
@@ -1595,8 +1773,9 @@ class Task_SymbolRollout : public BaseTask
 public:
     Task_SymbolRollout( task::Task::RawPtrSet             dependencies,
                         const mega::io::BuildEnvironment& environment,
+                        const task::DeterminantHash       toolChainHash,
                         const mega::io::megaFilePath&     sourceFilePath )
-        : BaseTask( dependencies, environment )
+        : BaseTask( dependencies, environment, toolChainHash )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -1609,8 +1788,8 @@ public:
             = m_environment.SymbolRollout_PerSourceSymbols( m_sourceFilePath );
         taskProgress.start( "Task_SymbolRollout", symbolAnalysisFilePath.path(), symbolRolloutFilePath.path() );
 
-        const task::DeterminantHash determinant
-            = m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( m_sourceFilePath ) );
+        Task_SymbolAnalysis::InterfaceHashCodeGenerator hashGen( m_environment, m_toolChainHash );
+        const task::DeterminantHash                     determinant = hashGen( m_sourceFilePath );
 
         if ( m_environment.restore( symbolRolloutFilePath, determinant ) )
         {
@@ -1667,8 +1846,9 @@ class Task_ObjectInterfaceGeneration : public BaseTask
 public:
     Task_ObjectInterfaceGeneration( task::Task::RawPtrSet             dependencies,
                                     const mega::io::BuildEnvironment& environment,
+                                    const task::DeterminantHash       toolChainHash,
                                     const mega::io::megaFilePath&     sourceFilePath )
-        : BaseTask( dependencies, environment )
+        : BaseTask( dependencies, environment, toolChainHash )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -1708,20 +1888,23 @@ public:
     };
 
     void recurse( TemplateEngine& templateEngine, InterfaceAnalysisStage::Interface::Context* pContext,
-                  std::ostream& os )
+                  nlohmann::json& structs, const nlohmann::json& parentTypeNames, std::ostream& os )
     {
         using namespace InterfaceAnalysisStage;
         using namespace InterfaceAnalysisStage::Interface;
 
+        nlohmann::json typenames = parentTypeNames;
+        typenames.push_back( pContext->get_identifier() );
+
         std::ostringstream osNested;
         for ( Context* pNestedContext : pContext->get_children() )
         {
-            recurse( templateEngine, pNestedContext, osNested );
+            recurse( templateEngine, pNestedContext, structs, typenames, osNested );
         }
 
         nlohmann::json contextData( { { "name", pContext->get_identifier() },
                                       { "typeid", pContext->get_type_id() },
-                                      { "traits", nlohmann::json::array() },
+                                      { "trait_structs", nlohmann::json::array() },
                                       { "nested", osNested.str() } } );
 
         if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
@@ -1749,7 +1932,27 @@ public:
         }
         else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
         {
+            nlohmann::json trait_struct( { { "name", pContext->get_identifier() },
+                                           { "typeid", pContext->get_type_id() },
+                                           { "types", typenames },
+                                           { "traits", nlohmann::json::array() } } );
+
+            {
+                std::ostringstream osTrait;
+                osTrait << "using Type  = " << pFunction->get_return_type_trait()->get_str();
+                trait_struct[ "traits" ].push_back( osTrait.str() );
+            }
+            {
+                std::ostringstream osTrait;
+                osTrait << "/// " << pFunction->get_arguments_trait()->get_str();
+                trait_struct[ "traits" ].push_back( osTrait.str() );
+            }
+
+            contextData[ "trait_structs" ].push_back( trait_struct );
+
             templateEngine.renderContext( contextData, os );
+
+            structs.push_back( trait_struct );
         }
         else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
         {
@@ -1771,7 +1974,9 @@ public:
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader = m_environment.Interface( m_sourceFilePath );
         taskProgress.start( "Task_ObjectInterfaceGeneration", interfaceTreeFile.path(), interfaceHeader.path() );
 
-        const task::DeterminantHash determinant = m_environment.getBuildHashCode( interfaceTreeFile );
+        const task::DeterminantHash determinant( { m_toolChainHash, m_environment.getBuildHashCode( interfaceTreeFile ),
+                                                   m_environment.ContextTemplate(), m_environment.NamespaceTemplate(),
+                                                   m_environment.InterfaceTemplate() } );
 
         if ( m_environment.restore( interfaceHeader, determinant ) )
         {
@@ -1791,13 +1996,15 @@ public:
         }
 
         TemplateEngine templateEngine( m_environment, injaEnvironment );
+        nlohmann::json structs   = nlohmann::json::array();
+        nlohmann::json typenames = nlohmann::json::array();
 
         std::ostringstream os;
         {
             Interface::Root* pRoot = database.one< Interface::Root >( m_sourceFilePath );
             for ( Context* pContext : pRoot->get_children() )
             {
-                recurse( templateEngine, pContext, os );
+                recurse( templateEngine, pContext, structs, typenames, os );
             }
         }
 
@@ -1807,7 +2014,9 @@ public:
 
         // generate the interface header
         {
-            nlohmann::json interfaceData( { { "interface", strInterface }, { "guard", determinant.get() } } );
+            nlohmann::json interfaceData(
+                { { "interface", strInterface }, { "guard", determinant.get() }, { "structs", structs } } );
+
             std::unique_ptr< boost::filesystem::ofstream > pOStream = m_environment.write( interfaceHeader );
             templateEngine.renderInterface( interfaceData, *pOStream );
         }
@@ -1825,8 +2034,9 @@ class Task_ObjectInterfaceAnalysis : public BaseTask
 public:
     Task_ObjectInterfaceAnalysis( task::Task::RawPtrSet             dependencies,
                                   const mega::io::BuildEnvironment& environment,
+                                  const task::DeterminantHash       toolChainHash,
                                   const mega::io::megaFilePath&     sourceFilePath )
-        : BaseTask( dependencies, environment )
+        : BaseTask( dependencies, environment, toolChainHash )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -1850,7 +2060,8 @@ public:
             = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
         taskProgress.start( "Task_ObjectInterfaceAnalysis", interfaceTreeFile.path(), interfaceAnalysisFile.path() );
 
-        const task::DeterminantHash determinant = m_environment.getBuildHashCode( interfaceTreeFile );
+        const task::DeterminantHash determinant(
+            { m_toolChainHash, m_environment.getBuildHashCode( interfaceTreeFile ) } );
 
         if ( m_environment.restore( interfaceAnalysisFile, determinant ) )
         {
@@ -1878,7 +2089,7 @@ public:
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, templatesDir;
+    boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, templatesDir;
     std::string             projectName;
 
     namespace po = boost::program_options;
@@ -1886,11 +2097,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
                 commandOptions.add_options()
-                ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ), "Root source directory" )
-                ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),  "Root build directory" )
-                ( "project",        po::value< std::string >( &projectName ),               "Mega Project Name" )
-                ( "parser_dll",     po::value< boost::filesystem::path >( &parserDll ),     "Parser DLL Path" )
-                ( "templates",      po::value< boost::filesystem::path >( &templatesDir ),  "Inja Templates directory" )
+                ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),  "Root source directory" )
+                ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),   "Root build directory" )
+                ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
+                ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),   "Mega Structure Compiler path" )
+                ( "clang_compiler", po::value< boost::filesystem::path >( &clangCompiler ),  "Clang Compiler path" )
+                ( "parser_dll",     po::value< boost::filesystem::path >( &parserDll ),      "Parser DLL Path" )
+                ( "templates",      po::value< boost::filesystem::path >( &templatesDir ),   "Inja Templates directory" )
                 ;
         // clang-format on
     }
@@ -1916,18 +2129,31 @@ void command( bool bHelp, const std::vector< std::string >& args )
         const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
         mega::io::Manifest               manifest( environment, projectManifestPath );
 
+        const task::DeterminantHash toolChainHash(
+            { task::FileHash( parserDll ), task::FileHash( megaCompiler ), task::FileHash( clangCompiler ) } );
+
         task::Task::PtrVector tasks;
         task::Task::RawPtrSet parserTasks;
+        task::Task::RawPtrSet includeTasks, includePCHTasks;
         task::Task::RawPtrSet interfaceGenTasks;
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            Task_ParseAST* pTask
-                = new Task_ParseAST( environment, parserDll, sourceFilePath, manifest.getCompilationFileInfos() );
+            Task_ParseAST* pTask = new Task_ParseAST(
+                environment, toolChainHash, parserDll, sourceFilePath, manifest.getCompilationFileInfos() );
             parserTasks.insert( pTask );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
+            Task_Include* pTaskInclude = new Task_Include( pTask, environment, toolChainHash, sourceFilePath );
+            includeTasks.insert( pTaskInclude );
+            tasks.push_back( task::Task::Ptr( pTaskInclude ) );
+
+            Task_IncludePCH* pTaskIncludePCH
+                = new Task_IncludePCH( pTaskInclude, environment, toolChainHash, clangCompiler, sourceFilePath );
+            includePCHTasks.insert( pTaskIncludePCH );
+            tasks.push_back( task::Task::Ptr( pTaskIncludePCH ) );
+
             Task_ObjectInterfaceGen* pInterfaceGenTask
-                = new Task_ObjectInterfaceGen( pTask, environment, sourceFilePath );
+                = new Task_ObjectInterfaceGen( pTask, environment, toolChainHash, sourceFilePath );
             interfaceGenTasks.insert( pInterfaceGenTask );
             tasks.push_back( task::Task::Ptr( pInterfaceGenTask ) );
         }
@@ -1935,25 +2161,25 @@ void command( bool bHelp, const std::vector< std::string >& args )
         VERIFY_RTE_MSG( !tasks.empty(), "No input source code found" );
 
         Task_DependencyAnalysis* pDependencyAnalysisTask
-            = new Task_DependencyAnalysis( interfaceGenTasks, environment, manifest );
+            = new Task_DependencyAnalysis( interfaceGenTasks, environment, toolChainHash, manifest );
         tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
 
         Task_SymbolAnalysis* pSymbolAnalysisTask
-            = new Task_SymbolAnalysis( { pDependencyAnalysisTask }, environment, manifest );
+            = new Task_SymbolAnalysis( { pDependencyAnalysisTask }, environment, toolChainHash, manifest );
         tasks.push_back( task::Task::Ptr( pSymbolAnalysisTask ) );
 
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             Task_SymbolRollout* pSymbolRollout
-                = new Task_SymbolRollout( { pSymbolAnalysisTask }, environment, sourceFilePath );
+                = new Task_SymbolRollout( { pSymbolAnalysisTask }, environment, toolChainHash, sourceFilePath );
             tasks.push_back( task::Task::Ptr( pSymbolRollout ) );
 
             Task_ObjectInterfaceGeneration* pInterfaceGen
-                = new Task_ObjectInterfaceGeneration( { pSymbolRollout }, environment, sourceFilePath );
+                = new Task_ObjectInterfaceGeneration( { pSymbolRollout }, environment, toolChainHash, sourceFilePath );
             tasks.push_back( task::Task::Ptr( pInterfaceGen ) );
 
             Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis
-                = new Task_ObjectInterfaceAnalysis( { pInterfaceGen }, environment, sourceFilePath );
+                = new Task_ObjectInterfaceAnalysis( { pInterfaceGen }, environment, toolChainHash, sourceFilePath );
             tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
         }
 
