@@ -5,6 +5,9 @@ object Square
     dependency( stuff/sphere.mega );
     dependency( stuff/triangle.mega );
 
+    include( test_cpp_include.hpp );
+    include( <string> );
+
     include test_include( test_include.mega );
     
     //ed was here!!!
