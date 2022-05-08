@@ -34,6 +34,7 @@ namespace nlohmann
 
 namespace data
 {
+
     namespace Components
     {
         // struct Component : public mega::io::Object
@@ -52,7 +53,7 @@ namespace data
         bool Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::Components::Component > >{
-                                        data::Ptr< data::Components::Component >( loader, const_cast< Component * >( this ) )};
+                                        data::Ptr< data::Components::Component >( loader, const_cast< Component * >( this ) ) };
         }
         void Component::set_inheritance_pointer() {}
         void Component::load( mega::io::Loader &loader )
@@ -75,34 +76,34 @@ namespace data
         }
         void Component::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Component"},
-                                            {"filetype", "Components"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Component" },
+                                             { "filetype", "Components" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"name", name}} );
+                nlohmann::json property = nlohmann::json::object( { { "name", name } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"directory", directory}} );
+                nlohmann::json property = nlohmann::json::object( { { "directory", directory } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"cpp_flags", cpp_flags}} );
+                nlohmann::json property = nlohmann::json::object( { { "cpp_flags", cpp_flags } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"cpp_defines", cpp_defines}} );
+                nlohmann::json property = nlohmann::json::object( { { "cpp_defines", cpp_defines } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"includeDirectories", includeDirectories}} );
+                nlohmann::json property = nlohmann::json::object( { { "includeDirectories", includeDirectories } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"sourceFiles", sourceFiles}} );
+                nlohmann::json property = nlohmann::json::object( { { "sourceFiles", sourceFiles } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -122,21 +123,21 @@ namespace data
         bool Identifier::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Identifier > >{data::Ptr< data::AST::Identifier >( loader, const_cast< Identifier * >( this ) )};
+                   std::variant< data::Ptr< data::AST::Identifier > >{ data::Ptr< data::AST::Identifier >( loader, const_cast< Identifier * >( this ) ) };
         }
         void Identifier::set_inheritance_pointer() {}
         void Identifier::load( mega::io::Loader &loader ) { loader.load( str ); }
         void Identifier::store( mega::io::Storer &storer ) const { storer.store( str ); }
         void Identifier::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Identifier"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Identifier" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"str", str}} );
+                nlohmann::json property = nlohmann::json::object( { { "str", str } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -156,7 +157,7 @@ namespace data
         bool ScopedIdentifier::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::ScopedIdentifier > >{
-                                        data::Ptr< data::AST::ScopedIdentifier >( loader, const_cast< ScopedIdentifier * >( this ) )};
+                                        data::Ptr< data::AST::ScopedIdentifier >( loader, const_cast< ScopedIdentifier * >( this ) ) };
         }
         void ScopedIdentifier::set_inheritance_pointer() {}
         void ScopedIdentifier::load( mega::io::Loader &loader )
@@ -173,22 +174,22 @@ namespace data
         }
         void ScopedIdentifier::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ScopedIdentifier"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ScopedIdentifier" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"ids", ids}} );
+                nlohmann::json property = nlohmann::json::object( { { "ids", ids } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"source_file", source_file}} );
+                nlohmann::json property = nlohmann::json::object( { { "source_file", source_file } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"line_number", line_number}} );
+                nlohmann::json property = nlohmann::json::object( { { "line_number", line_number } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -205,21 +206,21 @@ namespace data
         bool ArgumentList::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > >{
-                                        data::Ptr< data::AST::ArgumentList >( loader, const_cast< ArgumentList * >( this ) )};
+                                        data::Ptr< data::AST::ArgumentList >( loader, const_cast< ArgumentList * >( this ) ) };
         }
         void ArgumentList::set_inheritance_pointer() {}
         void ArgumentList::load( mega::io::Loader &loader ) { loader.load( str ); }
         void ArgumentList::store( mega::io::Storer &storer ) const { storer.store( str ); }
         void ArgumentList::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ArgumentList"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ArgumentList" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"str", str}} );
+                nlohmann::json property = nlohmann::json::object( { { "str", str } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -236,21 +237,21 @@ namespace data
         bool ReturnType::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > >{
-                                        data::Ptr< data::AST::ReturnType >( loader, const_cast< ReturnType * >( this ) )};
+                                        data::Ptr< data::AST::ReturnType >( loader, const_cast< ReturnType * >( this ) ) };
         }
         void ReturnType::set_inheritance_pointer() {}
         void ReturnType::load( mega::io::Loader &loader ) { loader.load( str ); }
         void ReturnType::store( mega::io::Storer &storer ) const { storer.store( str ); }
         void ReturnType::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ReturnType"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ReturnType" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"str", str}} );
+                nlohmann::json property = nlohmann::json::object( { { "str", str } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -267,21 +268,21 @@ namespace data
         bool Inheritance::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > >{
-                                        data::Ptr< data::AST::Inheritance >( loader, const_cast< Inheritance * >( this ) )};
+                                        data::Ptr< data::AST::Inheritance >( loader, const_cast< Inheritance * >( this ) ) };
         }
         void Inheritance::set_inheritance_pointer() {}
         void Inheritance::load( mega::io::Loader &loader ) { loader.load( strings ); }
         void Inheritance::store( mega::io::Storer &storer ) const { storer.store( strings ); }
         void Inheritance::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Inheritance"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Inheritance" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"strings", strings}} );
+                nlohmann::json property = nlohmann::json::object( { { "strings", strings } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -298,21 +299,21 @@ namespace data
         bool Size::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > >{
-                                        data::Ptr< data::AST::Size >( loader, const_cast< Size * >( this ) )};
+                                        data::Ptr< data::AST::Size >( loader, const_cast< Size * >( this ) ) };
         }
         void Size::set_inheritance_pointer() {}
         void Size::load( mega::io::Loader &loader ) { loader.load( str ); }
         void Size::store( mega::io::Storer &storer ) const { storer.store( str ); }
         void Size::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Size"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Size" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"str", str}} );
+                nlohmann::json property = nlohmann::json::object( { { "str", str } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -331,7 +332,7 @@ namespace data
         {
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > >{
-                       data::Ptr< data::AST::Dimension >( loader, const_cast< Dimension * >( this ) )};
+                       data::Ptr< data::AST::Dimension >( loader, const_cast< Dimension * >( this ) ) };
         }
         void Dimension::set_inheritance_pointer() {}
         void Dimension::load( mega::io::Loader &loader )
@@ -348,22 +349,22 @@ namespace data
         }
         void Dimension::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Dimension"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Dimension" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"isConst", isConst}} );
+                nlohmann::json property = nlohmann::json::object( { { "isConst", isConst } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"id", id}} );
+                nlohmann::json property = nlohmann::json::object( { { "id", id } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"type", type}} );
+                nlohmann::json property = nlohmann::json::object( { { "type", type } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -378,19 +379,19 @@ namespace data
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
                                  data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::Include >( loader, const_cast< Include * >( this ) )};
+                       data::Ptr< data::AST::Include >( loader, const_cast< Include * >( this ) ) };
         }
         void Include::set_inheritance_pointer() {}
         void Include::load( mega::io::Loader &loader ) {}
         void Include::store( mega::io::Storer &storer ) const {}
         void Include::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Include"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Include" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct SystemInclude : public mega::io::Object
@@ -407,7 +408,7 @@ namespace data
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
                                  data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::SystemInclude >( loader, const_cast< SystemInclude * >( this ) )};
+                       data::Ptr< data::AST::SystemInclude >( loader, const_cast< SystemInclude * >( this ) ) };
         }
         void SystemInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = data::Ptr< data::AST::SystemInclude >( p_AST_Include, this ); }
         void SystemInclude::load( mega::io::Loader &loader )
@@ -422,14 +423,14 @@ namespace data
         }
         void SystemInclude::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "SystemInclude"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "SystemInclude" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"str", str}} );
+                nlohmann::json property = nlohmann::json::object( { { "str", str } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -449,7 +450,7 @@ namespace data
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
                                  data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::MegaInclude >( loader, const_cast< MegaInclude * >( this ) )};
+                       data::Ptr< data::AST::MegaInclude >( loader, const_cast< MegaInclude * >( this ) ) };
         }
         void MegaInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = data::Ptr< data::AST::MegaInclude >( p_AST_Include, this ); }
         void MegaInclude::load( mega::io::Loader &loader )
@@ -467,18 +468,18 @@ namespace data
         }
         void MegaInclude::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "MegaInclude"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "MegaInclude" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"megaSourceFilePath", megaSourceFilePath}} );
+                nlohmann::json property = nlohmann::json::object( { { "megaSourceFilePath", megaSourceFilePath } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"root", root.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "root", root.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -493,7 +494,7 @@ namespace data
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
                                  data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::MegaIncludeInline >( loader, const_cast< MegaIncludeInline * >( this ) )};
+                       data::Ptr< data::AST::MegaIncludeInline >( loader, const_cast< MegaIncludeInline * >( this ) ) };
         }
         void MegaIncludeInline::set_inheritance_pointer()
         {
@@ -503,12 +504,12 @@ namespace data
         void MegaIncludeInline::store( mega::io::Storer &storer ) const { storer.store( p_AST_MegaInclude ); }
         void MegaIncludeInline::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "MegaIncludeInline"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "MegaIncludeInline" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct MegaIncludeNested : public mega::io::Object
@@ -527,7 +528,7 @@ namespace data
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
                                  data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::MegaIncludeNested >( loader, const_cast< MegaIncludeNested * >( this ) )};
+                       data::Ptr< data::AST::MegaIncludeNested >( loader, const_cast< MegaIncludeNested * >( this ) ) };
         }
         void MegaIncludeNested::set_inheritance_pointer()
         {
@@ -545,14 +546,14 @@ namespace data
         }
         void MegaIncludeNested::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "MegaIncludeNested"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "MegaIncludeNested" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"id", id}} );
+                nlohmann::json property = nlohmann::json::object( { { "id", id } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -572,7 +573,7 @@ namespace data
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
                                  data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::CPPInclude >( loader, const_cast< CPPInclude * >( this ) )};
+                       data::Ptr< data::AST::CPPInclude >( loader, const_cast< CPPInclude * >( this ) ) };
         }
         void CPPInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = data::Ptr< data::AST::CPPInclude >( p_AST_Include, this ); }
         void CPPInclude::load( mega::io::Loader &loader )
@@ -587,14 +588,14 @@ namespace data
         }
         void CPPInclude::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "CPPInclude"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "CPPInclude" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"cppSourceFilePath", cppSourceFilePath}} );
+                nlohmann::json property = nlohmann::json::object( { { "cppSourceFilePath", cppSourceFilePath } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -611,21 +612,21 @@ namespace data
         bool Dependency::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Dependency > >{data::Ptr< data::AST::Dependency >( loader, const_cast< Dependency * >( this ) )};
+                   std::variant< data::Ptr< data::AST::Dependency > >{ data::Ptr< data::AST::Dependency >( loader, const_cast< Dependency * >( this ) ) };
         }
         void Dependency::set_inheritance_pointer() {}
         void Dependency::load( mega::io::Loader &loader ) { loader.load( str ); }
         void Dependency::store( mega::io::Storer &storer ) const { storer.store( str ); }
         void Dependency::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Dependency"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Dependency" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"str", str}} );
+                nlohmann::json property = nlohmann::json::object( { { "str", str } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -637,8 +638,8 @@ namespace data
         }
         ContextDef::ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ScopedIdentifier > &id,
                                 const std::vector< data::Ptr< data::AST::ContextDef > > &children,
-                                const std::vector< data::Ptr< data::AST::Dimension > > & dimensions,
-                                const std::vector< data::Ptr< data::AST::Include > > &   includes,
+                                const std::vector< data::Ptr< data::AST::Dimension > >  &dimensions,
+                                const std::vector< data::Ptr< data::AST::Include > >    &includes,
                                 const std::vector< data::Ptr< data::AST::Dependency > > &dependencies )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ContextDef >( loader, this ) ), p_Body_ContextDef( loader ), id( id ),
               children( children ), dimensions( dimensions ), includes( includes ), dependencies( dependencies )
@@ -649,7 +650,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                                                   data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
                                                   data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
-                                        data::Ptr< data::AST::ContextDef >( loader, const_cast< ContextDef * >( this ) )};
+                                        data::Ptr< data::AST::ContextDef >( loader, const_cast< ContextDef * >( this ) ) };
         }
         void ContextDef::set_inheritance_pointer() {}
         void ContextDef::load( mega::io::Loader &loader )
@@ -672,30 +673,30 @@ namespace data
         }
         void ContextDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ContextDef"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ContextDef" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"id", id}} );
+                nlohmann::json property = nlohmann::json::object( { { "id", id } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"children", children}} );
+                nlohmann::json property = nlohmann::json::object( { { "children", children } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimensions", dimensions}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimensions", dimensions } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"includes", includes}} );
+                nlohmann::json property = nlohmann::json::object( { { "includes", includes } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dependencies", dependencies}} );
+                nlohmann::json property = nlohmann::json::object( { { "dependencies", dependencies } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -710,19 +711,19 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                                                   data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
                                                   data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
-                                        data::Ptr< data::AST::NamespaceDef >( loader, const_cast< NamespaceDef * >( this ) )};
+                                        data::Ptr< data::AST::NamespaceDef >( loader, const_cast< NamespaceDef * >( this ) ) };
         }
         void NamespaceDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::NamespaceDef >( p_AST_ContextDef, this ); }
         void NamespaceDef::load( mega::io::Loader &loader ) { loader.load( p_AST_ContextDef ); }
         void NamespaceDef::store( mega::io::Storer &storer ) const { storer.store( p_AST_ContextDef ); }
         void NamespaceDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "NamespaceDef"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "NamespaceDef" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct AbstractDef : public mega::io::Object
@@ -741,7 +742,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                                                   data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
                                                   data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
-                                        data::Ptr< data::AST::AbstractDef >( loader, const_cast< AbstractDef * >( this ) )};
+                                        data::Ptr< data::AST::AbstractDef >( loader, const_cast< AbstractDef * >( this ) ) };
         }
         void AbstractDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::AbstractDef >( p_AST_ContextDef, this ); }
         void AbstractDef::load( mega::io::Loader &loader )
@@ -756,14 +757,14 @@ namespace data
         }
         void AbstractDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "AbstractDef"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "AbstractDef" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance", inheritance}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance", inheritance } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -785,7 +786,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                                                   data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
                                                   data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
-                                        data::Ptr< data::AST::ActionDef >( loader, const_cast< ActionDef * >( this ) )};
+                                        data::Ptr< data::AST::ActionDef >( loader, const_cast< ActionDef * >( this ) ) };
         }
         void ActionDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::ActionDef >( p_AST_ContextDef, this ); }
         void ActionDef::load( mega::io::Loader &loader )
@@ -802,18 +803,18 @@ namespace data
         }
         void ActionDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ActionDef"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ActionDef" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"size", size}} );
+                nlohmann::json property = nlohmann::json::object( { { "size", size } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance", inheritance}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance", inheritance } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -835,7 +836,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                                                   data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
                                                   data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
-                                        data::Ptr< data::AST::EventDef >( loader, const_cast< EventDef * >( this ) )};
+                                        data::Ptr< data::AST::EventDef >( loader, const_cast< EventDef * >( this ) ) };
         }
         void EventDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::EventDef >( p_AST_ContextDef, this ); }
         void EventDef::load( mega::io::Loader &loader )
@@ -852,18 +853,18 @@ namespace data
         }
         void EventDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "EventDef"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "EventDef" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"size", size}} );
+                nlohmann::json property = nlohmann::json::object( { { "size", size } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance", inheritance}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance", inheritance } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -885,7 +886,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                                                   data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
                                                   data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
-                                        data::Ptr< data::AST::FunctionDef >( loader, const_cast< FunctionDef * >( this ) )};
+                                        data::Ptr< data::AST::FunctionDef >( loader, const_cast< FunctionDef * >( this ) ) };
         }
         void FunctionDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::FunctionDef >( p_AST_ContextDef, this ); }
         void FunctionDef::load( mega::io::Loader &loader )
@@ -902,18 +903,18 @@ namespace data
         }
         void FunctionDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "FunctionDef"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "FunctionDef" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"argumentList", argumentList}} );
+                nlohmann::json property = nlohmann::json::object( { { "argumentList", argumentList } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"returnType", returnType}} );
+                nlohmann::json property = nlohmann::json::object( { { "returnType", returnType } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -934,7 +935,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                                                   data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
                                                   data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
-                                        data::Ptr< data::AST::ObjectDef >( loader, const_cast< ObjectDef * >( this ) )};
+                                        data::Ptr< data::AST::ObjectDef >( loader, const_cast< ObjectDef * >( this ) ) };
         }
         void ObjectDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::ObjectDef >( p_AST_ContextDef, this ); }
         void ObjectDef::load( mega::io::Loader &loader )
@@ -949,14 +950,14 @@ namespace data
         }
         void ObjectDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ObjectDef"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ObjectDef" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance", inheritance}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance", inheritance } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -977,7 +978,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                                                   data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
                                                   data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >{
-                                        data::Ptr< data::AST::LinkDef >( loader, const_cast< LinkDef * >( this ) )};
+                                        data::Ptr< data::AST::LinkDef >( loader, const_cast< LinkDef * >( this ) ) };
         }
         void LinkDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::LinkDef >( p_AST_ContextDef, this ); }
         void LinkDef::load( mega::io::Loader &loader )
@@ -992,14 +993,14 @@ namespace data
         }
         void LinkDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "LinkDef"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "LinkDef" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance", inheritance}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance", inheritance } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1019,7 +1020,7 @@ namespace data
         {
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
-                       data::Ptr< data::AST::SourceRoot >( loader, const_cast< SourceRoot * >( this ) )};
+                       data::Ptr< data::AST::SourceRoot >( loader, const_cast< SourceRoot * >( this ) ) };
         }
         void SourceRoot::set_inheritance_pointer() {}
         void SourceRoot::load( mega::io::Loader &loader )
@@ -1036,22 +1037,22 @@ namespace data
         }
         void SourceRoot::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "SourceRoot"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "SourceRoot" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"sourceFile", sourceFile}} );
+                nlohmann::json property = nlohmann::json::object( { { "sourceFile", sourceFile } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"component", component}} );
+                nlohmann::json property = nlohmann::json::object( { { "component", component } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"ast", ast}} );
+                nlohmann::json property = nlohmann::json::object( { { "ast", ast } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1065,19 +1066,19 @@ namespace data
         {
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
-                       data::Ptr< data::AST::IncludeRoot >( loader, const_cast< IncludeRoot * >( this ) )};
+                       data::Ptr< data::AST::IncludeRoot >( loader, const_cast< IncludeRoot * >( this ) ) };
         }
         void IncludeRoot::set_inheritance_pointer() { p_AST_SourceRoot->m_inheritance = data::Ptr< data::AST::IncludeRoot >( p_AST_SourceRoot, this ); }
         void IncludeRoot::load( mega::io::Loader &loader ) { loader.load( p_AST_SourceRoot ); }
         void IncludeRoot::store( mega::io::Storer &storer ) const { storer.store( p_AST_SourceRoot ); }
         void IncludeRoot::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "IncludeRoot"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "IncludeRoot" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct ObjectSourceRoot : public mega::io::Object
@@ -1089,7 +1090,7 @@ namespace data
         {
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
-                       data::Ptr< data::AST::ObjectSourceRoot >( loader, const_cast< ObjectSourceRoot * >( this ) )};
+                       data::Ptr< data::AST::ObjectSourceRoot >( loader, const_cast< ObjectSourceRoot * >( this ) ) };
         }
         void ObjectSourceRoot::set_inheritance_pointer()
         {
@@ -1099,12 +1100,12 @@ namespace data
         void ObjectSourceRoot::store( mega::io::Storer &storer ) const { storer.store( p_AST_SourceRoot ); }
         void ObjectSourceRoot::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ObjectSourceRoot"},
-                                            {"filetype", "AST"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ObjectSourceRoot" },
+                                             { "filetype", "AST" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
     } // namespace AST
@@ -1122,14 +1123,14 @@ namespace data
         void ContextDef::store( mega::io::Storer &storer ) const { storer.store( body ); }
         void ContextDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ContextDef"},
-                                            {"filetype", "Body"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ContextDef" },
+                                             { "filetype", "Body" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"body", body}} );
+                nlohmann::json property = nlohmann::json::object( { { "body", body } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1147,19 +1148,19 @@ namespace data
         {
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > >{
-                       data::Ptr< data::Tree::DimensionTrait >( loader, const_cast< DimensionTrait * >( this ) )};
+                       data::Ptr< data::Tree::DimensionTrait >( loader, const_cast< DimensionTrait * >( this ) ) };
         }
         void DimensionTrait::set_inheritance_pointer() { p_AST_Dimension->m_inheritance = data::Ptr< data::Tree::DimensionTrait >( p_AST_Dimension, this ); }
         void DimensionTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Dimension ); }
         void DimensionTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Dimension ); }
         void DimensionTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "DimensionTrait"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "DimensionTrait" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct InheritanceTrait : public mega::io::Object
@@ -1170,7 +1171,7 @@ namespace data
         bool InheritanceTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > >{
-                                        data::Ptr< data::Tree::InheritanceTrait >( loader, const_cast< InheritanceTrait * >( this ) )};
+                                        data::Ptr< data::Tree::InheritanceTrait >( loader, const_cast< InheritanceTrait * >( this ) ) };
         }
         void InheritanceTrait::set_inheritance_pointer()
         {
@@ -1180,12 +1181,12 @@ namespace data
         void InheritanceTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Inheritance ); }
         void InheritanceTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "InheritanceTrait"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "InheritanceTrait" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct ReturnTypeTrait : public mega::io::Object
@@ -1196,7 +1197,7 @@ namespace data
         bool ReturnTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > >{
-                                        data::Ptr< data::Tree::ReturnTypeTrait >( loader, const_cast< ReturnTypeTrait * >( this ) )};
+                                        data::Ptr< data::Tree::ReturnTypeTrait >( loader, const_cast< ReturnTypeTrait * >( this ) ) };
         }
         void ReturnTypeTrait::set_inheritance_pointer()
         {
@@ -1206,12 +1207,12 @@ namespace data
         void ReturnTypeTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_ReturnType ); }
         void ReturnTypeTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ReturnTypeTrait"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ReturnTypeTrait" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct ArgumentListTrait : public mega::io::Object
@@ -1222,7 +1223,7 @@ namespace data
         bool ArgumentListTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > >{
-                                        data::Ptr< data::Tree::ArgumentListTrait >( loader, const_cast< ArgumentListTrait * >( this ) )};
+                                        data::Ptr< data::Tree::ArgumentListTrait >( loader, const_cast< ArgumentListTrait * >( this ) ) };
         }
         void ArgumentListTrait::set_inheritance_pointer()
         {
@@ -1232,12 +1233,12 @@ namespace data
         void ArgumentListTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_ArgumentList ); }
         void ArgumentListTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ArgumentListTrait"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ArgumentListTrait" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct SizeTrait : public mega::io::Object
@@ -1248,19 +1249,19 @@ namespace data
         bool SizeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > >{
-                                        data::Ptr< data::Tree::SizeTrait >( loader, const_cast< SizeTrait * >( this ) )};
+                                        data::Ptr< data::Tree::SizeTrait >( loader, const_cast< SizeTrait * >( this ) ) };
         }
         void SizeTrait::set_inheritance_pointer() { p_AST_Size->m_inheritance = data::Ptr< data::Tree::SizeTrait >( p_AST_Size, this ); }
         void SizeTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Size ); }
         void SizeTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Size ); }
         void SizeTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "SizeTrait"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "SizeTrait" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
         }
 
         // struct ContextGroup : public mega::io::Object
@@ -1279,21 +1280,21 @@ namespace data
                    std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                 data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::ContextGroup >( loader, const_cast< ContextGroup * >( this ) )};
+                                 data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::ContextGroup >( loader, const_cast< ContextGroup * >( this ) ) };
         }
         void ContextGroup::set_inheritance_pointer() {}
         void ContextGroup::load( mega::io::Loader &loader ) { loader.load( children ); }
         void ContextGroup::store( mega::io::Storer &storer ) const { storer.store( children ); }
         void ContextGroup::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ContextGroup"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ContextGroup" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"children", children}} );
+                nlohmann::json property = nlohmann::json::object( { { "children", children } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1312,7 +1313,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                                   data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                                   data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Root >( loader, const_cast< Root * >( this ) )};
+                                                  data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Root >( loader, const_cast< Root * >( this ) ) };
         }
         void Root::set_inheritance_pointer() { p_Tree_ContextGroup->m_inheritance = data::Ptr< data::Tree::Root >( p_Tree_ContextGroup, this ); }
         void Root::load( mega::io::Loader &loader )
@@ -1327,14 +1328,14 @@ namespace data
         }
         void Root::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Root"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Root" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"root", root}} );
+                nlohmann::json property = nlohmann::json::object( { { "root", root } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1353,10 +1354,11 @@ namespace data
         }
         bool Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Context >( loader, const_cast< Context * >( this ) )};
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                                 data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                                 data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
+                                 data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Context >( loader, const_cast< Context * >( this ) ) };
         }
         void Context::set_inheritance_pointer() { p_Tree_ContextGroup->m_inheritance = data::Ptr< data::Tree::Context >( p_Tree_ContextGroup, this ); }
         void Context::load( mega::io::Loader &loader )
@@ -1373,18 +1375,18 @@ namespace data
         }
         void Context::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Context"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Context" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"identifier", identifier}} );
+                nlohmann::json property = nlohmann::json::object( { { "identifier", identifier } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"parent", parent}} );
+                nlohmann::json property = nlohmann::json::object( { { "parent", parent } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1406,7 +1408,7 @@ namespace data
                    std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                 data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Namespace >( loader, const_cast< Namespace * >( this ) )};
+                                 data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Namespace >( loader, const_cast< Namespace * >( this ) ) };
         }
         void Namespace::set_inheritance_pointer() { p_Tree_Context->m_inheritance = data::Ptr< data::Tree::Namespace >( p_Tree_Context, this ); }
         void Namespace::load( mega::io::Loader &loader )
@@ -1426,22 +1428,22 @@ namespace data
         }
         void Namespace::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Namespace"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Namespace" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"is_global", is_global}} );
+                nlohmann::json property = nlohmann::json::object( { { "is_global", is_global } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"namespace_defs", namespace_defs}} );
+                nlohmann::json property = nlohmann::json::object( { { "namespace_defs", namespace_defs } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimension_traits", dimension_traits.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimension_traits", dimension_traits.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1463,7 +1465,7 @@ namespace data
                    std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                 data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Abstract >( loader, const_cast< Abstract * >( this ) )};
+                                 data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Abstract >( loader, const_cast< Abstract * >( this ) ) };
         }
         void Abstract::set_inheritance_pointer() { p_Tree_Context->m_inheritance = data::Ptr< data::Tree::Abstract >( p_Tree_Context, this ); }
         void Abstract::load( mega::io::Loader &loader )
@@ -1484,22 +1486,22 @@ namespace data
         }
         void Abstract::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Abstract"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Abstract" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"abstract_defs", abstract_defs}} );
+                nlohmann::json property = nlohmann::json::object( { { "abstract_defs", abstract_defs } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimension_traits", dimension_traits.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimension_traits", dimension_traits.value() } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance_trait", inheritance_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance_trait", inheritance_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1519,7 +1521,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                                   data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                                   data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Action >( loader, const_cast< Action * >( this ) )};
+                                                  data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Action >( loader, const_cast< Action * >( this ) ) };
         }
         void Action::set_inheritance_pointer() { p_Tree_Context->m_inheritance = data::Ptr< data::Tree::Action >( p_Tree_Context, this ); }
         void Action::load( mega::io::Loader &loader )
@@ -1543,26 +1545,26 @@ namespace data
         }
         void Action::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Action"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Action" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"action_defs", action_defs}} );
+                nlohmann::json property = nlohmann::json::object( { { "action_defs", action_defs } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimension_traits", dimension_traits.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimension_traits", dimension_traits.value() } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance_trait", inheritance_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance_trait", inheritance_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"size_trait", size_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "size_trait", size_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1582,7 +1584,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                                   data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                                   data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Event >( loader, const_cast< Event * >( this ) )};
+                                                  data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Event >( loader, const_cast< Event * >( this ) ) };
         }
         void Event::set_inheritance_pointer() { p_Tree_Context->m_inheritance = data::Ptr< data::Tree::Event >( p_Tree_Context, this ); }
         void Event::load( mega::io::Loader &loader )
@@ -1606,26 +1608,26 @@ namespace data
         }
         void Event::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Event"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Event" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"event_defs", event_defs}} );
+                nlohmann::json property = nlohmann::json::object( { { "event_defs", event_defs } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimension_traits", dimension_traits.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimension_traits", dimension_traits.value() } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance_trait", inheritance_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance_trait", inheritance_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"size_trait", size_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "size_trait", size_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1648,7 +1650,7 @@ namespace data
                    std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                 data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Function >( loader, const_cast< Function * >( this ) )};
+                                 data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Function >( loader, const_cast< Function * >( this ) ) };
         }
         void Function::set_inheritance_pointer() { p_Tree_Context->m_inheritance = data::Ptr< data::Tree::Function >( p_Tree_Context, this ); }
         void Function::load( mega::io::Loader &loader )
@@ -1669,22 +1671,22 @@ namespace data
         }
         void Function::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Function"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Function" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"function_defs", function_defs}} );
+                nlohmann::json property = nlohmann::json::object( { { "function_defs", function_defs } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"return_type_trait", return_type_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "return_type_trait", return_type_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"arguments_trait", arguments_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "arguments_trait", arguments_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1704,7 +1706,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                                   data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                                   data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Object >( loader, const_cast< Object * >( this ) )};
+                                                  data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Object >( loader, const_cast< Object * >( this ) ) };
         }
         void Object::set_inheritance_pointer() { p_Tree_Context->m_inheritance = data::Ptr< data::Tree::Object >( p_Tree_Context, this ); }
         void Object::load( mega::io::Loader &loader )
@@ -1725,22 +1727,22 @@ namespace data
         }
         void Object::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Object"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Object" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"object_defs", object_defs}} );
+                nlohmann::json property = nlohmann::json::object( { { "object_defs", object_defs } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimension_traits", dimension_traits.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimension_traits", dimension_traits.value() } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"inheritance_trait", inheritance_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance_trait", inheritance_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1760,7 +1762,7 @@ namespace data
             return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                                                   data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                                                   data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link > >{data::Ptr< data::Tree::Link >( loader, const_cast< Link * >( this ) )};
+                                                  data::Ptr< data::Tree::Link > >{ data::Ptr< data::Tree::Link >( loader, const_cast< Link * >( this ) ) };
         }
         void Link::set_inheritance_pointer() { p_Tree_Context->m_inheritance = data::Ptr< data::Tree::Link >( p_Tree_Context, this ); }
         void Link::load( mega::io::Loader &loader )
@@ -1778,18 +1780,18 @@ namespace data
         }
         void Link::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Link"},
-                                            {"filetype", "Tree"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Link" },
+                                             { "filetype", "Tree" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"link_defs", link_defs}} );
+                nlohmann::json property = nlohmann::json::object( { { "link_defs", link_defs } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"link_inheritance_trait", link_inheritance_trait.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "link_inheritance_trait", link_inheritance_trait.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1808,7 +1810,8 @@ namespace data
         }
         bool Glob::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::DPGraph::Glob > >{data::Ptr< data::DPGraph::Glob >( loader, const_cast< Glob * >( this ) )};
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::DPGraph::Glob > >{ data::Ptr< data::DPGraph::Glob >( loader, const_cast< Glob * >( this ) ) };
         }
         void Glob::set_inheritance_pointer() {}
         void Glob::load( mega::io::Loader &loader )
@@ -1823,18 +1826,18 @@ namespace data
         }
         void Glob::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Glob"},
-                                            {"filetype", "DPGraph"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Glob" },
+                                             { "filetype", "DPGraph" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"location", location}} );
+                nlohmann::json property = nlohmann::json::object( { { "location", location } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"glob", glob}} );
+                nlohmann::json property = nlohmann::json::object( { { "glob", glob } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1854,7 +1857,7 @@ namespace data
         bool ObjectDependencies::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::DPGraph::ObjectDependencies > >{
-                                        data::Ptr< data::DPGraph::ObjectDependencies >( loader, const_cast< ObjectDependencies * >( this ) )};
+                                        data::Ptr< data::DPGraph::ObjectDependencies >( loader, const_cast< ObjectDependencies * >( this ) ) };
         }
         void ObjectDependencies::set_inheritance_pointer() {}
         void ObjectDependencies::load( mega::io::Loader &loader )
@@ -1873,26 +1876,26 @@ namespace data
         }
         void ObjectDependencies::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "ObjectDependencies"},
-                                            {"filetype", "DPGraph"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "ObjectDependencies" },
+                                             { "filetype", "DPGraph" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"source_file", source_file}} );
+                nlohmann::json property = nlohmann::json::object( { { "source_file", source_file } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"hash_code", hash_code}} );
+                nlohmann::json property = nlohmann::json::object( { { "hash_code", hash_code } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"globs", globs}} );
+                nlohmann::json property = nlohmann::json::object( { { "globs", globs } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"resolution", resolution}} );
+                nlohmann::json property = nlohmann::json::object( { { "resolution", resolution } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1910,21 +1913,21 @@ namespace data
         bool Analysis::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance ==
-                   std::variant< data::Ptr< data::DPGraph::Analysis > >{data::Ptr< data::DPGraph::Analysis >( loader, const_cast< Analysis * >( this ) )};
+                   std::variant< data::Ptr< data::DPGraph::Analysis > >{ data::Ptr< data::DPGraph::Analysis >( loader, const_cast< Analysis * >( this ) ) };
         }
         void Analysis::set_inheritance_pointer() {}
         void Analysis::load( mega::io::Loader &loader ) { loader.load( objects ); }
         void Analysis::store( mega::io::Storer &storer ) const { storer.store( objects ); }
         void Analysis::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Analysis"},
-                                            {"filetype", "DPGraph"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Analysis" },
+                                             { "filetype", "DPGraph" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"objects", objects}} );
+                nlohmann::json property = nlohmann::json::object( { { "objects", objects } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1938,7 +1941,7 @@ namespace data
         {
         }
         Symbol::Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &symbol, const std::int32_t &id,
-                        const std::vector< data::Ptr< data::Tree::Context > > &       contexts,
+                        const std::vector< data::Ptr< data::Tree::Context > >        &contexts,
                         const std::vector< data::Ptr< data::Tree::DimensionTrait > > &dimensions )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbol >( loader, this ) ), symbol( symbol ), id( id ),
               contexts( contexts ), dimensions( dimensions )
@@ -1947,7 +1950,7 @@ namespace data
         bool Symbol::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance ==
-                   std::variant< data::Ptr< data::SymbolTable::Symbol > >{data::Ptr< data::SymbolTable::Symbol >( loader, const_cast< Symbol * >( this ) )};
+                   std::variant< data::Ptr< data::SymbolTable::Symbol > >{ data::Ptr< data::SymbolTable::Symbol >( loader, const_cast< Symbol * >( this ) ) };
         }
         void Symbol::set_inheritance_pointer() {}
         void Symbol::load( mega::io::Loader &loader )
@@ -1966,26 +1969,26 @@ namespace data
         }
         void Symbol::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Symbol"},
-                                            {"filetype", "SymbolTable"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Symbol" },
+                                             { "filetype", "SymbolTable" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"symbol", symbol}} );
+                nlohmann::json property = nlohmann::json::object( { { "symbol", symbol } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"id", id}} );
+                nlohmann::json property = nlohmann::json::object( { { "id", id } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"contexts", contexts}} );
+                nlohmann::json property = nlohmann::json::object( { { "contexts", contexts } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimensions", dimensions}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimensions", dimensions } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -1997,11 +2000,11 @@ namespace data
         }
         SymbolSet::SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                               const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &symbols, const mega::io::megaFilePath &source_file,
-                              const std::size_t &                                                                                hash_code,
-                              const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > > &       context_symbols,
+                              const std::size_t                                                                                 &hash_code,
+                              const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > >        &context_symbols,
                               const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > &dimension_symbols,
-                              const std::map< data::Ptr< data::Tree::Context >, int32_t > &                                      context_type_ids,
-                              const std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t > &                               dimension_type_ids )
+                              const std::map< data::Ptr< data::Tree::Context >, int32_t >                                       &context_type_ids,
+                              const std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t >                                &dimension_type_ids )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolSet >( loader, this ) ), symbols( symbols ),
               source_file( source_file ), hash_code( hash_code ), context_symbols( context_symbols ), dimension_symbols( dimension_symbols ),
               context_type_ids( context_type_ids ), dimension_type_ids( dimension_type_ids )
@@ -2010,7 +2013,7 @@ namespace data
         bool SymbolSet::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::SymbolTable::SymbolSet > >{
-                                        data::Ptr< data::SymbolTable::SymbolSet >( loader, const_cast< SymbolSet * >( this ) )};
+                                        data::Ptr< data::SymbolTable::SymbolSet >( loader, const_cast< SymbolSet * >( this ) ) };
         }
         void SymbolSet::set_inheritance_pointer() {}
         void SymbolSet::load( mega::io::Loader &loader )
@@ -2035,38 +2038,38 @@ namespace data
         }
         void SymbolSet::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "SymbolSet"},
-                                            {"filetype", "SymbolTable"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "SymbolSet" },
+                                             { "filetype", "SymbolTable" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"symbols", symbols}} );
+                nlohmann::json property = nlohmann::json::object( { { "symbols", symbols } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"source_file", source_file}} );
+                nlohmann::json property = nlohmann::json::object( { { "source_file", source_file } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"hash_code", hash_code}} );
+                nlohmann::json property = nlohmann::json::object( { { "hash_code", hash_code } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"context_symbols", context_symbols}} );
+                nlohmann::json property = nlohmann::json::object( { { "context_symbols", context_symbols } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimension_symbols", dimension_symbols}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimension_symbols", dimension_symbols } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"context_type_ids", context_type_ids}} );
+                nlohmann::json property = nlohmann::json::object( { { "context_type_ids", context_type_ids } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"dimension_type_ids", dimension_type_ids}} );
+                nlohmann::json property = nlohmann::json::object( { { "dimension_type_ids", dimension_type_ids } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -2078,7 +2081,7 @@ namespace data
         }
         SymbolTable::SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                                   const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > &symbol_sets,
-                                  const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &              symbols )
+                                  const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               &symbols )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolTable >( loader, this ) ), symbol_sets( symbol_sets ),
               symbols( symbols )
         {
@@ -2086,7 +2089,7 @@ namespace data
         bool SymbolTable::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance == std::variant< data::Ptr< data::SymbolTable::SymbolTable > >{
-                                        data::Ptr< data::SymbolTable::SymbolTable >( loader, const_cast< SymbolTable * >( this ) )};
+                                        data::Ptr< data::SymbolTable::SymbolTable >( loader, const_cast< SymbolTable * >( this ) ) };
         }
         void SymbolTable::set_inheritance_pointer() {}
         void SymbolTable::load( mega::io::Loader &loader )
@@ -2101,18 +2104,18 @@ namespace data
         }
         void SymbolTable::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "SymbolTable"},
-                                            {"filetype", "SymbolTable"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "SymbolTable" },
+                                             { "filetype", "SymbolTable" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"symbol_sets", symbol_sets}} );
+                nlohmann::json property = nlohmann::json::object( { { "symbol_sets", symbol_sets } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"symbols", symbols}} );
+                nlohmann::json property = nlohmann::json::object( { { "symbols", symbols } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -2150,18 +2153,18 @@ namespace data
         }
         void DimensionTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "DimensionTrait"},
-                                            {"filetype", "PerSourceSymbols"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "DimensionTrait" },
+                                             { "filetype", "PerSourceSymbols" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"symbol", symbol}} );
+                nlohmann::json property = nlohmann::json::object( { { "symbol", symbol } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"type_id", type_id.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "type_id", type_id.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -2192,18 +2195,18 @@ namespace data
         }
         void Context::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Context"},
-                                            {"filetype", "PerSourceSymbols"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Context" },
+                                             { "filetype", "PerSourceSymbols" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"symbol", symbol}} );
+                nlohmann::json property = nlohmann::json::object( { { "symbol", symbol } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( {{"type_id", type_id.value()}} );
+                nlohmann::json property = nlohmann::json::object( { { "type_id", type_id.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -2225,7 +2228,7 @@ namespace data
         {
             return m_inheritance ==
                    std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > >{
-                       data::Ptr< data::Clang::Dimension >( loader, const_cast< Dimension * >( this ) )};
+                       data::Ptr< data::Clang::Dimension >( loader, const_cast< Dimension * >( this ) ) };
         }
         void Dimension::set_inheritance_pointer() { p_Tree_DimensionTrait->m_inheritance = data::Ptr< data::Clang::Dimension >( p_Tree_DimensionTrait, this ); }
         void Dimension::load( mega::io::Loader &loader )
@@ -2240,14 +2243,14 @@ namespace data
         }
         void Dimension::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( {{"partname", "Dimension"},
-                                            {"filetype", "Clang"},
-                                            {"typeID", Object_Part_Type_ID},
-                                            {"fileID", getFileID()},
-                                            {"index", getIndex()},
-                                            {"properties", nlohmann::json::array()}} );
+            part = nlohmann::json::object( { { "partname", "Dimension" },
+                                             { "filetype", "Clang" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( {{"canonical_type", canonical_type}} );
+                nlohmann::json property = nlohmann::json::object( { { "canonical_type", canonical_type } } );
                 part[ "properties" ].push_back( property );
             }
         }

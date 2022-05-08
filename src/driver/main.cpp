@@ -20,6 +20,8 @@
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
+#include "spdlog/spdlog.h"
+
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -101,7 +103,7 @@ int main( int argc, const char* argv[] )
 
             if ( cmds.count() > 1 )
             {
-                std::cout << "Invalid command combination. Type '--help' for options\n";
+                spdlog::info("Invalid command combination. Type '--help' for options");
                 return 1;
             }
 
@@ -127,7 +129,7 @@ int main( int argc, const char* argv[] )
 
             if ( bGeneralWait )
             {
-                std::cout << "Waiting for input..." << std::endl;
+                spdlog::info("Waiting for input...");
                 char c;
                 std::cin >> c;
             }
@@ -155,8 +157,6 @@ int main( int argc, const char* argv[] )
 #include "commands.hxx"
 #undef COMMAND
 
-                    //  case eCmd_Debug           : command_debug(  bShowHelp, commandArguments );                   break;
-                    //  case eCmd_Info            : command_info(   bShowHelp, commandArguments );                   break;
                 case TOTAL_MAIN_COMMANDS:
                 default:
                     if ( vm.count( "help" ) )
@@ -165,7 +165,7 @@ int main( int argc, const char* argv[] )
                     }
                     else
                     {
-                        std::cout << "Invalid command. Type '--help' for options\n";
+                        spdlog::info("Invalid command. Type '--help' for options");
                         return 1;
                     }
             }
@@ -173,20 +173,23 @@ int main( int argc, const char* argv[] )
         }
         catch ( boost::program_options::error& e )
         {
-            std::cout << "Invalid input. " << e.what() << "\nType '--help' for options" << std::endl;
+            spdlog::error("Invalid input. {}. Type '--help' for options", e.what() );
             return 1;
         }
         catch ( std::exception& e )
         {
-            std::cout << "Error: " << e.what() << std::endl;
+            spdlog::error("Error: {}", e.what() );
             return 1;
         }
         catch ( ... )
         {
-            std::cout << "Unknown error.\n" << std::endl;
+            spdlog::error("Unknown error" );
             return 1;
         }
     }
+
+    //ensure standard output is flushed
+    std::cout.flush();
 
     return 0;
 }

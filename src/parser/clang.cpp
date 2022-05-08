@@ -2,6 +2,8 @@
 #include "clang.hpp"
 
 #include "common/assert_verify.hpp"
+#include "clang/Basic/DirectoryEntry.h"
+#include "clang/Lex/DirectoryLookup.h"
 
 class ParserDiagnosticSystem::EGDiagConsumer : public clang::DiagnosticConsumer
 {
@@ -57,7 +59,8 @@ public:
     Pimpl( const boost::filesystem::path& currentPath, std::ostream& osError, std::ostream& osWarn );
 };
 
-ParserDiagnosticSystem::Pimpl::Pimpl( const boost::filesystem::path& currentPath, std::ostream& osError, std::ostream& osWarn )
+ParserDiagnosticSystem::Pimpl::Pimpl( const boost::filesystem::path& currentPath, std::ostream& osError,
+                                      std::ostream& osWarn )
     : m_pFileManager( std::make_shared< clang::FileManager >( clang::FileSystemOptions{ currentPath.string() } ) )
     , m_pDiagnosticOptions( new clang::DiagnosticOptions() )
     , m_pDiagnosticIDs( new clang::DiagnosticIDs() )
@@ -66,12 +69,16 @@ ParserDiagnosticSystem::Pimpl::Pimpl( const boost::filesystem::path& currentPath
 {
 }
 
-ParserDiagnosticSystem::ParserDiagnosticSystem( const boost::filesystem::path& currentPath, std::ostream& osError, std::ostream& osWarn )
+ParserDiagnosticSystem::ParserDiagnosticSystem( const boost::filesystem::path& currentPath, std::ostream& osError,
+                                                std::ostream& osWarn )
     : m_pImpl( new Pimpl( currentPath, osError, osWarn ) )
 {
 }
 
-std::shared_ptr< clang::FileManager > ParserDiagnosticSystem::get_clang_fileManager() { return m_pImpl->m_pFileManager; }
+std::shared_ptr< clang::FileManager > ParserDiagnosticSystem::get_clang_fileManager()
+{
+    return m_pImpl->m_pFileManager;
+}
 
 llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > ParserDiagnosticSystem::get_llvm_diagnosticEngine()
 {
@@ -82,7 +89,8 @@ std::shared_ptr< clang::FileManager > get_clang_fileManager( ParserDiagnosticSys
     return diagnosticSystem.get_clang_fileManager();
 }
 
-llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > get_llvm_diagnosticEngine( ParserDiagnosticSystem& diagnosticSystem )
+llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine >
+get_llvm_diagnosticEngine( ParserDiagnosticSystem& diagnosticSystem )
 {
     return diagnosticSystem.get_llvm_diagnosticEngine();
 }
@@ -98,16 +106,16 @@ Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
     : pSourceManager( std::make_unique< clang::SourceManager >( *pDiagnosticsEngine, *pFileManager ) )
     , headerSearchOptions( headerSearchOptions )
     , languageOptions( createEGLangOpts() )
-    , pHeaderSearch(
-          std::make_unique< clang::HeaderSearch >( headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions, nullptr ) )
+    , pHeaderSearch( std::make_unique< clang::HeaderSearch >(
+          headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions, nullptr ) )
     , pModuleLoader( std::make_unique< clang::TrivialModuleLoader >() )
     , pPreprocessorOptions( std::make_shared< clang::PreprocessorOptions >() )
-    , pPCMCache( new clang::MemoryBufferCache )
+    //, pPCMCache( new clang::MemoryBufferCache )
     , pPreprocessor( std::make_shared< clang::Preprocessor >( pPreprocessorOptions,
                                                               *pDiagnosticsEngine,
                                                               languageOptions,
                                                               *pSourceManager,
-                                                              *pPCMCache,
+                                                              //*pPCMCache,
                                                               *pHeaderSearch,
                                                               *pModuleLoader,
                                                               // PTHMgr
@@ -118,35 +126,41 @@ Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
     , pTargetOptions( getTargetOptions() )
     , pTargetInfo( clang::TargetInfo::CreateTargetInfo( *pDiagnosticsEngine, pTargetOptions ) )
 {
-    pFileEntry = pFileManager->getFile( sourceFile.string(), true, false );
-    clang::FileID fileID = pSourceManager->getOrCreateFileID( pFileEntry, clang::SrcMgr::C_User );
-    pSourceManager->setMainFileID( fileID );
-    pPreprocessor->SetCommentRetentionState( true, true );
-    pPreprocessor->Initialize( *pTargetInfo );
-
-    for ( const boost::filesystem::path& includeDir : includeDirectories )
+    if ( auto f = pFileManager->getFile( llvm::StringRef( sourceFile.string() ), true, false ) )
     {
-        pHeaderSearch->AddSearchPath(
-            clang::DirectoryLookup( pFileManager->getDirectory( includeDir.native() ), clang::SrcMgr::C_System, false ), true );
+        pFileEntry           = f.get();
+        clang::FileID fileID = pSourceManager->getOrCreateFileID( pFileEntry, clang::SrcMgr::C_User );
+        pSourceManager->setMainFileID( fileID );
+        pPreprocessor->SetCommentRetentionState( true, true );
+        pPreprocessor->Initialize( *pTargetInfo );
+
+        for ( const boost::filesystem::path& includeDir : includeDirectories )
+        {
+            if ( auto f = pFileManager->getDirectoryRef( includeDir.native(), false ) )
+            {
+                auto dirLookup = clang::DirectoryLookup( f.get(), clang::SrcMgr::C_System, false );
+                pHeaderSearch->AddSearchPath( dirLookup, false );
+            }
+        }
     }
 }
 
 clang::LangOptions Stuff::createEGLangOpts()
 {
     clang::LangOptions LangOpts;
-    LangOpts.CPlusPlus = 1;
+    LangOpts.CPlusPlus   = 1;
     LangOpts.CPlusPlus11 = 1;
     LangOpts.CPlusPlus14 = 1;
     LangOpts.CPlusPlus17 = 1;
-    LangOpts.CPlusPlus2a = 1;
-    LangOpts.LineComment = 1;
+    // LangOpts.CPlusPlus2a      = 1;
+    LangOpts.LineComment      = 1;
     LangOpts.CXXOperatorNames = 1;
-    LangOpts.Bool = 1;
+    LangOpts.Bool             = 1;
     // LangOpts.ObjC = 1;
     // LangOpts.MicrosoftExt = 1;    // To get kw___try, kw___finally.
     LangOpts.DeclSpecKeyword = 1; // To get __declspec.
-    LangOpts.WChar = 1;           // To get wchar_t
-    LangOpts.EG = 1;              // enable eg
+    LangOpts.WChar           = 1; // To get wchar_t
+    LangOpts.EG              = 1; // enable eg
     return LangOpts;
 }
 
@@ -169,7 +183,7 @@ bool Parser::getSourceText( clang::SourceLocation startLoc, clang::SourceLocatio
     bool                     bInvalid = false;
     const clang::SourceRange range( startLoc, endLoc );
     clang::CharSourceRange   charRange = clang::CharSourceRange::getCharRange( range );
-    str = clang::Lexer::getSourceText( charRange, sm, languageOptions, &bInvalid );
+    str                                = clang::Lexer::getSourceText( charRange, sm, languageOptions, &bInvalid );
     // sort out carriage returns
     boost::replace_all( str, "\r\n", "\n" );
 
@@ -237,23 +251,23 @@ bool Parser::isTokenStringLiteral() const { return clang::tok::isStringLiteral( 
 /// isTokenSpecial - True if this token requires special consumption methods.
 bool Parser::isTokenSpecial() const
 {
-    return isTokenStringLiteral() || isTokenParen() || isTokenBracket() || isTokenBrace() || Tok.is( clang::tok::code_completion )
-           || Tok.isAnnotation();
+    return isTokenStringLiteral() || isTokenParen() || isTokenBracket() || isTokenBrace()
+           || Tok.is( clang::tok::code_completion ) || Tok.isAnnotation();
 }
 
 void Parser::UnconsumeToken( clang::Token& Consumed )
 {
     clang::Token Next = Tok;
-    PP.EnterToken( Consumed );
+    PP.EnterToken( Consumed, true );
     PP.Lex( Tok );
-    PP.EnterToken( Next );
+    PP.EnterToken( Next, true );
 }
 
 clang::SourceLocation Parser::ConsumeAnnotationToken()
 {
     assert( Tok.isAnnotation() && "wrong consume method" );
     clang::SourceLocation Loc = Tok.getLocation();
-    PrevTokLocation = Tok.getAnnotationEndLoc();
+    PrevTokLocation           = Tok.getAnnotationEndLoc();
     PP.Lex( Tok );
     return Loc;
 }
@@ -344,11 +358,11 @@ public:
     explicit TentativeParsingAction( Parser& p )
         : P( p )
     {
-        PrevTok = P.Tok;
+        PrevTok                                = P.Tok;
         PrevTentativelyDeclaredIdentifierCount = P.TentativelyDeclaredIdentifiers.size();
-        PrevParenCount = P.ParenCount;
-        PrevBracketCount = P.BracketCount;
-        PrevBraceCount = P.BraceCount;
+        PrevParenCount                         = P.ParenCount;
+        PrevBracketCount                       = P.BracketCount;
+        PrevBraceCount                         = P.BraceCount;
         P.PP.EnableBacktrackAtThisPos();
         isActive = true;
     }
@@ -365,10 +379,10 @@ public:
         P.PP.Backtrack();
         P.Tok = PrevTok;
         P.TentativelyDeclaredIdentifiers.resize( PrevTentativelyDeclaredIdentifierCount );
-        P.ParenCount = PrevParenCount;
+        P.ParenCount   = PrevParenCount;
         P.BracketCount = PrevBracketCount;
-        P.BraceCount = PrevBraceCount;
-        isActive = false;
+        P.BraceCount   = PrevBraceCount;
+        isActive       = false;
     }
     ~TentativeParsingAction() { assert( !isActive && "Forgot to call Commit or Revert!" ); }
 };
@@ -383,7 +397,8 @@ public:
     ~RevertingTentativeParsingAction() { Revert(); }
 };
 
-Parser::BalancedDelimiterTracker::BalancedDelimiterTracker( Parser& p, clang::tok::TokenKind k, clang::tok::TokenKind FinalToken /*= clang::tok::semi*/ )
+Parser::BalancedDelimiterTracker::BalancedDelimiterTracker( Parser& p, clang::tok::TokenKind k,
+                                                            clang::tok::TokenKind FinalToken /*= clang::tok::semi*/ )
     : GreaterThanIsOperatorScope( p.GreaterThanIsOperator, true )
     , P( p )
     , Kind( k )
@@ -394,22 +409,22 @@ Parser::BalancedDelimiterTracker::BalancedDelimiterTracker( Parser& p, clang::to
         default:
             llvm_unreachable( "Unexpected balanced token" );
         case clang::tok::l_brace:
-            Close = clang::tok::r_brace;
+            Close    = clang::tok::r_brace;
             Consumer = &Parser::ConsumeBrace;
             break;
         case clang::tok::l_paren:
-            Close = clang::tok::r_paren;
+            Close    = clang::tok::r_paren;
             Consumer = &Parser::ConsumeParen;
             break;
 
         case clang::tok::l_square:
-            Close = clang::tok::r_square;
+            Close    = clang::tok::r_square;
             Consumer = &Parser::ConsumeBracket;
             break;
     }
 }
 
-bool Parser::BalancedDelimiterTracker::diagnoseMissingClose() { THROW_RTE( "diagnoseMissingClose" ); }
+bool                  Parser::BalancedDelimiterTracker::diagnoseMissingClose() { THROW_RTE( "diagnoseMissingClose" ); }
 clang::SourceLocation Parser::BalancedDelimiterTracker::getOpenLocation() const { return LOpen; }
 clang::SourceLocation Parser::BalancedDelimiterTracker::getCloseLocation() const { return LClose; }
 clang::SourceRange    Parser::BalancedDelimiterTracker::getRange() const { return clang::SourceRange( LOpen, LClose ); }
@@ -451,7 +466,8 @@ bool Parser::SkipUntil( clang::tok::TokenKind T, SkipUntilFlags Flags /*= static
 {
     return SkipUntil( llvm::makeArrayRef( T ), Flags );
 }
-bool Parser::SkipUntil( clang::tok::TokenKind T1, clang::tok::TokenKind T2, SkipUntilFlags Flags /*= static_cast< SkipUntilFlags >( 0 )*/ )
+bool Parser::SkipUntil( clang::tok::TokenKind T1, clang::tok::TokenKind T2,
+                        SkipUntilFlags Flags /*= static_cast< SkipUntilFlags >( 0 )*/ )
 {
     clang::tok::TokenKind TokArray[] = { T1, T2 };
     return SkipUntil( TokArray, Flags );
@@ -467,7 +483,8 @@ bool Parser::HasFlagsSet( Parser::SkipUntilFlags L, Parser::SkipUntilFlags R )
 {
     return ( static_cast< unsigned >( L ) & static_cast< unsigned >( R ) ) != 0;
 }
-bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks, SkipUntilFlags Flags /*= static_cast< SkipUntilFlags >( 0 )*/ )
+bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks,
+                        SkipUntilFlags                          Flags /*= static_cast< SkipUntilFlags >( 0 )*/ )
 {
     using namespace clang;
     // We always want this function to skip at least one token if the first token
@@ -495,7 +512,8 @@ bool Parser::SkipUntil( llvm::ArrayRef< clang::tok::TokenKind > Toks, SkipUntilF
         // Important special case: The caller has given up and just wants us to
         // skip the rest of the file. Do this without recursing, since we can
         // get here precisely because the caller detected too much recursion.
-        if ( Toks.size() == 1 && Toks[ 0 ] == tok::eof && !HasFlagsSet( Flags, StopAtSemi ) && !HasFlagsSet( Flags, StopAtCodeCompletion ) )
+        if ( Toks.size() == 1 && Toks[ 0 ] == tok::eof && !HasFlagsSet( Flags, StopAtSemi )
+             && !HasFlagsSet( Flags, StopAtCodeCompletion ) )
         {
             while ( Tok.isNot( tok::eof ) )
                 ConsumeAnyToken();

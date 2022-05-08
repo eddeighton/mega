@@ -4,6 +4,9 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
+#get spdlog
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
+
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -89,6 +92,7 @@ link_boost( mega timer )
 link_boost( mega filesystem )
 link_boost( mega iostreams )
 link_boost( mega serialization )
+link_spdlog( mega )
 link_json( mega )
 link_inja( mega )
 link_common( mega )

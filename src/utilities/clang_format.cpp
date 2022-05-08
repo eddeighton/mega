@@ -18,84 +18,86 @@
 
 namespace mega
 {
-    namespace utilities
+namespace utilities
+{
+void clang_format( std::string& strNewFileContents, std::optional< boost::filesystem::path > formatSpecPath )
+{
+    std::vector< clang::tooling::Range > ranges;
+    ranges.push_back( clang::tooling::Range( 0U, strNewFileContents.size() ) );
+
+    llvm::ArrayRef< clang::tooling::Range > rangesRef( ranges );
+
+    llvm::StringRef strRef( strNewFileContents );
+
+    clang::format::FormatStyle style = clang::format::getLLVMStyle();
+
+    if ( formatSpecPath.has_value() )
     {
-        void clang_format( std::string& strNewFileContents, std::optional< boost::filesystem::path > formatSpecPath )
-        {
-            std::vector< clang::tooling::Range > ranges;
-            ranges.push_back( clang::tooling::Range( 0U, strNewFileContents.size() ) );
+        const boost::filesystem::path filePath
+            = boost::filesystem::edsCannonicalise( boost::filesystem::absolute( formatSpecPath.value() ) );
+        VERIFY_RTE_MSG( boost::filesystem::exists( filePath ), "Could not locate format file: " << filePath );
 
-            llvm::ArrayRef< clang::tooling::Range > rangesRef( ranges );
+        std::ostringstream os;
+        std::string        str;
+        boost::filesystem::loadAsciiFile( filePath, str );
 
-            llvm::StringRef strRef( strNewFileContents );
+        llvm::StringRef strRef( str );
+        std::error_code error = clang::format::parseConfiguration( strRef, &style );
+        VERIFY_RTE_MSG( error.value() == 0, "Encountered error parsing format file: " << filePath );
+    }
+    else
+    {
+        style.BreakBeforeBraces = clang::format::FormatStyle::BS_Allman;
 
-            clang::format::FormatStyle style = clang::format::getLLVMStyle();
+        style.BraceWrapping.AfterClass            = true;
+        style.BraceWrapping.AfterControlStatement = clang::format::FormatStyle::BWACS_Always;
+        style.BraceWrapping.AfterEnum             = true;
+        style.BraceWrapping.AfterFunction         = true;
+        style.BraceWrapping.AfterNamespace        = true;
+        style.BraceWrapping.AfterObjCDeclaration  = true;
+        style.BraceWrapping.AfterStruct           = true;
+        style.BraceWrapping.AfterUnion            = true;
+        style.BraceWrapping.BeforeCatch           = true;
+        style.BraceWrapping.BeforeElse            = true;
+        style.BraceWrapping.IndentBraces          = true;
 
-            if ( formatSpecPath.has_value() )
-            {
-                const boost::filesystem::path filePath
-                    = boost::filesystem::edsCannonicalise( boost::filesystem::absolute( formatSpecPath.value() ) );
-                VERIFY_RTE_MSG( boost::filesystem::exists( filePath ), "Could not locate format file: " << filePath );
+        style.AlignConsecutiveAssignments
+            = clang::format::FormatStyle::AlignConsecutiveStyle{ true, true, true, true, true };
+        style.AlignConsecutiveDeclarations
+            = clang::format::FormatStyle::AlignConsecutiveStyle{ true, true, true, true, true };
 
-                std::ostringstream os;
-                std::string        str;
-                boost::filesystem::loadAsciiFile( filePath, str );
+        style.SpaceAfterCStyleCast           = false;
+        style.SpaceAfterTemplateKeyword      = true;
+        style.SpaceBeforeAssignmentOperators = true;
+        style.SpaceBeforeParens              = clang::format::FormatStyle::SBPO_Never;
+        style.SpaceInEmptyParentheses        = false;
+        style.SpacesInAngles                 = clang::format::FormatStyle::SIAS_Always;
+        style.SpacesInCStyleCastParentheses  = true;
+        style.SpacesInParentheses            = true;
+        style.SpacesInSquareBrackets         = true;
 
-                llvm::StringRef strRef( str );
-                std::error_code error = clang::format::parseConfiguration( strRef, &style );
-                VERIFY_RTE_MSG( error.value() == 0, "Encountered error parsing format file: " << filePath );
-            }
-            else
-            {
-                style.BreakBeforeBraces = clang::format::FormatStyle::BS_Allman;
+        style.KeepEmptyLinesAtTheStartOfBlocks = false;
 
-                style.BraceWrapping.AfterClass            = true;
-                style.BraceWrapping.AfterControlStatement = true;
-                style.BraceWrapping.AfterEnum             = true;
-                style.BraceWrapping.AfterFunction         = true;
-                style.BraceWrapping.AfterNamespace        = true;
-                style.BraceWrapping.AfterObjCDeclaration  = true;
-                style.BraceWrapping.AfterStruct           = true;
-                style.BraceWrapping.AfterUnion            = true;
-                style.BraceWrapping.BeforeCatch           = true;
-                style.BraceWrapping.BeforeElse            = true;
-                style.BraceWrapping.IndentBraces          = true;
+        style.Language             = clang::format::FormatStyle::LK_Cpp;
+        style.NamespaceIndentation = clang::format::FormatStyle::NI_All;
+        style.TabWidth             = 4U;
+        style.IndentWidth          = 4U;
+        style.UseTab               = clang::format::FormatStyle::UT_Never;
 
-                style.AlignConsecutiveAssignments  = true;
-                style.AlignConsecutiveDeclarations = true;
+        style.ColumnLimit         = 160U;
+        style.BreakStringLiterals = true;
+    }
 
-                style.SpaceAfterCStyleCast           = false;
-                style.SpaceAfterTemplateKeyword      = true;
-                style.SpaceBeforeAssignmentOperators = true;
-                style.SpaceBeforeParens              = clang::format::FormatStyle::SBPO_Never;
-                style.SpaceInEmptyParentheses        = false;
-                style.SpacesInAngles                 = true;
-                style.SpacesInCStyleCastParentheses  = true;
-                style.SpacesInParentheses            = true;
-                style.SpacesInSquareBrackets         = true;
+    clang::tooling::Replacements replacements = clang::format::reformat( style, strRef, rangesRef );
 
-                style.KeepEmptyLinesAtTheStartOfBlocks = false;
+    std::unique_ptr< llvm::MemoryBuffer > pMemBuffer = llvm::MemoryBuffer::getMemBuffer( strRef );
 
-                style.Language             = clang::format::FormatStyle::LK_Cpp;
-                style.NamespaceIndentation = clang::format::FormatStyle::NI_All;
-                style.TabWidth             = 4U;
-                style.IndentWidth          = 4U;
-                style.UseTab               = clang::format::FormatStyle::UT_Never;
+    auto pChangedCode = clang::tooling::applyAllReplacements( pMemBuffer->getBuffer(), replacements );
+    if ( pChangedCode )
+    {
+        strNewFileContents = *pChangedCode;
+    }
+}
 
-                style.ColumnLimit         = 160U;
-                style.BreakStringLiterals = true;
-            }
-
-            clang::tooling::Replacements replacements = clang::format::reformat( style, strRef, rangesRef );
-
-            std::unique_ptr< llvm::MemoryBuffer > pMemBuffer = llvm::MemoryBuffer::getMemBuffer( strRef );
-
-            auto pChangedCode = clang::tooling::applyAllReplacements( pMemBuffer->getBuffer(), replacements );
-            if ( pChangedCode )
-            {
-                strNewFileContents = *pChangedCode;
-            }
-        }
-
-    } // namespace utilities
+} // namespace utilities
 } // namespace mega

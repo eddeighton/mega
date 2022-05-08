@@ -76,7 +76,7 @@ public:
 
     ScopedIdentifier* parse_scopedIdentifier( Database& database )
     {
-        const std::string strFileName  = sm.getFilename( Tok.getLocation() );
+        const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
         const std::size_t szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
 
         // const std::string strLocation = Tok.getLocation().printToString( sm );
@@ -96,7 +96,8 @@ public:
                 MEGA_PARSER_ERROR( "Expected identifier" );
             }
         }
-        return database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
+        return database.construct< ScopedIdentifier >(
+            ScopedIdentifier::Args{ identifiers, strFileName, szLineNumber } );
     }
     // void parse_visibility( Database& session, input::Visibility* pVisibility )
     //{
@@ -294,32 +295,36 @@ public:
 
     boost::filesystem::path resolveFilePath( const std::string& strFile )
     {
-        const clang::DirectoryLookup* CurDir;
+        // const clang::DirectoryLookup* CurDir;
 
-        if ( const clang::FileEntry* pIncludeFile = PP.LookupFile( clang::SourceLocation(),
-                                                                   // Filename
-                                                                   strFile,
-                                                                   // isAngled
-                                                                   false,
-                                                                   // DirectoryLookup *FromDir
-                                                                   nullptr,
-                                                                   // FileEntry *FromFile
-                                                                   //&fileEntry,
-                                                                   nullptr,
-                                                                   // DirectoryLookup *&CurDir
-                                                                   CurDir,
-                                                                   // SmallVectorImpl<char> *SearchPath
-                                                                   nullptr,
-                                                                   // SmallVectorImpl<char> *RelativePath
-                                                                   nullptr,
-                                                                   // SuggestedModule
-                                                                   nullptr,
-                                                                   // IsMapped
-                                                                   nullptr ) )
+        if ( clang::Optional< clang::FileEntryRef > includeFile = PP.LookupFile( clang::SourceLocation(),
+                                                                                 // Filename
+                                                                                 strFile,
+                                                                                 // isAngled
+                                                                                 false,
+                                                                                 // DirectoryLookup *FromDir
+                                                                                 nullptr,
+                                                                                 // FileEntry *FromFile
+                                                                                 //&fileEntry,
+                                                                                 nullptr,
+                                                                                 // ConstSearchDirIterator *CurDir,
+                                                                                 nullptr,
+                                                                                 // SmallVectorImpl<char> *SearchPath
+                                                                                 nullptr,
+                                                                                 // SmallVectorImpl<char> *RelativePath
+                                                                                 nullptr,
+                                                                                 // SuggestedModule
+                                                                                 nullptr,
+                                                                                 // IsMapped
+                                                                                 nullptr,
+                                                                                 // bool *IsFrameworkFound
+                                                                                 nullptr,
+                                                                                 // bool SkipCache = false
+                                                                                 false ) )
         {
             // otherwise hte file should have normal file path and exist
-            const boost::filesystem::path filePath
-                = boost::filesystem::edsCannonicalise( boost::filesystem::absolute( pIncludeFile->tryGetRealPathName().str() ) );
+            const boost::filesystem::path filePath = boost::filesystem::edsCannonicalise(
+                boost::filesystem::absolute( includeFile->getFileEntry().tryGetRealPathName().str() ) );
             if ( !boost::filesystem::exists( filePath ) )
             {
                 MEGA_PARSER_ERROR( "Cannot locate include file: " << filePath.string() );
@@ -689,7 +694,8 @@ public:
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_object( database ) );
             }
-            else if ( ( Tok.is( clang::tok::kw_const ) && NextToken().is( clang::tok::kw_dim ) ) || Tok.is( clang::tok::kw_dim ) )
+            else if ( ( Tok.is( clang::tok::kw_const ) && NextToken().is( clang::tok::kw_dim ) )
+                      || Tok.is( clang::tok::kw_dim ) )
             {
                 bool bIsConst = false;
                 if ( Tok.is( clang::tok::kw_const ) )
@@ -753,7 +759,8 @@ public:
                 )
                 // clang-format on
                 {
-                    if ( !Tok.isOneOf( clang::tok::comment, clang::tok::eof, clang::tok::eod, clang::tok::code_completion ) )
+                    if ( !Tok.isOneOf(
+                             clang::tok::comment, clang::tok::eof, clang::tok::eod, clang::tok::code_completion ) )
                     {
                         bIsBodyDefinition = true;
                     }
@@ -784,8 +791,8 @@ public:
     ContextDef* parse_file( Database& database )
     {
         const std::string strLocation = Tok.getLocation().printToString( sm );
-        ScopedIdentifier* pID
-            = database.construct< ScopedIdentifier >( ScopedIdentifier::Args{ std::vector< Identifier* >{}, strLocation, 0U } );
+        ScopedIdentifier* pID         = database.construct< ScopedIdentifier >(
+            ScopedIdentifier::Args{ std::vector< Identifier* >{}, strLocation, 0U } );
         ContextDef::Args args = parse_context_body( database, pID );
         return database.construct< ContextDef >( args );
     }
@@ -813,7 +820,8 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
             THROW_RTE( "File not found: " << sourceFile.string() );
         }
 
-        std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions = std::make_shared< clang::HeaderSearchOptions >();
+        std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions
+            = std::make_shared< clang::HeaderSearchOptions >();
         for ( const boost::filesystem::path& includeDir : includeDirectories )
         {
             headerSearchOptions->AddPath( includeDir.native(), clang::frontend::Quoted, false, false );

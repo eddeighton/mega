@@ -20,6 +20,7 @@
 
 namespace data
 {
+
     // declarations
     namespace Components
     {
@@ -992,11 +993,11 @@ namespace data
             SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                        const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &symbols, const mega::io::megaFilePath &source_file,
-                       const std::size_t &                                                                                hash_code,
-                       const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > > &       context_symbols,
+                       const std::size_t                                                                                 &hash_code,
+                       const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > >        &context_symbols,
                        const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > &dimension_symbols,
-                       const std::map< data::Ptr< data::Tree::Context >, int32_t > &                                      context_type_ids,
-                       const std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t > &                               dimension_type_ids );
+                       const std::map< data::Ptr< data::Tree::Context >, int32_t >                                       &context_type_ids,
+                       const std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t >                                &dimension_type_ids );
             enum
             {
                 Object_Part_Type_ID = 49
@@ -1020,7 +1021,7 @@ namespace data
             SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                          const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > &symbol_sets,
-                         const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &              symbols );
+                         const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               &symbols );
             enum
             {
                 Object_Part_Type_ID = 50
@@ -1225,43 +1226,43 @@ namespace data
     inline Ptr< AST::Include >                            to_base( const Ptr< AST::Include > &from ) { return from; }
     inline Ptr< AST::Include >                            to_base( const Ptr< AST::SystemInclude > &from ) { return from->p_AST_Include; }
     inline Ptr< AST::Include >                            to_base( const Ptr< AST::MegaInclude > &from ) { return from->p_AST_Include; }
-    inline Ptr< AST::Include >                to_base( const Ptr< AST::MegaIncludeInline > &from ) { return from->p_AST_MegaInclude->p_AST_Include; }
-    inline Ptr< AST::Include >                to_base( const Ptr< AST::MegaIncludeNested > &from ) { return from->p_AST_MegaInclude->p_AST_Include; }
-    inline Ptr< AST::Include >                to_base( const Ptr< AST::CPPInclude > &from ) { return from->p_AST_Include; }
-    inline Ptr< AST::Dependency >             to_base( const Ptr< AST::Dependency > &from ) { return from; }
-    inline Ptr< AST::ContextDef >             to_base( const Ptr< AST::ContextDef > &from ) { return from; }
-    inline Ptr< AST::ContextDef >             to_base( const Ptr< AST::NamespaceDef > &from ) { return from->p_AST_ContextDef; }
-    inline Ptr< AST::ContextDef >             to_base( const Ptr< AST::AbstractDef > &from ) { return from->p_AST_ContextDef; }
-    inline Ptr< AST::ContextDef >             to_base( const Ptr< AST::ActionDef > &from ) { return from->p_AST_ContextDef; }
-    inline Ptr< AST::ContextDef >             to_base( const Ptr< AST::EventDef > &from ) { return from->p_AST_ContextDef; }
-    inline Ptr< AST::ContextDef >             to_base( const Ptr< AST::FunctionDef > &from ) { return from->p_AST_ContextDef; }
-    inline Ptr< AST::ContextDef >             to_base( const Ptr< AST::ObjectDef > &from ) { return from->p_AST_ContextDef; }
-    inline Ptr< AST::ContextDef >             to_base( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef; }
-    inline Ptr< AST::SourceRoot >             to_base( const Ptr< AST::SourceRoot > &from ) { return from; }
-    inline Ptr< AST::SourceRoot >             to_base( const Ptr< AST::IncludeRoot > &from ) { return from->p_AST_SourceRoot; }
-    inline Ptr< AST::SourceRoot >             to_base( const Ptr< AST::ObjectSourceRoot > &from ) { return from->p_AST_SourceRoot; }
-    inline Ptr< AST::Dimension >              to_base( const Ptr< Tree::DimensionTrait > &from ) { return from->p_AST_Dimension; }
-    inline Ptr< AST::Dimension >              to_base( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait->p_AST_Dimension; }
-    inline Ptr< AST::Inheritance >            to_base( const Ptr< Tree::InheritanceTrait > &from ) { return from->p_AST_Inheritance; }
-    inline Ptr< AST::ReturnType >             to_base( const Ptr< Tree::ReturnTypeTrait > &from ) { return from->p_AST_ReturnType; }
-    inline Ptr< AST::ArgumentList >           to_base( const Ptr< Tree::ArgumentListTrait > &from ) { return from->p_AST_ArgumentList; }
-    inline Ptr< AST::Size >                   to_base( const Ptr< Tree::SizeTrait > &from ) { return from->p_AST_Size; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::ContextGroup > &from ) { return from; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Root > &from ) { return from->p_Tree_ContextGroup; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Context > &from ) { return from->p_Tree_ContextGroup; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Namespace > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Abstract > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Action > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Event > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Function > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Object > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    inline Ptr< Tree::ContextGroup >          to_base( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
-    inline Ptr< DPGraph::Glob >               to_base( const Ptr< DPGraph::Glob > &from ) { return from; }
-    inline Ptr< DPGraph::ObjectDependencies > to_base( const Ptr< DPGraph::ObjectDependencies > &from ) { return from; }
-    inline Ptr< DPGraph::Analysis >           to_base( const Ptr< DPGraph::Analysis > &from ) { return from; }
-    inline Ptr< SymbolTable::Symbol >         to_base( const Ptr< SymbolTable::Symbol > &from ) { return from; }
-    inline Ptr< SymbolTable::SymbolSet >      to_base( const Ptr< SymbolTable::SymbolSet > &from ) { return from; }
-    inline Ptr< SymbolTable::SymbolTable >    to_base( const Ptr< SymbolTable::SymbolTable > &from ) { return from; }
+    inline Ptr< AST::Include >                     to_base( const Ptr< AST::MegaIncludeInline > &from ) { return from->p_AST_MegaInclude->p_AST_Include; }
+    inline Ptr< AST::Include >                     to_base( const Ptr< AST::MegaIncludeNested > &from ) { return from->p_AST_MegaInclude->p_AST_Include; }
+    inline Ptr< AST::Include >                     to_base( const Ptr< AST::CPPInclude > &from ) { return from->p_AST_Include; }
+    inline Ptr< AST::Dependency >                  to_base( const Ptr< AST::Dependency > &from ) { return from; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::ContextDef > &from ) { return from; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::NamespaceDef > &from ) { return from->p_AST_ContextDef; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::AbstractDef > &from ) { return from->p_AST_ContextDef; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::ActionDef > &from ) { return from->p_AST_ContextDef; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::EventDef > &from ) { return from->p_AST_ContextDef; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::FunctionDef > &from ) { return from->p_AST_ContextDef; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::ObjectDef > &from ) { return from->p_AST_ContextDef; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef; }
+    inline Ptr< AST::SourceRoot >                  to_base( const Ptr< AST::SourceRoot > &from ) { return from; }
+    inline Ptr< AST::SourceRoot >                  to_base( const Ptr< AST::IncludeRoot > &from ) { return from->p_AST_SourceRoot; }
+    inline Ptr< AST::SourceRoot >                  to_base( const Ptr< AST::ObjectSourceRoot > &from ) { return from->p_AST_SourceRoot; }
+    inline Ptr< AST::Dimension >                   to_base( const Ptr< Tree::DimensionTrait > &from ) { return from->p_AST_Dimension; }
+    inline Ptr< AST::Dimension >                   to_base( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait->p_AST_Dimension; }
+    inline Ptr< AST::Inheritance >                 to_base( const Ptr< Tree::InheritanceTrait > &from ) { return from->p_AST_Inheritance; }
+    inline Ptr< AST::ReturnType >                  to_base( const Ptr< Tree::ReturnTypeTrait > &from ) { return from->p_AST_ReturnType; }
+    inline Ptr< AST::ArgumentList >                to_base( const Ptr< Tree::ArgumentListTrait > &from ) { return from->p_AST_ArgumentList; }
+    inline Ptr< AST::Size >                        to_base( const Ptr< Tree::SizeTrait > &from ) { return from->p_AST_Size; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::ContextGroup > &from ) { return from; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Root > &from ) { return from->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Context > &from ) { return from->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Namespace > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Abstract > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Action > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Event > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Function > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Object > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< DPGraph::Glob >                    to_base( const Ptr< DPGraph::Glob > &from ) { return from; }
+    inline Ptr< DPGraph::ObjectDependencies >      to_base( const Ptr< DPGraph::ObjectDependencies > &from ) { return from; }
+    inline Ptr< DPGraph::Analysis >                to_base( const Ptr< DPGraph::Analysis > &from ) { return from; }
+    inline Ptr< SymbolTable::Symbol >              to_base( const Ptr< SymbolTable::Symbol > &from ) { return from; }
+    inline Ptr< SymbolTable::SymbolSet >           to_base( const Ptr< SymbolTable::SymbolSet > &from ) { return from; }
+    inline Ptr< SymbolTable::SymbolTable >         to_base( const Ptr< SymbolTable::SymbolTable > &from ) { return from; }
 
     template < typename TVariant > inline TVariant to_upper( TVariant &from )
     {

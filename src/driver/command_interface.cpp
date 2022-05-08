@@ -53,6 +53,9 @@
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
 
+#include "spdlog/spdlog.h"
+#include <spdlog/fmt/bundled/color.h>
+
 #include <boost/filesystem/file_status.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -100,6 +103,63 @@ public:
         , m_toolChainHash( toolChainHash )
     {
     }
+    inline const std::string& name( const task::Progress& taskProgress ) const
+    {
+        return taskProgress.getStatus().m_strTaskName;
+    }
+    inline std::string source( const task::Progress& taskProgress ) const
+    {
+        return std::get< boost::filesystem::path >( taskProgress.getStatus().m_source.value() ).string();
+    }
+    inline std::string target( const task::Progress& taskProgress ) const
+    {
+        return std::get< boost::filesystem::path >( taskProgress.getStatus().m_target.value() ).string();
+    }
+    inline std::string elapsed( const task::Progress& taskProgress ) const
+    {
+        return taskProgress.getStatus().m_elapsed.value();
+    }
+
+    void start( task::Progress& taskProgress, const char* pszName, const boost::filesystem::path& fromPath,
+                const boost::filesystem::path& toPath )
+    {
+        std::ostringstream os;
+        os << "| " << std::setw( 45 ) << pszName;
+        taskProgress.start( os.str(), fromPath, toPath );
+        spdlog::info( "{} START   {:>60} -> {:<60}",
+                       fmt::format(  fmt::bg( fmt::terminal_color::yellow ) | fmt::fg( fmt::terminal_color::black )
+                                        | fmt::emphasis::bold,
+                                    name( taskProgress ) ),
+                       fromPath.string(), toPath.string() );
+    }
+    void cached( task::Progress& taskProgress )
+    {
+        taskProgress.cached();
+        spdlog::info( "{} CACHED  {:>60} -> {:<60} : {}",
+                      fmt::format( fmt::bg( fmt::terminal_color::cyan ) | fmt::fg( fmt::terminal_color::black )
+                                       | fmt::emphasis::bold,
+                                   name( taskProgress ) ),
+                      source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );
+    }
+    void succeeded( task::Progress& taskProgress )
+    {
+        taskProgress.succeeded();
+        spdlog::info( "{} SUCCESS {:>60} -> {:<60} : {}",
+                      fmt::format( fmt::bg( fmt::terminal_color::green ) | fmt::fg( fmt::terminal_color::black )
+                                       | fmt::emphasis::bold,
+                                   name( taskProgress ) ),
+                      source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );
+    }
+    void failed( task::Progress& taskProgress )
+    {
+        taskProgress.failed();
+        spdlog::critical( "{} ERROR   {:>60} -> {:<60} : {}",
+                          fmt::format( fmt::bg( fmt::terminal_color::red ) | fmt::fg( fmt::terminal_color::black )
+                                           | fmt::emphasis::bold,
+                                       name( taskProgress ) ),
+                          source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );
+    }
+    void msg( task::Progress& taskProgress, const std::string& strMsg ) {}
 
 protected:
     const mega::io::BuildEnvironment& m_environment;
@@ -164,7 +224,7 @@ public:
         const mega::io::CompilationFilePath astFile  = m_environment.ParserStage_AST( m_sourceFilePath );
         const mega::io::CompilationFilePath bodyFile = m_environment.ParserStage_Body( m_sourceFilePath );
 
-        taskProgress.start( "Task_ParseAST", m_sourceFilePath.path(), astFile.path() );
+        start( taskProgress, "Task_ParseAST", m_sourceFilePath.path(), astFile.path() );
 
         using namespace ParserStage;
         Database database( m_environment, m_sourceFilePath );
@@ -237,15 +297,15 @@ public:
         if ( !osError.str().empty() )
         {
             // Error
-            taskProgress.msg( osError.str() );
-            taskProgress.failed();
+            msg( taskProgress, osError.str() );
+            failed( taskProgress );
         }
         else
         {
             if ( !osWarn.str().empty() )
             {
                 // Warning
-                taskProgress.msg( osWarn.str() );
+                msg( taskProgress, osWarn.str() );
             }
 
             bool bRestored = false;
@@ -278,11 +338,11 @@ public:
 
             if ( bRestored )
             {
-                taskProgress.cached();
+                cached( taskProgress );
             }
             else
             {
-                taskProgress.succeeded();
+                succeeded( taskProgress );
             }
         }
     }
@@ -304,14 +364,14 @@ public:
     {
         const mega::io::CompilationFilePath        astFile         = m_environment.ParserStage_AST( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
-        taskProgress.start( "Task_Include", astFile.path(), includeFilePath.path() );
+        start( taskProgress, "Task_Include", astFile.path(), includeFilePath.path() );
 
         const task::DeterminantHash determinant( { m_toolChainHash, m_environment.getBuildHashCode( astFile ) } );
 
         if ( m_environment.restore( includeFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( includeFilePath );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -341,7 +401,7 @@ public:
         m_environment.setBuildHashCode( includeFilePath );
         m_environment.stash( includeFilePath, determinant );
 
-        taskProgress.succeeded();
+        succeeded( taskProgress );
     }
 };
 
@@ -364,7 +424,7 @@ public:
     {
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
         const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.PCH( m_sourceFilePath );
-        taskProgress.start( "Task_IncludePCH", includeFilePath.path(), pchPath.path() );
+        start( taskProgress, "Task_IncludePCH", includeFilePath.path(), pchPath.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChainHash, m_environment.getBuildHashCode( includeFilePath ) } );
@@ -372,7 +432,7 @@ public:
         if ( m_environment.restore( pchPath, determinant ) )
         {
             m_environment.setBuildHashCode( pchPath );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -403,7 +463,7 @@ public:
             pComponent->get_includeDirectories(), m_environment.FilePath( includeFilePath ),
             m_environment.FilePath( pchPath ) )();
 
-        taskProgress.msg( strCmd );
+        msg( taskProgress, strCmd );
 
         const int iResult = boost::process::system( strCmd );
         if ( iResult )
@@ -416,7 +476,7 @@ public:
         m_environment.setBuildHashCode( pchPath );
         m_environment.stash( pchPath, determinant );
 
-        taskProgress.succeeded();
+        succeeded( taskProgress );
     }
 };
 
@@ -897,7 +957,7 @@ public:
     virtual void run( task::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath treePath = m_environment.InterfaceStage_Tree( m_sourceFilePath );
-        taskProgress.start( "Task_ObjectInterfaceGen", m_sourceFilePath.path(), treePath.path() );
+        start( taskProgress, "Task_ObjectInterfaceGen", m_sourceFilePath.path(), treePath.path() );
 
         const task::FileHash parserStageASTHashCode
             = m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) );
@@ -907,7 +967,7 @@ public:
         if ( m_environment.restore( treePath, determinant ) )
         {
             m_environment.setBuildHashCode( treePath );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -959,7 +1019,7 @@ public:
         m_environment.temp_to_real( treePath );
         m_environment.stash( treePath, determinant );
 
-        taskProgress.succeeded();
+        succeeded( taskProgress );
     }
     const mega::io::megaFilePath& m_sourceFilePath;
 };
@@ -1114,7 +1174,7 @@ public:
         const mega::io::manifestFilePath    manifestFilePath = m_environment.project_manifest();
         const mega::io::CompilationFilePath dependencyCompilationFilePath
             = m_environment.DependencyAnalysis_DPGraph( manifestFilePath );
-        taskProgress.start( "Task_DependencyAnalysis", manifestFilePath.path(), dependencyCompilationFilePath.path() );
+        start( taskProgress, "Task_DependencyAnalysis", manifestFilePath.path(), dependencyCompilationFilePath.path() );
 
         task::DeterminantHash determinant( m_toolChainHash );
         for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
@@ -1125,7 +1185,7 @@ public:
         if ( m_environment.restore( dependencyCompilationFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( dependencyCompilationFilePath );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -1203,16 +1263,16 @@ public:
                                 newDependencies.push_back(
                                     CalculateDependencies( env )( newDatabase, pDependencies, sourceFiles ) );
 
-                                std::ostringstream os;
-                                os << "\tPartially reusing dependencies for: " << j->path().string();
-                                taskProgress.msg( os.str() );
+                                // std::ostringstream os;
+                                // os << "\tPartially reusing dependencies for: " << j->path().string();
+                                // taskProgress.msg( os.str() );
                                 return false;
                             }
                             else
                             {
-                                std::ostringstream os;
-                                os << "\tRecalculating dependencies for: " << j->path().string();
-                                taskProgress.msg( os.str() );
+                                // std::ostringstream os;
+                                // os << "\tRecalculating dependencies for: " << j->path().string();
+                                // taskProgress.msg( os.str() );
                                 return true;
                             }
                         },
@@ -1234,9 +1294,9 @@ public:
                             const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
                             newDependencies.push_back(
                                 CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
-                            std::ostringstream os;
-                            os << "\tAdding dependencies for: " << megaFilePath.path().string();
-                            taskProgress.msg( os.str() );
+                            // std::ostringstream os;
+                            // os << "\tAdding dependencies for: " << megaFilePath.path().string();
+                            // taskProgress.msg( os.str() );
                         },
 
                         // const Updated& updatesNeeded
@@ -1261,7 +1321,7 @@ public:
             m_environment.temp_to_real( dependencyCompilationFilePath );
             m_environment.stash( dependencyCompilationFilePath, determinant );
 
-            taskProgress.succeeded();
+            succeeded( taskProgress );
         }
         else
         {
@@ -1288,7 +1348,7 @@ public:
             m_environment.temp_to_real( dependencyCompilationFilePath );
             m_environment.stash( dependencyCompilationFilePath, determinant );
 
-            taskProgress.succeeded();
+            succeeded( taskProgress );
         }
     }
 };
@@ -1505,7 +1565,7 @@ public:
         const mega::io::manifestFilePath    manifestFilePath = m_environment.project_manifest();
         const mega::io::CompilationFilePath symbolCompilationFile
             = m_environment.SymbolAnalysis_SymbolTable( manifestFilePath );
-        taskProgress.start( "Task_SymbolAnalysis", manifestFilePath.path(), symbolCompilationFile.path() );
+        start( taskProgress, "Task_SymbolAnalysis", manifestFilePath.path(), symbolCompilationFile.path() );
 
         task::DeterminantHash determinant( m_toolChainHash );
         for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
@@ -1516,7 +1576,7 @@ public:
         if ( m_environment.restore( symbolCompilationFile, determinant ) )
         {
             m_environment.setBuildHashCode( symbolCompilationFile );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -1658,9 +1718,9 @@ public:
                                     symbolSetMap.insert( std::make_pair( *j, pNewSymbolSet ) );
                                 }
 
-                                std::ostringstream os;
-                                os << "\tPartially reusing symbols for: " << j->path().string();
-                                taskProgress.msg( os.str() );
+                                // std::ostringstream os;
+                                // os << "\tPartially reusing symbols for: " << j->path().string();
+                                // taskProgress.msg( os.str() );
                                 return false;
                             }
                             else
@@ -1692,9 +1752,9 @@ public:
                             SymbolCollector()( newDatabase, pSymbolSet, symbolMap, typeMap );
                             symbolSetMap.insert( std::make_pair( megaFilePath, pSymbolSet ) );
 
-                            std::ostringstream os;
-                            os << "\tAdded symbols for: " << megaFilePath.path().string();
-                            taskProgress.msg( os.str() );
+                            // std::ostringstream os;
+                            // os << "\tAdded symbols for: " << megaFilePath.path().string();
+                            // taskProgress.msg( os.str() );
                         },
 
                         // const Updated& updatesNeeded
@@ -1713,9 +1773,9 @@ public:
                             SymbolCollector()( newDatabase, pSymbolSet, symbolMap, typeMap );
                             symbolSetMap.insert( std::make_pair( megaFilePath, pSymbolSet ) );
 
-                            std::ostringstream os;
-                            os << "\tUpdated symbols for: " << megaFilePath.path().string();
-                            taskProgress.msg( os.str() );
+                            // std::ostringstream os;
+                            // os << "\tUpdated symbols for: " << megaFilePath.path().string();
+                            // taskProgress.msg( os.str() );
                         } );
                 }
                 SymbolCollector().labelNewSymbols( symbolMap );
@@ -1730,7 +1790,7 @@ public:
             m_environment.temp_to_real( symbolCompilationFile );
             m_environment.stash( symbolCompilationFile, determinant );
 
-            taskProgress.succeeded();
+            succeeded( taskProgress );
         }
         else
         {
@@ -1763,7 +1823,7 @@ public:
             m_environment.setBuildHashCode( symbolCompilationFile, fileHashCode );
             m_environment.temp_to_real( symbolCompilationFile );
             m_environment.stash( symbolCompilationFile, determinant );
-            taskProgress.succeeded();
+            succeeded( taskProgress );
         }
     }
 };
@@ -1786,7 +1846,7 @@ public:
             = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
         const mega::io::CompilationFilePath symbolRolloutFilePath
             = m_environment.SymbolRollout_PerSourceSymbols( m_sourceFilePath );
-        taskProgress.start( "Task_SymbolRollout", symbolAnalysisFilePath.path(), symbolRolloutFilePath.path() );
+        start( taskProgress, "Task_SymbolRollout", symbolAnalysisFilePath.path(), symbolRolloutFilePath.path() );
 
         Task_SymbolAnalysis::InterfaceHashCodeGenerator hashGen( m_environment, m_toolChainHash );
         const task::DeterminantHash                     determinant = hashGen( m_sourceFilePath );
@@ -1794,7 +1854,7 @@ public:
         if ( m_environment.restore( symbolRolloutFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( symbolRolloutFilePath );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -1836,7 +1896,7 @@ public:
         m_environment.setBuildHashCode( symbolRolloutFilePath, fileHashCode );
         m_environment.temp_to_real( symbolRolloutFilePath );
         m_environment.stash( symbolRolloutFilePath, determinant );
-        taskProgress.succeeded();
+        succeeded( taskProgress );
     }
     const mega::io::megaFilePath& m_sourceFilePath;
 };
@@ -1972,7 +2032,7 @@ public:
     {
         const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader = m_environment.Interface( m_sourceFilePath );
-        taskProgress.start( "Task_ObjectInterfaceGeneration", interfaceTreeFile.path(), interfaceHeader.path() );
+        start( taskProgress, "Task_ObjectInterfaceGeneration", interfaceTreeFile.path(), interfaceHeader.path() );
 
         const task::DeterminantHash determinant( { m_toolChainHash, m_environment.getBuildHashCode( interfaceTreeFile ),
                                                    m_environment.ContextTemplate(), m_environment.NamespaceTemplate(),
@@ -1981,7 +2041,7 @@ public:
         if ( m_environment.restore( interfaceHeader, determinant ) )
         {
             m_environment.setBuildHashCode( interfaceHeader );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -2024,7 +2084,7 @@ public:
         m_environment.setBuildHashCode( interfaceHeader );
         m_environment.stash( interfaceHeader, determinant );
 
-        taskProgress.succeeded();
+        succeeded( taskProgress );
     }
     const mega::io::megaFilePath& m_sourceFilePath;
 };
@@ -2058,7 +2118,7 @@ public:
         const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
         const mega::io::CompilationFilePath interfaceAnalysisFile
             = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
-        taskProgress.start( "Task_ObjectInterfaceAnalysis", interfaceTreeFile.path(), interfaceAnalysisFile.path() );
+        start( taskProgress, "Task_ObjectInterfaceAnalysis", interfaceTreeFile.path(), interfaceAnalysisFile.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChainHash, m_environment.getBuildHashCode( interfaceTreeFile ) } );
@@ -2066,7 +2126,7 @@ public:
         if ( m_environment.restore( interfaceAnalysisFile, determinant ) )
         {
             m_environment.setBuildHashCode( interfaceAnalysisFile );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -2082,7 +2142,7 @@ public:
         m_environment.temp_to_real( interfaceAnalysisFile );
         m_environment.stash( interfaceAnalysisFile, determinant );
 
-        taskProgress.succeeded();
+        succeeded( taskProgress );
     }
     const mega::io::megaFilePath& m_sourceFilePath;
 };
@@ -2096,15 +2156,15 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::options_description commandOptions( " Compile Mega Project Interface" );
     {
         // clang-format off
-                commandOptions.add_options()
-                ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),  "Root source directory" )
-                ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),   "Root build directory" )
-                ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
-                ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),   "Mega Structure Compiler path" )
-                ( "clang_compiler", po::value< boost::filesystem::path >( &clangCompiler ),  "Clang Compiler path" )
-                ( "parser_dll",     po::value< boost::filesystem::path >( &parserDll ),      "Parser DLL Path" )
-                ( "templates",      po::value< boost::filesystem::path >( &templatesDir ),   "Inja Templates directory" )
-                ;
+        commandOptions.add_options()
+        ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),  "Root source directory" )
+        ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),   "Root build directory" )
+        ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
+        ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),   "Mega Structure Compiler path" )
+        ( "clang_compiler", po::value< boost::filesystem::path >( &clangCompiler ),  "Clang Compiler path" )
+        ( "parser_dll",     po::value< boost::filesystem::path >( &parserDll ),      "Parser DLL Path" )
+        ( "templates",      po::value< boost::filesystem::path >( &templatesDir ),   "Inja Templates directory" )
+        ;
         // clang-format on
     }
 
