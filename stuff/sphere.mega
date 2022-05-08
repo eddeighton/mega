@@ -2,7 +2,9 @@
 object Sphere
 {
     dim int m_counter1;
-
+    include( <memory> );
+    include( <map> );
+    include( <thread> );
 }
 object Sphere2
 {
