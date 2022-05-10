@@ -7,6 +7,7 @@ object Square
 
     include( test_cpp_include.hpp );
     include( <string> );
+    include( <vector> );
 
     include test_include( test_include.mega );
     
@@ -18,9 +19,4 @@ object Square
         int i = 1;
     }
     
-    function nested2( int iValue, float fValue ) : void
-    {
-        // do stuff
-        int i = 1;
-    }
 }

@@ -11,7 +11,7 @@ object Cube1
 
 namespace test
 {
-    object Cube2
+    object Cube3
     {
         dependency( stuff/sphere.mega );
         dependency( stuff/triangle.mega );
