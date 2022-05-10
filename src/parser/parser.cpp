@@ -2,7 +2,7 @@
 #include "parser/parser.hpp"
 #include "clang.hpp"
 
-#include "database/common/sources.hpp"
+#include "database/types/sources.hpp"
 
 #include "database/model/ParserStage.hxx"
 #include "database/model/environment.hxx"

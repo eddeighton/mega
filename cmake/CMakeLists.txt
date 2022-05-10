@@ -32,6 +32,7 @@ include (InstallRequiredSystemLibraries)
 add_subdirectory(database_compiler)
 add_subdirectory(database_compiler_driver)
 
+add_subdirectory(clang_plugin)
 add_subdirectory(parser)
 add_subdirectory(database)
 add_subdirectory(utilities)

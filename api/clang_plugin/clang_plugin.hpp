@@ -44,40 +44,37 @@
 
 namespace clang
 {
-    class QualType;
-    class ASTContext;
-    class Sema;
-    class Token;
-    class SourceLocation;
+class QualType;
+class ASTContext;
+class Sema;
+class Token;
+class SourceLocation;
 } // namespace clang
 
 // EG Database Interface
 namespace mega
 {
-    using EGChar = char;
+using EGChar = char;
 
-    struct EGDB_EXPORT EG_PLUGIN_INTERFACE
-    {
-        virtual void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema ) = 0;
-        virtual void initialiseMode_Interface( const EGChar* strDatabasePath )        = 0;
-        virtual void initialiseMode_Operations( const EGChar* strDatabasePath, const EGChar* strTranslationUnitDatabasePath,
-                                                unsigned uiTranslationUnitID )
-            = 0;
-        virtual void initialiseMode_Implementation() = 0;
-        virtual void runFinalAnalysis()              = 0;
-
-        virtual bool isEGEnabled()                                                                        = 0;
-        virtual bool isEGType( const clang::QualType& type )                                              = 0;
-        virtual bool isPossibleEGType( const clang::QualType& type )                                      = 0;
-        virtual bool isPossibleEGTypeIdentifier( const clang::Token& token )                              = 0;
-        virtual int  isPossibleEGTypeIdentifierDecl( const clang::Token& token, bool bIsTypePathParsing ) = 0;
-        virtual bool getInvocationOperationType( const clang::SourceLocation& loc, const clang::QualType& typePathType, bool bHasArguments,
-                                                 clang::QualType& operationType )
-            = 0;
-        virtual bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& baseType,
-                                              clang::QualType& resultType )
-            = 0;
-    };
+struct EGDB_EXPORT EG_PLUGIN_INTERFACE
+{
+    virtual void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema ) = 0;
+    virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
+                             const char* strSourceFile )
+        = 0;
+    virtual void runFinalAnalysis()                                                                   = 0;
+    virtual bool isEGEnabled()                                                                        = 0;
+    virtual bool isEGType( const clang::QualType& type )                                              = 0;
+    virtual bool isPossibleEGType( const clang::QualType& type )                                      = 0;
+    virtual bool isPossibleEGTypeIdentifier( const clang::Token& token )                              = 0;
+    virtual int  isPossibleEGTypeIdentifierDecl( const clang::Token& token, bool bIsTypePathParsing ) = 0;
+    virtual bool getInvocationOperationType( const clang::SourceLocation& loc, const clang::QualType& typePathType,
+                                             bool bHasArguments, clang::QualType& operationType )
+        = 0;
+    virtual bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& baseType,
+                                          clang::QualType& resultType )
+        = 0;
+};
 } // namespace mega
 
 typedef void* ( *EG_PLUGIN_INTERFACE_GETTER )();

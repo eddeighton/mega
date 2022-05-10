@@ -200,7 +200,10 @@ namespace io
         for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
             iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
         {
-            loadFile( environment, loader, readOnlyFiles, stage, i->getFileID() );
+            if( i->getStage() < stage )
+            {
+                loadFile( environment, loader, readOnlyFiles, stage, i->getFileID() );
+            }
         }
     }
 

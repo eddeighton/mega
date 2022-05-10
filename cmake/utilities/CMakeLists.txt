@@ -18,14 +18,12 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( UTILITIES_HEADERS
     ${MEGA_API_DIR}/utilities/glob.hpp
     ${MEGA_API_DIR}/utilities/clang_format.hpp
-    ${MEGA_API_DIR}/utilities/clang_compilation.hpp
     ${MEGA_API_DIR}/utilities/cmake.hpp
 )
 
 set( UTILITIES_SOURCE
     ${MEGA_SRC_DIR}/utilities/glob.cpp
     ${MEGA_SRC_DIR}/utilities/clang_format.cpp
-    ${MEGA_SRC_DIR}/utilities/clang_compilation.cpp
 )
 
 

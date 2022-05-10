@@ -2,8 +2,11 @@
 #ifndef BUILDSYSTEM_TOOLS_15_SEPT_2020
 #define BUILDSYSTEM_TOOLS_15_SEPT_2020
 
-#include "common/task.hpp"
 #include "database/common/object_info.hpp"
+
+#include "database/types/modes.hpp"
+
+#include "common/task.hpp"
 
 #include <boost/filesystem/path.hpp>
 
@@ -12,8 +15,6 @@
 #include <vector>
 
 namespace mega
-{
-namespace utilities
 {
 struct Compilation
 {
@@ -29,9 +30,8 @@ struct Compilation
     std::optional< boost::filesystem::path > outputPCH;
     std::optional< boost::filesystem::path > outputObject;
 
-    std::optional< boost::filesystem::path >      egdb;
-    std::optional< boost::filesystem::path >      egtu;
-    std::optional< mega::io::ObjectInfo::FileID > egtuid;
+    std::optional< mega::CompilationMode >   compilationMode;
+    std::optional< boost::filesystem::path > srcDir, buildDir, sourceFile;
 
     Compilation()                     = delete;
     Compilation( const Compilation& ) = delete;
@@ -53,10 +53,36 @@ struct Compilation
     {
     }
 
+    Compilation( const boost::filesystem::path& compiler, const boost::filesystem::path& compiler_plugin,
+                 const std::vector< std::string >& flags, const std::vector< std::string >& defines,
+                 const std::vector< boost::filesystem::path >& includeDirs,
+
+                 mega::CompilationMode compilationMode, const boost::filesystem::path& srcDir,
+                 const boost::filesystem::path& buildDir, const boost::filesystem::path& sourceFile,
+
+                 const boost::filesystem::path& inputPCH, const boost::filesystem::path& inputFile,
+                 const boost::filesystem::path& outputPCH )
+
+        : compiler( compiler )
+        , compiler_plugin( compiler_plugin )
+        , flags( flags )
+        , defines( defines )
+        , includeDirs( includeDirs )
+
+        , inputPCH( { inputPCH } )
+
+        , compilationMode( compilationMode )
+        , srcDir( srcDir )
+        , buildDir( buildDir )
+        , sourceFile( sourceFile )
+
+        , inputFile( inputFile )
+        , outputPCH( outputPCH )
+    {
+    }
+
     std::string operator()() const;
 };
-
-}; // namespace utilities
 
 } // namespace mega
 

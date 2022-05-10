@@ -67,6 +67,15 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_list.cpp
 		${DRIVER_SOURCE_DIR}/command_manifest.cpp
+
+		${DRIVER_SOURCE_DIR}/command_interface/base_task.hpp  
+		${DRIVER_SOURCE_DIR}/command_interface/task_dependencies.hpp 
+		${DRIVER_SOURCE_DIR}/command_interface/task_includes.hpp  
+		${DRIVER_SOURCE_DIR}/command_interface/task_interface_analysis.hpp  
+		${DRIVER_SOURCE_DIR}/command_interface/task_interface.hpp  
+		${DRIVER_SOURCE_DIR}/command_interface/task_parse_ast.hpp  
+		${DRIVER_SOURCE_DIR}/command_interface/task_symbols.hpp
+
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp

@@ -3,18 +3,23 @@
 
 #include "database/common/archive.hpp"
 #include "database/common/serialisation.hpp"
-#include "database/common/sources.hpp"
+
+#include "database/types/sources.hpp"
 
 #include "database/model/environment.hxx"
 
 #include "common/stash.hpp"
 #include "common/file.hpp"
 #include "common/string.hpp"
+#include "common/assert_verify.hpp"
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
+#include <optional>
 
 namespace mega
 {
@@ -78,13 +83,14 @@ public:
     const Path& rootSourceDir() const { return m_rootSourceDir; }
     const Path& rootBuildDir() const { return m_rootBuildDir; }
 
-    Path FilePath( const GeneratedHPPSourceFilePath& filePath ) const
+    Path FilePath( const GeneratedHPPSourceFilePath& filePath ) const { return toPath( filePath ); }
+    Path FilePath( const PrecompiledHeaderFile& filePath ) const { return toPath( filePath ); }
+    Path FilePath( const megaFilePath& filePath ) const { return toPath( filePath ); }
+
+    template < typename TFrom, typename TTo >
+    void matchFileTime( const TFrom& from, const TTo& to ) const
     {
-        return toPath( filePath );
-    }
-    Path FilePath( const PrecompiledHeaderFile& filePath ) const
-    {
-        return toPath( filePath );
+        boost::filesystem::last_write_time( toPath( to ), boost::filesystem::last_write_time( toPath( from ) ) );
     }
 
     Path ContextTemplate() const
@@ -136,6 +142,15 @@ public:
         auto dirPath = source.path();
         dirPath.remove_filename();
         return GeneratedHPPSourceFilePath( dirPath / os.str() );
+    }
+
+    PrecompiledHeaderFile InterfacePCH( const megaFilePath& source ) const
+    {
+        std::ostringstream os;
+        os << source.path().filename().string() << ".interface" << PrecompiledHeaderFile::extension().string();
+        auto dirPath = source.path();
+        dirPath.remove_filename();
+        return PrecompiledHeaderFile( dirPath / os.str() );
     }
 
     GeneratedHPPSourceFilePath Operations( const megaFilePath& source ) const

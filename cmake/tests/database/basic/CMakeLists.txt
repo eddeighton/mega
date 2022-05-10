@@ -96,16 +96,26 @@ ${MEGA_API_DIR}/database/common/object_info.hpp
 ${MEGA_API_DIR}/database/common/object_loader.hpp
 ${MEGA_API_DIR}/database/common/object.hpp
 ${MEGA_API_DIR}/database/common/storer.hpp
-${MEGA_API_DIR}/database/common/sources.hpp
 )
 
 set( MEGA_DATABASE_SOURCES
-${MEGA_SRC_DIR}/database/common/sources.cpp
 ${MEGA_SRC_DIR}/database/common/component_info.cpp
 ${MEGA_SRC_DIR}/database/common/file.cpp
 ${MEGA_SRC_DIR}/database/common/loader.cpp
 ${MEGA_SRC_DIR}/database/common/object.cpp
 ${MEGA_SRC_DIR}/database/common/storer.cpp
+)
+
+set( MEGA_TYPES_HEADERS
+    ${MEGA_API_DIR}/database/types/operation.hpp
+    ${MEGA_API_DIR}/database/types/sources.hpp
+    ${MEGA_API_DIR}/database/types/modes.hpp
+)
+
+set( MEGA_TYPES_SOURCES
+    ${MEGA_SRC_DIR}/database/types/operation.cpp
+    ${MEGA_SRC_DIR}/database/types/sources.cpp
+    ${MEGA_SRC_DIR}/database/types/modes.cpp
 )
 
 set( MEGA_UNIT_TESTS
@@ -119,6 +129,9 @@ add_executable( database_basic_tests
                 ${MEGA_DATABASE_COMMON}
                 ${MEGA_DATABASE_SOURCES}
                 ${COMPILER_OUTPUTS}
+                
+                ${MEGA_TYPES_HEADERS}
+                ${MEGA_TYPES_SOURCES}
 
                 ${MEGA_UNIT_TESTS} 
                 ${BASIC_DIR}/main.cpp 

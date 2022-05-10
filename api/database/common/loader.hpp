@@ -24,8 +24,9 @@
 #include "object_info.hpp"
 #include "object.hpp"
 #include "data_pointer.hpp"
-#include "sources.hpp"
 #include "file_system.hpp"
+
+#include "database/types/sources.hpp"
 
 #include "common/assert_verify.hpp"
 

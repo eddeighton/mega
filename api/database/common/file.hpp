@@ -1,7 +1,7 @@
 #ifndef INDEXED_FILE_25_MAR_2022
 #define INDEXED_FILE_25_MAR_2022
 
-#include "sources.hpp"
+
 #include "object_info.hpp"
 #include "object_info.hpp"
 #include "generics.hpp"
@@ -9,6 +9,8 @@
 #include "object_loader.hpp"
 #include "data_pointer.hpp"
 #include "file_system.hpp"
+
+#include "database/types/sources.hpp"
 
 #include "database/model/file_info.hxx"
 

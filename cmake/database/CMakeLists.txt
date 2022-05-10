@@ -121,13 +121,11 @@ set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/object_loader.hpp
     ${MEGA_API_DIR}/database/common/object.hpp
     ${MEGA_API_DIR}/database/common/serialisation.hpp
-    ${MEGA_API_DIR}/database/common/sources.hpp
     ${MEGA_API_DIR}/database/common/storer.hpp
 	)
 
 set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/common/archive.cpp
-    ${MEGA_SRC_DIR}/database/common/sources.cpp
     ${MEGA_SRC_DIR}/database/common/component_info.cpp
     ${MEGA_SRC_DIR}/database/common/file.cpp
     ${MEGA_SRC_DIR}/database/common/loader.cpp
@@ -135,11 +133,27 @@ set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/common/storer.cpp
     )
 
+set( MEGA_TYPES_HEADERS
+    ${MEGA_API_DIR}/database/types/operation.hpp
+    ${MEGA_API_DIR}/database/types/sources.hpp
+    ${MEGA_API_DIR}/database/types/modes.hpp
+    ${MEGA_API_DIR}/database/types/clang_compilation.hpp
+)
+
+set( MEGA_TYPES_SOURCES
+    ${MEGA_SRC_DIR}/database/types/operation.cpp
+    ${MEGA_SRC_DIR}/database/types/sources.cpp
+    ${MEGA_SRC_DIR}/database/types/modes.cpp
+    ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
+)
+
 add_library( database
                     ${MEGA_DATABASE_COMMON}
 					${MEGA_DATABASE_SOURCES}
 					${MEGA_DATABASE_GENERATED_HEADERS}
 					${MEGA_DATABASE_GENERATED_SOURCES}
+                    ${MEGA_TYPES_HEADERS}
+                    ${MEGA_TYPES_SOURCES}
 				)
 
 add_dependencies( database database_compiler_driver )
@@ -160,6 +174,7 @@ link_common( database )
 
 #install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
 install( FILES ${MEGA_DATABASE_COMMON} DESTINATION include/database/common )
+install( FILES ${MEGA_TYPES_HEADERS} DESTINATION include/database/types )
 install( FILES ${MEGA_DATABASE_GENERATED_HEADERS} DESTINATION include/database/model )
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )

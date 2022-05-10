@@ -2,7 +2,7 @@
 #ifndef SOURCES_15_APRIL_2022
 #define SOURCES_15_APRIL_2022
 
-#include "serialisation.hpp"
+#include "database/common/serialisation.hpp"
 
 #include "boost/filesystem/path.hpp"
 

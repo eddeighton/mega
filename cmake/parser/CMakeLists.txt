@@ -29,7 +29,6 @@ add_library( parser SHARED
 
 set_target_properties( parser PROPERTIES FOLDER parser )
 
-
 link_boost( parser filesystem )
 link_boost( parser iostreams )
 link_boost( parser serialization )

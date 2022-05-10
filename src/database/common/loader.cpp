@@ -22,7 +22,7 @@
 
 #include "common/file.hpp"
 
-#include "database/common/sources.hpp"
+#include "database/types/sources.hpp"
 #include "database/model/file_info.hxx"
 #include "database/model/manifest.hxx"
 

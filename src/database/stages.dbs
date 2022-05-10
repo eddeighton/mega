@@ -102,6 +102,8 @@ stage InterfaceAnalysisStage
 
     file Clang;
 
+    global accessor array< ref< Components::Component > >;
+    global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::Root >;
 }
 

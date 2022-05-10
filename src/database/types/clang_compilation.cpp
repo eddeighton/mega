@@ -1,13 +1,12 @@
 
-#include "utilities/clang_compilation.hpp"
+#include "database/types/clang_compilation.hpp"
 
 #include "common/assert_verify.hpp"
+#include "database/types/modes.hpp"
 
 #include <sstream>
 
 namespace mega
-{
-namespace utilities
 {
 
 //////////////////////////////////////////////////////////////////////////////
@@ -41,27 +40,19 @@ std::string Compilation::operator()() const
     }
 
     // eg
-    if ( egdb.has_value() )
+    if( compilationMode.has_value() )
     {
-        osCmd << "-Xclang -egdb=" << egdb.value().native() << " ";
-        VERIFY_RTE( compiler_plugin.has_value() );
-        osCmd << "-Xclang -egdll=" << compiler_plugin.value().native() << " ";
-
-        if ( egtu.has_value() )
-        {
-            VERIFY_RTE( egtuid.has_value() );
-            osCmd << "-Xclang -egtu=" << egtu.value().native() << " ";
-            osCmd << "-Xclang -egtuid=" << egtuid.value() << " ";
-        }
-        else
-        {
-            VERIFY_RTE( !egtuid.has_value() );
-        }
+        osCmd << "-Xclang -egdll=" <<       compiler_plugin.value().native() << " ";
+        osCmd << "-Xclang -egmode=" <<      mega::toStr( compilationMode.value() ) << " ";
+        osCmd << "-Xclang -egsrddir=" <<    srcDir.value().native() << " ";
+        osCmd << "-Xclang -egbuilddir=" <<  buildDir.value().native() << " ";
+        osCmd << "-Xclang -egsource=" <<    sourceFile.value().native() << " ";
     }
     else
     {
-        VERIFY_RTE( !egtu.has_value() );
-        VERIFY_RTE( !egtuid.has_value() );
+        VERIFY_RTE( !srcDir.has_value() );
+        VERIFY_RTE( !buildDir.has_value() );
+        VERIFY_RTE( !sourceFile.has_value() );
     }
 
     // include directories
@@ -70,6 +61,9 @@ std::string Compilation::operator()() const
         osCmd << "-I " << includeDir.native() << " ";
     }
 
+    // ensure no round trip debug cmd line handling in clang
+    osCmd << "-Xclang -no-round-trip-args ";
+
     // input
     osCmd << inputFile.native() << " ";
 
@@ -77,7 +71,7 @@ std::string Compilation::operator()() const
     if ( outputPCH.has_value() )
     {
         VERIFY_RTE( !outputObject.has_value() );
-        osCmd << "-Xclang -emit-pch -o " << outputPCH.value().native() << " ";
+        osCmd << "-Xclang -fno-pch-timestamp -Xclang -emit-pch -o " << outputPCH.value().native() << " ";
     }
     else if ( outputObject.has_value() )
     {
@@ -92,5 +86,4 @@ std::string Compilation::operator()() const
     return osCmd.str();
 }
 
-} // namespace utilities
 } // namespace mega

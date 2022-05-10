@@ -1,7 +1,7 @@
 #ifndef ARCHIVE_21_APRIL_2022
 #define ARCHIVE_21_APRIL_2022
 
-#include "database/common/sources.hpp"
+#include "database/types/sources.hpp"
 #include "database/model/manifest.hxx"
 
 #include "boost/filesystem/path.hpp"

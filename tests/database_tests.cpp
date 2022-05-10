@@ -4,7 +4,8 @@
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/environments.hpp"
-#include "database/common/sources.hpp"
+
+#include "database/types/sources.hpp"
 
 #include "database/model/ComponentListing.hxx"
 #include "database/model/ParserStage.hxx"
