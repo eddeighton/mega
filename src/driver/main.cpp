@@ -22,6 +22,7 @@
 
 #include "spdlog/spdlog.h"
 
+#include <boost/archive/archive_exception.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -174,6 +175,11 @@ int main( int argc, const char* argv[] )
         catch ( boost::program_options::error& e )
         {
             spdlog::error("Invalid input. {}. Type '--help' for options", e.what() );
+            return 1;
+        }
+        catch( boost::archive::archive_exception& ex )
+        {
+            spdlog::error("Archive Exception: {} {}", ex.code, ex.what() );
             return 1;
         }
         catch ( std::exception& e )

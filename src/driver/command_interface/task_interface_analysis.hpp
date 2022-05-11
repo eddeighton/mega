@@ -7,6 +7,8 @@
 
 #include "database/types/clang_compilation.hpp"
 
+#include "mega/common_strings.hpp"
+
 #include "utilities/clang_format.hpp"
 
 #include "nlohmann/json.hpp"
@@ -66,6 +68,43 @@ public:
         }
     };
 
+    template < typename TContextType >
+    std::vector< nlohmann::json > getInheritanceTraits( const nlohmann::json& typenames, TContextType* pContext )
+    {
+        using namespace InterfaceAnalysisStage;
+        using namespace InterfaceAnalysisStage::Interface;
+
+        const std::optional< InheritanceTrait* >& inheritanceOpt = pContext->get_inheritance_trait();
+
+        std::vector< nlohmann::json > traits;
+        if ( inheritanceOpt.has_value() )
+        {
+            InheritanceTrait* pInheritanceTrait = inheritanceOpt.value();
+
+            int iCounter = 0;
+            for ( const std::string& strType : pInheritanceTrait->get_strings() )
+            {
+                nlohmann::json traitNames = typenames;
+                std::ostringstream os;
+                os << mega::EG_BASE_PREFIX_TRAIT_TYPE << iCounter++;
+                traitNames.push_back( os.str() );
+
+                nlohmann::json trait_struct( { { "name", os.str() },
+                                               { "typeid", pContext->get_type_id() },
+                                               { "types", traitNames },
+                                               { "traits", nlohmann::json::array() } } );
+
+                {
+                    std::ostringstream osTrait;
+                    osTrait << "using Type  = " << strType;
+                    trait_struct[ "traits" ].push_back( osTrait.str() );
+                }
+                traits.push_back( trait_struct );
+            }
+        }
+        return traits;
+    }
+
     void recurse( TemplateEngine& templateEngine, InterfaceAnalysisStage::Interface::Context* pContext,
                   nlohmann::json& structs, const nlohmann::json& parentTypeNames, std::ostream& os )
     {
@@ -99,22 +138,37 @@ public:
         }
         else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
         {
+            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAbstract ) )
+            {
+                contextData[ "trait_structs" ].push_back( trait );
+                structs.push_back( trait );
+            }
             templateEngine.renderContext( contextData, os );
         }
         else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
         {
+            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAction ) )
+            {
+                contextData[ "trait_structs" ].push_back( trait );
+                structs.push_back( trait );
+            }
             templateEngine.renderContext( contextData, os );
         }
         else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
         {
+            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pEvent ) )
+            {
+                contextData[ "trait_structs" ].push_back( trait );
+                structs.push_back( trait );
+            }
             templateEngine.renderContext( contextData, os );
         }
         else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
         {
             nlohmann::json functionTraitTypeNames = typenames;
-            functionTraitTypeNames.push_back( "MegaFunctionTraits" );
+            functionTraitTypeNames.push_back( mega::EG_FUNCTION_TRAIT_TYPE );
 
-            nlohmann::json trait_struct( { { "name", "MegaFunctionTraits" },
+            nlohmann::json trait_struct( { { "name", mega::EG_FUNCTION_TRAIT_TYPE },
                                            { "typeid", pContext->get_type_id() },
                                            { "types", functionTraitTypeNames },
                                            { "traits", nlohmann::json::array() } } );
@@ -138,6 +192,11 @@ public:
         }
         else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
         {
+            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pObject ) )
+            {
+                contextData[ "trait_structs" ].push_back( trait );
+                structs.push_back( trait );
+            }
             templateEngine.renderContext( contextData, os );
         }
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
@@ -217,10 +276,8 @@ public:
     Task_ObjectInterfaceAnalysis( task::Task::RawPtrSet             dependencies,
                                   const mega::io::BuildEnvironment& environment,
                                   const ToolChain&                  toolChain,
-                                  const boost::filesystem::path&    compilerPath,
                                   const mega::io::megaFilePath&     sourceFilePath )
         : BaseTask( dependencies, environment, toolChain )
-        , m_compilerPath( compilerPath )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -268,9 +325,9 @@ public:
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
         const std::string strCmd = mega::Compilation(
-            m_compilerPath, m_toolChain.clangPluginPath, pComponent->get_cpp_flags(), pComponent->get_cpp_defines(),
-            pComponent->get_includeDirectories(), mega::eInterface, m_environment.rootSourceDir(),
-            m_environment.rootBuildDir(), m_environment.FilePath( m_sourceFilePath ),
+            m_toolChain.clangCompilerPath, m_toolChain.clangPluginPath, pComponent->get_cpp_flags(),
+            pComponent->get_cpp_defines(), pComponent->get_includeDirectories(), mega::eInterface,
+            m_environment.rootSourceDir(), m_environment.rootBuildDir(), m_environment.FilePath( m_sourceFilePath ),
             m_environment.FilePath( includePCH ), m_environment.FilePath( interfaceHeader ),
             m_environment.FilePath( interfacePCHFilePath ) )();
 
@@ -283,8 +340,7 @@ public:
             return;
         }
 
-        if( m_environment.exists( interfaceAnalysisFile ) &&
-            m_environment.exists( interfacePCHFilePath ) )
+        if ( m_environment.exists( interfaceAnalysisFile ) && m_environment.exists( interfacePCHFilePath ) )
         {
             m_environment.setBuildHashCode( interfacePCHFilePath );
             m_environment.stash( interfacePCHFilePath, determinant );
@@ -300,8 +356,7 @@ public:
         }
     }
 
-    const mega::io::megaFilePath&  m_sourceFilePath;
-    const boost::filesystem::path& m_compilerPath;
+    const mega::io::megaFilePath& m_sourceFilePath;
 };
 
 } // namespace interface

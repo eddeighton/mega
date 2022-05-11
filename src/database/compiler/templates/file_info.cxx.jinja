@@ -26,4 +26,30 @@ namespace io
 } // namespace io
 } // namespace mega
 
+std::ostream& operator<<( std::ostream& os, mega::io::FileInfo::Stage stage )
+{
+    switch( stage )
+    {
+{% for stage in stages %}
+        case mega::io::FileInfo::{{ stage.name }}: return os << "{{ stage.name }}";
+{% endfor %}
+        default:
+            THROW_RTE( "Unknown stage type" );
+    }
+}
+
+std::ostream& operator<<( std::ostream& os, mega::io::FileInfo::Type type )
+{
+    switch( type )
+    {
+{% for stage in stages %}
+{% for file in stage.files %}
+        case mega::io::FileInfo::{{ stage.name }}_{{ file.name }}: return os << "{{ stage.name }}_{{ file.name }}";
+{% endfor %}
+{% endfor %}
+        default:
+            THROW_RTE( "Unknown stage type" );
+    }
+}
+
 BOOST_CLASS_IMPLEMENTATION( mega::io::FileInfo, object_serializable )

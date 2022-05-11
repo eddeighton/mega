@@ -7,15 +7,13 @@ namespace Interface
     {
         value< std::int32_t > symbol -> SymbolRollout::PerSourceSymbols;
         late< value< std::int32_t > > type_id -> SymbolRollout::PerSourceSymbols;
-    }
 
-    object Dimension : DimensionTrait -> InterfaceAnalysisStage::Clang
-    {
-        value< std::string > canonical_type;
+        //value< std::string > canonical -> InterfaceAnalysisStage::Clang;
     }
 
     object InheritanceTrait : Parser::Inheritance -> InterfaceStage::Tree
     {
+        array< ref< Context > > contexts -> InterfaceAnalysisStage::Clang;
     }
 
     object ReturnTypeTrait : Parser::ReturnType -> InterfaceStage::Tree
@@ -94,7 +92,6 @@ namespace Interface
     object Link : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::LinkDef > > link_defs;
-        late< ref< InheritanceTrait > > link_inheritance_trait;
     }
 
 }

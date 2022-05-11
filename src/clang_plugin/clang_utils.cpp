@@ -605,7 +605,7 @@ QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTy
 }
 
 DeclLocType getNestedDeclContext( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                                  const std::string& str, bool bIsTemplate )
+                                  const std::string& str )
 {
     DeclLocType result;
 
@@ -613,34 +613,18 @@ DeclLocType getNestedDeclContext( ASTContext* pASTContext, Sema* pSema, DeclCont
     LookupResult    lookupResult( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
     if ( pSema->LookupQualifiedName( lookupResult, pDeclContext ) )
     {
-        if ( bIsTemplate )
+        if( NamedDecl* pNamedDecl = lookupResult.getFoundDecl() )
         {
-            ClassTemplateDecl* pDecl = dyn_cast< ClassTemplateDecl >( lookupResult.getFoundDecl() );
-            result.loc               = pDecl->getTemplatedDecl()->getBeginLoc();
-            TemplateArgumentListInfo TemplateArgs( result.loc, result.loc );
-            TemplateArgs.addArgument(
-                TemplateArgumentLoc( TemplateArgument( pASTContext->VoidTy ),
-                                     pASTContext->getTrivialTypeSourceInfo( pASTContext->VoidTy, result.loc ) ) );
-
-            TemplateName templateName( pDecl );
-            result.type = pSema->CheckTemplateIdType( templateName, result.loc, TemplateArgs );
-
-            void*                              InsertPos = nullptr;
-            SmallVector< TemplateArgument, 4 > Converted;
-            Converted.push_back( TemplateArgument( pASTContext->VoidTy ) );
-            if ( ClassTemplateSpecializationDecl* pClassSpecialisationDeclaration
-                 = pDecl->findSpecialization( Converted, InsertPos ) )
-            {
-                result.pDeclContext = pClassSpecialisationDeclaration;
-            }
-        }
-        else
-        {
-            if ( CXXRecordDecl* pRecordDecl = dyn_cast< CXXRecordDecl >( lookupResult.getFoundDecl() ) )
+            if ( CXXRecordDecl* pRecordDecl = dyn_cast< CXXRecordDecl >( pNamedDecl ) )
             {
                 result.pDeclContext = pRecordDecl;
                 result.loc          = pRecordDecl->getBeginLoc();
                 result.type         = pASTContext->getTypeDeclType( pRecordDecl );
+            }
+            else if( NamespaceDecl* pNamespaceDecl = dyn_cast< NamespaceDecl >( pNamedDecl ) )
+            {
+                result.pDeclContext = pNamespaceDecl;
+                result.loc          = pNamespaceDecl->getBeginLoc();
             }
         }
     }

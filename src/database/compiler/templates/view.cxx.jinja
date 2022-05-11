@@ -140,6 +140,7 @@ inline data::Ptr< typename traits< TFromView >::DataType > toData( SuperFactory&
     using TToData = typename traits< TFromView >::DataType;
     using SuperType   = typename traits< TToData >::SuperType;
     SuperType *pSuper = dynamic_cast< SuperType * >( pFrom );
+    VERIFY_RTE_MSG( pFrom, "Null pointer" );
     return data::convert< TToData >( pSuper->m_data );
 }
 
@@ -371,10 +372,10 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                 pFile = m_pFile_{{ many_accessor.file }};
             else
                 pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                    m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+                    m_readonlyFiles, sourceFile, VERSION, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
 {% else %}
             pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+                m_readonlyFiles, sourceFile, VERSION, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
 {% endif %}
             for( mega::io::Object* pObject : pFile->range() )
             {
@@ -413,6 +414,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
 {% for constructor in stage.constructors %}
     {{ constructor.return_type }}* {{ constructor.function_name }}( const {{ constructor.return_type }}::Args& arguments )
     {
+        try {
         using SuperType = {{ constructor.super_type_name }};
         SuperType* pSuper = nullptr;
         Database::Pimpl& database = *this;
@@ -501,6 +503,11 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
             pSuper = findOrConstruct< SuperType, {{ constructor.return_type }} >( pPrimaryObjectPart );
         pSuper->reconstruct( pPrimaryObjectPart );
         return dynamic_cast< {{ constructor.return_type }}* >( pSuper );
+        }
+        catch( std::exception& ex )
+        {
+            THROW_RTE( "Error in database constructing: {{ constructor.return_type }}: " << ex.what() );
+        }
     }
 {% endfor %}{# stage.constructors#}
 
@@ -520,13 +527,13 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
     {
 {% for file in stage.readwrite_files %}
         m_pFile_{{ file.name }} = m_manifest.createFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-            m_readwriteFiles, m_sourceFile, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
+            m_readwriteFiles, m_sourceFile, VERSION, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
 {% endfor %}{# stage.readwrite_files #}
     }
 
     void load()
     {
-        m_manifest.loadAll( m_environment, *this, m_readonlyFiles, mega::io::FileInfo::{{ stage.name }} );
+        m_manifest.loadAll( m_environment, *this, m_readonlyFiles, VERSION, mega::io::FileInfo::{{ stage.name }} );
     }
 
 {% for file in stage.readwrite_files %}
@@ -573,7 +580,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                 else
                 {
                     pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                        m_readonlyFiles, mega::io::FileInfo::{{ stage.name }}, objectInfo.getFileID() );
+                        m_readonlyFiles, VERSION, mega::io::FileInfo::{{ stage.name }}, objectInfo.getFileID() );
                 }
             }
         }

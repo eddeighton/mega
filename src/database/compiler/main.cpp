@@ -6,6 +6,7 @@
 #include "database/compiler/generator.hpp"
 
 #include "common/file.hpp"
+#include "common/hash.hpp"
 #include "common/assert_verify.hpp"
 
 #include "nlohmann/json.hpp"
@@ -139,8 +140,10 @@ int main( int argc, const char* argv[] )
                                                                   << " Error: " << osError.str() );
                     }
                 }
+
                 // std::cout << "Parsed schema:\n" << schema << std::endl;
                 db::model::Schema::Ptr pSchema = db::model::from_ast( schema );
+
                 // write schema to json data
                 db::jsonconv::toJSON( dataFolderPath, pSchema );
             }

@@ -35,8 +35,9 @@ namespace interface
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, clangPlugin, templatesDir;
-    std::string             projectName;
+    boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, clangPlugin,
+        databaseDll, templatesDir;
+    std::string projectName;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Compile Mega Project Interface" );
@@ -50,6 +51,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         ( "clang_compiler", po::value< boost::filesystem::path >( &clangCompiler ),  "Clang Compiler path" )
         ( "parser_dll",     po::value< boost::filesystem::path >( &parserDll ),      "Parser DLL Path" )
         ( "clang_plugin",   po::value< boost::filesystem::path >( &clangPlugin ),    "Clang Plugin path" )
+        ( "database_dll",   po::value< boost::filesystem::path >( &databaseDll ),    "Database DLL Path" )
         ( "templates",      po::value< boost::filesystem::path >( &templatesDir ),   "Inja Templates directory" )
         ;
         // clang-format on
@@ -76,26 +78,21 @@ void command( bool bHelp, const std::vector< std::string >& args )
         const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
         mega::io::Manifest               manifest( environment, projectManifestPath );
 
-        const ToolChain toolchain( parserDll, megaCompiler, clangCompiler, clangPlugin );
+        const ToolChain toolchain( parserDll, megaCompiler, clangCompiler, clangPlugin, databaseDll );
 
-        task::Task::PtrVector tasks;
-        //task::Task::RawPtrSet parserTasks;
-        //task::Task::RawPtrSet includeTasks, includePCHTasks;
+        task::Task::PtrVector                                  tasks;
         std::map< mega::io::megaFilePath, task::Task::RawPtr > includePCHTasks;
-        task::Task::RawPtrSet interfaceGenTasks;
+        task::Task::RawPtrSet                                  interfaceGenTasks;
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            Task_ParseAST* pTask = new Task_ParseAST(
-                environment, toolchain, parserDll, sourceFilePath, manifest.getCompilationFileInfos() );
-            //parserTasks.insert( pTask );
+            Task_ParseAST* pTask = new Task_ParseAST( environment, toolchain, sourceFilePath );
             tasks.push_back( task::Task::Ptr( pTask ) );
 
             Task_Include* pTaskInclude = new Task_Include( pTask, environment, toolchain, sourceFilePath );
-            //includeTasks.insert( pTaskInclude );
             tasks.push_back( task::Task::Ptr( pTaskInclude ) );
 
             Task_IncludePCH* pTaskIncludePCH
-                = new Task_IncludePCH( pTaskInclude, environment, toolchain, clangCompiler, sourceFilePath );
+                = new Task_IncludePCH( pTaskInclude, environment, toolchain, sourceFilePath );
             includePCHTasks.insert( std::make_pair( sourceFilePath, pTaskIncludePCH ) );
             tasks.push_back( task::Task::Ptr( pTaskIncludePCH ) );
 
@@ -126,7 +123,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             tasks.push_back( task::Task::Ptr( pInterfaceGen ) );
 
             Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis = new Task_ObjectInterfaceAnalysis(
-                { pInterfaceGen, includePCHTasks[ sourceFilePath ] }, environment, toolchain, clangCompiler, sourceFilePath );
+                { pInterfaceGen, includePCHTasks[ sourceFilePath ] }, environment, toolchain, sourceFilePath );
             tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
         }
 

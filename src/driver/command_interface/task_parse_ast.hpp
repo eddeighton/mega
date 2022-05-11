@@ -14,22 +14,16 @@ namespace interface
 
 class Task_ParseAST : public BaseTask
 {
-    const boost::filesystem::path            m_parserDLL;
     const mega::io::megaFilePath&            m_sourceFilePath;
-    const std::vector< mega::io::FileInfo >& m_fileInfos;
     using FileRootMap = std::map< boost::filesystem::path, ParserStage::Parser::SourceRoot* >;
     FileRootMap m_rootFiles;
 
 public:
     Task_ParseAST( const mega::io::BuildEnvironment&        environment,
                    const ToolChain&                         toolChain,
-                   const boost::filesystem::path&           parserDll,
-                   const mega::io::megaFilePath&            sourceFilePath,
-                   const std::vector< mega::io::FileInfo >& fileInfos )
+                   const mega::io::megaFilePath&            sourceFilePath )
         : BaseTask( {}, environment, toolChain )
-        , m_parserDLL( parserDll )
         , m_sourceFilePath( sourceFilePath )
-        , m_fileInfos( fileInfos )
     {
     }
 
@@ -42,7 +36,7 @@ public:
         static boost::shared_ptr< EG_PARSER_INTERFACE > pParserInterface;
         if ( !pParserInterface )
         {
-            pParserInterface = boost::dll::import_symbol< EG_PARSER_INTERFACE >( m_parserDLL, "g_parserSymbol" );
+            pParserInterface = boost::dll::import_symbol< EG_PARSER_INTERFACE >( m_toolChain.parserDllPath, "g_parserSymbol" );
         }
 
         ParserStage::Parser::ContextDef* pContextDef

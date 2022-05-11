@@ -58,7 +58,8 @@ public:
                 // mega library includes
                 os << "#include \"mega/include.hpp\"\n";
 
-                for ( Parser::SystemInclude* pSystemInclude : database.many< Parser::SystemInclude >( m_sourceFilePath ) )
+                for ( Parser::SystemInclude* pSystemInclude :
+                      database.many< Parser::SystemInclude >( m_sourceFilePath ) )
                 {
                     os << "#include <" << pSystemInclude->get_str() << ">\n";
                 }
@@ -77,15 +78,12 @@ public:
 
 class Task_IncludePCH : public BaseTask
 {
-    const boost::filesystem::path& m_compilerPath;
-    const mega::io::megaFilePath&  m_sourceFilePath;
+    const mega::io::megaFilePath& m_sourceFilePath;
 
 public:
     Task_IncludePCH( task::Task::RawPtr pDependency, const mega::io::BuildEnvironment& environment,
-                     const ToolChain& toolChain, const boost::filesystem::path& compilerPath,
-                     const mega::io::megaFilePath& sourceFilePath )
+                     const ToolChain& toolChain, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( { pDependency }, environment, toolChain )
-        , m_compilerPath( compilerPath )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -113,9 +111,9 @@ public:
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
         const std::string strCmd
-            = mega::Compilation( m_compilerPath, pComponent->get_cpp_flags(), pComponent->get_cpp_defines(),
-                                 pComponent->get_includeDirectories(), m_environment.FilePath( includeFilePath ),
-                                 m_environment.FilePath( pchPath ) )();
+            = mega::Compilation( m_toolChain.clangCompilerPath, pComponent->get_cpp_flags(),
+                                 pComponent->get_cpp_defines(), pComponent->get_includeDirectories(),
+                                 m_environment.FilePath( includeFilePath ), m_environment.FilePath( pchPath ) )();
 
         msg( taskProgress, strCmd );
 

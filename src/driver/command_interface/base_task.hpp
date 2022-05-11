@@ -57,21 +57,23 @@ namespace interface
 
 struct ToolChain
 {
-    const boost::filesystem::path &parserDllPath, &megaCompilerPath, &clangCompilerPath, &clangPluginPath;
-    const task::FileHash           parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash;
+    const boost::filesystem::path &parserDllPath, &megaCompilerPath, &clangCompilerPath, &clangPluginPath, &databasePath;
+    const task::FileHash           parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash;
     const task::DeterminantHash    toolChainHash;
 
     ToolChain( const boost::filesystem::path& parserDllPath, const boost::filesystem::path& megaCompilerPath,
-               const boost::filesystem::path& clangCompilerPath, const boost::filesystem::path& clangPluginPath )
+               const boost::filesystem::path& clangCompilerPath, const boost::filesystem::path& clangPluginPath, const boost::filesystem::path& databasePath )
         : parserDllPath( parserDllPath )
         , megaCompilerPath( megaCompilerPath )
         , clangCompilerPath( clangCompilerPath )
         , clangPluginPath( clangPluginPath )
+        , databasePath( databasePath )
         , parserDllHash( parserDllPath )
         , megaCompilerHash( megaCompilerPath )
         , clangCompilerHash( clangCompilerPath )
         , clangPluginHash( clangPluginPath )
-        , toolChainHash( { parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash } )
+        , databaseHash( databasePath )
+        , toolChainHash( { parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash } )
     {
     }
 };

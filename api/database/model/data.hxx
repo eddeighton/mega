@@ -95,7 +95,7 @@ namespace data
     } // namespace PerSourceSymbols
     namespace Clang
     {
-        struct Dimension;
+        struct InheritanceTrait;
     }
 
     // definitions
@@ -235,10 +235,10 @@ namespace data
             {
                 Object_Part_Type_ID = 7
             };
-            bool                                                                                                                            isConst;
-            data::Ptr< data::AST::Identifier >                                                                                              id;
-            std::string                                                                                                                     type;
-            std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > > m_inheritance;
+            bool                                                                                       isConst;
+            data::Ptr< data::AST::Identifier >                                                         id;
+            std::string                                                                                type;
+            std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait > > m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
             virtual void load( mega::io::Loader &loader );
@@ -618,9 +618,9 @@ namespace data
             {
                 Object_Part_Type_ID = 27
             };
-            Ptr< AST::Dimension >                   p_AST_Dimension;
-            Ptr< PerSourceSymbols::DimensionTrait > p_PerSourceSymbols_DimensionTrait;
-            std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > > m_inheritance;
+            Ptr< AST::Dimension >                                                                      p_AST_Dimension;
+            Ptr< PerSourceSymbols::DimensionTrait >                                                    p_PerSourceSymbols_DimensionTrait;
+            std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait > > m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
             virtual void load( mega::io::Loader &loader );
@@ -632,9 +632,10 @@ namespace data
             InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 30
+                Object_Part_Type_ID = 29
             };
             Ptr< AST::Inheritance >                                                                        p_AST_Inheritance;
+            Ptr< Clang::InheritanceTrait >                                                                 p_Clang_InheritanceTrait;
             std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > > m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -894,9 +895,8 @@ namespace data
             {
                 Object_Part_Type_ID = 44
             };
-            std::vector< data::Ptr< data::AST::LinkDef > >             link_defs;
-            std::optional< data::Ptr< data::Tree::InheritanceTrait > > link_inheritance_trait;
-            Ptr< Tree::Context >                                       p_Tree_Context;
+            std::vector< data::Ptr< data::AST::LinkDef > > link_defs;
+            Ptr< Tree::Context >                           p_Tree_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
                           data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
@@ -1021,13 +1021,17 @@ namespace data
             SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                          const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > &symbol_sets,
-                         const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               &symbols );
+                         const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               &symbols,
+                         const std::map< int32_t, data::Ptr< data::Tree::Context > >                         &context_type_ids,
+                         const std::map< int32_t, data::Ptr< data::Tree::DimensionTrait > >                  &dimension_type_ids );
             enum
             {
                 Object_Part_Type_ID = 50
             };
             std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > symbol_sets;
             std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               symbols;
+            std::map< int32_t, data::Ptr< data::Tree::Context > >                         context_type_ids;
+            std::map< int32_t, data::Ptr< data::Tree::DimensionTrait > >                  dimension_type_ids;
             std::variant< data::Ptr< data::SymbolTable::SymbolTable > >                   m_inheritance;
             virtual bool                                                                  test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void                                                                  set_inheritance_pointer();
@@ -1076,22 +1080,22 @@ namespace data
     } // namespace PerSourceSymbols
     namespace Clang
     {
-        struct Dimension : public mega::io::Object
+        struct InheritanceTrait : public mega::io::Object
         {
-            Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
-            Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &canonical_type );
+            InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::InheritanceTrait > p_Tree_InheritanceTrait,
+                              const std::vector< data::Ptr< data::Tree::Context > > &contexts );
             enum
             {
-                Object_Part_Type_ID = 29
+                Object_Part_Type_ID = 30
             };
-            std::string                 canonical_type;
-            Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait;
-            std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::Clang::Dimension > > m_inheritance;
-            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
-            virtual void set_inheritance_pointer();
-            virtual void load( mega::io::Loader &loader );
-            virtual void store( mega::io::Storer &storer ) const;
-            virtual void to_json( nlohmann::json &data ) const;
+            std::vector< data::Ptr< data::Tree::Context > > contexts;
+            Ptr< Tree::InheritanceTrait >                   p_Tree_InheritanceTrait;
+            virtual bool                                    test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                    set_inheritance_pointer();
+            virtual void                                    load( mega::io::Loader &loader );
+            virtual void                                    store( mega::io::Storer &storer ) const;
+            virtual void                                    to_json( nlohmann::json &data ) const;
         };
     } // namespace Clang
 
@@ -1151,15 +1155,9 @@ namespace data
     {
         return from->p_PerSourceSymbols_DimensionTrait;
     }
-    template <> inline Ptr< AST::Dimension >       convert( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait->p_AST_Dimension; }
-    template <> inline Ptr< Tree::DimensionTrait > convert( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait; }
-    template <> inline Ptr< PerSourceSymbols::DimensionTrait > convert( const Ptr< Clang::Dimension > &from )
-    {
-        return from->p_Tree_DimensionTrait->p_PerSourceSymbols_DimensionTrait;
-    }
-    template <> inline Ptr< Clang::Dimension >          convert( const Ptr< Clang::Dimension > &from ) { return from; }
     template <> inline Ptr< AST::Inheritance >          convert( const Ptr< Tree::InheritanceTrait > &from ) { return from->p_AST_Inheritance; }
     template <> inline Ptr< Tree::InheritanceTrait >    convert( const Ptr< Tree::InheritanceTrait > &from ) { return from; }
+    template <> inline Ptr< Clang::InheritanceTrait >   convert( const Ptr< Tree::InheritanceTrait > &from ) { return from->p_Clang_InheritanceTrait; }
     template <> inline Ptr< AST::ReturnType >           convert( const Ptr< Tree::ReturnTypeTrait > &from ) { return from->p_AST_ReturnType; }
     template <> inline Ptr< Tree::ReturnTypeTrait >     convert( const Ptr< Tree::ReturnTypeTrait > &from ) { return from; }
     template <> inline Ptr< AST::ArgumentList >         convert( const Ptr< Tree::ArgumentListTrait > &from ) { return from->p_AST_ArgumentList; }
@@ -1242,7 +1240,6 @@ namespace data
     inline Ptr< AST::SourceRoot >                  to_base( const Ptr< AST::IncludeRoot > &from ) { return from->p_AST_SourceRoot; }
     inline Ptr< AST::SourceRoot >                  to_base( const Ptr< AST::ObjectSourceRoot > &from ) { return from->p_AST_SourceRoot; }
     inline Ptr< AST::Dimension >                   to_base( const Ptr< Tree::DimensionTrait > &from ) { return from->p_AST_Dimension; }
-    inline Ptr< AST::Dimension >                   to_base( const Ptr< Clang::Dimension > &from ) { return from->p_Tree_DimensionTrait->p_AST_Dimension; }
     inline Ptr< AST::Inheritance >                 to_base( const Ptr< Tree::InheritanceTrait > &from ) { return from->p_AST_Inheritance; }
     inline Ptr< AST::ReturnType >                  to_base( const Ptr< Tree::ReturnTypeTrait > &from ) { return from->p_AST_ReturnType; }
     inline Ptr< AST::ArgumentList >                to_base( const Ptr< Tree::ArgumentListTrait > &from ) { return from->p_AST_ArgumentList; }

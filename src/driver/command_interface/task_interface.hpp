@@ -472,7 +472,7 @@ public:
     void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink )
     {
         using namespace InterfaceStage;
-        std::optional< Interface::InheritanceTrait* > inheritance;
+        /*std::optional< Interface::InheritanceTrait* > inheritance;
         for ( Parser::LinkDef* pDef : pLink->get_link_defs() )
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
@@ -481,7 +481,7 @@ public:
         }
         VERIFY_PARSER( inheritance.has_value(), "Link missing inheritance specification",
                        pLink->get_link_defs().front()->get_id() );
-        pLink->set_link_inheritance_trait( inheritance.value() );
+        pLink->set_inheritance_trait( inheritance.value() );*/
     }
 
     virtual void run( task::Progress& taskProgress )

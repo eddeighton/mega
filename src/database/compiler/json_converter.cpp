@@ -657,7 +657,8 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
             else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pUnderlyingType ) )
             {
                 osFunctionBody << "return " << strData << ".has_value() ? toView( m_factory, " << strData
-                               << ".value() ) : nullptr;";
+                               << ".value() ) : " << pOptional->getViewType( pStage->m_strName, false ) << "();";
+                                
             }
             else
             {
@@ -1066,6 +1067,7 @@ void writeViewData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
         }
 
         nlohmann::json stage = nlohmann::json::object( { { "name", pStage->m_strName },
+                                                         { "version", pSchema->m_schemaHash.get() },
                                                          { "perobject", true },
                                                          { "super_conversions", nlohmann::json::array() },
                                                          { "interface_conversions", nlohmann::json::array() },

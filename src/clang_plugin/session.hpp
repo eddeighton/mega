@@ -70,6 +70,8 @@ public:
     {
     }
 
+    virtual bool isAnalysis() const { return true; }
+
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
     {
         if ( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )

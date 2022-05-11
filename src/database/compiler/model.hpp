@@ -4,6 +4,7 @@
 #include "grammar.hpp"
 
 #include "common/assert_verify.hpp"
+#include "common/hash.hpp"
 
 #include <memory>
 #include <string>
@@ -170,10 +171,10 @@ public:
         : CountedObject( szCounter )
     {
     }
-    using Ptr = std::shared_ptr< Object >;
+    using Ptr     = std::shared_ptr< Object >;
     using WeakPtr = std::weak_ptr< Object >;
 
-    using WeakObjectPtrSet = std::set< WeakPtr, CountedObjectComparatorWeak< Object::WeakPtr > >;
+    using WeakObjectPtrSet    = std::set< WeakPtr, CountedObjectComparatorWeak< Object::WeakPtr > >;
     using WeakObjectPtrSetPtr = std::shared_ptr< WeakObjectPtrSet >;
     WeakObjectPtrSetPtr m_pInheritanceGroup;
 
@@ -480,7 +481,7 @@ public:
     }
     Interface::Ptr getInterface( Object::Ptr pObject ) const
     {
-        if( Interface::Ptr pInterface = isInterface( pObject ) )
+        if ( Interface::Ptr pInterface = isInterface( pObject ) )
             return pInterface;
         THROW_RTE( "Failed to locate interface for object: " << pObject->delimitTypeName( "::" )
                                                              << " in stage: " << m_strName );
@@ -490,11 +491,14 @@ public:
 class Schema : public CountedObject
 {
 public:
-    Schema( std::size_t& szCounter )
+    Schema( std::size_t& szCounter, common::Hash schemaHash )
         : CountedObject( szCounter )
+        , m_schemaHash( schemaHash )
     {
     }
     using Ptr = std::shared_ptr< Schema >;
+
+    common::Hash m_schemaHash;
 
     std::vector< Namespace::Ptr > m_namespaces;
     std::vector< Stage::Ptr >     m_stages;

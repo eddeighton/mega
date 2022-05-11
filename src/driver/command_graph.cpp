@@ -82,6 +82,25 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interfa
     }
 }
 
+void addInheritance( const std::optional< ::FinalStage::Interface::InheritanceTrait* >& inheritance,
+                     nlohmann::json&                                                    node )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Interface;
+
+    if ( inheritance.has_value() )
+    {
+        for ( Context* pInherited : inheritance.value()->get_contexts() )
+        {
+            nlohmann::json base
+                = nlohmann::json::object( { { "label", pInherited->get_identifier() },
+                                            { "type_id", pInherited->get_type_id() },
+                                            { "symbol", pInherited->get_symbol() } } );
+            node[ "bases" ].push_back( base );
+        }
+    }
+}
+
 void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
 {
     using namespace FinalStage;
@@ -89,62 +108,43 @@ void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
 
     std::ostringstream os;
 
-    if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
-    {
-        os << "Namespace: " << pContext->get_identifier();
-    }
-    else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
-    {
-        os << "Abstract: " << pContext->get_identifier();
-    }
-    else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
-    {
-        os << "Action: " << pContext->get_identifier();
-    }
-    else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
-    {
-        os << "Event: " << pContext->get_identifier();
-    }
-    else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
-    {
-        os << "Function: " << pContext->get_identifier();
-    }
-    else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
-    {
-        os << "Object: " << pContext->get_identifier();
-    }
-    else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
-    {
-        os << "Link: " << pContext->get_identifier();
-    }
-    else
-    {
-        THROW_RTE( "Unknown context type" );
-    }
-
     nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName( pContext ) },
-                                                    { "label", os.str() },
+                                                    { "label", "" },
                                                     { "type_id", pContext->get_type_id() },
                                                     { "symbol", pContext->get_symbol() },
+                                                    { "bases", nlohmann::json::array() },
                                                     { "properties", nlohmann::json::array() } } );
 
     if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
     {
+        os << "Namespace: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
         addProperties( node, pNamespace->get_dimension_traits() );
     }
     else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
     {
+        os << "Abstract: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addInheritance( pAbstract->get_inheritance_trait(), node );
     }
     else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
     {
+        os << "Action: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addInheritance( pAction->get_inheritance_trait(), node );
         addProperties( node, pAction->get_dimension_traits() );
     }
     else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
     {
+        os << "Event: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addInheritance( pEvent->get_inheritance_trait(), node );
         addProperties( node, pEvent->get_dimension_traits() );
     }
     else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
     {
+        os << "Function: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
         nlohmann::json arguments
             = nlohmann::json::object( { { "name", "arguments" },
                                         { "type_id", "" },
@@ -160,10 +160,15 @@ void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
     }
     else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
     {
+        os << "Object: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addInheritance( pObject->get_inheritance_trait(), node );
         addProperties( node, pObject->get_dimension_traits() );
     }
     else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
     {
+        os << "Link: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
     }
     else
     {

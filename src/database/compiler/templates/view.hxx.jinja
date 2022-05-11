@@ -95,6 +95,11 @@ namespace {{ stage.name }}
     class Database
     {
     public:
+        enum : std::size_t
+        {
+            VERSION = {{ stage.version }}
+        };
+
         struct Pimpl;
         Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile );
         

@@ -52,7 +52,7 @@ class Manifest;
 class Loader
 {
 public:
-    Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, const CompilationFilePath& filePath,
+    Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, std::size_t version, const CompilationFilePath& filePath,
             ::data::ObjectPartLoader& loader );
 
     template < typename T >

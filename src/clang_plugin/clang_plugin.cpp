@@ -32,6 +32,7 @@
 #include "clang_utils.hpp"
 
 #include "clang/Sema/Lookup.h"
+#include "clang/Basic/DiagnosticParse.h"
 
 #include "boost/dll.hpp"
 #include <boost/dll/runtime_symbol_info.hpp>
@@ -97,7 +98,16 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
     {
         if ( g_pSession )
         {
-            g_pSession->runFinalAnalysis();
+            try
+            {
+                g_pSession->runFinalAnalysis();
+            }
+            catch( std::exception& ex )
+            {
+                std::ostringstream os;
+                os << "Error in final analysis: " << ex.what();
+                g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+            }
         }
     }
 

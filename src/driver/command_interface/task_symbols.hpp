@@ -51,7 +51,10 @@ public:
         return sourceFiles;
     }
 
-    using SymbolMap = std::map< std::string, ::SymbolAnalysis::Symbols::Symbol* >;
+    using SymbolMap               = std::map< std::string, ::SymbolAnalysis::Symbols::Symbol* >;
+    using TypeIDContextMap        = std::map< int32_t, SymbolAnalysis::Interface::Context* >;
+    using TypeIDDimensionTraitMap = std::map< int32_t, SymbolAnalysis::Interface::DimensionTrait* >;
+
     struct ContextDimensionSymbolSet
     {
         SymbolAnalysis::Symbols::SymbolSet*        pSymbolSet = nullptr;
@@ -202,7 +205,8 @@ public:
         }
 
         void collate( std::map< mega::io::megaFilePath, SymbolAnalysis::Symbols::SymbolSet* >& symbolSetMap,
-                      SymbolMap&                                                               symbolMap ) const
+                      SymbolMap& symbolMap, TypeIDContextMap& typeIDContextMap,
+                      TypeIDDimensionTraitMap& typeIDDimensionTraitMap ) const
         {
             using namespace SymbolAnalysis;
             for ( auto& [ filePath, pSymbolSet ] : symbolSetMap )
@@ -214,6 +218,14 @@ public:
                 for ( auto& [ pDimension, pSymbol ] : pSymbolSet->get_dimension_symbols() )
                 {
                     pSymbol->push_back_dimensions( pDimension );
+                }
+                for ( auto& [ pContext, typeID ] : pSymbolSet->get_context_type_ids() )
+                {
+                    VERIFY_RTE( typeIDContextMap.insert( std::make_pair( typeID, pContext ) ).second );
+                }
+                for ( auto& [ pDimensionTrait, typeID ] : pSymbolSet->get_dimension_type_ids() )
+                {
+                    VERIFY_RTE( typeIDDimensionTraitMap.insert( std::make_pair( typeID, pDimensionTrait ) ).second );
                 }
             }
         }
@@ -260,8 +272,11 @@ public:
                 const PathSet       sourceFiles    = getSortedSourceFiles();
 
                 // using SymbolMap = std::map< std::string, ::SymbolAnalysis::Symbols::Symbol* >;
-                SymbolMap                                                    symbolMap;
-                TypeMap                                                      typeMap;
+                SymbolMap               symbolMap;
+                TypeIDContextMap        typeIDContextMap;
+                TypeIDDimensionTraitMap typeIDDimensionTraitMap;
+                TypeMap                 typeMap;
+
                 std::map< mega::io::megaFilePath, New::Symbols::SymbolSet* > symbolSetMap;
 
                 {
@@ -439,9 +454,9 @@ public:
                 }
                 SymbolCollector().labelNewSymbols( symbolMap );
                 SymbolCollector().labelNewTypes( typeMap );
-                SymbolCollector().collate( symbolSetMap, symbolMap );
-                newDatabase.construct< New::Symbols::SymbolTable >(
-                    New::Symbols::SymbolTable::Args( symbolSetMap, symbolMap ) );
+                SymbolCollector().collate( symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap );
+                newDatabase.construct< New::Symbols::SymbolTable >( New::Symbols::SymbolTable::Args(
+                    symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap ) );
             }
 
             const task::FileHash fileHashCode = newDatabase.save_SymbolTable_to_temp();
@@ -458,7 +473,10 @@ public:
 
             Database database( m_environment, manifestFilePath );
             {
-                SymbolMap                                               symbolMap;
+                SymbolMap               symbolMap;
+                TypeIDContextMap        typeIDContextMap;
+                TypeIDDimensionTraitMap typeIDDimensionTraitMap;
+
                 TypeMap                                                 typeMap;
                 std::map< mega::io::megaFilePath, Symbols::SymbolSet* > symbolSetMap;
                 {
@@ -473,9 +491,10 @@ public:
                     }
                     SymbolCollector().labelNewSymbols( symbolMap );
                     SymbolCollector().labelNewTypes( typeMap );
-                    SymbolCollector().collate( symbolSetMap, symbolMap );
+                    SymbolCollector().collate( symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap );
                 }
-                database.construct< SymbolTable >( SymbolTable::Args( symbolSetMap, symbolMap ) );
+                database.construct< SymbolTable >(
+                    SymbolTable::Args( symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap ) );
             }
 
             const task::FileHash fileHashCode = database.save_SymbolTable_to_temp();
@@ -560,7 +579,7 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
+} // namespace interface
+} // namespace driver
 
-}}
-
-#endif //TASK_SYMBOLS_10_MAY_2022
+#endif // TASK_SYMBOLS_10_MAY_2022

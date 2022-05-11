@@ -4,6 +4,7 @@
 
 #include "common/string.hpp"
 
+#include <common/hash.hpp>
 #include <memory>
 #include <vector>
 #include <utility>
@@ -1236,7 +1237,14 @@ Schema::Ptr from_ast( const ::db::schema::Schema& schema )
 {
     Mapping mapping;
 
-    Schema::Ptr pSchema = std::make_shared< Schema >( mapping.counter );
+    common::Hash schemaHash;
+    {
+        std::ostringstream os;
+        os << schema;
+        schemaHash = common::Hash( os.str() );
+    }
+
+    Schema::Ptr pSchema = std::make_shared< Schema >( mapping.counter, schemaHash );
 
     SchemaVariantVisitor visitor( mapping, pSchema );
 

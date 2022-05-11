@@ -40,24 +40,25 @@
 
 namespace mega
 {
-    namespace io
+namespace io
+{
+class Storer
+{
+public:
+    Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, std::size_t version, const Manifest& manifest,
+            boost::filesystem::path& tempFile );
+
+    template < class T >
+    inline void store( const T& value )
     {
-        class Storer
-        {
-        public:
-            Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, const Manifest& manifest, boost::filesystem::path& tempFile );
+        m_archive& value;
+    }
 
-            template < class T >
-            inline void store( const T& value )
-            {
-                m_archive& value;
-            }
-
-        private:
-            std::unique_ptr< std::ostream > m_pFileStream;
-            boost::archive::MegaOArchive                   m_archive;
-        };
-    } // namespace io
+private:
+    std::unique_ptr< std::ostream > m_pFileStream;
+    boost::archive::MegaOArchive    m_archive;
+};
+} // namespace io
 } // namespace mega
 
 #endif // STORER_18_04_2019

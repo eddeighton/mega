@@ -49,7 +49,9 @@ namespace Symbols
 
     object SymbolTable -> SymbolAnalysis::SymbolTable
     {
-        map< value< mega::io::megaFilePath >, ref< SymbolSet > > symbol_sets;
-        map< value< std::string >, ref< Symbol > > symbols;
+        map< value< mega::io::megaFilePath >, ref< SymbolSet > >    symbol_sets;
+        map< value< std::string >, ref< Symbol > >                  symbols;
+        map< value< int32_t >, ref< Interface::Context > >          context_type_ids;
+        map< value< int32_t >, ref< Interface::DimensionTrait > >   dimension_type_ids;
     }
 }

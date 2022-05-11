@@ -75,7 +75,7 @@ namespace clang
         QualType type;
     };
     DeclLocType getNestedDeclContext( ASTContext* pASTContext, Sema* pSema, 
-        DeclContext* pDeclContext, SourceLocation loc, const std::string& str, bool bIsTemplate );
+        DeclContext* pDeclContext, SourceLocation loc, const std::string& str );
 }
 
 #endif //CLANG_UTILS_19_04_2019

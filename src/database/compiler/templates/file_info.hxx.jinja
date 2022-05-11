@@ -9,6 +9,8 @@
 
 #include "boost/filesystem/path.hpp"
 
+#include <ostream>
+
 namespace mega
 {
 namespace io
@@ -91,5 +93,8 @@ namespace io
 
 } // namespace io
 } // namespace mega
+
+std::ostream& operator<<( std::ostream& os, mega::io::FileInfo::Stage stage );
+std::ostream& operator<<( std::ostream& os, mega::io::FileInfo::Type type );
 
 #endif // IO_FILEINFO_28_MARCH_2022

@@ -10,6 +10,8 @@ namespace mega
     static const char* EG_VARIANT_TYPE = "__eg_variant";
     static const char* EG_INVOKE_MEMBER_FUNCTION_NAME = "invoke";
     static const char* EG_RESULT_TRAIT_TYPE = "__eg_result_type";
+    static const char* EG_FUNCTION_TRAIT_TYPE = "__FTraits";
+    static const char* EG_BASE_PREFIX_TRAIT_TYPE = "__Base";
 }
 
 #endif //EG_COMMON_STRINGS_18_01_2020
