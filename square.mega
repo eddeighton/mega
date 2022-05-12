@@ -18,5 +18,45 @@ object Square
         // do stuff
         int i = 1;
     }
+
+    action size_test_1
+    {
+
+    }
+
+    action size_test_2
+    {
+        
+    }
+
+    action size_test_3
+    {
+        
+    }
+
+    action size_test_4
+    {
+        
+    }
+
+    action size_test_5
+    {
+        
+    }
+
+    action size_test_6
+    {
+        
+    }
+
+    action size_test_7
+    {
+        
+    }
+
+    action size_test_9
+    {
+        
+    }
     
 }

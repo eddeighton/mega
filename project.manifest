@@ -32,7 +32,7 @@
 		</item>
 	</sourceFiles>
 	<compilationFileInfos class_id="5" tracking_level="0" version="0">
-		<count>23</count>
+		<count>27</count>
 		<item_version>0</item_version>
 		<item class_id="6" tracking_level="0" version="0">
 			<fileType>0</fileType>
@@ -147,8 +147,22 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
-			<fileType>1</fileType>
+			<fileType>8</fileType>
 			<fileID>8</fileID>
+			<filePath>
+				<compilation_file_path>
+					<string>cube.mega.ConcreteStage.Concrete.db</string>
+				</compilation_file_path>
+			</filePath>
+			<objectSourceFilePath>
+				<source_file_path>
+					<string>cube.mega</string>
+				</source_file_path>
+			</objectSourceFilePath>
+		</item>
+		<item>
+			<fileType>1</fileType>
+			<fileID>9</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>square.mega.ParserStage.AST.db</string>
@@ -162,7 +176,7 @@
 		</item>
 		<item>
 			<fileType>2</fileType>
-			<fileID>9</fileID>
+			<fileID>10</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>square.mega.ParserStage.Body.db</string>
@@ -176,7 +190,7 @@
 		</item>
 		<item>
 			<fileType>3</fileType>
-			<fileID>10</fileID>
+			<fileID>11</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>square.mega.InterfaceStage.Tree.db</string>
@@ -190,7 +204,7 @@
 		</item>
 		<item>
 			<fileType>6</fileType>
-			<fileID>11</fileID>
+			<fileID>12</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>square.mega.SymbolRollout.PerSourceSymbols.db</string>
@@ -204,7 +218,7 @@
 		</item>
 		<item>
 			<fileType>7</fileType>
-			<fileID>12</fileID>
+			<fileID>13</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>square.mega.InterfaceAnalysisStage.Clang.db</string>
@@ -217,8 +231,22 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
+			<fileType>8</fileType>
+			<fileID>14</fileID>
+			<filePath>
+				<compilation_file_path>
+					<string>square.mega.ConcreteStage.Concrete.db</string>
+				</compilation_file_path>
+			</filePath>
+			<objectSourceFilePath>
+				<source_file_path>
+					<string>square.mega</string>
+				</source_file_path>
+			</objectSourceFilePath>
+		</item>
+		<item>
 			<fileType>1</fileType>
-			<fileID>13</fileID>
+			<fileID>15</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/sphere.mega.ParserStage.AST.db</string>
@@ -232,7 +260,7 @@
 		</item>
 		<item>
 			<fileType>2</fileType>
-			<fileID>14</fileID>
+			<fileID>16</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/sphere.mega.ParserStage.Body.db</string>
@@ -246,7 +274,7 @@
 		</item>
 		<item>
 			<fileType>3</fileType>
-			<fileID>15</fileID>
+			<fileID>17</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/sphere.mega.InterfaceStage.Tree.db</string>
@@ -260,7 +288,7 @@
 		</item>
 		<item>
 			<fileType>6</fileType>
-			<fileID>16</fileID>
+			<fileID>18</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/sphere.mega.SymbolRollout.PerSourceSymbols.db</string>
@@ -274,7 +302,7 @@
 		</item>
 		<item>
 			<fileType>7</fileType>
-			<fileID>17</fileID>
+			<fileID>19</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/sphere.mega.InterfaceAnalysisStage.Clang.db</string>
@@ -287,8 +315,22 @@
 			</objectSourceFilePath>
 		</item>
 		<item>
+			<fileType>8</fileType>
+			<fileID>20</fileID>
+			<filePath>
+				<compilation_file_path>
+					<string>stuff/sphere.mega.ConcreteStage.Concrete.db</string>
+				</compilation_file_path>
+			</filePath>
+			<objectSourceFilePath>
+				<source_file_path>
+					<string>stuff/sphere.mega</string>
+				</source_file_path>
+			</objectSourceFilePath>
+		</item>
+		<item>
 			<fileType>1</fileType>
-			<fileID>18</fileID>
+			<fileID>21</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/triangle.mega.ParserStage.AST.db</string>
@@ -302,7 +344,7 @@
 		</item>
 		<item>
 			<fileType>2</fileType>
-			<fileID>19</fileID>
+			<fileID>22</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/triangle.mega.ParserStage.Body.db</string>
@@ -316,7 +358,7 @@
 		</item>
 		<item>
 			<fileType>3</fileType>
-			<fileID>20</fileID>
+			<fileID>23</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/triangle.mega.InterfaceStage.Tree.db</string>
@@ -330,7 +372,7 @@
 		</item>
 		<item>
 			<fileType>6</fileType>
-			<fileID>21</fileID>
+			<fileID>24</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/triangle.mega.SymbolRollout.PerSourceSymbols.db</string>
@@ -344,10 +386,24 @@
 		</item>
 		<item>
 			<fileType>7</fileType>
-			<fileID>22</fileID>
+			<fileID>25</fileID>
 			<filePath>
 				<compilation_file_path>
 					<string>stuff/triangle.mega.InterfaceAnalysisStage.Clang.db</string>
+				</compilation_file_path>
+			</filePath>
+			<objectSourceFilePath>
+				<source_file_path>
+					<string>stuff/triangle.mega</string>
+				</source_file_path>
+			</objectSourceFilePath>
+		</item>
+		<item>
+			<fileType>8</fileType>
+			<fileID>26</fileID>
+			<filePath>
+				<compilation_file_path>
+					<string>stuff/triangle.mega.ConcreteStage.Concrete.db</string>
 				</compilation_file_path>
 			</filePath>
 			<objectSourceFilePath>

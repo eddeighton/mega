@@ -1,13 +1,4 @@
 
-object Cube1
-{
-    //test
-
-    action CoolStuff1
-    {
-        std::cout << "This is cool" << std::endl;
-    }
-}
 
 namespace test
 {
@@ -22,6 +13,36 @@ namespace test
             {
                 std::cout << "This is cool" << std::endl;
             }
+        
+            action CoolInherit : CoolStuff1
+            {
+
+            }
+        
+            action CoolInherit2 : CoolInherit, nested8::CoolStuff23
+            {
+
+            }
+        }
+
+        table TestTable
+        {
+            link Cube1  [ 0    : 0   ] <   [ 0   : 0    ] : Cube3;
+            link Cube2  [ 1    : 1   ] -   [ 1   : 1    ] : Cube3;
+            link Cube3  [ 2    : 2   ] >   [ 2   : 2    ] : Cube3;
+            link Cube4  [ 123  : 123 ] <-  [ 123 : 123  ] : Cube3;
+            link Cube5  [ *    : *   ] ->  [ *   : *    ] : Cube3;
+            link Cube6  [ *    : *   ] <-> [ *   : *    ] : Cube3;
+            link Cube7  [ !0   : 0   ] <   [ 0   : !0   ] : Cube3;
+            link Cube8  [ !1   : 1   ] -   [ 1   : !1   ] : Cube3;
+            link Cube9  [ !2   : 2   ] >   [ 2   : !2   ] : Cube3;
+            link Cube10 [ !123 : 123 ] <-  [ 123 : !123 ] : Cube3;
+            link Cube11 [ !*   : *   ] ->  [ *   : !*   ] : Cube3;
+            link Cube12 [ !*   : *   ] <-> [ *   : !*   ] : Cube3;
+
+            //link CoolStuff23 [0:*]<->[*:0] : nested8::CoolStuff23;
+
+
         }
 
         namespace nested8
@@ -35,11 +56,11 @@ namespace test
                 // do stuff
                 int i = 1;
             }
-            function foobar2( int iValue, float fValue ) : void
-            {
-                // do stuff
-                int i = 1;
-            }
         }
     }
+}
+
+link Submarine [1:1]<[0:1] : Car
+{
+    
 }
