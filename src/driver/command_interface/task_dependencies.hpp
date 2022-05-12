@@ -3,6 +3,8 @@
 
 #include "base_task.hpp"
 
+#include "database/common/exception.hpp"
+
 #include "database/model/DependencyAnalysis.hxx"
 #include "database/model/DependencyAnalysisView.hxx"
 
@@ -18,9 +20,8 @@ class Task_DependencyAnalysis : public BaseTask
     const mega::io::Manifest& m_manifest;
 
 public:
-    Task_DependencyAnalysis( const task::Task::RawPtrSet& parserTasks, const mega::io::BuildEnvironment& environment,
-                             const ToolChain& toolChain, const mega::io::Manifest& manifest )
-        : BaseTask( parserTasks, environment, toolChain )
+    Task_DependencyAnalysis( const TaskArguments& taskArguments, const mega::io::Manifest& manifest )
+        : BaseTask( taskArguments )
         , m_manifest( manifest )
     {
     }
@@ -195,124 +196,135 @@ public:
 
         } hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
-        // try loading previous one...
-        if ( m_environment.exists( dependencyCompilationFilePath ) )
+        bool bReusedOldDatabase = false;
+        try
         {
-            // attempt to load previous dependency analysis
-            namespace Old = DependencyAnalysisView;
-            namespace New = DependencyAnalysis;
-
-            New::Database newDatabase( m_environment, manifestFilePath );
+            // try loading previous one...
+            if ( m_environment.exists( dependencyCompilationFilePath ) )
             {
-                Old::Database oldDatabase( m_environment, manifestFilePath );
+                // attempt to load previous dependency analysis
+                namespace Old = DependencyAnalysisView;
+                namespace New = DependencyAnalysis;
 
-                const Old::Dependencies::Analysis* pOldAnalysis
-                    = oldDatabase.one< Old::Dependencies::Analysis >( manifestFilePath );
-                VERIFY_RTE( pOldAnalysis );
-                using OldDependenciesVector              = std::vector< Old::Dependencies::ObjectDependencies* >;
-                const OldDependenciesVector dependencies = pOldAnalysis->get_objects();
-                const PathSet               sourceFiles  = getSortedSourceFiles();
-
-                struct Compare
+                New::Database newDatabase( m_environment, manifestFilePath );
                 {
-                    const mega::io::Environment& env;
-                    Compare( const mega::io::Environment& env )
-                        : env( env )
-                    {
-                    }
-                    bool operator()( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) const
-                    {
-                        const Old::Dependencies::ObjectDependencies* pDependencies = *i;
-                        return pDependencies->get_source_file() < *j;
-                    }
-                    bool opposite( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) const
-                    {
-                        const Old::Dependencies::ObjectDependencies* pDependencies = *i;
-                        return *j < pDependencies->get_source_file();
-                    }
-                } comparator( m_environment );
+                    Old::Database oldDatabase( m_environment, manifestFilePath );
 
-                using NewDependenciesVector = std::vector< New::Dependencies::ObjectDependencies* >;
-                NewDependenciesVector newDependencies;
-                {
-                    generics::matchGetUpdates(
-                        dependencies.begin(), dependencies.end(), sourceFiles.begin(), sourceFiles.end(),
-                        // const Compare& cmp
-                        comparator,
+                    const Old::Dependencies::Analysis* pOldAnalysis
+                        = oldDatabase.one< Old::Dependencies::Analysis >( manifestFilePath );
+                    VERIFY_RTE( pOldAnalysis );
+                    using OldDependenciesVector              = std::vector< Old::Dependencies::ObjectDependencies* >;
+                    const OldDependenciesVector dependencies = pOldAnalysis->get_objects();
+                    const PathSet               sourceFiles  = getSortedSourceFiles();
 
-                        // const Update& shouldUpdate
-                        [ &env = m_environment, &hashCodeGenerator, &newDependencies, &newDatabase, &sourceFiles,
-                          &taskProgress ]( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) -> bool
+                    struct Compare
+                    {
+                        const mega::io::Environment& env;
+                        Compare( const mega::io::Environment& env )
+                            : env( env )
+                        {
+                        }
+                        bool operator()( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) const
                         {
                             const Old::Dependencies::ObjectDependencies* pDependencies = *i;
-                            const task::DeterminantHash                  interfaceHash = hashCodeGenerator( *j );
-                            if ( interfaceHash == pDependencies->get_hash_code() )
-                            {
-                                // since the code is NOT modified - can re use the globs from previous result
-                                newDependencies.push_back(
-                                    CalculateDependencies( env )( newDatabase, pDependencies, sourceFiles ) );
-
-                                // std::ostringstream os;
-                                // os << "\tPartially reusing dependencies for: " << j->path().string();
-                                // taskProgress.msg( os.str() );
-                                return false;
-                            }
-                            else
-                            {
-                                // std::ostringstream os;
-                                // os << "\tRecalculating dependencies for: " << j->path().string();
-                                // taskProgress.msg( os.str() );
-                                return true;
-                            }
-                        },
-
-                        // const Removal& rem
-                        []( OldDependenciesVector::const_iterator i )
+                            return pDependencies->get_source_file() < *j;
+                        }
+                        bool opposite( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) const
                         {
-                            // a source file has been removed - can ignor this since
-                            // recreating the dependency analysis and only attempting to
-                            // reuse the globs
-                        },
-
-                        // const Addition& add
-                        [ &env = m_environment, &hashCodeGenerator, &newDatabase, &newDependencies, &sourceFiles,
-                          &taskProgress ]( PathSet::const_iterator j )
-                        {
-                            // a new source file is added so must analysis from the ground up
-                            const mega::io::megaFilePath megaFilePath  = *j;
-                            const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
-                            newDependencies.push_back(
-                                CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
-                            // std::ostringstream os;
-                            // os << "\tAdding dependencies for: " << megaFilePath.path().string();
-                            // taskProgress.msg( os.str() );
-                        },
-
-                        // const Updated& updatesNeeded
-                        [ &env = m_environment, &hashCodeGenerator, &newDatabase, &newDependencies,
-                          &sourceFiles ]( OldDependenciesVector::const_iterator i )
-                        {
-                            // since the code is modified - must re analyse ALL dependencies from the ground up
                             const Old::Dependencies::ObjectDependencies* pDependencies = *i;
-                            const mega::io::megaFilePath megaFilePath  = pDependencies->get_source_file();
-                            const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
-                            newDependencies.push_back(
-                                CalculateDependencies( env )( newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
-                        } );
+                            return *j < pDependencies->get_source_file();
+                        }
+                    } comparator( m_environment );
+
+                    using NewDependenciesVector = std::vector< New::Dependencies::ObjectDependencies* >;
+                    NewDependenciesVector newDependencies;
+                    {
+                        generics::matchGetUpdates(
+                            dependencies.begin(), dependencies.end(), sourceFiles.begin(), sourceFiles.end(),
+                            // const Compare& cmp
+                            comparator,
+
+                            // const Update& shouldUpdate
+                            [ &env = m_environment, &hashCodeGenerator, &newDependencies, &newDatabase, &sourceFiles,
+                              &taskProgress ](
+                                OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) -> bool
+                            {
+                                const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                                const task::DeterminantHash                  interfaceHash = hashCodeGenerator( *j );
+                                if ( interfaceHash == pDependencies->get_hash_code() )
+                                {
+                                    // since the code is NOT modified - can re use the globs from previous result
+                                    newDependencies.push_back(
+                                        CalculateDependencies( env )( newDatabase, pDependencies, sourceFiles ) );
+
+                                    // std::ostringstream os;
+                                    // os << "\tPartially reusing dependencies for: " << j->path().string();
+                                    // taskProgress.msg( os.str() );
+                                    return false;
+                                }
+                                else
+                                {
+                                    // std::ostringstream os;
+                                    // os << "\tRecalculating dependencies for: " << j->path().string();
+                                    // taskProgress.msg( os.str() );
+                                    return true;
+                                }
+                            },
+
+                            // const Removal& rem
+                            []( OldDependenciesVector::const_iterator i )
+                            {
+                                // a source file has been removed - can ignor this since
+                                // recreating the dependency analysis and only attempting to
+                                // reuse the globs
+                            },
+
+                            // const Addition& add
+                            [ &env = m_environment, &hashCodeGenerator, &newDatabase, &newDependencies, &sourceFiles,
+                              &taskProgress ]( PathSet::const_iterator j )
+                            {
+                                // a new source file is added so must analysis from the ground up
+                                const mega::io::megaFilePath megaFilePath  = *j;
+                                const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
+                                newDependencies.push_back( CalculateDependencies( env )(
+                                    newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
+                                // std::ostringstream os;
+                                // os << "\tAdding dependencies for: " << megaFilePath.path().string();
+                                // taskProgress.msg( os.str() );
+                            },
+
+                            // const Updated& updatesNeeded
+                            [ &env = m_environment, &hashCodeGenerator, &newDatabase, &newDependencies,
+                              &sourceFiles ]( OldDependenciesVector::const_iterator i )
+                            {
+                                // since the code is modified - must re analyse ALL dependencies from the ground up
+                                const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                                const mega::io::megaFilePath megaFilePath  = pDependencies->get_source_file();
+                                const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
+                                newDependencies.push_back( CalculateDependencies( env )(
+                                    newDatabase, megaFilePath, interfaceHash, sourceFiles ) );
+                            } );
+                    }
+
+                    newDatabase.construct< New::Dependencies::Analysis >(
+                        New::Dependencies::Analysis::Args{ newDependencies } );
                 }
 
-                newDatabase.construct< New::Dependencies::Analysis >(
-                    New::Dependencies::Analysis::Args{ newDependencies } );
+                const task::FileHash fileHashCode = newDatabase.save_DPGraph_to_temp();
+                m_environment.setBuildHashCode( dependencyCompilationFilePath, fileHashCode );
+                m_environment.temp_to_real( dependencyCompilationFilePath );
+                m_environment.stash( dependencyCompilationFilePath, determinant );
+
+                succeeded( taskProgress );
+                bReusedOldDatabase = true;
             }
-
-            const task::FileHash fileHashCode = newDatabase.save_DPGraph_to_temp();
-            m_environment.setBuildHashCode( dependencyCompilationFilePath, fileHashCode );
-            m_environment.temp_to_real( dependencyCompilationFilePath );
-            m_environment.stash( dependencyCompilationFilePath, determinant );
-
-            succeeded( taskProgress );
         }
-        else
+        catch ( mega::io::DatabaseVersionException& )
+        {
+            bReusedOldDatabase = false;
+        }
+
+        if ( !bReusedOldDatabase )
         {
             using namespace DependencyAnalysis;
             using namespace DependencyAnalysis::Dependencies;
@@ -342,7 +354,7 @@ public:
     }
 };
 
+} // namespace interface
+} // namespace driver
 
-}}
-
-#endif //TASK_DEPENDENCIES_10_MAY_2022
+#endif // TASK_DEPENDENCIES_10_MAY_2022

@@ -19,9 +19,8 @@ class Task_Include : public BaseTask
     const mega::io::megaFilePath& m_sourceFilePath;
 
 public:
-    Task_Include( task::Task::RawPtr pDependency, const mega::io::BuildEnvironment& environment,
-                  const ToolChain& toolChain, const mega::io::megaFilePath& sourceFilePath )
-        : BaseTask( { pDependency }, environment, toolChain )
+    Task_Include( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+        : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -81,9 +80,8 @@ class Task_IncludePCH : public BaseTask
     const mega::io::megaFilePath& m_sourceFilePath;
 
 public:
-    Task_IncludePCH( task::Task::RawPtr pDependency, const mega::io::BuildEnvironment& environment,
-                     const ToolChain& toolChain, const mega::io::megaFilePath& sourceFilePath )
-        : BaseTask( { pDependency }, environment, toolChain )
+    Task_IncludePCH( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+        : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
     }

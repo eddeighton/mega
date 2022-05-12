@@ -13,11 +13,8 @@ namespace interface
 class Task_ObjectInterfaceGen : public BaseTask
 {
 public:
-    Task_ObjectInterfaceGen( task::Task::RawPtr                pDependency,
-                             const mega::io::BuildEnvironment& environment,
-                             const ToolChain&                  toolChain,
-                             const mega::io::megaFilePath&     sourceFilePath )
-        : BaseTask( { pDependency }, environment, toolChain )
+    Task_ObjectInterfaceGen( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+        : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -554,7 +551,7 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
-}
+} // namespace interface
 } // namespace driver
 
-#endif //TASK_INTERFACE_10_MAY_2022
+#endif // TASK_INTERFACE_10_MAY_2022

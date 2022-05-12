@@ -83,48 +83,62 @@ void command( bool bHelp, const std::vector< std::string >& args )
         task::Task::PtrVector                                  tasks;
         std::map< mega::io::megaFilePath, task::Task::RawPtr > includePCHTasks;
         task::Task::RawPtrSet                                  interfaceGenTasks;
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            Task_ParseAST* pTask = new Task_ParseAST( environment, toolchain, sourceFilePath );
-            tasks.push_back( task::Task::Ptr( pTask ) );
+            int iCounter = 1;
+            for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+            {
+                Task_ParseAST* pTask
+                    = new Task_ParseAST( TaskArguments{ {}, environment, toolchain, iCounter }, sourceFilePath );
+                tasks.push_back( task::Task::Ptr( pTask ) );
 
-            Task_Include* pTaskInclude = new Task_Include( pTask, environment, toolchain, sourceFilePath );
-            tasks.push_back( task::Task::Ptr( pTaskInclude ) );
+                Task_Include* pTaskInclude
+                    = new Task_Include( TaskArguments{ { pTask }, environment, toolchain, iCounter }, sourceFilePath );
+                tasks.push_back( task::Task::Ptr( pTaskInclude ) );
 
-            Task_IncludePCH* pTaskIncludePCH
-                = new Task_IncludePCH( pTaskInclude, environment, toolchain, sourceFilePath );
-            includePCHTasks.insert( std::make_pair( sourceFilePath, pTaskIncludePCH ) );
-            tasks.push_back( task::Task::Ptr( pTaskIncludePCH ) );
+                Task_IncludePCH* pTaskIncludePCH = new Task_IncludePCH(
+                    TaskArguments{ { pTaskInclude }, environment, toolchain, iCounter }, sourceFilePath );
+                includePCHTasks.insert( std::make_pair( sourceFilePath, pTaskIncludePCH ) );
+                tasks.push_back( task::Task::Ptr( pTaskIncludePCH ) );
 
-            Task_ObjectInterfaceGen* pInterfaceGenTask
-                = new Task_ObjectInterfaceGen( pTask, environment, toolchain, sourceFilePath );
-            interfaceGenTasks.insert( pInterfaceGenTask );
-            tasks.push_back( task::Task::Ptr( pInterfaceGenTask ) );
+                Task_ObjectInterfaceGen* pInterfaceGenTask = new Task_ObjectInterfaceGen(
+                    TaskArguments{ { pTask }, environment, toolchain, iCounter }, sourceFilePath );
+                interfaceGenTasks.insert( pInterfaceGenTask );
+                tasks.push_back( task::Task::Ptr( pInterfaceGenTask ) );
+
+                ++iCounter;
+            }
         }
 
         VERIFY_RTE_MSG( !tasks.empty(), "No input source code found" );
 
         Task_DependencyAnalysis* pDependencyAnalysisTask
-            = new Task_DependencyAnalysis( interfaceGenTasks, environment, toolchain, manifest );
+            = new Task_DependencyAnalysis( TaskArguments{ interfaceGenTasks, environment, toolchain, 0 }, manifest );
         tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
 
-        Task_SymbolAnalysis* pSymbolAnalysisTask
-            = new Task_SymbolAnalysis( { pDependencyAnalysisTask }, environment, toolchain, manifest );
+        Task_SymbolAnalysis* pSymbolAnalysisTask = new Task_SymbolAnalysis(
+            TaskArguments{ { pDependencyAnalysisTask }, environment, toolchain, 0 }, manifest );
         tasks.push_back( task::Task::Ptr( pSymbolAnalysisTask ) );
 
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            Task_SymbolRollout* pSymbolRollout
-                = new Task_SymbolRollout( { pSymbolAnalysisTask }, environment, toolchain, sourceFilePath );
-            tasks.push_back( task::Task::Ptr( pSymbolRollout ) );
+            int iCounter = 1;
+            for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+            {
+                Task_SymbolRollout* pSymbolRollout = new Task_SymbolRollout(
+                    TaskArguments{ { pSymbolAnalysisTask }, environment, toolchain, iCounter }, sourceFilePath );
+                tasks.push_back( task::Task::Ptr( pSymbolRollout ) );
 
-            Task_ObjectInterfaceGeneration* pInterfaceGen
-                = new Task_ObjectInterfaceGeneration( { pSymbolRollout }, environment, toolchain, sourceFilePath );
-            tasks.push_back( task::Task::Ptr( pInterfaceGen ) );
+                Task_ObjectInterfaceGeneration* pInterfaceGen = new Task_ObjectInterfaceGeneration(
+                    TaskArguments{ { pSymbolRollout }, environment, toolchain, iCounter }, sourceFilePath );
+                tasks.push_back( task::Task::Ptr( pInterfaceGen ) );
 
-            Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis = new Task_ObjectInterfaceAnalysis(
-                { pInterfaceGen, includePCHTasks[ sourceFilePath ] }, environment, toolchain, sourceFilePath );
-            tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
+                Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis = new Task_ObjectInterfaceAnalysis(
+                    TaskArguments{
+                        { pInterfaceGen, includePCHTasks[ sourceFilePath ] }, environment, toolchain, iCounter },
+                    sourceFilePath );
+                tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
+
+                ++iCounter;
+            }
         }
 
         task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );

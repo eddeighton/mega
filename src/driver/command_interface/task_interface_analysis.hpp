@@ -25,11 +25,8 @@ namespace interface
 class Task_ObjectInterfaceGeneration : public BaseTask
 {
 public:
-    Task_ObjectInterfaceGeneration( task::Task::RawPtrSet             dependencies,
-                                    const mega::io::BuildEnvironment& environment,
-                                    const ToolChain&                  toolChain,
-                                    const mega::io::megaFilePath&     sourceFilePath )
-        : BaseTask( dependencies, environment, toolChain )
+    Task_ObjectInterfaceGeneration( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+        : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
     }
@@ -84,7 +81,7 @@ public:
             int iCounter = 0;
             for ( const std::string& strType : pInheritanceTrait->get_strings() )
             {
-                nlohmann::json traitNames = typenames;
+                nlohmann::json     traitNames = typenames;
                 std::ostringstream os;
                 os << mega::EG_BASE_PREFIX_TRAIT_TYPE << iCounter++;
                 traitNames.push_back( os.str() );
@@ -273,11 +270,8 @@ public:
 class Task_ObjectInterfaceAnalysis : public BaseTask
 {
 public:
-    Task_ObjectInterfaceAnalysis( task::Task::RawPtrSet             dependencies,
-                                  const mega::io::BuildEnvironment& environment,
-                                  const ToolChain&                  toolChain,
-                                  const mega::io::megaFilePath&     sourceFilePath )
-        : BaseTask( dependencies, environment, toolChain )
+    Task_ObjectInterfaceAnalysis( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+        : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
     }

@@ -19,6 +19,8 @@
 
 #include "database/common/loader.hpp"
 #include "database/common/file.hpp"
+#include "database/common/file_header.hpp"
+#include "database/common/exception.hpp"
 
 #include "common/file.hpp"
 
@@ -50,7 +52,10 @@ Loader::Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, s
     {
         FileHeader fileHeader;
         m_archive >> fileHeader;
-        VERIFY_RTE_MSG( fileHeader.getVersion() == version, "Database version mismatch" );
+        if( fileHeader.getVersion() != version )
+        {
+            throw mega::io::DatabaseVersionException();
+        }
     }
 
     Manifest loadedManifest;

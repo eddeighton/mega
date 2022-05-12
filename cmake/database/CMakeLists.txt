@@ -113,6 +113,8 @@ set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/component_info.hpp
     ${MEGA_API_DIR}/database/common/data_pointer.hpp
     ${MEGA_API_DIR}/database/common/environments.hpp
+    ${MEGA_API_DIR}/database/common/exception.hpp
+    ${MEGA_API_DIR}/database/common/file_header.hpp
     ${MEGA_API_DIR}/database/common/file_system.hpp
     ${MEGA_API_DIR}/database/common/file.hpp
     ${MEGA_API_DIR}/database/common/generics.hpp

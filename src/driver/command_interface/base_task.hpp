@@ -54,15 +54,16 @@ namespace driver
 namespace interface
 {
 
-
 struct ToolChain
 {
-    const boost::filesystem::path &parserDllPath, &megaCompilerPath, &clangCompilerPath, &clangPluginPath, &databasePath;
-    const task::FileHash           parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash;
-    const task::DeterminantHash    toolChainHash;
+    const boost::filesystem::path &parserDllPath, &megaCompilerPath, &clangCompilerPath, &clangPluginPath,
+        &databasePath;
+    const task::FileHash        parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash;
+    const task::DeterminantHash toolChainHash;
 
     ToolChain( const boost::filesystem::path& parserDllPath, const boost::filesystem::path& megaCompilerPath,
-               const boost::filesystem::path& clangCompilerPath, const boost::filesystem::path& clangPluginPath, const boost::filesystem::path& databasePath )
+               const boost::filesystem::path& clangCompilerPath, const boost::filesystem::path& clangPluginPath,
+               const boost::filesystem::path& databasePath )
         : parserDllPath( parserDllPath )
         , megaCompilerPath( megaCompilerPath )
         , clangCompilerPath( clangCompilerPath )
@@ -78,13 +79,36 @@ struct ToolChain
     }
 };
 
+struct TaskArguments
+{
+    TaskArguments( const task::Task::RawPtrSet& dependencies, const mega::io::BuildEnvironment& environment,
+                   const ToolChain& toolChain, int index )
+        : dependencies( dependencies )
+        , environment( environment )
+        , toolChain( toolChain )
+        , index( index )
+    {
+    }
+    const task::Task::RawPtrSet&      dependencies;
+    const mega::io::BuildEnvironment& environment;
+    const ToolChain&                  toolChain;
+    const int                         index;
+};
+
+static const char psz_start[]   = "{} START   {:>55} -> {:<55}";
+static const char psz_cached[]  = "{} CACHED  {:>55} -> {:<55} : {}";
+static const char psz_success[] = "{} SUCCESS {:>55} -> {:<55} : {}";
+static const char psz_error[]   = "{} ERROR   {:>55} -> {:<55} : {}";
+static const char psz_msg[]     = "{} MSG     {:>55} -> {:<55} : {}\n{}";
+
 class BaseTask : public task::Task
 {
 public:
-    BaseTask( const RawPtrSet& dependencies, const mega::io::BuildEnvironment& environment, const ToolChain& toolChain )
-        : task::Task( dependencies )
-        , m_environment( environment )
-        , m_toolChain( toolChain )
+    BaseTask( const TaskArguments& taskArguments )
+        : task::Task( taskArguments.dependencies )
+        , m_environment( taskArguments.environment )
+        , m_toolChain( taskArguments.toolChain )
+        , m_index( taskArguments.index )
     {
     }
 
@@ -124,13 +148,38 @@ public:
         return taskProgress.getStatus().m_elapsed.value();
     }
 
+    void drawIndex( std::ostream& os )
+    {
+        static const int max_bars = 16;
+        for ( int i = 0; i < max_bars; ++i )
+        {
+            if ( ( m_index % max_bars ) == i )
+            {
+                os << m_index;
+                int j = m_index / 10;
+                while ( j )
+                {
+                    j = j / 10;
+                    ++i;
+                }
+            }
+            else
+                os << ' ';
+        }
+    }
+
     void start( task::Progress& taskProgress, const char* pszName, const boost::filesystem::path& fromPath,
                 const boost::filesystem::path& toPath )
     {
-        std::ostringstream os;
-        os << "| " << std::setw( 45 ) << pszName;
-        taskProgress.start( os.str(), fromPath, toPath );
-        spdlog::info( "{} START   {:>60} -> {:<60}",
+        // generate the name string to use for all logging
+        {
+            std::ostringstream os;
+            drawIndex( os );
+            os << std::setw( 32 ) << pszName;
+            taskProgress.start( os.str(), fromPath, toPath );
+        }
+
+        spdlog::info( psz_start,
                       fmt::format( fmt::bg( fmt::terminal_color::yellow ) | fmt::fg( fmt::terminal_color::black )
                                        | fmt::emphasis::bold,
                                    name( taskProgress ) ),
@@ -139,7 +188,7 @@ public:
     void cached( task::Progress& taskProgress )
     {
         taskProgress.cached();
-        spdlog::info( "{} CACHED  {:>60} -> {:<60} : {}",
+        spdlog::info( psz_cached,
                       fmt::format( fmt::bg( fmt::terminal_color::cyan ) | fmt::fg( fmt::terminal_color::black )
                                        | fmt::emphasis::bold,
                                    name( taskProgress ) ),
@@ -148,7 +197,7 @@ public:
     void succeeded( task::Progress& taskProgress )
     {
         taskProgress.succeeded();
-        spdlog::info( "{} SUCCESS {:>60} -> {:<60} : {}",
+        spdlog::info( psz_success,
                       fmt::format( fmt::bg( fmt::terminal_color::green ) | fmt::fg( fmt::terminal_color::black )
                                        | fmt::emphasis::bold,
                                    name( taskProgress ) ),
@@ -157,15 +206,15 @@ public:
     void failed( task::Progress& taskProgress )
     {
         taskProgress.failed();
-        spdlog::critical( "{} ERROR   {:>60} -> {:<60} : {}",
+        spdlog::critical( psz_error,
                           fmt::format( fmt::bg( fmt::terminal_color::red ) | fmt::fg( fmt::terminal_color::black )
                                            | fmt::emphasis::bold,
                                        name( taskProgress ) ),
                           source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );
     }
-    void msg( task::Progress& taskProgress, const std::string& strMsg ) 
+    void msg( task::Progress& taskProgress, const std::string& strMsg )
     {
-        spdlog::info( "{} MSG {:>60} -> {:<60} : {}\n{}",
+        spdlog::info( psz_msg,
                       fmt::format( fmt::bg( fmt::terminal_color::black ) | fmt::fg( fmt::terminal_color::white ),
                                    name( taskProgress ) ),
                       source( taskProgress ), target( taskProgress ), elapsed( taskProgress ), strMsg );
@@ -174,10 +223,11 @@ public:
 protected:
     const mega::io::BuildEnvironment& m_environment;
     const ToolChain&                  m_toolChain;
+    int                               m_index;
 };
 
 inline const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&           filePath,
-                                        const std::vector< mega::io::FileInfo >& fileInfos )
+                                               const std::vector< mega::io::FileInfo >& fileInfos )
 {
     for ( const mega::io::FileInfo& fileInfo : fileInfos )
     {
@@ -189,7 +239,7 @@ inline const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&   
     THROW_RTE( "Failed to locate file: " << filePath << " in manifest" );
 }
 
+} // namespace interface
+} // namespace driver
 
-}}
-
-#endif //BASE_TASK_10_MAY_2022
+#endif // BASE_TASK_10_MAY_2022

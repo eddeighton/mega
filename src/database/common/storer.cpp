@@ -18,6 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 #include "database/common/storer.hpp"
+#include "database/common/file_header.hpp"
 
 #include "common/file.hpp"
 
