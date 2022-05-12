@@ -2,6 +2,7 @@
 #define DRIVER_ENVIRONMENT_24_MARCH_2022
 
 #include "database/types/sources.hpp"
+#include "database/types/cardinality.hpp"
 
 #include "database/common/file_system.hpp"
 
@@ -16,6 +17,11 @@ namespace io
     class Environment : public FileSystem
     {
     public:
+        enum : std::size_t
+        {
+            VERSION = {{ version }}
+        };
+
         manifestFilePath project_manifest() const 
         { 
             std::ostringstream os;

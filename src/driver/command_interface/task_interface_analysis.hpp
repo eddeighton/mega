@@ -200,6 +200,10 @@ public:
         {
             templateEngine.renderContext( contextData, os );
         }
+        else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
+        {
+            templateEngine.renderContext( contextData, os );
+        }
         else
         {
             THROW_RTE( "Unknown context type" );

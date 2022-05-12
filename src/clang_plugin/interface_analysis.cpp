@@ -359,6 +359,9 @@ public:
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
         {
         }
+        else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
+        {
+        }
         else
         {
             std::ostringstream os;

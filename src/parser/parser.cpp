@@ -3,6 +3,7 @@
 #include "clang.hpp"
 
 #include "database/types/sources.hpp"
+#include "database/types/cardinality.hpp"
 
 #include "database/model/ParserStage.hxx"
 #include "database/model/environment.hxx"
@@ -295,8 +296,6 @@ public:
 
     boost::filesystem::path resolveFilePath( const std::string& strFile )
     {
-        // const clang::DirectoryLookup* CurDir;
-
         if ( clang::Optional< clang::FileEntryRef > includeFile = PP.LookupFile( clang::SourceLocation(),
                                                                                  // Filename
                                                                                  strFile,
@@ -589,7 +588,150 @@ public:
         return database.construct< ObjectDef >( ObjectDef::Args{ body, pInheritance } );
     }
 
+    void parse_cardinality( mega::Cardinality& linker )
+    {
+        if ( Tok.is( clang::tok::exclaim ) )
+        {
+            linker.setIsNullAllowed( true );
+            ConsumeToken();
+        }
+
+        if ( Tok.is( clang::tok::star ) )
+        {
+            linker.setMany();
+            ConsumeToken();
+        }
+        else
+        {
+            int iNumber;
+            {
+                clang::SourceLocation startLoc = Tok.getLocation();
+                clang::SourceLocation endLoc   = Tok.getEndLoc();
+                ConsumeToken();
+                while ( !isEofOrEom() && !Tok.is( clang::tok::r_square ) && !Tok.is( clang::tok::colon ) )
+                {
+                    endLoc = Tok.getEndLoc();
+                    ConsumeToken();
+                }
+                std::string strInteger;
+                if ( !getSourceText( startLoc, endLoc, strInteger ) )
+                    MEGA_PARSER_ERROR( "Error link size" );
+                std::istringstream is( strInteger );
+                is >> iNumber;
+            }
+            linker.setNumber( iNumber );
+        }
+    }
+
     LinkDef* parse_link( Database& database )
+    {
+        // link A::Type::Name [ !0:1 <-> 1:* ] : Target::Type
+
+        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
+        parse_comment();
+
+        bool              derive_from = false;
+        bool              derive_to   = false;
+        mega::Cardinality linker_min, linker_max, linkee_min, linkee_max;
+
+        if ( !Tok.is( clang::tok::l_square ) ) 
+        {
+            MEGA_PARSER_ERROR( "Expected left square bracket for link relation specifier" );
+        }
+
+        {
+            BalancedDelimiterTracker T( *this, clang::tok::l_square );
+            T.consumeOpen();
+
+            parse_cardinality( linker_min );
+            if ( Tok.is( clang::tok::colon ) )
+            {
+                ConsumeToken();
+                parse_cardinality( linker_max );
+                parse_comment();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected colon in link cardinality specifier" );
+            }
+            if ( !Tok.is( clang::tok::r_square ) )
+            {
+                MEGA_PARSER_ERROR( "Expected right square bracket for link relation specifier" );
+            }
+            T.consumeClose();
+        }
+        parse_comment();
+
+        if ( Tok.is( clang::tok::less ) )
+        {
+            ConsumeToken();
+            derive_from = true;
+        }
+        if ( Tok.is( clang::tok::minus ) )
+        {
+            ConsumeToken();
+        }
+        else if( Tok.is( clang::tok::arrow ) || Tok.is( clang::tok::greater ) )
+        {
+            ConsumeToken();
+            derive_to = true;
+        }
+        parse_comment();
+
+        if ( !Tok.is( clang::tok::l_square ) ) 
+        {
+            MEGA_PARSER_ERROR( "Expected left square bracket for link relation specifier" );
+        }
+        {
+            BalancedDelimiterTracker T( *this, clang::tok::l_square );
+            T.consumeOpen();
+
+            parse_cardinality( linkee_min );
+            if ( Tok.is( clang::tok::colon ) )
+            {
+                ConsumeToken();
+                parse_cardinality( linkee_max );
+                parse_comment();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected colon in link cardinality specifier" );
+            }
+            if ( !Tok.is( clang::tok::r_square ) )
+            {
+                MEGA_PARSER_ERROR( "Expected right square bracket for link relation specifier" );
+            }
+            T.consumeClose();
+        }
+
+        Inheritance* pInheritance = parse_inheritance( database );
+        parse_comment();
+
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
+        {
+            if ( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                body = parse_context_body( database, pScopedIdentifier );
+                T.consumeClose();
+            }
+            else if ( Tok.is( clang::tok::semi ) )
+            {
+                ConsumeToken();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected semicolon in link" );
+            }
+        }
+
+        return database.construct< LinkDef >( LinkDef::Args{ body, mega::CardinalityRange( linker_min, linker_max ),
+                                                             mega::CardinalityRange( linkee_min, linkee_max ),
+                                                             derive_from, derive_to, pInheritance } );
+    }
+
+    TableDef* parse_table( Database& database )
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
@@ -615,7 +757,7 @@ public:
             }
         }
 
-        return database.construct< LinkDef >( LinkDef::Args{ body, pInheritance } );
+        return database.construct< TableDef >( TableDef::Args{ body, pInheritance } );
     }
 
     ActionDef* parse_action( Database& database )
@@ -664,7 +806,7 @@ public:
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_namespace( database ) );
             }
-            else if ( Tok.is( clang::tok::kw_abstract ) )
+            else if ( Tok.is( clang::tok::kw_abstract ) || Tok.is( clang::tok::kw_interface ) )
             {
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_abstract( database ) );
@@ -688,6 +830,11 @@ public:
             {
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_link( database ) );
+            }
+            else if ( Tok.is( clang::tok::kw_table ) )
+            {
+                ConsumeToken();
+                bodyArgs.children.value().push_back( parse_table( database ) );
             }
             else if ( Tok.is( clang::tok::kw_object ) )
             {
@@ -746,8 +893,10 @@ public:
                             clang::tok::kw_function,
                             clang::tok::kw_event,
                             clang::tok::kw_abstract,
+                            clang::tok::kw_interface,
                             clang::tok::kw_dim,
                             clang::tok::kw_link,
+                            clang::tok::kw_table,
                             clang::tok::kw_include,
                             clang::tok::kw_dependency
                         )

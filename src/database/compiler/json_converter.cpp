@@ -22,7 +22,9 @@ void writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& d
 
 void writeStageData( const boost::filesystem::path& dataDir, model::Schema::Ptr pSchema )
 {
-    nlohmann::json data( { { "sources", nlohmann::json::array() }, { "stages", nlohmann::json::array() } } );
+    nlohmann::json data( { { "sources", nlohmann::json::array() },
+                           { "stages", nlohmann::json::array() },
+                           { "version", pSchema->m_schemaHash.toHexString() } } );
 
     // get the unique source types
     for ( model::Source::Ptr pSource : pSchema->m_sources )
@@ -658,7 +660,6 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
             {
                 osFunctionBody << "return " << strData << ".has_value() ? toView( m_factory, " << strData
                                << ".value() ) : " << pOptional->getViewType( pStage->m_strName, false ) << "();";
-                                
             }
             else
             {
@@ -927,18 +928,18 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
             for ( model::Object::Ptr pObject : objects )
             {
                 model::ObjectPart::Ptr pPrimaryObjectPart = pObject->m_primaryObjectPart;
-                if( model::Interface::Ptr pInterface = pStage->isInterface( pObject ) )
+                if ( model::Interface::Ptr pInterface = pStage->isInterface( pObject ) )
                 {
                     nlohmann::json interface = nlohmann::json::object(
                         { { "name", pObject->delimitTypeName( "::" ) },
-                        { "fullname", pObject->delimitTypeName( "_" ) },
-                        { "part", pPrimaryObjectPart->getDataType( "::" ) },
-                        { "casts", nlohmann::json::array() } } );
+                          { "fullname", pObject->delimitTypeName( "_" ) },
+                          { "part", pPrimaryObjectPart->getDataType( "::" ) },
+                          { "casts", nlohmann::json::array() } } );
 
                     for ( model::Object::Ptr pOtherObjects : objects )
                     {
-                        bool bCastOK = false;
-                        model::Object::Ptr pIter = pOtherObjects;
+                        bool               bCastOK = false;
+                        model::Object::Ptr pIter   = pOtherObjects;
                         while ( pIter )
                         {
                             if ( pIter == pObject )
@@ -949,7 +950,8 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
                             pIter = pIter->m_base;
                         }
                         nlohmann::json cast = nlohmann::json::object(
-                            { { "type", pOtherObjects->m_primaryObjectPart->getDataType( "::" ) }, { "truth", bCastOK } } );
+                            { { "type", pOtherObjects->m_primaryObjectPart->getDataType( "::" ) },
+                              { "truth", bCastOK } } );
                         interface[ "casts" ].push_back( cast );
                     }
                     stype[ "interfaces" ].push_back( interface );
@@ -1067,7 +1069,7 @@ void writeViewData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
         }
 
         nlohmann::json stage = nlohmann::json::object( { { "name", pStage->m_strName },
-                                                         { "version", pSchema->m_schemaHash.get() },
+                                                         { "version", pSchema->m_schemaHash.toHexString() },
                                                          { "perobject", true },
                                                          { "super_conversions", nlohmann::json::array() },
                                                          { "interface_conversions", nlohmann::json::array() },

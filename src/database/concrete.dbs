@@ -1,0 +1,44 @@
+
+namespace Concrete
+{
+    object Dimension -> ConcreteStage::Concrete
+    {
+        ref< Interface::DimensionTrait > interface_dimension;
+    }
+
+    object Context -> ConcreteStage::Concrete
+    {
+        //ref< Interface::Context > interface_context;
+
+        array< ref< Interface::Context > > inheritance;
+        array< ref< Context > > children;
+    }
+
+    object Action : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Action > interface_action;
+        array< ref< Dimension > > dimensions;
+    }
+
+    object Event : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Event > interface_event;
+        array< ref< Dimension > > dimensions;
+    }
+
+    object Function : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Function > interface_function;
+    }
+
+    object Object : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Object > interface_object;
+        array< ref< Dimension > > dimensions;
+    }
+
+    object Link : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Link > interface_link;
+    }
+}

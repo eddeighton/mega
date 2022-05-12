@@ -50,6 +50,7 @@ namespace data
         struct FunctionDef;
         struct ObjectDef;
         struct LinkDef;
+        struct TableDef;
         struct SourceRoot;
         struct IncludeRoot;
         struct ObjectSourceRoot;
@@ -75,6 +76,7 @@ namespace data
         struct Function;
         struct Object;
         struct Link;
+        struct Table;
     } // namespace Tree
     namespace DPGraph
     {
@@ -97,6 +99,16 @@ namespace data
     {
         struct InheritanceTrait;
     }
+    namespace Concrete
+    {
+        struct Dimension;
+        struct Context;
+        struct Action;
+        struct Event;
+        struct Function;
+        struct Object;
+        struct Link;
+    } // namespace Concrete
 
     // definitions
     namespace Components
@@ -389,7 +401,7 @@ namespace data
             Ptr< Body::ContextDef >                           p_Body_ContextDef;
             std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                           data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -407,7 +419,7 @@ namespace data
             Ptr< AST::ContextDef > p_AST_ContextDef;
             std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                           data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -427,7 +439,7 @@ namespace data
             Ptr< AST::ContextDef >              p_AST_ContextDef;
             std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                           data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -449,7 +461,7 @@ namespace data
             Ptr< AST::ContextDef >              p_AST_ContextDef;
             std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                           data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -471,7 +483,7 @@ namespace data
             Ptr< AST::ContextDef >              p_AST_ContextDef;
             std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                           data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -493,7 +505,7 @@ namespace data
             Ptr< AST::ContextDef >               p_AST_ContextDef;
             std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                           data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -513,7 +525,7 @@ namespace data
             Ptr< AST::ContextDef >              p_AST_ContextDef;
             std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                           data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -524,16 +536,41 @@ namespace data
         struct LinkDef : public mega::io::Object
         {
             LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
-            LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Inheritance > &inheritance );
+            LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const mega::CardinalityRange &linker,
+                     const mega::CardinalityRange &linkee, const bool &derive_from, const bool &derive_to, const data::Ptr< data::AST::Inheritance > &target );
             enum
             {
                 Object_Part_Type_ID = 23
+            };
+            mega::CardinalityRange              linker;
+            mega::CardinalityRange              linkee;
+            bool                                derive_from;
+            bool                                derive_to;
+            data::Ptr< data::AST::Inheritance > target;
+            Ptr< AST::ContextDef >              p_AST_ContextDef;
+            std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
+                          data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
+        struct TableDef : public mega::io::Object
+        {
+            TableDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            TableDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Inheritance > &inheritance );
+            enum
+            {
+                Object_Part_Type_ID = 24
             };
             data::Ptr< data::AST::Inheritance > inheritance;
             Ptr< AST::ContextDef >              p_AST_ContextDef;
             std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
                           data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef > >
+                          data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -548,7 +585,7 @@ namespace data
                         const data::Ptr< data::Components::Component > &component, const data::Ptr< data::AST::ContextDef > &ast );
             enum
             {
-                Object_Part_Type_ID = 24
+                Object_Part_Type_ID = 25
             };
             boost::filesystem::path                                                                                                           sourceFile;
             data::Ptr< data::Components::Component >                                                                                          component;
@@ -565,7 +602,7 @@ namespace data
             IncludeRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 25
+                Object_Part_Type_ID = 26
             };
             Ptr< AST::SourceRoot >                                                                                                            p_AST_SourceRoot;
             std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > > m_inheritance;
@@ -580,7 +617,7 @@ namespace data
             ObjectSourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 26
+                Object_Part_Type_ID = 27
             };
             Ptr< AST::SourceRoot >                                                                                                            p_AST_SourceRoot;
             std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > > m_inheritance;
@@ -616,7 +653,7 @@ namespace data
             DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 27
+                Object_Part_Type_ID = 28
             };
             Ptr< AST::Dimension >                                                                      p_AST_Dimension;
             Ptr< PerSourceSymbols::DimensionTrait >                                                    p_PerSourceSymbols_DimensionTrait;
@@ -632,7 +669,7 @@ namespace data
             InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 29
+                Object_Part_Type_ID = 30
             };
             Ptr< AST::Inheritance >                                                                        p_AST_Inheritance;
             Ptr< Clang::InheritanceTrait >                                                                 p_Clang_InheritanceTrait;
@@ -648,7 +685,7 @@ namespace data
             ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 31
+                Object_Part_Type_ID = 32
             };
             Ptr< AST::ReturnType >                                                                       p_AST_ReturnType;
             std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > > m_inheritance;
@@ -663,7 +700,7 @@ namespace data
             ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 32
+                Object_Part_Type_ID = 33
             };
             Ptr< AST::ArgumentList >                                                                         p_AST_ArgumentList;
             std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > > m_inheritance;
@@ -678,7 +715,7 @@ namespace data
             SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 33
+                Object_Part_Type_ID = 34
             };
             Ptr< AST::Size >                                                                 p_AST_Size;
             std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > > m_inheritance;
@@ -694,12 +731,13 @@ namespace data
             ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::Tree::Context > > &children );
             enum
             {
-                Object_Part_Type_ID = 34
+                Object_Part_Type_ID = 35
             };
             std::vector< data::Ptr< data::Tree::Context > > children;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -713,13 +751,14 @@ namespace data
             Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ObjectSourceRoot > &root );
             enum
             {
-                Object_Part_Type_ID = 35
+                Object_Part_Type_ID = 36
             };
             data::Ptr< data::AST::ObjectSourceRoot > root;
             Ptr< Tree::ContextGroup >                p_Tree_ContextGroup;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -734,7 +773,7 @@ namespace data
                      const data::Ptr< data::Tree::ContextGroup > &parent );
             enum
             {
-                Object_Part_Type_ID = 36
+                Object_Part_Type_ID = 37
             };
             std::string                           identifier;
             data::Ptr< data::Tree::ContextGroup > parent;
@@ -742,7 +781,8 @@ namespace data
             Ptr< PerSourceSymbols::Context >      p_PerSourceSymbols_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -757,7 +797,7 @@ namespace data
                        const std::vector< data::Ptr< data::AST::ContextDef > > &namespace_defs );
             enum
             {
-                Object_Part_Type_ID = 38
+                Object_Part_Type_ID = 39
             };
             bool                                                                    is_global;
             std::vector< data::Ptr< data::AST::ContextDef > >                       namespace_defs;
@@ -765,7 +805,8 @@ namespace data
             Ptr< Tree::Context >                                                    p_Tree_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -780,7 +821,7 @@ namespace data
                       const std::vector< data::Ptr< data::AST::AbstractDef > > &abstract_defs );
             enum
             {
-                Object_Part_Type_ID = 39
+                Object_Part_Type_ID = 40
             };
             std::vector< data::Ptr< data::AST::AbstractDef > >                          abstract_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
@@ -788,7 +829,8 @@ namespace data
             Ptr< Tree::Context >                                                        p_Tree_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -802,7 +844,7 @@ namespace data
             Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > > &action_defs );
             enum
             {
-                Object_Part_Type_ID = 40
+                Object_Part_Type_ID = 41
             };
             std::vector< data::Ptr< data::AST::ActionDef > >                            action_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
@@ -811,7 +853,8 @@ namespace data
             Ptr< Tree::Context >                                                        p_Tree_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -825,7 +868,7 @@ namespace data
             Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::EventDef > > &event_defs );
             enum
             {
-                Object_Part_Type_ID = 41
+                Object_Part_Type_ID = 42
             };
             std::vector< data::Ptr< data::AST::EventDef > >                             event_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
@@ -834,7 +877,8 @@ namespace data
             Ptr< Tree::Context >                                                        p_Tree_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -849,7 +893,7 @@ namespace data
                       const std::vector< data::Ptr< data::AST::FunctionDef > > &function_defs );
             enum
             {
-                Object_Part_Type_ID = 42
+                Object_Part_Type_ID = 43
             };
             std::vector< data::Ptr< data::AST::FunctionDef > >          function_defs;
             std::optional< data::Ptr< data::Tree::ReturnTypeTrait > >   return_type_trait;
@@ -857,7 +901,8 @@ namespace data
             Ptr< Tree::Context >                                        p_Tree_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -871,7 +916,7 @@ namespace data
             Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > > &object_defs );
             enum
             {
-                Object_Part_Type_ID = 43
+                Object_Part_Type_ID = 44
             };
             std::vector< data::Ptr< data::AST::ObjectDef > >                            object_defs;
             std::optional< std::vector< data::Ptr< data::Tree::DimensionTrait > > >     dimension_traits;
@@ -879,7 +924,8 @@ namespace data
             Ptr< Tree::Context >                                                        p_Tree_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -893,13 +939,35 @@ namespace data
             Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::LinkDef > > &link_defs );
             enum
             {
-                Object_Part_Type_ID = 44
+                Object_Part_Type_ID = 45
             };
             std::vector< data::Ptr< data::AST::LinkDef > > link_defs;
             Ptr< Tree::Context >                           p_Tree_Context;
             std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
                           data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link > >
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
+        struct Table : public mega::io::Object
+        {
+            Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::TableDef > > &table_defs );
+            enum
+            {
+                Object_Part_Type_ID = 46
+            };
+            std::vector< data::Ptr< data::AST::TableDef > > table_defs;
+            Ptr< Tree::Context >                            p_Tree_Context;
+            std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::Context >,
+                          data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
+                          data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >, data::Ptr< data::Tree::Link >,
+                          data::Ptr< data::Tree::Table > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -916,7 +984,7 @@ namespace data
             Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &location, const std::string &glob );
             enum
             {
-                Object_Part_Type_ID = 45
+                Object_Part_Type_ID = 54
             };
             boost::filesystem::path                          location;
             std::string                                      glob;
@@ -935,7 +1003,7 @@ namespace data
                                 const std::vector< boost::filesystem::path > &resolution );
             enum
             {
-                Object_Part_Type_ID = 46
+                Object_Part_Type_ID = 55
             };
             mega::io::megaFilePath                                         source_file;
             std::size_t                                                    hash_code;
@@ -955,7 +1023,7 @@ namespace data
                       const std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > &objects );
             enum
             {
-                Object_Part_Type_ID = 47
+                Object_Part_Type_ID = 56
             };
             std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > objects;
             std::variant< data::Ptr< data::DPGraph::Analysis > >          m_inheritance;
@@ -975,7 +1043,7 @@ namespace data
                     const std::vector< data::Ptr< data::Tree::Context > > &contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > > &dimensions );
             enum
             {
-                Object_Part_Type_ID = 48
+                Object_Part_Type_ID = 57
             };
             std::string                                            symbol;
             std::int32_t                                           id;
@@ -1000,7 +1068,7 @@ namespace data
                        const std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t >                                &dimension_type_ids );
             enum
             {
-                Object_Part_Type_ID = 49
+                Object_Part_Type_ID = 58
             };
             std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >                             symbols;
             mega::io::megaFilePath                                                                      source_file;
@@ -1026,7 +1094,7 @@ namespace data
                          const std::map< int32_t, data::Ptr< data::Tree::DimensionTrait > >                  &dimension_type_ids );
             enum
             {
-                Object_Part_Type_ID = 50
+                Object_Part_Type_ID = 59
             };
             std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > symbol_sets;
             std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               symbols;
@@ -1049,7 +1117,7 @@ namespace data
                             const std::int32_t &symbol );
             enum
             {
-                Object_Part_Type_ID = 28
+                Object_Part_Type_ID = 29
             };
             std::int32_t                  symbol;
             std::optional< std::int32_t > type_id;
@@ -1066,7 +1134,7 @@ namespace data
             Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::Context > p_Tree_Context, const std::int32_t &symbol );
             enum
             {
-                Object_Part_Type_ID = 37
+                Object_Part_Type_ID = 38
             };
             std::int32_t                  symbol;
             std::optional< std::int32_t > type_id;
@@ -1087,7 +1155,7 @@ namespace data
                               const std::vector< data::Ptr< data::Tree::Context > > &contexts );
             enum
             {
-                Object_Part_Type_ID = 30
+                Object_Part_Type_ID = 31
             };
             std::vector< data::Ptr< data::Tree::Context > > contexts;
             Ptr< Tree::InheritanceTrait >                   p_Tree_InheritanceTrait;
@@ -1098,6 +1166,146 @@ namespace data
             virtual void                                    to_json( nlohmann::json &data ) const;
         };
     } // namespace Clang
+    namespace Concrete
+    {
+        struct Dimension : public mega::io::Object
+        {
+            Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::DimensionTrait > &interface_dimension );
+            enum
+            {
+                Object_Part_Type_ID = 47
+            };
+            data::Ptr< data::Tree::DimensionTrait >                interface_dimension;
+            std::variant< data::Ptr< data::Concrete::Dimension > > m_inheritance;
+            virtual bool                                           test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                           set_inheritance_pointer();
+            virtual void                                           load( mega::io::Loader &loader );
+            virtual void                                           store( mega::io::Storer &storer ) const;
+            virtual void                                           to_json( nlohmann::json &data ) const;
+        };
+        struct Context : public mega::io::Object
+        {
+            Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::Tree::Context > > &inheritance,
+                     const std::vector< data::Ptr< data::Concrete::Context > > &children );
+            enum
+            {
+                Object_Part_Type_ID = 48
+            };
+            std::vector< data::Ptr< data::Tree::Context > >     inheritance;
+            std::vector< data::Ptr< data::Concrete::Context > > children;
+            std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Action >, data::Ptr< data::Concrete::Event >,
+                          data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >, data::Ptr< data::Concrete::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
+        struct Action : public mega::io::Object
+        {
+            Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Action > &interface_action,
+                    const std::vector< data::Ptr< data::Concrete::Dimension > > &dimensions );
+            enum
+            {
+                Object_Part_Type_ID = 49
+            };
+            data::Ptr< data::Tree::Action >                       interface_action;
+            std::vector< data::Ptr< data::Concrete::Dimension > > dimensions;
+            Ptr< Concrete::Context >                              p_Concrete_Context;
+            std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Action >, data::Ptr< data::Concrete::Event >,
+                          data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >, data::Ptr< data::Concrete::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
+        struct Event : public mega::io::Object
+        {
+            Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Event > &interface_event,
+                   const std::vector< data::Ptr< data::Concrete::Dimension > > &dimensions );
+            enum
+            {
+                Object_Part_Type_ID = 50
+            };
+            data::Ptr< data::Tree::Event >                        interface_event;
+            std::vector< data::Ptr< data::Concrete::Dimension > > dimensions;
+            Ptr< Concrete::Context >                              p_Concrete_Context;
+            std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Action >, data::Ptr< data::Concrete::Event >,
+                          data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >, data::Ptr< data::Concrete::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
+        struct Function : public mega::io::Object
+        {
+            Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Function > &interface_function );
+            enum
+            {
+                Object_Part_Type_ID = 51
+            };
+            data::Ptr< data::Tree::Function > interface_function;
+            Ptr< Concrete::Context >          p_Concrete_Context;
+            std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Action >, data::Ptr< data::Concrete::Event >,
+                          data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >, data::Ptr< data::Concrete::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
+        struct Object : public mega::io::Object
+        {
+            Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Object > &interface_object,
+                    const std::vector< data::Ptr< data::Concrete::Dimension > > &dimensions );
+            enum
+            {
+                Object_Part_Type_ID = 52
+            };
+            data::Ptr< data::Tree::Object >                       interface_object;
+            std::vector< data::Ptr< data::Concrete::Dimension > > dimensions;
+            Ptr< Concrete::Context >                              p_Concrete_Context;
+            std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Action >, data::Ptr< data::Concrete::Event >,
+                          data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >, data::Ptr< data::Concrete::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
+        struct Link : public mega::io::Object
+        {
+            Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Link > &interface_link );
+            enum
+            {
+                Object_Part_Type_ID = 53
+            };
+            data::Ptr< data::Tree::Link > interface_link;
+            Ptr< Concrete::Context >      p_Concrete_Context;
+            std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Action >, data::Ptr< data::Concrete::Event >,
+                          data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >, data::Ptr< data::Concrete::Link > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
+    } // namespace Concrete
 
     template <> inline Ptr< Components::Component >  convert( const Ptr< Components::Component > &from ) { return from; }
     template <> inline Ptr< AST::Identifier >        convert( const Ptr< AST::Identifier > &from ) { return from; }
@@ -1144,6 +1352,9 @@ namespace data
     template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef; }
     template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
     template <> inline Ptr< AST::LinkDef >           convert( const Ptr< AST::LinkDef > &from ) { return from; }
+    template <> inline Ptr< AST::ContextDef >        convert( const Ptr< AST::TableDef > &from ) { return from->p_AST_ContextDef; }
+    template <> inline Ptr< Body::ContextDef >       convert( const Ptr< AST::TableDef > &from ) { return from->p_AST_ContextDef->p_Body_ContextDef; }
+    template <> inline Ptr< AST::TableDef >          convert( const Ptr< AST::TableDef > &from ) { return from; }
     template <> inline Ptr< AST::SourceRoot >        convert( const Ptr< AST::SourceRoot > &from ) { return from; }
     template <> inline Ptr< AST::SourceRoot >        convert( const Ptr< AST::IncludeRoot > &from ) { return from->p_AST_SourceRoot; }
     template <> inline Ptr< AST::IncludeRoot >       convert( const Ptr< AST::IncludeRoot > &from ) { return from; }
@@ -1207,6 +1418,22 @@ namespace data
     template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context; }
     template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context->p_PerSourceSymbols_Context; }
     template <> inline Ptr< Tree::Link >                convert( const Ptr< Tree::Link > &from ) { return from; }
+    template <> inline Ptr< Tree::ContextGroup >        convert( const Ptr< Tree::Table > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    template <> inline Ptr< Tree::Context >             convert( const Ptr< Tree::Table > &from ) { return from->p_Tree_Context; }
+    template <> inline Ptr< PerSourceSymbols::Context > convert( const Ptr< Tree::Table > &from ) { return from->p_Tree_Context->p_PerSourceSymbols_Context; }
+    template <> inline Ptr< Tree::Table >               convert( const Ptr< Tree::Table > &from ) { return from; }
+    template <> inline Ptr< Concrete::Dimension >       convert( const Ptr< Concrete::Dimension > &from ) { return from; }
+    template <> inline Ptr< Concrete::Context >         convert( const Ptr< Concrete::Context > &from ) { return from; }
+    template <> inline Ptr< Concrete::Context >         convert( const Ptr< Concrete::Action > &from ) { return from->p_Concrete_Context; }
+    template <> inline Ptr< Concrete::Action >          convert( const Ptr< Concrete::Action > &from ) { return from; }
+    template <> inline Ptr< Concrete::Context >         convert( const Ptr< Concrete::Event > &from ) { return from->p_Concrete_Context; }
+    template <> inline Ptr< Concrete::Event >           convert( const Ptr< Concrete::Event > &from ) { return from; }
+    template <> inline Ptr< Concrete::Context >         convert( const Ptr< Concrete::Function > &from ) { return from->p_Concrete_Context; }
+    template <> inline Ptr< Concrete::Function >        convert( const Ptr< Concrete::Function > &from ) { return from; }
+    template <> inline Ptr< Concrete::Context >         convert( const Ptr< Concrete::Object > &from ) { return from->p_Concrete_Context; }
+    template <> inline Ptr< Concrete::Object >          convert( const Ptr< Concrete::Object > &from ) { return from; }
+    template <> inline Ptr< Concrete::Context >         convert( const Ptr< Concrete::Link > &from ) { return from->p_Concrete_Context; }
+    template <> inline Ptr< Concrete::Link >            convert( const Ptr< Concrete::Link > &from ) { return from; }
     template <> inline Ptr< DPGraph::Glob >             convert( const Ptr< DPGraph::Glob > &from ) { return from; }
     template <> inline Ptr< DPGraph::ObjectDependencies > convert( const Ptr< DPGraph::ObjectDependencies > &from ) { return from; }
     template <> inline Ptr< DPGraph::Analysis >           convert( const Ptr< DPGraph::Analysis > &from ) { return from; }
@@ -1236,6 +1463,7 @@ namespace data
     inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::FunctionDef > &from ) { return from->p_AST_ContextDef; }
     inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::ObjectDef > &from ) { return from->p_AST_ContextDef; }
     inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::LinkDef > &from ) { return from->p_AST_ContextDef; }
+    inline Ptr< AST::ContextDef >                  to_base( const Ptr< AST::TableDef > &from ) { return from->p_AST_ContextDef; }
     inline Ptr< AST::SourceRoot >                  to_base( const Ptr< AST::SourceRoot > &from ) { return from; }
     inline Ptr< AST::SourceRoot >                  to_base( const Ptr< AST::IncludeRoot > &from ) { return from->p_AST_SourceRoot; }
     inline Ptr< AST::SourceRoot >                  to_base( const Ptr< AST::ObjectSourceRoot > &from ) { return from->p_AST_SourceRoot; }
@@ -1254,6 +1482,14 @@ namespace data
     inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Function > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
     inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Object > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
     inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Link > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< Tree::ContextGroup >               to_base( const Ptr< Tree::Table > &from ) { return from->p_Tree_Context->p_Tree_ContextGroup; }
+    inline Ptr< Concrete::Dimension >              to_base( const Ptr< Concrete::Dimension > &from ) { return from; }
+    inline Ptr< Concrete::Context >                to_base( const Ptr< Concrete::Context > &from ) { return from; }
+    inline Ptr< Concrete::Context >                to_base( const Ptr< Concrete::Action > &from ) { return from->p_Concrete_Context; }
+    inline Ptr< Concrete::Context >                to_base( const Ptr< Concrete::Event > &from ) { return from->p_Concrete_Context; }
+    inline Ptr< Concrete::Context >                to_base( const Ptr< Concrete::Function > &from ) { return from->p_Concrete_Context; }
+    inline Ptr< Concrete::Context >                to_base( const Ptr< Concrete::Object > &from ) { return from->p_Concrete_Context; }
+    inline Ptr< Concrete::Context >                to_base( const Ptr< Concrete::Link > &from ) { return from->p_Concrete_Context; }
     inline Ptr< DPGraph::Glob >                    to_base( const Ptr< DPGraph::Glob > &from ) { return from; }
     inline Ptr< DPGraph::ObjectDependencies >      to_base( const Ptr< DPGraph::ObjectDependencies > &from ) { return from; }
     inline Ptr< DPGraph::Analysis >                to_base( const Ptr< DPGraph::Analysis > &from ) { return from; }

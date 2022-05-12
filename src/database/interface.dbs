@@ -93,5 +93,9 @@ namespace Interface
     {
         array< ref< Parser::LinkDef > > link_defs;
     }
+    object Table : Context -> InterfaceStage::Tree
+    {
+        array< ref< Parser::TableDef > > table_defs;
+    }
 
 }

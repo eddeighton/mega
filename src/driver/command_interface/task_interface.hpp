@@ -272,6 +272,19 @@ public:
                     },
                     []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
             }
+            else if ( Parser::TableDef* pTableDef = dynamic_database_cast< Parser::TableDef >( pChildContext ) )
+            {
+                constructOrAggregate< Parser::TableDef, Table >(
+                    database, pRoot, pTableDef, currentName, namedContexts,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Parser::TableDef* pTableDef ) -> Table*
+                    {
+                        return database.construct< Table >(
+                            Table::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                                        { pTableDef } ) );
+                    },
+                    []( Table* pTable, Parser::TableDef* pTableDef ) { pTable->push_back_table_defs( pTableDef ); } );
+            }
             else
             {
                 THROW_RTE( "Unknown context type" );
@@ -480,6 +493,20 @@ public:
                        pLink->get_link_defs().front()->get_id() );
         pLink->set_inheritance_trait( inheritance.value() );*/
     }
+    void onTable( InterfaceStage::Database& database, InterfaceStage::Interface::Table* pTable )
+    {
+        using namespace InterfaceStage;
+        /*std::optional< Interface::InheritanceTrait* > inheritance;
+        for ( Parser::LinkDef* pDef : pLink->get_link_defs() )
+        {
+            VERIFY_PARSER( pDef->get_dimensions().empty(), "Dimension has dimensions", pDef->get_id() );
+            collectInheritanceTrait( database, pDef, inheritance );
+            VERIFY_PARSER( pDef->get_body().empty(), "Link has body", pDef->get_id() );
+        }
+        VERIFY_PARSER( inheritance.has_value(), "Link missing inheritance specification",
+                       pLink->get_link_defs().front()->get_id() );
+        pLink->set_inheritance_trait( inheritance.value() );*/
+    }
 
     virtual void run( task::Progress& taskProgress )
     {
@@ -539,6 +566,10 @@ public:
         for ( Interface::Link* pLink : database.many< Interface::Link >( m_sourceFilePath ) )
         {
             onLink( database, pLink );
+        }
+        for ( Interface::Table* pTable : database.many< Interface::Table >( m_sourceFilePath ) )
+        {
+            onTable( database, pTable );
         }
 
         const task::FileHash fileHashCode = database.save_Tree_to_temp();

@@ -22,15 +22,10 @@ namespace mega
             virtual ~FileSystem() {}
 
             // file io
-            virtual std::unique_ptr< std::istream > read( const ComponentListingFilePath& filePath ) const         = 0;
-            virtual std::unique_ptr< std::ostream > write_temp( const ComponentListingFilePath& filePath,
+            virtual std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const         = 0;
+            virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath& filePath,
                                                                                boost::filesystem::path&        tempFilePath ) const      = 0;
-            virtual void                                           temp_to_real( const ComponentListingFilePath& filePath ) const = 0;
-
-            virtual std::unique_ptr< std::istream > read( const CompilationFilePath& filePath ) const         = 0;
-            virtual std::unique_ptr< std::ostream > write_temp( const CompilationFilePath& filePath,
-                                                                               boost::filesystem::path&   tempFilePath ) const = 0;
-            virtual void                                           temp_to_real( const CompilationFilePath& filePath ) const = 0;
+            virtual void                                           temp_to_real( const BuildFilePath& filePath ) const = 0;
 
             virtual std::unique_ptr< std::istream > read( const SourceFilePath& filePath ) const            = 0;
             virtual std::unique_ptr< std::ostream > write_temp( const SourceFilePath&  filePath,

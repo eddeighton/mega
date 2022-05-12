@@ -39,6 +39,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Function > >;
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Link > >;
+    persource accessor array< ref< Interface::Table > >;
 }
 
 stage DependencyAnalysis
@@ -107,10 +108,21 @@ stage InterfaceAnalysisStage
     persource accessor ref< Interface::Root >;
 }
 
-stage FinalStage
+stage ConcreteStage
 {
     source .mega;
     dependency InterfaceAnalysisStage;
+
+    file Concrete;
+
+    global accessor array< ref< Components::Component > >;
+    persource accessor ref< Interface::Root >;
+}
+
+stage FinalStage
+{
+    source .mega;
+    dependency ConcreteStage;
 
     global accessor array< ref< Interface::Root > >;
 }

@@ -75,6 +75,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_interface/task_interface.hpp  
 		${DRIVER_SOURCE_DIR}/command_interface/task_parse_ast.hpp  
 		${DRIVER_SOURCE_DIR}/command_interface/task_symbols.hpp
+		${DRIVER_SOURCE_DIR}/command_interface/task_concrete.hpp
 
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
 		

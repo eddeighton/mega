@@ -3,6 +3,7 @@
 
 #include "database/common/archive.hpp"
 #include "database/common/serialisation.hpp"
+#include "database/common/file_header.hpp"
 
 #include "database/types/sources.hpp"
 
@@ -35,8 +36,6 @@ class BuildEnvironment : public Environment
     const Path                  m_tempDir;
     mutable task::Stash         m_stash;
 
-    boost::filesystem::path toPath( const ComponentListingFilePath& key ) const { return m_rootBuildDir / key.path(); }
-    boost::filesystem::path toPath( const CompilationFilePath& key ) const { return m_rootBuildDir / key.path(); }
     boost::filesystem::path toPath( const SourceFilePath& key ) const { return m_rootSourceDir / key.path(); }
     boost::filesystem::path toPath( const BuildFilePath& key ) const { return m_rootBuildDir / key.path(); }
 
@@ -220,6 +219,27 @@ public:
         m_stash.stash( toPath( filePath ), hashCode );
     }
 
+    bool restore( const CompilationFilePath& filePath, task::DeterminantHash hashCode ) const
+    {
+        if( m_stash.restore( toPath( filePath ), hashCode ) )
+        {
+            //check the file header for the correct version
+            data::NullObjectPartLoader nullObjectPartLoader;
+            
+            std::unique_ptr< std::istream > pFileStream = read( filePath );
+            boost::archive::MegaIArchive    archive( *pFileStream, nullObjectPartLoader );
+
+            mega::io::FileHeader fileHeader;
+            archive >> fileHeader;
+            if( fileHeader.getVersion() == VERSION )
+            {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
     template < typename TFilePathType >
     bool restore( const TFilePathType& filePath, task::DeterminantHash hashCode ) const
     {
@@ -235,32 +255,17 @@ public:
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////
     // FileSystem
-    virtual std::unique_ptr< std::istream > read( const ComponentListingFilePath& filePath ) const
+    virtual std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const
     {
         return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
     }
-    virtual std::unique_ptr< std::ostream > write_temp( const ComponentListingFilePath& filePath,
+    virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath& filePath,
                                                         boost::filesystem::path&        tempFilePath ) const
     {
         tempFilePath = m_tempDir / filePath.path();
         return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
     }
-    virtual void temp_to_real( const ComponentListingFilePath& filePath ) const
-    {
-        copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
-    }
-
-    virtual std::unique_ptr< std::istream > read( const CompilationFilePath& filePath ) const
-    {
-        return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
-    }
-    virtual std::unique_ptr< std::ostream > write_temp( const CompilationFilePath& filePath,
-                                                        boost::filesystem::path&   tempFilePath ) const
-    {
-        tempFilePath = m_tempDir / filePath.path();
-        return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
-    }
-    virtual void temp_to_real( const CompilationFilePath& filePath ) const
+    virtual void temp_to_real( const BuildFilePath& filePath ) const
     {
         copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
     }
@@ -292,30 +297,16 @@ public:
     }
 
     // FileSystem
-    virtual std::unique_ptr< std::istream > read( const ComponentListingFilePath& filePath ) const
+    virtual std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const
     {
         return m_fileArchive.read( filePath );
     }
-    virtual std::unique_ptr< std::ostream > write_temp( const ComponentListingFilePath& filePath,
+    virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath& filePath,
                                                         boost::filesystem::path&        tempFilePath ) const
     {
         THROW_RTE( "Invalid use of retail environment" );
     }
-    virtual void temp_to_real( const ComponentListingFilePath& filePath ) const
-    {
-        THROW_RTE( "Invalid use of retail environment" );
-    }
-
-    virtual std::unique_ptr< std::istream > read( const CompilationFilePath& filePath ) const
-    {
-        return m_fileArchive.read( filePath );
-    }
-    virtual std::unique_ptr< std::ostream > write_temp( const CompilationFilePath& filePath,
-                                                        boost::filesystem::path&   tempFilePath ) const
-    {
-        THROW_RTE( "Invalid use of retail environment" );
-    }
-    virtual void temp_to_real( const CompilationFilePath& filePath ) const
+    virtual void temp_to_real( const BuildFilePath& filePath ) const
     {
         THROW_RTE( "Invalid use of retail environment" );
     }

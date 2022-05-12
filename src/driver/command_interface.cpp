@@ -25,6 +25,7 @@
 #include "command_interface/task_dependencies.hpp"
 #include "command_interface/task_symbols.hpp"
 #include "command_interface/task_interface_analysis.hpp"
+#include "command_interface/task_concrete.hpp"
 
 #include "database/model/manifest.hxx"
 
@@ -136,6 +137,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
                         { pInterfaceGen, includePCHTasks[ sourceFilePath ] }, environment, toolchain, iCounter },
                     sourceFilePath );
                 tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
+
+                Task_ConcreteTree* pConcreteTree = new Task_ConcreteTree(
+                    TaskArguments{ { pObjectInterfaceAnalysis }, environment, toolchain, iCounter }, sourceFilePath );
+                tasks.push_back( task::Task::Ptr( pConcreteTree ) );
 
                 ++iCounter;
             }

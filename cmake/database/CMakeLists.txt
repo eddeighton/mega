@@ -32,6 +32,7 @@ set( MEGA_DATABASE_GENERATED_HEADERS
     ${MEGA_API_DIR}/database/model/SymbolAnalysisView.hxx
     ${MEGA_API_DIR}/database/model/SymbolRollout.hxx
     ${MEGA_API_DIR}/database/model/InterfaceAnalysisStage.hxx
+    ${MEGA_API_DIR}/database/model/ConcreteStage.hxx
     ${MEGA_API_DIR}/database/model/FinalStage.hxx
 	)
 
@@ -51,6 +52,7 @@ set( MEGA_DATABASE_GENERATED_SOURCES
     ${MEGA_SRC_DIR}/database/model/SymbolAnalysisView.cxx
     ${MEGA_SRC_DIR}/database/model/SymbolRollout.cxx
     ${MEGA_SRC_DIR}/database/model/InterfaceAnalysisStage.cxx
+    ${MEGA_SRC_DIR}/database/model/ConcreteStage.cxx
     ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
 )
 
@@ -58,6 +60,7 @@ set( DATABASE_SCHEMAS
         ${MEGA_SRC_DIR}/database/stages.dbs
         ${MEGA_SRC_DIR}/database/parser.dbs
         ${MEGA_SRC_DIR}/database/interface.dbs
+        ${MEGA_SRC_DIR}/database/concrete.dbs
         ${MEGA_SRC_DIR}/database/analysis.dbs
         )
 
@@ -77,6 +80,7 @@ set( COMPILER_BYPRODUCTS
     SymbolAnalysisView.json
     SymbolRollout.json
     InterfaceAnalysisStage.json
+    ConcreteStage.json
     FinalStage.json
     )
 
@@ -136,6 +140,7 @@ set( MEGA_DATABASE_SOURCES
     )
 
 set( MEGA_TYPES_HEADERS
+    ${MEGA_API_DIR}/database/types/cardinality.hpp
     ${MEGA_API_DIR}/database/types/operation.hpp
     ${MEGA_API_DIR}/database/types/sources.hpp
     ${MEGA_API_DIR}/database/types/modes.hpp
@@ -143,6 +148,7 @@ set( MEGA_TYPES_HEADERS
 )
 
 set( MEGA_TYPES_SOURCES
+    ${MEGA_SRC_DIR}/database/types/cardinality.cpp
     ${MEGA_SRC_DIR}/database/types/operation.cpp
     ${MEGA_SRC_DIR}/database/types/sources.cpp
     ${MEGA_SRC_DIR}/database/types/modes.cpp

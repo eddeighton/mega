@@ -170,6 +170,11 @@ void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
         os << "Link: " << pContext->get_identifier();
         node[ "label" ] = os.str();
     }
+    else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
+    {
+        os << "Table: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+    }
     else
     {
         THROW_RTE( "Unknown context type" );
