@@ -27,22 +27,20 @@ namespace test
 
         table TestTable
         {
-            link Cube1  [ 0    : 0   ] <   [ 0   : 0    ] : Cube3;
-            link Cube2  [ 1    : 1   ] -   [ 1   : 1    ] : Cube3;
-            link Cube3  [ 2    : 2   ] >   [ 2   : 2    ] : Cube3;
-            link Cube4  [ 123  : 123 ] <-  [ 123 : 123  ] : Cube3;
-            link Cube5  [ *    : *   ] ->  [ *   : *    ] : Cube3;
-            link Cube6  [ *    : *   ] <-> [ *   : *    ] : Cube3;
-            link Cube7  [ !0   : 0   ] <   [ 0   : !0   ] : Cube3;
-            link Cube8  [ !1   : 1   ] -   [ 1   : !1   ] : Cube3;
-            link Cube9  [ !2   : 2   ] >   [ 2   : !2   ] : Cube3;
-            link Cube10 [ !123 : 123 ] <-  [ 123 : !123 ] : Cube3;
-            link Cube11 [ !*   : *   ] ->  [ *   : !*   ] : Cube3;
-            link Cube12 [ !*   : *   ] <-> [ *   : !*   ] : Cube3;
+            link Cube1  [ 0    : 0   ] <  [ 0   : 0    ] : Cube3;
+            link Cube2  [ 1    : 1   ]    [ 1   : 1    ] : Cube3;
+            link Cube3  [ 2    : 2   ] >  [ 2   : 2    ] : Cube3;
+            link Cube4  [ 123  : 123 ] << [ 123 : 123  ] : Cube3;
+            link Cube5  [ *    : *   ] >> [ *   : *    ] : Cube3;
+            link Cube6  [ *    : *   ] <<>[ *   : *    ] : Cube3;
+            link Cube7  [ !0   : 0   ] <>>[ 0   : !0   ] : Cube3;
+            link Cube8  [ !1   : 1   ]    [ 1   : !1   ] : Cube3;
+            link Cube9  [ !2   : 2   ] >> [ 2   : !2   ] : Cube3;
+            link Cube10 [ !123 : 123 ] << [ 123 : !123 ] : Cube3;
+            link Cube11 [ !*   : *   ] >  [ *   : !*   ] : Cube3;
+            link Cube12 [ !*   : *   ] <> [ *   : !*   ] : Cube3;
 
-            //link CoolStuff23 [0:*]<->[*:0] : nested8::CoolStuff23;
-
-
+            //link CoolStuff23 [0:*]<<>[*:0] : nested8::CoolStuff23;
         }
 
         namespace nested8
@@ -58,9 +56,4 @@ namespace test
             }
         }
     }
-}
-
-link Submarine [1:1]<[0:1] : Car
-{
-    
 }
