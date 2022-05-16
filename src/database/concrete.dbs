@@ -8,10 +8,14 @@ namespace Concrete
 
     object Context -> ConcreteStage::Concrete
     {
-        //ref< Interface::Context > interface_context;
-
         array< ref< Interface::Context > > inheritance;
         array< ref< Context > > children;
+    }
+
+    object Namespace : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Namespace > interface_namespace;
+        array< ref< Dimension > > dimensions;
     }
 
     object Action : Context -> ConcreteStage::Concrete
@@ -40,5 +44,14 @@ namespace Concrete
     object Link : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Link > interface_link;
+    }
+
+    object Table : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Table > interface_table;
+    }
+
+    object Root : Context -> ConcreteStage::Concrete
+    {
     }
 }

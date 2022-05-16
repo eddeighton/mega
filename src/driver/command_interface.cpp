@@ -34,6 +34,25 @@ namespace driver
 namespace interface
 {
 
+class Task_Complete : public BaseTask
+{
+    const mega::io::Manifest& m_manifest;
+
+public:
+    Task_Complete( const TaskArguments& taskArguments, const mega::io::Manifest& manifest )
+        : BaseTask( taskArguments )
+        , m_manifest( manifest )
+    {
+    }
+
+    virtual void run( task::Progress& taskProgress )
+    {
+        const mega::io::manifestFilePath manifestFilePath = m_environment.project_manifest();
+        start( taskProgress, "Task_Complete", manifestFilePath.path(), manifestFilePath.path() );
+        succeeded( taskProgress );
+    }
+};
+
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, clangPlugin,
@@ -120,6 +139,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             TaskArguments{ { pDependencyAnalysisTask }, environment, toolchain, 0 }, manifest );
         tasks.push_back( task::Task::Ptr( pSymbolAnalysisTask ) );
 
+       task::Task::RawPtrSet concreteTasks;
         {
             int iCounter = 1;
             for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
@@ -141,10 +161,15 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 Task_ConcreteTree* pConcreteTree = new Task_ConcreteTree(
                     TaskArguments{ { pObjectInterfaceAnalysis }, environment, toolchain, iCounter }, sourceFilePath );
                 tasks.push_back( task::Task::Ptr( pConcreteTree ) );
+                concreteTasks.insert( pConcreteTree );
 
                 ++iCounter;
             }
         }
+
+        Task_Complete* pComplete
+            = new Task_Complete( TaskArguments{ concreteTasks, environment, toolchain, 0 }, manifest );
+        tasks.push_back( task::Task::Ptr( pComplete ) );
 
         task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
         task::run( pSchedule, std::cout );

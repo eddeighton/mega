@@ -66,38 +66,33 @@ public:
     };
 
     template < typename TContextType >
-    std::vector< nlohmann::json > getInheritanceTraits( const nlohmann::json& typenames, TContextType* pContext )
+    std::vector< nlohmann::json >
+    getInheritanceTraits( const nlohmann::json& typenames, TContextType* pContext,
+                          InterfaceAnalysisStage::Interface::InheritanceTrait* pInheritanceTrait )
     {
         using namespace InterfaceAnalysisStage;
         using namespace InterfaceAnalysisStage::Interface;
 
-        const std::optional< InheritanceTrait* >& inheritanceOpt = pContext->get_inheritance_trait();
-
         std::vector< nlohmann::json > traits;
-        if ( inheritanceOpt.has_value() )
+        int                           iCounter = 0;
+        for ( const std::string& strType : pInheritanceTrait->get_strings() )
         {
-            InheritanceTrait* pInheritanceTrait = inheritanceOpt.value();
+            nlohmann::json     traitNames = typenames;
+            std::ostringstream os;
+            os << mega::EG_BASE_PREFIX_TRAIT_TYPE << iCounter++;
+            traitNames.push_back( os.str() );
 
-            int iCounter = 0;
-            for ( const std::string& strType : pInheritanceTrait->get_strings() )
+            nlohmann::json trait_struct( { { "name", os.str() },
+                                           { "typeid", pContext->get_type_id() },
+                                           { "types", traitNames },
+                                           { "traits", nlohmann::json::array() } } );
+
             {
-                nlohmann::json     traitNames = typenames;
-                std::ostringstream os;
-                os << mega::EG_BASE_PREFIX_TRAIT_TYPE << iCounter++;
-                traitNames.push_back( os.str() );
-
-                nlohmann::json trait_struct( { { "name", os.str() },
-                                               { "typeid", pContext->get_type_id() },
-                                               { "types", traitNames },
-                                               { "traits", nlohmann::json::array() } } );
-
-                {
-                    std::ostringstream osTrait;
-                    osTrait << "using Type  = " << strType;
-                    trait_struct[ "traits" ].push_back( osTrait.str() );
-                }
-                traits.push_back( trait_struct );
+                std::ostringstream osTrait;
+                osTrait << "using Type  = " << strType;
+                trait_struct[ "traits" ].push_back( osTrait.str() );
             }
+            traits.push_back( trait_struct );
         }
         return traits;
     }
@@ -135,28 +130,37 @@ public:
         }
         else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
         {
-            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAbstract ) )
+            if ( auto opt = pAbstract->get_inheritance_trait() )
             {
-                contextData[ "trait_structs" ].push_back( trait );
-                structs.push_back( trait );
+                for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAbstract, opt.value() ) )
+                {
+                    contextData[ "trait_structs" ].push_back( trait );
+                    structs.push_back( trait );
+                }
             }
             templateEngine.renderContext( contextData, os );
         }
         else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
         {
-            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAction ) )
+            if ( auto opt = pAction->get_inheritance_trait() )
             {
-                contextData[ "trait_structs" ].push_back( trait );
-                structs.push_back( trait );
+                for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAction, opt.value() ) )
+                {
+                    contextData[ "trait_structs" ].push_back( trait );
+                    structs.push_back( trait );
+                }
             }
             templateEngine.renderContext( contextData, os );
         }
         else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
         {
-            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pEvent ) )
+            if ( auto opt = pEvent->get_inheritance_trait() )
             {
-                contextData[ "trait_structs" ].push_back( trait );
-                structs.push_back( trait );
+                for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pEvent, opt.value() ) )
+                {
+                    contextData[ "trait_structs" ].push_back( trait );
+                    structs.push_back( trait );
+                }
             }
             templateEngine.renderContext( contextData, os );
         }
@@ -189,15 +193,24 @@ public:
         }
         else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
         {
-            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pObject ) )
+            if ( auto opt = pObject->get_inheritance_trait() )
             {
-                contextData[ "trait_structs" ].push_back( trait );
-                structs.push_back( trait );
+                for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pObject, opt.value() ) )
+                {
+                    contextData[ "trait_structs" ].push_back( trait );
+                    structs.push_back( trait );
+                }
             }
             templateEngine.renderContext( contextData, os );
         }
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
         {
+            for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pLink, pLink->get_link_target() ) )
+            {
+                contextData[ "trait_structs" ].push_back( trait );
+                structs.push_back( trait );
+            }
+
             templateEngine.renderContext( contextData, os );
         }
         else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
@@ -324,7 +337,7 @@ public:
 
         const std::string strCmd = mega::Compilation(
             m_toolChain.clangCompilerPath, m_toolChain.clangPluginPath, pComponent->get_cpp_flags(),
-            pComponent->get_cpp_defines(), pComponent->get_includeDirectories(), mega::eInterface,
+            pComponent->get_cpp_defines(), pComponent->get_includeDirectories(), mega::CompilationMode::eInterface,
             m_environment.rootSourceDir(), m_environment.rootBuildDir(), m_environment.FilePath( m_sourceFilePath ),
             m_environment.FilePath( includePCH ), m_environment.FilePath( interfaceHeader ),
             m_environment.FilePath( interfacePCHFilePath ) )();

@@ -353,12 +353,21 @@ namespace {{ stage.name }}
 {
 struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
 {
+    Pimpl( const mega::io::Environment& environment )
+        :   m_environment( environment ),
+            m_manifest( m_environment, m_environment.project_manifest() )
+    {
+        m_manifest.loadAll( m_environment, *this, m_readonlyFiles, VERSION, mega::io::FileInfo::{{ stage.name }} );
+    }
     Pimpl( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
         :   m_environment( environment ),
             m_sourceFile( sourceFile ),
             m_manifest( m_environment, m_environment.project_manifest() )
     {
-        create();
+{% for file in stage.readwrite_files %}
+        m_pFile_{{ file.name }} = m_manifest.createFile( m_environment, const_cast< Database::Pimpl&>(*this), 
+            m_readwriteFiles, m_sourceFile, VERSION, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
+{% endfor %}{# stage.readwrite_files #}
     }
 
 {% for many_accessor in stage.many_accessors %}
@@ -523,19 +532,6 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
         }
     }
 
-    void create()
-    {
-{% for file in stage.readwrite_files %}
-        m_pFile_{{ file.name }} = m_manifest.createFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-            m_readwriteFiles, m_sourceFile, VERSION, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
-{% endfor %}{# stage.readwrite_files #}
-    }
-
-    void load()
-    {
-        m_manifest.loadAll( m_environment, *this, m_readonlyFiles, VERSION, mega::io::FileInfo::{{ stage.name }} );
-    }
-
 {% for file in stage.readwrite_files %}
     task::FileHash save_{{ file.name }}_to_temp() const
     {
@@ -599,14 +595,14 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
 {% endfor %}
 };
 
-Database::Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
-:   m_pimpl( new Pimpl( environment, sourceFile ) )
+Database::Database( const mega::io::Environment& environment )
+:   m_pimpl( new Pimpl( environment ) )
 {
 }
 
-void Database::load()
+Database::Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
+:   m_pimpl( new Pimpl( environment, sourceFile ) )
 {
-    m_pimpl->load();
 }
 
 {% for file in stage.readwrite_files %}

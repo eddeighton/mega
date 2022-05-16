@@ -44,7 +44,19 @@ namespace driver
 {
 namespace graph
 {
-std::string getContextFullTypeName( FinalStage::Interface::Context* pContext )
+
+const std::string& getIdentifier( FinalStage::Interface::Context* pContext )
+{
+    return pContext->get_identifier();
+}
+/*
+const std::string& getIdentifier( FinalStage::Concrete::Context* pContext )
+{
+    return pContext->
+}*/
+
+template< typename TContextType >
+std::string getContextFullTypeName( TContextType* pContext )
 {
     using namespace FinalStage;
 
@@ -61,8 +73,8 @@ std::string getContextFullTypeName( FinalStage::Interface::Context* pContext )
         {
             bFirst = false;
         }
-        os << pContext->get_identifier();
-        pContext = dynamic_database_cast< Interface::Context >( pContext->get_parent() );
+        os << getIdentifier( pContext );
+        pContext = dynamic_database_cast< TContextType >( pContext->get_parent() );
     }
 
     return os.str();
@@ -193,6 +205,99 @@ void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
     }
 }
 
+/*
+void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Concrete;
+
+    std::ostringstream os;
+
+    nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName( pContext ) },
+                                                    { "label", "" },
+                                                    { "type_id", pContext->get_type_id() },
+                                                    { "symbol", pContext->get_symbol() },
+                                                    { "bases", nlohmann::json::array() },
+                                                    { "properties", nlohmann::json::array() } } );
+
+    if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+    {
+        os << "Namespace: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addProperties( node, pNamespace->get_dimension_traits() );
+    }
+    else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+    {
+        os << "Abstract: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addInheritance( pAbstract->get_inheritance_trait(), node );
+    }
+    else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+    {
+        os << "Action: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addInheritance( pAction->get_inheritance_trait(), node );
+        addProperties( node, pAction->get_dimension_traits() );
+    }
+    else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+    {
+        os << "Event: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addInheritance( pEvent->get_inheritance_trait(), node );
+        addProperties( node, pEvent->get_dimension_traits() );
+    }
+    else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+    {
+        os << "Function: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        nlohmann::json arguments
+            = nlohmann::json::object( { { "name", "arguments" },
+                                        { "type_id", "" },
+                                        { "symbol", "" },
+                                        { "value", pFunction->get_arguments_trait()->get_str() } } );
+        node[ "properties" ].push_back( arguments );
+        nlohmann::json return_type
+            = nlohmann::json::object( { { "name", "return type" },
+                                        { "type_id", "" },
+                                        { "symbol", "" },
+                                        { "value", pFunction->get_return_type_trait()->get_str() } } );
+        node[ "properties" ].push_back( return_type );
+    }
+    else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+    {
+        os << "Object: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+        addInheritance( pObject->get_inheritance_trait(), node );
+        addProperties( node, pObject->get_dimension_traits() );
+    }
+    else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+    {
+        os << "Link: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+    }
+    else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
+    {
+        os << "Table: " << pContext->get_identifier();
+        node[ "label" ] = os.str();
+    }
+    else
+    {
+        THROW_RTE( "Unknown context type" );
+    }
+
+    data[ "nodes" ].push_back( node );
+
+    for ( Interface::Context* pChildContext : pContext->get_children() )
+    {
+        recurse( data, pChildContext );
+
+        nlohmann::json edge = nlohmann::json::object( { { "from", getContextFullTypeName( pContext ) },
+                                                        { "to", getContextFullTypeName( pChildContext ) },
+                                                        { "colour", "000000" } } );
+        data[ "edges" ].push_back( edge );
+    }
+}*/
+
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             strGraphType;
@@ -249,6 +354,30 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
                     osOutput << data;
                 }
+                /*else if( strGraphType == "concrete" )
+                {
+                    mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
+                    mega::io::Manifest         manifest( environment, environment.project_manifest() );
+
+                    using namespace FinalStage;
+
+                    nlohmann::json data = nlohmann::json::object(
+                        { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+
+                    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+                    {
+                        Database database( environment, sourceFilePath );
+                        for ( Concrete::Root* pRoot : database.many< Concrete::Root >( sourceFilePath ) )
+                        {
+                            for ( Concrete::Context* pChildContext : pRoot->get_children() )
+                            {
+                                recurse( data, pChildContext );
+                            }
+                        }
+                    }
+
+                    osOutput << data;
+                }*/
                 else
                 {
                     THROW_RTE( "Unknown graph type" );

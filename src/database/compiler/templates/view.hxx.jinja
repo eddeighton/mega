@@ -101,6 +101,7 @@ namespace {{ stage.name }}
         };
 
         struct Pimpl;
+        Database( const mega::io::Environment& environment );
         Database( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile );
         
         template< typename T >
@@ -120,8 +121,6 @@ namespace {{ stage.name }}
         {
             return dynamic_cast< T* >( convert_impl( pFrom->_get_object_info() ) );
         }
-
-        void load();
 
 {% for file in stage.readwrite_files %}
         task::FileHash save_{{ file.name }}_to_temp() const;

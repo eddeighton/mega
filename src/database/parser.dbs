@@ -49,6 +49,15 @@ namespace Parser
         value< std::string > str;
     }
 
+    object Link -> ParserStage::AST
+    {
+        value< mega::CardinalityRange > linker;
+        value< mega::CardinalityRange > linkee;
+        value< bool > derive_from; // linker <-  linkee
+        value< bool > derive_to;   // linker  -> linkee
+        value< mega::Ownership > ownership;
+    }
+
     object Dimension -> ParserStage::AST
     {
         value< bool > isConst;
@@ -133,10 +142,7 @@ namespace Parser
 
     object LinkDef : ContextDef -> ParserStage::AST
     {
-        value< mega::CardinalityRange > linker;
-        value< mega::CardinalityRange > linkee;
-        value< bool > derive_from; // linker <-  linkee
-        value< bool > derive_to;   // linker  -> linkee
+        ref< Link > link;
         ref< Inheritance > target;
     }
 

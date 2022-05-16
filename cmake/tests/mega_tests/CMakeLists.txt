@@ -17,7 +17,11 @@ set( MEGA_UNIT_TESTS
 	${MEGA_TEST_DIR}/schema_grammar_tests.cpp
 	${MEGA_TEST_DIR}/io_tests.cpp
 	${MEGA_TEST_DIR}/glob_tests.cpp
-	${MEGA_TEST_DIR}/manifest_tests.cpp)
+	${MEGA_TEST_DIR}/manifest_tests.cpp
+	${MEGA_TEST_DIR}/protocol_tests.cpp
+	${MEGA_TEST_DIR}/network_tests.cpp
+	
+	)
 
 enable_testing()
 
@@ -40,6 +44,8 @@ target_link_libraries( mega_tests database )
 target_link_libraries( mega_tests utilities )
 target_link_libraries( mega_tests parser )
 target_link_libraries( mega_tests database_compiler)
+target_link_libraries( mega_tests protocol)
+target_link_libraries( mega_tests network)
 
 gtest_add_tests( TARGET mega_tests SOURCES ${MEGA_UNIT_TESTS} )
 

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/model/ComponentListing.hxx"
 #include "database/model/ParserStage.hxx"
 #include "database/model/InterfaceStage.hxx"
@@ -51,66 +50,65 @@
 #include <vector>
 #include <iostream>
 
-#define STAGE_DUMP( stageName )\
-if( strStage == #stageName )\
-{\
-    spdlog::info( "Dumping stage: {} to file: {}", #stageName, outputFilePath.string() );\
-    using namespace stageName;\
-    Database database( environment, environment.project_manifest() );\
-    database.load();\
-    {\
-        nlohmann::json data;\
-        database.to_json( data );\
-        std::ofstream os( outputFilePath.native(), std::ios_base::trunc | std::ios_base::out );\
-        os << data;\
-    }\
-}
+#define STAGE_DUMP( stageName )                                                                     \
+    if ( strStage == #stageName )                                                                   \
+    {                                                                                               \
+        spdlog::info( "Dumping stage: {} to file: {}", #stageName, outputFilePath.string() );       \
+        using namespace stageName;                                                                  \
+        Database database( environment );                                                           \
+        {                                                                                           \
+            nlohmann::json data;                                                                    \
+            database.to_json( data );                                                               \
+            std::ofstream os( outputFilePath.native(), std::ios_base::trunc | std::ios_base::out ); \
+            os << data;                                                                             \
+        }                                                                                           \
+    }
 
 namespace driver
 {
-    namespace json
-    {
-        void command( bool bHelp, const std::vector< std::string >& args )
-        {
-            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath;
-            std::string strStage = "FinalStage";
+namespace json
+{
+void command( bool bHelp, const std::vector< std::string >& args )
+{
+    boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath, sourceFilePath;
+    std::string             strStage = "FinalStage";
 
-            namespace po = boost::program_options;
-            po::options_description commandOptions( " Generate database json file" );
-            {
-                // clang-format off
+    namespace po = boost::program_options;
+    po::options_description commandOptions( " Generate database json file" );
+    {
+        // clang-format off
             commandOptions.add_options()
                 ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),     "Source directory" )
                 ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),      "Build directory" )
                 ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),    "JSON file to generate" )
                 ( "stage",      po::value< std::string >( &strStage ),                      "Stage to dump" )
                 ;
-                // clang-format on
-            }
+        // clang-format on
+    }
 
-            po::variables_map vm;
-            po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
-            po::notify( vm );
+    po::variables_map vm;
+    po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
+    po::notify( vm );
 
-            if ( bHelp )
-            {
-                std::cout << commandOptions << "\n";
-            }
-            else
-            {
-                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
+    if ( bHelp )
+    {
+        std::cout << commandOptions << "\n";
+    }
+    else
+    {
+        mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
 
-                STAGE_DUMP( ComponentListing )
-                STAGE_DUMP( ParserStage )
-                STAGE_DUMP( InterfaceStage )
-                STAGE_DUMP( DependencyAnalysis )
-                STAGE_DUMP( DependencyAnalysisView )
-                STAGE_DUMP( SymbolAnalysis )
-                STAGE_DUMP( SymbolAnalysisView )
-                STAGE_DUMP( SymbolRollout )
-                STAGE_DUMP( InterfaceAnalysisStage )
-                STAGE_DUMP( FinalStage )
-            }
-        }
-    } // namespace json
+        STAGE_DUMP( ComponentListing )
+        STAGE_DUMP( ParserStage )
+        STAGE_DUMP( InterfaceStage )
+        STAGE_DUMP( DependencyAnalysis )
+        STAGE_DUMP( DependencyAnalysisView )
+        STAGE_DUMP( SymbolAnalysis )
+        STAGE_DUMP( SymbolAnalysisView )
+        STAGE_DUMP( SymbolRollout )
+        STAGE_DUMP( InterfaceAnalysisStage )
+        STAGE_DUMP( FinalStage )
+    }
+}
+} // namespace json
 } // namespace driver

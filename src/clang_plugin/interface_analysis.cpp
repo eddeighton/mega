@@ -206,37 +206,36 @@ public:
     }
 
     template < typename TContextType >
-    bool inheritanceAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
+    bool inheritanceAnalysis( TContextType* pContext, InterfaceAnalysisStage::Interface::InheritanceTrait* pInheritanceTrait, SourceLocation loc, DeclContext* pDeclContext )
     {
         using namespace InterfaceAnalysisStage;
         using namespace InterfaceAnalysisStage::Interface;
 
-        std::optional< InheritanceTrait* > pInheritanceOpt = pContext->get_inheritance_trait();
-        if ( pInheritanceOpt.has_value() )
+        VERIFY_RTE( pInheritanceTrait );
+
+        std::vector< Context* > inheritedContexts;
+
+        int iCounter = 0;
+        for ( const std::string& strBaseType : pInheritanceTrait->get_strings() )
         {
-            InheritanceTrait* pInheritanceTrait = pInheritanceOpt.value();
-            VERIFY_RTE( pInheritanceTrait );
-
-            std::vector< Context* > inheritedContexts;
-
-            int iCounter = 0;
-            for ( const std::string& strBaseType : pInheritanceTrait->get_strings() )
+            std::string strTraitsType;
             {
-                std::string strTraitsType;
-                {
-                    std::ostringstream os;
-                    os << mega::EG_BASE_PREFIX_TRAIT_TYPE << iCounter++;
-                    strTraitsType = os.str();
-                }
+                std::ostringstream os;
+                os << mega::EG_BASE_PREFIX_TRAIT_TYPE << iCounter++;
+                strTraitsType = os.str();
+            }
 
-                DeclLocType traitDecl = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, strTraitsType );
-                if ( traitDecl.pDeclContext )
+            DeclLocType traitDecl = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, strTraitsType );
+            if ( traitDecl.pDeclContext )
+            {
+                DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
+                QualType typeType
+                    = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
+                if( pTypeDeclContext )
                 {
-                    QualType typeType
-                        = getTypeTrait( pASTContext, pSema, traitDecl.pDeclContext, traitDecl.loc, "Type" );
                     QualType typeTypeCanonical = typeType.getCanonicalType();
                     if ( std::optional< mega::TypeID > inheritanceTypeIDOpt
-                         = getEGTypeID( pASTContext, typeTypeCanonical ) )
+                            = getEGTypeID( pASTContext, typeTypeCanonical ) )
                     {
                         auto iFind = m_contextTypeIDs.find( inheritanceTypeIDOpt.value() );
                         if ( iFind != m_contextTypeIDs.end() )
@@ -248,7 +247,7 @@ public:
                             // error invalid inheritance type
                             std::ostringstream os;
                             os << "Invalid inheritance type for " << pContext->get_identifier() << "("
-                               << pContext->get_type_id() << ") of: " << typeTypeCanonical.getAsString();
+                                << pContext->get_type_id() << ") of: " << typeTypeCanonical.getAsString();
                             pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                             return false;
                         }
@@ -257,7 +256,7 @@ public:
                     {
                         std::ostringstream os;
                         os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
-                           << pContext->get_type_id() << ") of: " << strBaseType;
+                            << pContext->get_type_id() << ") of: " << strBaseType;
                         pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                         return false;
                     }
@@ -265,16 +264,25 @@ public:
                 else
                 {
                     std::ostringstream os;
-                    os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
-                       << pContext->get_type_id() << ") of: " << strBaseType;
+                    os << "Failed to resolve inheritance target type for " << pContext->get_identifier() << "("
+                        << pContext->get_type_id() << ") of: " << strBaseType;
                     pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                     return false;
                 }
             }
-
-            pInheritanceTrait = m_database.construct< InheritanceTrait >(
-                InheritanceTrait::Args( pInheritanceTrait, inheritedContexts ) );
+            else
+            {
+                std::ostringstream os;
+                os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
+                    << pContext->get_type_id() << ") of: " << strBaseType;
+                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                return false;
+            }
         }
+
+        pInheritanceTrait = m_database.construct< InheritanceTrait >(
+            InheritanceTrait::Args( pInheritanceTrait, inheritedContexts ) );
+
         return true;
     }
 
@@ -323,18 +331,33 @@ public:
         else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
         {
             dimensionAnalysis( pAbstract, result.loc, result.pDeclContext );
-            inheritanceAnalysis( pAbstract, result.loc, result.pDeclContext );
+
+            if ( std::optional< InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
+            {
+                if( !inheritanceAnalysis( pAbstract, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                    return false;
+            }
         }
         else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
         {
             dimensionAnalysis( pAction, result.loc, pDeclContext );
-            inheritanceAnalysis( pAction, result.loc, result.pDeclContext );
+
+            if ( std::optional< InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
+            {
+                if( !inheritanceAnalysis( pAction, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                    return false;
+            }
             sizeAnalysis( pAction, result.loc, result.pDeclContext );
         }
         else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
         {
             dimensionAnalysis( pEvent, result.loc, pDeclContext );
-            inheritanceAnalysis( pEvent, result.loc, result.pDeclContext );
+
+            if ( std::optional< InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait() )
+            {
+                if( !inheritanceAnalysis( pEvent, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                    return false;
+            }
             sizeAnalysis( pEvent, result.loc, result.pDeclContext );
         }
         else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
@@ -354,10 +377,17 @@ public:
         else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
         {
             dimensionAnalysis( pObject, result.loc, pDeclContext );
-            inheritanceAnalysis( pObject, result.loc, result.pDeclContext );
+
+            if ( std::optional< InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
+            {
+                if( !inheritanceAnalysis( pObject, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                    return false;
+            }
         }
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
         {
+            if( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
+                return false;
         }
         else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
         {

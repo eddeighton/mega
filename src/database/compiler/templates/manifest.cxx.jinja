@@ -203,7 +203,7 @@ namespace io
         for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
             iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
         {
-            if( i->getStage() < stage )
+            if( i->getStage() <= stage )
             {
                 loadFile( environment, loader, readOnlyFiles, version, stage, i->getFileID() );
             }

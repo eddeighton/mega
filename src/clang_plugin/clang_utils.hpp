@@ -64,7 +64,7 @@ namespace clang
     QualType getUIntType( ASTContext* pASTContext );
     
     QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, 
-        DeclContext* pDeclContext, const SourceLocation& loc, const std::string& strTypeName );
+        DeclContext*& pDeclContext, const SourceLocation& loc, const std::string& strTypeName );
     QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName, const std::string& strTypeParam, 
         DeclContext*& pDeclContext, SourceLocation& loc, bool bLast );
     

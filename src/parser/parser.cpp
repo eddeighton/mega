@@ -2,8 +2,10 @@
 #include "parser/parser.hpp"
 #include "clang.hpp"
 
+#include "database/types/ownership.hpp"
 #include "database/types/sources.hpp"
 #include "database/types/cardinality.hpp"
+#include "database/types/ownership.hpp"
 
 #include "database/model/ParserStage.hxx"
 #include "database/model/environment.hxx"
@@ -623,18 +625,14 @@ public:
         }
     }
 
-    LinkDef* parse_link( Database& database )
+    Link* parse_link_spec( Database& database )
     {
-        // link A::Type::Name [ !0:1 <-> 1:* ] : Target::Type
-
-        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
-        parse_comment();
-
         bool              derive_from = false;
         bool              derive_to   = false;
+        mega::Ownership   ownership( mega::Ownership::eOwnNothing );
         mega::Cardinality linker_min, linker_max, linkee_min, linkee_max;
 
-        if ( !Tok.is( clang::tok::l_square ) ) 
+        if ( !Tok.is( clang::tok::l_square ) )
         {
             MEGA_PARSER_ERROR( "Expected left square bracket for link relation specifier" );
         }
@@ -662,23 +660,33 @@ public:
         }
         parse_comment();
 
-        if ( Tok.is( clang::tok::less ) )
+        if ( Tok.is( clang::tok::lessless ) )
+        {
+            ConsumeToken();
+            derive_from = true;
+            ownership.set( mega::Ownership::eOwnLinker );
+        }
+        else if ( Tok.is( clang::tok::less ) )
         {
             ConsumeToken();
             derive_from = true;
         }
-        if ( Tok.is( clang::tok::minus ) )
+        parse_comment();
+
+        if ( Tok.is( clang::tok::greatergreater ) )
         {
             ConsumeToken();
+            derive_to = true;
+            ownership.set( mega::Ownership::eOwnLinkee );
         }
-        else if( Tok.is( clang::tok::arrow ) || Tok.is( clang::tok::greater ) )
+        else if ( Tok.is( clang::tok::greater ) )
         {
             ConsumeToken();
             derive_to = true;
         }
         parse_comment();
 
-        if ( !Tok.is( clang::tok::l_square ) ) 
+        if ( !Tok.is( clang::tok::l_square ) )
         {
             MEGA_PARSER_ERROR( "Expected left square bracket for link relation specifier" );
         }
@@ -704,6 +712,21 @@ public:
             T.consumeClose();
         }
 
+        return database.construct< Link >( Link::Args{ mega::CardinalityRange( linker_min, linker_max ),
+                                                             mega::CardinalityRange( linkee_min, linkee_max ),
+                                                             derive_from, derive_to, ownership } );
+    }
+
+    LinkDef* parse_link( Database& database )
+    {
+        // link A::Type::Name [ !0:1 <->> 1:* ] : Target::Type
+
+        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
+        parse_comment();
+
+        Link* pLinkSpec = parse_link_spec( database );
+        parse_comment();
+
         Inheritance* pInheritance = parse_inheritance( database );
         parse_comment();
 
@@ -726,9 +749,7 @@ public:
             }
         }
 
-        return database.construct< LinkDef >( LinkDef::Args{ body, mega::CardinalityRange( linker_min, linker_max ),
-                                                             mega::CardinalityRange( linkee_min, linkee_max ),
-                                                             derive_from, derive_to, pInheritance } );
+        return database.construct< LinkDef >( LinkDef::Args{ body, pLinkSpec, pInheritance } );
     }
 
     TableDef* parse_table( Database& database )

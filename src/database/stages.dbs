@@ -124,5 +124,6 @@ stage FinalStage
     source .mega;
     dependency ConcreteStage;
 
-    global accessor array< ref< Interface::Root > >;
+    persource accessor array< ref< Interface::Root > >;
+    persource accessor array< ref< Concrete::Root > >;
 }

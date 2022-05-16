@@ -34,6 +34,9 @@
 #include "common/stash.hpp"
 #include "common/hash.hpp"
 
+#include "spdlog/spdlog.h"
+#include <spdlog/fmt/bundled/color.h>
+
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -47,6 +50,13 @@ namespace driver
 {
 namespace manifest
 {
+
+static const char psz_start[]   = "{} START   {:>55} -> {:<55}";
+static const char psz_cached[]  = "{} CACHED  {:>55} -> {:<55} : {}";
+static const char psz_success[] = "{} SUCCESS {:>55} -> {:<55} : {}";
+static const char psz_error[]   = "{} ERROR   {:>55} -> {:<55} : {}";
+static const char psz_msg[]     = "{} MSG     {:>55} -> {:<55} : {}\n{}";
+
 class BaseTask : public task::Task
 {
 public:
@@ -54,6 +64,93 @@ public:
         : task::Task( dependencies )
         , m_environment( environment )
     {
+    }
+    inline const std::string& name( const task::Progress& taskProgress ) const
+    {
+        return taskProgress.getStatus().m_strTaskName;
+    }
+    inline std::string source( const task::Progress& taskProgress ) const
+    {
+        return std::get< boost::filesystem::path >( taskProgress.getStatus().m_source.value() ).string();
+    }
+    inline std::string target( const task::Progress& taskProgress ) const
+    {
+        return std::get< boost::filesystem::path >( taskProgress.getStatus().m_target.value() ).string();
+    }
+    inline std::string elapsed( const task::Progress& taskProgress ) const
+    {
+        return taskProgress.getStatus().m_elapsed.value();
+    }
+
+    void drawIndex( std::ostream& os )
+    {
+        static const int max_bars = 16;
+        for ( int i = 0; i < max_bars; ++i )
+        {
+            if ( ( 0 % max_bars ) == i )
+            {
+                os << 0;
+                int j = 0 / 10;
+                while ( j )
+                {
+                    j = j / 10;
+                    ++i;
+                }
+            }
+            else
+                os << ' ';
+        }
+    }
+    void start( task::Progress& taskProgress, const char* pszName, const boost::filesystem::path& fromPath,
+                const boost::filesystem::path& toPath )
+    {
+        // generate the name string to use for all logging
+        {
+            std::ostringstream os;
+            drawIndex( os );
+            os << std::setw( 32 ) << pszName;
+            taskProgress.start( os.str(), fromPath, toPath );
+        }
+
+        spdlog::info( psz_start,
+                      fmt::format( fmt::bg( fmt::terminal_color::yellow ) | fmt::fg( fmt::terminal_color::black )
+                                       | fmt::emphasis::bold,
+                                   name( taskProgress ) ),
+                      fromPath.string(), toPath.string() );
+    }
+    void cached( task::Progress& taskProgress )
+    {
+        taskProgress.cached();
+        spdlog::info( psz_cached,
+                      fmt::format( fmt::bg( fmt::terminal_color::cyan ) | fmt::fg( fmt::terminal_color::black )
+                                       | fmt::emphasis::bold,
+                                   name( taskProgress ) ),
+                      source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );
+    }
+    void succeeded( task::Progress& taskProgress )
+    {
+        taskProgress.succeeded();
+        spdlog::info( psz_success,
+                      fmt::format( fmt::bg( fmt::terminal_color::green ) | fmt::fg( fmt::terminal_color::black )
+                                       | fmt::emphasis::bold,
+                                   name( taskProgress ) ),
+                      source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );
+    }
+    virtual void failed( task::Progress& taskProgress )
+    {
+        taskProgress.failed();
+        spdlog::critical( psz_error,
+                          fmt::format( fmt::bg( fmt::terminal_color::red ) | fmt::fg( fmt::terminal_color::black )
+                                           | fmt::emphasis::bold,
+                                       name( taskProgress ) ),
+                          source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );
+    }
+    void msg( task::Progress& taskProgress, const std::string& strMsg )
+    {
+        spdlog::info( psz_msg,
+                      fmt::format( fmt::bg( fmt::terminal_color::black ) | fmt::fg( fmt::terminal_color::white ),
+                                   name( taskProgress ) ),
+                      source( taskProgress ), target( taskProgress ), elapsed( taskProgress ), strMsg );
     }
 
 protected:
@@ -75,7 +172,13 @@ public:
     {
         const mega::io::manifestFilePath projectManifestPath = m_environment.project_manifest();
 
-        taskProgress.start( "Task_GenerateManifest", boost::filesystem::path{}, projectManifestPath.path() );
+        start( taskProgress, "Task_GenerateManifest", boost::filesystem::path{}, projectManifestPath.path() );
+        // make a note of the schema version
+        {
+            std::ostringstream os;
+            os << "Schema version: " << mega::io::Environment::VERSION;
+            msg( taskProgress, os.str() );
+        }
 
         const mega::io::Manifest    manifest( m_environment, m_componentInfoPaths );
         const task::FileHash        hashCode = manifest.save_temp( m_environment, projectManifestPath );
@@ -84,7 +187,7 @@ public:
         if ( m_environment.restore( projectManifestPath, determinant ) )
         {
             m_environment.setBuildHashCode( projectManifestPath, hashCode );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
         else
@@ -92,7 +195,7 @@ public:
             m_environment.temp_to_real( projectManifestPath );
             m_environment.setBuildHashCode( projectManifestPath, hashCode );
             m_environment.stash( projectManifestPath, determinant );
-            taskProgress.succeeded();
+            succeeded( taskProgress );
         }
     }
 };
@@ -118,7 +221,7 @@ public:
         const io::CompilationFilePath componentsListing
             = m_environment.ComponentListing_Components( projectManifestPath );
 
-        taskProgress.start( "Task_GenerateComponents", projectManifestPath.path(), componentsListing.path() );
+        start( taskProgress, "Task_GenerateComponents", projectManifestPath.path(), componentsListing.path() );
 
         task::DeterminantHash determinant = m_environment.getBuildHashCode( projectManifestPath );
         for ( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
@@ -129,7 +232,7 @@ public:
         if ( m_environment.restore( componentsListing, determinant ) )
         {
             m_environment.setBuildHashCode( componentsListing );
-            taskProgress.cached();
+            cached( taskProgress );
             return;
         }
 
@@ -168,7 +271,7 @@ public:
         m_environment.temp_to_real( componentsListing );
         m_environment.stash( componentsListing, determinant );
 
-        taskProgress.succeeded();
+        succeeded( taskProgress );
     }
 };
 

@@ -61,7 +61,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 {
     virtual void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema )
     {
-        //std::cout << "EG_PLUGIN_INTERFACE_IMPL::initialise: " << std::endl;
+        // std::cout << "EG_PLUGIN_INTERFACE_IMPL::initialise: " << std::endl;
         g_pASTContext = pASTContext;
         g_pSema       = pSema;
         VERIFY_RTE( g_pASTContext );
@@ -73,19 +73,19 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
     virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
                           const char* strSourceFile )
     {
-        //std::cout << "EG_PLUGIN_INTERFACE_IMPL::setMode: " << strMode << " : " << strSrcDir << " : " << strBuildDir
-        //          << " : " << strSourceFile << std::endl;
-        
-        switch ( mega::fromStr( strMode ) )
+        // std::cout << "EG_PLUGIN_INTERFACE_IMPL::setMode: " << strMode << " : " << strSrcDir << " : " << strBuildDir
+        //           << " : " << strSourceFile << std::endl;
+        const mega::CompilationMode compilationMode = mega::CompilationMode::fromStr( strMode );
+        switch ( compilationMode.get() )
         {
-            case mega::eInterface:
+            case mega::CompilationMode::eInterface:
                 g_pSession
                     = clang::make_interface_session( g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                 break;
-            case mega::eOperations:
-            case mega::eImplementation:
-            case mega::eCPP:
-            case mega::TOTAL_COMPILATION_MODES:
+            case mega::CompilationMode::eOperations:
+            case mega::CompilationMode::eImplementation:
+            case mega::CompilationMode::eCPP:
+            case mega::CompilationMode::TOTAL_COMPILATION_MODES:
             default:
                 g_pSession = std::make_unique< clang::Session >( g_pASTContext, g_pSema );
                 return;
@@ -102,7 +102,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             {
                 g_pSession->runFinalAnalysis();
             }
-            catch( std::exception& ex )
+            catch ( std::exception& ex )
             {
                 std::ostringstream os;
                 os << "Error in final analysis: " << ex.what();

@@ -550,7 +550,7 @@ QualType getBooleanType( ASTContext* pASTContext ) { return pASTContext->BoolTy;
 QualType getIntType( ASTContext* pASTContext ) { return pASTContext->IntTy; }
 QualType getUIntType( ASTContext* pASTContext ) { return pASTContext->UnsignedIntTy; }
 
-QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, const SourceLocation& loc,
+QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext*& pDeclContext, const SourceLocation& loc,
                        const std::string& strTypeName )
 {
     IdentifierInfo& identifierInfo = pASTContext->Idents.get( strTypeName );

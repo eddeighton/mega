@@ -49,6 +49,10 @@ public:
         , m_environment( environment )
     {
     }
+    virtual void failed( task::Progress& taskProgress )
+    {
+        taskProgress.failed();
+    }
 
 protected:
     const mega::io::BuildEnvironment& m_environment;

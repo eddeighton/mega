@@ -43,7 +43,7 @@ std::string Compilation::operator()() const
     if( compilationMode.has_value() )
     {
         osCmd << "-Xclang -egdll=" <<       compiler_plugin.value().native() << " ";
-        osCmd << "-Xclang -egmode=" <<      mega::toStr( compilationMode.value() ) << " ";
+        osCmd << "-Xclang -egmode=" <<      compilationMode.value() << " ";
         osCmd << "-Xclang -egsrddir=" <<    srcDir.value().native() << " ";
         osCmd << "-Xclang -egbuilddir=" <<  buildDir.value().native() << " ";
         osCmd << "-Xclang -egsource=" <<    sourceFile.value().native() << " ";

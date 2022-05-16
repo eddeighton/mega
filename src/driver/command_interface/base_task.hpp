@@ -179,11 +179,11 @@ public:
             taskProgress.start( os.str(), fromPath, toPath );
         }
 
-        spdlog::info( psz_start,
-                      fmt::format( fmt::bg( fmt::terminal_color::yellow ) | fmt::fg( fmt::terminal_color::black )
+        /*spdlog::info( psz_start,
+                      fmt::format( fmt::bg( fmt::terminal_color::bright_black ) | fmt::fg( fmt::terminal_color::white )
                                        | fmt::emphasis::bold,
                                    name( taskProgress ) ),
-                      fromPath.string(), toPath.string() );
+                      fromPath.string(), toPath.string() );*/
     }
     void cached( task::Progress& taskProgress )
     {
@@ -203,7 +203,7 @@ public:
                                    name( taskProgress ) ),
                       source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );
     }
-    void failed( task::Progress& taskProgress )
+    virtual void failed( task::Progress& taskProgress )
     {
         taskProgress.failed();
         spdlog::critical( psz_error,

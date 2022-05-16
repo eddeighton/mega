@@ -221,7 +221,8 @@ public:
 
     bool restore( const CompilationFilePath& filePath, task::DeterminantHash hashCode ) const
     {
-        if( m_stash.restore( toPath( filePath ), hashCode ) )
+        const Path actualPath = toPath( filePath );
+        if( m_stash.restore( actualPath, hashCode ) )
         {
             //check the file header for the correct version
             data::NullObjectPartLoader nullObjectPartLoader;

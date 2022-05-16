@@ -16,6 +16,11 @@ namespace Interface
         array< ref< Context > > contexts -> InterfaceAnalysisStage::Clang;
     }
 
+    object LinkTrait : Parser::Link -> InterfaceStage::Tree
+    {
+
+    }
+
     object ReturnTypeTrait : Parser::ReturnType -> InterfaceStage::Tree
     {
 
@@ -92,6 +97,8 @@ namespace Interface
     object Link : Context -> InterfaceStage::Tree
     {
         array< ref< Parser::LinkDef > > link_defs;
+        late< ref< LinkTrait > > link_trait;
+        late< ref< InheritanceTrait > > link_target;
     }
     object Table : Context -> InterfaceStage::Tree
     {
