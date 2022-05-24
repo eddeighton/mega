@@ -1,0 +1,118 @@
+
+#include "service/protocol/model/{{ filename }}.hxx"
+
+#include "service/protocol/common/serialisation.hpp"
+
+#include <sstream>
+
+namespace mega
+{
+namespace network
+{
+
+//{{ filename }}_Request_Encode
+{{ filename }}_Request_Encode::{{ filename }}_Request_Encode( std::ostream& os )
+    :   m_os( os )
+{
+}
+
+{% for message in messages %}
+void {{ filename }}_Request_Encode::{{ message.name }}
+(
+    {%for p in message.request.params%}
+        const {{p.type}}& 
+        {{p.name}}
+        {% if not loop.is_last %}, {%endif%}
+    {%endfor%}
+)
+{
+    boost::archive::binary_oarchive oa( m_os );
+    {%for p in message.request.params%}
+    oa & {{p.name}};
+    {%endfor%}
+}
+{% endfor %}
+
+//{{ filename }}_Response_Encode
+{{ filename }}_Response_Encode::{{ filename }}_Response_Encode( std::ostream& os )
+    :   m_os( os )
+{
+}
+{% for message in messages %}
+{% for event in message.events %}
+void {{ filename }}_Response_Encode::{{ message.name }}
+(
+    {%for p in event.params%}
+        const {{p.type}}& 
+        {{p.name}}
+        {% if not loop.is_last %}, {%endif%}
+    {%endfor%}
+)
+{
+    boost::archive::binary_oarchive oa( m_os );
+    {%for p in event.params%}
+    oa & {{p.name}};
+    {%endfor%}
+}
+{% endfor %}
+{% for response in message.responses %}
+void {{ filename }}_Response_Encode::{{ message.name }}
+(
+    {%for p in response.params%}
+        const {{p.type}}& 
+        {{p.name}}
+        {% if not loop.is_last %}, {%endif%}
+    {%endfor%}
+)
+{
+    boost::archive::binary_oarchive oa( m_os );
+    {%for p in response.params%}
+    oa & {{p.name}};
+    {%endfor%}
+}
+{% endfor %}
+{% endfor %}
+
+//{{ filename }}_Request_Decode
+{% for message in messages %}
+void {{ filename }}_Request_Decode::{{ message.name }}
+(
+    {%for p in message.request.params%}
+        const {{p.type}}& 
+        {{p.name}}
+        {% if not loop.is_last %}, {%endif%}
+    {%endfor%}
+)
+{
+}
+{% endfor %}
+
+//{{ filename }}_Response_Decode
+{% for message in messages %}
+{% for event in message.events %}
+void {{ filename }}_Response_Decode::{{ message.name }}
+(
+    {%for p in event.params%}
+        const {{p.type}}& 
+        {{p.name}}
+        {% if not loop.is_last %}, {%endif%}
+    {%endfor%}
+)
+{
+}
+{% endfor %}
+{% for response in message.responses %}
+void {{ filename }}_Response_Decode::{{ message.name }}
+(
+    {%for p in response.params%}
+        const {{p.type}}& 
+        {{p.name}}
+        {% if not loop.is_last %}, {%endif%}
+    {%endfor%}
+)
+{
+}
+{% endfor %}
+{% endfor %}
+}
+}

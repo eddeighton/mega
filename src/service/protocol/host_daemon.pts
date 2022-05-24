@@ -1,0 +1,6 @@
+
+msg HostToDaemon
+{
+    request();
+    response();
+}

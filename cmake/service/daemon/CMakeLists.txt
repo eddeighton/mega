@@ -1,2 +1,38 @@
 
 cmake_minimum_required( VERSION 3.1...3.16 )
+
+#get boost
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
+
+#get spdlog
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
+
+#get common
+include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
+
+
+#get the source code
+set( DAEMON_SOURCE_DIR ${MEGA_SRC_DIR}/service/daemon )
+
+set( DAEMON_SOURCE ${DAEMON_SOURCE_DIR}/main.cpp )
+
+add_executable( daemon ${DAEMON_SOURCE}  )
+
+#target_compile_features( daemon PUBLIC "-fcoroutines" )
+#add_compile_options( "-fcoroutines" )
+target_compile_options( daemon PUBLIC "-fcoroutines" )
+
+target_link_libraries( daemon database )
+target_link_libraries( daemon utilities )
+target_link_libraries( daemon protocol )
+target_link_libraries( daemon network )
+
+set_target_properties( daemon PROPERTIES FOLDER driver )
+
+link_boost( daemon program_options )
+link_boost( daemon filesystem )
+link_boost( daemon system )
+link_spdlog( daemon )
+link_common( daemon )
+
+install( TARGETS daemon DESTINATION bin)

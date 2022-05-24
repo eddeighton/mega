@@ -66,7 +66,6 @@ namespace io
         File::Ptr createFile( const Environment& environment, data::ObjectPartLoader& loader, FileMap& readWriteFiles,
             const SourceFilePath& sourceFile, std::size_t version, FileInfo::Stage stage, FileInfo::Type fileType ) const;
 
-        void load( const Environment& environment, const manifestFilePath& filepath );
         task::FileHash save_temp( const Environment& environment, const manifestFilePath& filepath ) const;
 
         template < class Archive >

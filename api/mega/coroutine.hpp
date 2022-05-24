@@ -22,12 +22,12 @@
 #define EG_COROUTINE
 
 
-#include "common.hpp"
-#include "event.hpp"
+//#include "common.hpp"
+//#include "event.hpp"
 
 //#include "frame.hpp"
 
-#define __cpp_impl_coroutine 1
+//#define __cpp_impl_coroutine 1
 #include <coroutine>
 
 #include <chrono>
@@ -51,7 +51,7 @@ namespace mega
     struct ReturnReason
     {
         Reason reason;
-        std::vector< Event > events;
+        //std::vector< Event > events;
         std::optional< std::chrono::steady_clock::time_point > timeout;
         
         ReturnReason()
@@ -65,7 +65,7 @@ namespace mega
         {
             
         }
-        
+        /*
         ReturnReason( Reason _reason, const Event& event )
             :   reason( _reason ),
                 events( 1, event )
@@ -77,7 +77,7 @@ namespace mega
                 events( _events )
         {
             
-        }
+        }*/
         
         ReturnReason( const std::chrono::steady_clock::time_point& _timeout )
             :   reason( eReason_Timeout ),
@@ -101,7 +101,7 @@ namespace mega
             }
 
             auto initial_suspend()  { return std::suspend_always{}; } //suspend_never
-            auto final_suspend()    { return std::suspend_always{}; }
+            auto final_suspend()   noexcept { return std::suspend_always{}; }
             void unhandled_exception() {}
             
             auto return_value( ReturnReason reason ) 
@@ -191,7 +191,25 @@ namespace mega
             else
                 return true;
         }
-        
+/*
+        void await_transform( std::coroutine_handle< promise_type > coroutine )
+        {
+
+        }*/
+
+/*
+        bool await_ready( )
+        {
+            return false;
+        }
+        void await_suspend( std::coroutine_handle< promise_type > coro )
+        {
+            
+        }
+        void await_resume( )
+        {
+            
+        }*/
     };
 
 /*

@@ -28,13 +28,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #ensure language runtimes and other system libs are copied to installation folder
 include (InstallRequiredSystemLibraries)
 
-# add the compiler first
-add_subdirectory(database_compiler)
-add_subdirectory(database_compiler_driver)
-
+add_subdirectory(database)
 add_subdirectory(clang_plugin)
 add_subdirectory(parser)
-add_subdirectory(database)
 add_subdirectory(utilities)
 add_subdirectory(service)
 add_subdirectory(driver)

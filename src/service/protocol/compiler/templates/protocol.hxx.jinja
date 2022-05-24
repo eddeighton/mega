@@ -1,0 +1,111 @@
+#ifndef {{ guard }}
+#define {{ guard }}
+
+#include <array>
+#include <vector>
+#include <string>
+#include <ostream>
+#include <istream>
+#include <optional>
+
+namespace mega
+{
+namespace network
+{
+
+class {{ filename }}_Request_Encode
+{
+public:
+    {{ filename }}_Request_Encode( std::ostream& os );
+{% for message in messages %}
+    void {{ message.name }}
+    (
+        {%for p in message.request.params%}
+            const {{p.type}}& 
+            {{p.name}}
+            {% if not loop.is_last %}, {%endif%}
+        {%endfor%}
+    );
+{% endfor %}
+private:
+    std::ostream& m_os;
+};
+
+class {{ filename }}_Response_Encode
+{
+public:
+    {{ filename }}_Response_Encode( std::ostream& os );
+{% for message in messages %}
+{% for event in message.events %}
+    void {{ message.name }}
+    (
+        {%for p in event.params%}
+            const {{p.type}}& 
+            {{p.name}}
+            {% if not loop.is_last %}, {%endif%}
+        {%endfor%}
+    );
+{% endfor %}
+{% for response in message.responses %}
+    void {{ message.name }}
+    (
+        {%for p in response.params%}
+            const {{p.type}}& 
+            {{p.name}}
+            {% if not loop.is_last %}, {%endif%}
+        {%endfor%}
+    );
+{% endfor %}
+{% endfor %}
+private:
+    std::ostream& m_os;
+};
+
+class {{ filename }}_Request_Decode
+{
+public:
+{% for message in messages %}
+    void {{ message.name }}
+    (
+        {%for p in message.request.params%}
+            const {{p.type}}& 
+            {{p.name}}
+            {% if not loop.is_last %}, {%endif%}
+        {%endfor%}
+    );
+{% endfor %}
+};
+
+class {{ filename }}_Response_Decode
+{
+public:
+{% for message in messages %}
+{% for event in message.events %}
+    void {{ message.name }}
+    (
+        {%for p in event.params%}
+            const {{p.type}}& 
+            {{p.name}}
+            {% if not loop.is_last %}, {%endif%}
+        {%endfor%}
+    );
+{% endfor %}
+{% for response in message.responses %}
+    void {{ message.name }}
+    (
+        {%for p in response.params%}
+            const {{p.type}}& 
+            {{p.name}}
+            {% if not loop.is_last %}, {%endif%}
+        {%endfor%}
+    );
+{% endfor %}
+{% endfor %}
+};
+
+
+}
+}
+
+
+#endif //{{ guard }}

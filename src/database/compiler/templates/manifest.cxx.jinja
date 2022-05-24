@@ -24,7 +24,11 @@ namespace io
  
     Manifest::Manifest( const Environment& environment, const manifestFilePath& filepath ) 
     { 
-        load( environment, filepath ); 
+        std::unique_ptr< std::istream > pIfStream =
+            environment.read( filepath );
+        InputArchiveType ia( *pIfStream );
+        ia >> boost::serialization::make_nvp( "manifest", *this );
+        initialiseLookupTables();
     }
 
     Manifest::Manifest( const BuildEnvironment& environment,
@@ -221,15 +225,6 @@ namespace io
         File::Ptr pFile = std::make_shared< File >( environment, fileInfo, version, stage, loader );
         readWriteFiles.insert( std::make_pair( fileInfo.getFileID(), pFile ) );
         return pFile;
-    }
-    
-    void Manifest::load( const Environment& environment, const manifestFilePath& manifestFilePath )
-    {
-        std::unique_ptr< std::istream > pIfStream =
-            environment.read( manifestFilePath );
-        InputArchiveType ia( *pIfStream );
-        ia >> boost::serialization::make_nvp( "manifest", *this );
-        initialiseLookupTables();
     }
 
     task::FileHash Manifest::save_temp( const Environment& environment, const manifestFilePath& manifestFilePath ) const
