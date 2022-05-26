@@ -9,21 +9,25 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 
 set( MEGA_NETWORK_API 
+    ${MEGA_API_DIR}/service/network/end_point.hpp
     ${MEGA_API_DIR}/service/network/network.hpp
     ${MEGA_API_DIR}/service/network/client.hpp
     ${MEGA_API_DIR}/service/network/server.hpp
     ${MEGA_API_DIR}/service/network/receiver.hpp
     ${MEGA_API_DIR}/service/network/sender.hpp
     ${MEGA_API_DIR}/service/network/activity.hpp
+    ${MEGA_API_DIR}/service/network/activity_manager.hpp
 )
 
 set( MEGA_NETWORK_SRC 
+${MEGA_SRC_DIR}/service/network/end_point.cpp
     ${MEGA_SRC_DIR}/service/network/network.cpp
     ${MEGA_SRC_DIR}/service/network/client.cpp
     ${MEGA_SRC_DIR}/service/network/server.cpp
     ${MEGA_SRC_DIR}/service/network/receiver.cpp
     ${MEGA_SRC_DIR}/service/network/sender.cpp
     ${MEGA_SRC_DIR}/service/network/activity.cpp
+    ${MEGA_SRC_DIR}/service/network/activity_manager.cpp
 )
 
 add_library( network

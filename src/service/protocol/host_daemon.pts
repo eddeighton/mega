@@ -1,6 +1,6 @@
 
-msg HostToDaemon
+msg GetVersion
 {
     request();
-    response();
+    response(std::string version);
 }

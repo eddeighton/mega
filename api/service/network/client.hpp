@@ -1,53 +1,47 @@
 #ifndef CLIENT_24_MAY_2022
 #define CLIENT_24_MAY_2022
 
+#include "service/protocol/model/host_daemon.hxx"
+#include "service/protocol/model/daemon_host.hxx"
+
+#include "service/network/activity.hpp"
+#include "service/network/activity_manager.hpp"
 #include "service/network/receiver.hpp"
-#include "service/network/network.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/asio/steady_timer.hpp"
 
+#include <boost/asio/execution_context.hpp>
 #include <string>
 #include <thread>
+#include <functional>
+#include <iostream>
 
 namespace mega
 {
 namespace network
 {
 
-class Client
+class Client : public ActivityManager
 {
 public:
-    using ExecutionContextType = boost::asio::io_context;
-
-    template< typename TExecutionContextType >
-    Client( TExecutionContextType& ioContext, const std::string& strServiceIP )
-        : m_resolver( ioContext )
-        , m_socket( ioContext )
-        , m_watchDogTimer( ioContext )
-        , m_receiver( m_socket )
-    {
-        boost::asio::ip::tcp::resolver::results_type endpoints
-            = m_resolver.resolve( strServiceIP, mega::network::MegaRootServiceName() );
-
-        VERIFY_RTE_MSG(
-            !endpoints.empty(),
-            "Failed to resolve " << mega::network::MegaRootServiceName() << " service on ip: " << strServiceIP );
-
-        m_endPoint = boost::asio::connect( m_socket, endpoints );
-
-        m_receiver.run( ioContext );
-    }
+    Client( boost::asio::io_context& ioContext, ActivityFactory& activityFactory,
+            const std::string& strServiceIP );
 
     ~Client();
+
+    boost::asio::ip::tcp::socket&    getSocket() { return m_socket; }
+
+    void spawnActivity( Activity::Ptr pActivity );
 
 private:
     boost::asio::ip::tcp::resolver m_resolver;
     boost::asio::ip::tcp::socket   m_socket;
     boost::asio::ip::tcp::endpoint m_endPoint;
     boost::asio::steady_timer      m_watchDogTimer;
+    host_daemon_Decode             m_decoder;
     Receiver                       m_receiver;
 };
 

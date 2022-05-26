@@ -12,11 +12,19 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 
 #get the source code
+set( DAEMON_API_DIR ${MEGA_API_DIR}/service/daemon )
 set( DAEMON_SOURCE_DIR ${MEGA_SRC_DIR}/service/daemon )
 
-set( DAEMON_SOURCE ${DAEMON_SOURCE_DIR}/main.cpp )
+set( DAEMON_HEADERS
+    ${DAEMON_API_DIR}/daemon.hpp 
+    )
 
-add_executable( daemon ${DAEMON_SOURCE}  )
+set( DAEMON_SOURCE 
+    ${DAEMON_SOURCE_DIR}/daemon.cpp 
+    ${DAEMON_SOURCE_DIR}/main.cpp 
+    )
+
+add_executable( daemon ${DAEMON_HEADERS} ${DAEMON_SOURCE}  )
 
 #target_compile_features( daemon PUBLIC "-fcoroutines" )
 #add_compile_options( "-fcoroutines" )

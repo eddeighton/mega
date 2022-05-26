@@ -1,7 +1,12 @@
 #ifndef SERVER_24_MAY_2022
 #define SERVER_24_MAY_2022
 
-#include "receiver.hpp"
+#include "service/protocol/common/header.hpp"
+#include "service/protocol/model/host_daemon.hxx"
+
+#include "service/network/activity.hpp"
+#include "service/network/activity_manager.hpp"
+#include "service/network/receiver.hpp"
 
 #include "boost/asio/execution_context.hpp"
 #include "boost/asio/thread_pool.hpp"
@@ -17,22 +22,23 @@ namespace mega
 {
 namespace network
 {
-class Server
+class Server : public ActivityManager
 {
-    using ExecutionContextType = boost::asio::thread_pool;
-
+public:
     class Connection
     {
+        friend class Server;
     public:
         using Ptr    = std::shared_ptr< Connection >;
-        using Strand = boost::asio::strand< ExecutionContextType::executor_type >;
+        using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
 
-        Connection( Server& server, ExecutionContextType& execution_context );
+        Connection( Server& server, boost::asio::io_context& ioContext );
 
         Strand&                       getStrand() { return m_strand; }
         boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
         const std::string&            getName() const { return m_strName; }
 
+    protected:
         void start();
 
     private:
@@ -40,21 +46,25 @@ class Server
         Strand                       m_strand;
         boost::asio::ip::tcp::socket m_socket;
         boost::asio::steady_timer    m_watchDogTimer;
+        host_daemon_Decode           m_decoder;
         Receiver                     m_receiver;
         std::string                  m_strName;
     };
 
+    using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
+
 public:
-    Server( ExecutionContextType& execution_context );
+    Server( boost::asio::io_context& ioContext, ActivityFactory& activityFactory );
 
     void waitForConnection();
     void onConnect( Connection::Ptr pNewConnection, const boost::system::error_code& ec );
     void onDisconnected( Connection::Ptr pConnection );
 
+    Connection::Ptr getConnection( const ConnectionID& connectionID );
+
 private:
-    ExecutionContextType&          m_execution_context;
     boost::asio::ip::tcp::acceptor m_acceptor;
-    std::set< Connection::Ptr >    m_connections;
+    ConnectionMap                  m_connections;
 };
 
 } // namespace network

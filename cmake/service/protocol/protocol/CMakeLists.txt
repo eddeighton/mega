@@ -53,22 +53,24 @@ set( TEMPLATES
     ${MEGA_SRC_DIR}/service/protocol/compiler/templates/protocol.cxx.jinja
 )
 
-add_custom_command( 
-    OUTPUT ${COMPILER_OUTPUTS}
-    COMMAND protocol_compiler_driver
-        --api ${MEGA_API_DIR}/service/protocol/model/
-        --src ${MEGA_SRC_DIR}/service/protocol/model/
-        --data_dir ${MEGA_SRC_DIR}/service/protocol/data/
-        --inja_dir ${MEGA_SRC_DIR}/service/protocol/compiler/templates/
-        --json
-        --template
-        --input ${PROTOCOL_SCHEMAS}
-    DEPENDS ${PROTOCOL_SCHEMAS} ${TEMPLATES} protocol_compiler_driver
-    COMMENT "Generating protocol" 
-    )
+#add_custom_command( 
+#    OUTPUT ${COMPILER_OUTPUTS}
+#    COMMAND protocol_compiler_driver
+#        --api ${MEGA_API_DIR}/service/protocol/model/
+#        --src ${MEGA_SRC_DIR}/service/protocol/model/
+#        --data_dir ${MEGA_SRC_DIR}/service/protocol/data/
+#        --inja_dir ${MEGA_SRC_DIR}/service/protocol/compiler/templates/
+#        --json
+#        --template
+#        --input ${PROTOCOL_SCHEMAS}
+#    DEPENDS ${PROTOCOL_SCHEMAS} ${TEMPLATES} protocol_compiler_driver
+#    COMMENT "Generating protocol" 
+#    )
 
 set( MEGA_PROTOCOL_COMMON
     ${MEGA_API_DIR}/service/protocol/common/serialisation.hpp
+    ${MEGA_API_DIR}/service/protocol/common/header.hpp
+    ${MEGA_API_DIR}/service/protocol/common/decoder.hpp
 	)
 
 set( MEGA_PROTOCOL_SOURCES

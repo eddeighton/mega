@@ -2,6 +2,7 @@
 #include "service/network/server.hpp"
 
 #include "service/network/network.hpp"
+#include "service/network/end_point.hpp"
 
 #include "boost/bind/bind.hpp"
 
@@ -10,17 +11,19 @@ namespace mega
 namespace network
 {
 
-Server::Connection::Connection( Server& server, Server::ExecutionContextType& execution_context )
+Server::Connection::Connection( Server& server, boost::asio::io_context& ioContext )
     : m_server( server )
-    , m_strand( boost::asio::make_strand( execution_context ) )
-    , m_socket( execution_context )
-    , m_receiver( m_socket )
-    , m_watchDogTimer( execution_context )
+    , m_strand( boost::asio::make_strand( ioContext ) )
+    , m_socket( m_strand )
+    , m_receiver( server, m_decoder, m_socket ) // would be 2 decoders here
+    , m_watchDogTimer( m_strand )
 {
 }
 
 void Server::Connection::start()
 {
+    boost::asio::ip::tcp::endpoint t;
+
     // calculate name
     {
         std::ostringstream os;
@@ -28,22 +31,22 @@ void Server::Connection::start()
         m_strName = os.str();
     }
 
-    m_receiver.run( m_strand ); 
+    m_receiver.run( m_strand );
     // start the watch dog
     // OnWatchDog();
 }
 
-Server::Server( ExecutionContextType& execution_context )
-    : m_execution_context( execution_context )
-    , m_acceptor( m_execution_context,
-                  boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), mega::network::MegaRootPort() ) )
+Server::Server( boost::asio::io_context& ioContext, ActivityFactory& activityFactory )
+    : ActivityManager( ioContext, activityFactory )
+    , m_acceptor(
+          m_ioContext, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), mega::network::MegaRootPort() ) )
 {
 }
 
 void Server::waitForConnection()
 {
     using tcp                      = boost::asio::ip::tcp;
-    Connection::Ptr pNewConnection = std::make_shared< Connection >( *this, m_execution_context );
+    Connection::Ptr pNewConnection = std::make_shared< Connection >( *this, m_ioContext );
     m_acceptor.async_accept( pNewConnection->getSocket(),
                              boost::asio::bind_executor( pNewConnection->getStrand(),
                                                          boost::bind( &Server::onConnect, this, pNewConnection,
@@ -55,7 +58,7 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
     if ( !ec )
     {
         pNewConnection->start();
-        m_connections.insert( pNewConnection );
+        m_connections.insert( std::make_pair( getConnectionID( pNewConnection->getSocket() ), pNewConnection ) );
         // std::cout << "New connection from: " << pNewConnection->getName() << std::endl;
     }
     else
@@ -67,8 +70,21 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
 
 void Server::onDisconnected( Connection::Ptr pConnection )
 {
-    m_connections.erase( pConnection );
+    m_connections.erase( getConnectionID( pConnection->getSocket() ) );
     // std::cout << "Connection lost from: " << pConnection->getName() << std::endl;
+}
+
+Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )
+{
+    ConnectionMap::iterator iFind = m_connections.find( connectionID );
+    if( iFind != m_connections.end() )
+    {
+        return iFind->second;
+    }
+    else
+    {
+        return Connection::Ptr();
+    }
 }
 } // namespace network
 } // namespace mega

@@ -1,16 +1,29 @@
 #include "service/network/receiver.hpp"
+#include "service/network/activity_manager.hpp"
+#include "service/network/end_point.hpp"
+
+#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/serialisation.hpp"
+
+#include "common/assert_verify.hpp"
+
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/thread_pool.hpp>
+#include <boost/asio/read.hpp>
+
 #include <memory>
+#include <iostream>
 
 namespace mega
 {
 namespace network
 {
 
-Receiver::Receiver( boost::asio::ip::tcp::socket& socket )
-    : m_socket( socket )
+Receiver::Receiver( ActivityManager& activityManager, Decoder& decoder, boost::asio::ip::tcp::socket& socket )
+    : m_activityManager( activityManager )
+    , m_decoder( decoder )
+    , m_socket( socket )
 {
     updateLastActivityTime();
 }
@@ -19,53 +32,99 @@ void Receiver::updateLastActivityTime() { m_lastActivityTime = std::chrono::stea
 
 void Receiver::receive( boost::asio::yield_context yield_ctx )
 {
-    while ( m_socket.is_open() )
+    static const std::size_t            MessageSizeSize = sizeof( network::MessageSize );
+    boost::asio::streambuf              streamBuffer;
+    boost::system::error_code           ec;
+    std::size_t                         szBytesTransferred = 0U;
+    std::array< char, MessageSizeSize > buf;
+    Header                              header;
+    bool                                bContinue = true;
+
+    while ( bContinue && m_socket.is_open() )
     {
-        boost::system::error_code ec;
-        const std::size_t         szBytesTransferred
-            = m_socket.async_read_some( m_streamBuffer.prepare( 128 ), yield_ctx[ ec ] );
-
-        if ( !ec )
+        // read message size
+        network::MessageSize size = 0U;
         {
-            m_streamBuffer.commit( szBytesTransferred );
-            /*while ( m_streamBuffer.in_avail() >= sizeof( HelloMsg ) )
+            // szBytesTransferred = m_socket.async_receive( boost::asio::buffer( buf ), yield_ctx[ ec ] );
+
+            while ( bContinue && m_socket.is_open() )
             {
-                HelloMsg     msg;
-                std::istream is( &m_streamBuffer );
-
-                is.read( msg.msg.data(), 128 );
-
-                // m_streamBuffer.consume( 128U );
-                std::string str = msg.msg.data();
-                VERIFY_RTE_MSG( str == TEST_MESSAGE, "Bad data: " << str << " : " << TEST_MESSAGE );
-                m_messageHandler.onHelloRequest( msg );
-            }*/
-
-            // boost::asio::thread_pool tp;
-            // tp.scheduler().post(
-
-            // boost::asio::io_context ioc(
-            // const boost::asio::io_context& ioc = dynamic_cast< const boost::asio::io_context& >(
-            // *m_executor.context() );
-
-            // m_executor.context()
-
-            // return async_initiate<LegacyCompletionHandler, void ()>(
-            //     initiate_post(), handler, this);
-
-            updateLastActivityTime();
-
-            //boost::asio::post( yield_ctx );
-
-            // m_executor.execute( yield_ctx );
-            // boost::asio::io_context ioc;
-            // ioc.post( yield_ctx );
-
-            // m_executor.execute( yield_ctx );
+                // szBytesTransferred = m_socket.async_read_some( boost::asio::buffer( buf ), yield_ctx[ ec ] );
+                szBytesTransferred = boost::asio::async_read( m_socket, boost::asio::buffer( buf ), yield_ctx[ ec ] );
+                if ( !ec )
+                {
+                    if ( szBytesTransferred == MessageSizeSize )
+                    {
+                        size = ntohl( *reinterpret_cast< const network::MessageSize* >( buf.data() ) );
+                        std::cout << "Received message size: " << size << std::endl;
+                        break;
+                    }
+                    else
+                    {
+                        THROW_RTE( "Failed to read message size" );
+                    }
+                }
+                else // if( ec.failed() )
+                {
+                    if ( ec == boost::asio::error::eof )
+                    {
+                        std::cout << "Socket closed" << std::endl;
+                        bContinue = false;
+                        break;
+                    }
+                    // log error and close
+                    THROW_RTE( "Socket error: " << ec.what() );
+                    m_socket.close();
+                }
+            }
         }
-        else
+
+        // read message
+        while ( bContinue && m_socket.is_open() )
         {
-            m_socket.close();
+            szBytesTransferred = boost::asio::async_read( m_socket, streamBuffer.prepare( size ), yield_ctx[ ec ] );
+            if ( !ec )
+            {
+                VERIFY_RTE( size == szBytesTransferred );
+                streamBuffer.commit( size );
+
+                {
+                    boost::archive::binary_iarchive ia( streamBuffer );
+
+                    ia& header;
+
+                    Activity::Ptr pActivity = m_activityManager.findExistingActivity( header.getActivityID() );
+                    if ( !pActivity )
+                    {
+                        pActivity = m_activityManager.startRequestActivity(
+                            header.getActivityID(), getConnectionID( m_socket ) );
+                        std::cout << "Started request activity: " << header.getActivityID() << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << "Reusing activity: " << header.getActivityID() << std::endl;
+                    }
+
+                    m_decoder.decode( ia, header, pActivity );
+                }
+
+                streamBuffer.consume( size );
+
+                updateLastActivityTime();
+                break;
+            }
+            else // if( ec.failed() )
+            {
+                if ( ec == boost::asio::error::eof )
+                {
+                    std::cout << "Socket closed" << std::endl;
+                    bContinue = false;
+                    break;
+                }
+                // log error and close
+                THROW_RTE( "Socket error: " << ec.what() );
+                m_socket.close();
+            }
         }
     }
 }

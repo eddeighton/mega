@@ -1,21 +1,18 @@
 
 #include "service/network/network.hpp"
+#include "service/host/host.hpp"
 
 #include "common/assert_verify.hpp"
 
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/ip/tcp.hpp>
-
 #include "boost/program_options.hpp"
 
-#include "boost/asio.hpp"
-#include "boost/array.hpp"
-
 #include <iostream>
+#include <optional>
+#include <string>
 
 int main( int argc, const char* argv[] )
 {
-    std::string strIP;
+    std::optional< std::string > optionalHostName;
     {
         bool bShowHelp = false;
 
@@ -23,9 +20,10 @@ int main( int argc, const char* argv[] )
         po::options_description options;
 
         // clang-format off
+        std::string strHostName;
         options.add_options()
         ( "help",   po::bool_switch( &bShowHelp ),      "Show Command Line Help" )
-        ( "ip",     po::value< std::string >( &strIP ), "Daemon IP Address" )
+        ( "name",   po::value< std::string >( &strHostName ), "Host name" )
         ;
         // clang-format on
 
@@ -40,25 +38,24 @@ int main( int argc, const char* argv[] )
             std::cout << options << "\n";
             return 0;
         }
-
-        if ( strIP.empty() )
+        if ( !strHostName.empty() )
         {
-            std::cerr << "Missing IP Address" << std::endl;
-            return -1;
+            optionalHostName.emplace( std::move( strHostName ) );
         }
     }
 
-    std::cout << "Connecting to: " << strIP << std::endl;
-
     try
     {
-        boost::asio::io_context io_context;
+        mega::service::Host host( optionalHostName );
 
-        boost::asio::ip::tcp::resolver resolver( io_context );
+        while( true )
+        {
+            std::string strLine;
+            std::getline( std::cin, strLine );
+            const std::string strVersion = host.GetVersion( strLine );
+            std::cout << "Version is: " << strVersion << std::endl;
+        }
 
-        boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve( strIP, "megadaemon" );
-
-        VERIFY_RTE_MSG( !endpoints.empty(), "Failed to resolve megadaemon service on ip: " << strIP );
     }
     catch ( std::exception& ex )
     {

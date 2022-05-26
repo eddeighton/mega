@@ -3,21 +3,14 @@
 #include "mega/coroutine.hpp"
 
 #include "service/network/network.hpp"
+#include "service/daemon/daemon.hpp"
 
 #include "common/assert_verify.hpp"
 
-#include "boost/asio/io_context.hpp"
-#include "boost/asio/ip/tcp.hpp"
-#include "boost/asio/ts/netfwd.hpp"
-#include "boost/asio.hpp"
-
-#include "boost/bind/bind.hpp"
-#include "boost/array.hpp"
 #include "boost/program_options.hpp"
 
-#include <boost/asio/detached.hpp>
-#include <boost/asio/use_future.hpp>
-#include <boost/system/detail/error_code.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/io_service.hpp>
 #include <iostream>
 #include <sstream>
 #include <chrono>
@@ -64,7 +57,7 @@ public:
         // start the watch dog
         // OnWatchDog();
     }
-    
+
         void OnWatchDog()
         {
             // boost::asio::
@@ -93,7 +86,7 @@ public:
     {
         // std::cout << "Received Hello response msg: " << rq.msg() << std::endl;
     }
-    
+
         virtual void onHeartbeatRequest( const mega::HeartBeatRequest& rq )
         {
             // std::cout << "Heartbeat request: " << rq.time() << std::endl;
@@ -137,6 +130,86 @@ mega::ActionCoroutine test2()
 }
 */
 
+/*boost::asio::io_context networkQueue;
+boost::asio::io_context simQueue;
+
+mega::network::ChannelType channel( networkQueue );
+
+Client client( networkQueue, strIP, channel );
+
+boost::asio::spawn( simQueue,
+                    [ &channel, &client ]( boost::asio::yield_context yield )
+                    {
+                        int iCounter = 0;
+                        while ( true )
+                        {
+                            //for ( int i = 0; i < 100; ++i )
+                             //   client.send( mega::network::TEST_MESSAGE );
+
+                            channel.async_send( boost::system::error_code(), iCounter++, yield );
+                            // std::cout << "Channel returned: " << result << std::endl;
+
+                            auto t = test( yield );
+                            t.resume();
+                            t.resume();
+
+                            boost::asio::post( yield );
+
+                            //boost::asio::steady_timer::async_wait()
+                        }
+                    } );*/
+
+/*
+        std::string strLine;
+        std::getline( std::cin, strLine );
+        std::istringstream is( strLine );
+        int iRate = 1;
+        is >> iRate;
+
+        int iCounter = 0;
+        while ( true )
+        {
+
+            for ( int i = 0; i < iRate; ++i )
+                client.send( mega::network::TEST_MESSAGE );
+
+            channel.async_send(boost::system::error_code(), iCounter++, boost::asio::detached );
+
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for( 100ms );
+        }
+
+std::thread networkThread( [ &networkQueue ]() { networkQueue.run(); } );
+std::thread simThread( [ &simQueue ]() { simQueue.run(); } );
+
+int iCounter = 0;
+while ( true )
+{
+    auto f =
+        channel.async_send( boost::system::error_code(), ++iCounter, boost::asio::use_future );
+
+    using namespace std::chrono_literals;
+    if( std::future_status::ready == f.wait_for( 10ms ) )
+    {
+        std::cout << "Future wait success" << std::endl;
+    }
+
+
+    if ( channel.try_send( boost::system::error_code(), ++iCounter ) )
+    {
+        std::cout << "try_send success" << std::endl;
+    }
+    else
+    {
+        std::cout << "try_send failure" << std::endl;
+    }
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for( 100ms );
+}
+
+networkThread.join();
+simThread.join();*/
+
 int main( int argc, const char* argv[] )
 {
     std::string strIP = "localhost";
@@ -176,85 +249,19 @@ int main( int argc, const char* argv[] )
 
     try
     {
-        /*boost::asio::io_context networkQueue;
-        boost::asio::io_context simQueue;
+        boost::asio::io_context ioContext;
 
-        mega::network::ChannelType channel( networkQueue );
+        mega::service::Daemon daemon( ioContext );
 
-        Client client( networkQueue, strIP, channel );
-
-        boost::asio::spawn( simQueue,
-                            [ &channel, &client ]( boost::asio::yield_context yield )
-                            {
-                                int iCounter = 0;
-                                while ( true )
-                                {
-                                    //for ( int i = 0; i < 100; ++i )
-                                     //   client.send( mega::network::TEST_MESSAGE );
-
-                                    channel.async_send( boost::system::error_code(), iCounter++, yield );
-                                    // std::cout << "Channel returned: " << result << std::endl;
-
-                                    auto t = test( yield );
-                                    t.resume();
-                                    t.resume();
-
-                                    boost::asio::post( yield );
-
-                                    //boost::asio::steady_timer::async_wait()
-                                }
-                            } );*/
-
-        /*
-                std::string strLine;
-                std::getline( std::cin, strLine );
-                std::istringstream is( strLine );
-                int iRate = 1;
-                is >> iRate;
-
-                int iCounter = 0;
-                while ( true )
-                {
-
-                    for ( int i = 0; i < iRate; ++i )
-                        client.send( mega::network::TEST_MESSAGE );
-
-                    channel.async_send(boost::system::error_code(), iCounter++, boost::asio::detached );
-
-                    using namespace std::chrono_literals;
-                    std::this_thread::sleep_for( 100ms );
-                }
-
-        std::thread networkThread( [ &networkQueue ]() { networkQueue.run(); } );
-        std::thread simThread( [ &simQueue ]() { simQueue.run(); } );
-
-        int iCounter = 0;
-        while ( true )
+        std::vector< std::thread > threads;
+        for ( int i = 0; i < std::thread::hardware_concurrency() - 1; ++i )
         {
-            auto f =
-                channel.async_send( boost::system::error_code(), ++iCounter, boost::asio::use_future );
-            
-            using namespace std::chrono_literals;
-            if( std::future_status::ready == f.wait_for( 10ms ) )
-            {
-                std::cout << "Future wait success" << std::endl;
-            }
-
-
-            if ( channel.try_send( boost::system::error_code(), ++iCounter ) )
-            {
-                std::cout << "try_send success" << std::endl;
-            }
-            else
-            {
-                std::cout << "try_send failure" << std::endl;
-            }
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for( 100ms );
+            threads.emplace_back( std::move( std::thread( [ &ioContext ]() { ioContext.run(); } ) ) );
         }
-
-        networkThread.join();
-        simThread.join();*/
+        for ( std::thread& thread : threads )
+        {
+            thread.join();
+        }
     }
     catch ( std::exception& ex )
     {

@@ -3,6 +3,7 @@
 #define SERVICE_24_MAY_2022
 
 #include "service/network/client.hpp"
+#include "service/network/activity_manager.hpp"
 
 #include <boost/asio/io_service.hpp>
 
@@ -17,36 +18,30 @@ namespace mega
 {
 namespace service
 {
-class Simulation
-{
-public:
-    using Ptr       = std::shared_ptr< Simulation >;
-    using PtrVector = std::vector< Ptr >;
-
-    void* getRoot();
-};
-
-class Lock
-{
-public:
-    using Ptr = std::shared_ptr< Lock >;
-};
 
 class Host
 {
+    class HostActivityFactory : public network::ActivityFactory
+    {
+    public:
+        virtual network::Activity::Ptr createRequestActivity( network::ActivityManager&  activityManager,
+                                                              const network::ActivityID& activityID,
+                                                              const network::ConnectionID& originatingConnectionID ) const;
+    };
+
 public:
     Host( std::optional< const std::string > optName = std::nullopt );
+    ~Host();
 
-    Lock::Ptr getLock();
-
-    Simulation::PtrVector getSimulations();
-    Simulation::Ptr       createSimulation();
+    std::string GetVersion( const std::string& str );
 
 private:
+    HostActivityFactory     m_activityFactory;
     boost::asio::io_context m_io_context;
-    network::Client         m_client;
-    std::thread             m_io_thread;
-    Simulation::PtrVector   m_simulations;
+    using ExecutorType = decltype( m_io_context.get_executor() );
+    boost::asio::executor_work_guard< ExecutorType > m_work_guard;
+    network::Client                                  m_client;
+    std::thread                                      m_io_thread;
 };
 
 } // namespace service
