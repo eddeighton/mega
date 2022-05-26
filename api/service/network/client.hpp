@@ -10,8 +10,8 @@
 
 #include "common/assert_verify.hpp"
 
+#include "boost/asio/strand.hpp"
 #include "boost/asio/ip/tcp.hpp"
-#include "boost/asio/steady_timer.hpp"
 
 #include <boost/asio/execution_context.hpp>
 #include <string>
@@ -24,24 +24,27 @@ namespace mega
 namespace network
 {
 
-class Client : public ActivityManager
+class Client
 {
+    using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
+
 public:
-    Client( boost::asio::io_context& ioContext, ActivityFactory& activityFactory, const std::string& strServiceIP );
+    Client( boost::asio::io_context& ioContext, ActivityManager& activityManager, ActivityFactory& activityFactory,
+            const std::string& strServiceIP, const std::string& strServiceName );
     ~Client();
+
+    boost::asio::io_context&      getIOContext() const { return m_ioContext; }
+    boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
 
     void stop();
     void disconnected();
 
-    boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
-
-    void spawnActivity( Activity::Ptr pActivity );
-
 private:
+    boost::asio::io_context&       m_ioContext;
     boost::asio::ip::tcp::resolver m_resolver;
+    Strand                         m_strand;
     boost::asio::ip::tcp::socket   m_socket;
     boost::asio::ip::tcp::endpoint m_endPoint;
-    boost::asio::steady_timer      m_watchDogTimer;
     Receiver                       m_receiver;
 };
 

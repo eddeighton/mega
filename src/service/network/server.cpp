@@ -14,12 +14,12 @@ namespace mega
 namespace network
 {
 
-Server::Connection::Connection( Server& server, boost::asio::io_context& ioContext )
+Server::Connection::Connection( Server& server, boost::asio::io_context& ioContext, ActivityManager& activityManager,
+                                ActivityFactory& activityFactory )
     : m_server( server )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( server, m_socket, boost::bind( &Connection::disconnected, this ) ) // would be 2 decoders here
-    , m_watchDogTimer( m_strand )
+    , m_receiver( activityManager, activityFactory, m_socket, boost::bind( &Connection::disconnected, this ) )
 {
 }
 
@@ -43,22 +43,28 @@ void Server::Connection::start()
     m_receiver.run( m_strand );
 }
 
-void Server::Connection::disconnected()
+void Server::Connection::disconnected() { m_server.onDisconnected( shared_from_this() ); }
+
+Server::Server( boost::asio::io_context& ioContext, ActivityManager& activityManager, ActivityFactory& activityFactory,
+                short port )
+    : m_ioContext( ioContext )
+    , m_activityManager( activityManager )
+    , m_activityFactory( activityFactory )
+    , m_acceptor( m_ioContext, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), port ) )
 {
-    m_server.onDisconnected( shared_from_this() );
 }
 
-Server::Server( boost::asio::io_context& ioContext, ActivityFactory& activityFactory )
-    : ActivityManager( ioContext, activityFactory )
-    , m_acceptor(
-          m_ioContext, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), mega::network::MegaRootPort() ) )
+void Server::stop()
 {
+    m_acceptor.cancel();
+    m_acceptor.close();
+    m_ioContext.stop();
 }
 
 void Server::waitForConnection()
 {
     using tcp                      = boost::asio::ip::tcp;
-    Connection::Ptr pNewConnection = std::make_shared< Connection >( *this, m_ioContext );
+    Connection::Ptr pNewConnection = std::make_shared< Connection >( *this, m_ioContext, m_activityManager, m_activityFactory );
     m_acceptor.async_accept( pNewConnection->getSocket(),
                              boost::asio::bind_executor( pNewConnection->getStrand(),
                                                          boost::bind( &Server::onConnect, this, pNewConnection,
@@ -85,7 +91,7 @@ void Server::onDisconnected( Connection::Ptr pConnection )
 Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )
 {
     ConnectionMap::iterator iFind = m_connections.find( connectionID );
-    if( iFind != m_connections.end() )
+    if ( iFind != m_connections.end() )
     {
         return iFind->second;
     }

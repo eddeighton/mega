@@ -9,9 +9,8 @@ namespace mega
 namespace network
 {
 
-ActivityManager::ActivityManager( boost::asio::io_context& ioContext, ActivityFactory& activityFactory )
+ActivityManager::ActivityManager( boost::asio::io_context& ioContext )
     : m_ioContext( ioContext )
-    , m_activityFactory( activityFactory )
 {
 }
 
@@ -20,6 +19,8 @@ boost::asio::io_context& ActivityManager::getIOContext() const { return m_ioCont
 void ActivityManager::activityStarted( Activity::Ptr pActivity )
 {
     m_activities.insert( std::make_pair( pActivity->getActivityID(), pActivity ) );
+    boost::asio::spawn(
+        m_ioContext, [ pActivity ]( boost::asio::yield_context yield_ctx ) { pActivity->run( yield_ctx ); } );
 }
 
 void ActivityManager::activityCompleted( Activity::Ptr pActivity )
@@ -40,18 +41,6 @@ Activity::Ptr ActivityManager::findExistingActivity( const ActivityID& activityI
     {
         return Activity::Ptr();
     }
-}
-
-Activity::Ptr ActivityManager::startRequestActivity( const ActivityID& activityID,
-                                                     const ConnectionID& originatingEndPointID )
-{
-    Activity::Ptr pActivity = m_activityFactory.createRequestActivity( *this, activityID, originatingEndPointID );
-
-    boost::asio::spawn(
-        m_ioContext, [ pActivity ]( boost::asio::yield_context yield_ctx ) { pActivity->run( yield_ctx ); } );
-
-    activityStarted( pActivity );
-    return pActivity;
 }
 
 } // namespace network

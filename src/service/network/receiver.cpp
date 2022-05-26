@@ -20,9 +20,10 @@ namespace mega
 namespace network
 {
 
-Receiver::Receiver( ActivityManager& activityManager, boost::asio::ip::tcp::socket& socket,
-                    std::function< void() > disconnectHandler )
+Receiver::Receiver( ActivityManager& activityManager, ActivityFactory& activityFactory,
+                    boost::asio::ip::tcp::socket& socket, std::function< void() > disconnectHandler )
     : m_activityManager( activityManager )
+    , m_activityFactory( activityFactory )
     , m_socket( socket )
     , m_disconnectHandler( disconnectHandler )
 {
@@ -92,8 +93,14 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                     Activity::Ptr pActivity = m_activityManager.findExistingActivity( header.getActivityID() );
                     if ( !pActivity )
                     {
-                        pActivity = m_activityManager.startRequestActivity(
+                        pActivity = m_activityFactory.createRequestActivity(
                             header.getActivityID(), getConnectionID( m_socket ) );
+                        m_activityManager.activityStarted( pActivity );
+                        //std::cout << "Receive to new: " << pActivity->getActivityID() << std::endl;
+                    }
+                    else
+                    {
+                        //std::cout << "Receive to existing: " << pActivity->getActivityID() << std::endl;
                     }
 
                     decode( ia, header, pActivity );

@@ -1,6 +1,0 @@
-
-msg RootToDaemon
-{
-    request();
-    response(int test);
-}

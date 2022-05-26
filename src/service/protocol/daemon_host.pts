@@ -1,9 +1,0 @@
-
-msg DaemonToHost
-{
-    request( int anInt );
-    event( int value, bool bBoolean, std::optional< int32_t > maybe );
-    event( std::string message );
-    event();
-    response( std::vector< std::string > messages );
-}

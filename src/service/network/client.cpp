@@ -14,19 +14,17 @@ namespace mega
 namespace network
 {
 
-Client::Client( boost::asio::io_context& ioContext, ActivityFactory& activityFactory, const std::string& strServiceIP )
-    : ActivityManager( ioContext, activityFactory )
+Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityManager, ActivityFactory& activityFactory,
+                const std::string& strServiceIP, const std::string& strServiceName )
+    : m_ioContext( ioContext )
     , m_resolver( ioContext )
-    , m_socket( ioContext )
-    , m_watchDogTimer( ioContext )
-    , m_receiver( *this, m_socket, boost::bind( &Client::disconnected, this ) )
+    , m_strand( boost::asio::make_strand( ioContext ) )
+    , m_socket( m_strand )
+    , m_receiver( activityManager, activityFactory, m_socket, boost::bind( &Client::disconnected, this ) )
 {
-    boost::asio::ip::tcp::resolver::results_type endpoints
-        = m_resolver.resolve( strServiceIP, mega::network::MegaRootServiceName() );
+    boost::asio::ip::tcp::resolver::results_type endpoints = m_resolver.resolve( strServiceIP, strServiceName );
 
-    VERIFY_RTE_MSG(
-        !endpoints.empty(),
-        "Failed to resolve " << mega::network::MegaRootServiceName() << " service on ip: " << strServiceIP );
+    VERIFY_RTE_MSG( !endpoints.empty(), "Failed to resolve " << strServiceName << " service on ip: " << strServiceIP );
 
     m_endPoint = boost::asio::connect( m_socket, endpoints );
 
@@ -39,19 +37,13 @@ void Client::stop()
 {
     m_socket.cancel();
     m_socket.close();
+    m_ioContext.stop();
 }
 
 void Client::disconnected()
 {
     std::cout << "Client disconnected" << std::endl;
     stop();
-}
-
-void Client::spawnActivity( Activity::Ptr pActivity )
-{
-    activityStarted( pActivity );
-    boost::asio::spawn(
-        m_ioContext, [ pActivity ]( boost::asio::yield_context yield_ctx ) { pActivity->run( yield_ctx ); } );
 }
 
 Client::~Client()

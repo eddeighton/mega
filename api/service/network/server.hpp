@@ -9,7 +9,6 @@
 #include "service/network/receiver.hpp"
 
 #include "boost/asio/strand.hpp"
-#include "boost/asio/steady_timer.hpp"
 #include "boost/asio/ip/tcp.hpp"
 
 #include <string>
@@ -20,7 +19,7 @@ namespace mega
 {
 namespace network
 {
-class Server : public ActivityManager
+class Server
 {
 public:
     class Connection : public std::enable_shared_from_this< Connection >
@@ -31,7 +30,8 @@ public:
         using Ptr    = std::shared_ptr< Connection >;
         using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
 
-        Connection( Server& server, boost::asio::io_context& ioContext );
+        Connection( Server& server, boost::asio::io_context& ioContext, ActivityManager& activityManager,
+                    ActivityFactory& activityFactory );
         ~Connection();
 
         Strand&                       getStrand() { return m_strand; }
@@ -46,7 +46,6 @@ public:
         Server&                      m_server;
         Strand                       m_strand;
         boost::asio::ip::tcp::socket m_socket;
-        boost::asio::steady_timer    m_watchDogTimer;
         Receiver                     m_receiver;
         std::string                  m_strName;
     };
@@ -54,16 +53,22 @@ public:
     using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
 
 public:
-    Server( boost::asio::io_context& ioContext, ActivityFactory& activityFactory );
+    Server( boost::asio::io_context& ioContext, ActivityManager& activityManager, ActivityFactory& activityFactory,
+            short port );
 
+    boost::asio::io_context& getIOContext() const { return m_ioContext; }
+    Connection::Ptr          getConnection( const ConnectionID& connectionID );
+    const ConnectionMap&     getConnections() const { return m_connections; }
+
+    void stop();
     void waitForConnection();
     void onConnect( Connection::Ptr pNewConnection, const boost::system::error_code& ec );
     void onDisconnected( Connection::Ptr pConnection );
 
-    Connection::Ptr getConnection( const ConnectionID& connectionID );
-    const ConnectionMap& getConnections() const { return m_connections; }
-
 private:
+    boost::asio::io_context&       m_ioContext;
+    ActivityManager&               m_activityManager;
+    ActivityFactory&               m_activityFactory;
     boost::asio::ip::tcp::acceptor m_acceptor;
     ConnectionMap                  m_connections;
 };

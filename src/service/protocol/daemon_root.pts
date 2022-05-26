@@ -1,6 +1,6 @@
 
-msg DaemonToRoot
+msg GetVersion
 {
     request();
-    response(int test);
+    response(std::string version);
 }

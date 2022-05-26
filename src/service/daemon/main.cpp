@@ -54,7 +54,7 @@ int main( int argc, const char* argv[] )
     {
         boost::asio::io_context ioContext;
 
-        mega::service::Daemon daemon( ioContext );
+        mega::service::Daemon daemon( ioContext, strIP );
 
         std::vector< std::thread > threads;
         for ( int i = 0; i < std::thread::hardware_concurrency() - 1; ++i )

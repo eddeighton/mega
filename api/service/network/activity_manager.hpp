@@ -10,22 +10,12 @@ namespace mega
 namespace network
 {
 
-class ActivityManager;
-
-class ActivityFactory
-{
-public:
-    virtual Activity::Ptr createRequestActivity( ActivityManager&             activityManager,
-                                                 const network::ActivityID&   activityID,
-                                                 const network::ConnectionID& originatingConnectionID ) const = 0;
-};
-
 class ActivityManager
 {
     using ActivityPtrMap = std::map< ActivityID, Activity::Ptr >;
 
 public:
-    ActivityManager( boost::asio::io_context& ioContext, ActivityFactory& activityFactory );
+    ActivityManager( boost::asio::io_context& ioContext );
 
     boost::asio::io_context& getIOContext() const;
 
@@ -33,15 +23,19 @@ public:
     void activityCompleted( Activity::Ptr pActivity );
 
     Activity::Ptr findExistingActivity( const network::ActivityID& activityID ) const;
-    Activity::Ptr startRequestActivity( const network::ActivityID& activityID,
-                                        const ConnectionID&        originatingEndPointID );
 
 protected:
     boost::asio::io_context& m_ioContext;
-    ActivityFactory&         m_activityFactory;
 
 private:
     ActivityPtrMap m_activities;
+};
+
+class ActivityFactory
+{
+public:
+    virtual Activity::Ptr createRequestActivity( const network::ActivityID&   activityID,
+                                                 const network::ConnectionID& originatingConnectionID ) const = 0;
 };
 
 } // namespace network

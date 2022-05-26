@@ -21,26 +21,34 @@ namespace service
 
 class Host
 {
+    friend class RequestActivity;
     class HostActivityFactory : public network::ActivityFactory
     {
+        Host& m_host;
+
     public:
-        virtual network::Activity::Ptr createRequestActivity( network::ActivityManager&  activityManager,
-                                                              const network::ActivityID& activityID,
-                                                              const network::ConnectionID& originatingConnectionID ) const;
+        HostActivityFactory( Host& host )
+            : m_host( host )
+        {
+        }
+        virtual network::Activity::Ptr
+        createRequestActivity( const network::ActivityID&   activityID,
+                               const network::ConnectionID& originatingConnectionID ) const;
     };
 
 public:
     Host( std::optional< const std::string > optName = std::nullopt );
     ~Host();
 
-    std::string GetVersion();
+    std::string                GetVersion();
     std::vector< std::string > ListHosts();
 
 private:
-    HostActivityFactory     m_activityFactory;
-    boost::asio::io_context m_io_context;
+    HostActivityFactory      m_activityFactory;
+    boost::asio::io_context  m_io_context;
+    network::ActivityManager m_activityManager;
+    network::Client          m_client;
     using ExecutorType = decltype( m_io_context.get_executor() );
-    network::Client                                  m_client;
     boost::asio::executor_work_guard< ExecutorType > m_work_guard;
     std::thread                                      m_io_thread;
 };
