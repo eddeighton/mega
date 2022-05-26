@@ -7,7 +7,6 @@
 
 namespace mega
 {
-
 namespace service
 {
 
@@ -16,9 +15,9 @@ class RequestActivity : public network::Activity, public network::host_daemon_Im
     Daemon& m_daemon;
 
 public:
-    RequestActivity( Daemon&                    daemon,
-                     network::ActivityManager&  activityManager,
-                     const network::ActivityID& activityID,
+    RequestActivity( Daemon&                      daemon,
+                     network::ActivityManager&    activityManager,
+                     const network::ActivityID&   activityID,
                      const network::ConnectionID& originatingConnectionID )
         : Activity( activityManager, activityID, originatingConnectionID )
         , m_daemon( daemon )
@@ -27,35 +26,21 @@ public:
 
     virtual void run( boost::asio::yield_context yield_ctx )
     {
-        while ( true )
-        {
-            // get decoded request
-            network::MessageVariant msg = receiveMessage( yield_ctx );
-            // dispatch
-            if ( host_daemon_Impl::dispatch( msg, yield_ctx ) == false )
-                break;
-        }
+        while ( host_daemon_Impl::dispatch( receiveMessage( yield_ctx ), yield_ctx ) )
+            ;
         completed();
     }
 
     virtual void GetVersion( const std::string& version, boost::asio::yield_context yield_ctx )
     {
-        std::cout << "Received GetVersion request with: " << version << std::endl;
-
-        network::Server::Connection::Ptr pConnection
-            = m_daemon.m_server.getConnection( getOriginatingEndPointID().value() );
-
-        VERIFY_RTE( pConnection );
-
-        network::host_daemon_Response_Encode daemonToHostResponse( *this, pConnection->getSocket(), yield_ctx );
-
-        std::ostringstream os;
-        os << "Received: " << version;
-        std::cout << "Sending: " << os.str();
-
-        daemonToHostResponse.GetVersion( os.str() );
-
-        completed();
+        if ( network::Server::Connection::Ptr pConnection
+             = m_daemon.m_server.getConnection( getOriginatingEndPointID().value() ) )
+        {
+            network::host_daemon_Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
+            std::ostringstream                   os;
+            os << "Received: " << version;
+            hostResponse.GetVersion( os.str() );
+        }
     }
 };
 
@@ -65,11 +50,12 @@ Daemon::DaemonActivityFactory::DaemonActivityFactory( Daemon& daemon )
 }
 
 network::Activity::Ptr
-Daemon::DaemonActivityFactory::createRequestActivity( network::ActivityManager&  activityManager,
-                                                      const network::ActivityID& activityID,
+Daemon::DaemonActivityFactory::createRequestActivity( network::ActivityManager&    activityManager,
+                                                      const network::ActivityID&   activityID,
                                                       const network::ConnectionID& originatingConnectionID ) const
 {
-    return network::Activity::Ptr( new RequestActivity( m_daemon, activityManager, activityID, originatingConnectionID ) );
+    return network::Activity::Ptr(
+        new RequestActivity( m_daemon, activityManager, activityID, originatingConnectionID ) );
 }
 
 Daemon::Daemon( boost::asio::io_context& ioContext )

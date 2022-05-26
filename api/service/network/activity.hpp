@@ -19,44 +19,30 @@ namespace network
 
 class ActivityManager;
 
-class Activity
+class Activity : public std::enable_shared_from_this< Activity >
 {
 public:
-    using Ptr    = std::shared_ptr< Activity >;
+    using Ptr = std::shared_ptr< Activity >;
 
     Activity( ActivityManager& activityManager, const ActivityID& activityID,
               std::optional< ConnectionID > originatingConnectionID );
     virtual ~Activity();
 
-    const ActivityID&                  getActivityID() const { return m_activityID; }
+    const ActivityID&                    getActivityID() const { return m_activityID; }
     const std::optional< ConnectionID >& getOriginatingEndPointID() const { return m_originatingEndPoint; }
 
     virtual void run( boost::asio::yield_context yield_ctx ) = 0;
 
-    void completed() {}
+    void completed();
 
-    MessageVariant receiveMessage( boost::asio::yield_context yield_ctx )
-    {
-        return m_messageChannel.async_receive( yield_ctx );
-    }
-
-    void sendMessage( const MessageVariant& msg )
-    {
-        m_messageChannel.async_send( boost::system::error_code(), msg,
-                                     []( boost::system::error_code ec )
-                                     {
-                                         if ( ec )
-                                         {
-                                             THROW_RTE( "Failed to send message on channel: " << ec.what() );
-                                         }
-                                     } );
-    }
+    MessageVariant receiveMessage( boost::asio::yield_context yield_ctx );
+    void sendMessage( const MessageVariant& msg );
 
 protected:
-    ActivityManager&            m_activityManager;
-    ActivityID                  m_activityID;
+    ActivityManager&              m_activityManager;
+    ActivityID                    m_activityID;
     std::optional< ConnectionID > m_originatingEndPoint;
-    MessageChannel              m_messageChannel;
+    MessageChannel                m_messageChannel;
 };
 
 } // namespace network

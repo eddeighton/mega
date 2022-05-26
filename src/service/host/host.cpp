@@ -40,11 +40,13 @@ public:
 
         promise.set_value( strResult );
 
+        daemon.Complete();
+
         completed();
     }
 };
 
-class RequestActivity : public network::Activity//, public network::host_daemon_Impl
+class RequestActivity : public network::Activity//, public network::daemon_host_Impl
 {
 public:
     RequestActivity( network::ActivityManager& activityManager, const network::ActivityID& activityID,
@@ -60,7 +62,7 @@ public:
             // get decoded request
             network::MessageVariant msg = receiveMessage( yield_ctx );
             // dispatch
-            if( host_daemon_Impl::dispatch( msg, yield_ctx ) == false )
+            if( daemon_host_Impl::dispatch( msg, yield_ctx ) == false )
                 break;
         }*/
         completed();

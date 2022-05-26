@@ -1,5 +1,8 @@
+
 #include "service/network/activity_manager.hpp"
 #include "service/protocol/common/header.hpp"
+
+#include <iostream>
 
 namespace mega
 {
