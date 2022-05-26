@@ -3,6 +3,7 @@
 #include "service/network/network.hpp"
 
 #include "boost/bind/bind.hpp"
+#include "boost/asio/connect.hpp"
 
 #include <exception>
 #include <future>

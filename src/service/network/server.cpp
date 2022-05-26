@@ -5,6 +5,7 @@
 #include "service/network/end_point.hpp"
 
 #include "boost/bind/bind.hpp"
+#include "boost/asio/placeholders.hpp"
 
 namespace mega
 {

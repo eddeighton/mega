@@ -8,6 +8,7 @@
 #include "service/protocol/common/header.hpp"
 
 #include <optional>
+#include <future>
 
 namespace mega
 {
