@@ -8,8 +8,6 @@
 #include "service/network/activity_manager.hpp"
 #include "service/network/receiver.hpp"
 
-#include "boost/asio/execution_context.hpp"
-#include "boost/asio/thread_pool.hpp"
 #include "boost/asio/strand.hpp"
 #include "boost/asio/steady_timer.hpp"
 #include "boost/asio/ip/tcp.hpp"
@@ -28,6 +26,7 @@ public:
     class Connection
     {
         friend class Server;
+
     public:
         using Ptr    = std::shared_ptr< Connection >;
         using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;

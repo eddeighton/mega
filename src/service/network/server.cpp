@@ -59,11 +59,6 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
     {
         pNewConnection->start();
         m_connections.insert( std::make_pair( getConnectionID( pNewConnection->getSocket() ), pNewConnection ) );
-        // std::cout << "New connection from: " << pNewConnection->getName() << std::endl;
-    }
-    else
-    {
-        // std::cout << "Connection Error: " << ec.what() << std::endl;
     }
     waitForConnection();
 }
@@ -71,7 +66,6 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
 void Server::onDisconnected( Connection::Ptr pConnection )
 {
     m_connections.erase( getConnectionID( pConnection->getSocket() ) );
-    // std::cout << "Connection lost from: " << pConnection->getName() << std::endl;
 }
 
 Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )

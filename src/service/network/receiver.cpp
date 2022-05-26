@@ -45,18 +45,14 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
         // read message size
         network::MessageSize size = 0U;
         {
-            // szBytesTransferred = m_socket.async_receive( boost::asio::buffer( buf ), yield_ctx[ ec ] );
-
             while ( bContinue && m_socket.is_open() )
             {
-                // szBytesTransferred = m_socket.async_read_some( boost::asio::buffer( buf ), yield_ctx[ ec ] );
                 szBytesTransferred = boost::asio::async_read( m_socket, boost::asio::buffer( buf ), yield_ctx[ ec ] );
                 if ( !ec )
                 {
                     if ( szBytesTransferred == MessageSizeSize )
                     {
                         size = ntohl( *reinterpret_cast< const network::MessageSize* >( buf.data() ) );
-                        //std::cout << "Received message size: " << size << std::endl;
                         break;
                     }
                     else
@@ -98,11 +94,6 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                     {
                         pActivity = m_activityManager.startRequestActivity(
                             header.getActivityID(), getConnectionID( m_socket ) );
-                        //std::cout << "Started request activity: " << header.getActivityID() << std::endl;
-                    }
-                    else
-                    {
-                        //std::cout << "Reusing activity: " << header.getActivityID() << std::endl;
                     }
 
                     m_decoder.decode( ia, header, pActivity );

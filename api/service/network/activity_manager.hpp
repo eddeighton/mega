@@ -15,14 +15,15 @@ class ActivityManager;
 class ActivityFactory
 {
 public:
-    virtual Activity::Ptr createRequestActivity( ActivityManager&           activityManager,
-                                                 const network::ActivityID& activityID,
+    virtual Activity::Ptr createRequestActivity( ActivityManager&             activityManager,
+                                                 const network::ActivityID&   activityID,
                                                  const network::ConnectionID& originatingConnectionID ) const = 0;
 };
 
 class ActivityManager
 {
     using ActivityPtrMap = std::map< ActivityID, Activity::Ptr >;
+
 public:
     ActivityManager( boost::asio::io_context& ioContext, ActivityFactory& activityFactory );
 
@@ -33,7 +34,7 @@ public:
 
     Activity::Ptr findExistingActivity( const network::ActivityID& activityID ) const;
     Activity::Ptr startRequestActivity( const network::ActivityID& activityID,
-                                        const ConnectionID&          originatingEndPointID );
+                                        const ConnectionID&        originatingEndPointID );
 
 protected:
     boost::asio::io_context& m_ioContext;

@@ -8,9 +8,7 @@
 
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/asio/steady_timer.hpp"
-#include "boost/asio/streambuf.hpp"
 #include "boost/asio/spawn.hpp"
-#include <boost/asio/execution_context.hpp>
 
 namespace mega
 {

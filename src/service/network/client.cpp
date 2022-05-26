@@ -13,9 +13,7 @@ namespace mega
 namespace network
 {
 
-Client::Client( boost::asio::io_context& ioContext,
-                ActivityFactory&  activityFactory,
-                const std::string&       strServiceIP )
+Client::Client( boost::asio::io_context& ioContext, ActivityFactory& activityFactory, const std::string& strServiceIP )
     : ActivityManager( ioContext, activityFactory )
     , m_resolver( ioContext )
     , m_socket( ioContext )

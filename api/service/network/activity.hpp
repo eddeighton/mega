@@ -36,7 +36,7 @@ public:
     void completed();
 
     MessageVariant receiveMessage( boost::asio::yield_context yield_ctx );
-    void sendMessage( const MessageVariant& msg );
+    void           sendMessage( const MessageVariant& msg );
 
 protected:
     ActivityManager&              m_activityManager;

@@ -9,7 +9,7 @@ namespace mega
 {
 namespace network
 {
-    
+
 ConnectionID getConnectionID( boost::asio::ip::tcp::socket& socket )
 {
     std::ostringstream os;

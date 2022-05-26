@@ -27,12 +27,10 @@ namespace network
 class Client : public ActivityManager
 {
 public:
-    Client( boost::asio::io_context& ioContext, ActivityFactory& activityFactory,
-            const std::string& strServiceIP );
-
+    Client( boost::asio::io_context& ioContext, ActivityFactory& activityFactory, const std::string& strServiceIP );
     ~Client();
 
-    boost::asio::ip::tcp::socket&    getSocket() { return m_socket; }
+    boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
 
     void spawnActivity( Activity::Ptr pActivity );
 

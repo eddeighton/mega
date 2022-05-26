@@ -5,10 +5,8 @@
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
 
-#include "boost/bind/bind.hpp"
-#include "boost/asio/thread_pool.hpp"
 #include "service/protocol/common/header.hpp"
-#include <boost/bind/placeholders.hpp>
+
 #include <optional>
 
 namespace mega
