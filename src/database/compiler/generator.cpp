@@ -104,13 +104,13 @@ void generate( const Environment& env )
     }
 
     // clang-format off
-            std::vector< std::pair< std::string, std::string > > filenames = 
-            {
-                { "data"        , "data.json" },
-                { "environment" , "stages.json" },    
-                { "manifest"    , "stages.json" },    
-                { "file_info"   , "stages.json" }   
-            };
+    std::vector< std::pair< std::string, std::string > > filenames = 
+    {
+        { "data"        , "data.json" },
+        { "environment" , "stages.json" },    
+        { "manifest"    , "stages.json" },    
+        { "file_info"   , "stages.json" }   
+    };
     // clang-format on
 
     for ( const std::pair< std::string, std::string >& names : filenames )

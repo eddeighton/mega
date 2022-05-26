@@ -296,19 +296,13 @@ ParseResult parse( const std::string& strInput, Response& response, std::ostream
 } // namespace protocol
 
 // clang-format off
-BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Msg,
+BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Transaction,
                            ( protocol::schema::Identifier,              m_name )
                            ( protocol::schema::Request,                 m_request )
                            ( std::vector< protocol::schema::Event >,    m_events )
                            ( std::vector< protocol::schema::Response >, m_responses ) 
                         )
 
-BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Cast,
-                           ( protocol::schema::Identifier,              m_name )
-                           ( protocol::schema::Request,                 m_request )
-                           ( std::vector< protocol::schema::Event >,    m_events )
-                           ( std::vector< protocol::schema::Response >, m_responses ) 
-                        )
 // clang-format on
 
 namespace protocol
@@ -316,19 +310,14 @@ namespace protocol
 namespace schema
 {
 
-enum TransactionKeywordType
-{
-    eMSG,
-    eCAST
-};
-static const char* TransactionKeywordNames[] = { "msg", "cast" };
+static const char* TRANSACTION_KEYWORD = "msg";
 
-template < typename TransactionType, typename Iterator, TransactionKeywordType transactionKeywordType >
-class TransactionGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, TransactionType() >
+template < typename Iterator >
+class TransactionGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, Transaction() >
 {
 public:
     TransactionGrammar()
-        : TransactionGrammar::base_type( m_main_rule, TransactionKeywordNames[ transactionKeywordType ] )
+        : TransactionGrammar::base_type( m_main_rule, "transaction" )
     {
         using namespace boost::spirit;
         using namespace boost::spirit::qi;
@@ -336,7 +325,7 @@ public:
         using namespace boost::phoenix;
 
         // clang-format off
-        m_main_rule = lit( TransactionKeywordNames[ transactionKeywordType ] ) >> 
+        m_main_rule = lit( TRANSACTION_KEYWORD ) >> 
             m_grammar_identifier[ at_c< 0 >( _val ) = qi::_1 ]
             >>
             lit( '{' ) >> 
@@ -348,27 +337,23 @@ public:
         // clang-format on
     }
 
-    IdentifierGrammar< Iterator >                                                   m_grammar_identifier;
-    MessageGrammar< Request, Iterator, eREQUEST >                                   m_grammar_request;
-    MessageGrammar< Event, Iterator, eEVENT >                                       m_grammar_event;
-    MessageGrammar< Response, Iterator, eRESPONSE >                                 m_grammar_response;
-    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, TransactionType() > m_main_rule;
+    IdentifierGrammar< Iterator >                                               m_grammar_identifier;
+    MessageGrammar< Request, Iterator, eREQUEST >                               m_grammar_request;
+    MessageGrammar< Event, Iterator, eEVENT >                                   m_grammar_event;
+    MessageGrammar< Response, Iterator, eRESPONSE >                             m_grammar_response;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Transaction() > m_main_rule;
 };
 
-ParseResult parse( const std::string& strInput, Msg& msg, std::ostream& errorStream )
+ParseResult parse( const std::string& strInput, Transaction& msg, std::ostream& errorStream )
 {
-    return parse_impl< TransactionGrammar< Msg, IteratorType, eMSG > >( strInput, msg, errorStream );
-}
-ParseResult parse( const std::string& strInput, Cast& cast, std::ostream& errorStream )
-{
-    return parse_impl< TransactionGrammar< Cast, IteratorType, eCAST > >( strInput, cast, errorStream );
+    return parse_impl< TransactionGrammar< IteratorType > >( strInput, msg, errorStream );
 }
 
 } // namespace schema
 } // namespace protocol
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Schema,
-    ( std::vector< protocol::schema::TransactionVariant >, m_transactions )  )
+    ( std::vector< protocol::schema::Transaction >, m_transactions )  )
 // clang-format on
 
 namespace protocol
@@ -388,12 +373,11 @@ public:
         using namespace boost::phoenix;
 
         // clang-format off
-        m_main_rule = *( m_grammar_msg | m_grammar_cast )[ push_back( at_c< 0 >( _val ), qi::_1 ) ];
+        m_main_rule = *( m_grammar_msg )[ push_back( at_c< 0 >( _val ), qi::_1 ) ];
         // clang-format on
     }
 
-    TransactionGrammar< Msg, Iterator, eMSG >                              m_grammar_msg;
-    TransactionGrammar< Cast, Iterator, eCAST >                            m_grammar_cast;
+    TransactionGrammar< Iterator >                                         m_grammar_msg;
     boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Schema() > m_main_rule;
 };
 
@@ -456,22 +440,11 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Response& me
     return os << ')';
 }
 
-std::ostream& operator<<( std::ostream& os, const protocol::schema::Msg& transaction )
+std::ostream& operator<<( std::ostream& os, const protocol::schema::Transaction& transaction )
 {
     const std::string strDelim = "\n    ";
     using namespace protocol::schema;
-    os << protocol::schema::TransactionKeywordNames[ protocol::schema::eMSG ] << ' ' << transaction.m_name << "\n{    "
-       << transaction.m_request << strDelim;
-    common::delimit( transaction.m_events.begin(), transaction.m_events.end(), strDelim, os );
-    common::delimit( transaction.m_responses.begin(), transaction.m_responses.end(), strDelim, os );
-    return os << '}';
-}
-std::ostream& operator<<( std::ostream& os, const protocol::schema::Cast& transaction )
-{
-    const std::string strDelim = "\n    ";
-    using namespace protocol::schema;
-    os << protocol::schema::TransactionKeywordNames[ protocol::schema::eCAST ] << ' ' << transaction.m_name << "\n{    "
-       << transaction.m_request << strDelim;
+    os << TRANSACTION_KEYWORD << ' ' << transaction.m_name << "\n{    " << transaction.m_request << strDelim;
     common::delimit( transaction.m_events.begin(), transaction.m_events.end(), strDelim, os );
     common::delimit( transaction.m_responses.begin(), transaction.m_responses.end(), strDelim, os );
     return os << '}';
@@ -480,21 +453,9 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Cast& transa
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Schema& schema )
 {
     using namespace protocol::schema;
-    struct SchemaVariantPrinter : boost::static_visitor< void >
+    for ( const Transaction& transaction : schema.m_transactions )
     {
-        std::ostream& os;
-        SchemaVariantPrinter( std::ostream& os )
-            : os( os )
-        {
-        }
-        void operator()( const Msg& msg ) const { os << msg; }
-        void operator()( const Cast& cast ) const { os << cast; }
-    };
-    SchemaVariantPrinter printer( os );
-
-    for ( const TransactionVariant& transaction : schema.m_transactions )
-    {
-        boost::apply_visitor( printer, transaction );
+        os << transaction << "\n";
     }
     return os;
 }

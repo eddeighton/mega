@@ -25,7 +25,7 @@ public:
     using Ptr = std::shared_ptr< Activity >;
 
     Activity( ActivityManager& activityManager, const ActivityID& activityID,
-              std::optional< ConnectionID > originatingConnectionID );
+              std::optional< ConnectionID > originatingConnectionID = std::nullopt );
     virtual ~Activity();
 
     const ActivityID&                    getActivityID() const { return m_activityID; }
@@ -35,14 +35,17 @@ public:
 
     void completed();
 
-    MessageVariant receiveMessage( boost::asio::yield_context yield_ctx );
-    void           sendMessage( const MessageVariant& msg );
+    MessageVariant receiveRequest( boost::asio::yield_context yield_ctx );
+    void           sendRequest( const MessageVariant& msg );
+    MessageVariant receiveResponse( boost::asio::yield_context yield_ctx );
+    void           sendResponse( const MessageVariant& msg );
 
 protected:
     ActivityManager&              m_activityManager;
     ActivityID                    m_activityID;
     std::optional< ConnectionID > m_originatingEndPoint;
-    MessageChannel                m_messageChannel;
+    MessageChannel                m_requestChannel;
+    MessageChannel                m_responseChannel;
 };
 
 } // namespace network

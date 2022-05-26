@@ -2,6 +2,7 @@
 #include "service/daemon/daemon.hpp"
 
 #include "service/network/activity.hpp"
+#include "service/network/network.hpp"
 
 #include <iostream>
 
@@ -26,20 +27,35 @@ public:
 
     virtual void run( boost::asio::yield_context yield_ctx )
     {
-        while ( network::host_daemon::Impl::dispatch( receiveMessage( yield_ctx ), yield_ctx ) )
+        while ( network::host_daemon::Impl::dispatch( receiveRequest( yield_ctx ), yield_ctx ) )
             ;
         completed();
     }
 
-    virtual void GetVersion( const std::string& version, boost::asio::yield_context yield_ctx )
+    virtual void GetVersion( boost::asio::yield_context yield_ctx )
     {
         if ( network::Server::Connection::Ptr pConnection
              = m_daemon.m_server.getConnection( getOriginatingEndPointID().value() ) )
         {
             network::host_daemon::Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
-            std::ostringstream                   os;
-            os << "Received: " << version;
+            std::ostringstream                    os;
+            os << mega::network::getVersion();
             hostResponse.GetVersion( os.str() );
+        }
+    }
+    virtual void ListHosts( boost::asio::yield_context yield_ctx )
+    {
+        if ( network::Server::Connection::Ptr pConnection
+             = m_daemon.m_server.getConnection( getOriginatingEndPointID().value() ) )
+        {
+            network::host_daemon::Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
+
+            std::vector< std::string > hosts;
+            for( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
+            {
+                hosts.push_back( pConnection->getName() );
+            }
+            hostResponse.ListHosts( hosts );
         }
     }
 };

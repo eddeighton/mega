@@ -3,116 +3,162 @@
 
 #include "service/protocol/common/serialisation.hpp"
 
+#include "service/network/network.hpp"
+#include "service/network/activity.hpp"
+#include "service/network/end_point.hpp"
+
+#include "common/assert_verify.hpp"
+
+#include "boost/asio/streambuf.hpp"
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/asio/detached.hpp>
+
 #include <sstream>
+#include <string_view>
+#include <iostream>
 
 namespace mega
 {
 namespace network
 {
+namespace {{ filename }}
+{
 
-//{{ filename }}_Request_Encode
-{{ filename }}_Request_Encode::{{ filename }}_Request_Encode( std::ostream& os )
-    :   m_os( os )
+Request_Encode::Request_Encode( network::Activity&            activity,
+                                boost::asio::ip::tcp::socket& socket,
+                                boost::asio::yield_context&   yield_ctx )
+    : m_activity( activity )
+    , m_socket( socket )
+    , m_yield_ctx( yield_ctx )
 {
 }
 
-{% for message in messages %}
-void {{ filename }}_Request_Encode::{{ message.name }}
-(
-    {%for p in message.request.params%}
-        const {{p.type}}& 
-        {{p.name}}
-        {% if not loop.is_last %}, {%endif%}
-    {%endfor%}
+void Request_Encode::Complete()
+{
+    boost::asio::streambuf streambuffer;
+    {
+        boost::archive::binary_oarchive oa( streambuffer );
+        {
+            const Header header( MSG_Complete_Request::ID, m_activity.getActivityID() );
+            oa&          header;
+        }
+    }
+    if ( const boost::system::error_code ec = send( streambuffer, m_socket, m_yield_ctx ) )
+    {
+        THROW_RTE( "Error writing: " << ec.what() );
+    }
+}
+
+{% for request in requests %}
+{{ request.return_type }} Request_Encode::{{ request.name }}
+( 
+{%for p in request.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%} 
 )
 {
-    boost::archive::binary_oarchive oa( m_os );
-    {%for p in message.request.params%}
-    oa & {{p.name}};
-    {%endfor%}
-}
-{% endfor %}
+    boost::asio::streambuf streambuffer;
+    {
+        boost::archive::binary_oarchive oa( streambuffer );
+        {
+            const Header header( {{ filename }}::MSG_{{ request.name }}_Request::ID, m_activity.getActivityID() );
+            oa&          header;
+        }
+{%for p in request.params%}
+        oa& {{p.name}};
+{%endfor%} 
+    }
 
-//{{ filename }}_Response_Encode
-{{ filename }}_Response_Encode::{{ filename }}_Response_Encode( std::ostream& os )
-    :   m_os( os )
-{
-}
-{% for message in messages %}
-{% for event in message.events %}
-void {{ filename }}_Response_Encode::{{ message.name }}
-(
-    {%for p in event.params%}
-        const {{p.type}}& 
-        {{p.name}}
-        {% if not loop.is_last %}, {%endif%}
-    {%endfor%}
-)
-{
-    boost::archive::binary_oarchive oa( m_os );
-    {%for p in event.params%}
-    oa & {{p.name}};
-    {%endfor%}
-}
-{% endfor %}
-{% for response in message.responses %}
-void {{ filename }}_Response_Encode::{{ message.name }}
-(
-    {%for p in response.params%}
-        const {{p.type}}& 
-        {{p.name}}
-        {% if not loop.is_last %}, {%endif%}
-    {%endfor%}
-)
-{
-    boost::archive::binary_oarchive oa( m_os );
-    {%for p in response.params%}
-    oa & {{p.name}};
-    {%endfor%}
-}
-{% endfor %}
-{% endfor %}
+    if ( const boost::system::error_code ec = send( streambuffer, m_socket, m_yield_ctx ) )
+    {
+        THROW_RTE( "Error writing: " << ec.what() );
+    }
 
-//{{ filename }}_Request_Decode
-{% for message in messages %}
-void {{ filename }}_Request_Decode::{{ message.name }}
-(
-    {%for p in message.request.params%}
-        const {{p.type}}& 
-        {{p.name}}
-        {% if not loop.is_last %}, {%endif%}
-    {%endfor%}
-)
-{
+    const MessageVariant msg = m_activity.receiveResponse( m_yield_ctx );
+    return std::get< {{ filename }}::MSG_{{ request.name }}_Response >( msg ).{{ request.return_msg_member }};
 }
 {% endfor %}
 
-//{{ filename }}_Response_Decode
-{% for message in messages %}
-{% for event in message.events %}
-void {{ filename }}_Response_Decode::{{ message.name }}
-(
-    {%for p in event.params%}
-        const {{p.type}}& 
-        {{p.name}}
-        {% if not loop.is_last %}, {%endif%}
-    {%endfor%}
-)
+
+Response_Encode::Response_Encode( network::Activity&            activity,
+                                  boost::asio::ip::tcp::socket& socket,
+                                  boost::asio::yield_context&   yield_ctx )
+    : m_activity( activity )
+    , m_socket( socket )
+    , m_yield_ctx( yield_ctx )
 {
 }
-{% endfor %}
-{% for response in message.responses %}
-void {{ filename }}_Response_Decode::{{ message.name }}
-(
-    {%for p in response.params%}
-        const {{p.type}}& 
-        {{p.name}}
-        {% if not loop.is_last %}, {%endif%}
-    {%endfor%}
+
+{% for response in responses %}
+void Response_Encode::{{ response.name }}
+( 
+{%for p in response.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%}
 )
 {
+    boost::asio::streambuf streambuffer;
+    {
+        boost::archive::binary_oarchive oa( streambuffer );
+        {
+            const Header header( {{ filename }}::MSG_{{ response.name }}_Response::ID, m_activity.getActivityID() );
+            oa&          header;
+        }
+{%for p in response.params%}
+        oa& {{p.name}};
+{%endfor%}
+    }
+
+    if ( const boost::system::error_code ec = send( streambuffer, m_socket, m_yield_ctx ) )
+    {
+        THROW_RTE( "Error writing: " << ec.what() );
+    }
 }
 {% endfor %}
+namespace 
+{
+    struct Visitor
+    {
+        Impl&                      m_impl;
+        boost::asio::yield_context yield_ctx;
+        Visitor( Impl& impl, boost::asio::yield_context yield_ctx )
+            : m_impl( impl )
+            , yield_ctx( yield_ctx )
+        {
+        }
+        bool operator()( const MSG_Complete_Request& msg ) const { return false; }
+
+{% for request in requests %}
+        bool operator() ( const {{ filename }}::MSG_{{ request.name }}_Request& msg ) const
+        {
+            m_impl.{{ request.name }}
+            ( 
+{%for p in request.params%}
+                msg.{{p.name}},
+{%endfor%}
+                yield_ctx 
+            );
+            return true;
+        }
 {% endfor %}
+        template< typename TOtherMsgType >
+        bool operator() ( const TOtherMsgType& ) const
+        {
+            THROW_RTE( "Invalid message dispatched" );
+        }
+
+    } ;
 }
+bool Impl::dispatch( const MessageVariant& msg, boost::asio::yield_context yield_ctx )
+{
+    Visitor visitor( *this, yield_ctx );
+    return std::visit( visitor, msg );
 }
+
+} // namespace {{ filename }}
+} // namespace network
+} // namespace mega

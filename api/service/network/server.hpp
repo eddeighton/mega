@@ -47,7 +47,6 @@ public:
         Strand                       m_strand;
         boost::asio::ip::tcp::socket m_socket;
         boost::asio::steady_timer    m_watchDogTimer;
-        host_daemon::Decode          m_decoder;
         Receiver                     m_receiver;
         std::string                  m_strName;
     };
@@ -62,6 +61,7 @@ public:
     void onDisconnected( Connection::Ptr pConnection );
 
     Connection::Ptr getConnection( const ConnectionID& connectionID );
+    const ConnectionMap& getConnections() const { return m_connections; }
 
 private:
     boost::asio::ip::tcp::acceptor m_acceptor;

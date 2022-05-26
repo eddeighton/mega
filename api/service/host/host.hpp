@@ -33,7 +33,8 @@ public:
     Host( std::optional< const std::string > optName = std::nullopt );
     ~Host();
 
-    std::string GetVersion( const std::string& str );
+    std::string GetVersion();
+    std::vector< std::string > ListHosts();
 
 private:
     HostActivityFactory     m_activityFactory;

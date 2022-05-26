@@ -1,0 +1,57 @@
+#ifndef MESSAGES_GENERATED_26_MAY_2022
+#define MESSAGES_GENERATED_26_MAY_2022
+
+#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/serialisation.hpp"
+
+#include "boost/asio/experimental/concurrent_channel.hpp"
+
+#include <variant>
+#include <array>
+#include <vector>
+#include <map>
+#include <set>
+#include <string>
+#include <optional>
+#include <tuple>
+
+namespace mega
+{
+namespace network
+{
+class Activity;
+
+{%for message in messages%}
+{%for namespace in message.namespaces%}
+{%if loop.is_first %}namespace {{namespace}}{%else%}::{{namespace}}{%endif%}
+{%endfor%}{# for namespace in message.namespaces #}
+{%if message.has_namespace%} { {%endif%}
+
+struct {{ message.name }}
+{
+    static const MessageID ID = {{ message.id }};
+{%for member in message.members%}
+    {{ member.type }} {{ member.name }}; 
+{%endfor%}
+};
+
+{%if message.has_namespace%} } {%endif%} 
+{%endfor%}
+
+using MessageVariant = std::variant 
+<
+    std::monostate
+{%for message in messages%}
+,{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}
+{%endfor%}
+>;
+
+using MessageChannel
+    = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, MessageVariant ) >;
+
+bool decode( boost::archive::binary_iarchive& archive, const Header& header, std::shared_ptr< Activity > pActivity );
+
+} // namespace network
+} // namespace mega
+
+#endif // MESSAGES_GENERATED_26_MAY_2022

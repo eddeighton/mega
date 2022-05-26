@@ -18,7 +18,7 @@ Server::Connection::Connection( Server& server, boost::asio::io_context& ioConte
     : m_server( server )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( server, m_decoder, m_socket, boost::bind( &Connection::disconnected, this ) ) // would be 2 decoders here
+    , m_receiver( server, m_socket, boost::bind( &Connection::disconnected, this ) ) // would be 2 decoders here
     , m_watchDogTimer( m_strand )
 {
 }

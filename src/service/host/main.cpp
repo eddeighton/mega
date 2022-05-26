@@ -48,14 +48,37 @@ int main( int argc, const char* argv[] )
     {
         mega::service::Host host( optionalHostName );
 
-        while( true )
+        while ( true )
         {
             std::string strLine;
             std::getline( std::cin, strLine );
-            const std::string strVersion = host.GetVersion( strLine );
-            std::cout << "Version is: " << strVersion << std::endl;
+            if ( strLine == "help" )
+            {
+                std::cout << "help      - show this" << std::endl;
+                std::cout << "version   - show daemon version" << std::endl;
+                std::cout << "hosts     - list daemon hosts" << std::endl;
+                std::cout << "quit      - shutdown this host" << std::endl;
+            }
+            if ( strLine == "version" )
+            {
+                std::cout << "Version is: " << host.GetVersion() << std::endl;
+            }
+            else if ( strLine == "hosts" )
+            {
+                for ( const std::string& strHost : host.ListHosts() )
+                {
+                    std::cout << strHost << std::endl;
+                }
+            }
+            else if ( strLine == "quit" )
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Unrecognised cmd" << std::endl;
+            }
         }
-
     }
     catch ( std::exception& ex )
     {

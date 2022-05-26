@@ -20,10 +20,9 @@ namespace mega
 namespace network
 {
 
-Receiver::Receiver( ActivityManager& activityManager, Decoder& decoder, boost::asio::ip::tcp::socket& socket,
+Receiver::Receiver( ActivityManager& activityManager, boost::asio::ip::tcp::socket& socket,
                     std::function< void() > disconnectHandler )
     : m_activityManager( activityManager )
-    , m_decoder( decoder )
     , m_socket( socket )
     , m_disconnectHandler( disconnectHandler )
 {
@@ -97,7 +96,7 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                             header.getActivityID(), getConnectionID( m_socket ) );
                     }
 
-                    m_decoder.decode( ia, header, pActivity );
+                    decode( ia, header, pActivity );
                 }
 
                 streamBuffer.consume( size );

@@ -1,6 +1,14 @@
 #ifndef {{ guard }}
 #define {{ guard }}
 
+#include "service/protocol/model/messages.hxx"
+
+#include "service/protocol/common/header.hpp"
+#include "service/protocol/common/serialisation.hpp"
+
+#include "boost/asio/ip/tcp.hpp"
+#include "boost/asio/spawn.hpp"
+
 #include <array>
 #include <vector>
 #include <string>
@@ -12,98 +20,77 @@ namespace mega
 {
 namespace network
 {
+namespace {{ filename }}
+{
 
-class {{ filename }}_Request_Encode
+class Request_Encode
 {
 public:
-    {{ filename }}_Request_Encode( std::ostream& os );
-{% for message in messages %}
-    void {{ message.name }}
+    Request_Encode( network::Activity&            activity,
+                    boost::asio::ip::tcp::socket& socket,
+                    boost::asio::yield_context&   yield_ctx );
+
+    void Complete();
+
+{% for request in requests %}
+    {{ request.return_type }} {{ request.name }}
     (
-        {%for p in message.request.params%}
-            const {{p.type}}& 
-            {{p.name}}
-            {% if not loop.is_last %}, {%endif%}
-        {%endfor%}
+{%for p in request.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%}
     );
 {% endfor %}
+
 private:
-    std::ostream& m_os;
+    network::Activity&            m_activity;
+    boost::asio::ip::tcp::socket& m_socket;
+    boost::asio::yield_context&   m_yield_ctx;
 };
 
-class {{ filename }}_Response_Encode
+class Response_Encode
 {
 public:
-    {{ filename }}_Response_Encode( std::ostream& os );
-{% for message in messages %}
-{% for event in message.events %}
-    void {{ message.name }}
+    Response_Encode( network::Activity&            activity,
+                     boost::asio::ip::tcp::socket& socket,
+                     boost::asio::yield_context&   yield_ctx );
+
+{% for response in responses %}
+    void {{ response.name }}
     (
-        {%for p in event.params%}
-            const {{p.type}}& 
-            {{p.name}}
-            {% if not loop.is_last %}, {%endif%}
-        {%endfor%}
+{%for p in response.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%}
     );
 {% endfor %}
-{% for response in message.responses %}
-    void {{ message.name }}
-    (
-        {%for p in response.params%}
-            const {{p.type}}& 
-            {{p.name}}
-            {% if not loop.is_last %}, {%endif%}
-        {%endfor%}
-    );
-{% endfor %}
-{% endfor %}
+
 private:
-    std::ostream& m_os;
+    network::Activity&            m_activity;
+    boost::asio::ip::tcp::socket& m_socket;
+    boost::asio::yield_context&   m_yield_ctx;
 };
 
-class {{ filename }}_Request_Decode
+class Impl
 {
 public:
-{% for message in messages %}
-    void {{ message.name }}
+    bool         dispatch( const MessageVariant& msg, boost::asio::yield_context yield_ctx );
+
+{% for request in requests %}
+    virtual void {{ request.name }}
     (
-        {%for p in message.request.params%}
-            const {{p.type}}& 
-            {{p.name}}
-            {% if not loop.is_last %}, {%endif%}
-        {%endfor%}
-    );
+{%for p in request.params%}
+        const {{p.type}}& 
+        {{p.name}},
+{%endfor%}
+        boost::asio::yield_context yield_ctx
+    ) = 0;
 {% endfor %}
 };
 
-class {{ filename }}_Response_Decode
-{
-public:
-{% for message in messages %}
-{% for event in message.events %}
-    void {{ message.name }}
-    (
-        {%for p in event.params%}
-            const {{p.type}}& 
-            {{p.name}}
-            {% if not loop.is_last %}, {%endif%}
-        {%endfor%}
-    );
-{% endfor %}
-{% for response in message.responses %}
-    void {{ message.name }}
-    (
-        {%for p in response.params%}
-            const {{p.type}}& 
-            {{p.name}}
-            {% if not loop.is_last %}, {%endif%}
-        {%endfor%}
-    );
-{% endfor %}
-{% endfor %}
-};
-
-
+}
 }
 }
 

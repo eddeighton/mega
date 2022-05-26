@@ -97,21 +97,13 @@ namespace protocol
             std::vector< Event > m_events;
             std::vector< Response > m_responses;
         };
-        struct Msg : public Transaction
-        {
-        };
-        struct Cast : public Transaction
-        {
-        };
-        using TransactionVariant = boost::variant< Msg, Cast >;
 
-        ParseResult parse( const std::string& strInput, Msg& transaction, std::ostream& errorStream );
-        ParseResult parse( const std::string& strInput, Cast& transaction, std::ostream& errorStream );
+        ParseResult parse( const std::string& strInput, Transaction& transaction, std::ostream& errorStream );
 
         struct Schema
         {
         public:
-            std::vector< TransactionVariant > m_transactions;
+            std::vector< Transaction > m_transactions;
         };
 
         ParseResult parse( const std::string& strInput, Schema& schema, std::ostream& errorStream );
@@ -136,8 +128,7 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Parameter& p
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Request& message );
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Event& message );
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Response& message );
-std::ostream& operator<<( std::ostream& os, const protocol::schema::Msg& transaction );
-std::ostream& operator<<( std::ostream& os, const protocol::schema::Cast& transaction );
+std::ostream& operator<<( std::ostream& os, const protocol::schema::Transaction& transaction );
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Schema& schema );
 
 #endif // DATABASE_GRAMMAR_4_APRIL_2022

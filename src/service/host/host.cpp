@@ -6,6 +6,7 @@
 #include "service/network/end_point.hpp"
 
 #include "service/protocol/common/header.hpp"
+#include "service/protocol/model/host_daemon.hxx"
 
 #include <optional>
 #include <future>
@@ -15,37 +16,7 @@ namespace mega
 namespace service
 {
 
-class ActivityGetVersion : public network::Activity
-{
-    network::Client&             client;
-    const std::string&           str;
-    std::promise< std::string >& promise;
-
-public:
-    ActivityGetVersion( network::Client& client, const network::ActivityID& activityID, const std::string& str,
-                        std::promise< std::string >& promise )
-        : Activity( client, activityID, std::nullopt )
-        , client( client )
-        , str( str )
-        , promise( promise )
-    {
-    }
-
-    void run( boost::asio::yield_context yield_ctx )
-    {
-        network::host_daemon::Request_Encode daemon( *this, client.getSocket(), yield_ctx );
-
-        std::string strResult = daemon.GetVersion( str );
-
-        promise.set_value( strResult );
-
-        daemon.Complete();
-
-        completed();
-    }
-};
-
-class RequestActivity : public network::Activity//, public network::daemon_host_Impl
+class RequestActivity : public network::Activity, public network::daemon_host::Impl
 {
 public:
     RequestActivity( network::ActivityManager& activityManager, const network::ActivityID& activityID,
@@ -56,29 +27,20 @@ public:
 
     virtual void run( boost::asio::yield_context yield_ctx )
     {
-        /*while ( true )
-        {
-            // get decoded request
-            network::MessageVariant msg = receiveMessage( yield_ctx );
-            // dispatch
-            if( daemon_host_Impl::dispatch( msg, yield_ctx ) == false )
-                break;
-        }*/
+        while ( network::daemon_host::Impl::dispatch( receiveRequest( yield_ctx ), yield_ctx ) )
+            ;
         completed();
     }
-    /*virtual void GetVersion( const std::string& version, boost::asio::yield_context yield_ctx )
+
+    virtual void DaemonToHost( const int& anInt, boost::asio::yield_context yield_ctx )
     {
-        std::cout << "Received GetVersion request with: " << version << std::endl;
-
-        // network::daemon_host_Response_Encode daemon( *this, client.getSocket(), yield_ctx );
-
-
-    }*/
+        // network::daemon_host::Response_Encode daemon( *this, client.getSocket(), yield_ctx );
+    }
 };
 
 network::Activity::Ptr
-Host::HostActivityFactory::createRequestActivity( network::ActivityManager&  activityManager,
-                                                  const network::ActivityID& activityID,
+Host::HostActivityFactory::createRequestActivity( network::ActivityManager&    activityManager,
+                                                  const network::ActivityID&   activityID,
                                                   const network::ConnectionID& originatingConnectionID ) const
 {
     return network::Activity::Ptr( new RequestActivity( activityManager, activityID, originatingConnectionID ) );
@@ -93,25 +55,73 @@ Host::Host( std::optional< const std::string > optName /* = std::nullopt*/ )
 
 Host::~Host()
 {
+    m_client.stop();
     m_work_guard.reset();
     m_io_thread.join();
 }
 
-std::string Host::GetVersion( const std::string& str )
+static network::ActivityID::ID g_activity_id_counter = 1;
+
+template < typename TPromiseType, typename TActivityFunctor >
+class GenericActivity : public network::Activity
+{
+    network::Client& m_client;
+    TPromiseType&    m_promise;
+    TActivityFunctor m_functor;
+
+public:
+    GenericActivity( network::Client& client, TPromiseType& promise, TActivityFunctor&& functor )
+        : Activity(
+            client, network::ActivityID( g_activity_id_counter++, network::getConnectionID( client.getSocket() ) ) )
+        , m_client( client )
+        , m_promise( promise )
+        , m_functor( functor )
+    {
+    }
+
+    void run( boost::asio::yield_context yield_ctx )
+    {
+        //std::cout << "Started: " << getActivityID() << std::endl;
+        m_functor( m_promise, m_client, *this, yield_ctx );
+        completed();
+    }
+};
+
+std::string Host::GetVersion()
 {
     std::promise< std::string > promise;
     std::future< std::string >  fResult = promise.get_future();
 
-    const network::ConnectionID endpointID = network::getConnectionID( m_client.getSocket() );
+    m_client.spawnActivity( network::Activity::Ptr(
+        new GenericActivity( m_client, promise,
+                             []( std::promise< std::string >& promise, network::Client& client,
+                                 network::Activity& activity, boost::asio::yield_context yield_ctx )
+                             {
+                                 using namespace network::host_daemon;
+                                 Request_Encode daemon( activity, client.getSocket(), yield_ctx );
+                                 promise.set_value( daemon.GetVersion() );
+                                 daemon.Complete();
+                             } ) ) );
 
-    static network::ActivityID::ID id = 1U;
-    network::ActivityID            activityID( id++, endpointID );
+    return fResult.get();
+}
 
-    std::cout << "Starting: " << activityID << std::endl;
+std::vector< std::string > Host::ListHosts()
+{
+    using ResultType = std::vector< std::string >;
+    std::promise< ResultType > promise;
+    std::future< ResultType >  fResult = promise.get_future();
 
-    network::Activity::Ptr pActivity( new ActivityGetVersion( m_client, activityID, str, promise ) );
-
-    m_client.spawnActivity( pActivity );
+    m_client.spawnActivity( network::Activity::Ptr(
+        new GenericActivity( m_client, promise,
+                             []( std::promise< ResultType >& promise, network::Client& client,
+                                 network::Activity& activity, boost::asio::yield_context yield_ctx )
+                             {
+                                 using namespace network::host_daemon;
+                                 Request_Encode daemon( activity, client.getSocket(), yield_ctx );
+                                 promise.set_value( daemon.ListHosts() );
+                                 daemon.Complete();
+                             } ) ) );
 
     return fResult.get();
 }

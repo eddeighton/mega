@@ -4,3 +4,9 @@ msg GetVersion
     request();
     response(std::string version);
 }
+
+msg ListHosts
+{
+    request();
+    response(std::vector< std::string > hosts);
+}

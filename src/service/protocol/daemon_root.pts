@@ -2,5 +2,5 @@
 msg DaemonToRoot
 {
     request();
-    response();
+    response(int test);
 }
