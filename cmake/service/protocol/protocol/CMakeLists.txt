@@ -17,6 +17,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 #include( ../preprocess_cpp.cmake )
 
 set( MEGA_PROTOCOL_GENERATED_HEADERS
+    ${MEGA_API_DIR}/service/protocol/model/messages.hxx
     ${MEGA_API_DIR}/service/protocol/model/daemon_host.hxx
     ${MEGA_API_DIR}/service/protocol/model/daemon_root.hxx
     ${MEGA_API_DIR}/service/protocol/model/root_daemon.hxx

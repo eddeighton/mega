@@ -10,6 +10,8 @@
 #include "boost/asio/steady_timer.hpp"
 #include "boost/asio/spawn.hpp"
 
+#include <functional>
+
 namespace mega
 {
 namespace network
@@ -18,9 +20,8 @@ namespace network
 class Receiver
 {
 public:
-    Receiver( ActivityManager& activityManager, Decoder& decoder, boost::asio::ip::tcp::socket& socket );
-
-    void receive( boost::asio::yield_context yield_ctx );
+    Receiver( ActivityManager& activityManager, Decoder& decoder, boost::asio::ip::tcp::socket& socket,
+              std::function< void() > disconnectHandler );
 
     template < typename TExecutor >
     void run( TExecutor& strandOrIOContext )
@@ -29,14 +30,18 @@ public:
         boost::asio::spawn(
             strandOrIOContext, [ &receiver ]( boost::asio::yield_context yield ) { receiver.receive( yield ); } );
     }
+    void stop() { m_bContinue = false; }
 
 private:
+    void receive( boost::asio::yield_context yield_ctx );
     void updateLastActivityTime();
 
 private:
+    bool                                  m_bContinue = true;
     ActivityManager&                      m_activityManager;
     Decoder&                              m_decoder;
     boost::asio::ip::tcp::socket&         m_socket;
+    std::function< void() >               m_disconnectHandler;
     boost::asio::steady_timer::time_point m_lastActivityTime;
 };
 

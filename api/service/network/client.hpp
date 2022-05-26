@@ -30,6 +30,8 @@ public:
     Client( boost::asio::io_context& ioContext, ActivityFactory& activityFactory, const std::string& strServiceIP );
     ~Client();
 
+    void disconnected();
+
     boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
 
     void spawnActivity( Activity::Ptr pActivity );
@@ -39,7 +41,7 @@ private:
     boost::asio::ip::tcp::socket   m_socket;
     boost::asio::ip::tcp::endpoint m_endPoint;
     boost::asio::steady_timer      m_watchDogTimer;
-    host_daemon_Decode             m_decoder;
+    host_daemon::Decode            m_decoder;
     Receiver                       m_receiver;
 };
 

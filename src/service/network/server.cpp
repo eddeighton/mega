@@ -7,6 +7,8 @@
 #include "boost/bind/bind.hpp"
 #include "boost/asio/placeholders.hpp"
 
+#include <iostream>
+
 namespace mega
 {
 namespace network
@@ -16,9 +18,15 @@ Server::Connection::Connection( Server& server, boost::asio::io_context& ioConte
     : m_server( server )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( server, m_decoder, m_socket ) // would be 2 decoders here
+    , m_receiver( server, m_decoder, m_socket, boost::bind( &Connection::disconnected, this ) ) // would be 2 decoders here
     , m_watchDogTimer( m_strand )
 {
+}
+
+Server::Connection::~Connection()
+{
+    m_socket.close();
+    m_receiver.stop();
 }
 
 void Server::Connection::start()
@@ -33,8 +41,11 @@ void Server::Connection::start()
     }
 
     m_receiver.run( m_strand );
-    // start the watch dog
-    // OnWatchDog();
+}
+
+void Server::Connection::disconnected()
+{
+    m_server.onDisconnected( shared_from_this() );
 }
 
 Server::Server( boost::asio::io_context& ioContext, ActivityFactory& activityFactory )
@@ -60,12 +71,14 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
     {
         pNewConnection->start();
         m_connections.insert( std::make_pair( getConnectionID( pNewConnection->getSocket() ), pNewConnection ) );
+        std::cout << "Connected: " << pNewConnection->getName() << std::endl;
     }
     waitForConnection();
 }
 
 void Server::onDisconnected( Connection::Ptr pConnection )
 {
+    std::cout << "Disconnected: " << pConnection->getName() << std::endl;
     m_connections.erase( getConnectionID( pConnection->getSocket() ) );
 }
 

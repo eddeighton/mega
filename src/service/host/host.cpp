@@ -33,7 +33,7 @@ public:
 
     void run( boost::asio::yield_context yield_ctx )
     {
-        network::host_daemon_Request_Encode daemon( *this, client.getSocket(), yield_ctx );
+        network::host_daemon::Request_Encode daemon( *this, client.getSocket(), yield_ctx );
 
         std::string strResult = daemon.GetVersion( str );
 

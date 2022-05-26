@@ -10,7 +10,7 @@ namespace mega
 namespace service
 {
 
-class RequestActivity : public network::Activity, public network::host_daemon_Impl
+class RequestActivity : public network::Activity, public network::host_daemon::Impl
 {
     Daemon& m_daemon;
 
@@ -26,7 +26,7 @@ public:
 
     virtual void run( boost::asio::yield_context yield_ctx )
     {
-        while ( host_daemon_Impl::dispatch( receiveMessage( yield_ctx ), yield_ctx ) )
+        while ( network::host_daemon::Impl::dispatch( receiveMessage( yield_ctx ), yield_ctx ) )
             ;
         completed();
     }
@@ -36,7 +36,7 @@ public:
         if ( network::Server::Connection::Ptr pConnection
              = m_daemon.m_server.getConnection( getOriginatingEndPointID().value() ) )
         {
-            network::host_daemon_Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
+            network::host_daemon::Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
             std::ostringstream                   os;
             os << "Received: " << version;
             hostResponse.GetVersion( os.str() );
@@ -62,7 +62,6 @@ Daemon::Daemon( boost::asio::io_context& ioContext )
     : m_activityFactory( *this )
     , m_server( ioContext, m_activityFactory )
 {
-    //
     m_server.waitForConnection();
 }
 

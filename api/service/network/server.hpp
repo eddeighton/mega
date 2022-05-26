@@ -23,7 +23,7 @@ namespace network
 class Server : public ActivityManager
 {
 public:
-    class Connection
+    class Connection : public std::enable_shared_from_this< Connection >
     {
         friend class Server;
 
@@ -32,6 +32,7 @@ public:
         using Strand = boost::asio::strand< boost::asio::io_context::executor_type >;
 
         Connection( Server& server, boost::asio::io_context& ioContext );
+        ~Connection();
 
         Strand&                       getStrand() { return m_strand; }
         boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
@@ -39,13 +40,14 @@ public:
 
     protected:
         void start();
+        void disconnected();
 
     private:
         Server&                      m_server;
         Strand                       m_strand;
         boost::asio::ip::tcp::socket m_socket;
         boost::asio::steady_timer    m_watchDogTimer;
-        host_daemon_Decode           m_decoder;
+        host_daemon::Decode          m_decoder;
         Receiver                     m_receiver;
         std::string                  m_strName;
     };

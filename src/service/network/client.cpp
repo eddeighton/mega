@@ -19,7 +19,7 @@ Client::Client( boost::asio::io_context& ioContext, ActivityFactory& activityFac
     , m_resolver( ioContext )
     , m_socket( ioContext )
     , m_watchDogTimer( ioContext )
-    , m_receiver( *this, m_decoder, m_socket )
+    , m_receiver( *this, m_decoder, m_socket, boost::bind( &Client::disconnected, this ) )
 {
     boost::asio::ip::tcp::resolver::results_type endpoints
         = m_resolver.resolve( strServiceIP, mega::network::MegaRootServiceName() );
@@ -33,6 +33,13 @@ Client::Client( boost::asio::io_context& ioContext, ActivityFactory& activityFac
     std::cout << "Connected from: " << m_socket.local_endpoint() << " to " << m_socket.remote_endpoint() << std::endl;
 
     m_receiver.run( ioContext );
+}
+
+void Client::disconnected()
+{
+    std::cout << "Client disconnected" << std::endl;
+    m_socket.cancel();
+    m_socket.close();
 }
 
 void Client::spawnActivity( Activity::Ptr pActivity )

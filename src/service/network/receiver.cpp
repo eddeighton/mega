@@ -20,10 +20,12 @@ namespace mega
 namespace network
 {
 
-Receiver::Receiver( ActivityManager& activityManager, Decoder& decoder, boost::asio::ip::tcp::socket& socket )
+Receiver::Receiver( ActivityManager& activityManager, Decoder& decoder, boost::asio::ip::tcp::socket& socket,
+                    std::function< void() > disconnectHandler )
     : m_activityManager( activityManager )
     , m_decoder( decoder )
     , m_socket( socket )
+    , m_disconnectHandler( disconnectHandler )
 {
     updateLastActivityTime();
 }
@@ -38,14 +40,13 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
     std::size_t                         szBytesTransferred = 0U;
     std::array< char, MessageSizeSize > buf;
     Header                              header;
-    bool                                bContinue = true;
 
-    while ( bContinue && m_socket.is_open() )
+    while ( m_bContinue && m_socket.is_open() )
     {
         // read message size
         network::MessageSize size = 0U;
         {
-            while ( bContinue && m_socket.is_open() )
+            while ( m_bContinue && m_socket.is_open() )
             {
                 szBytesTransferred = boost::asio::async_read( m_socket, boost::asio::buffer( buf ), yield_ctx[ ec ] );
                 if ( !ec )
@@ -65,7 +66,7 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                     if ( ec == boost::asio::error::eof )
                     {
                         std::cout << "Socket closed" << std::endl;
-                        bContinue = false;
+                        m_bContinue = false;
                         break;
                     }
                     // log error and close
@@ -76,7 +77,7 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
         }
 
         // read message
-        while ( bContinue && m_socket.is_open() )
+        while ( m_bContinue && m_socket.is_open() )
         {
             szBytesTransferred = boost::asio::async_read( m_socket, streamBuffer.prepare( size ), yield_ctx[ ec ] );
             if ( !ec )
@@ -109,7 +110,7 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                 if ( ec == boost::asio::error::eof )
                 {
                     std::cout << "Socket closed" << std::endl;
-                    bContinue = false;
+                    m_bContinue = false;
                     break;
                 }
                 // log error and close
@@ -118,6 +119,7 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
             }
         }
     }
+    m_disconnectHandler();
 }
 
 } // namespace network

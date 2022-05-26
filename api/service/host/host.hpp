@@ -39,8 +39,8 @@ private:
     HostActivityFactory     m_activityFactory;
     boost::asio::io_context m_io_context;
     using ExecutorType = decltype( m_io_context.get_executor() );
-    boost::asio::executor_work_guard< ExecutorType > m_work_guard;
     network::Client                                  m_client;
+    boost::asio::executor_work_guard< ExecutorType > m_work_guard;
     std::thread                                      m_io_thread;
 };
 
