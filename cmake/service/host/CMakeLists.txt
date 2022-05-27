@@ -26,6 +26,8 @@ set( HOST_SOURCE
 
 add_executable( host ${HOST_API} ${HOST_SOURCE}  )
 
+target_compile_options( host PUBLIC "-fcoroutines" )
+
 target_link_libraries( host database )
 target_link_libraries( host utilities )
 target_link_libraries( host protocol )

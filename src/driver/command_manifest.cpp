@@ -174,11 +174,11 @@ public:
 
         start( taskProgress, "Task_GenerateManifest", boost::filesystem::path{}, projectManifestPath.path() );
         // make a note of the schema version
-        {
-            std::ostringstream os;
-            os << "Schema version: " << mega::io::Environment::VERSION;
-            msg( taskProgress, os.str() );
-        }
+        //{
+        //    std::ostringstream os;
+        //    os << "Schema version: " << mega::io::Environment::VERSION;
+        //    msg( taskProgress, os.str() );
+        //}
 
         const mega::io::Manifest    manifest( m_environment, m_componentInfoPaths );
         const task::FileHash        hashCode = manifest.save_temp( m_environment, projectManifestPath );

@@ -26,6 +26,8 @@ set( WORKER_SOURCE
 
 add_executable( worker ${WORKER_API} ${WORKER_SOURCE}  )
 
+target_compile_options( worker PUBLIC "-fcoroutines" )
+
 target_link_libraries( worker database )
 target_link_libraries( worker utilities )
 target_link_libraries( worker protocol )

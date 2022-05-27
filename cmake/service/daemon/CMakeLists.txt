@@ -26,8 +26,6 @@ set( DAEMON_SOURCE
 
 add_executable( daemon ${DAEMON_HEADERS} ${DAEMON_SOURCE}  )
 
-#target_compile_features( daemon PUBLIC "-fcoroutines" )
-#add_compile_options( "-fcoroutines" )
 target_compile_options( daemon PUBLIC "-fcoroutines" )
 
 target_link_libraries( daemon database )

@@ -33,6 +33,8 @@ add_library( network
 					${MEGA_NETWORK_SRC}
 				)
 
+target_compile_options( network PUBLIC "-fcoroutines" )
+
 target_link_libraries( network protocol )
 
 target_include_directories( network PUBLIC ${MEGA_API_DIR} )

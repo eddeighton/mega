@@ -20,6 +20,7 @@ set( MEGA_UNIT_TESTS
 	${MEGA_TEST_DIR}/manifest_tests.cpp
 	${MEGA_TEST_DIR}/protocol_tests.cpp
 	${MEGA_TEST_DIR}/network_tests.cpp
+	${MEGA_TEST_DIR}/pipeline_tests.cpp
 	
 	)
 
@@ -46,6 +47,7 @@ target_link_libraries( mega_tests parser )
 target_link_libraries( mega_tests database_compiler)
 target_link_libraries( mega_tests protocol)
 target_link_libraries( mega_tests network)
+target_link_libraries( mega_tests pipeline)
 
 gtest_add_tests( TARGET mega_tests SOURCES ${MEGA_UNIT_TESTS} )
 

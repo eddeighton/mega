@@ -51,7 +51,7 @@ namespace mega
     
     inline ReturnReason wait( const Event& event )
     {
-        return ReturnReason( eReason_Wait_All, event.data );
+        return ReturnReason( eReason_Wait_All, event );
     }
     
     inline ReturnReason wait_all( std::initializer_list< Event > events )
