@@ -1,7 +1,6 @@
 
-#include "service/network/network.hpp"
 
-#include "service/root/root.hpp"
+#include "service/worker/worker.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -17,7 +16,9 @@
 int main( int argc, const char* argv[] )
 {
     using NumThreadsType        = decltype( std::thread::hardware_concurrency() );
-    NumThreadsType uiNumThreads = 1U;
+
+    NumThreadsType uiNumThreads = std::thread::hardware_concurrency();
+    std::string strIP = "localhost";
     {
         bool bShowHelp = false;
 
@@ -26,7 +27,8 @@ int main( int argc, const char* argv[] )
 
         // clang-format off
         options.add_options()
-        ( "help",   po::bool_switch( &bShowHelp ), "Show Command Line Help" )
+        ( "help",    po::bool_switch( &bShowHelp ),                 "Show Command Line Help" )
+        ( "ip",      po::value< std::string >( &strIP ),            "Root IP Address" )
         ( "threads", po::value< NumThreadsType >( &uiNumThreads ),  "Max number of threads" )
         ;
         // clang-format on
@@ -42,15 +44,22 @@ int main( int argc, const char* argv[] )
             std::cout << options << "\n";
             return 0;
         }
-        
+
+        if ( strIP.empty() )
+        {
+            std::cerr << "Missing IP Address" << std::endl;
+            return -1;
+        }
         uiNumThreads = std::min( std::max( 1U, uiNumThreads ), std::thread::hardware_concurrency() );
     }
+
+    std::cout << "Connecting to: " << strIP << std::endl;
 
     try
     {
         boost::asio::io_context ioContext;
 
-        mega::service::Root root( ioContext );
+        mega::service::Worker worker( ioContext );
 
         std::vector< std::thread > threads;
         for ( int i = 0; i < uiNumThreads; ++i )

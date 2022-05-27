@@ -16,7 +16,24 @@ class Daemon
     class HostRequestActivityFactory : public network::ActivityFactory
     {
     public:
-        HostRequestActivityFactory( Daemon& daemon ) : m_daemon( daemon ){}
+        HostRequestActivityFactory( Daemon& daemon )
+            : m_daemon( daemon )
+        {
+        }
+        virtual network::Activity::Ptr
+        createRequestActivity( const network::ActivityID&   activityID,
+                               const network::ConnectionID& originatingConnectionID ) const;
+
+    private:
+        Daemon& m_daemon;
+    };
+    class WorkerRequestActivityFactory : public network::ActivityFactory
+    {
+    public:
+        WorkerRequestActivityFactory( Daemon& daemon )
+            : m_daemon( daemon )
+        {
+        }
         virtual network::Activity::Ptr
         createRequestActivity( const network::ActivityID&   activityID,
                                const network::ConnectionID& originatingConnectionID ) const;
@@ -27,7 +44,10 @@ class Daemon
     class RootRequestActivityFactory : public network::ActivityFactory
     {
     public:
-        RootRequestActivityFactory( Daemon& daemon ) : m_daemon( daemon ){}
+        RootRequestActivityFactory( Daemon& daemon )
+            : m_daemon( daemon )
+        {
+        }
         virtual network::Activity::Ptr
         createRequestActivity( const network::ActivityID&   activityID,
                                const network::ConnectionID& originatingConnectionID ) const;
@@ -36,6 +56,7 @@ class Daemon
         Daemon& m_daemon;
     };
     friend class HostRequestActivity;
+    friend class WorkerRequestActivity;
     friend class RootRequestActivity;
 
 public:
@@ -43,11 +64,13 @@ public:
     ~Daemon();
 
 private:
-    RootRequestActivityFactory m_rootRequestActivityFactory;
-    HostRequestActivityFactory m_hostRequestActivityFactory;
-    network::ActivityManager   m_activityManager;
-    network::Client            m_client;
-    network::Server            m_server;
+    RootRequestActivityFactory   m_rootRequestActivityFactory;
+    WorkerRequestActivityFactory m_workerRequestActivityFactory;
+    HostRequestActivityFactory   m_hostRequestActivityFactory;
+    network::ActivityManager     m_activityManager;
+    network::Client              m_rootClient;
+    network::Server              m_hostServer;
+    network::Server              m_workerServer;
 };
 } // namespace service
 } // namespace mega

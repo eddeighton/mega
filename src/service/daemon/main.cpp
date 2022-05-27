@@ -1,5 +1,5 @@
 
-#include "service/network/network.hpp"
+
 #include "service/daemon/daemon.hpp"
 
 #include "common/assert_verify.hpp"
@@ -16,6 +16,9 @@
 int main( int argc, const char* argv[] )
 {
     std::string strIP = "localhost";
+
+    using NumThreadsType        = decltype( std::thread::hardware_concurrency() );
+    NumThreadsType uiNumThreads = 1U;
     {
         bool bShowHelp = false;
 
@@ -24,8 +27,9 @@ int main( int argc, const char* argv[] )
 
         // clang-format off
         options.add_options()
-        ( "help",   po::bool_switch( &bShowHelp ),          "Show Command Line Help" )
-        ( "ip",     po::value< std::string >( &strIP ),     "Root IP Address" )
+        ( "help",    po::bool_switch( &bShowHelp ),                 "Show Command Line Help" )
+        ( "ip",      po::value< std::string >( &strIP ),            "Root IP Address" )
+        ( "threads", po::value< NumThreadsType >( &uiNumThreads ),  "Max number of threads" )
         ;
         // clang-format on
 
@@ -41,11 +45,7 @@ int main( int argc, const char* argv[] )
             return 0;
         }
 
-        if ( strIP.empty() )
-        {
-            std::cerr << "Missing IP Address" << std::endl;
-            return -1;
-        }
+        uiNumThreads = std::min( std::max( 1U, uiNumThreads ), std::thread::hardware_concurrency() );
     }
 
     std::cout << "Connecting to: " << strIP << std::endl;
@@ -57,7 +57,7 @@ int main( int argc, const char* argv[] )
         mega::service::Daemon daemon( ioContext, strIP );
 
         std::vector< std::thread > threads;
-        for ( int i = 0; i < std::thread::hardware_concurrency() - 1; ++i )
+        for ( NumThreadsType i = 0; i < uiNumThreads; ++i )
         {
             threads.emplace_back( std::move( std::thread( [ &ioContext ]() { ioContext.run(); } ) ) );
         }
