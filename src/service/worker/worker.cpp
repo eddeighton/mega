@@ -31,14 +31,28 @@ public:
     {
     }
 
-    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx ) 
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
     {
-        return network::Activity::dispatch( msg, yield_ctx ) ||
-            network::daemon_worker::Impl::dispatch( msg, *this, yield_ctx );
+        return network::Activity::dispatchRequest( msg, yield_ctx )
+               || network::daemon_worker::Impl::dispatchRequest( msg, *this, yield_ctx );
+    }
+
+    virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg, boost::asio::yield_context yield_ctx )
+    {
+        if ( network::getConnectionID( m_worker.m_client.getSocket() ) == connectionID )
+        {
+            network::sendErrorResponse( getActivityID(), m_worker.m_client.getSocket(), strErrorMsg, yield_ctx );
+        }
+        else
+        {
+            // ?
+        }
     }
 
     virtual void ListThreads( boost::asio::yield_context yield_ctx )
     {
+        THROW_RTE( "Test exception" );
+
         network::daemon_worker::Response_Encode daemon( *this, m_worker.m_client.getSocket(), yield_ctx );
         daemon.ListThreads( m_worker.getNumThreads() );
     }
@@ -90,7 +104,6 @@ public:
 
     void run( boost::asio::yield_context yield_ctx )
     {
-        // std::cout << "Started: " << getActivityID() << std::endl;
         m_functor( m_promise, m_client, *this, yield_ctx );
     }
 };

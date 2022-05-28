@@ -11,6 +11,7 @@
 #include "common/requireSemicolon.hpp"
 #include "service/protocol/model/messages.hxx"
 
+#include <exception>
 #include <optional>
 #include <future>
 
@@ -31,17 +32,24 @@ public:
     {
     }
 
-    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
     {
-        return network::Activity::dispatch( msg, yield_ctx )
-               || network::daemon_host::Impl::dispatch( msg, *this, yield_ctx );
+        return network::Activity::dispatchRequest( msg, yield_ctx )
+               || network::daemon_host::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
-    /*
-        virtual void DaemonToHost( const int& anInt, boost::asio::yield_context yield_ctx )
+
+    virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
+                        boost::asio::yield_context yield_ctx )
+    {
+        if ( network::getConnectionID( m_host.m_client.getSocket() ) == connection )
         {
-            network::daemon_host::Response_Encode daemon( *this, m_host.m_client.getSocket(), yield_ctx );
-            daemon.DaemonToHost( {} );
-        }*/
+            network::sendErrorResponse( getActivityID(), m_host.m_client.getSocket(), strErrorMsg, yield_ctx );
+        }
+        else
+        {
+            // error cannot match connectionID! ???
+        }
+    }
 };
 
 network::Activity::Ptr
@@ -92,29 +100,55 @@ public:
 
     void run( boost::asio::yield_context yield_ctx )
     {
-        // std::cout << "Started: " << getActivityID() << std::endl;
-        m_functor( m_promise, m_client, *this, yield_ctx );
-
-        RequestActivity::run( yield_ctx );
+        requestStarted();
+        try
+        {
+            m_functor( m_promise, m_client, *this, yield_ctx );
+            requestCompleted();
+        }
+        catch ( std::exception& ex )
+        {
+            m_promise.set_exception( std::current_exception() );
+        }
     }
 };
 
-#define SIMPLE_REQUEST( TResult, Code )                                                                               \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( using ResultType                  = TResult; std::promise< ResultType > promise; \
-                                     std::future< ResultType > fResult = promise.get_future();                        \
-                                     m_activityManager.activityStarted( network::Activity::Ptr( new GenericActivity(  \
-                                         *this, m_client, network::getConnectionID( m_client.getSocket() ), promise,  \
-                                         []( std::promise< ResultType >& promise, network::Client& client,            \
-                                             network::Activity& activity, boost::asio::yield_context yield_ctx )      \
-                                         {                                                                            \
-                                             network::host_daemon::Request_Encode daemon(                             \
-                                                 activity, client.getSocket(), yield_ctx );                           \
-                                             {                                                                        \
-                                                 Code;                                                                \
-                                             }                                                                        \
-                                             daemon.Complete();                                                       \
-                                         } ) ) );                                                                     \
-                                     return fResult.get(); )
+// clang-format off
+#define SIMPLE_REQUEST( TResult, Code ) \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON(\
+        using ResultType = TResult; \
+        std::promise< ResultType > promise; \
+        std::future< ResultType > fResult = promise.get_future(); \
+        try \
+        { \
+            m_activityManager.activityStarted \
+            ( \
+                network::Activity::Ptr \
+                ( \
+                    new GenericActivity \
+                    ( \
+                        *this, m_client, network::getConnectionID( m_client.getSocket() ), promise, \
+                        []( std::promise< ResultType >& promise, network::Client& client, \
+                                network::Activity& activity, boost::asio::yield_context yield_ctx ) \
+                        { \
+                            network::host_daemon::Request_Encode daemon( activity, client.getSocket(), yield_ctx ); \
+                            { \
+                                Code; \
+                            } \
+                            daemon.Complete(); \
+                        } \
+                    ) \
+                ) \
+            ); \
+            return fResult.get(); \
+        }\
+        catch( std::exception& ex )\
+        {\
+            std::cout << "Exception: " << ex.what() << std::endl;\
+            return TResult{};\
+        }\
+    )
+// clang-format on
 
 std::string Host::GetVersion()
 {
@@ -124,9 +158,14 @@ std::string Host::GetVersion()
 
 std::vector< std::string > Host::ListHosts()
 {
+    //
     SIMPLE_REQUEST( std::vector< std::string >, promise.set_value( daemon.ListHosts() ) );
 }
 
-std::string Host::runTestPipeline() { SIMPLE_REQUEST( std::string, promise.set_value( daemon.runTestPipeline() ) ); }
+std::string Host::runTestPipeline()
+{
+    //
+    SIMPLE_REQUEST( std::string, promise.set_value( daemon.runTestPipeline() ) );
+}
 } // namespace service
 } // namespace mega

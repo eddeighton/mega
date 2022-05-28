@@ -32,17 +32,27 @@ public:
     const ActivityID&                    getActivityID() const { return m_activityID; }
     const std::optional< ConnectionID >& getOriginatingEndPointID() const { return m_originatingEndPoint; }
 
-    virtual void run( boost::asio::yield_context yield_ctx );
-    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx );
+    MessageVariant receive( boost::asio::yield_context yield_ctx );
+    void           send( const MessageVariant& msg );
 
     bool isComplete() const;
     void requestStarted();
     void requestCompleted();
 
-    MessageVariant receive( boost::asio::yield_context yield_ctx );
-    void           send( const MessageVariant& msg );
+protected:
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx );
 
+protected:
+    friend class ActivityManager;
+    // this is called by ActivityManager but can be overridden in initiating activities
+    virtual void run( boost::asio::yield_context yield_ctx );
+    virtual void error( const ConnectionID& connectionID, const std::string& strErrorMsg, boost::asio::yield_context yield_ctx ) = 0;
+public:
+    // this is used by the Request_Encode generated classes
     MessageVariant dispatchRequestsUntilResponse( boost::asio::yield_context yield_ctx );
+
+private:
+    bool dispatchRequestImpl( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx );
 
 protected:
     ActivityManager&              m_activityManager;

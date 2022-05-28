@@ -3,6 +3,9 @@
 
 #include "service/network/activity.hpp"
 #include "service/network/network.hpp"
+#include "service/network/end_point.hpp"
+#include "service/network/log.hpp"
+
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
 
@@ -26,41 +29,71 @@ public:
     {
     }
 
-    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx ) 
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
     {
-        return network::Activity::dispatch( msg, yield_ctx ) ||
-            network::daemon_root::Impl::dispatch( msg, *this, yield_ctx );
+        return network::Activity::dispatchRequest( msg, yield_ctx )
+               || network::daemon_root::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
 
-    virtual void GetVersion( boost::asio::yield_context yield_ctx )
+    virtual void error( const network::ConnectionID& connectionID,
+                        const std::string&           strErrorMsg,
+                        boost::asio::yield_context   yield_ctx )
+    {
+        if ( network::Server::Connection::Ptr pHostConnection = m_root.m_server.getConnection( connectionID ) )
+        {
+            network::sendErrorResponse( getActivityID(), pHostConnection->getSocket(), strErrorMsg, yield_ctx );
+        }
+        else
+        {
+            // ?
+        }
+    }
+
+    network::daemon_root::Response_Encode getOriginatingDaemonResponse( boost::asio::yield_context yield_ctx )
     {
         if ( network::Server::Connection::Ptr pConnection
              = m_root.m_server.getConnection( getOriginatingEndPointID().value() ) )
         {
-            network::daemon_root::Response_Encode daemonResponse( *this, pConnection->getSocket(), yield_ctx );
-            daemonResponse.GetVersion( network::getVersion() );
-            //std::cout << "Hello from root" << std::endl;
+            return network::daemon_root::Response_Encode( *this, pConnection->getSocket(), yield_ctx );
         }
+        THROW_RTE( "Connection to daemon lost" );
     }
+
+    network::root_daemon::Request_Encode getDaemonRequest( network::Server::Connection::Ptr pConnection,
+                                                           boost::asio::yield_context       yield_ctx )
+    {
+        return network::root_daemon::Request_Encode( *this, pConnection->getSocket(), yield_ctx );
+    }
+
+    // network::daemon_root::Impl
+    virtual void GetVersion( boost::asio::yield_context yield_ctx )
+    {
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.GetVersion( network::getVersion() );
+    }
+
     virtual void runTestPipeline( boost::asio::yield_context yield_ctx )
     {
         int totalThreads = 0;
-        for( auto & [ id, pDeamon ] :
-            m_root.m_server.getConnections() )
+        for ( auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
         {
-            network::root_daemon::Request_Encode daemonRequest( *this, pDeamon->getSocket(), yield_ctx );
-            int threads = daemonRequest.ListWorkers();
-            totalThreads += threads;
-            daemonRequest.Complete();
+            auto daemon = getDaemonRequest( pDaemon, yield_ctx );
+            try
+            {
+                int threads = daemon.ListWorkers();
+                totalThreads += threads;
+            }
+            catch ( std::exception& ex )
+            {
+                SPDLOG_WARN( "Caught exception from ListWorkers: {}", ex.what() );
+            }
+            daemon.Complete();
         }
-        
-        network::Server::Connection::Ptr pConnection
-             = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
 
-        network::daemon_root::Response_Encode daemonResponse( *this, pConnection->getSocket(), yield_ctx );
+        auto               daemon = getOriginatingDaemonResponse( yield_ctx );
         std::ostringstream os;
         os << "Found: " << totalThreads << " threads";
-        daemonResponse.runTestPipeline( os.str() );
+        daemon.runTestPipeline( os.str() );
     }
 };
 

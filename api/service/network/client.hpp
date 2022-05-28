@@ -46,6 +46,7 @@ private:
     boost::asio::ip::tcp::socket   m_socket;
     boost::asio::ip::tcp::endpoint m_endPoint;
     Receiver                       m_receiver;
+    ConnectionID                   m_connectionID;
 };
 
 } // namespace network

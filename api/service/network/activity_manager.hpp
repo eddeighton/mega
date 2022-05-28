@@ -5,6 +5,8 @@
 
 #include "service/network/activity.hpp"
 
+#include <mutex>
+
 namespace mega
 {
 namespace network
@@ -29,6 +31,7 @@ protected:
 
 private:
     ActivityPtrMap m_activities;
+    mutable std::recursive_mutex m_mutex;
 };
 
 class ActivityFactory

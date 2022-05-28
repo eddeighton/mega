@@ -1,6 +1,8 @@
 #include "service/network/activity.hpp"
 #include "service/network/activity_manager.hpp"
+#include "service/network/log.hpp"
 
+#include "service/network/end_point.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include <iostream>
@@ -21,10 +23,7 @@ Activity::Activity( ActivityManager& activityManager, const ActivityID& activity
 {
 }
 
-Activity::~Activity()
-{
-    // std::cout << "Activity Completed: " << getActivityID() << std::endl;
-}
+Activity::~Activity() {}
 
 bool Activity::isComplete() const { return m_bStarted && ( m_stackDepth == 0U ); }
 
@@ -44,21 +43,14 @@ void Activity::requestCompleted()
     }
 }
 
-void Activity::run( boost::asio::yield_context yield_ctx )
-{
-    while ( !isComplete() )
-    {
-        const network::MessageVariant msg = receive( yield_ctx );
-        if( !dispatch( msg, yield_ctx ) )
-        {
-            THROW_RTE( "Failed to dispatch message: " << msg );
-        }
-    }
-}
-
-bool Activity::dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+bool Activity::dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
 {
     if ( msg.index() == network::MSG_Complete_Request::ID )
+    {
+        requestCompleted();
+        return true;
+    }
+    else if ( msg.index() == network::MSG_Error_Response::ID )
     {
         requestCompleted();
         return true;
@@ -71,7 +63,12 @@ bool Activity::dispatch( const network::MessageVariant& msg, boost::asio::yield_
 
 MessageVariant Activity::receive( boost::asio::yield_context yield_ctx )
 {
-    return m_channel.async_receive( yield_ctx );
+    MessageVariant msg = m_channel.async_receive( yield_ctx );
+    if ( msg.index() == MSG_Error_Response::ID )
+    {
+        throw std::runtime_error( std::get< MSG_Error_Response >( msg ).what );
+    }
+    return msg;
 }
 
 void Activity::send( const MessageVariant& msg )
@@ -81,9 +78,32 @@ void Activity::send( const MessageVariant& msg )
                           {
                               if ( ec )
                               {
+                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
                                   THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
                               }
                           } );
+}
+
+// run is ALWAYS call for each activity after it is created
+void Activity::run( boost::asio::yield_context yield_ctx )
+{
+    try
+    {
+        while ( !isComplete() )
+        {
+            const network::MessageVariant msg = receive( yield_ctx );
+            if ( !dispatchRequestImpl( msg, yield_ctx ) )
+            {
+                SPDLOG_ERROR( "Failed to dispatch request: {} on activity: {}", msg, getActivityID().getID() );
+                THROW_RTE( "Failed to dispatch request message: " << msg );
+            }
+        }
+    }
+    catch ( std::exception& ex )
+    {
+        SPDLOG_WARN( "Activity: {} exception: {}", getActivityID().getID(), ex.what() );
+        m_activityManager.activityCompleted( shared_from_this() );
+    }
 }
 
 MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_context yield_ctx )
@@ -94,7 +114,7 @@ MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_conte
         msg = receive( yield_ctx );
         if ( isRequest( msg ) )
         {
-            dispatch( msg, yield_ctx );
+            dispatchRequestImpl( msg, yield_ctx );
         }
         else
         {
@@ -102,6 +122,20 @@ MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_conte
         }
     }
     return msg;
+}
+
+bool Activity::dispatchRequestImpl( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+{
+    try
+    {
+        return dispatchRequest( msg, yield_ctx );
+    }
+    catch ( std::exception& ex )
+    {
+        SPDLOG_WARN( "Activity: {} exception: {}", getActivityID().getID(), ex.what() );
+        error( getConnectionID( msg ), ex.what(), yield_ctx );
+        return true;
+    }
 }
 
 } // namespace network

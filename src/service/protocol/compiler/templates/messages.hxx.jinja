@@ -30,6 +30,7 @@ class Activity;
 struct {{ message.name }}
 {
     static const MessageID ID = {{ message.id }};
+    ConnectionID connectionID;
 {%for member in message.members%}
     {{ member.type }} {{ member.name }}; 
 {%endfor%}
@@ -40,9 +41,8 @@ struct {{ message.name }}
 
 using MessageVariant = std::variant 
 <
-    std::monostate
 {%for message in messages%}
-,{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}
+{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}{%if not loop.is_last %},{%endif%}
 {%endfor%}
 >;
 
@@ -50,9 +50,11 @@ using MessageChannel
     = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, MessageVariant ) >;
 
 bool isRequest( const MessageVariant& msg );
-bool decode( boost::archive::binary_iarchive& archive, const Header& header, std::shared_ptr< Activity > pActivity );
+const ConnectionID& getConnectionID( const MessageVariant& msg );
+bool decode( boost::archive::binary_iarchive& archive, const Header& header, const ConnectionID& connectionID, std::shared_ptr< Activity > pActivity );
 
 std::ostream& operator<<( std::ostream& os, const MessageVariant& msg );
+const char* getMsgNameFromID( MessageID id );
 
 } // namespace network
 } // namespace mega

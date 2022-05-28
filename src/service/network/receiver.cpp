@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 namespace mega
 {
@@ -41,88 +42,102 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
     std::array< char, MessageSizeSize > buf;
     Header                              header;
 
-    while ( m_bContinue && m_socket.is_open() )
+    if ( m_bContinue && m_socket.is_open() )
     {
-        // read message size
-        network::MessageSize size = 0U;
+        const ConnectionID connectionID = getConnectionID( m_socket );
+        while ( m_bContinue && m_socket.is_open() )
         {
-            while ( m_bContinue && m_socket.is_open() )
+            // read message size
+            network::MessageSize size = 0U;
             {
-                szBytesTransferred = boost::asio::async_read( m_socket, boost::asio::buffer( buf ), yield_ctx[ ec ] );
-                if ( !ec )
+                while ( m_bContinue && m_socket.is_open() )
                 {
-                    if ( szBytesTransferred == MessageSizeSize )
+                    szBytesTransferred
+                        = boost::asio::async_read( m_socket, boost::asio::buffer( buf ), yield_ctx[ ec ] );
+                    if ( !ec )
                     {
-                        size = ntohl( *reinterpret_cast< const network::MessageSize* >( buf.data() ) );
-                        break;
+                        if ( szBytesTransferred == MessageSizeSize )
+                        {
+                            size = ntohl( *reinterpret_cast< const network::MessageSize* >( buf.data() ) );
+                            break;
+                        }
+                        else
+                        {
+                            // THROW_RTE( "Failed to read message size" );
+                            SPDLOG_ERROR( "Socket: {} error reading message size", connectionID );
+                            m_socket.close();
+                        }
                     }
-                    else
+                    else // if( ec.failed() )
                     {
-                        //THROW_RTE( "Failed to read message size" );
+                        if ( ec == boost::asio::error::eof )
+                        {
+                            SPDLOG_WARN( "Socket: {} closed due to EOF", connectionID );
+                            m_bContinue = false;
+                            break;
+                        }
+                        // log error and close
+                        SPDLOG_ERROR( "Socket: {} closed. Error: {}", connectionID, ec.what() );
                         m_socket.close();
                     }
+                }
+            }
+
+            // read message
+            while ( m_bContinue && m_socket.is_open() )
+            {
+                szBytesTransferred = boost::asio::async_read( m_socket, streamBuffer.prepare( size ), yield_ctx[ ec ] );
+                if ( !ec )
+                {
+                    VERIFY_RTE( size == szBytesTransferred );
+                    streamBuffer.commit( size );
+
+                    {
+                        boost::archive::binary_iarchive ia( streamBuffer );
+
+                        ia& header;
+
+                        Activity::Ptr pActivity = m_activityManager.findExistingActivity( header.getActivityID() );
+                        if ( !pActivity )
+                        {
+                            pActivity = m_activityFactory.createRequestActivity( header.getActivityID(), connectionID );
+                            m_activityManager.activityStarted( pActivity );
+                            SPDLOG_TRACE( "Received msg {}. Started new activity {}.",
+                                          getMsgNameFromID( header.getMessageID() ),
+                                          pActivity->getActivityID().getID() );
+                        }
+                        else
+                        {
+                            SPDLOG_TRACE( "Received msg: {}. Resumed existing activity: {}.",
+                                          getMsgNameFromID( header.getMessageID() ),
+                                          pActivity->getActivityID().getID() );
+                        }
+
+                        if ( !decode( ia, header, connectionID, pActivity ) )
+                        {
+                            SPDLOG_ERROR( "Socket: {} failed to decode message: {}", connectionID,
+                                          getMsgNameFromID( header.getMessageID() ) );
+                            m_bContinue = false;
+                        }
+                    }
+
+                    streamBuffer.consume( size );
+
+                    updateLastActivityTime();
+                    break;
                 }
                 else // if( ec.failed() )
                 {
                     if ( ec == boost::asio::error::eof )
                     {
-                        std::cout << "Socket closed" << std::endl;
+                        SPDLOG_WARN( "Socket: {} closed due to EOF", connectionID );
                         m_bContinue = false;
                         break;
                     }
                     // log error and close
-                    //THROW_RTE( "Socket error: " << ec.what() );
+                    SPDLOG_ERROR( "Socket: {} closed. Error: {}", connectionID, ec.what() );
                     m_socket.close();
                 }
-            }
-        }
-
-        // read message
-        while ( m_bContinue && m_socket.is_open() )
-        {
-            szBytesTransferred = boost::asio::async_read( m_socket, streamBuffer.prepare( size ), yield_ctx[ ec ] );
-            if ( !ec )
-            {
-                VERIFY_RTE( size == szBytesTransferred );
-                streamBuffer.commit( size );
-
-                {
-                    boost::archive::binary_iarchive ia( streamBuffer );
-
-                    ia& header;
-
-                    Activity::Ptr pActivity = m_activityManager.findExistingActivity( header.getActivityID() );
-                    if ( !pActivity )
-                    {
-                        pActivity = m_activityFactory.createRequestActivity(
-                            header.getActivityID(), getConnectionID( m_socket ) );
-                        m_activityManager.activityStarted( pActivity );
-                        std::cout << "Receive to new: " << header << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "Receive to existing: " << header << std::endl;
-                    }
-
-                    decode( ia, header, pActivity );
-                }
-
-                streamBuffer.consume( size );
-
-                updateLastActivityTime();
-                break;
-            }
-            else // if( ec.failed() )
-            {
-                if ( ec == boost::asio::error::eof )
-                {
-                    std::cout << "Socket closed" << std::endl;
-                    m_bContinue = false;
-                    break;
-                }
-                // log error and close
-                //THROW_RTE( "Socket error: " << ec.what() );
-                m_socket.close();
             }
         }
     }

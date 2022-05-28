@@ -35,7 +35,12 @@ bool isRequest( const MessageVariant& msg )
     return std::visit( visitor, msg );
 }
 
-bool decode( boost::archive::binary_iarchive& archive, const Header& header, std::shared_ptr< Activity > pActivity )
+const ConnectionID& getConnectionID( const MessageVariant& msg )
+{
+    return std::visit( []( auto&& arg ) -> const ConnectionID& { return arg.connectionID; }, msg );
+}
+
+bool decode( boost::archive::binary_iarchive& archive, const Header& header, const ConnectionID& connectionID, std::shared_ptr< Activity > pActivity )
 {
     switch ( header.getMessageID() )
     {
@@ -44,6 +49,7 @@ bool decode( boost::archive::binary_iarchive& archive, const Header& header, std
         case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
         {
 {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }} msg;
+            msg.connectionID = connectionID;
 {%for member in message.members%}
             archive& msg.{{ member.name }}; 
 {%endfor%}
@@ -90,5 +96,15 @@ std::ostream& operator<<( std::ostream& os, const MessageVariant& msg )
     return std::visit( printer, msg );
 }
 
+const char* getMsgNameFromID( MessageID id )
+{
+    switch( id )
+    {
+{%for message in messages%}
+        case {{ message.id }}: return "{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}";
+{% endfor %}
+        default: THROW_RTE( "Unknown message type" );
+    }
+}
 }
 }

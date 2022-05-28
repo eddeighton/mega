@@ -6,6 +6,7 @@
 #include "service/network/network.hpp"
 #include "service/network/activity.hpp"
 #include "service/network/end_point.hpp"
+#include "service/network/log.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -47,6 +48,10 @@ void Request_Encode::Complete()
     {
         THROW_RTE( "Error writing: " << ec.what() );
     }
+    else
+    {
+        SPDLOG_TRACE( "Sent request: MSG_Complete_Request" );
+    }
 }
 
 {% for request in requests %}
@@ -74,6 +79,10 @@ void Request_Encode::Complete()
     if ( const boost::system::error_code ec = send( streambuffer, m_socket, m_yield_ctx ) )
     {
         THROW_RTE( "Error writing: " << ec.what() );
+    }
+    else
+    {
+        SPDLOG_TRACE( "Sent request: {{ filename }}::MSG_{{ request.name }}_Request" );
     }
 
     const MessageVariant msg = m_activity.dispatchRequestsUntilResponse( m_yield_ctx );
@@ -117,6 +126,10 @@ void Response_Encode::{{ response.name }}
     {
         THROW_RTE( "Error writing: " << ec.what() );
     }
+    else
+    {
+        SPDLOG_TRACE( "Sent response: {{ filename }}::MSG_{{ response.name }}_Response" );
+    }
 }
 {% endfor %}
 namespace 
@@ -155,7 +168,7 @@ namespace
 
     } ;
 }
-bool Impl::dispatch( const MessageVariant& msg, Activity& activity, boost::asio::yield_context yield_ctx )
+bool Impl::dispatchRequest( const MessageVariant& msg, Activity& activity, boost::asio::yield_context yield_ctx )
 {
     Visitor visitor( *this, activity, yield_ctx );
     return std::visit( visitor, msg );

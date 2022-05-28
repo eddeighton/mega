@@ -1,12 +1,13 @@
 
 
 #include "service/worker/worker.hpp"
+#include "service/network/log.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include "boost/program_options.hpp"
-
 #include <boost/asio/io_context.hpp>
+#include <boost/filesystem/operations.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -19,6 +20,7 @@ int main( int argc, const char* argv[] )
 
     NumThreadsType uiNumThreads = std::thread::hardware_concurrency();
     std::string strIP = "localhost";
+    boost::filesystem::path logFolder = boost::filesystem::current_path() / "log";
     {
         bool bShowHelp = false;
 
@@ -27,9 +29,10 @@ int main( int argc, const char* argv[] )
 
         // clang-format off
         options.add_options()
-        ( "help",    po::bool_switch( &bShowHelp ),                 "Show Command Line Help" )
-        ( "ip",      po::value< std::string >( &strIP ),            "Root IP Address" )
-        ( "threads", po::value< NumThreadsType >( &uiNumThreads ),  "Max number of threads" )
+        ( "help",    po::bool_switch( &bShowHelp ),                     "Show Command Line Help" )
+        ( "ip",      po::value< std::string >( &strIP ),                "Root IP Address" )
+        ( "threads", po::value< NumThreadsType >( &uiNumThreads ),      "Max number of threads" )
+        ( "log",    po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
         ;
         // clang-format on
 
@@ -57,6 +60,8 @@ int main( int argc, const char* argv[] )
 
     try
     {
+        auto logThreads = mega::network::configureLog( logFolder, "worker" );
+        
         boost::asio::io_context ioContext;
 
         mega::service::Worker worker( ioContext, uiNumThreads );

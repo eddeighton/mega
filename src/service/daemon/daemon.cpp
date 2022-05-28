@@ -3,6 +3,7 @@
 
 #include "service/network/activity.hpp"
 #include "service/network/network.hpp"
+#include "service/network/end_point.hpp"
 
 #include "service/protocol/model/daemon_worker.hxx"
 #include "service/protocol/model/host_daemon.hxx"
@@ -35,53 +36,78 @@ public:
     {
     }
 
-    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
     {
-        return network::Activity::dispatch( msg, yield_ctx )
-               || network::host_daemon::Impl::dispatch( msg, *this, yield_ctx )
-               || network::worker_daemon::Impl::dispatch( msg, *this, yield_ctx )
-               || network::root_daemon::Impl::dispatch( msg, *this, yield_ctx );
+        return network::Activity::dispatchRequest( msg, yield_ctx )
+               || network::host_daemon::Impl::dispatchRequest( msg, *this, yield_ctx )
+               || network::worker_daemon::Impl::dispatchRequest( msg, *this, yield_ctx )
+               || network::root_daemon::Impl::dispatchRequest( msg, *this, yield_ctx );
+    }
+
+    virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg, boost::asio::yield_context yield_ctx )
+    {
+        if ( network::getConnectionID( m_daemon.m_rootClient.getSocket() ) == connectionID )
+        {
+            network::sendErrorResponse( getActivityID(), m_daemon.m_rootClient.getSocket(), strErrorMsg, yield_ctx );
+        }
+        else if ( network::Server::Connection::Ptr pHostConnection
+                  = m_daemon.m_hostServer.getConnection( connectionID ) )
+        {
+            network::sendErrorResponse( getActivityID(), pHostConnection->getSocket(), strErrorMsg, yield_ctx );
+        }
+        else if ( network::Server::Connection::Ptr pWorkerConnection
+                  = m_daemon.m_workerServer.getConnection( connectionID ) )
+        {
+            network::sendErrorResponse( getActivityID(), pWorkerConnection->getSocket(), strErrorMsg, yield_ctx );
+        }
+        else
+        {
+            // ?
+        }
+    }
+
+    network::daemon_root::Request_Encode getRootRequest( boost::asio::yield_context yield_ctx )
+    {
+        return network::daemon_root::Request_Encode( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
+    }
+    network::root_daemon::Response_Encode getRootResponse( boost::asio::yield_context yield_ctx )
+    {
+        return network::root_daemon::Response_Encode( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
+    }
+
+    network::host_daemon::Response_Encode getOriginatingHostResponse( boost::asio::yield_context yield_ctx )
+    {
+        if ( network::Server::Connection::Ptr pConnection
+             = m_daemon.m_hostServer.getConnection( getOriginatingEndPointID().value() ) )
+        {
+            return network::host_daemon::Response_Encode( *this, pConnection->getSocket(), yield_ctx );
+        }
+        THROW_RTE( "Could not locate originating connection" );
     }
 
     // network::host_daemon::Impl
     virtual void GetVersion( boost::asio::yield_context yield_ctx )
     {
-        network::daemon_root::Request_Encode root( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
-        std::string                          strMegaStructureVersion = root.GetVersion();
+        auto        root                    = getRootRequest( yield_ctx );
+        std::string strMegaStructureVersion = root.GetVersion();
         root.Complete();
-        // std::cout << "Got version from Root of: " << strMegaStructureVersion << std::endl;
-
-        if ( network::Server::Connection::Ptr pConnection
-             = m_daemon.m_hostServer.getConnection( getOriginatingEndPointID().value() ) )
-        {
-            network::host_daemon::Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
-            hostResponse.GetVersion( strMegaStructureVersion );
-        }
+        getOriginatingHostResponse( yield_ctx ).GetVersion( strMegaStructureVersion );
     }
+
     virtual void ListHosts( boost::asio::yield_context yield_ctx )
     {
-        if ( network::Server::Connection::Ptr pConnection
-             = m_daemon.m_hostServer.getConnection( getOriginatingEndPointID().value() ) )
-        {
-            network::host_daemon::Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
-            std::vector< std::string >            hosts;
-            for ( auto& [ id, pConnection ] : m_daemon.m_hostServer.getConnections() )
-                hosts.push_back( pConnection->getName() );
-            hostResponse.ListHosts( hosts );
-        }
+        std::vector< std::string > hosts;
+        for ( auto& [ id, pConnection ] : m_daemon.m_hostServer.getConnections() )
+            hosts.push_back( pConnection->getName() );
+        getOriginatingHostResponse( yield_ctx ).ListHosts( hosts );
     }
+
     virtual void runTestPipeline( boost::asio::yield_context yield_ctx )
     {
         network::daemon_root::Request_Encode root( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
         std::string                          strTestPipelineResult = root.runTestPipeline();
         root.Complete();
-
-        if ( network::Server::Connection::Ptr pConnection
-             = m_daemon.m_hostServer.getConnection( getOriginatingEndPointID().value() ) )
-        {
-            network::host_daemon::Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
-            hostResponse.runTestPipeline( strTestPipelineResult );
-        }
+        getOriginatingHostResponse( yield_ctx ).runTestPipeline( strTestPipelineResult );
     }
 
     // network::worker_daemon::Impl
@@ -97,8 +123,7 @@ public:
             worker.Complete();
         }
 
-        network::root_daemon::Response_Encode rootResponse( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
-        rootResponse.ListWorkers( iTotalThreads );
+        getRootResponse( yield_ctx ).ListWorkers( iTotalThreads );
     }
 };
 

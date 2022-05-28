@@ -1,6 +1,8 @@
 
 #include "service/network/client.hpp"
 #include "service/network/network.hpp"
+#include "service/network/log.hpp"
+#include "service/network/end_point.hpp"
 
 #include "boost/bind/bind.hpp"
 #include "boost/asio/connect.hpp"
@@ -24,11 +26,16 @@ Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityMan
 {
     boost::asio::ip::tcp::resolver::results_type endpoints = m_resolver.resolve( strServiceIP, strServiceName );
 
-    VERIFY_RTE_MSG( !endpoints.empty(), "Failed to resolve " << strServiceName << " service on ip: " << strServiceIP );
+    if ( endpoints.empty() )
+    {
+        SPDLOG_ERROR( "Failed to resolve: {} on ip: {}", strServiceName, strServiceIP );
+        THROW_RTE( "Failed to resolve " << strServiceName << " service on ip: " << strServiceIP );
+    }
 
-    m_endPoint = boost::asio::connect( m_socket, endpoints );
+    m_endPoint     = boost::asio::connect( m_socket, endpoints );
+    m_connectionID = getConnectionID( m_socket );
 
-    std::cout << "Connected from: " << m_socket.local_endpoint() << " to " << m_socket.remote_endpoint() << std::endl;
+    SPDLOG_INFO( "Client connected to: {}", m_connectionID );
 
     m_receiver.run( ioContext );
 }
@@ -42,7 +49,7 @@ void Client::stop()
 
 void Client::disconnected()
 {
-    std::cout << "Client disconnected" << std::endl;
+    SPDLOG_INFO( "Client disconnected from: {}", m_connectionID );
     stop();
 }
 
@@ -52,8 +59,9 @@ Client::~Client()
     {
         stop();
     }
-    catch ( std::exception& )
+    catch ( std::exception& ex )
     {
+        SPDLOG_ERROR( "Exception shutting down: {}", ex.what() );
     }
 }
 

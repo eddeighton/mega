@@ -1,13 +1,15 @@
 
 #include "service/network/network.hpp"
+#include "service/network/log.hpp"
 #include "service/host/host.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/string.hpp"
 
 #include "boost/program_options.hpp"
-
 #include <boost/program_options/parsers.hpp>
+#include <boost/filesystem/operations.hpp>
+
 #include <iostream>
 #include <optional>
 #include <string>
@@ -15,6 +17,7 @@
 int main( int argc, const char* argv[] )
 {
     std::optional< std::string > optionalHostName;
+    boost::filesystem::path logFolder = boost::filesystem::current_path() / "log";
     {
         bool bShowHelp = false;
 
@@ -24,8 +27,9 @@ int main( int argc, const char* argv[] )
         // clang-format off
         std::string strHostName;
         options.add_options()
-        ( "help",   po::bool_switch( &bShowHelp ),      "Show Command Line Help" )
-        ( "name",   po::value< std::string >( &strHostName ), "Host name" )
+        ( "help",   po::bool_switch( &bShowHelp ),                      "Show Command Line Help" )
+        ( "name",   po::value< std::string >( &strHostName ),           "Host name" )
+        ( "log",    po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
         ;
         // clang-format on
 
@@ -48,6 +52,8 @@ int main( int argc, const char* argv[] )
 
     try
     {
+        auto logThreads = mega::network::configureLog( logFolder, "host" );
+
         mega::service::Host host( optionalHostName );
 
         bool bShowHelp        = false;

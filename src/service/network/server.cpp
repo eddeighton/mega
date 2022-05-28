@@ -1,5 +1,6 @@
 
 #include "service/network/server.hpp"
+#include "service/network/log.hpp"
 
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
@@ -27,6 +28,8 @@ Server::Connection::~Connection()
 {
     m_receiver.stop();
     m_socket.close();
+
+    SPDLOG_INFO( "Connection stopped: {}", m_strName );
 }
 
 void Server::Connection::start()
@@ -41,6 +44,8 @@ void Server::Connection::start()
     }
 
     m_receiver.run( m_strand );
+
+    SPDLOG_INFO( "New connection started: {}", m_strName );
 }
 
 void Server::Connection::disconnected() { m_server.onDisconnected( shared_from_this() ); }
@@ -77,14 +82,12 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
     {
         pNewConnection->start();
         m_connections.insert( std::make_pair( getConnectionID( pNewConnection->getSocket() ), pNewConnection ) );
-        std::cout << "Connected: " << pNewConnection->getName() << std::endl;
     }
     waitForConnection();
 }
 
 void Server::onDisconnected( Connection::Ptr pConnection )
 {
-    std::cout << "Disconnected: " << pConnection->getName() << std::endl;
     m_connections.erase( getConnectionID( pConnection->getSocket() ) );
 }
 

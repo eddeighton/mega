@@ -1,7 +1,13 @@
 
 #include "service/network/end_point.hpp"
 
+#include "service/protocol/common/header.hpp"
+
+#include "service/protocol/model/messages.hxx"
+
 #include <boost/asio/write.hpp>
+#include "boost/asio/streambuf.hpp"
+#include <boost/archive/binary_oarchive.hpp>
 
 #include <algorithm>
 
@@ -52,5 +58,21 @@ boost::system::error_code send( boost::asio::streambuf& streambuffer, boost::asi
 
     return ec;
 }
+
+boost::system::error_code sendErrorResponse( const ActivityID& activityID, boost::asio::ip::tcp::socket& socket,
+                                             const std::string& strErrorMsg, boost::asio::yield_context& yield_ctx )
+{
+    boost::asio::streambuf streambuffer;
+    {
+        boost::archive::binary_oarchive oa( streambuffer );
+        {
+            const Header header( MSG_Error_Response::ID, activityID );
+            oa&          header;
+        }
+        oa& strErrorMsg;
+    }
+    return send( streambuffer, socket, yield_ctx );
+}
+
 } // namespace network
 } // namespace mega

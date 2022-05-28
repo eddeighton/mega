@@ -76,7 +76,7 @@ private:
 class Impl
 {
 public:
-    bool dispatch( const MessageVariant& msg, Activity& activity, boost::asio::yield_context yield_ctx );
+    bool dispatchRequest( const MessageVariant& msg, Activity& activity, boost::asio::yield_context yield_ctx );
 
 {% for request in requests %}
     virtual void {{ request.name }}
