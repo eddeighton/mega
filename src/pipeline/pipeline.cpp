@@ -1,6 +1,8 @@
 
 #include "pipeline/pipeline.hpp"
 
+#include "common/assert_verify.hpp"
+
 #include "boost/dll.hpp"
 
 namespace mega
@@ -58,6 +60,9 @@ Task::Vector Schedule::getReady() const
     return ready;
 }
 
+Progress::Progress() {}
+Progress::~Progress() {}
+
 Pipeline::Pipeline() {}
 Pipeline::~Pipeline() {}
 
@@ -70,20 +75,12 @@ Pipeline::Ptr Registry::getPipeline( const Pipeline::ID& id )
     if ( iFind != m_pipelines.end() )
         return iFind->second;
 
-    Pipeline::Ptr pPipeline;
-    try
-    {
-        boost::dll::fs::path pipelineLibrary( id );
+    boost::dll::fs::path pipelineLibrary( id );
 
-        pPipeline = boost::dll::import_symbol< Pipeline >(
-            pipelineLibrary / "pipeline", "pipeline", boost::dll::load_mode::append_decorations );
+    Pipeline::Ptr pPipeline = boost::dll::import_symbol< mega::pipeline::Pipeline >(
+        pipelineLibrary, "mega_pipeline", boost::dll::load_mode::append_decorations );
 
-        m_pipelines.insert( std::make_pair( id, pPipeline ) );
-    }
-    catch ( std::exception& ex )
-    {
-        //...
-    }
+    m_pipelines.insert( std::make_pair( id, pPipeline ) );
 
     return pPipeline;
 }

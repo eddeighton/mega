@@ -25,8 +25,8 @@ Server::Connection::Connection( Server& server, boost::asio::io_context& ioConte
 
 Server::Connection::~Connection()
 {
-    m_socket.close();
     m_receiver.stop();
+    m_socket.close();
 }
 
 void Server::Connection::start()

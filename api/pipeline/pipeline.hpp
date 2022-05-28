@@ -69,11 +69,12 @@ private:
     Dependencies::TaskSet m_complete;
 };
 
-class Progress
+class BOOST_SYMBOL_VISIBLE Progress
 {
     Progress( const Progress& ) = delete;
     Progress& operator=( const Progress& ) = delete;
-
+protected:
+    Progress();
 public:
     virtual ~Progress();
 
@@ -85,10 +86,10 @@ public:
 class BOOST_SYMBOL_VISIBLE Pipeline
 {
     friend class Registry;
-    Pipeline();
     Pipeline( const Pipeline& ) = delete;
     Pipeline& operator=( const Pipeline& ) = delete;
-
+protected:
+    Pipeline();
 public:
     using Ptr = boost::shared_ptr< Pipeline >;
     using ID  = std::string;

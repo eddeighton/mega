@@ -3,9 +3,11 @@
 #include "service/host/host.hpp"
 
 #include "common/assert_verify.hpp"
+#include "common/string.hpp"
 
 #include "boost/program_options.hpp"
 
+#include <boost/program_options/parsers.hpp>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -48,29 +50,81 @@ int main( int argc, const char* argv[] )
     {
         mega::service::Host host( optionalHostName );
 
+        bool bShowHelp        = false;
+        bool bShowVersion     = false;
+        bool bListHosts       = false;
+        bool bRunTestPipeline = false;
+        bool bQuit            = false;
+
+        namespace po = boost::program_options;
+        po::options_description options;
+
+        // clang-format off
+        options.add_options()
+        ( "help,?",    po::bool_switch( &bShowHelp ),        "Show Command Line Help"   )
+        ( "version,v", po::bool_switch( &bShowVersion ),     "Get Version"              )
+        ( "hosts,h",   po::bool_switch( &bListHosts ),       "List hosts"               )
+        ( "test,t",    po::bool_switch( &bRunTestPipeline ), "Run test pipeline"        )
+        ( "quit,q",    po::bool_switch( &bQuit ),            "Quit this host"           )
+        ;
+        // clang-format on
+
         while ( true )
         {
-            std::string strLine;
-            std::getline( std::cin, strLine );
-            if ( strLine == "help" )
+            bShowHelp        = false;
+            bShowVersion     = false;
+            bListHosts       = false;
+            bRunTestPipeline = false;
+            bQuit            = false;
+
             {
-                std::cout << "help      - show this" << std::endl;
-                std::cout << "version   - show daemon version" << std::endl;
-                std::cout << "hosts     - list daemon hosts" << std::endl;
-                std::cout << "quit      - shutdown this host" << std::endl;
+                std::ostringstream os;
+                {
+                    std::string strLine;
+                    while ( strLine.empty() )
+                    {
+                        std::cout << "megahost:";
+                        std::getline( std::cin, strLine );
+                    }
+                    if ( strLine.front() != '-' )
+                    {
+                        if ( strLine.length() == 1 )
+                            os << '-' << strLine;
+                        else
+                            os << "--" << strLine;
+                    }
+                    else
+                        os << strLine;
+                }
+                {
+                    po::parsed_options parsedOptions
+                        = po::command_line_parser( common::simpleTokenise( os.str(), " " ) ).options( options ).run();
+                    po::variables_map vm;
+                    po::store( parsedOptions, vm );
+                    po::notify( vm );
+                }
             }
-            if ( strLine == "version" )
+
+            if ( bShowHelp )
+            {
+                std::cout << options << std::endl;
+            }
+            else if ( bShowVersion )
             {
                 std::cout << "Version is: " << host.GetVersion() << std::endl;
             }
-            else if ( strLine == "hosts" )
+            else if ( bListHosts )
             {
                 for ( const std::string& strHost : host.ListHosts() )
                 {
                     std::cout << strHost << std::endl;
                 }
             }
-            else if ( strLine == "quit" )
+            else if ( bRunTestPipeline )
+            {
+                std::cout << "Version is: " << host.runTestPipeline() << std::endl;
+            }
+            else if ( bQuit )
             {
                 break;
             }

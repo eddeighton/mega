@@ -44,7 +44,7 @@ public:
 {% endfor %}
 
 private:
-    network::Activity&            m_activity;
+    Activity&            m_activity;
     boost::asio::ip::tcp::socket& m_socket;
     boost::asio::yield_context&   m_yield_ctx;
 };
@@ -52,7 +52,7 @@ private:
 class Response_Encode
 {
 public:
-    Response_Encode( network::Activity&            activity,
+    Response_Encode( Activity&            activity,
                      boost::asio::ip::tcp::socket& socket,
                      boost::asio::yield_context&   yield_ctx );
 
@@ -68,7 +68,7 @@ public:
 {% endfor %}
 
 private:
-    network::Activity&            m_activity;
+    Activity&                   m_activity;
     boost::asio::ip::tcp::socket& m_socket;
     boost::asio::yield_context&   m_yield_ctx;
 };
@@ -76,7 +76,7 @@ private:
 class Impl
 {
 public:
-    bool         dispatch( const MessageVariant& msg, boost::asio::yield_context yield_ctx );
+    bool dispatch( const MessageVariant& msg, Activity& activity, boost::asio::yield_context yield_ctx );
 
 {% for request in requests %}
     virtual void {{ request.name }}

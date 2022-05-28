@@ -8,6 +8,8 @@
 #include <boost/tokenizer.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include "common/string.hpp"
+
 #include <string>
 #include <vector>
 
@@ -17,15 +19,7 @@ namespace utilities
 {
 inline std::vector< std::string > parseCMakeStringList( const std::string& strPathList, const char* pszDelimiters )
 {
-    std::vector< std::string > strings;
-    {
-        using Tokeniser = boost::tokenizer< boost::char_separator< char > >;
-        boost::char_separator< char > sep( pszDelimiters );
-        Tokeniser                     tokens( strPathList, sep );
-        for ( Tokeniser::iterator i = tokens.begin(); i != tokens.end(); ++i )
-            strings.push_back( *i );
-    }
-    return strings;
+    return common::simpleTokenise( strPathList, pszDelimiters );
 }
 
 inline std::vector< boost::filesystem::path > pathListToFiles( const std::vector< std::string >& pathList )

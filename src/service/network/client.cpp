@@ -35,7 +35,7 @@ Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityMan
 
 void Client::stop()
 {
-    m_socket.cancel();
+    m_receiver.stop();
     m_socket.close();
     m_ioContext.stop();
 }

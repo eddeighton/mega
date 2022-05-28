@@ -26,11 +26,10 @@ public:
     {
     }
 
-    virtual void run( boost::asio::yield_context yield_ctx )
+    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx ) 
     {
-        while ( network::daemon_root::Impl::dispatch( receiveRequest( yield_ctx ), yield_ctx ) )
-            ;
-        completed();
+        return network::Activity::dispatch( msg, yield_ctx ) ||
+            network::daemon_root::Impl::dispatch( msg, *this, yield_ctx );
     }
 
     virtual void GetVersion( boost::asio::yield_context yield_ctx )
@@ -42,6 +41,26 @@ public:
             daemonResponse.GetVersion( network::getVersion() );
             //std::cout << "Hello from root" << std::endl;
         }
+    }
+    virtual void runTestPipeline( boost::asio::yield_context yield_ctx )
+    {
+        int totalThreads = 0;
+        for( auto & [ id, pDeamon ] :
+            m_root.m_server.getConnections() )
+        {
+            network::root_daemon::Request_Encode daemonRequest( *this, pDeamon->getSocket(), yield_ctx );
+            int threads = daemonRequest.ListWorkers();
+            totalThreads += threads;
+            daemonRequest.Complete();
+        }
+        
+        network::Server::Connection::Ptr pConnection
+             = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
+
+        network::daemon_root::Response_Encode daemonResponse( *this, pConnection->getSocket(), yield_ctx );
+        std::ostringstream os;
+        os << "Found: " << totalThreads << " threads";
+        daemonResponse.runTestPipeline( os.str() );
     }
 };
 

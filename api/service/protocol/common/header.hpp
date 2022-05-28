@@ -93,6 +93,11 @@ private:
     ActivityID m_activityID;
 };
 
+inline std::ostream& operator<<( std::ostream& os, const Header& header )
+{
+    return os << header.getActivityID() << '#' << header.getMessageID();
+}
+
 } // namespace network
 } // namespace mega
 

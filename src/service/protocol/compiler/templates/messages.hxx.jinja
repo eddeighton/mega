@@ -49,7 +49,10 @@ using MessageVariant = std::variant
 using MessageChannel
     = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, MessageVariant ) >;
 
+bool isRequest( const MessageVariant& msg );
 bool decode( boost::archive::binary_iarchive& archive, const Header& header, std::shared_ptr< Activity > pActivity );
+
+std::ostream& operator<<( std::ostream& os, const MessageVariant& msg );
 
 } // namespace network
 } // namespace mega

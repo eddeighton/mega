@@ -21,40 +21,40 @@ namespace service
 
 class RequestActivity : public network::Activity, public network::daemon_worker::Impl
 {
-    Worker& m_host;
+    Worker& m_worker;
 
 public:
     RequestActivity( Worker& worker, const network::ActivityID& activityID,
                      const network::ConnectionID& originatingConnectionID )
         : Activity( worker.m_activityManager, activityID, originatingConnectionID )
-        , m_host( worker )
+        , m_worker( worker )
     {
     }
 
-    virtual void run( boost::asio::yield_context yield_ctx )
+    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx ) 
     {
-        while ( network::daemon_worker::Impl::dispatch( receiveRequest( yield_ctx ), yield_ctx ) )
-            ;
-        completed();
+        return network::Activity::dispatch( msg, yield_ctx ) ||
+            network::daemon_worker::Impl::dispatch( msg, *this, yield_ctx );
     }
-    /*
-        virtual void DaemonToHost( const int& anInt, boost::asio::yield_context yield_ctx )
-        {
-            network::daemon_host::Response_Encode daemon( *this, m_host.m_client.getSocket(), yield_ctx );
-            daemon.DaemonToHost( {} );
-        }*/
+
+    virtual void ListThreads( boost::asio::yield_context yield_ctx )
+    {
+        network::daemon_worker::Response_Encode daemon( *this, m_worker.m_client.getSocket(), yield_ctx );
+        daemon.ListThreads( m_worker.getNumThreads() );
+    }
 };
 
 network::Activity::Ptr
 Worker::HostActivityFactory::createRequestActivity( const network::ActivityID&   activityID,
                                                     const network::ConnectionID& originatingConnectionID ) const
 {
-    return network::Activity::Ptr( new RequestActivity( m_host, activityID, originatingConnectionID ) );
+    return network::Activity::Ptr( new RequestActivity( m_worker, activityID, originatingConnectionID ) );
 }
 
-Worker::Worker( boost::asio::io_context& io_context )
+Worker::Worker( boost::asio::io_context& io_context, int numThreads )
     : m_activityFactory( *this )
     , m_io_context( io_context )
+    , m_numThreads( numThreads )
     , m_activityManager( m_io_context )
     , m_client(
           m_io_context, m_activityManager, m_activityFactory, "localhost", mega::network::MegaWorkerServiceName() )
@@ -92,7 +92,6 @@ public:
     {
         // std::cout << "Started: " << getActivityID() << std::endl;
         m_functor( m_promise, m_client, *this, yield_ctx );
-        completed();
     }
 };
 

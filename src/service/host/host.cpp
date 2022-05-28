@@ -9,6 +9,7 @@
 #include "service/protocol/model/host_daemon.hxx"
 
 #include "common/requireSemicolon.hpp"
+#include "service/protocol/model/messages.hxx"
 
 #include <optional>
 #include <future>
@@ -30,11 +31,10 @@ public:
     {
     }
 
-    virtual void run( boost::asio::yield_context yield_ctx )
+    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
     {
-        while ( network::daemon_host::Impl::dispatch( receiveRequest( yield_ctx ), yield_ctx ) )
-            ;
-        completed();
+        return network::Activity::dispatch( msg, yield_ctx )
+               || network::daemon_host::Impl::dispatch( msg, *this, yield_ctx );
     }
     /*
         virtual void DaemonToHost( const int& anInt, boost::asio::yield_context yield_ctx )
@@ -71,17 +71,19 @@ Host::~Host()
 static network::ActivityID::ID g_activity_id_counter = 1;
 
 template < typename TPromiseType, typename TActivityFunctor >
-class GenericActivity : public network::Activity
+class GenericActivity : public RequestActivity
 {
+    Host&            m_host;
     network::Client& m_client;
     TPromiseType&    m_promise;
     TActivityFunctor m_functor;
 
 public:
-    GenericActivity( network::Client& client, network::ActivityManager& activityManager, TPromiseType& promise,
-                     TActivityFunctor&& functor )
-        : Activity( activityManager,
-                    network::ActivityID( g_activity_id_counter++, network::getConnectionID( client.getSocket() ) ) )
+    GenericActivity( Host& host, network::Client& client, const network::ConnectionID& originatingConnectionID,
+                     TPromiseType& promise, TActivityFunctor&& functor )
+        : RequestActivity(
+            host, network::ActivityID( g_activity_id_counter++, originatingConnectionID ), originatingConnectionID )
+        , m_host( host )
         , m_client( client )
         , m_promise( promise )
         , m_functor( functor )
@@ -92,7 +94,8 @@ public:
     {
         // std::cout << "Started: " << getActivityID() << std::endl;
         m_functor( m_promise, m_client, *this, yield_ctx );
-        completed();
+
+        RequestActivity::run( yield_ctx );
     }
 };
 
@@ -100,7 +103,7 @@ public:
     DO_STUFF_AND_REQUIRE_SEMI_COLON( using ResultType                  = TResult; std::promise< ResultType > promise; \
                                      std::future< ResultType > fResult = promise.get_future();                        \
                                      m_activityManager.activityStarted( network::Activity::Ptr( new GenericActivity(  \
-                                         m_client, m_activityManager, promise,                                        \
+                                         *this, m_client, network::getConnectionID( m_client.getSocket() ), promise,  \
                                          []( std::promise< ResultType >& promise, network::Client& client,            \
                                              network::Activity& activity, boost::asio::yield_context yield_ctx )      \
                                          {                                                                            \
@@ -124,5 +127,6 @@ std::vector< std::string > Host::ListHosts()
     SIMPLE_REQUEST( std::vector< std::string >, promise.set_value( daemon.ListHosts() ) );
 }
 
+std::string Host::runTestPipeline() { SIMPLE_REQUEST( std::string, promise.set_value( daemon.runTestPipeline() ) ); }
 } // namespace service
 } // namespace mega

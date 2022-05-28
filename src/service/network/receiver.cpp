@@ -58,7 +58,8 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                     }
                     else
                     {
-                        THROW_RTE( "Failed to read message size" );
+                        //THROW_RTE( "Failed to read message size" );
+                        m_socket.close();
                     }
                 }
                 else // if( ec.failed() )
@@ -70,7 +71,7 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                         break;
                     }
                     // log error and close
-                    THROW_RTE( "Socket error: " << ec.what() );
+                    //THROW_RTE( "Socket error: " << ec.what() );
                     m_socket.close();
                 }
             }
@@ -96,11 +97,11 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                         pActivity = m_activityFactory.createRequestActivity(
                             header.getActivityID(), getConnectionID( m_socket ) );
                         m_activityManager.activityStarted( pActivity );
-                        //std::cout << "Receive to new: " << pActivity->getActivityID() << std::endl;
+                        std::cout << "Receive to new: " << header << std::endl;
                     }
                     else
                     {
-                        //std::cout << "Receive to existing: " << pActivity->getActivityID() << std::endl;
+                        std::cout << "Receive to existing: " << header << std::endl;
                     }
 
                     decode( ia, header, pActivity );
@@ -120,7 +121,7 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                     break;
                 }
                 // log error and close
-                THROW_RTE( "Socket error: " << ec.what() );
+                //THROW_RTE( "Socket error: " << ec.what() );
                 m_socket.close();
             }
         }

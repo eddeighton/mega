@@ -4,6 +4,7 @@
 #include "service/network/activity.hpp"
 #include "service/network/network.hpp"
 
+#include "service/protocol/model/daemon_worker.hxx"
 #include "service/protocol/model/host_daemon.hxx"
 #include "service/protocol/model/worker_daemon.hxx"
 #include "service/protocol/model/root_daemon.hxx"
@@ -18,33 +19,37 @@ namespace service
 
 ////////////////////////////////////////////////////////////////
 // HostRequestActivity
-class HostRequestActivity : public network::Activity, public network::host_daemon::Impl
+class RequestActivity : public network::Activity,
+                        public network::host_daemon::Impl,
+                        public network::worker_daemon::Impl,
+                        public network::root_daemon::Impl
 {
     Daemon& m_daemon;
 
 public:
-    HostRequestActivity( Daemon&                      daemon,
-                         const network::ActivityID&   activityID,
-                         const network::ConnectionID& originatingConnectionID )
+    RequestActivity( Daemon&                      daemon,
+                     const network::ActivityID&   activityID,
+                     const network::ConnectionID& originatingConnectionID )
         : Activity( daemon.m_activityManager, activityID, originatingConnectionID )
         , m_daemon( daemon )
     {
     }
 
-    virtual void run( boost::asio::yield_context yield_ctx )
+    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
     {
-        while ( network::host_daemon::Impl::dispatch( receiveRequest( yield_ctx ), yield_ctx ) )
-            ;
-        completed();
+        return network::Activity::dispatch( msg, yield_ctx )
+               || network::host_daemon::Impl::dispatch( msg, *this, yield_ctx )
+               || network::worker_daemon::Impl::dispatch( msg, *this, yield_ctx )
+               || network::root_daemon::Impl::dispatch( msg, *this, yield_ctx );
     }
 
+    // network::host_daemon::Impl
     virtual void GetVersion( boost::asio::yield_context yield_ctx )
     {
-        std::string                          strMegaStructureVersion;
         network::daemon_root::Request_Encode root( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
-        strMegaStructureVersion = root.GetVersion();
+        std::string                          strMegaStructureVersion = root.GetVersion();
         root.Complete();
-        //std::cout << "Got version from Root of: " << strMegaStructureVersion << std::endl;
+        // std::cout << "Got version from Root of: " << strMegaStructureVersion << std::endl;
 
         if ( network::Server::Connection::Ptr pConnection
              = m_daemon.m_hostServer.getConnection( getOriginatingEndPointID().value() ) )
@@ -59,93 +64,60 @@ public:
              = m_daemon.m_hostServer.getConnection( getOriginatingEndPointID().value() ) )
         {
             network::host_daemon::Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
-            std::vector< std::string > hosts;
+            std::vector< std::string >            hosts;
             for ( auto& [ id, pConnection ] : m_daemon.m_hostServer.getConnections() )
                 hosts.push_back( pConnection->getName() );
             hostResponse.ListHosts( hosts );
         }
     }
-};
-
-network::Activity::Ptr
-Daemon::HostRequestActivityFactory::createRequestActivity( const network::ActivityID&   activityID,
-                                                           const network::ConnectionID& originatingConnectionID ) const
-{
-    return network::Activity::Ptr( new HostRequestActivity( m_daemon, activityID, originatingConnectionID ) );
-}
-
-////////////////////////////////////////////////////////////////
-// WorkerRequestActivity
-class WorkerRequestActivity : public network::Activity, public network::worker_daemon::Impl
-{
-    Daemon& m_daemon;
-
-public:
-    WorkerRequestActivity( Daemon&                      daemon,
-                         const network::ActivityID&   activityID,
-                         const network::ConnectionID& originatingConnectionID )
-        : Activity( daemon.m_activityManager, activityID, originatingConnectionID )
-        , m_daemon( daemon )
+    virtual void runTestPipeline( boost::asio::yield_context yield_ctx )
     {
+        network::daemon_root::Request_Encode root( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
+        std::string                          strTestPipelineResult = root.runTestPipeline();
+        root.Complete();
+
+        if ( network::Server::Connection::Ptr pConnection
+             = m_daemon.m_hostServer.getConnection( getOriginatingEndPointID().value() ) )
+        {
+            network::host_daemon::Response_Encode hostResponse( *this, pConnection->getSocket(), yield_ctx );
+            hostResponse.runTestPipeline( strTestPipelineResult );
+        }
     }
 
-    virtual void run( boost::asio::yield_context yield_ctx )
+    // network::worker_daemon::Impl
+
+    // network::root_daemon::Impl
+    virtual void ListWorkers( boost::asio::yield_context yield_ctx )
     {
-        while ( network::worker_daemon::Impl::dispatch( receiveRequest( yield_ctx ), yield_ctx ) )
-            ;
-        completed();
-    }
-};
+        int iTotalThreads = 0;
+        for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
+        {
+            network::daemon_worker::Request_Encode worker( *this, pWorker->getSocket(), yield_ctx );
+            iTotalThreads += worker.ListThreads();
+            worker.Complete();
+        }
 
-network::Activity::Ptr
-Daemon::WorkerRequestActivityFactory::createRequestActivity( const network::ActivityID&   activityID,
-                                                           const network::ConnectionID& originatingConnectionID ) const
-{
-    return network::Activity::Ptr( new WorkerRequestActivity( m_daemon, activityID, originatingConnectionID ) );
-}
-
-////////////////////////////////////////////////////////////////
-// RootRequestActivity
-class RootRequestActivity : public network::Activity, public network::root_daemon::Impl
-{
-    Daemon& m_daemon;
-
-public:
-    RootRequestActivity( Daemon&                      daemon,
-                         const network::ActivityID&   activityID,
-                         const network::ConnectionID& originatingConnectionID )
-        : Activity( daemon.m_activityManager, activityID, originatingConnectionID )
-        , m_daemon( daemon )
-    {
-    }
-
-    virtual void run( boost::asio::yield_context yield_ctx )
-    {
-        while ( network::root_daemon::Impl::dispatch( receiveRequest( yield_ctx ), yield_ctx ) )
-            ;
-        completed();
+        network::root_daemon::Response_Encode rootResponse( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
+        rootResponse.ListWorkers( iTotalThreads );
     }
 };
 
 network::Activity::Ptr
-Daemon::RootRequestActivityFactory::createRequestActivity( const network::ActivityID&   activityID,
-                                                           const network::ConnectionID& originatingConnectionID ) const
+Daemon::RequestActivityFactory::createRequestActivity( const network::ActivityID&   activityID,
+                                                       const network::ConnectionID& originatingConnectionID ) const
 {
-    return network::Activity::Ptr( new RootRequestActivity( m_daemon, activityID, originatingConnectionID ) );
+    return network::Activity::Ptr( new RequestActivity( m_daemon, activityID, originatingConnectionID ) );
 }
-
 
 ////////////////////////////////////////////////////////////////
 // Daemon
 Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP )
-    : m_rootRequestActivityFactory( *this )
-    , m_hostRequestActivityFactory( *this )
-    , m_workerRequestActivityFactory( *this )
+    : m_requestActivityFactory( *this )
     , m_activityManager( ioContext )
     , m_rootClient(
-          ioContext, m_activityManager, m_rootRequestActivityFactory, strRootIP, mega::network::MegaRootServiceName() )
-    , m_hostServer( ioContext, m_activityManager, m_hostRequestActivityFactory, network::MegaDaemonPort() )
-    , m_workerServer( ioContext, m_activityManager, m_workerRequestActivityFactory, network::MegaWorkerPort() )
+          ioContext, m_activityManager, m_requestActivityFactory, strRootIP, mega::network::MegaRootServiceName() )
+    , m_hostServer( ioContext, m_activityManager, m_requestActivityFactory, network::MegaDaemonPort() )
+    , m_workerServer( ioContext, m_activityManager, m_requestActivityFactory, network::MegaWorkerPort() )
 {
     m_hostServer.waitForConnection();
     m_workerServer.waitForConnection();

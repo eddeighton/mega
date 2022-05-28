@@ -8,6 +8,33 @@ namespace mega
 namespace network
 {
 
+namespace 
+{
+    struct Visitor
+    {
+{%for message in messages%}
+        bool operator() ( const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg ) const
+        {
+{%if message.is_request %}
+            return true;
+{% else %}
+            return false;
+{% endif %}
+        }
+{% endfor %}
+        template< typename TOtherMsgType >
+        bool operator() ( const TOtherMsgType& ) const
+        {
+            return false;
+        }
+    } ;
+}
+bool isRequest( const MessageVariant& msg )
+{
+    Visitor visitor;
+    return std::visit( visitor, msg );
+}
+
 bool decode( boost::archive::binary_iarchive& archive, const Header& header, std::shared_ptr< Activity > pActivity )
 {
     switch ( header.getMessageID() )
@@ -20,11 +47,7 @@ bool decode( boost::archive::binary_iarchive& archive, const Header& header, std
 {%for member in message.members%}
             archive& msg.{{ member.name }}; 
 {%endfor%}
-{%if message.is_request %}
-            pActivity->sendRequest( MessageVariant{ msg } );
-{%else%}
-            pActivity->sendResponse( MessageVariant{ msg } );
-{%endif%}
+            pActivity->send( MessageVariant{ msg } );
             return true;
         }
         break;
@@ -34,6 +57,37 @@ bool decode( boost::archive::binary_iarchive& archive, const Header& header, std
             return false;
         }
     }
+}
+
+namespace 
+{
+    struct Printer
+    {
+        std::ostream& m_os;
+        Printer( std::ostream& os ) : m_os( os ) {}
+{%for message in messages%}
+        std::ostream& operator() ( const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg ) const
+        {
+            return m_os << "{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}";
+{#
+{%for member in message.members%}
+            << msg.{{ member.name }}
+{% if not loop.is_last %}, {%endif%}
+{%endfor%}
+#}
+        }
+{% endfor %}
+        template< typename TOtherMsgType >
+        std::ostream& operator() ( const TOtherMsgType& ) const
+        {
+            return m_os << "Unknown message type";
+        }
+    } ;
+}
+std::ostream& operator<<( std::ostream& os, const MessageVariant& msg )
+{
+    Printer printer( os );
+    return std::visit( printer, msg );
 }
 
 }

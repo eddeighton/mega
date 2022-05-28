@@ -76,7 +76,7 @@ void Request_Encode::Complete()
         THROW_RTE( "Error writing: " << ec.what() );
     }
 
-    const MessageVariant msg = m_activity.receiveResponse( m_yield_ctx );
+    const MessageVariant msg = m_activity.dispatchRequestsUntilResponse( m_yield_ctx );
     return std::get< {{ filename }}::MSG_{{ request.name }}_Response >( msg ).{{ request.return_msg_member }};
 }
 {% endfor %}
@@ -123,18 +123,20 @@ namespace
 {
     struct Visitor
     {
-        Impl&                      m_impl;
+        Impl&     m_impl;
+        Activity& m_activity;
         boost::asio::yield_context yield_ctx;
-        Visitor( Impl& impl, boost::asio::yield_context yield_ctx )
+        Visitor( Impl& impl, Activity& activity, boost::asio::yield_context yield_ctx )
             : m_impl( impl )
+            , m_activity( activity )
             , yield_ctx( yield_ctx )
         {
         }
-        bool operator()( const MSG_Complete_Request& msg ) const { return false; }
 
 {% for request in requests %}
         bool operator() ( const {{ filename }}::MSG_{{ request.name }}_Request& msg ) const
         {
+            m_activity.requestStarted();
             m_impl.{{ request.name }}
             ( 
 {%for p in request.params%}
@@ -148,14 +150,14 @@ namespace
         template< typename TOtherMsgType >
         bool operator() ( const TOtherMsgType& ) const
         {
-            THROW_RTE( "Invalid message dispatched" );
+            return false;
         }
 
     } ;
 }
-bool Impl::dispatch( const MessageVariant& msg, boost::asio::yield_context yield_ctx )
+bool Impl::dispatch( const MessageVariant& msg, Activity& activity, boost::asio::yield_context yield_ctx )
 {
-    Visitor visitor( *this, yield_ctx );
+    Visitor visitor( *this, activity, yield_ctx );
     return std::visit( visitor, msg );
 }
 

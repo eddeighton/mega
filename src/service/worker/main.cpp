@@ -59,7 +59,7 @@ int main( int argc, const char* argv[] )
     {
         boost::asio::io_context ioContext;
 
-        mega::service::Worker worker( ioContext );
+        mega::service::Worker worker( ioContext, uiNumThreads );
 
         std::vector< std::thread > threads;
         for ( int i = 0; i < uiNumThreads; ++i )

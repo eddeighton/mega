@@ -42,6 +42,7 @@ public:
 
     std::string                GetVersion();
     std::vector< std::string > ListHosts();
+    std::string                runTestPipeline();
 
 private:
     HostActivityFactory      m_activityFactory;

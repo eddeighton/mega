@@ -13,10 +13,10 @@ namespace service
 {
 class Daemon
 {
-    class HostRequestActivityFactory : public network::ActivityFactory
+    class RequestActivityFactory : public network::ActivityFactory
     {
     public:
-        HostRequestActivityFactory( Daemon& daemon )
+        RequestActivityFactory( Daemon& daemon )
             : m_daemon( daemon )
         {
         }
@@ -27,50 +27,18 @@ class Daemon
     private:
         Daemon& m_daemon;
     };
-    class WorkerRequestActivityFactory : public network::ActivityFactory
-    {
-    public:
-        WorkerRequestActivityFactory( Daemon& daemon )
-            : m_daemon( daemon )
-        {
-        }
-        virtual network::Activity::Ptr
-        createRequestActivity( const network::ActivityID&   activityID,
-                               const network::ConnectionID& originatingConnectionID ) const;
-
-    private:
-        Daemon& m_daemon;
-    };
-    class RootRequestActivityFactory : public network::ActivityFactory
-    {
-    public:
-        RootRequestActivityFactory( Daemon& daemon )
-            : m_daemon( daemon )
-        {
-        }
-        virtual network::Activity::Ptr
-        createRequestActivity( const network::ActivityID&   activityID,
-                               const network::ConnectionID& originatingConnectionID ) const;
-
-    private:
-        Daemon& m_daemon;
-    };
-    friend class HostRequestActivity;
-    friend class WorkerRequestActivity;
-    friend class RootRequestActivity;
+    friend class RequestActivity;
 
 public:
     Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP );
     ~Daemon();
 
 private:
-    RootRequestActivityFactory   m_rootRequestActivityFactory;
-    WorkerRequestActivityFactory m_workerRequestActivityFactory;
-    HostRequestActivityFactory   m_hostRequestActivityFactory;
-    network::ActivityManager     m_activityManager;
-    network::Client              m_rootClient;
-    network::Server              m_hostServer;
-    network::Server              m_workerServer;
+    RequestActivityFactory   m_requestActivityFactory;
+    network::ActivityManager m_activityManager;
+    network::Client          m_rootClient;
+    network::Server          m_hostServer;
+    network::Server          m_workerServer;
 };
 } // namespace service
 } // namespace mega

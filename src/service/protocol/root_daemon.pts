@@ -1,0 +1,6 @@
+
+msg ListWorkers
+{
+    request();
+    response(int threads);
+}

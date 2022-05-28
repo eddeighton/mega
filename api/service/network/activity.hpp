@@ -10,6 +10,7 @@
 
 #include "boost/asio/spawn.hpp"
 
+#include <cstddef>
 #include <memory>
 
 namespace mega
@@ -31,21 +32,25 @@ public:
     const ActivityID&                    getActivityID() const { return m_activityID; }
     const std::optional< ConnectionID >& getOriginatingEndPointID() const { return m_originatingEndPoint; }
 
-    virtual void run( boost::asio::yield_context yield_ctx ) = 0;
+    virtual void run( boost::asio::yield_context yield_ctx );
+    virtual bool dispatch( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx );
 
-    void completed();
+    bool isComplete() const;
+    void requestStarted();
+    void requestCompleted();
 
-    MessageVariant receiveRequest( boost::asio::yield_context yield_ctx );
-    void           sendRequest( const MessageVariant& msg );
-    MessageVariant receiveResponse( boost::asio::yield_context yield_ctx );
-    void           sendResponse( const MessageVariant& msg );
+    MessageVariant receive( boost::asio::yield_context yield_ctx );
+    void           send( const MessageVariant& msg );
+
+    MessageVariant dispatchRequestsUntilResponse( boost::asio::yield_context yield_ctx );
 
 protected:
     ActivityManager&              m_activityManager;
     ActivityID                    m_activityID;
     std::optional< ConnectionID > m_originatingEndPoint;
-    MessageChannel                m_requestChannel;
-    MessageChannel                m_responseChannel;
+    MessageChannel                m_channel;
+    std::size_t                   m_stackDepth;
+    bool                          m_bStarted;
 };
 
 } // namespace network

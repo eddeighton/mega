@@ -10,3 +10,9 @@ msg ListHosts
     request();
     response(std::vector< std::string > hosts);
 }
+
+msg runTestPipeline
+{
+    request();
+    response(std::string result);
+}
