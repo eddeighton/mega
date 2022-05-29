@@ -67,31 +67,6 @@ public:
     {
         getDaemonResponse( yield_ctx ).ListThreads( m_worker.getNumThreads() );
     }
-    /*
-        boost::asio::yield_context* m_pYieldCtx = nullptr;
-        std::string                 m_currentTask;
-
-
-        void executePipeline()
-        {
-            pipeline::Registry            pipelineRegistry;
-            mega::pipeline::Pipeline::Ptr pPipeline = pipelineRegistry.getPipeline( "compiler" );
-
-            auto daemonRequest = getDaemonRequest( *m_pYieldCtx );
-            while ( true )
-            {
-                m_currentTask = daemonRequest.PipelineReadyForWork();
-                daemonRequest.Complete();
-                if ( !m_currentTask.empty() )
-                {
-                    pPipeline->execute( pipeline::Task( m_currentTask ), *this );
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }*/
 
     virtual void StartPipeline( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx );
 };
