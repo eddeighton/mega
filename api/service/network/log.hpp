@@ -15,8 +15,23 @@ namespace mega
 {
 namespace network
 {
+
+enum LoggingLevel
+{
+    eDebug,
+    eTrace,
+    eInfo,
+    eWarn,
+    eError,
+    eOff,
+    TOTAL_LOG_LEVELS
+};
+LoggingLevel fromStr( const std::string& str );
+
+
 std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::filesystem::path& logFolder,
-                                                              const std::string&             strLogName );
+                                                              const std::string&             strLogName,
+                                                            LoggingLevel loggingLevel );
 }
 } // namespace mega
 
@@ -43,9 +58,7 @@ struct formatter< mega::network::ActivityID >
     template < typename FormatContext >
     auto format( const mega::network::ActivityID& activityID, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        std::ostringstream os;
-        os << activityID;
-        return format_to( ctx.out(), "{}", os.str() );
+        return format_to( ctx.out(), "{}::{}", activityID.getConnectionID(), activityID.getID() );
     }
 };
 
@@ -56,9 +69,7 @@ struct formatter< mega::network::Header >
     template < typename FormatContext >
     auto format( const mega::network::Header& header, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        std::ostringstream os;
-        os << header;
-        return format_to( ctx.out(), "{}", os.str() );
+        return format_to( ctx.out(), "{}::{}", header.getActivityID(), header.getMessageID() );
     }
 };
 

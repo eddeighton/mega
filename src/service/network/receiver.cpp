@@ -100,7 +100,7 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                         Activity::Ptr pActivity = m_activityManager.findExistingActivity( header.getActivityID() );
                         if ( !pActivity )
                         {
-                            pActivity = m_activityFactory.createRequestActivity( header.getActivityID(), connectionID );
+                            pActivity = m_activityFactory.createRequestActivity( header, connectionID );
                             m_activityManager.activityStarted( pActivity );
                             SPDLOG_TRACE( "Received msg {}. Started new activity {}.",
                                           getMsgNameFromID( header.getMessageID() ),

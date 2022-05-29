@@ -18,26 +18,25 @@ Activity::Activity( ActivityManager& activityManager, const ActivityID& activity
     , m_activityID( activityID )
     , m_originatingEndPoint( originatingConnectionID )
     , m_channel( activityManager.getIOContext() )
-    , m_stackDepth( 0U )
     , m_bStarted( false )
 {
 }
 
 Activity::~Activity() {}
 
-bool Activity::isComplete() const { return m_bStarted && ( m_stackDepth == 0U ); }
+bool Activity::isComplete() const { return m_bStarted && m_stack.empty(); }
 
-void Activity::requestStarted()
+void Activity::requestStarted( const ConnectionID& connectionID )
 {
     m_bStarted = true;
-    ++m_stackDepth;
+    m_stack.push_back( connectionID );
 }
 
 void Activity::requestCompleted()
 {
-    VERIFY_RTE( m_stackDepth > 0U );
-    --m_stackDepth;
-    if ( m_stackDepth == 0U )
+    VERIFY_RTE( !m_stack.empty() );
+    m_stack.pop_back();
+    if ( m_stack.empty() )
     {
         m_activityManager.activityCompleted( shared_from_this() );
     }
@@ -91,18 +90,23 @@ void Activity::run( boost::asio::yield_context yield_ctx )
     {
         while ( !isComplete() )
         {
-            const network::MessageVariant msg = receive( yield_ctx );
-            if ( !dispatchRequestImpl( msg, yield_ctx ) )
-            {
-                SPDLOG_ERROR( "Failed to dispatch request: {} on activity: {}", msg, getActivityID().getID() );
-                THROW_RTE( "Failed to dispatch request message: " << msg );
-            }
+            run_one( yield_ctx );
         }
     }
     catch ( std::exception& ex )
     {
         SPDLOG_WARN( "Activity: {} exception: {}", getActivityID().getID(), ex.what() );
         m_activityManager.activityCompleted( shared_from_this() );
+    }
+}
+
+void Activity::run_one( boost::asio::yield_context yield_ctx )
+{
+    const network::MessageVariant msg = receive( yield_ctx );
+    if ( !dispatchRequestImpl( msg, yield_ctx ) )
+    {
+        SPDLOG_ERROR( "Failed to dispatch request: {} on activity: {}", msg, getActivityID().getID() );
+        THROW_RTE( "Failed to dispatch request message: " << msg );
     }
 }
 

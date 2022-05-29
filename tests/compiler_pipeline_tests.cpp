@@ -36,5 +36,5 @@ TEST( Compiler, Basic )
         }
         ASSERT_TRUE( bProgress );
     }
-    ASSERT_EQ( counter, 3 );
+    ASSERT_EQ( counter, 5 );
 }

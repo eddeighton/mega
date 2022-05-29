@@ -21,6 +21,7 @@ int main( int argc, const char* argv[] )
     using NumThreadsType        = decltype( std::thread::hardware_concurrency() );
     NumThreadsType uiNumThreads = 1U;
     boost::filesystem::path logFolder = boost::filesystem::current_path() / "log";
+    std::string strLogLevel = "warn";
     {
         bool bShowHelp = false;
 
@@ -33,6 +34,7 @@ int main( int argc, const char* argv[] )
         ( "ip",      po::value< std::string >( &strIP ),                "Root IP Address" )
         ( "threads", po::value< NumThreadsType >( &uiNumThreads ),      "Max number of threads" )
         ( "log",    po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
+        ( "level", po::value< std::string >( &strLogLevel ),            "Logging level" )
         ;
         // clang-format on
 
@@ -55,7 +57,7 @@ int main( int argc, const char* argv[] )
 
     try
     {
-        auto logThreads = mega::network::configureLog( logFolder, "daemon" );
+        auto logThreads = mega::network::configureLog( logFolder, "daemon", mega::network::fromStr( strLogLevel ) );
 
         boost::asio::io_context ioContext;
 

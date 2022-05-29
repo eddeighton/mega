@@ -53,10 +53,10 @@ public:
 };
 
 network::Activity::Ptr
-Host::HostActivityFactory::createRequestActivity( const network::ActivityID&   activityID,
+Host::HostActivityFactory::createRequestActivity( const network::Header&       msgHeader,
                                                   const network::ConnectionID& originatingConnectionID ) const
 {
-    return network::Activity::Ptr( new RequestActivity( m_host, activityID, originatingConnectionID ) );
+    return network::Activity::Ptr( new RequestActivity( m_host, msgHeader.getActivityID(), originatingConnectionID ) );
 }
 
 Host::Host( std::optional< const std::string > optName /* = std::nullopt*/ )
@@ -76,8 +76,6 @@ Host::~Host()
     m_io_thread.join();
 }
 
-static network::ActivityID::ID g_activity_id_counter = 1;
-
 template < typename TPromiseType, typename TActivityFunctor >
 class GenericActivity : public RequestActivity
 {
@@ -87,10 +85,10 @@ class GenericActivity : public RequestActivity
     TActivityFunctor m_functor;
 
 public:
-    GenericActivity( Host& host, network::Client& client, const network::ConnectionID& originatingConnectionID,
-                     TPromiseType& promise, TActivityFunctor&& functor )
-        : RequestActivity(
-            host, network::ActivityID( g_activity_id_counter++, originatingConnectionID ), originatingConnectionID )
+    GenericActivity( Host& host, network::ActivityManager& activityManager, network::Client& client,
+                     const network::ConnectionID& originatingConnectionID, TPromiseType& promise,
+                     TActivityFunctor&& functor )
+        : RequestActivity( host, activityManager.createActivityID( originatingConnectionID ), originatingConnectionID )
         , m_host( host )
         , m_client( client )
         , m_promise( promise )
@@ -100,7 +98,7 @@ public:
 
     void run( boost::asio::yield_context yield_ctx )
     {
-        requestStarted();
+        requestStarted( network::getConnectionID( m_client.getSocket() ) );
         try
         {
             m_functor( m_promise, m_client, *this, yield_ctx );
@@ -127,7 +125,7 @@ public:
                 ( \
                     new GenericActivity \
                     ( \
-                        *this, m_client, network::getConnectionID( m_client.getSocket() ), promise, \
+                        *this, m_activityManager, m_client, network::getConnectionID( m_client.getSocket() ), promise, \
                         []( std::promise< ResultType >& promise, network::Client& client, \
                                 network::Activity& activity, boost::asio::yield_context yield_ctx ) \
                         { \

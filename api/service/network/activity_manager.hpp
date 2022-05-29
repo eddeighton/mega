@@ -21,6 +21,7 @@ public:
 
     boost::asio::io_context& getIOContext() const;
 
+    ActivityID createActivityID( const ConnectionID& connectionID ) const;
     void activityStarted( Activity::Ptr pActivity );
     void activityCompleted( Activity::Ptr pActivity );
 
@@ -32,12 +33,13 @@ protected:
 private:
     ActivityPtrMap m_activities;
     mutable std::recursive_mutex m_mutex;
+    mutable ActivityID::ID m_nextActivityID = 1U;
 };
 
 class ActivityFactory
 {
 public:
-    virtual Activity::Ptr createRequestActivity( const network::ActivityID&   activityID,
+    virtual Activity::Ptr createRequestActivity( const network::Header&       msgHeader,
                                                  const network::ConnectionID& originatingConnectionID ) const = 0;
 };
 

@@ -27,7 +27,7 @@ public:
 
     ActivityID( ID id, const ConnectionID& connectionID )
         : m_id( id )
-        , m_endPointID( connectionID )
+        , m_connectionID( connectionID )
     {
     }
 
@@ -35,31 +35,26 @@ public:
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& m_id;
-        archive& m_endPointID;
+        archive& m_connectionID;
     }
 
     ID           getID() const { return m_id; }
-    ConnectionID getEndpointID() const { return m_endPointID; }
+    ConnectionID getConnectionID() const { return m_connectionID; }
 
 private:
     ID           m_id;
-    ConnectionID m_endPointID;
+    ConnectionID m_connectionID;
 };
-
-inline std::ostream& operator<<( std::ostream& os, const ActivityID& activityID )
-{
-    return os << activityID.getEndpointID() << '#' << activityID.getID();
-}
 
 inline bool operator==( const ActivityID& left, const ActivityID& right )
 {
-    return ( left.getEndpointID() == right.getEndpointID() ) && ( left.getID() == right.getID() );
+    return ( left.getConnectionID() == right.getConnectionID() ) && ( left.getID() == right.getID() );
 }
 
 inline bool operator<( const ActivityID& left, const ActivityID& right )
 {
-    return ( left.getEndpointID() != right.getEndpointID() ) ? ( left.getEndpointID() < right.getEndpointID() )
-                                                             : left.getID() < right.getID();
+    return ( left.getConnectionID() != right.getConnectionID() ) ? ( left.getConnectionID() < right.getConnectionID() )
+                                                                 : left.getID() < right.getID();
 }
 
 using MessageID = std::uint32_t;
@@ -92,11 +87,6 @@ private:
     MessageID  m_messageID;
     ActivityID m_activityID;
 };
-
-inline std::ostream& operator<<( std::ostream& os, const Header& header )
-{
-    return os << header.getActivityID() << '#' << header.getMessageID();
-}
 
 } // namespace network
 } // namespace mega

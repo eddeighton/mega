@@ -7,6 +7,7 @@
 
 #include "boost/config.hpp"
 
+#include <common/string.hpp>
 #include <thread>
 #include <chrono>
 
@@ -26,30 +27,12 @@ public:
     virtual pipeline::Schedule getSchedule();
     virtual void               execute( const pipeline::Task& task, pipeline::Progress& progress );
 };
-void task_a( pipeline::Progress& progress )
+void taskFunction( pipeline::Progress& progress )
 {
     progress.onStarted();
 
     using namespace std::chrono_literals;
-    std::this_thread::sleep_for( 250ms );
-
-    progress.onCompleted();
-}
-void task_b( pipeline::Progress& progress )
-{
-    progress.onStarted();
-
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for( 250ms );
-
-    progress.onCompleted();
-}
-void task_c( pipeline::Progress& progress )
-{
-    progress.onStarted();
-
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for( 250ms );
+    std::this_thread::sleep_for( 10ms );
 
     progress.onCompleted();
 }
@@ -61,9 +44,27 @@ pipeline::Schedule CompilerPipeline::getSchedule()
     using namespace pipeline;
 
     Dependencies dependencies;
-    dependencies.add( Task( "a" ), Task::Vector{ Task( "b" ) } );
-    dependencies.add( Task( "b" ), Task::Vector{ Task( "c" ) } );
-    dependencies.add( Task( "c" ), Task::Vector{} );
+
+    std::vector< Task > tasks;
+    for ( int i = 0; i < 1000; ++i )
+    {
+        std::ostringstream os;
+        os << "Task" << i;
+        Task t( os.str() );
+
+        Task::Vector dp;
+        for ( int j = 0; j < 20; ++j )
+        {
+            if ( !tasks.empty() )
+            {
+                int t = ( rand() + 1 ) % tasks.size();
+                if ( std::find( dp.begin(), dp.end(), tasks[ t ] ) == dp.end() )
+                    dp.push_back( tasks[ t ] );
+            }
+        }
+        dependencies.add( t, dp );
+        tasks.push_back( t );
+    }
 
     Schedule schedule( dependencies );
 
@@ -73,22 +74,7 @@ pipeline::Schedule CompilerPipeline::getSchedule()
 void CompilerPipeline::execute( const pipeline::Task& task, pipeline::Progress& progress )
 {
     //
-    if ( task.str() == "a" )
-    {
-        task_a( progress );
-    }
-    else if ( task.str() == "b" )
-    {
-        task_b( progress );
-    }
-    else if ( task.str() == "c" )
-    {
-        task_c( progress );
-    }
-    else
-    {
-        THROW_RTE( "Unknown task" );
-    }
+    taskFunction( progress );
 }
 
 } // namespace

@@ -21,13 +21,14 @@ class Daemon
         {
         }
         virtual network::Activity::Ptr
-        createRequestActivity( const network::ActivityID&   activityID,
+        createRequestActivity( const network::Header&       msgHeader,
                                const network::ConnectionID& originatingConnectionID ) const;
 
     private:
         Daemon& m_daemon;
     };
     friend class RequestActivity;
+    friend class PipelineActivity;
 
 public:
     Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP );

@@ -4,9 +4,12 @@
 #include "service/network/activity.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
+#include "service/network/log.hpp"
 
+#include "service/protocol/model/daemon_host.hxx"
 #include "service/protocol/model/daemon_worker.hxx"
 #include "service/protocol/model/host_daemon.hxx"
+#include "service/protocol/model/messages.hxx"
 #include "service/protocol/model/worker_daemon.hxx"
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
@@ -25,6 +28,7 @@ class RequestActivity : public network::Activity,
                         public network::worker_daemon::Impl,
                         public network::root_daemon::Impl
 {
+protected:
     Daemon& m_daemon;
 
 public:
@@ -44,7 +48,9 @@ public:
                || network::root_daemon::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
 
-    virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg, boost::asio::yield_context yield_ctx )
+    virtual void error( const network::ConnectionID& connectionID,
+                        const std::string&           strErrorMsg,
+                        boost::asio::yield_context   yield_ctx )
     {
         if ( network::getConnectionID( m_daemon.m_rootClient.getSocket() ) == connectionID )
         {
@@ -85,6 +91,42 @@ public:
         THROW_RTE( "Could not locate originating connection" );
     }
 
+    network::worker_daemon::Response_Encode getOriginatingWorkerResponse( boost::asio::yield_context yield_ctx )
+    {
+        if ( network::Server::Connection::Ptr pConnection
+             = m_daemon.m_workerServer.getConnection( getOriginatingEndPointID().value() ) )
+        {
+            return network::worker_daemon::Response_Encode( *this, pConnection->getSocket(), yield_ctx );
+        }
+        THROW_RTE( "Could not locate originating connection" );
+    }
+
+    network::worker_daemon::Response_Encode getMostRecentWorkerResponse( boost::asio::yield_context yield_ctx )
+    {
+        if ( network::Server::Connection::Ptr pConnection
+             = m_daemon.m_workerServer.getConnection( getMostRecentRequestConnectionID() ) )
+        {
+            return network::worker_daemon::Response_Encode( *this, pConnection->getSocket(), yield_ctx );
+        }
+        THROW_RTE( "Could not locate originating connection" );
+    }
+
+    network::daemon_worker::Request_Encode getMostRecentWorkerRequest( boost::asio::yield_context yield_ctx )
+    {
+        if ( network::Server::Connection::Ptr pConnection
+             = m_daemon.m_workerServer.getConnection( getMostRecentRequestConnectionID() ) )
+        {
+            return network::daemon_worker::Request_Encode( *this, pConnection->getSocket(), yield_ctx );
+        }
+        THROW_RTE( "Could not locate originating connection" );
+    }
+
+    network::daemon_worker::Request_Encode getWorkerRequest( network::Server::Connection::Ptr pWorker,
+                                                             boost::asio::yield_context       yield_ctx )
+    {
+        return network::daemon_worker::Request_Encode( *this, pWorker->getSocket(), yield_ctx );
+    }
+
     // network::host_daemon::Impl
     virtual void GetVersion( boost::asio::yield_context yield_ctx )
     {
@@ -104,13 +146,31 @@ public:
 
     virtual void runTestPipeline( boost::asio::yield_context yield_ctx )
     {
-        network::daemon_root::Request_Encode root( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
-        std::string                          strTestPipelineResult = root.runTestPipeline();
+        auto        root                  = getRootRequest( yield_ctx );
+        std::string strTestPipelineResult = root.runTestPipeline();
         root.Complete();
         getOriginatingHostResponse( yield_ctx ).runTestPipeline( strTestPipelineResult );
     }
 
     // network::worker_daemon::Impl
+    virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
+    {
+        SPDLOG_INFO( "PipelineReadyForWork: {}", getActivityID() );
+        THROW_RTE( "Unreechable" );
+    }
+    virtual void PipelineWorkProgress( const network::ActivityID& rootActivityID,
+                                       const std::string&         task,
+                                       const std::string&         progress,
+                                       boost::asio::yield_context yield_ctx )
+    {
+        THROW_RTE( "Unreechable" );
+    }
+    virtual void PipelineWorkCompleted( const network::ActivityID& rootActivityID,
+                                        const std::string&         task,
+                                        boost::asio::yield_context yield_ctx )
+    {
+        THROW_RTE( "Unreechable" );
+    }
 
     // network::root_daemon::Impl
     virtual void ListWorkers( boost::asio::yield_context yield_ctx )
@@ -118,20 +178,94 @@ public:
         int iTotalThreads = 0;
         for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
         {
-            network::daemon_worker::Request_Encode worker( *this, pWorker->getSocket(), yield_ctx );
+            auto worker = getWorkerRequest( pWorker, yield_ctx );
             iTotalThreads += worker.ListThreads();
             worker.Complete();
         }
-
         getRootResponse( yield_ctx ).ListWorkers( iTotalThreads );
+    }
+    virtual void StartPipeline( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
+    {
+        THROW_RTE( "Unreachable" );
+    }
+};
+
+class PipelineActivity : public RequestActivity
+{
+public:
+    PipelineActivity( Daemon&                      daemon,
+                      const network::ActivityID&   activityID,
+                      const network::ConnectionID& originatingConnectionID )
+        : RequestActivity( daemon, activityID, originatingConnectionID )
+    {
+    }
+
+    // network::root_daemon::Impl
+    virtual void StartPipeline( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
+    {
+        std::vector< network::ActivityID > allJobs;
+        for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
+        {
+            auto                               worker = getWorkerRequest( pWorker, yield_ctx );
+            std::vector< network::ActivityID > jobs   = worker.StartPipeline( rootActivityID );
+            worker.Complete();
+            std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
+        }
+        getRootResponse( yield_ctx ).StartPipeline( allJobs );
+    }
+
+    // network::worker_daemon::Impl
+    virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
+    {
+        SPDLOG_INFO( "PipelineReadyForWork: {}", getActivityID() );
+        auto        root    = getRootRequest( yield_ctx );
+        std::string strTask = root.PipelineReadyForWork( rootActivityID );
+        root.Complete();
+        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        worker.PipelineReadyForWork( strTask );
+    }
+
+    virtual void PipelineWorkProgress( const network::ActivityID& rootActivityID,
+                                       const std::string&         task,
+                                       const std::string&         progress,
+                                       boost::asio::yield_context yield_ctx )
+    {
+        auto root = getRootRequest( yield_ctx );
+        root.PipelineWorkProgress( rootActivityID, task, progress );
+        root.Complete();
+        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        worker.PipelineWorkProgress();
+    }
+
+    virtual void PipelineWorkCompleted( const network::ActivityID& rootActivityID,
+                                        const std::string&         task,
+                                        boost::asio::yield_context yield_ctx )
+    {
+        auto root = getRootRequest( yield_ctx );
+        root.PipelineWorkCompleted( rootActivityID, task );
+        root.Complete();
+        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        worker.PipelineWorkCompleted();
     }
 };
 
 network::Activity::Ptr
-Daemon::RequestActivityFactory::createRequestActivity( const network::ActivityID&   activityID,
+Daemon::RequestActivityFactory::createRequestActivity( const network::Header&       msgHeader,
                                                        const network::ConnectionID& originatingConnectionID ) const
 {
-    return network::Activity::Ptr( new RequestActivity( m_daemon, activityID, originatingConnectionID ) );
+    switch ( msgHeader.getMessageID() )
+    {
+        case network::worker_daemon::MSG_PipelineReadyForWork_Request::ID:
+        case network::worker_daemon::MSG_PipelineWorkProgress_Request::ID:
+        case network::worker_daemon::MSG_PipelineWorkCompleted_Request::ID:
+        case network::host_daemon::MSG_runTestPipeline_Request::ID:
+        case network::root_daemon::MSG_StartPipeline_Request::ID:
+            return network::Activity::Ptr(
+                new PipelineActivity( m_daemon, msgHeader.getActivityID(), originatingConnectionID ) );
+        default:
+            return network::Activity::Ptr(
+                new RequestActivity( m_daemon, msgHeader.getActivityID(), originatingConnectionID ) );
+    }
 }
 
 ////////////////////////////////////////////////////////////////

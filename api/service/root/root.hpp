@@ -18,18 +18,20 @@ class Root
     public:
         RootActivityFactory( Root& root ) : m_root( root ) {}
         virtual network::Activity::Ptr
-        createRequestActivity( const network::ActivityID&   activityID,
+        createRequestActivity( const network::Header&       msgHeader,
                                const network::ConnectionID& originatingConnectionID ) const;
 
     private:
         Root& m_root;
     };
     friend class RequestActivity;
+    friend class PipelineActivity;
 
 public:
     Root( boost::asio::io_context& ioContext );
 
 private:
+    boost::asio::io_context& m_io_context;
     RootActivityFactory      m_activityFactory;
     network::ActivityManager m_activityManager;
     network::Server          m_server;

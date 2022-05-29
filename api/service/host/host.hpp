@@ -32,7 +32,7 @@ class Host
         {
         }
         virtual network::Activity::Ptr
-        createRequestActivity( const network::ActivityID&   activityID,
+        createRequestActivity( const network::Header&       msgHeader,
                                const network::ConnectionID& originatingConnectionID ) const;
     };
 

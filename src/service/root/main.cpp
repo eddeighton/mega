@@ -17,9 +17,10 @@
 
 int main( int argc, const char* argv[] )
 {
-    using NumThreadsType        = decltype( std::thread::hardware_concurrency() );
-    NumThreadsType uiNumThreads = 1U;
-    boost::filesystem::path logFolder = boost::filesystem::current_path() / "log";
+    using NumThreadsType                 = decltype( std::thread::hardware_concurrency() );
+    NumThreadsType          uiNumThreads = 1U;
+    boost::filesystem::path logFolder    = boost::filesystem::current_path() / "log";
+    std::string             strLogLevel  = "warn";
     {
         bool bShowHelp = false;
 
@@ -28,9 +29,10 @@ int main( int argc, const char* argv[] )
 
         // clang-format off
         options.add_options()
-        ( "help",   po::bool_switch( &bShowHelp ), "Show Command Line Help" )
-        ( "threads", po::value< NumThreadsType >( &uiNumThreads ),  "Max number of threads" )
-        ( "log", po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
+        ( "help",       po::bool_switch( &bShowHelp ),                      "Show Command Line Help" )
+        ( "threads",    po::value< NumThreadsType >( &uiNumThreads ),       "Max number of threads" )
+        ( "log",        po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
+        ( "level",      po::value< std::string >( &strLogLevel ),           "Logging level" )
         ;
         // clang-format on
 
@@ -45,13 +47,13 @@ int main( int argc, const char* argv[] )
             std::cout << options << "\n";
             return 0;
         }
-        
+
         uiNumThreads = std::min( std::max( 1U, uiNumThreads ), std::thread::hardware_concurrency() );
     }
 
     try
     {
-        auto logThreads = mega::network::configureLog( logFolder, "root" );
+        auto logThreads = mega::network::configureLog( logFolder, "root", mega::network::fromStr( strLogLevel ) );
 
         boost::asio::io_context ioContext;
 

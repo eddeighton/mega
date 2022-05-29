@@ -39,10 +39,8 @@ void Request_Encode::Complete()
     boost::asio::streambuf streambuffer;
     {
         boost::archive::binary_oarchive oa( streambuffer );
-        {
-            const Header header( MSG_Complete_Request::ID, m_activity.getActivityID() );
-            oa&          header;
-        }
+        const Header header( MSG_Complete_Request::ID, m_activity.getActivityID() );
+        oa& header;
     }
     if ( const boost::system::error_code ec = send( streambuffer, m_socket, m_yield_ctx ) )
     {
@@ -67,10 +65,8 @@ void Request_Encode::Complete()
     boost::asio::streambuf streambuffer;
     {
         boost::archive::binary_oarchive oa( streambuffer );
-        {
-            const Header header( {{ filename }}::MSG_{{ request.name }}_Request::ID, m_activity.getActivityID() );
-            oa&          header;
-        }
+        const Header header( {{ filename }}::MSG_{{ request.name }}_Request::ID, m_activity.getActivityID() );
+        oa&          header;
 {%for p in request.params%}
         oa& {{p.name}};
 {%endfor%} 
@@ -86,7 +82,11 @@ void Request_Encode::Complete()
     }
 
     const MessageVariant msg = m_activity.dispatchRequestsUntilResponse( m_yield_ctx );
+    VERIFY_RTE_MSG( msg.index() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
+        "Unexpected reponse of type: " << getMsgNameFromID( msg.index() ) << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+{%if request.return_type != "void" %}
     return std::get< {{ filename }}::MSG_{{ request.name }}_Response >( msg ).{{ request.return_msg_member }};
+{% endif %}
 }
 {% endfor %}
 
@@ -113,10 +113,8 @@ void Response_Encode::{{ response.name }}
     boost::asio::streambuf streambuffer;
     {
         boost::archive::binary_oarchive oa( streambuffer );
-        {
-            const Header header( {{ filename }}::MSG_{{ response.name }}_Response::ID, m_activity.getActivityID() );
-            oa&          header;
-        }
+        const Header header( {{ filename }}::MSG_{{ response.name }}_Response::ID, m_activity.getActivityID() );
+        oa&          header;
 {%for p in response.params%}
         oa& {{p.name}};
 {%endfor%}
@@ -149,7 +147,7 @@ namespace
 {% for request in requests %}
         bool operator() ( const {{ filename }}::MSG_{{ request.name }}_Request& msg ) const
         {
-            m_activity.requestStarted();
+            m_activity.requestStarted( msg.connectionID );
             m_impl.{{ request.name }}
             ( 
 {%for p in request.params%}

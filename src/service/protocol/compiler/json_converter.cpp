@@ -63,11 +63,17 @@ void toJSON( const boost::filesystem::path& dataDir, const std::string& strFileN
             break;
         }
 
-        VERIFY_RTE( returnParam );
-        nlohmann::json requestData( { { "return_type", typeToString( returnParam.value().m_type ) },
+        nlohmann::json requestData( { { "return_type", "void" },
                                       { "name", transaction.m_name },
                                       { "params", nlohmann::json::array() },
-                                      { "return_msg_member", returnParam.value().m_name } } );
+                                      { "return_msg_member", "" } } );
+
+        if( returnParam.has_value() )
+        {
+            requestData[ "return_type" ] = typeToString( returnParam.value().m_type );
+            requestData[ "return_msg_member" ] = returnParam.value().m_name;
+        }
+
         {
             for ( const schema::Parameter& parameter : transaction.m_request.m_parameters )
             {

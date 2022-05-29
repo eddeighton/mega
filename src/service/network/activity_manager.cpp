@@ -18,6 +18,11 @@ ActivityManager::ActivityManager( boost::asio::io_context& ioContext )
 
 boost::asio::io_context& ActivityManager::getIOContext() const { return m_ioContext; }
 
+ActivityID ActivityManager::createActivityID( const ConnectionID& connectionID ) const
+{
+    return ActivityID( ++m_nextActivityID, connectionID );
+}
+
 void ActivityManager::activityStarted( Activity::Ptr pActivity )
 {
     {
@@ -28,7 +33,7 @@ void ActivityManager::activityStarted( Activity::Ptr pActivity )
     boost::asio::spawn(
         m_ioContext, [ pActivity ]( boost::asio::yield_context yield_ctx ) { pActivity->run( yield_ctx ); } );
     SPDLOG_TRACE( "Activity Started id: {} end point: {}", pActivity->getActivityID().getID(),
-                  pActivity->getActivityID().getEndpointID() );
+                  pActivity->getActivityID().getConnectionID() );
 }
 
 void ActivityManager::activityCompleted( Activity::Ptr pActivity )
@@ -38,7 +43,7 @@ void ActivityManager::activityCompleted( Activity::Ptr pActivity )
     VERIFY_RTE( iFind != m_activities.end() );
     m_activities.erase( iFind );
     SPDLOG_TRACE( "Activity Completed id: {} end point: {}", pActivity->getActivityID().getID(),
-                  pActivity->getActivityID().getEndpointID() );
+                  pActivity->getActivityID().getConnectionID() );
 }
 
 Activity::Ptr ActivityManager::findExistingActivity( const ActivityID& activityID ) const

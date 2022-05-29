@@ -22,6 +22,8 @@ namespace service
 class Worker
 {
     friend class RequestActivity;
+    friend class JobActivity;
+    
     class HostActivityFactory : public network::ActivityFactory
     {
         Worker& m_worker;
@@ -32,7 +34,7 @@ class Worker
         {
         }
         virtual network::Activity::Ptr
-        createRequestActivity( const network::ActivityID&   activityID,
+        createRequestActivity( const network::Header&       msgHeader,
                                const network::ConnectionID& originatingConnectionID ) const;
     };
 

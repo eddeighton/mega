@@ -27,28 +27,24 @@ boost::system::error_code send( boost::asio::streambuf& streambuffer, boost::asi
                                 boost::asio::yield_context& yield_ctx )
 {
     boost::system::error_code ec;
-    // write the size
+
+    // construct buffer with size header
+    std::vector< char > buf( streambuffer.size() + sizeof( MessageSize ) );
     {
         const MessageSize      networkSize = htonl( static_cast< MessageSize >( streambuffer.size() ) );
         const std::string_view pData( reinterpret_cast< const char* >( &networkSize ), sizeof( MessageSize ) );
-        const std::size_t      szBytesWritten
-            = boost::asio::async_write( socket, boost::asio::buffer( pData ), yield_ctx[ ec ] );
-        if ( !ec )
-        {
-            VERIFY_RTE( szBytesWritten == sizeof( MessageSize ) );
-        }
-        else
-        {
-            return ec;
-        }
+        std::copy( pData.begin(), pData.end(), buf.begin() );
+
+        const char* pszData = boost::asio::buffer_cast< const char* >( streambuffer.data() );
+        std::copy( pszData, pszData + streambuffer.size(), buf.begin() + sizeof( MessageSize ) );
     }
 
-    // write the message
+    // write the data in single operation
     {
-        const std::size_t szBytesWritten = boost::asio::async_write( socket, streambuffer.data(), yield_ctx[ ec ] );
+        const std::size_t szBytesWritten = boost::asio::async_write( socket, boost::asio::buffer( buf ), yield_ctx[ ec ] );
         if ( !ec )
         {
-            VERIFY_RTE( szBytesWritten == streambuffer.size() );
+            VERIFY_RTE( szBytesWritten == buf.size() );
         }
         else
         {

@@ -1,0 +1,19 @@
+
+
+msg PipelineReadyForWork
+{
+    request(ActivityID rootActivityID);
+    response(std::string task);
+}
+
+msg PipelineWorkProgress
+{
+    request(ActivityID rootActivityID, std::string task, std::string progress);
+    response();
+}
+
+msg PipelineWorkCompleted
+{
+    request(ActivityID rootActivityID, std::string task);
+    response();
+}

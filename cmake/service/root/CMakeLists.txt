@@ -29,6 +29,7 @@ target_link_libraries( root database )
 target_link_libraries( root utilities )
 target_link_libraries( root protocol )
 target_link_libraries( root network )
+target_link_libraries( root pipeline )
 
 set_target_properties( root PROPERTIES FOLDER driver )
 

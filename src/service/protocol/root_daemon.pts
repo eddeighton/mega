@@ -4,3 +4,9 @@ msg ListWorkers
     request();
     response(int threads);
 }
+
+msg StartPipeline
+{
+    request(ActivityID rootActivityID);
+    response(std::vector< ActivityID > jobs);
+}
