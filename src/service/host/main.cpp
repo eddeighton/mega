@@ -7,6 +7,7 @@
 #include "common/string.hpp"
 
 #include "boost/program_options.hpp"
+#include "service/protocol/common/header.hpp"
 #include <boost/program_options/parsers.hpp>
 #include <boost/filesystem/operations.hpp>
 
@@ -58,32 +59,34 @@ int main( int argc, const char* argv[] )
 
         mega::service::Host host( optionalHostName );
 
-        bool bShowHelp        = false;
-        bool bShowVersion     = false;
-        bool bListHosts       = false;
-        bool bRunTestPipeline = false;
-        bool bQuit            = false;
+        bool        bShowHelp       = false;
+        bool        bShowVersion    = false;
+        bool        bListHosts      = false;
+        bool        bListActivities = false;
+        std::string strPipeline;
+        bool        bQuit = false;
 
         namespace po = boost::program_options;
         po::options_description options;
 
         // clang-format off
         options.add_options()
-        ( "help,?",    po::bool_switch( &bShowHelp ),        "Show Command Line Help"   )
-        ( "version,v", po::bool_switch( &bShowVersion ),     "Get Version"              )
-        ( "hosts,h",   po::bool_switch( &bListHosts ),       "List hosts"               )
-        ( "test,t",    po::bool_switch( &bRunTestPipeline ), "Run test pipeline"        )
-        ( "quit,q",    po::bool_switch( &bQuit ),            "Quit this host"           )
+        ( "help,?",         po::bool_switch( &bShowHelp ),              "Show Command Line Help"    )
+        ( "version,v",      po::bool_switch( &bShowVersion ),           "Get Version"               )
+        ( "hosts,h",        po::bool_switch( &bListHosts ),             "List hosts"                )
+        ( "activities,a",   po::bool_switch( &bListActivities ),        "List activiies"            )
+        ( "pipeline,p",     po::value< std::string >( &strPipeline ),   "Run a pipeline"            )
+        ( "quit,q",         po::bool_switch( &bQuit ),                  "Quit this host"            )
         ;
         // clang-format on
 
         while ( true )
         {
-            bShowHelp        = false;
-            bShowVersion     = false;
-            bListHosts       = false;
-            bRunTestPipeline = false;
-            bQuit            = false;
+            bShowHelp    = false;
+            bShowVersion = false;
+            bListHosts   = false;
+            strPipeline.clear();
+            bQuit = false;
 
             {
                 std::ostringstream os;
@@ -128,9 +131,18 @@ int main( int argc, const char* argv[] )
                     std::cout << strHost << std::endl;
                 }
             }
-            else if ( bRunTestPipeline )
+            else if ( bListActivities )
             {
-                std::cout << "Version is: " << host.runTestPipeline() << std::endl;
+                for ( const mega::network::ActivityID& activityID : host.listActivities() )
+                {
+                    std::cout << "Activity: " << activityID.getID() << " "
+                              << "connectionID: " << activityID.getConnectionID() << std::endl;
+                }
+            }
+            else if ( !strPipeline.empty() )
+            {
+                std::string strPipelineResult = host.PipelineRun( strPipeline );
+                std::cout << "Pipeline result:\n" << strPipelineResult << std::endl;
             }
             else if ( bQuit )
             {

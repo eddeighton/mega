@@ -1,12 +1,19 @@
 
+
+msg ReportActivities
+{
+    request();
+    response(std::vector< ActivityID > activities);
+}
+
 msg ListWorkers
 {
     request();
     response(int threads);
 }
 
-msg StartPipeline
+msg PipelineStartJobs
 {
-    request(ActivityID rootActivityID);
+    request(mega::pipeline::Pipeline::ID pipelineID,ActivityID rootActivityID);
     response(std::vector< ActivityID > jobs);
 }

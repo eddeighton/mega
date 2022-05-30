@@ -3,17 +3,23 @@
 msg PipelineReadyForWork
 {
     request(ActivityID rootActivityID);
-    response(std::string task);
+    response(mega::pipeline::TaskDescriptor task);
 }
 
 msg PipelineWorkProgress
 {
-    request(ActivityID rootActivityID, std::string task, std::string progress);
+    request(ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string progress);
+    response();
+}
+
+msg PipelineWorkFailed
+{
+    request(ActivityID rootActivityID, mega::pipeline::TaskDescriptor task);
     response();
 }
 
 msg PipelineWorkCompleted
 {
-    request(ActivityID rootActivityID, std::string task);
+    request(ActivityID rootActivityID, mega::pipeline::TaskDescriptor task);
     response();
 }

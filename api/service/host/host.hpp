@@ -40,9 +40,10 @@ public:
     Host( std::optional< const std::string > optName = std::nullopt );
     ~Host();
 
-    std::string                GetVersion();
-    std::vector< std::string > ListHosts();
-    std::string                runTestPipeline();
+    std::string                        GetVersion();
+    std::vector< std::string >         ListHosts();
+    std::vector< network::ActivityID > listActivities();
+    std::string                        PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID );
 
 private:
     HostActivityFactory      m_activityFactory;

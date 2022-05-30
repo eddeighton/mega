@@ -127,6 +127,12 @@ public:
         return network::daemon_worker::Request_Encode( *this, pWorker->getSocket(), yield_ctx );
     }
 
+    network::daemon_host::Request_Encode getHostRequest( network::Server::Connection::Ptr pHost,
+                                                             boost::asio::yield_context       yield_ctx )
+    {
+        return network::daemon_host::Request_Encode( *this, pHost->getSocket(), yield_ctx );
+    }
+
     // network::host_daemon::Impl
     virtual void GetVersion( boost::asio::yield_context yield_ctx )
     {
@@ -144,35 +150,55 @@ public:
         getOriginatingHostResponse( yield_ctx ).ListHosts( hosts );
     }
 
-    virtual void runTestPipeline( boost::asio::yield_context yield_ctx )
+    virtual void ListActivities( boost::asio::yield_context yield_ctx )
+    {
+        auto root   = getRootRequest( yield_ctx );
+        auto result = root.ListActivities();
+        root.Complete();
+        getOriginatingHostResponse( yield_ctx ).ListActivities( result );
+    }
+
+    virtual void PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID, boost::asio::yield_context yield_ctx )
     {
         auto        root                  = getRootRequest( yield_ctx );
-        std::string strTestPipelineResult = root.runTestPipeline();
+        std::string strTestPipelineResult = root.PipelineRun( pipelineID );
         root.Complete();
-        getOriginatingHostResponse( yield_ctx ).runTestPipeline( strTestPipelineResult );
+        getOriginatingHostResponse( yield_ctx ).PipelineRun( strTestPipelineResult );
     }
 
     // network::worker_daemon::Impl
-    virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
-    {
-        SPDLOG_INFO( "PipelineReadyForWork: {}", getActivityID() );
-        THROW_RTE( "Unreechable" );
-    }
-    virtual void PipelineWorkProgress( const network::ActivityID& rootActivityID,
-                                       const std::string&         task,
-                                       const std::string&         progress,
-                                       boost::asio::yield_context yield_ctx )
-    {
-        THROW_RTE( "Unreechable" );
-    }
-    virtual void PipelineWorkCompleted( const network::ActivityID& rootActivityID,
-                                        const std::string&         task,
-                                        boost::asio::yield_context yield_ctx )
-    {
-        THROW_RTE( "Unreechable" );
-    }
 
     // network::root_daemon::Impl
+    virtual void ReportActivities( boost::asio::yield_context yield_ctx )
+    {
+        std::vector< network::ActivityID > activities;
+
+        for( const auto& id : m_activityManager.reportActivities() )
+        {
+            activities.push_back( id );
+        }
+
+        for( const auto& [ id, pDeamon ] : m_daemon.m_hostServer.getConnections() )
+        {
+            auto host = getHostRequest( pDeamon, yield_ctx );
+            auto hostActivities = host.ReportActivities();
+            host.Complete();
+            std::copy( hostActivities.begin(), hostActivities.end(),
+                std::back_inserter( activities ) );
+        }
+
+        for( const auto& [ id, pDeamon ] : m_daemon.m_workerServer.getConnections() )
+        {
+            auto worker = getWorkerRequest( pDeamon, yield_ctx );
+            auto workerActivities = worker.ReportActivities();
+            worker.Complete();
+            std::copy( workerActivities.begin(), workerActivities.end(),
+                std::back_inserter( activities ) );
+        }
+
+        getRootResponse( yield_ctx ).ReportActivities( activities );
+    }
+
     virtual void ListWorkers( boost::asio::yield_context yield_ctx )
     {
         int iTotalThreads = 0;
@@ -183,10 +209,6 @@ public:
             worker.Complete();
         }
         getRootResponse( yield_ctx ).ListWorkers( iTotalThreads );
-    }
-    virtual void StartPipeline( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
-    {
-        THROW_RTE( "Unreachable" );
     }
 };
 
@@ -201,34 +223,36 @@ public:
     }
 
     // network::root_daemon::Impl
-    virtual void StartPipeline( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
+    virtual void PipelineStartJobs( const mega::pipeline::Pipeline::ID& pipelineID,
+                                    const network::ActivityID&          rootActivityID,
+                                    boost::asio::yield_context          yield_ctx )
     {
         std::vector< network::ActivityID > allJobs;
         for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
         {
             auto                               worker = getWorkerRequest( pWorker, yield_ctx );
-            std::vector< network::ActivityID > jobs   = worker.StartPipeline( rootActivityID );
+            std::vector< network::ActivityID > jobs   = worker.PipelineStartJobs( pipelineID, rootActivityID );
             worker.Complete();
             std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
         }
-        getRootResponse( yield_ctx ).StartPipeline( allJobs );
+        getRootResponse( yield_ctx ).PipelineStartJobs( allJobs );
     }
 
     // network::worker_daemon::Impl
     virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
     {
         SPDLOG_INFO( "PipelineReadyForWork: {}", getActivityID() );
-        auto        root    = getRootRequest( yield_ctx );
-        std::string strTask = root.PipelineReadyForWork( rootActivityID );
+        auto                           root = getRootRequest( yield_ctx );
+        mega::pipeline::TaskDescriptor task = root.PipelineReadyForWork( rootActivityID );
         root.Complete();
         auto worker = getOriginatingWorkerResponse( yield_ctx );
-        worker.PipelineReadyForWork( strTask );
+        worker.PipelineReadyForWork( task );
     }
 
-    virtual void PipelineWorkProgress( const network::ActivityID& rootActivityID,
-                                       const std::string&         task,
-                                       const std::string&         progress,
-                                       boost::asio::yield_context yield_ctx )
+    virtual void PipelineWorkProgress( const network::ActivityID&            rootActivityID,
+                                       const mega::pipeline::TaskDescriptor& task,
+                                       const std::string&                    progress,
+                                       boost::asio::yield_context            yield_ctx )
     {
         auto root = getRootRequest( yield_ctx );
         root.PipelineWorkProgress( rootActivityID, task, progress );
@@ -237,9 +261,20 @@ public:
         worker.PipelineWorkProgress();
     }
 
-    virtual void PipelineWorkCompleted( const network::ActivityID& rootActivityID,
-                                        const std::string&         task,
-                                        boost::asio::yield_context yield_ctx )
+    virtual void PipelineWorkFailed( const network::ActivityID&            rootActivityID,
+                                     const mega::pipeline::TaskDescriptor& task,
+                                     boost::asio::yield_context            yield_ctx )
+    {
+        auto root = getRootRequest( yield_ctx );
+        root.PipelineWorkFailed( rootActivityID, task );
+        root.Complete();
+        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        worker.PipelineWorkFailed();
+    }
+
+    virtual void PipelineWorkCompleted( const network::ActivityID&            rootActivityID,
+                                        const mega::pipeline::TaskDescriptor& task,
+                                        boost::asio::yield_context            yield_ctx )
     {
         auto root = getRootRequest( yield_ctx );
         root.PipelineWorkCompleted( rootActivityID, task );
@@ -257,9 +292,10 @@ Daemon::RequestActivityFactory::createRequestActivity( const network::Header&   
     {
         case network::worker_daemon::MSG_PipelineReadyForWork_Request::ID:
         case network::worker_daemon::MSG_PipelineWorkProgress_Request::ID:
+        case network::worker_daemon::MSG_PipelineWorkFailed_Request::ID:
         case network::worker_daemon::MSG_PipelineWorkCompleted_Request::ID:
-        case network::host_daemon::MSG_runTestPipeline_Request::ID:
-        case network::root_daemon::MSG_StartPipeline_Request::ID:
+        case network::host_daemon::MSG_PipelineRun_Request::ID:
+        case network::root_daemon::MSG_PipelineStartJobs_Request::ID:
             return network::Activity::Ptr(
                 new PipelineActivity( m_daemon, msgHeader.getActivityID(), originatingConnectionID ) );
         default:

@@ -1,5 +1,8 @@
 
 #include "pipeline/pipeline.hpp"
+#include "pipeline/task.hpp"
+
+#include <boost/archive/text_oarchive.hpp>
 
 #include <gtest/gtest.h>
 
@@ -7,49 +10,61 @@
 #include <sstream>
 #include <list>
 
+mega::pipeline::TaskDescriptor make_task( const std::string& str )
+{
+    mega::pipeline::TaskDescriptor::Buffer buffer;
+    std::copy( str.begin(), str.end(), std::back_inserter( buffer ) );
+    return mega::pipeline::TaskDescriptor{ buffer };
+}
+
 TEST( Pipeline, Basic )
 {
     using namespace mega::pipeline;
 
     Dependencies d;
-    d.add( Task( "a" ), {} );
+    d.add( make_task( "a" ), {} );
 
     Schedule s( d );
-    ASSERT_TRUE( s.getReady() == Task::Vector{ Task( "a" ) } );
+    ASSERT_TRUE( s.getReady() == TaskDescriptor::Vector{ make_task( "a" ) } );
 
-    s.complete( Task( "a" ) );
+    s.complete( make_task( "a" ) );
     ASSERT_TRUE( s.isComplete() );
-    ASSERT_TRUE( s.getReady() == Task::Vector{} );
+    ASSERT_TRUE( s.getReady() == TaskDescriptor::Vector{} );
 }
 
 TEST( Pipeline, Schedule )
 {
     using namespace mega::pipeline;
 
-    Task a( "a" );
-    Task b( "b" );
-    Task c( "c" );
+    TaskDescriptor a = make_task( "a" );
+    TaskDescriptor b = make_task( "b" );
+    TaskDescriptor c = make_task( "c" );
 
     Dependencies d;
     d.add( a, { b } );
     d.add( b, { c } );
 
     Schedule s( d );
-    ASSERT_TRUE( s.getReady() == Task::Vector{ c } );
+    ASSERT_TRUE( s.getReady() == TaskDescriptor::Vector{ c } );
     s.complete( c );
-    ASSERT_TRUE( s.getReady() == Task::Vector{ b } );
+    ASSERT_TRUE( s.getReady() == TaskDescriptor::Vector{ b } );
     s.complete( b );
-    ASSERT_TRUE( s.getReady() == Task::Vector{ a } );
+    ASSERT_TRUE( s.getReady() == TaskDescriptor::Vector{ a } );
     s.complete( a );
-    ASSERT_TRUE( s.getReady() == Task::Vector{} );
+    ASSERT_TRUE( s.getReady() == TaskDescriptor::Vector{} );
     ASSERT_TRUE( s.isComplete() );
 }
 
-std::ostream& operator<<( std::ostream& os, const mega::pipeline::Task& task ) { return os << task.str(); }
-std::ostream& operator<<( std::ostream& os, const mega::pipeline::Task::Vector& tasks )
+std::ostream& operator<<( std::ostream& os, const mega::pipeline::TaskDescriptor& task ) 
+{ 
+    boost::archive::text_oarchive oa( os );
+    oa & task;
+    return os; 
+}
+std::ostream& operator<<( std::ostream& os, const mega::pipeline::TaskDescriptor::Vector& tasks )
 {
     bool bFirst = true;
-    for ( const mega::pipeline::Task& task : tasks )
+    for ( const mega::pipeline::TaskDescriptor& task : tasks )
     {
         if ( bFirst )
             bFirst = false;
@@ -64,14 +79,14 @@ TEST( Pipeline, Schedule2 )
 {
     using namespace mega::pipeline;
 
-    Task a1( "a1" );
-    Task b1( "b1" );
-    Task c1( "c1" );
-    Task d1( "d1" );
-    Task a2( "a2" );
-    Task b2( "b2" );
-    Task c2( "c2" );
-    Task d2( "d2" );
+    TaskDescriptor a1 = make_task( "a1" );
+    TaskDescriptor b1 = make_task( "b1" );
+    TaskDescriptor c1 = make_task( "c1" );
+    TaskDescriptor d1 = make_task( "d1" );
+    TaskDescriptor a2 = make_task( "a2" );
+    TaskDescriptor b2 = make_task( "b2" );
+    TaskDescriptor c2 = make_task( "c2" );
+    TaskDescriptor d2 = make_task( "d2" );
 
     Dependencies dp;
 
@@ -81,17 +96,17 @@ TEST( Pipeline, Schedule2 )
 
     Schedule s( dp );
 
-    std::list< Task::Vector > expected = { { b1, b2, c2, d1, d2 }, { a2, c1 }, { a1 } };
+    std::list< TaskDescriptor::Vector > expected = { { b1, b2, c2, d1, d2 }, { a2, c1 }, { a1 } };
 
     while ( !s.isComplete() )
     {
-        Task::Vector ready = s.getReady();
+        TaskDescriptor::Vector ready = s.getReady();
         std::sort( ready.begin(), ready.end() );
         ASSERT_EQ( expected.front(), ready );
-        for ( const Task& t : ready )
+        for ( const TaskDescriptor& t : ready )
             s.complete( t );
         expected.pop_front();
     }
-    ASSERT_TRUE( s.getReady() == Task::Vector{} );
+    ASSERT_TRUE( s.getReady() == TaskDescriptor::Vector{} );
     ASSERT_TRUE( s.isComplete() );
 }

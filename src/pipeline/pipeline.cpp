@@ -4,23 +4,24 @@
 #include "common/assert_verify.hpp"
 
 #include "boost/dll.hpp"
+#include <boost/filesystem/operations.hpp>
 
 namespace mega
 {
 namespace pipeline
 {
 
-Task::Task() {}
+TaskDescriptor::TaskDescriptor() {}
 
-Task::Task( const std::string& taskName )
-    : m_taskName( taskName )
+TaskDescriptor::TaskDescriptor( const Buffer& buffer )
+    : m_buffer( buffer )
 {
 }
 
-void Dependencies::add( const Task& newTask, const Task::Vector& dependencies )
+void Dependencies::add( const TaskDescriptor& newTask, const TaskDescriptor::Vector& dependencies )
 {
     m_tasks.insert( newTask );
-    for ( const Task& task : dependencies )
+    for ( const TaskDescriptor& task : dependencies )
     {
         m_graph.insert( std::make_pair( newTask, task ) );
         m_tasks.insert( task );
@@ -32,12 +33,12 @@ Schedule::Schedule( const Dependencies& dependencies )
 {
 }
 
-Task::Vector Schedule::getReady() const
+TaskDescriptor::Vector Schedule::getReady() const
 {
-    Task::Vector ready;
+    TaskDescriptor::Vector ready;
     {
         const Dependencies::Graph& graph = m_dependencies.getDependencies();
-        for ( const Task& task : m_dependencies.getTasks() )
+        for ( const TaskDescriptor& task : m_dependencies.getTasks() )
         {
             if ( m_complete.count( task ) )
                 continue;
@@ -75,14 +76,23 @@ Pipeline::Ptr Registry::getPipeline( const Pipeline::ID& id )
     if ( iFind != m_pipelines.end() )
         return iFind->second;
 
-    boost::dll::fs::path pipelineLibrary( id );
+    try
+    {
+        boost::filesystem::path cwd = boost::filesystem::current_path();
+        
+        boost::dll::fs::path pipelineLibrary( id );
 
-    Pipeline::Ptr pPipeline = boost::dll::import_symbol< mega::pipeline::Pipeline >(
-        pipelineLibrary, "mega_pipeline", boost::dll::load_mode::append_decorations );
+        Pipeline::Ptr pPipeline = boost::dll::import_symbol< mega::pipeline::Pipeline >(
+            pipelineLibrary, "mega_pipeline", boost::dll::load_mode::append_decorations );
 
-    m_pipelines.insert( std::make_pair( id, pPipeline ) );
+        m_pipelines.insert( std::make_pair( id, pPipeline ) );
 
-    return pPipeline;
+        return pPipeline;
+    }
+    catch( std::exception& ex )
+    {
+        THROW_RTE( "Failed to load pipeline: " << id << " exception: " << ex.what() );
+    }
 }
 
 } // namespace pipeline

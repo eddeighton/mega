@@ -50,6 +50,23 @@ public:
             // error cannot match connectionID! ???
         }
     }
+
+    network::daemon_host::Response_Encode getDaemonResponse( boost::asio::yield_context yield_ctx )
+    {
+        return network::daemon_host::Response_Encode( *this, m_host.m_client.getSocket(), yield_ctx );
+    }
+
+    virtual void ReportActivities( boost::asio::yield_context yield_ctx ) 
+    {
+        std::vector< network::ActivityID > activities;
+
+        for( const auto& id : m_activityManager.reportActivities() )
+        {
+            activities.push_back( id );
+        }
+
+        getDaemonResponse( yield_ctx ).ReportActivities( activities );
+    }
 };
 
 network::Activity::Ptr
@@ -160,10 +177,37 @@ std::vector< std::string > Host::ListHosts()
     SIMPLE_REQUEST( std::vector< std::string >, promise.set_value( daemon.ListHosts() ) );
 }
 
-std::string Host::runTestPipeline()
+std::vector< network::ActivityID > Host::listActivities()
 {
     //
-    SIMPLE_REQUEST( std::string, promise.set_value( daemon.runTestPipeline() ) );
+    SIMPLE_REQUEST( std::vector< network::ActivityID >, promise.set_value( daemon.ListActivities() ) );
+}
+
+std::string Host::PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID )
+{
+    using ResultType = std::string;
+    std::promise< ResultType > promise;
+    std::future< ResultType >  fResult = promise.get_future();
+    try
+    {
+        m_activityManager.activityStarted( network::Activity::Ptr( new GenericActivity(
+            *this, m_activityManager, m_client, network::getConnectionID( m_client.getSocket() ), promise,
+            [ &pipelineID ]( std::promise< ResultType >& promise, network::Client& client, network::Activity& activity,
+                             boost::asio::yield_context yield_ctx )
+            {
+                network::host_daemon::Request_Encode daemon( activity, client.getSocket(), yield_ctx );
+                {
+                    promise.set_value( daemon.PipelineRun( pipelineID ) );
+                }
+                daemon.Complete();
+            } ) ) );
+        return fResult.get();
+    }
+    catch ( std::exception& ex )
+    {
+        std::cout << "Exception: " << ex.what() << std::endl;
+        return std::string{};
+    }
 }
 } // namespace service
 } // namespace mega

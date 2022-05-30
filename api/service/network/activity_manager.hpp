@@ -21,6 +21,7 @@ public:
 
     boost::asio::io_context& getIOContext() const;
 
+    std::vector< ActivityID > reportActivities() const;
     ActivityID createActivityID( const ConnectionID& connectionID ) const;
     void activityStarted( Activity::Ptr pActivity );
     void activityCompleted( Activity::Ptr pActivity );

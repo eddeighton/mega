@@ -85,6 +85,8 @@ add_library( protocol
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
 				)
 
+target_link_libraries( protocol pipeline )
+
 target_compile_options( protocol PUBLIC "-fcoroutines" )
 
 add_dependencies( protocol protocol_compiler_driver )

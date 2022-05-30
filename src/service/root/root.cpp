@@ -1,6 +1,7 @@
 
 #include "service/root/root.hpp"
 
+#include "pipeline/task.hpp"
 #include "service/network/activity.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
@@ -52,7 +53,7 @@ public:
         }
         else
         {
-            // ?
+            THROW_RTE( "Connection to daemon lost" );
         }
     }
 
@@ -79,28 +80,44 @@ public:
         daemon.GetVersion( network::getVersion() );
     }
 
-    virtual void runTestPipeline( boost::asio::yield_context yield_ctx ) { THROW_RTE( "Unreachable" ); }
-    virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
+    virtual void ListActivities( boost::asio::yield_context yield_ctx )
     {
-        THROW_RTE( "Unreachable" );
-    }
-    virtual void PipelineWorkProgress( const network::ActivityID& rootActivityID, const std::string& strTask,
-                                       const std::string& strProgress, boost::asio::yield_context yield_ctx )
-    {
-        THROW_RTE( "Unreachable" );
-    }
-    virtual void PipelineWorkCompleted( const network::ActivityID& rootActivityID, const std::string& strTask,
-                                        boost::asio::yield_context yield_ctx )
-    {
-        THROW_RTE( "Unreachable" );
+        std::vector< network::ActivityID > activities;
+
+        for( const auto& id : m_activityManager.reportActivities() )
+        {
+            activities.push_back( id );
+        }
+
+        for( const auto& [ id, pDeamon ] : m_root.m_server.getConnections() )
+        {
+            auto daemon = getDaemonRequest( pDeamon, yield_ctx );
+            auto daemonActivities = daemon.ReportActivities();
+            daemon.Complete();
+            std::copy( daemonActivities.begin(), daemonActivities.end(),
+                std::back_inserter( activities ) );
+        }
+
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.ListActivities( activities );
     }
 };
 
 class PipelineActivity : public RequestActivity
 {
-    std::vector< network::ActivityID > m_jobs;
-    using TaskChannel = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, std::string ) >;
-    TaskChannel m_taskReady, m_taskComplete;
+    std::set< network::ActivityID > m_jobs;
+    using TaskChannel = boost::asio::experimental::concurrent_channel< void(
+        boost::system::error_code, mega::pipeline::TaskDescriptor ) >;
+    TaskChannel m_taskReady;
+    struct TaskCompletion
+    {
+        network::ActivityID            jobID;
+        mega::pipeline::TaskDescriptor task;
+        bool                           bSuccess;
+    };
+    using TaskCompletionChannel
+        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, TaskCompletion ) >;
+    TaskCompletionChannel m_taskComplete;
 
 public:
     PipelineActivity( Root&                        root,
@@ -112,72 +129,112 @@ public:
     {
     }
 
-    virtual void runTestPipeline( boost::asio::yield_context yield_ctx )
+    virtual void PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID, boost::asio::yield_context yield_ctx )
     {
         SPDLOG_INFO( "Started pipeline: compiler" );
 
         for ( auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
         {
             auto                                     daemon = getDaemonRequest( pDaemon, yield_ctx );
-            const std::vector< network::ActivityID > jobs   = daemon.StartPipeline( getActivityID() );
+            const std::vector< network::ActivityID > jobs   = daemon.PipelineStartJobs( pipelineID, getActivityID() );
             daemon.Complete();
-            std::copy( jobs.begin(), jobs.end(), std::back_inserter( m_jobs ) );
+            for ( const network::ActivityID& id : jobs )
+                m_jobs.insert( id );
         }
         if ( m_jobs.empty() )
         {
             THROW_RTE( "Failed to find workers for pipeline" );
         }
 
+        pipeline::Registry            pipelineRegistry;
+        mega::pipeline::Pipeline::Ptr pPipeline = pipelineRegistry.getPipeline( pipelineID );
+        if ( !pPipeline )
         {
-            pipeline::Registry            pipelineRegistry;
-            mega::pipeline::Pipeline::Ptr pPipeline = pipelineRegistry.getPipeline( "compiler" );
-            mega::pipeline::Schedule      schedule  = pPipeline->getSchedule();
-
-            std::set< std::string > scheduledTasks;
-            int                     iAvailableTasks = 0;
-            while ( !schedule.isComplete() )
+            THROW_RTE( "Failed to load pipeline: " << pipelineID );
+        }
+        mega::pipeline::Schedule                   schedule = pPipeline->getSchedule();
+        std::set< mega::pipeline::TaskDescriptor > scheduledTasks, activeTasks;
+        bool                                       bScheduleFailed = false;
+        {
+            while ( !schedule.isComplete() && !bScheduleFailed )
             {
-                for ( const mega::pipeline::Task& task : schedule.getReady() )
+                if ( !bScheduleFailed )
                 {
-                    if ( !scheduledTasks.count( task.str() ) )
+                    for ( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
                     {
-                        ++iAvailableTasks;
-                        m_taskReady.async_send( boost::system::error_code(), task.str(), yield_ctx );
-                        scheduledTasks.insert( task.str() );
+                        if ( !scheduledTasks.count( task ) )
+                        {
+                            activeTasks.insert( task );
+                            m_taskReady.async_send( boost::system::error_code(), task, yield_ctx );
+                            scheduledTasks.insert( task );
+                        }
+                        if ( activeTasks.size() == m_jobs.size() )
+                            break;
                     }
-                    if ( iAvailableTasks == m_jobs.size() )
-                        break;
                 }
 
                 do
                 {
-                    std::string strCompleted = m_taskComplete.async_receive( yield_ctx );
-                    schedule.complete( strCompleted );
-                    --iAvailableTasks;
+                    if ( !activeTasks.empty() )
+                    {
+                        const TaskCompletion taskCompletion = m_taskComplete.async_receive( yield_ctx );
+                        activeTasks.erase( taskCompletion.task );
+                        if ( taskCompletion.bSuccess )
+                        {
+                            schedule.complete( taskCompletion.task );
+                        }
+                        else
+                        {
+                            SPDLOG_WARN( "Pipeline failed at task: {}", taskCompletion.task.get() );
+                            bScheduleFailed = true;
+                        }
+                    }
                 } while ( m_taskComplete.ready() );
             }
         }
 
-        auto               daemon = getOriginatingDaemonResponse( yield_ctx );
-        std::ostringstream os;
+        // close out remaining active tasks
+        while ( !activeTasks.empty() )
+        {
+            TaskCompletion taskCompletion = m_taskComplete.async_receive( yield_ctx );
+            activeTasks.erase( taskCompletion.task );
+            if ( taskCompletion.bSuccess )
+            {
+                schedule.complete( taskCompletion.task );
+            }
+            else
+            {
+                SPDLOG_WARN( "Pipeline failed at task: {}", taskCompletion.task.get() );
+            }
+        }
+
+        // send termination task to each job
         for ( const network::ActivityID& jobID : m_jobs )
         {
-            m_taskReady.async_send( boost::system::error_code(), "", yield_ctx );
+            m_taskReady.async_send( boost::system::error_code(), mega::pipeline::TaskDescriptor(), yield_ctx );
             m_taskComplete.async_receive( yield_ctx );
-            os << jobID.getID() << ": " << jobID.getConnectionID() << " completed\n";
         }
-        daemon.runTestPipeline( os.str() );
+
+        {
+            std::ostringstream os;
+            if ( bScheduleFailed )
+                os << "Pipeline: " << pipelineID << " failed";
+            else
+                os << "Pipeline: " << pipelineID << " succeeded";
+            auto daemon = getOriginatingDaemonResponse( yield_ctx );
+            daemon.PipelineRun( os.str() );
+        }
     }
 
-    std::string getTask( boost::asio::yield_context yield_ctx )
+    mega::pipeline::TaskDescriptor getTask( boost::asio::yield_context yield_ctx )
     {
-        //
         return m_taskReady.async_receive( yield_ctx );
     }
 
-    void completeTask( const std::string& strTask, boost::asio::yield_context yield_ctx )
+    void completeTask( const mega::pipeline::TaskDescriptor& task, bool bSuccess, boost::asio::yield_context yield_ctx )
     {
-        m_taskComplete.async_send( boost::system::error_code(), strTask, yield_ctx );
+        m_taskComplete.async_send(
+            boost::system::error_code(), TaskCompletion{ getActivityID(), task, bSuccess }, yield_ctx );
     }
 
     virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
@@ -187,21 +244,23 @@ public:
 
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
 
-        const std::string strTask = pCoordinator->getTask( yield_ctx );
-        if ( strTask == "" )
+        const mega::pipeline::TaskDescriptor task = pCoordinator->getTask( yield_ctx );
+        if ( task == mega::pipeline::TaskDescriptor() )
         {
             SPDLOG_INFO( "PipelineReadyForWork: {} completed", getActivityID() );
-            pCoordinator->completeTask( "", yield_ctx );
-            daemon.PipelineReadyForWork( "" );
+            pCoordinator->completeTask( mega::pipeline::TaskDescriptor(), true, yield_ctx );
+            daemon.PipelineReadyForWork( mega::pipeline::TaskDescriptor() );
         }
         else
         {
-            SPDLOG_INFO( "PipelineReadyForWork: {} task: {}", getActivityID(), strTask );
-            daemon.PipelineReadyForWork( strTask );
+            SPDLOG_INFO( "PipelineReadyForWork: {} task: {}", getActivityID(), task.get() );
+            daemon.PipelineReadyForWork( task );
         }
     }
-    virtual void PipelineWorkProgress( const network::ActivityID& rootActivityID, const std::string& strTask,
-                                       const std::string& strProgress, boost::asio::yield_context yield_ctx )
+
+    virtual void PipelineWorkProgress( const network::ActivityID&            rootActivityID,
+                                       const mega::pipeline::TaskDescriptor& task, const std::string& strProgress,
+                                       boost::asio::yield_context yield_ctx )
     {
         std::shared_ptr< PipelineActivity > pCoordinator = std::dynamic_pointer_cast< PipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
@@ -209,16 +268,27 @@ public:
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
         daemon.PipelineWorkProgress();
     }
-    virtual void PipelineWorkCompleted( const network::ActivityID& rootActivityID, const std::string& strTask,
-                                        boost::asio::yield_context yield_ctx )
+
+    virtual void PipelineWorkFailed( const network::ActivityID&            rootActivityID,
+                                     const mega::pipeline::TaskDescriptor& task,
+                                     boost::asio::yield_context            yield_ctx )
     {
         std::shared_ptr< PipelineActivity > pCoordinator = std::dynamic_pointer_cast< PipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
+        SPDLOG_INFO( "Pipeline task failed: {}", task.get() );
+        pCoordinator->completeTask( task, false, yield_ctx );
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.PipelineWorkFailed();
+    }
 
-        SPDLOG_INFO( "Pipeline task completed: {}", strTask );
-
-        pCoordinator->completeTask( strTask, yield_ctx );
-
+    virtual void PipelineWorkCompleted( const network::ActivityID&            rootActivityID,
+                                        const mega::pipeline::TaskDescriptor& task,
+                                        boost::asio::yield_context            yield_ctx )
+    {
+        std::shared_ptr< PipelineActivity > pCoordinator = std::dynamic_pointer_cast< PipelineActivity >(
+            m_root.m_activityManager.findExistingActivity( rootActivityID ) );
+        SPDLOG_INFO( "Pipeline task completed: {}", task.get() );
+        pCoordinator->completeTask( task, true, yield_ctx );
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
         daemon.PipelineWorkCompleted();
     }
@@ -232,8 +302,9 @@ Root::RootActivityFactory::createRequestActivity( const network::Header&       m
     {
         case network::daemon_root::MSG_PipelineReadyForWork_Request::ID:
         case network::daemon_root::MSG_PipelineWorkProgress_Request::ID:
+        case network::daemon_root::MSG_PipelineWorkFailed_Request::ID:
         case network::daemon_root::MSG_PipelineWorkCompleted_Request::ID:
-        case network::daemon_root::MSG_runTestPipeline_Request::ID:
+        case network::daemon_root::MSG_PipelineRun_Request::ID:
             return network::Activity::Ptr(
                 new PipelineActivity( m_root, msgHeader.getActivityID(), originatingConnectionID ) );
         default:

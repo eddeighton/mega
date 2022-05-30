@@ -7,6 +7,7 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( PIPELINE_HEADERS
+    ${MEGA_API_DIR}/pipeline/task.hpp
     ${MEGA_API_DIR}/pipeline/pipeline.hpp
 )
 

@@ -11,8 +11,14 @@ msg ListHosts
     response(std::vector< std::string > hosts);
 }
 
-msg runTestPipeline
+msg ListActivities
 {
     request();
+    response(std::vector< ActivityID > activities);
+}
+
+msg PipelineRun
+{
+    request(mega::pipeline::Pipeline::ID pipelineID);
     response(std::string result);
 }

@@ -1,0 +1,7 @@
+
+
+msg ReportActivities
+{
+    request();
+    response(std::vector< ActivityID > activities);
+}

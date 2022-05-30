@@ -18,6 +18,20 @@ ActivityManager::ActivityManager( boost::asio::io_context& ioContext )
 
 boost::asio::io_context& ActivityManager::getIOContext() const { return m_ioContext; }
 
+std::vector< ActivityID > ActivityManager::reportActivities() const
+{
+    std::scoped_lock< std::recursive_mutex > lock( m_mutex );
+
+    std::vector< ActivityID > activities;
+
+    for( const auto& [ id, pActivity ] : m_activities )
+    {
+        activities.push_back( id );
+    }
+
+    return activities;
+}
+
 ActivityID ActivityManager::createActivityID( const ConnectionID& connectionID ) const
 {
     return ActivityID( ++m_nextActivityID, connectionID );
@@ -30,6 +44,7 @@ void ActivityManager::activityStarted( Activity::Ptr pActivity )
         m_activities.insert( std::make_pair( pActivity->getActivityID(), pActivity ) );
     }
     // this is the ONLY way activity is spawned
+    //boost::coroutines::attributes
     boost::asio::spawn(
         m_ioContext, [ pActivity ]( boost::asio::yield_context yield_ctx ) { pActivity->run( yield_ctx ); } );
     SPDLOG_TRACE( "Activity Started id: {} end point: {}", pActivity->getActivityID().getID(),

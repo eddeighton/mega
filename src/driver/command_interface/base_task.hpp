@@ -23,6 +23,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/dll.hpp>
+
 #pragma warning( push )
 #pragma warning( disable : 4996 ) // iterator thing
 #pragma warning( disable : 4244 ) // conversion to DWORD from system_clock::rep
@@ -35,7 +36,7 @@
 #include <vector>
 #include <string>
 
-std::ostream& operator<<( std::ostream& os, const std::vector< std::string >& name )
+inline std::ostream& operator<<( std::ostream& os, const std::vector< std::string >& name )
 {
     common::delimit( name.begin(), name.end(), ".", os );
     return os;
