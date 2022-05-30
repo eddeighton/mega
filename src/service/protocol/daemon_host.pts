@@ -3,5 +3,5 @@
 msg ReportActivities
 {
     request();
-    response(std::vector< ActivityID > activities);
+    response(std::vector< network::ActivityID > activities);
 }

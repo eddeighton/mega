@@ -16,7 +16,7 @@ namespace interface
 
 class Task_SymbolAnalysis : public BaseTask
 {
-    const mega::io::Manifest& m_manifest;
+    const mega::io::Manifest m_manifest;
 
 public:
     struct InterfaceHashCodeGenerator
@@ -35,9 +35,9 @@ public:
         }
     };
 
-    Task_SymbolAnalysis( const TaskArguments& taskArguments, const mega::io::Manifest& manifest )
+    Task_SymbolAnalysis( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
+        , m_manifest( m_environment, manifestFilePath )
     {
     }
 
@@ -232,7 +232,7 @@ public:
         }
     };
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::manifestFilePath    manifestFilePath = m_environment.project_manifest();
         const mega::io::CompilationFilePath symbolCompilationFile
@@ -519,16 +519,22 @@ public:
     }
 };
 
+BaseTask::Ptr create_Task_SymbolAnalysis( const TaskArguments&              taskArguments,
+                                          const mega::io::manifestFilePath& manifestFilePath )
+{
+    return std::make_unique< Task_SymbolAnalysis >( taskArguments, manifestFilePath );
+}
+
 class Task_SymbolRollout : public BaseTask
 {
 public:
-    Task_SymbolRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath&     sourceFilePath )
+    Task_SymbolRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
     }
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath symbolAnalysisFilePath
             = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
@@ -588,6 +594,12 @@ public:
     }
     const mega::io::megaFilePath& m_sourceFilePath;
 };
+
+BaseTask::Ptr create_Task_SymbolRollout( const TaskArguments&          taskArguments,
+                                         const mega::io::megaFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_SymbolRollout >( taskArguments, sourceFilePath );
+}
 
 } // namespace interface
 } // namespace driver

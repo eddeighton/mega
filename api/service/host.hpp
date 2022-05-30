@@ -1,6 +1,9 @@
 
-#ifndef WORKER_27_MAY_2022
-#define WORKER_27_MAY_2022
+#ifndef SERVICE_24_MAY_2022
+#define SERVICE_24_MAY_2022
+
+#include "pipeline/configuration.hpp"
+#include "pipeline/pipeline.hpp"
 
 #include "service/network/client.hpp"
 #include "service/network/activity_manager.hpp"
@@ -19,18 +22,16 @@ namespace mega
 namespace service
 {
 
-class Worker
+class Host
 {
-    friend class RequestActivity;
-    friend class JobActivity;
-    
+    friend class HostRequestActivity;
     class HostActivityFactory : public network::ActivityFactory
     {
-        Worker& m_worker;
+        Host& m_host;
 
     public:
-        HostActivityFactory( Worker& host )
-            : m_worker( host )
+        HostActivityFactory( Host& host )
+            : m_host( host )
         {
         }
         virtual network::Activity::Ptr
@@ -39,22 +40,26 @@ class Worker
     };
 
 public:
-    Worker( boost::asio::io_context& io_context, int numThreads );
-    ~Worker();
+    Host( std::optional< const std::string > optName = std::nullopt );
+    ~Host();
 
-    int getNumThreads() const { return m_numThreads; }
+    std::string                        GetVersion();
+    std::vector< std::string >         ListHosts();
+    std::vector< network::ActivityID > listActivities();
+    std::string                        PipelineRun( const mega::pipeline::Pipeline::ID&  pipelineID,
+                                                    const mega::pipeline::Configuration& pipelineConfig );
 
 private:
     HostActivityFactory      m_activityFactory;
-    boost::asio::io_context& m_io_context;
-    int                      m_numThreads;
+    boost::asio::io_context  m_io_context;
     network::ActivityManager m_activityManager;
     network::Client          m_client;
     using ExecutorType = decltype( m_io_context.get_executor() );
     boost::asio::executor_work_guard< ExecutorType > m_work_guard;
+    std::thread                                      m_io_thread;
 };
 
 } // namespace service
 } // namespace mega
 
-#endif // WORKER_27_MAY_2022
+#endif // SERVICE_24_MAY_2022

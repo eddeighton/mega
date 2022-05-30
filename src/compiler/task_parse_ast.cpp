@@ -44,7 +44,7 @@ public:
         return pContextDef;
     }
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         // ParserStage::Parser::Root
         const mega::io::CompilationFilePath astFile  = m_environment.ParserStage_AST( m_sourceFilePath );
@@ -157,6 +157,12 @@ public:
         }
     }
 };
+
+
+BaseTask::Ptr create_Task_ParseAST( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_ParseAST >( taskArguments, sourceFilePath );
+}
 
 } // namespace interface
 } // namespace driver

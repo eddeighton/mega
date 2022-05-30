@@ -33,6 +33,7 @@ public:
 
 private:
     void receive( boost::asio::yield_context yield_ctx );
+    void onError( const ConnectionID& connectionID, const boost::system::error_code& ec );
     void updateLastActivityTime();
 
 private:

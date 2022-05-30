@@ -14,11 +14,11 @@ msg ListHosts
 msg ListActivities
 {
     request();
-    response(std::vector< ActivityID > activities);
+    response(std::vector< network::ActivityID > activities);
 }
 
 msg PipelineRun
 {
-    request(mega::pipeline::Pipeline::ID pipelineID);
+    request(mega::pipeline::Pipeline::ID pipelineID, mega::pipeline::Configuration configuration);
     response(std::string result);
 }

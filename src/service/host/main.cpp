@@ -1,7 +1,8 @@
 
+#include "service/host.hpp"
+
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
-#include "service/host/host.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/string.hpp"
@@ -141,8 +142,8 @@ int main( int argc, const char* argv[] )
             }
             else if ( !strPipeline.empty() )
             {
-                std::string strPipelineResult = host.PipelineRun( strPipeline );
-                std::cout << "Pipeline result:\n" << strPipelineResult << std::endl;
+                //std::string strPipelineResult = host.PipelineRun( strPipeline );
+                //std::cout << "Pipeline result:\n" << strPipelineResult << std::endl;
             }
             else if ( bQuit )
             {

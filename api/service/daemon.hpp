@@ -27,8 +27,7 @@ class Daemon
     private:
         Daemon& m_daemon;
     };
-    friend class RequestActivity;
-    friend class PipelineActivity;
+    friend class DaemonRequestActivity;
 
 public:
     Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP );

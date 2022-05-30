@@ -1,6 +1,8 @@
 
 
-#include "service/daemon/daemon.hpp"
+
+#include "service/daemon.hpp"
+
 #include "service/network/log.hpp"
 
 #include "common/assert_verify.hpp"

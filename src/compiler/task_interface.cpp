@@ -512,7 +512,7 @@ public:
         using namespace InterfaceStage;
     }
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath treePath = m_environment.InterfaceStage_Tree( m_sourceFilePath );
         start( taskProgress, "Task_ObjectInterfaceGen", m_sourceFilePath.path(), treePath.path() );
@@ -585,6 +585,11 @@ public:
     }
     const mega::io::megaFilePath& m_sourceFilePath;
 };
+
+BaseTask::Ptr create_Task_ObjectInterfaceGen( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_ObjectInterfaceGen >( taskArguments, sourceFilePath );
+}
 
 } // namespace interface
 } // namespace driver

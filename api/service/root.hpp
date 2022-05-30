@@ -24,8 +24,8 @@ class Root
     private:
         Root& m_root;
     };
-    friend class RequestActivity;
-    friend class PipelineActivity;
+    friend class RootRequestActivity;
+    friend class RootPipelineActivity;
 
 public:
     Root( boost::asio::io_context& ioContext );

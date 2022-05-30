@@ -67,16 +67,6 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_list.cpp
 		${DRIVER_SOURCE_DIR}/command_manifest.cpp
-
-		${DRIVER_SOURCE_DIR}/command_interface/base_task.hpp  
-		${DRIVER_SOURCE_DIR}/command_interface/task_dependencies.hpp 
-		${DRIVER_SOURCE_DIR}/command_interface/task_includes.hpp  
-		${DRIVER_SOURCE_DIR}/command_interface/task_interface_analysis.hpp  
-		${DRIVER_SOURCE_DIR}/command_interface/task_interface.hpp  
-		${DRIVER_SOURCE_DIR}/command_interface/task_parse_ast.hpp  
-		${DRIVER_SOURCE_DIR}/command_interface/task_symbols.hpp
-		${DRIVER_SOURCE_DIR}/command_interface/task_concrete.hpp
-
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
@@ -91,8 +81,11 @@ add_custom_target( PreprocessMain
 
 add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 
-target_link_libraries( mega database )
 target_link_libraries( mega utilities )
+target_link_libraries( mega database )
+target_link_libraries( mega network )
+target_link_libraries( mega service )
+target_link_libraries( mega compiler )
 
 set_target_properties( mega PROPERTIES FOLDER driver )
 

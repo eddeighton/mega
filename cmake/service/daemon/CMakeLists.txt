@@ -12,15 +12,9 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 
 #get the source code
-set( DAEMON_API_DIR ${MEGA_API_DIR}/service/daemon )
 set( DAEMON_SOURCE_DIR ${MEGA_SRC_DIR}/service/daemon )
 
-set( DAEMON_HEADERS
-    ${DAEMON_API_DIR}/daemon.hpp 
-    )
-
 set( DAEMON_SOURCE 
-    ${DAEMON_SOURCE_DIR}/daemon.cpp 
     ${DAEMON_SOURCE_DIR}/main.cpp 
     )
 
@@ -32,6 +26,7 @@ target_link_libraries( daemon database )
 target_link_libraries( daemon utilities )
 target_link_libraries( daemon protocol )
 target_link_libraries( daemon network )
+target_link_libraries( daemon service )
 
 set_target_properties( daemon PROPERTIES FOLDER driver )
 

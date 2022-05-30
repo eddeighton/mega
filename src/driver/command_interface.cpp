@@ -18,6 +18,7 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 //#include "database/model/interface.hpp"
+/*
 #include "command_interface/base_task.hpp"
 #include "command_interface/task_parse_ast.hpp"
 #include "command_interface/task_includes.hpp"
@@ -28,46 +29,46 @@
 #include "command_interface/task_concrete.hpp"
 
 #include "database/model/manifest.hxx"
+*/
+
+#include "pipeline/configuration.hpp"
+
+#include "service/host.hpp"
+
+#include "service/network/log.hpp"
+
+#include "pipeline/pipeline.hpp"
+
+#include "compiler/compiler.hpp"
+
+#include "boost/program_options.hpp"
+#include "boost/filesystem/path.hpp"
+
+#include <common/stash.hpp>
+#include <iostream>
+#include <spdlog/spdlog.h>
 
 namespace driver
 {
 namespace interface
 {
 
-class Task_Complete : public BaseTask
-{
-    const mega::io::Manifest& m_manifest;
-
-public:
-    Task_Complete( const TaskArguments& taskArguments, const mega::io::Manifest& manifest )
-        : BaseTask( taskArguments )
-        , m_manifest( manifest )
-    {
-    }
-
-    virtual void run( task::Progress& taskProgress )
-    {
-        const mega::io::manifestFilePath manifestFilePath = m_environment.project_manifest();
-        start( taskProgress, "Task_Complete", manifestFilePath.path(), manifestFilePath.path() );
-        succeeded( taskProgress );
-    }
-};
-
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, clangPlugin,
+    std::string             projectName;
+    boost::filesystem::path logDir, rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, clangPlugin,
         databaseDll, templatesDir;
-    std::string projectName;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Compile Mega Project Interface" );
     {
         // clang-format off
         commandOptions.add_options()
+        ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
+        ( "log_dir",        po::value< boost::filesystem::path >( &logDir ),         "Build log directory" )
         ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),  "Root source directory" )
         ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),   "Root build directory" )
-        ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
-        ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),   "Mega Structure Compiler path" )
+        ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),   "Megastructure compiler pipeline path" )
         ( "clang_compiler", po::value< boost::filesystem::path >( &clangCompiler ),  "Clang Compiler path" )
         ( "parser_dll",     po::value< boost::filesystem::path >( &parserDll ),      "Parser DLL Path" )
         ( "clang_plugin",   po::value< boost::filesystem::path >( &clangPlugin ),    "Clang Plugin path" )
@@ -90,89 +91,74 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir, templatesDir );
+        const boost::filesystem::path      compilerPath = megaCompiler.parent_path() / "compiler";
+        const mega::pipeline::Pipeline::ID pipelineID   = compilerPath.native();
 
-        VERIFY_RTE_MSG( boost::filesystem::exists( parserDll ), "Failed to locate parser DLL: " << parserDll );
+        // calculate toolchain hash codes
+        // clang-format off
+        const task::FileHash fileHashparserDll     ( parserDll     );
+        const task::FileHash fileHashmegaCompiler  ( megaCompiler  );
+        const task::FileHash fileHashclangCompiler ( clangCompiler );
+        const task::FileHash fileHashclangPlugin   ( clangPlugin   );
+        const task::FileHash fileHashdatabaseDll   ( databaseDll   );
 
-        // load the manifest
-        const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
-        mega::io::Manifest               manifest( environment, projectManifestPath );
+        const task::DeterminantHash toolChainHash( 
+            { 
+                fileHashparserDll    ,
+                fileHashmegaCompiler ,
+                fileHashclangCompiler,
+                fileHashclangPlugin  ,
+                fileHashdatabaseDll  
+            } );
 
-        const ToolChain toolchain( parserDll, megaCompiler, clangCompiler, clangPlugin, databaseDll );
-
-        task::Task::PtrVector                                  tasks;
-        std::map< mega::io::megaFilePath, task::Task::RawPtr > includePCHTasks;
-        task::Task::RawPtrSet                                  interfaceGenTasks;
+        mega::compiler::Configuration config =
         {
-            int iCounter = 1;
-            for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+            projectName,
+
+            mega::compiler::Directories
             {
-                Task_ParseAST* pTask
-                    = new Task_ParseAST( TaskArguments{ {}, environment, toolchain, iCounter }, sourceFilePath );
-                tasks.push_back( task::Task::Ptr( pTask ) );
+                rootSourceDir,
+                rootBuildDir,
+                templatesDir
+            },
 
-                Task_Include* pTaskInclude
-                    = new Task_Include( TaskArguments{ { pTask }, environment, toolchain, iCounter }, sourceFilePath );
-                tasks.push_back( task::Task::Ptr( pTaskInclude ) );
+            mega::compiler::ToolChain
+            {
+                parserDll       ,
+                megaCompiler    ,
+                clangCompiler   ,
+                clangPlugin     ,
+                databaseDll     ,
 
-                Task_IncludePCH* pTaskIncludePCH = new Task_IncludePCH(
-                    TaskArguments{ { pTaskInclude }, environment, toolchain, iCounter }, sourceFilePath );
-                includePCHTasks.insert( std::make_pair( sourceFilePath, pTaskIncludePCH ) );
-                tasks.push_back( task::Task::Ptr( pTaskIncludePCH ) );
+                fileHashparserDll    ,
+                fileHashmegaCompiler ,
+                fileHashclangCompiler,
+                fileHashclangPlugin  ,
+                fileHashdatabaseDll  ,
 
-                Task_ObjectInterfaceGen* pInterfaceGenTask = new Task_ObjectInterfaceGen(
-                    TaskArguments{ { pTask }, environment, toolchain, iCounter }, sourceFilePath );
-                interfaceGenTasks.insert( pInterfaceGenTask );
-                tasks.push_back( task::Task::Ptr( pInterfaceGenTask ) );
-
-                ++iCounter;
+                toolChainHash
             }
-        }
+        };
+        // clang-format on
 
-        VERIFY_RTE_MSG( !tasks.empty(), "No input source code found" );
+        const mega::pipeline::Configuration pipelineConfig = mega::compiler::makePipelineConfiguration( config );
 
-        Task_DependencyAnalysis* pDependencyAnalysisTask
-            = new Task_DependencyAnalysis( TaskArguments{ interfaceGenTasks, environment, toolchain, 0 }, manifest );
-        tasks.push_back( task::Task::Ptr( pDependencyAnalysisTask ) );
-
-        Task_SymbolAnalysis* pSymbolAnalysisTask = new Task_SymbolAnalysis(
-            TaskArguments{ { pDependencyAnalysisTask }, environment, toolchain, 0 }, manifest );
-        tasks.push_back( task::Task::Ptr( pSymbolAnalysisTask ) );
-
-       task::Task::RawPtrSet concreteTasks;
+        try
         {
-            int iCounter = 1;
-            for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
             {
-                Task_SymbolRollout* pSymbolRollout = new Task_SymbolRollout(
-                    TaskArguments{ { pSymbolAnalysisTask }, environment, toolchain, iCounter }, sourceFilePath );
-                tasks.push_back( task::Task::Ptr( pSymbolRollout ) );
-
-                Task_ObjectInterfaceGeneration* pInterfaceGen = new Task_ObjectInterfaceGeneration(
-                    TaskArguments{ { pSymbolRollout }, environment, toolchain, iCounter }, sourceFilePath );
-                tasks.push_back( task::Task::Ptr( pInterfaceGen ) );
-
-                Task_ObjectInterfaceAnalysis* pObjectInterfaceAnalysis = new Task_ObjectInterfaceAnalysis(
-                    TaskArguments{
-                        { pInterfaceGen, includePCHTasks[ sourceFilePath ] }, environment, toolchain, iCounter },
-                    sourceFilePath );
-                tasks.push_back( task::Task::Ptr( pObjectInterfaceAnalysis ) );
-
-                Task_ConcreteTree* pConcreteTree = new Task_ConcreteTree(
-                    TaskArguments{ { pObjectInterfaceAnalysis }, environment, toolchain, iCounter }, sourceFilePath );
-                tasks.push_back( task::Task::Ptr( pConcreteTree ) );
-                concreteTasks.insert( pConcreteTree );
-
-                ++iCounter;
+                auto logThreads = mega::network::configureLog(
+                    logDir.native(), "interface_build", mega::network::fromStr( "info" ) );
+                {
+                    mega::service::Host host;
+                    host.PipelineRun( pipelineID, pipelineConfig );
+                }
             }
+            spdlog::shutdown();
         }
-
-        Task_Complete* pComplete
-            = new Task_Complete( TaskArguments{ concreteTasks, environment, toolchain, 0 }, manifest );
-        tasks.push_back( task::Task::Ptr( pComplete ) );
-
-        task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
-        task::run( pSchedule, std::cout );
+        catch ( std::exception& ex )
+        {
+            THROW_RTE( "Could not connect to Megastructure Service: " << ex.what() );
+        }
     }
 }
 } // namespace interface

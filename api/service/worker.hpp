@@ -1,6 +1,6 @@
 
-#ifndef SERVICE_24_MAY_2022
-#define SERVICE_24_MAY_2022
+#ifndef WORKER_27_MAY_2022
+#define WORKER_27_MAY_2022
 
 #include "service/network/client.hpp"
 #include "service/network/activity_manager.hpp"
@@ -19,16 +19,18 @@ namespace mega
 namespace service
 {
 
-class Host
+class Worker
 {
-    friend class RequestActivity;
+    friend class WorkerRequestActivity;
+    friend class JobActivity;
+    
     class HostActivityFactory : public network::ActivityFactory
     {
-        Host& m_host;
+        Worker& m_worker;
 
     public:
-        HostActivityFactory( Host& host )
-            : m_host( host )
+        HostActivityFactory( Worker& host )
+            : m_worker( host )
         {
         }
         virtual network::Activity::Ptr
@@ -37,25 +39,22 @@ class Host
     };
 
 public:
-    Host( std::optional< const std::string > optName = std::nullopt );
-    ~Host();
+    Worker( boost::asio::io_context& io_context, int numThreads );
+    ~Worker();
 
-    std::string                        GetVersion();
-    std::vector< std::string >         ListHosts();
-    std::vector< network::ActivityID > listActivities();
-    std::string                        PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID );
+    int getNumThreads() const { return m_numThreads; }
 
 private:
     HostActivityFactory      m_activityFactory;
-    boost::asio::io_context  m_io_context;
+    boost::asio::io_context& m_io_context;
+    int                      m_numThreads;
     network::ActivityManager m_activityManager;
     network::Client          m_client;
     using ExecutorType = decltype( m_io_context.get_executor() );
     boost::asio::executor_work_guard< ExecutorType > m_work_guard;
-    std::thread                                      m_io_thread;
 };
 
 } // namespace service
 } // namespace mega
 
-#endif // SERVICE_24_MAY_2022
+#endif // WORKER_27_MAY_2022

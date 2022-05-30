@@ -33,6 +33,24 @@ Receiver::Receiver( ActivityManager& activityManager, ActivityFactory& activityF
 
 void Receiver::updateLastActivityTime() { m_lastActivityTime = std::chrono::steady_clock::now(); }
 
+void Receiver::onError( const ConnectionID& connectionID, const boost::system::error_code& ec )
+{
+    if ( ec == boost::asio::error::eof )
+    {
+        //SPDLOG_INFO( "Connection: {} closed due to EOF", connectionID );
+        // This is what happens when close socket normally
+    }
+    else if( ec == boost::asio::error::operation_aborted )
+    {
+        //SPDLOG_INFO( "Connection: {} closed. Error: {}", connectionID, ec.what() );
+        // This is what happens when close socket normally
+    }
+    else
+    {
+        SPDLOG_ERROR( "Connection: {} closed. Error: {}", connectionID, ec.what() );
+    }
+}
+
 void Receiver::receive( boost::asio::yield_context yield_ctx )
 {
     static const std::size_t            MessageSizeSize = sizeof( network::MessageSize );
@@ -70,15 +88,8 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                     }
                     else // if( ec.failed() )
                     {
-                        if ( ec == boost::asio::error::eof )
-                        {
-                            SPDLOG_WARN( "Socket: {} closed due to EOF", connectionID );
-                            m_bContinue = false;
-                            break;
-                        }
-                        // log error and close
-                        SPDLOG_ERROR( "Socket: {} closed. Error: {}", connectionID, ec.what() );
-                        m_socket.close();
+                        m_bContinue = false;
+                        onError( connectionID, ec );
                     }
                 }
             }
@@ -128,15 +139,8 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                 }
                 else // if( ec.failed() )
                 {
-                    if ( ec == boost::asio::error::eof )
-                    {
-                        SPDLOG_WARN( "Socket: {} closed due to EOF", connectionID );
-                        m_bContinue = false;
-                        break;
-                    }
-                    // log error and close
-                    SPDLOG_ERROR( "Socket: {} closed. Error: {}", connectionID, ec.what() );
-                    m_socket.close();
+                    m_bContinue = false;
+                    onError( connectionID, ec );
                 }
             }
         }

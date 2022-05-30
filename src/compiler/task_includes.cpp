@@ -25,7 +25,7 @@ public:
     {
     }
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath        astFile         = m_environment.ParserStage_AST( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
@@ -75,6 +75,11 @@ public:
     }
 };
 
+BaseTask::Ptr create_Task_Include( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_Include >( taskArguments, sourceFilePath );
+}
+
 class Task_IncludePCH : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
@@ -86,7 +91,7 @@ public:
     {
     }
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
         const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.PCH( m_sourceFilePath );
@@ -129,6 +134,11 @@ public:
         succeeded( taskProgress );
     }
 };
+
+BaseTask::Ptr create_Task_IncludePCH( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_IncludePCH >( taskArguments, sourceFilePath );
+}
 
 } // namespace interface
 } // namespace driver

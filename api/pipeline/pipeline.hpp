@@ -3,6 +3,7 @@
 #define PIPELINE_27_MAY_2022
 
 #include "task.hpp"
+#include "configuration.hpp"
 
 #include "boost/config.hpp"
 #include "boost/shared_ptr.hpp"
@@ -59,9 +60,10 @@ protected:
 public:
     virtual ~Progress();
 
-    virtual void onStarted()   = 0;
-    virtual void onProgress()  = 0;
-    virtual void onCompleted() = 0;
+    virtual void onStarted( const std::string& strMsg )   = 0;
+    virtual void onProgress( const std::string& strMsg )  = 0;
+    virtual void onFailed( const std::string& strMsg )  = 0;
+    virtual void onCompleted( const std::string& strMsg ) = 0;
 };
 
 class BOOST_SYMBOL_VISIBLE Pipeline
@@ -78,21 +80,16 @@ public:
     using ID  = std::string;
 
     virtual ~Pipeline();
+
+    virtual void     initialise( const Configuration& configuration )          = 0;
     virtual Schedule getSchedule()                                             = 0;
     virtual void     execute( const TaskDescriptor& task, Progress& progress ) = 0;
 };
 
 class Registry
 {
-    using PipelinePtrMap = std::map< Pipeline::ID, Pipeline::Ptr >;
-
 public:
-    Registry();
-    ~Registry();
-    Pipeline::Ptr getPipeline( const Pipeline::ID& id );
-
-private:
-    PipelinePtrMap m_pipelines;
+    static Pipeline::Ptr getPipeline( const Pipeline::ID& id, const Configuration& configuration );
 };
 } // namespace pipeline
 } // namespace mega

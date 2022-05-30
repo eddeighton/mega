@@ -51,6 +51,7 @@ class BuildEnvironment : public Environment
     }
 
     Path stashDir() const { return m_rootBuildDir / "stash"; }
+    Path buildHashCodesFile() const { return m_rootBuildDir / "build_hash_codes.txt"; }
 
     Path tempDir() const
     {
@@ -66,7 +67,9 @@ public:
         , m_tempDir( tempDir() )
         , m_stash( stashDir() )
     {
-        // m_stash.loadBuildHashCodes( );
+        const Path buildHashCodes = buildHashCodesFile();
+        if ( boost::filesystem::exists( buildHashCodes ) )
+            m_stash.loadBuildHashCodes( buildHashCodes );
     }
 
     BuildEnvironment( const Path& rootSourceDir, const Path& rootBuildDir, const Path& templatesDir )
@@ -76,7 +79,19 @@ public:
         , m_tempDir( tempDir() )
         , m_stash( stashDir() )
     {
-        // m_stash.loadBuildHashCodes( );
+        const Path buildHashCodes = buildHashCodesFile();
+        if ( boost::filesystem::exists( buildHashCodes ) )
+            m_stash.loadBuildHashCodes( buildHashCodes );
+    }
+    ~BuildEnvironment()
+    {
+        try
+        {
+            m_stash.saveBuildHashCodes( buildHashCodesFile() );
+        }
+        catch ( std::exception& )
+        {
+        }
     }
 
     const Path& rootSourceDir() const { return m_rootSourceDir; }
@@ -222,21 +237,20 @@ public:
     bool restore( const CompilationFilePath& filePath, task::DeterminantHash hashCode ) const
     {
         const Path actualPath = toPath( filePath );
-        if( m_stash.restore( actualPath, hashCode ) )
+        if ( m_stash.restore( actualPath, hashCode ) )
         {
-            //check the file header for the correct version
+            // check the file header for the correct version
             data::NullObjectPartLoader nullObjectPartLoader;
-            
+
             std::unique_ptr< std::istream > pFileStream = read( filePath );
             boost::archive::MegaIArchive    archive( *pFileStream, nullObjectPartLoader );
 
             mega::io::FileHeader fileHeader;
             archive >> fileHeader;
-            if( fileHeader.getVersion() == VERSION )
+            if ( fileHeader.getVersion() == VERSION )
             {
                 return true;
             }
-
         }
         return false;
     }
@@ -260,8 +274,8 @@ public:
     {
         return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
     }
-    virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath& filePath,
-                                                        boost::filesystem::path&        tempFilePath ) const
+    virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath&     filePath,
+                                                        boost::filesystem::path& tempFilePath ) const
     {
         tempFilePath = m_tempDir / filePath.path();
         return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
@@ -302,8 +316,8 @@ public:
     {
         return m_fileArchive.read( filePath );
     }
-    virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath& filePath,
-                                                        boost::filesystem::path&        tempFilePath ) const
+    virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath&     filePath,
+                                                        boost::filesystem::path& tempFilePath ) const
     {
         THROW_RTE( "Invalid use of retail environment" );
     }

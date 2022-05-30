@@ -3,7 +3,7 @@
 msg ReportActivities
 {
     request();
-    response(std::vector< ActivityID > activities);
+    response(std::vector< network::ActivityID > activities);
 }
 
 msg ListWorkers
@@ -14,6 +14,6 @@ msg ListWorkers
 
 msg PipelineStartJobs
 {
-    request(mega::pipeline::Pipeline::ID pipelineID,ActivityID rootActivityID);
-    response(std::vector< ActivityID > jobs);
+    request(mega::pipeline::Pipeline::ID pipelineID, mega::pipeline::Configuration configuration, network::ActivityID rootActivityID);
+    response(std::vector< network::ActivityID > jobs);
 }

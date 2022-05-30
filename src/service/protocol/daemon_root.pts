@@ -8,36 +8,36 @@ msg GetVersion
 msg ListActivities
 {
     request();
-    response(std::vector< ActivityID > activities);
+    response(std::vector< network::ActivityID > activities);
 }
 
 msg PipelineRun
 {
-    request(mega::pipeline::Pipeline::ID pipelineID);
+    request(mega::pipeline::Pipeline::ID pipelineID, mega::pipeline::Configuration configuration);
     response(std::string result);
 }
 
 msg PipelineReadyForWork
 {
-    request(ActivityID rootActivityID);
+    request(network::ActivityID rootActivityID);
     response(mega::pipeline::TaskDescriptor task);
 }
 
 msg PipelineWorkProgress
 {
-    request(ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string progress);
+    request(network::ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string message);
     response();
 }
 
 msg PipelineWorkFailed
 {
-    request(ActivityID rootActivityID, mega::pipeline::TaskDescriptor task);
+    request(network::ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string message);
     response();
 }
 
 msg PipelineWorkCompleted
 {
-    request(ActivityID rootActivityID, mega::pipeline::TaskDescriptor task);
+    request(network::ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string message);
     response();
 }
 

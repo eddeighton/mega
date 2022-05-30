@@ -1,6 +1,7 @@
 
-#include "service/host/host.hpp"
+#include "service/host.hpp"
 
+#include "pipeline/configuration.hpp"
 #include "service/network/activity_manager.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
@@ -20,12 +21,12 @@ namespace mega
 namespace service
 {
 
-class RequestActivity : public network::Activity, public network::daemon_host::Impl
+class HostRequestActivity : public network::Activity, public network::daemon_host::Impl
 {
     Host& m_host;
 
 public:
-    RequestActivity( Host& host, const network::ActivityID& activityID,
+    HostRequestActivity( Host& host, const network::ActivityID& activityID,
                      const network::ConnectionID& originatingConnectionID )
         : Activity( host.m_activityManager, activityID, originatingConnectionID )
         , m_host( host )
@@ -73,7 +74,7 @@ network::Activity::Ptr
 Host::HostActivityFactory::createRequestActivity( const network::Header&       msgHeader,
                                                   const network::ConnectionID& originatingConnectionID ) const
 {
-    return network::Activity::Ptr( new RequestActivity( m_host, msgHeader.getActivityID(), originatingConnectionID ) );
+    return network::Activity::Ptr( new HostRequestActivity( m_host, msgHeader.getActivityID(), originatingConnectionID ) );
 }
 
 Host::Host( std::optional< const std::string > optName /* = std::nullopt*/ )
@@ -94,7 +95,7 @@ Host::~Host()
 }
 
 template < typename TPromiseType, typename TActivityFunctor >
-class GenericActivity : public RequestActivity
+class GenericActivity : public HostRequestActivity
 {
     Host&            m_host;
     network::Client& m_client;
@@ -105,7 +106,7 @@ public:
     GenericActivity( Host& host, network::ActivityManager& activityManager, network::Client& client,
                      const network::ConnectionID& originatingConnectionID, TPromiseType& promise,
                      TActivityFunctor&& functor )
-        : RequestActivity( host, activityManager.createActivityID( originatingConnectionID ), originatingConnectionID )
+        : HostRequestActivity( host, activityManager.createActivityID( originatingConnectionID ), originatingConnectionID )
         , m_host( host )
         , m_client( client )
         , m_promise( promise )
@@ -183,7 +184,7 @@ std::vector< network::ActivityID > Host::listActivities()
     SIMPLE_REQUEST( std::vector< network::ActivityID >, promise.set_value( daemon.ListActivities() ) );
 }
 
-std::string Host::PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID )
+std::string Host::PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID, const mega::pipeline::Configuration& pipelineConfig )
 {
     using ResultType = std::string;
     std::promise< ResultType > promise;
@@ -192,12 +193,12 @@ std::string Host::PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID )
     {
         m_activityManager.activityStarted( network::Activity::Ptr( new GenericActivity(
             *this, m_activityManager, m_client, network::getConnectionID( m_client.getSocket() ), promise,
-            [ &pipelineID ]( std::promise< ResultType >& promise, network::Client& client, network::Activity& activity,
+            [ &pipelineID, &pipelineConfig ]( std::promise< ResultType >& promise, network::Client& client, network::Activity& activity,
                              boost::asio::yield_context yield_ctx )
             {
                 network::host_daemon::Request_Encode daemon( activity, client.getSocket(), yield_ctx );
                 {
-                    promise.set_value( daemon.PipelineRun( pipelineID ) );
+                    promise.set_value( daemon.PipelineRun( pipelineID, pipelineConfig ) );
                 }
                 daemon.Complete();
             } ) ) );

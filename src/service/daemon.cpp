@@ -1,5 +1,5 @@
 
-#include "service/daemon/daemon.hpp"
+#include "service/daemon.hpp"
 
 #include "service/network/activity.hpp"
 #include "service/network/network.hpp"
@@ -23,24 +23,24 @@ namespace service
 
 ////////////////////////////////////////////////////////////////
 // HostRequestActivity
-class RequestActivity : public network::Activity,
-                        public network::host_daemon::Impl,
-                        public network::worker_daemon::Impl,
-                        public network::root_daemon::Impl
+class DaemonRequestActivity : public network::Activity,
+                              public network::host_daemon::Impl,
+                              public network::worker_daemon::Impl,
+                              public network::root_daemon::Impl
 {
 protected:
     Daemon& m_daemon;
 
 public:
-    RequestActivity( Daemon&                      daemon,
-                     const network::ActivityID&   activityID,
-                     const network::ConnectionID& originatingConnectionID )
+    DaemonRequestActivity( Daemon&                      daemon,
+                           const network::ActivityID&   activityID,
+                           const network::ConnectionID& originatingConnectionID )
         : Activity( daemon.m_activityManager, activityID, originatingConnectionID )
         , m_daemon( daemon )
     {
     }
 
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx ) override
     {
         return network::Activity::dispatchRequest( msg, yield_ctx )
                || network::host_daemon::Impl::dispatchRequest( msg, *this, yield_ctx )
@@ -50,7 +50,7 @@ public:
 
     virtual void error( const network::ConnectionID& connectionID,
                         const std::string&           strErrorMsg,
-                        boost::asio::yield_context   yield_ctx )
+                        boost::asio::yield_context   yield_ctx ) override
     {
         if ( network::getConnectionID( m_daemon.m_rootClient.getSocket() ) == connectionID )
         {
@@ -72,6 +72,7 @@ public:
         }
     }
 
+    // helpers
     network::daemon_root::Request_Encode getRootRequest( boost::asio::yield_context yield_ctx )
     {
         return network::daemon_root::Request_Encode( *this, m_daemon.m_rootClient.getSocket(), yield_ctx );
@@ -128,13 +129,13 @@ public:
     }
 
     network::daemon_host::Request_Encode getHostRequest( network::Server::Connection::Ptr pHost,
-                                                             boost::asio::yield_context       yield_ctx )
+                                                         boost::asio::yield_context       yield_ctx )
     {
         return network::daemon_host::Request_Encode( *this, pHost->getSocket(), yield_ctx );
     }
 
     // network::host_daemon::Impl
-    virtual void GetVersion( boost::asio::yield_context yield_ctx )
+    virtual void GetVersion( boost::asio::yield_context yield_ctx ) override
     {
         auto        root                    = getRootRequest( yield_ctx );
         std::string strMegaStructureVersion = root.GetVersion();
@@ -142,7 +143,7 @@ public:
         getOriginatingHostResponse( yield_ctx ).GetVersion( strMegaStructureVersion );
     }
 
-    virtual void ListHosts( boost::asio::yield_context yield_ctx )
+    virtual void ListHosts( boost::asio::yield_context yield_ctx ) override
     {
         std::vector< std::string > hosts;
         for ( auto& [ id, pConnection ] : m_daemon.m_hostServer.getConnections() )
@@ -150,7 +151,7 @@ public:
         getOriginatingHostResponse( yield_ctx ).ListHosts( hosts );
     }
 
-    virtual void ListActivities( boost::asio::yield_context yield_ctx )
+    virtual void ListActivities( boost::asio::yield_context yield_ctx ) override
     {
         auto root   = getRootRequest( yield_ctx );
         auto result = root.ListActivities();
@@ -158,88 +159,19 @@ public:
         getOriginatingHostResponse( yield_ctx ).ListActivities( result );
     }
 
-    virtual void PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID, boost::asio::yield_context yield_ctx )
+    virtual void PipelineRun( const mega::pipeline::Pipeline::ID&  pipelineID,
+                              const mega::pipeline::Configuration& configuration,
+                              boost::asio::yield_context           yield_ctx ) override
     {
         auto        root                  = getRootRequest( yield_ctx );
-        std::string strTestPipelineResult = root.PipelineRun( pipelineID );
+        std::string strTestPipelineResult = root.PipelineRun( pipelineID, configuration );
         root.Complete();
         getOriginatingHostResponse( yield_ctx ).PipelineRun( strTestPipelineResult );
     }
 
     // network::worker_daemon::Impl
-
-    // network::root_daemon::Impl
-    virtual void ReportActivities( boost::asio::yield_context yield_ctx )
-    {
-        std::vector< network::ActivityID > activities;
-
-        for( const auto& id : m_activityManager.reportActivities() )
-        {
-            activities.push_back( id );
-        }
-
-        for( const auto& [ id, pDeamon ] : m_daemon.m_hostServer.getConnections() )
-        {
-            auto host = getHostRequest( pDeamon, yield_ctx );
-            auto hostActivities = host.ReportActivities();
-            host.Complete();
-            std::copy( hostActivities.begin(), hostActivities.end(),
-                std::back_inserter( activities ) );
-        }
-
-        for( const auto& [ id, pDeamon ] : m_daemon.m_workerServer.getConnections() )
-        {
-            auto worker = getWorkerRequest( pDeamon, yield_ctx );
-            auto workerActivities = worker.ReportActivities();
-            worker.Complete();
-            std::copy( workerActivities.begin(), workerActivities.end(),
-                std::back_inserter( activities ) );
-        }
-
-        getRootResponse( yield_ctx ).ReportActivities( activities );
-    }
-
-    virtual void ListWorkers( boost::asio::yield_context yield_ctx )
-    {
-        int iTotalThreads = 0;
-        for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
-        {
-            auto worker = getWorkerRequest( pWorker, yield_ctx );
-            iTotalThreads += worker.ListThreads();
-            worker.Complete();
-        }
-        getRootResponse( yield_ctx ).ListWorkers( iTotalThreads );
-    }
-};
-
-class PipelineActivity : public RequestActivity
-{
-public:
-    PipelineActivity( Daemon&                      daemon,
-                      const network::ActivityID&   activityID,
-                      const network::ConnectionID& originatingConnectionID )
-        : RequestActivity( daemon, activityID, originatingConnectionID )
-    {
-    }
-
-    // network::root_daemon::Impl
-    virtual void PipelineStartJobs( const mega::pipeline::Pipeline::ID& pipelineID,
-                                    const network::ActivityID&          rootActivityID,
-                                    boost::asio::yield_context          yield_ctx )
-    {
-        std::vector< network::ActivityID > allJobs;
-        for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
-        {
-            auto                               worker = getWorkerRequest( pWorker, yield_ctx );
-            std::vector< network::ActivityID > jobs   = worker.PipelineStartJobs( pipelineID, rootActivityID );
-            worker.Complete();
-            std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
-        }
-        getRootResponse( yield_ctx ).PipelineStartJobs( allJobs );
-    }
-
-    // network::worker_daemon::Impl
-    virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID, boost::asio::yield_context yield_ctx )
+    virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID,
+                                       boost::asio::yield_context yield_ctx ) override
     {
         SPDLOG_INFO( "PipelineReadyForWork: {}", getActivityID() );
         auto                           root = getRootRequest( yield_ctx );
@@ -251,36 +183,94 @@ public:
 
     virtual void PipelineWorkProgress( const network::ActivityID&            rootActivityID,
                                        const mega::pipeline::TaskDescriptor& task,
-                                       const std::string&                    progress,
-                                       boost::asio::yield_context            yield_ctx )
+                                       const std::string&                    strMessage,
+                                       boost::asio::yield_context            yield_ctx ) override
     {
         auto root = getRootRequest( yield_ctx );
-        root.PipelineWorkProgress( rootActivityID, task, progress );
+        root.PipelineWorkProgress( rootActivityID, task, strMessage );
         root.Complete();
         auto worker = getOriginatingWorkerResponse( yield_ctx );
         worker.PipelineWorkProgress();
     }
 
     virtual void PipelineWorkFailed( const network::ActivityID&            rootActivityID,
-                                     const mega::pipeline::TaskDescriptor& task,
-                                     boost::asio::yield_context            yield_ctx )
+                                     const mega::pipeline::TaskDescriptor& task, const std::string& strMessage,
+                                     boost::asio::yield_context yield_ctx ) override
     {
         auto root = getRootRequest( yield_ctx );
-        root.PipelineWorkFailed( rootActivityID, task );
+        root.PipelineWorkFailed( rootActivityID, task, strMessage );
         root.Complete();
         auto worker = getOriginatingWorkerResponse( yield_ctx );
         worker.PipelineWorkFailed();
     }
 
     virtual void PipelineWorkCompleted( const network::ActivityID&            rootActivityID,
-                                        const mega::pipeline::TaskDescriptor& task,
-                                        boost::asio::yield_context            yield_ctx )
+                                        const mega::pipeline::TaskDescriptor& task, const std::string& strMessage,
+                                        boost::asio::yield_context yield_ctx ) override
     {
         auto root = getRootRequest( yield_ctx );
-        root.PipelineWorkCompleted( rootActivityID, task );
+        root.PipelineWorkCompleted( rootActivityID, task, strMessage );
         root.Complete();
         auto worker = getOriginatingWorkerResponse( yield_ctx );
         worker.PipelineWorkCompleted();
+    }
+
+    // network::root_daemon::Impl
+    virtual void ReportActivities( boost::asio::yield_context yield_ctx ) override
+    {
+        std::vector< network::ActivityID > activities;
+
+        for ( const auto& id : m_activityManager.reportActivities() )
+        {
+            activities.push_back( id );
+        }
+
+        for ( const auto& [ id, pDeamon ] : m_daemon.m_hostServer.getConnections() )
+        {
+            auto host           = getHostRequest( pDeamon, yield_ctx );
+            auto hostActivities = host.ReportActivities();
+            host.Complete();
+            std::copy( hostActivities.begin(), hostActivities.end(), std::back_inserter( activities ) );
+        }
+
+        for ( const auto& [ id, pDeamon ] : m_daemon.m_workerServer.getConnections() )
+        {
+            auto worker           = getWorkerRequest( pDeamon, yield_ctx );
+            auto workerActivities = worker.ReportActivities();
+            worker.Complete();
+            std::copy( workerActivities.begin(), workerActivities.end(), std::back_inserter( activities ) );
+        }
+
+        getRootResponse( yield_ctx ).ReportActivities( activities );
+    }
+
+    virtual void ListWorkers( boost::asio::yield_context yield_ctx ) override
+    {
+        int iTotalThreads = 0;
+        for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
+        {
+            auto worker = getWorkerRequest( pWorker, yield_ctx );
+            iTotalThreads += worker.ListThreads();
+            worker.Complete();
+        }
+        getRootResponse( yield_ctx ).ListWorkers( iTotalThreads );
+    }
+
+    virtual void PipelineStartJobs( const mega::pipeline::Pipeline::ID&  pipelineID,
+                                    const mega::pipeline::Configuration& configuration,
+                                    const network::ActivityID&           rootActivityID,
+                                    boost::asio::yield_context           yield_ctx ) override
+    {
+        std::vector< network::ActivityID > allJobs;
+        for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
+        {
+            auto                               worker = getWorkerRequest( pWorker, yield_ctx );
+            std::vector< network::ActivityID > jobs
+                = worker.PipelineStartJobs( pipelineID, configuration, rootActivityID );
+            worker.Complete();
+            std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
+        }
+        getRootResponse( yield_ctx ).PipelineStartJobs( allJobs );
     }
 };
 
@@ -290,17 +280,9 @@ Daemon::RequestActivityFactory::createRequestActivity( const network::Header&   
 {
     switch ( msgHeader.getMessageID() )
     {
-        case network::worker_daemon::MSG_PipelineReadyForWork_Request::ID:
-        case network::worker_daemon::MSG_PipelineWorkProgress_Request::ID:
-        case network::worker_daemon::MSG_PipelineWorkFailed_Request::ID:
-        case network::worker_daemon::MSG_PipelineWorkCompleted_Request::ID:
-        case network::host_daemon::MSG_PipelineRun_Request::ID:
-        case network::root_daemon::MSG_PipelineStartJobs_Request::ID:
-            return network::Activity::Ptr(
-                new PipelineActivity( m_daemon, msgHeader.getActivityID(), originatingConnectionID ) );
         default:
             return network::Activity::Ptr(
-                new RequestActivity( m_daemon, msgHeader.getActivityID(), originatingConnectionID ) );
+                new DaemonRequestActivity( m_daemon, msgHeader.getActivityID(), originatingConnectionID ) );
     }
 }
 

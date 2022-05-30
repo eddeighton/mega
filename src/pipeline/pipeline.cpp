@@ -13,7 +13,15 @@ namespace pipeline
 
 TaskDescriptor::TaskDescriptor() {}
 
-TaskDescriptor::TaskDescriptor( const Buffer& buffer )
+TaskDescriptor::TaskDescriptor( const std::string& strName, const Buffer& buffer )
+    : m_strName( strName )
+    , m_buffer( buffer )
+{
+}
+
+Configuration::Configuration() {}
+
+Configuration::Configuration( const Buffer& buffer )
     : m_buffer( buffer )
 {
 }
@@ -67,29 +75,22 @@ Progress::~Progress() {}
 Pipeline::Pipeline() {}
 Pipeline::~Pipeline() {}
 
-Registry::Registry() {}
-Registry::~Registry() {}
-
-Pipeline::Ptr Registry::getPipeline( const Pipeline::ID& id )
+Pipeline::Ptr Registry::getPipeline( const Pipeline::ID& id, const Configuration& configuration )
 {
-    PipelinePtrMap::const_iterator iFind = m_pipelines.find( id );
-    if ( iFind != m_pipelines.end() )
-        return iFind->second;
-
     try
     {
         boost::filesystem::path cwd = boost::filesystem::current_path();
-        
+
         boost::dll::fs::path pipelineLibrary( id );
 
         Pipeline::Ptr pPipeline = boost::dll::import_symbol< mega::pipeline::Pipeline >(
             pipelineLibrary, "mega_pipeline", boost::dll::load_mode::append_decorations );
 
-        m_pipelines.insert( std::make_pair( id, pPipeline ) );
+        pPipeline->initialise( configuration );
 
         return pPipeline;
     }
-    catch( std::exception& ex )
+    catch ( std::exception& ex )
     {
         THROW_RTE( "Failed to load pipeline: " << id << " exception: " << ex.what() );
     }

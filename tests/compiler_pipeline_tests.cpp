@@ -10,7 +10,7 @@ TEST( Compiler, Basic )
     /*mega::pipeline::Registry registry;
 
     mega::pipeline::Pipeline::Ptr pPipeline
-        = registry.getPipeline( "compiler" );
+        = pipeline::Registry::getPipeline( "compiler" );
 
     int counter = 0;
     struct TestProgress : public mega::pipeline::Progress
@@ -20,9 +20,10 @@ TEST( Compiler, Basic )
             : m_counter( counter )
         {
         }
-        void onStarted() {}
-        void onProgress() {}
-        void onCompleted() { ++m_counter; }
+        void onStarted( const std::string& strMsg ) {}
+        void onProgress( const std::string& strMsg ) {}
+        void onFailed( const std::string& strMsg ) {}
+        void onCompleted( const std::string& strMsg ) { ++m_counter; }
     } progress( counter );
 
     mega::pipeline::Schedule schedule = pPipeline->getSchedule();

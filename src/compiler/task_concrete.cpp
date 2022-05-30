@@ -280,7 +280,7 @@ public:
         }
     }
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath interfaceAnalysisFile
             = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
@@ -323,6 +323,11 @@ public:
 
     const mega::io::megaFilePath& m_sourceFilePath;
 };
+
+BaseTask::Ptr create_Task_ConcreteTree( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_ConcreteTree >( taskArguments, sourceFilePath );
+}
 
 } // namespace interface
 } // namespace driver

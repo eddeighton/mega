@@ -8,6 +8,7 @@
 #include "database/model/DependencyAnalysis.hxx"
 #include "database/model/DependencyAnalysisView.hxx"
 
+#include "database/model/manifest.hxx"
 #include "utilities/glob.hpp"
 
 namespace driver
@@ -17,12 +18,12 @@ namespace interface
 
 class Task_DependencyAnalysis : public BaseTask
 {
-    const mega::io::Manifest& m_manifest;
+    const mega::io::Manifest m_manifest;
 
 public:
-    Task_DependencyAnalysis( const TaskArguments& taskArguments, const mega::io::Manifest& manifest )
+    Task_DependencyAnalysis( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifestFilePath )
         : BaseTask( taskArguments )
-        , m_manifest( manifest )
+        , m_manifest( m_environment, manifestFilePath )
     {
     }
 
@@ -159,7 +160,7 @@ public:
         return sourceFiles;
     }
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::manifestFilePath    manifestFilePath = m_environment.project_manifest();
         const mega::io::CompilationFilePath dependencyCompilationFilePath
@@ -354,6 +355,11 @@ public:
     }
 };
 
+BaseTask::Ptr create_Task_DependencyAnalysis( const TaskArguments&              taskArguments,
+                                              const mega::io::manifestFilePath& manifestFilePath )
+{
+    return std::make_unique< Task_DependencyAnalysis >( taskArguments, manifestFilePath );
+}
 } // namespace interface
 } // namespace driver
 

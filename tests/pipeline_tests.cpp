@@ -12,9 +12,7 @@
 
 mega::pipeline::TaskDescriptor make_task( const std::string& str )
 {
-    mega::pipeline::TaskDescriptor::Buffer buffer;
-    std::copy( str.begin(), str.end(), std::back_inserter( buffer ) );
-    return mega::pipeline::TaskDescriptor{ buffer };
+    return mega::pipeline::TaskDescriptor{ str, {} };
 }
 
 TEST( Pipeline, Basic )
@@ -57,10 +55,9 @@ TEST( Pipeline, Schedule )
 
 std::ostream& operator<<( std::ostream& os, const mega::pipeline::TaskDescriptor& task ) 
 { 
-    boost::archive::text_oarchive oa( os );
-    oa & task;
-    return os; 
+    return os << task.getName();
 }
+
 std::ostream& operator<<( std::ostream& os, const mega::pipeline::TaskDescriptor::Vector& tasks )
 {
     bool bFirst = true;

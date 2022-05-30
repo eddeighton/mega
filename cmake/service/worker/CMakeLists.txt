@@ -12,15 +12,9 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 
 #get the source code
-set( WORKER_API_DIR    ${MEGA_API_DIR}/service/worker )
 set( WORKER_SOURCE_DIR ${MEGA_SRC_DIR}/service/worker )
 
-set( WORKER_API
-    ${WORKER_API_DIR}/worker.hpp
-)
-
 set( WORKER_SOURCE 
-    ${WORKER_SOURCE_DIR}/worker.cpp 
     ${WORKER_SOURCE_DIR}/main.cpp 
     )
 
@@ -32,6 +26,7 @@ target_link_libraries( worker database )
 target_link_libraries( worker utilities )
 target_link_libraries( worker protocol )
 target_link_libraries( worker network )
+target_link_libraries( worker service )
 target_link_libraries( worker pipeline )
 
 set_target_properties( worker PROPERTIES FOLDER driver )

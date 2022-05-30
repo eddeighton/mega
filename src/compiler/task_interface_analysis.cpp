@@ -17,6 +17,8 @@
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
 
+#include <memory>
+
 namespace driver
 {
 namespace interface
@@ -223,7 +225,7 @@ public:
         }
     }
 
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader = m_environment.Interface( m_sourceFilePath );
@@ -284,6 +286,11 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
+BaseTask::Ptr create_Task_ObjectInterfaceGeneration( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_ObjectInterfaceGeneration >( taskArguments, sourceFilePath );
+}
+
 class Task_ObjectInterfaceAnalysis : public BaseTask
 {
 public:
@@ -293,19 +300,7 @@ public:
     {
     }
 
-    virtual bool isReady( const RawPtrSet& finished )
-    {
-        if ( BaseTask::isReady( finished ) )
-        {
-            // determine if dependency tasks are completed...
-
-            return true;
-        }
-
-        return false;
-    }
-
-    virtual void run( task::Progress& taskProgress )
+    virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader = m_environment.Interface( m_sourceFilePath );
@@ -369,6 +364,11 @@ public:
 
     const mega::io::megaFilePath& m_sourceFilePath;
 };
+
+BaseTask::Ptr create_Task_ObjectInterfaceAnalysis( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_ObjectInterfaceAnalysis >( taskArguments, sourceFilePath );
+}
 
 } // namespace interface
 } // namespace driver
