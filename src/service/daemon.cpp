@@ -285,18 +285,6 @@ public:
         getRootResponse( yield_ctx ).ReportActivities( activities );
     }
 
-    virtual void ListWorkers( boost::asio::yield_context yield_ctx ) override
-    {
-        int iTotalThreads = 0;
-        for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
-        {
-            auto worker = getWorkerRequest( pWorker, yield_ctx );
-            iTotalThreads += worker.ListThreads();
-            worker.Complete();
-        }
-        getRootResponse( yield_ctx ).ListWorkers( iTotalThreads );
-    }
-
     virtual void PipelineStartJobs( const mega::pipeline::Pipeline::ID&  pipelineID,
                                     const mega::pipeline::Configuration& configuration,
                                     const network::ActivityID&           rootActivityID,

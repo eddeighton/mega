@@ -39,7 +39,7 @@ void Server::Connection::start()
     // calculate name
     {
         std::ostringstream os;
-        os << m_socket.local_endpoint() << " : " << m_socket.remote_endpoint();
+        os << m_socket.local_endpoint();
         m_strName = os.str();
     }
 

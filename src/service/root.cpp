@@ -24,6 +24,8 @@ namespace mega
 namespace service
 {
 
+    
+
 class RootRequestActivity : public network::Activity, public network::daemon_root::Impl
 {
 protected:

@@ -6,12 +6,6 @@ msg ReportActivities
     response(std::vector< network::ActivityID > activities);
 }
 
-msg ListWorkers
-{
-    request();
-    response(int threads);
-}
-
 msg PipelineStartJobs
 {
     request(mega::pipeline::Pipeline::ID pipelineID, mega::pipeline::Configuration configuration, network::ActivityID rootActivityID);

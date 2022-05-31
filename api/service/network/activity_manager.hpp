@@ -5,6 +5,7 @@
 
 #include "service/network/activity.hpp"
 
+#include <shared_mutex>
 #include <mutex>
 
 namespace mega
@@ -22,9 +23,9 @@ public:
     boost::asio::io_context& getIOContext() const;
 
     std::vector< ActivityID > reportActivities() const;
-    ActivityID createActivityID( const ConnectionID& connectionID ) const;
-    void activityStarted( Activity::Ptr pActivity );
-    void activityCompleted( Activity::Ptr pActivity );
+    ActivityID                createActivityID( const ConnectionID& connectionID ) const;
+    void                      activityStarted( Activity::Ptr pActivity );
+    void                      activityCompleted( Activity::Ptr pActivity );
 
     Activity::Ptr findExistingActivity( const network::ActivityID& activityID ) const;
 
@@ -32,8 +33,11 @@ protected:
     boost::asio::io_context& m_ioContext;
 
 private:
-    ActivityPtrMap m_activities;
-    mutable std::recursive_mutex m_mutex;
+    ActivityPtrMap            m_activities;
+    mutable std::shared_mutex m_mutex;
+    using WriteLock = std::unique_lock< std::shared_mutex >;
+    using ReadLock  = std::shared_lock< std::shared_mutex >;
+
     mutable ActivityID::ID m_nextActivityID = 1U;
 };
 
