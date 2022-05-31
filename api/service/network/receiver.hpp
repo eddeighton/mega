@@ -32,7 +32,7 @@ public:
     void stop() { m_bContinue = false; }
 
 private:
-    void receive( boost::asio::yield_context yield_ctx );
+    void receive( boost::asio::yield_context& yield_ctx );
     void onError( const ConnectionID& connectionID, const boost::system::error_code& ec );
     void updateLastActivityTime();
 

@@ -27,6 +27,8 @@ add_library( parser SHARED
                     ${CLANG_PLUGIN_API}
                     ${CLANG_PLUGIN_SOURCES} )
 
+set_property(TARGET parser PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 set_target_properties( parser PROPERTIES FOLDER parser )
 
 link_boost( parser filesystem )

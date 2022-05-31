@@ -22,6 +22,7 @@ add_library( pipeline
     ${PIPELINE_SOURCE}
 )
 
+set_property(TARGET pipeline PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories( pipeline PUBLIC ${MEGA_API_DIR} )
 
 link_boost( pipeline system )

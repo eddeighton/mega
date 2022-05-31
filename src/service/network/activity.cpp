@@ -42,7 +42,7 @@ void Activity::requestCompleted()
     }
 }
 
-bool Activity::dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+bool Activity::dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
 {
     if ( msg.index() == network::MSG_Complete_Request::ID )
     {
@@ -60,7 +60,7 @@ bool Activity::dispatchRequest( const network::MessageVariant& msg, boost::asio:
     }
 }
 
-MessageVariant Activity::receive( boost::asio::yield_context yield_ctx )
+MessageVariant Activity::receive( boost::asio::yield_context& yield_ctx )
 {
     MessageVariant msg = m_channel.async_receive( yield_ctx );
     if ( msg.index() == MSG_Error_Response::ID )
@@ -84,7 +84,7 @@ void Activity::send( const MessageVariant& msg )
 }
 
 // run is ALWAYS call for each activity after it is created
-void Activity::run( boost::asio::yield_context yield_ctx )
+void Activity::run( boost::asio::yield_context& yield_ctx )
 {
     try
     {
@@ -100,7 +100,7 @@ void Activity::run( boost::asio::yield_context yield_ctx )
     }
 }
 
-void Activity::run_one( boost::asio::yield_context yield_ctx )
+void Activity::run_one( boost::asio::yield_context& yield_ctx )
 {
     const network::MessageVariant msg = receive( yield_ctx );
     if ( !dispatchRequestImpl( msg, yield_ctx ) )
@@ -110,7 +110,7 @@ void Activity::run_one( boost::asio::yield_context yield_ctx )
     }
 }
 
-MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_context yield_ctx )
+MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
     MessageVariant msg;
     while ( true )
@@ -128,7 +128,7 @@ MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_conte
     return msg;
 }
 
-bool Activity::dispatchRequestImpl( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+bool Activity::dispatchRequestImpl( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
 {
     try
     {

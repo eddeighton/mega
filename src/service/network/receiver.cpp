@@ -12,6 +12,9 @@
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/read.hpp>
 
+#include <boost/interprocess/interprocess_fwd.hpp>
+#include <boost/interprocess/streams/vectorstream.hpp>
+
 #include <memory>
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -37,13 +40,13 @@ void Receiver::onError( const ConnectionID& connectionID, const boost::system::e
 {
     if ( ec == boost::asio::error::eof )
     {
-        //SPDLOG_INFO( "Connection: {} closed due to EOF", connectionID );
-        // This is what happens when close socket normally
+        // SPDLOG_INFO( "Connection: {} closed due to EOF", connectionID );
+        //  This is what happens when close socket normally
     }
-    else if( ec == boost::asio::error::operation_aborted )
+    else if ( ec == boost::asio::error::operation_aborted )
     {
-        //SPDLOG_INFO( "Connection: {} closed. Error: {}", connectionID, ec.what() );
-        // This is what happens when close socket normally
+        // SPDLOG_INFO( "Connection: {} closed. Error: {}", connectionID, ec.what() );
+        //  This is what happens when close socket normally
     }
     else
     {
@@ -51,10 +54,10 @@ void Receiver::onError( const ConnectionID& connectionID, const boost::system::e
     }
 }
 
-void Receiver::receive( boost::asio::yield_context yield_ctx )
+void Receiver::receive( boost::asio::yield_context& yield_ctx )
 {
     static const std::size_t            MessageSizeSize = sizeof( network::MessageSize );
-    boost::asio::streambuf              streamBuffer;
+    std::vector< char >                 buffer( 1024 );
     boost::system::error_code           ec;
     std::size_t                         szBytesTransferred = 0U;
     std::array< char, MessageSizeSize > buf;
@@ -76,7 +79,8 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                     {
                         if ( szBytesTransferred == MessageSizeSize )
                         {
-                            size = ntohl( *reinterpret_cast< const network::MessageSize* >( buf.data() ) );
+                            // size = ntohl( *reinterpret_cast< const network::MessageSize* >( buf.data() ) );
+                            size = *reinterpret_cast< const network::MessageSize* >( buf.data() );
                             break;
                         }
                         else
@@ -97,14 +101,16 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
             // read message
             while ( m_bContinue && m_socket.is_open() )
             {
-                szBytesTransferred = boost::asio::async_read( m_socket, streamBuffer.prepare( size ), yield_ctx[ ec ] );
+                buffer.resize( size );
+                szBytesTransferred
+                    = boost::asio::async_read( m_socket, boost::asio::buffer( buffer ), yield_ctx[ ec ] );
                 if ( !ec )
                 {
                     VERIFY_RTE( size == szBytesTransferred );
-                    streamBuffer.commit( size );
 
                     {
-                        boost::archive::binary_iarchive ia( streamBuffer );
+                        boost::interprocess::basic_vectorbuf< SendBuffer > is( buffer );
+                        boost::archive::binary_iarchive ia( is );
 
                         ia& header;
 
@@ -131,8 +137,6 @@ void Receiver::receive( boost::asio::yield_context yield_ctx )
                             m_bContinue = false;
                         }
                     }
-
-                    streamBuffer.consume( size );
 
                     updateLastActivityTime();
                     break;

@@ -33,14 +33,14 @@ public:
     {
     }
 
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
     {
         return network::Activity::dispatchRequest( msg, yield_ctx )
                || network::daemon_host::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
-                        boost::asio::yield_context yield_ctx )
+                        boost::asio::yield_context& yield_ctx )
     {
         if ( network::getConnectionID( m_host.m_client.getSocket() ) == connection )
         {
@@ -52,12 +52,12 @@ public:
         }
     }
 
-    network::daemon_host::Response_Encode getDaemonResponse( boost::asio::yield_context yield_ctx )
+    network::daemon_host::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
     {
         return network::daemon_host::Response_Encode( *this, m_host.m_client.getSocket(), yield_ctx );
     }
 
-    virtual void ReportActivities( boost::asio::yield_context yield_ctx ) 
+    virtual void ReportActivities( boost::asio::yield_context& yield_ctx ) 
     {
         std::vector< network::ActivityID > activities;
 
@@ -114,7 +114,7 @@ public:
     {
     }
 
-    void run( boost::asio::yield_context yield_ctx )
+    void run( boost::asio::yield_context& yield_ctx )
     {
         requestStarted( network::getConnectionID( m_client.getSocket() ) );
         try
@@ -145,7 +145,7 @@ public:
                     ( \
                         *this, m_activityManager, m_client, network::getConnectionID( m_client.getSocket() ), promise, \
                         []( std::promise< ResultType >& promise, network::Client& client, \
-                                network::Activity& activity, boost::asio::yield_context yield_ctx ) \
+                                network::Activity& activity, boost::asio::yield_context& yield_ctx ) \
                         { \
                             network::host_daemon::Request_Encode daemon( activity, client.getSocket(), yield_ctx ); \
                             { \
@@ -194,7 +194,7 @@ std::string Host::PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID, c
         m_activityManager.activityStarted( network::Activity::Ptr( new GenericActivity(
             *this, m_activityManager, m_client, network::getConnectionID( m_client.getSocket() ), promise,
             [ &pipelineID, &pipelineConfig ]( std::promise< ResultType >& promise, network::Client& client, network::Activity& activity,
-                             boost::asio::yield_context yield_ctx )
+                             boost::asio::yield_context& yield_ctx )
             {
                 network::host_daemon::Request_Encode daemon( activity, client.getSocket(), yield_ctx );
                 {

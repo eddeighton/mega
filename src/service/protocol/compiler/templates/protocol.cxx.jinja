@@ -10,7 +10,8 @@
 
 #include "common/assert_verify.hpp"
 
-#include "boost/asio/streambuf.hpp"
+#include <boost/interprocess/interprocess_fwd.hpp>
+#include <boost/interprocess/streams/vectorstream.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/asio/detached.hpp>
 
@@ -34,15 +35,15 @@ Request_Encode::Request_Encode( network::Activity&            activity,
 {
 }
 
+
 void Request_Encode::Complete()
 {
-    boost::asio::streambuf streambuffer;
-    {
-        boost::archive::binary_oarchive oa( streambuffer );
-        const Header header( MSG_Complete_Request::ID, m_activity.getActivityID() );
-        oa& header;
-    }
-    if ( const boost::system::error_code ec = send( streambuffer, m_socket, m_yield_ctx ) )
+    if ( const boost::system::error_code ec = send( m_socket, m_yield_ctx, 
+        [&]( boost::archive::binary_oarchive& oa )
+        {
+            const Header header( MSG_Complete_Request::ID, m_activity.getActivityID() );
+            oa& header;
+        }) )
     {
         THROW_RTE( "Error writing: " << ec.what() );
     }
@@ -62,17 +63,15 @@ void Request_Encode::Complete()
 {%endfor%} 
 )
 {
-    boost::asio::streambuf streambuffer;
-    {
-        boost::archive::binary_oarchive oa( streambuffer );
-        const Header header( {{ filename }}::MSG_{{ request.name }}_Request::ID, m_activity.getActivityID() );
-        oa&          header;
+    if ( const boost::system::error_code ec = send( m_socket, m_yield_ctx, 
+        [&]( boost::archive::binary_oarchive& oa )
+        {
+            const Header header( {{ filename }}::MSG_{{ request.name }}_Request::ID, m_activity.getActivityID());
+            oa& header;
 {%for p in request.params%}
-        oa& {{p.name}};
+            oa& {{p.name}};
 {%endfor%} 
-    }
-
-    if ( const boost::system::error_code ec = send( streambuffer, m_socket, m_yield_ctx ) )
+        }) )
     {
         THROW_RTE( "Error writing: " << ec.what() );
     }
@@ -110,17 +109,15 @@ void Response_Encode::{{ response.name }}
 {%endfor%}
 )
 {
-    boost::asio::streambuf streambuffer;
-    {
-        boost::archive::binary_oarchive oa( streambuffer );
-        const Header header( {{ filename }}::MSG_{{ response.name }}_Response::ID, m_activity.getActivityID() );
-        oa&          header;
+    if ( const boost::system::error_code ec = send( m_socket, m_yield_ctx, 
+        [&]( boost::archive::binary_oarchive& oa )
+        {
+            const Header header( {{ filename }}::MSG_{{ response.name }}_Response::ID, m_activity.getActivityID());
+            oa& header;
 {%for p in response.params%}
-        oa& {{p.name}};
-{%endfor%}
-    }
-
-    if ( const boost::system::error_code ec = send( streambuffer, m_socket, m_yield_ctx ) )
+            oa& {{p.name}};
+{%endfor%} 
+        }) )
     {
         THROW_RTE( "Error writing: " << ec.what() );
     }
@@ -136,8 +133,8 @@ namespace
     {
         Impl&     m_impl;
         Activity& m_activity;
-        boost::asio::yield_context yield_ctx;
-        Visitor( Impl& impl, Activity& activity, boost::asio::yield_context yield_ctx )
+        boost::asio::yield_context& yield_ctx;
+        Visitor( Impl& impl, Activity& activity, boost::asio::yield_context& yield_ctx )
             : m_impl( impl )
             , m_activity( activity )
             , yield_ctx( yield_ctx )
@@ -166,7 +163,7 @@ namespace
 
     } ;
 }
-bool Impl::dispatchRequest( const MessageVariant& msg, Activity& activity, boost::asio::yield_context yield_ctx )
+bool Impl::dispatchRequest( const MessageVariant& msg, Activity& activity, boost::asio::yield_context& yield_ctx )
 {
     Visitor visitor( *this, activity, yield_ctx );
     return std::visit( visitor, msg );

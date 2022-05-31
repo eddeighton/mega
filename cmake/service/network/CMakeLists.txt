@@ -44,7 +44,7 @@ target_link_libraries( network protocol )
 target_include_directories( network PUBLIC ${MEGA_API_DIR} )
 
 set_target_properties( network PROPERTIES FOLDER network )
-
+    
 link_boost( network filesystem )
 link_boost( network system )
 link_boost( network atomic )

@@ -34,6 +34,8 @@ add_library( utilities
 
 target_include_directories( utilities PUBLIC ${MEGA_API_DIR} )
 
+set_property(TARGET utilities PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 link_boost( utilities atomic )
 link_boost( utilities program_options )
 link_boost( utilities timer )

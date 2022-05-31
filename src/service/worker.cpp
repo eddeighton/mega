@@ -37,14 +37,14 @@ public:
     {
     }
 
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx )
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
     {
         return network::Activity::dispatchRequest( msg, yield_ctx )
                || network::daemon_worker::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
-                        boost::asio::yield_context yield_ctx )
+                        boost::asio::yield_context& yield_ctx )
     {
         if ( network::getConnectionID( m_worker.m_client.getSocket() ) == connectionID )
         {
@@ -56,16 +56,16 @@ public:
         }
     }
 
-    network::worker_daemon::Request_Encode getDaemonRequest( boost::asio::yield_context yield_ctx )
+    network::worker_daemon::Request_Encode getDaemonRequest( boost::asio::yield_context& yield_ctx )
     {
         return network::worker_daemon::Request_Encode( *this, m_worker.m_client.getSocket(), yield_ctx );
     }
-    network::daemon_worker::Response_Encode getDaemonResponse( boost::asio::yield_context yield_ctx )
+    network::daemon_worker::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
     {
         return network::daemon_worker::Response_Encode( *this, m_worker.m_client.getSocket(), yield_ctx );
     }
 
-    virtual void ReportActivities( boost::asio::yield_context yield_ctx )
+    virtual void ReportActivities( boost::asio::yield_context& yield_ctx )
     {
         std::vector< network::ActivityID > activities;
 
@@ -77,7 +77,7 @@ public:
         getDaemonResponse( yield_ctx ).ReportActivities( activities );
     }
 
-    virtual void ListThreads( boost::asio::yield_context yield_ctx )
+    virtual void ListThreads( boost::asio::yield_context& yield_ctx )
     {
         getDaemonResponse( yield_ctx ).ListThreads( m_worker.getNumThreads() );
     }
@@ -85,7 +85,7 @@ public:
     virtual void PipelineStartJobs( const mega::pipeline::Pipeline::ID& pipelineID,
                                     const pipeline::Configuration&      configuration,
                                     const network::ActivityID&          rootActivityID,
-                                    boost::asio::yield_context          yield_ctx );
+                                    boost::asio::yield_context&          yield_ctx );
 };
 
 class JobActivity : public WorkerRequestActivity, public pipeline::Progress, public pipeline::Stash
@@ -171,7 +171,7 @@ public:
         return bResult;
     }
 
-    void run( boost::asio::yield_context yield_ctx ) override
+    void run( boost::asio::yield_context& yield_ctx ) override
     {
         requestStarted( network::getConnectionID( m_worker.m_client.getSocket() ) );
 
@@ -217,7 +217,7 @@ public:
 void WorkerRequestActivity::PipelineStartJobs( const mega::pipeline::Pipeline::ID& pipelineID,
                                                const pipeline::Configuration&      configuration,
                                                const network::ActivityID&          rootActivityID,
-                                               boost::asio::yield_context          yield_ctx )
+                                               boost::asio::yield_context&          yield_ctx )
 {
     mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( pipelineID, configuration );
 

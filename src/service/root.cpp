@@ -24,8 +24,6 @@ namespace mega
 namespace service
 {
 
-    
-
 class RootRequestActivity : public network::Activity, public network::daemon_root::Impl
 {
 protected:
@@ -40,7 +38,7 @@ public:
     {
     }
 
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context yield_ctx ) override
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
     {
         return network::Activity::dispatchRequest( msg, yield_ctx )
                || network::daemon_root::Impl::dispatchRequest( msg, *this, yield_ctx );
@@ -48,7 +46,7 @@ public:
 
     virtual void error( const network::ConnectionID& connectionID,
                         const std::string&           strErrorMsg,
-                        boost::asio::yield_context   yield_ctx ) override
+                        boost::asio::yield_context&  yield_ctx ) override
     {
         if ( network::Server::Connection::Ptr pHostConnection = m_root.m_server.getConnection( connectionID ) )
         {
@@ -60,7 +58,7 @@ public:
         }
     }
 
-    network::daemon_root::Response_Encode getOriginatingDaemonResponse( boost::asio::yield_context yield_ctx )
+    network::daemon_root::Response_Encode getOriginatingDaemonResponse( boost::asio::yield_context& yield_ctx )
     {
         if ( network::Server::Connection::Ptr pConnection
              = m_root.m_server.getConnection( getOriginatingEndPointID().value() ) )
@@ -71,19 +69,19 @@ public:
     }
 
     network::root_daemon::Request_Encode getDaemonRequest( network::Server::Connection::Ptr pConnection,
-                                                           boost::asio::yield_context       yield_ctx )
+                                                           boost::asio::yield_context&      yield_ctx )
     {
         return network::root_daemon::Request_Encode( *this, pConnection->getSocket(), yield_ctx );
     }
 
     // network::daemon_root::Impl
-    virtual void GetVersion( boost::asio::yield_context yield_ctx ) override
+    virtual void GetVersion( boost::asio::yield_context& yield_ctx ) override
     {
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
         daemon.GetVersion( network::getVersion() );
     }
 
-    virtual void ListActivities( boost::asio::yield_context yield_ctx ) override
+    virtual void ListActivities( boost::asio::yield_context& yield_ctx ) override
     {
         std::vector< network::ActivityID > activities;
 
@@ -105,14 +103,14 @@ public:
     }
 
     virtual void getBuildHashCode( const boost::filesystem::path& filePath,
-                                   boost::asio::yield_context     yield_ctx ) override
+                                   boost::asio::yield_context&    yield_ctx ) override
     {
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
         daemon.getBuildHashCode( m_root.m_stash.getBuildHashCode( filePath ) );
     }
 
     virtual void setBuildHashCode( const boost::filesystem::path& filePath, const task::FileHash& hashCode,
-                                   boost::asio::yield_context yield_ctx ) override
+                                   boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_stash.setBuildHashCode( filePath, hashCode );
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
@@ -120,7 +118,7 @@ public:
     }
 
     virtual void stash( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
-                        boost::asio::yield_context yield_ctx ) override
+                        boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_stash.stash( filePath, determinant );
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
@@ -128,7 +126,7 @@ public:
     }
 
     virtual void restore( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
-                          boost::asio::yield_context yield_ctx ) override
+                          boost::asio::yield_context& yield_ctx ) override
     {
         const bool bRestored = m_root.m_stash.restore( filePath, determinant );
         auto       daemon    = getOriginatingDaemonResponse( yield_ctx );
@@ -164,7 +162,7 @@ public:
 
     virtual void PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID,
                               const pipeline::Configuration&      configuration,
-                              boost::asio::yield_context          yield_ctx ) override
+                              boost::asio::yield_context&         yield_ctx ) override
     {
         SPDLOG_INFO( "Started pipeline: compiler" );
 
@@ -263,19 +261,20 @@ public:
         }
     }
 
-    mega::pipeline::TaskDescriptor getTask( boost::asio::yield_context yield_ctx )
+    mega::pipeline::TaskDescriptor getTask( boost::asio::yield_context& yield_ctx )
     {
         return m_taskReady.async_receive( yield_ctx );
     }
 
-    void completeTask( const mega::pipeline::TaskDescriptor& task, bool bSuccess, boost::asio::yield_context yield_ctx )
+    void completeTask( const mega::pipeline::TaskDescriptor& task, bool bSuccess,
+                       boost::asio::yield_context& yield_ctx )
     {
         m_taskComplete.async_send(
             boost::system::error_code(), TaskCompletion{ getActivityID(), task, bSuccess }, yield_ctx );
     }
 
-    virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID,
-                                       boost::asio::yield_context yield_ctx ) override
+    virtual void PipelineReadyForWork( const network::ActivityID&  rootActivityID,
+                                       boost::asio::yield_context& yield_ctx ) override
     {
         std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
@@ -298,7 +297,7 @@ public:
 
     virtual void PipelineWorkProgress( const network::ActivityID&            rootActivityID,
                                        const mega::pipeline::TaskDescriptor& task, const std::string& strMessage,
-                                       boost::asio::yield_context yield_ctx ) override
+                                       boost::asio::yield_context& yield_ctx ) override
     {
         std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
@@ -309,7 +308,7 @@ public:
 
     virtual void PipelineWorkFailed( const network::ActivityID&            rootActivityID,
                                      const mega::pipeline::TaskDescriptor& task, const std::string& strMessage,
-                                     boost::asio::yield_context yield_ctx ) override
+                                     boost::asio::yield_context& yield_ctx ) override
     {
         std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
@@ -321,7 +320,7 @@ public:
 
     virtual void PipelineWorkCompleted( const network::ActivityID&            rootActivityID,
                                         const mega::pipeline::TaskDescriptor& task, const std::string& strMessage,
-                                        boost::asio::yield_context yield_ctx ) override
+                                        boost::asio::yield_context& yield_ctx ) override
     {
         std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
