@@ -28,11 +28,11 @@ enum LoggingLevel
 };
 LoggingLevel fromStr( const std::string& str );
 
-
 std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::filesystem::path& logFolder,
                                                               const std::string&             strLogName,
-                                                            LoggingLevel loggingLevel );
-}
+                                                              LoggingLevel                   consoleLoggingLevel,
+                                                              LoggingLevel                   fileLoggingLevel );
+} // namespace network
 } // namespace mega
 
 namespace fmt

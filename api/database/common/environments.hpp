@@ -1,6 +1,8 @@
 #ifndef ENVIRONMENTS_22_APRIL_2022
 #define ENVIRONMENTS_22_APRIL_2022
 
+#include "pipeline/stash.hpp"
+
 #include "database/common/archive.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/file_header.hpp"
@@ -9,7 +11,6 @@
 
 #include "database/model/environment.hxx"
 
-#include "common/stash.hpp"
 #include "common/file.hpp"
 #include "common/string.hpp"
 #include "common/assert_verify.hpp"
@@ -28,13 +29,13 @@ namespace io
 {
 class BuildEnvironment : public Environment
 {
+protected:
     using Path = boost::filesystem::path;
 
     const Path&                 m_rootSourceDir;
     const Path&                 m_rootBuildDir;
     const std::optional< Path > m_templatesDir;
     const Path                  m_tempDir;
-    mutable task::Stash         m_stash;
 
     boost::filesystem::path toPath( const SourceFilePath& key ) const { return m_rootSourceDir / key.path(); }
     boost::filesystem::path toPath( const BuildFilePath& key ) const { return m_rootBuildDir / key.path(); }
@@ -50,9 +51,6 @@ class BuildEnvironment : public Environment
         boost::filesystem::copy_file( from, to );
     }
 
-    Path stashDir() const { return m_rootBuildDir / "stash"; }
-    Path buildHashCodesFile() const { return m_rootBuildDir / "build_hash_codes.txt"; }
-
     Path tempDir() const
     {
         Path tempDir = boost::filesystem::temp_directory_path() / common::uuid();
@@ -65,11 +63,7 @@ public:
         : m_rootSourceDir( rootSourceDir )
         , m_rootBuildDir( rootBuildDir )
         , m_tempDir( tempDir() )
-        , m_stash( stashDir() )
     {
-        const Path buildHashCodes = buildHashCodesFile();
-        if ( boost::filesystem::exists( buildHashCodes ) )
-            m_stash.loadBuildHashCodes( buildHashCodes );
     }
 
     BuildEnvironment( const Path& rootSourceDir, const Path& rootBuildDir, const Path& templatesDir )
@@ -77,21 +71,11 @@ public:
         , m_rootBuildDir( rootBuildDir )
         , m_templatesDir( templatesDir )
         , m_tempDir( tempDir() )
-        , m_stash( stashDir() )
     {
-        const Path buildHashCodes = buildHashCodesFile();
-        if ( boost::filesystem::exists( buildHashCodes ) )
-            m_stash.loadBuildHashCodes( buildHashCodes );
     }
+
     ~BuildEnvironment()
     {
-        try
-        {
-            m_stash.saveBuildHashCodes( buildHashCodesFile() );
-        }
-        catch ( std::exception& )
-        {
-        }
     }
 
     const Path& rootSourceDir() const { return m_rootSourceDir; }
@@ -211,6 +195,67 @@ public:
     }
 
     template < typename TFilePathType >
+    std::unique_ptr< boost::filesystem::ofstream > write( const TFilePathType& filePath ) const
+    {
+        return boost::filesystem::createNewFileStream( toPath( filePath ) );
+    }
+
+    ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////
+    // FileSystem
+    virtual std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const
+    {
+        return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
+    }
+    virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath&     filePath,
+                                                        boost::filesystem::path& tempFilePath ) const
+    {
+        tempFilePath = m_tempDir / filePath.path();
+        return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
+    }
+    virtual void temp_to_real( const BuildFilePath& filePath ) const
+    {
+        copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
+    }
+
+    virtual std::unique_ptr< std::istream > read( const SourceFilePath& filePath ) const
+    {
+        return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
+    }
+    virtual std::unique_ptr< std::ostream > write_temp( const SourceFilePath&    filePath,
+                                                        boost::filesystem::path& tempFilePath ) const
+    {
+        tempFilePath = m_tempDir / filePath.path();
+        return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
+    }
+    virtual void temp_to_real( const SourceFilePath& filePath ) const
+    {
+        copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
+    }
+};
+
+class StashEnvironment : public BuildEnvironment
+{
+    mega::pipeline::Stash& m_stash;
+
+public:
+    StashEnvironment( mega::pipeline::Stash& stash,
+                      const Path&            rootSourceDir,
+                      const Path&            rootBuildDir )
+        : BuildEnvironment( rootSourceDir, rootBuildDir )
+        , m_stash( stash )
+    {
+    }
+    StashEnvironment( mega::pipeline::Stash& stash,
+                      const Path&            rootSourceDir,
+                      const Path&            rootBuildDir,
+                      const Path&            templatesDir )
+        : BuildEnvironment( rootSourceDir, rootBuildDir, templatesDir )
+        , m_stash( stash )
+    {
+    }
+
+    template < typename TFilePathType >
     task::FileHash getBuildHashCode( const TFilePathType& filePath ) const
     {
         return m_stash.getBuildHashCode( toPath( filePath ) );
@@ -259,45 +304,6 @@ public:
     bool restore( const TFilePathType& filePath, task::DeterminantHash hashCode ) const
     {
         return m_stash.restore( toPath( filePath ), hashCode );
-    }
-
-    template < typename TFilePathType >
-    std::unique_ptr< boost::filesystem::ofstream > write( const TFilePathType& filePath ) const
-    {
-        return boost::filesystem::createNewFileStream( toPath( filePath ) );
-    }
-
-    ////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////
-    // FileSystem
-    virtual std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const
-    {
-        return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
-    }
-    virtual std::unique_ptr< std::ostream > write_temp( const BuildFilePath&     filePath,
-                                                        boost::filesystem::path& tempFilePath ) const
-    {
-        tempFilePath = m_tempDir / filePath.path();
-        return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
-    }
-    virtual void temp_to_real( const BuildFilePath& filePath ) const
-    {
-        copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
-    }
-
-    virtual std::unique_ptr< std::istream > read( const SourceFilePath& filePath ) const
-    {
-        return boost::filesystem::createBinaryInputFileStream( toPath( filePath ) );
-    }
-    virtual std::unique_ptr< std::ostream > write_temp( const SourceFilePath&    filePath,
-                                                        boost::filesystem::path& tempFilePath ) const
-    {
-        tempFilePath = m_tempDir / filePath.path();
-        return boost::filesystem::createBinaryOutputFileStream( tempFilePath );
-    }
-    virtual void temp_to_real( const SourceFilePath& filePath ) const
-    {
-        copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
     }
 };
 

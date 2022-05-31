@@ -32,8 +32,8 @@ public:
 
     struct CalculateDependencies
     {
-        const mega::io::BuildEnvironment& m_environment;
-        CalculateDependencies( const mega::io::BuildEnvironment& env )
+        const mega::io::StashEnvironment& m_environment;
+        CalculateDependencies( const mega::io::StashEnvironment& env )
             : m_environment( env )
         {
         }
@@ -182,9 +182,9 @@ public:
 
         struct InterfaceHashCodeGenerator
         {
-            const mega::io::BuildEnvironment& env;
+            const mega::io::StashEnvironment& env;
             task::DeterminantHash             toolChainHash;
-            InterfaceHashCodeGenerator( const mega::io::BuildEnvironment& env, task::DeterminantHash toolChainHash )
+            InterfaceHashCodeGenerator( const mega::io::StashEnvironment& env, task::DeterminantHash toolChainHash )
                 : env( env )
                 , toolChainHash( toolChainHash )
             {

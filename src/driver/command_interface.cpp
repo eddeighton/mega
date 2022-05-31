@@ -41,6 +41,8 @@
 
 #include "compiler/compiler.hpp"
 
+#include "utilities/cmake.hpp"
+
 #include "boost/program_options.hpp"
 #include "boost/filesystem/path.hpp"
 
@@ -55,7 +57,7 @@ namespace interface
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    std::string             projectName;
+    std::string             projectName, strComponentInfoPaths;
     boost::filesystem::path logDir, rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, clangPlugin,
         databaseDll, templatesDir;
 
@@ -65,6 +67,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         // clang-format off
         commandOptions.add_options()
         ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
+        ( "components",     po::value< std::string >( &strComponentInfoPaths ),      "Component info files" )
         ( "log_dir",        po::value< boost::filesystem::path >( &logDir ),         "Build log directory" )
         ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),  "Root source directory" )
         ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),   "Root build directory" )
@@ -91,6 +94,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
+        const std::vector< boost::filesystem::path > componentInfoPaths
+            = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( strComponentInfoPaths, ";" ) );
+
         const boost::filesystem::path      compilerPath = megaCompiler.parent_path() / "compiler";
         const mega::pipeline::Pipeline::ID pipelineID   = compilerPath.native();
 
@@ -114,6 +120,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
         mega::compiler::Configuration config =
         {
             projectName,
+
+            componentInfoPaths,
 
             mega::compiler::Directories
             {
@@ -147,7 +155,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             {
                 auto logThreads = mega::network::configureLog(
-                    logDir.native(), "interface_build", mega::network::fromStr( "info" ) );
+                    logDir.native(), "interface_build", mega::network::fromStr( "warn" ), mega::network::fromStr( "info" ) );
                 {
                     mega::service::Host host;
                     host.PipelineRun( pipelineID, pipelineConfig );

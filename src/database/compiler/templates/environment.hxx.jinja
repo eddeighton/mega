@@ -24,7 +24,7 @@ namespace io
             VERSION = {{ version }}
         };
 
-        manifestFilePath project_manifest() const 
+        manifestFilePath project_manifest() const
         { 
             std::ostringstream os;
             os << "project" << manifestFilePath::extension().string(); 

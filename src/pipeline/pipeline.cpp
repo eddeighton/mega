@@ -1,5 +1,6 @@
 
 #include "pipeline/pipeline.hpp"
+#include "pipeline/stash.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -68,6 +69,9 @@ TaskDescriptor::Vector Schedule::getReady() const
     }
     return ready;
 }
+
+
+Stash::~Stash(){}
 
 Progress::Progress() {}
 Progress::~Progress() {}

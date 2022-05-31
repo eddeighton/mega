@@ -1,6 +1,5 @@
 
 
-
 #include "service/daemon.hpp"
 
 #include "service/network/log.hpp"
@@ -20,10 +19,10 @@ int main( int argc, const char* argv[] )
 {
     std::string strIP = "localhost";
 
-    using NumThreadsType        = decltype( std::thread::hardware_concurrency() );
-    NumThreadsType uiNumThreads = 1U;
-    boost::filesystem::path logFolder = boost::filesystem::current_path() / "log";
-    std::string strLogLevel = "warn";
+    using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
+    NumThreadsType          uiNumThreads       = 1U;
+    boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
+    std::string             strConsoleLogLevel = "warn", strLogFileLevel = "warn";
     {
         bool bShowHelp = false;
 
@@ -36,7 +35,8 @@ int main( int argc, const char* argv[] )
         ( "ip",      po::value< std::string >( &strIP ),                "Root IP Address" )
         ( "threads", po::value< NumThreadsType >( &uiNumThreads ),      "Max number of threads" )
         ( "log",    po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
-        ( "level", po::value< std::string >( &strLogLevel ),            "Logging level" )
+        ( "console", po::value< std::string >( &strConsoleLogLevel ),   "Console logging level" )
+        ( "level", po::value< std::string >( &strLogFileLevel ),        "Log file logging level" )
         ;
         // clang-format on
 
@@ -59,7 +59,9 @@ int main( int argc, const char* argv[] )
 
     try
     {
-        auto logThreads = mega::network::configureLog( logFolder, "daemon", mega::network::fromStr( strLogLevel ) );
+        auto logThreads
+            = mega::network::configureLog( logFolder, "daemon", mega::network::fromStr( strConsoleLogLevel ),
+                                           mega::network::fromStr( strLogFileLevel ) );
 
         boost::asio::io_context ioContext;
 

@@ -35,14 +35,14 @@ public:
 
     class TemplateEngine
     {
-        const mega::io::BuildEnvironment& m_environment;
+        const mega::io::StashEnvironment& m_environment;
         ::inja::Environment&              m_injaEnvironment;
         ::inja::Template                  m_contextTemplate;
         ::inja::Template                  m_namespaceTemplate;
         ::inja::Template                  m_interfaceTemplate;
 
     public:
-        TemplateEngine( const mega::io::BuildEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
+        TemplateEngine( const mega::io::StashEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
             : m_environment( buildEnvironment )
             , m_injaEnvironment( injaEnv )
             , m_contextTemplate( m_injaEnvironment.parse_template( m_environment.ContextTemplate().native() ) )

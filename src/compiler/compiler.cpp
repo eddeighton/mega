@@ -5,6 +5,7 @@
 
 #include "pipeline/task.hpp"
 #include "pipeline/configuration.hpp"
+#include "pipeline/stash.hpp"
 #include "pipeline/pipeline.hpp"
 
 #include "database/common/serialisation.hpp"
@@ -28,6 +29,11 @@ namespace driver
 {
 namespace interface
 {
+
+extern BaseTask::Ptr create_Task_GenerateManifest( const TaskArguments&                          taskArguments,
+                                                   const std::vector< boost::filesystem::path >& componentInfoPaths );
+extern BaseTask::Ptr create_Task_GenerateComponents( const TaskArguments&                          taskArguments,
+                                                     const std::vector< boost::filesystem::path >& componentInfoPaths );
 
 extern BaseTask::Ptr create_Task_ParseAST( const TaskArguments&          taskArguments,
                                            const mega::io::megaFilePath& sourceFilePath );
@@ -202,7 +208,8 @@ public:
 
     // pipeline::Pipeline
     virtual pipeline::Schedule getSchedule() override;
-    virtual void               execute( const pipeline::TaskDescriptor& task, pipeline::Progress& progress ) override;
+    virtual void               execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
+                                        pipeline::Stash& stash ) override;
 
     virtual void initialise( const pipeline::Configuration& pipelineConfig ) override
     {
@@ -229,6 +236,12 @@ pipeline::Schedule CompilerPipeline::getSchedule()
     TskDescVec                                  interfaceGenTasks, concreteTasks, symbolRolloutTasks;
     std::map< mega::io::megaFilePath, TskDesc > includePCHTasks;
 
+    const TskDesc generateManifest   = encode( Task{ "Task_GenerateManifest", manifestFilePath } );
+    const TskDesc generateComponents = encode( Task{ "Task_GenerateComponents", manifestFilePath } );
+
+    dependencies.add( generateManifest, {} );
+    dependencies.add( generateComponents, TskDescVec{ generateManifest } );
+
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
@@ -237,7 +250,7 @@ pipeline::Schedule CompilerPipeline::getSchedule()
             const TskDesc includePCH         = encode( Task{ "Task_IncludePCH", sourceFilePath } );
             const TskDesc objectInterfaceGen = encode( Task{ "Task_ObjectInterfaceGen", sourceFilePath } );
 
-            dependencies.add( parseAst, TskDescVec{} );
+            dependencies.add( parseAst, TskDescVec{ generateComponents } );
             dependencies.add( includes, TskDescVec{ parseAst } );
             dependencies.add( includePCH, TskDescVec{ includes } );
             dependencies.add( objectInterfaceGen, TskDescVec{ parseAst } );
@@ -252,7 +265,6 @@ pipeline::Schedule CompilerPipeline::getSchedule()
 
     dependencies.add( dependencyAnalysis, interfaceGenTasks );
     dependencies.add( symbolAnalysis, TskDescVec{ dependencyAnalysis } );
-
 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
@@ -287,21 +299,30 @@ pipeline::Schedule CompilerPipeline::getSchedule()
     return pipeline::Schedule( dependencies );
 }
 
-void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress )
+void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
+                                pipeline::Stash& stash )
 {
     VERIFY_RTE( m_configuration.has_value() );
     Configuration& config = m_configuration.value();
 
     const Task task = decode( pipelineTask );
 
-    mega::io::BuildEnvironment environment(
-        config.directories.rootSourceDir, config.directories.rootBuildDir, config.directories.templatesDir );
+    mega::io::StashEnvironment environment(
+        stash, config.directories.rootSourceDir, config.directories.rootBuildDir, config.directories.templatesDir );
 
     driver::interface::TaskArguments taskArguments( environment, config.toolChain );
 
     driver::interface::BaseTask::Ptr pTask;
 
-    if ( task.strTaskName == "Task_ParseAST" )
+    if ( task.strTaskName == "Task_GenerateManifest" )
+    {
+        pTask = driver::interface::create_Task_GenerateManifest( taskArguments, config.componentInfoPaths );
+    }
+    else if ( task.strTaskName == "Task_GenerateComponents" )
+    {
+        pTask = driver::interface::create_Task_GenerateComponents( taskArguments, config.componentInfoPaths );
+    }
+    else if ( task.strTaskName == "Task_ParseAST" )
     {
         pTask = driver::interface::create_Task_ParseAST(
             taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );

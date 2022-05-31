@@ -1,5 +1,6 @@
 
 
+// pipelines
 msg PipelineReadyForWork
 {
     request(network::ActivityID rootActivityID);
@@ -22,4 +23,29 @@ msg PipelineWorkCompleted
 {
     request(network::ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string message);
     response();
+}
+
+// stash
+msg getBuildHashCode
+{
+    request( boost::filesystem::path filePath );
+    response( task::FileHash hashCode );
+}
+
+msg setBuildHashCode
+{
+    request( boost::filesystem::path filePath, task::FileHash hashCode );
+    response();
+}
+
+msg stash
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response();
+}
+
+msg restore
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response( bool bRestored );
 }

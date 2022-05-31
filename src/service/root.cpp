@@ -14,6 +14,7 @@
 
 #include "pipeline/pipeline.hpp"
 
+#include <boost/filesystem/operations.hpp>
 #include <boost/system/detail/error_code.hpp>
 #include <iostream>
 #include <memory>
@@ -100,6 +101,37 @@ public:
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
         daemon.ListActivities( activities );
     }
+
+    virtual void getBuildHashCode( const boost::filesystem::path& filePath,
+                                   boost::asio::yield_context     yield_ctx ) override
+    {
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.getBuildHashCode( m_root.m_stash.getBuildHashCode( filePath ) );
+    }
+
+    virtual void setBuildHashCode( const boost::filesystem::path& filePath, const task::FileHash& hashCode,
+                                   boost::asio::yield_context yield_ctx ) override
+    {
+        m_root.m_stash.setBuildHashCode( filePath, hashCode );
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.setBuildHashCode();
+    }
+
+    virtual void stash( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
+                        boost::asio::yield_context yield_ctx ) override
+    {
+        m_root.m_stash.stash( filePath, determinant );
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.stash();
+    }
+
+    virtual void restore( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
+                          boost::asio::yield_context yield_ctx ) override
+    {
+        const bool bRestored = m_root.m_stash.restore( filePath, determinant );
+        auto       daemon    = getOriginatingDaemonResponse( yield_ctx );
+        daemon.restore( bRestored );
+    }
 };
 
 class RootPipelineActivity : public RootRequestActivity
@@ -123,8 +155,8 @@ public:
                           const network::ActivityID&   activityID,
                           const network::ConnectionID& originatingConnectionID )
         : RootRequestActivity( root, activityID, originatingConnectionID )
-        , m_taskReady( root.m_io_context )
-        , m_taskComplete( root.m_io_context )
+        , m_taskReady( root.m_io_context, 16 )
+        , m_taskComplete( root.m_io_context, 16 )
     {
     }
 
@@ -133,6 +165,8 @@ public:
                               boost::asio::yield_context          yield_ctx ) override
     {
         SPDLOG_INFO( "Started pipeline: compiler" );
+
+        m_root.m_stash.resetBuildHashCodes();
 
         for ( auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
         {
@@ -249,13 +283,13 @@ public:
         const mega::pipeline::TaskDescriptor task = pCoordinator->getTask( yield_ctx );
         if ( task == mega::pipeline::TaskDescriptor() )
         {
-            SPDLOG_INFO( "PipelineReadyForWork: {} completed", getActivityID() );
+            SPDLOG_TRACE( "PipelineReadyForWork: {} completed", getActivityID() );
             pCoordinator->completeTask( mega::pipeline::TaskDescriptor(), true, yield_ctx );
             daemon.PipelineReadyForWork( mega::pipeline::TaskDescriptor() );
         }
         else
         {
-            SPDLOG_INFO( "PipelineReadyForWork: {} task: {}", getActivityID(), task.getName() );
+            SPDLOG_TRACE( "PipelineReadyForWork: {} task: {}", getActivityID(), task.getName() );
             daemon.PipelineReadyForWork( task );
         }
     }
@@ -266,7 +300,7 @@ public:
     {
         std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
-        SPDLOG_INFO( "Pipeline task progress: {}", strMessage );
+        SPDLOG_TRACE( "{}", strMessage );
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
         daemon.PipelineWorkProgress();
     }
@@ -277,7 +311,7 @@ public:
     {
         std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
-        SPDLOG_INFO( "Pipeline task failed: {}", strMessage );
+        SPDLOG_INFO( "{}", strMessage );
         pCoordinator->completeTask( task, false, yield_ctx );
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
         daemon.PipelineWorkFailed();
@@ -289,7 +323,7 @@ public:
     {
         std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
-        SPDLOG_INFO( "Pipeline task completed: {}", strMessage );
+        SPDLOG_INFO( "{}", strMessage );
         pCoordinator->completeTask( task, true, yield_ctx );
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
         daemon.PipelineWorkCompleted();
@@ -320,6 +354,7 @@ Root::Root( boost::asio::io_context& ioContext )
     , m_activityFactory( *this )
     , m_activityManager( ioContext )
     , m_server( ioContext, m_activityManager, m_activityFactory, network::MegaRootPort() )
+    , m_stash( boost::filesystem::current_path() / "stash" )
 {
     m_server.waitForConnection();
 }

@@ -3,6 +3,7 @@
 #define PIPELINE_27_MAY_2022
 
 #include "task.hpp"
+#include "stash.hpp"
 #include "configuration.hpp"
 
 #include "boost/config.hpp"
@@ -83,7 +84,7 @@ public:
 
     virtual void     initialise( const Configuration& configuration )          = 0;
     virtual Schedule getSchedule()                                             = 0;
-    virtual void     execute( const TaskDescriptor& task, Progress& progress ) = 0;
+    virtual void     execute( const TaskDescriptor& task, Progress& progress, Stash& stash ) = 0;
 };
 
 class Registry

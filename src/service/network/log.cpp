@@ -34,24 +34,34 @@ namespace mega
         }
 
         std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::filesystem::path& logFolderPath, const std::string& strLogName,
-                                                            LoggingLevel loggingLevel )
+                                                            LoggingLevel consoleLoggingLevel, LoggingLevel fileLoggingLevel  )
         {
-            auto spdlogLevel = spdlog::level::warn;
-            switch( loggingLevel )
+            auto consoleLevel = spdlog::level::warn;
+            switch( consoleLoggingLevel )
             {
-                case eDebug:   spdlogLevel = spdlog::level::debug; break;
-                case eTrace:   spdlogLevel = spdlog::level::trace; break;
-                case eInfo:    spdlogLevel = spdlog::level::info; break;
-                case eWarn:    spdlogLevel = spdlog::level::warn; break;
-                case eError:   spdlogLevel = spdlog::level::err; break;
-                case eOff:     spdlogLevel = spdlog::level::off; break;
+                case eDebug:   consoleLevel = spdlog::level::debug; break;
+                case eTrace:   consoleLevel = spdlog::level::trace; break;
+                case eInfo:    consoleLevel = spdlog::level::info; break;
+                case eWarn:    consoleLevel = spdlog::level::warn; break;
+                case eError:   consoleLevel = spdlog::level::err; break;
+                case eOff:     consoleLevel = spdlog::level::off; break;
+            }
+            auto fileLevel = spdlog::level::warn;
+            switch( fileLoggingLevel )
+            {
+                case eDebug:   fileLevel = spdlog::level::debug; break;
+                case eTrace:   fileLevel = spdlog::level::trace; break;
+                case eInfo:    fileLevel = spdlog::level::info; break;
+                case eWarn:    fileLevel = spdlog::level::warn; break;
+                case eError:   fileLevel = spdlog::level::err; break;
+                case eOff:     fileLevel = spdlog::level::off; break;
             }
 
             spdlog::drop( strLogName );
             
             auto console_sink = std::make_shared< spdlog::sinks::stdout_color_sink_mt >();
             {
-                console_sink->set_level( spdlogLevel );
+                console_sink->set_level( consoleLevel );
                 console_sink->set_pattern( "%l [%^%l%$] %v");
             }
             
@@ -62,14 +72,14 @@ namespace mega
             
             auto file_sink = std::make_shared< spdlog::sinks::daily_file_sink_st >( logFilePath.string(), 23, 59 );
             {
-                file_sink->set_level( spdlog::level::trace );
+                file_sink->set_level( fileLevel );
             }
             auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
             auto logger = std::shared_ptr< spdlog::async_logger >( 
                 new spdlog::async_logger( strLogName, {console_sink, file_sink}, 
                     threadPool, spdlog::async_overflow_policy::block ) );
             {
-                logger->set_level( spdlog::level::trace );
+                logger->set_level( fileLevel );
             }
             
             spdlog::flush_every( std::chrono::seconds( 1 ) );

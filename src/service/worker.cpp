@@ -11,11 +11,13 @@
 #include "service/protocol/model/daemon_worker.hxx"
 
 #include "pipeline/pipeline.hpp"
+#include "pipeline/stash.hpp"
 
 #include "common/requireSemicolon.hpp"
 
 #include <optional>
 #include <future>
+#include <thread>
 
 namespace mega
 {
@@ -86,7 +88,7 @@ public:
                                     boost::asio::yield_context          yield_ctx );
 };
 
-class JobActivity : public WorkerRequestActivity, public pipeline::Progress
+class JobActivity : public WorkerRequestActivity, public pipeline::Progress, public pipeline::Stash
 {
     const network::ActivityID      m_rootActivityID;
     mega::pipeline::Pipeline::Ptr  m_pPipeline;
@@ -104,32 +106,69 @@ public:
         VERIFY_RTE( m_pPipeline );
     }
 
+    // pipeline::Progress
     virtual void onStarted( const std::string& strMsg ) override
     {
+        std::ostringstream os;
+        os << std::this_thread::get_id() << " " << strMsg;
         auto daemon = getDaemonRequest( *m_pYieldCtx );
-        daemon.PipelineWorkProgress( m_rootActivityID, m_currentTask, strMsg );
+        daemon.PipelineWorkProgress( m_rootActivityID, m_currentTask, os.str() );
         daemon.Complete();
     }
 
     virtual void onProgress( const std::string& strMsg ) override
     {
+        std::ostringstream os;
+        os << std::this_thread::get_id() << " " << strMsg;
         auto daemon = getDaemonRequest( *m_pYieldCtx );
-        daemon.PipelineWorkProgress( m_rootActivityID, m_currentTask, strMsg );
+        daemon.PipelineWorkProgress( m_rootActivityID, m_currentTask, os.str() );
         daemon.Complete();
     }
 
     virtual void onFailed( const std::string& strMsg ) override
     {
+        std::ostringstream os;
+        os << std::this_thread::get_id() << " " << strMsg;
         auto daemon = getDaemonRequest( *m_pYieldCtx );
-        daemon.PipelineWorkFailed( m_rootActivityID, m_currentTask, strMsg );
+        daemon.PipelineWorkFailed( m_rootActivityID, m_currentTask, os.str() );
         daemon.Complete();
     }
 
     virtual void onCompleted( const std::string& strMsg ) override
     {
+        std::ostringstream os;
+        os << std::this_thread::get_id() << " " << strMsg;
         auto daemon = getDaemonRequest( *m_pYieldCtx );
-        daemon.PipelineWorkCompleted( m_rootActivityID, m_currentTask, strMsg );
+        daemon.PipelineWorkCompleted( m_rootActivityID, m_currentTask, os.str() );
         daemon.Complete();
+    }
+
+    // pipeline::Stash
+    virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath ) override
+    {
+        auto           daemonRequest = getDaemonRequest( *m_pYieldCtx );
+        task::FileHash hashCode      = daemonRequest.getBuildHashCode( filePath );
+        daemonRequest.Complete();
+        return hashCode;
+    }
+    virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) override
+    {
+        auto daemonRequest = getDaemonRequest( *m_pYieldCtx );
+        daemonRequest.setBuildHashCode( filePath, hashCode );
+        daemonRequest.Complete();
+    }
+    virtual void stash( const boost::filesystem::path& file, task::DeterminantHash code ) override
+    {
+        auto daemonRequest = getDaemonRequest( *m_pYieldCtx );
+        daemonRequest.stash( file, code );
+        daemonRequest.Complete();
+    }
+    virtual bool restore( const boost::filesystem::path& file, task::DeterminantHash code ) override
+    {
+        auto daemonRequest = getDaemonRequest( *m_pYieldCtx );
+        bool bResult       = daemonRequest.restore( file, code );
+        daemonRequest.Complete();
+        return bResult;
     }
 
     void run( boost::asio::yield_context yield_ctx ) override
@@ -152,7 +191,7 @@ public:
                     try
                     {
                         SPDLOG_INFO( "JobActivity got task: {}", m_currentTask.getName() );
-                        m_pPipeline->execute( m_currentTask, *this );
+                        m_pPipeline->execute( m_currentTask, *this, *this );
                     }
                     catch ( std::exception& ex )
                     {

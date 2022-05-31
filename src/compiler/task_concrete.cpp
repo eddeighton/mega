@@ -1,6 +1,3 @@
-#ifndef TASK_CONCRETE_12_MAY_2022
-#define TASK_CONCRETE_12_MAY_2022
-
 #include "base_task.hpp"
 
 #include "database/model/ConcreteStage.hxx"
@@ -331,5 +328,3 @@ BaseTask::Ptr create_Task_ConcreteTree( const TaskArguments& taskArguments, cons
 
 } // namespace interface
 } // namespace driver
-
-#endif // TASK_CONCRETE_12_MAY_2022

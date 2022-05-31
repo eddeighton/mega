@@ -1,4 +1,5 @@
 
+// host requests
 msg GetVersion
 {
     request();
@@ -17,6 +18,7 @@ msg PipelineRun
     response(std::string result);
 }
 
+// worker pipelines
 msg PipelineReadyForWork
 {
     request(network::ActivityID rootActivityID);
@@ -41,3 +43,27 @@ msg PipelineWorkCompleted
     response();
 }
 
+// stash
+msg getBuildHashCode
+{
+    request( boost::filesystem::path filePath );
+    response( task::FileHash hashCode );
+}
+
+msg setBuildHashCode
+{
+    request( boost::filesystem::path filePath, task::FileHash hashCode );
+    response();
+}
+
+msg stash
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response();
+}
+
+msg restore
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response( bool bRestored );
+}

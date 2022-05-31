@@ -66,7 +66,6 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_inja.cpp
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_list.cpp
-		${DRIVER_SOURCE_DIR}/command_manifest.cpp
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp

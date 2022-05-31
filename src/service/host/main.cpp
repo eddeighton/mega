@@ -20,7 +20,7 @@ int main( int argc, const char* argv[] )
 {
     std::optional< std::string > optionalHostName;
     boost::filesystem::path      logFolder   = boost::filesystem::current_path() / "log";
-    std::string                  strLogLevel = "warn";
+    std::string             strConsoleLogLevel = "warn", strLogFileLevel = "warn";
     {
         bool bShowHelp = false;
 
@@ -33,7 +33,8 @@ int main( int argc, const char* argv[] )
         ( "help",   po::bool_switch( &bShowHelp ),                      "Show Command Line Help" )
         ( "name",   po::value< std::string >( &strHostName ),           "Host name" )
         ( "log",    po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
-        ( "level", po::value< std::string >( &strLogLevel ),            "Logging level" )
+        ( "console", po::value< std::string >( &strConsoleLogLevel ),   "Console logging level" )
+        ( "level", po::value< std::string >( &strLogFileLevel ),        "Log file logging level" )
         ;
         // clang-format on
 
@@ -56,7 +57,8 @@ int main( int argc, const char* argv[] )
 
     try
     {
-        auto logThreads = mega::network::configureLog( logFolder, "host", mega::network::fromStr( strLogLevel ) );
+        auto logThreads = mega::network::configureLog( logFolder, "host", mega::network::fromStr( strConsoleLogLevel ),
+                                           mega::network::fromStr( strLogFileLevel ) );
 
         mega::service::Host host( optionalHostName );
 

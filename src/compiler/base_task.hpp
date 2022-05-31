@@ -62,24 +62,27 @@ namespace interface
 
 struct TaskArguments
 {
-    TaskArguments( const mega::io::BuildEnvironment& environment, const mega::compiler::ToolChain& toolChain )
+    TaskArguments( const mega::io::StashEnvironment& environment, const mega::compiler::ToolChain& toolChain )
         : environment( environment )
         , toolChain( toolChain )
     {
     }
-    const mega::io::BuildEnvironment& environment;
+    const mega::io::StashEnvironment& environment;
     const mega::compiler::ToolChain&  toolChain;
 };
-
+/*
 static const char psz_start[]   = "{} START   {:>55} -> {:<55}";
 static const char psz_cached[]  = "{} CACHED  {:>55} -> {:<55} : {}";
 static const char psz_success[] = "{} SUCCESS {:>55} -> {:<55} : {}";
 static const char psz_error[]   = "{} ERROR   {:>55} -> {:<55} : {}";
 static const char psz_msg[]     = "{} MSG     {:>55} -> {:<55} : {}\n{}";
-
+*/
 class BaseTask
 {
-    std::string m_strTaskName;
+protected:
+    std::string                       m_strTaskName;
+    const mega::io::StashEnvironment& m_environment;
+    const mega::compiler::ToolChain&  m_toolChain;
 
 public:
     using Ptr = std::unique_ptr< BaseTask >;
@@ -112,126 +115,76 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress ) = 0;
 
-    /*
-        inline const std::string& name( const mega::pipeline::Progress& taskProgress ) const
-        {
-            return taskProgress.getStatus().m_strTaskName;
-        }
-        inline std::string source( const mega::pipeline::Progress& taskProgress ) const
-        {
-            return std::get< boost::filesystem::path >( taskProgress.getStatus().m_source.value() ).string();
-        }
-        inline std::string target( const mega::pipeline::Progress& taskProgress ) const
-        {
-            return std::get< boost::filesystem::path >( taskProgress.getStatus().m_target.value() ).string();
-        }
-        inline std::string elapsed( const mega::pipeline::Progress& taskProgress ) const
-        {
-            return taskProgress.getStatus().m_elapsed.value();
-        }
-*/
-    void drawIndex( std::ostream& os )
-    {
-        static const int max_bars = 16;
-        for ( int i = 0; i < max_bars; ++i )
-        {
-            if ( ( 0 % max_bars ) == i )
-            {
-                os << 0;
-                int j = 0 / 10;
-                while ( j )
-                {
-                    j = j / 10;
-                    ++i;
-                }
-            }
-            else
-                os << ' ';
-        }
-    }
-
     void start( mega::pipeline::Progress& taskProgress, const char* pszName, const boost::filesystem::path& fromPath,
                 const boost::filesystem::path& toPath )
     {
-        // generate the name string to use for all logging
-        { { std::ostringstream os;
-        drawIndex( os );
-        os << std::setw( 32 ) << pszName << " " << std::setw( 55 ) << fromPath.string() << " -> " << std::setw( 55 )
-           << toPath.string();
-        m_strTaskName = os.str();
+        {
+            std::ostringstream os;
+            os << std::setw( 32 ) << pszName << " " << std::setw( 55 ) << fromPath.string() << " -> " << std::setw( 55 )
+               << toPath.string();
+            m_strTaskName = os.str();
+        }
+
+        {
+            std::ostringstream os;
+            os << "STARTED: " << m_strTaskName;
+            taskProgress.onStarted( os.str() );
+        }
+
+        // taskProgress.onStarted(
+        //    fmt::format( fmt::bg( fmt::terminal_color::bright_black ) | fmt::fg( fmt::terminal_color::white )
+        //                               | fmt::emphasis::bold,
+        //                           m_strTaskName ));
     }
 
+    void cached( mega::pipeline::Progress& taskProgress )
     {
         std::ostringstream os;
-        os << "STARTED: " << m_strTaskName;
-        taskProgress.onStarted( os.str() );
-    }
-    // taskProgress.start( os.str(), fromPath, toPath );
-};
+        os << "CACHED : " << m_strTaskName;
+        taskProgress.onCompleted( os.str() );
 
-// fmt::
-//
-// taskProgress.onStarted(
-//    fmt::format( fmt::bg( fmt::terminal_color::bright_black ) | fmt::fg( fmt::terminal_color::white )
-//                               | fmt::emphasis::bold,
-//                           m_strTaskName ));
-
-/*spdlog::info( psz_start,
-              ,
-              fromPath.string(), toPath.string() );*/
-} // namespace interface
-void cached( mega::pipeline::Progress& taskProgress )
-{
-    std::ostringstream os;
-    os << "CACHED : " << m_strTaskName;
-    taskProgress.onCompleted( os.str() );
-
-    // taskProgress.cached();
-    /*spdlog::info( psz_cached,
-                  fmt::format( fmt::bg( fmt::terminal_color::cyan ) | fmt::fg( fmt::terminal_color::black )
-                                   | fmt::emphasis::bold,
-                               name( taskProgress ) ),
-                  source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );*/
-}
-void succeeded( mega::pipeline::Progress& taskProgress )
-{
-    std::ostringstream os;
-    os << "SUCCESS: " << m_strTaskName;
-    taskProgress.onCompleted( os.str() );
-    // taskProgress.succeeded();
-    /*spdlog::info( psz_success,
-                  fmt::format( fmt::bg( fmt::terminal_color::green ) | fmt::fg( fmt::terminal_color::black )
-                                   | fmt::emphasis::bold,
-                               name( taskProgress ) ),
-                  source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );*/
-}
-virtual void failed( mega::pipeline::Progress& taskProgress )
-{
-    std::ostringstream os;
-    os << "FAILED : " << m_strTaskName;
-    taskProgress.onFailed( os.str() );
-    // taskProgress.failed();
-    /*spdlog::critical( psz_error,
-                      fmt::format( fmt::bg( fmt::terminal_color::red ) | fmt::fg( fmt::terminal_color::black )
+        // taskProgress.cached();
+        /*spdlog::info( psz_cached,
+                      fmt::format( fmt::bg( fmt::terminal_color::cyan ) | fmt::fg( fmt::terminal_color::black )
                                        | fmt::emphasis::bold,
                                    name( taskProgress ) ),
                       source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );*/
-}
-void msg( mega::pipeline::Progress& taskProgress, const std::string& strMsg )
-{
-    std::ostringstream os;
-    os << "MSG    : " << m_strTaskName;
-    taskProgress.onProgress( os.str() );
-    /*spdlog::info( psz_msg,
-                  fmt::format( fmt::bg( fmt::terminal_color::black ) | fmt::fg( fmt::terminal_color::white ),
-                               name( taskProgress ) ),
-                  source( taskProgress ), target( taskProgress ), elapsed( taskProgress ), strMsg );*/
-}
-
-protected:
-const mega::io::BuildEnvironment& m_environment;
-const mega::compiler::ToolChain&  m_toolChain;
-}; // namespace driver
+    }
+    void succeeded( mega::pipeline::Progress& taskProgress )
+    {
+        std::ostringstream os;
+        os << "SUCCESS: " << m_strTaskName;
+        taskProgress.onCompleted( os.str() );
+        // taskProgress.succeeded();
+        /*spdlog::info( psz_success,
+                      fmt::format( fmt::bg( fmt::terminal_color::green ) | fmt::fg( fmt::terminal_color::black )
+                                       | fmt::emphasis::bold,
+                                   name( taskProgress ) ),
+                      source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );*/
+    }
+    virtual void failed( mega::pipeline::Progress& taskProgress )
+    {
+        std::ostringstream os;
+        os << "FAILED : " << m_strTaskName;
+        taskProgress.onFailed( os.str() );
+        // taskProgress.failed();
+        /*spdlog::critical( psz_error,
+                          fmt::format( fmt::bg( fmt::terminal_color::red ) | fmt::fg( fmt::terminal_color::black )
+                                           | fmt::emphasis::bold,
+                                       name( taskProgress ) ),
+                          source( taskProgress ), target( taskProgress ), elapsed( taskProgress ) );*/
+    }
+    void msg( mega::pipeline::Progress& taskProgress, const std::string& strMsg )
+    {
+        std::ostringstream os;
+        os << "MSG    : " << m_strTaskName;
+        taskProgress.onProgress( os.str() );
+        /*spdlog::info( psz_msg,
+                      fmt::format( fmt::bg( fmt::terminal_color::black ) | fmt::fg( fmt::terminal_color::white ),
+                                   name( taskProgress ) ),
+                      source( taskProgress ), target( taskProgress ), elapsed( taskProgress ), strMsg );*/
+    }
+};
 
 inline const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&           filePath,
                                                const std::vector< mega::io::FileInfo >& fileInfos )

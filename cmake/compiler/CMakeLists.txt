@@ -14,6 +14,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_includes.cpp  
     ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp  
     ${MEGA_SRC_DIR}/compiler/task_interface.cpp  
+    ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp  
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
 )

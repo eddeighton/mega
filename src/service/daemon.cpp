@@ -215,6 +215,47 @@ public:
         worker.PipelineWorkCompleted();
     }
 
+    // network::worker_daemon::Impl worker stash
+    virtual void getBuildHashCode( const boost::filesystem::path& filePath,
+                                   boost::asio::yield_context     yield_ctx ) override
+    {
+        auto                 root     = getRootRequest( yield_ctx );
+        const task::FileHash hashCode = root.getBuildHashCode( filePath );
+        root.Complete();
+        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        worker.getBuildHashCode( hashCode );
+    }
+
+    virtual void setBuildHashCode( const boost::filesystem::path& filePath, const task::FileHash& hashCode,
+                                   boost::asio::yield_context yield_ctx ) override
+    {
+        auto root = getRootRequest( yield_ctx );
+        root.setBuildHashCode( filePath, hashCode );
+        root.Complete();
+        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        worker.setBuildHashCode();
+    }
+
+    virtual void stash( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
+                        boost::asio::yield_context yield_ctx ) override
+    {
+        auto root = getRootRequest( yield_ctx );
+        root.stash( filePath, determinant );
+        root.Complete();
+        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        worker.stash();
+    }
+
+    virtual void restore( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
+                          boost::asio::yield_context yield_ctx ) override
+    {
+        auto       root      = getRootRequest( yield_ctx );
+        const bool bRestored = root.restore( filePath, determinant );
+        root.Complete();
+        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        worker.restore( bRestored );
+    }
+
     // network::root_daemon::Impl
     virtual void ReportActivities( boost::asio::yield_context yield_ctx ) override
     {

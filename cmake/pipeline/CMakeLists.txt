@@ -9,6 +9,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( PIPELINE_HEADERS
     ${MEGA_API_DIR}/pipeline/task.hpp
     ${MEGA_API_DIR}/pipeline/configuration.hpp
+    ${MEGA_API_DIR}/pipeline/stash.hpp
     ${MEGA_API_DIR}/pipeline/pipeline.hpp
 )
 

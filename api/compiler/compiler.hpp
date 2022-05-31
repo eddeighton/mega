@@ -9,6 +9,9 @@
 
 #include "boost/filesystem/path.hpp"
 
+#include <vector>
+#include <string>
+
 namespace mega
 {
 namespace compiler
@@ -17,23 +20,8 @@ namespace compiler
 struct ToolChain
 {
     boost::filesystem::path parserDllPath, megaCompilerPath, clangCompilerPath, clangPluginPath, databasePath;
-    task::FileHash parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash;
-    task::DeterminantHash toolChainHash;
-
-    /*ToolChain( const boost::filesystem::path& parserDllPath, const boost::filesystem::path& megaCompilerPath,
-               const boost::filesystem::path& clangCompilerPath, const boost::filesystem::path& clangPluginPath,
-               const boost::filesystem::path& databasePath )
-        : parserDllPath( parserDllPath )
-        , megaCompilerPath( megaCompilerPath )
-        , clangCompilerPath( clangCompilerPath )
-        , clangPluginPath( clangPluginPath )
-        , databasePath( databasePath )
-     , parserDllHash( parserDllPath )
-     , megaCompilerHash( megaCompilerPath )
-     , clangCompilerHash( clangCompilerPath )
-     , clangPluginHash( clangPluginPath )
-     , databaseHash( databasePath )
-     , toolChainHash( { parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash } )*/
+    task::FileHash          parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash;
+    task::DeterminantHash   toolChainHash;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -43,7 +31,7 @@ struct ToolChain
         archive& clangCompilerPath;
         archive& clangPluginPath;
         archive& databasePath;
-        
+
         archive& parserDllHash;
         archive& megaCompilerHash;
         archive& clangCompilerHash;
@@ -52,7 +40,6 @@ struct ToolChain
 
         archive& toolChainHash;
     }
-
 };
 
 struct Directories
@@ -70,14 +57,16 @@ struct Directories
 
 struct Configuration
 {
-    std::string projectName;
-    Directories directories;
-    ToolChain   toolChain;
+    std::string                            projectName;
+    std::vector< boost::filesystem::path > componentInfoPaths;
+    Directories                            directories;
+    ToolChain                              toolChain;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& projectName;
+        archive& componentInfoPaths;
         archive& directories;
         archive& toolChain;
     }

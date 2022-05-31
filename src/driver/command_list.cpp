@@ -23,16 +23,13 @@
 
 #include "utilities/cmake.hpp"
 
-#include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
-#include <common/hash.hpp>
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-#include <common/stash.hpp>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -41,75 +38,6 @@ namespace driver
 {
 namespace list
 {
-class BaseTask : public task::Task
-{
-public:
-    BaseTask( const mega::io::BuildEnvironment& environment, const RawPtrSet& dependencies )
-        : task::Task( dependencies )
-        , m_environment( environment )
-    {
-    }
-    virtual void failed( task::Progress& taskProgress ) { taskProgress.failed(); }
-
-protected:
-    const mega::io::BuildEnvironment& m_environment;
-};
-
-class Task_ComponentInfoToManifest : public BaseTask
-{
-public:
-    Task_ComponentInfoToManifest( const mega::io::BuildEnvironment&             environment,
-                                  const std::string&                            strComponentName,
-                                  const std::vector< std::string >&             cppFlags,
-                                  const std::vector< std::string >&             cppDefines,
-                                  const boost::filesystem::path&                srcDir,
-                                  const boost::filesystem::path&                buildDir,
-                                  const std::vector< boost::filesystem::path >& inputMegaSourceFiles,
-                                  const std::vector< boost::filesystem::path >& includeDirectories )
-        : BaseTask( environment, {} )
-        , m_srcDir( srcDir )
-        , m_buildDir( buildDir )
-        , m_componentInfo( strComponentName, cppFlags, cppDefines, srcDir, inputMegaSourceFiles, includeDirectories )
-    {
-    }
-
-    virtual void run( task::Progress& taskProgress )
-    {
-        // inputMegaSourceFiles
-        const mega::io::ComponentListingFilePath componentListingFilePath
-            = m_environment.ComponentListingFilePath_fromPath( m_buildDir );
-
-        taskProgress.start( "Task_ComponentInfoToManifest", m_srcDir, componentListingFilePath.path() );
-
-        boost::filesystem::path tempFile;
-        {
-            std::unique_ptr< std::ostream > pOfstream = m_environment.write_temp( componentListingFilePath, tempFile );
-            mega::OutputArchiveType         oa( *pOfstream );
-            oa << boost::serialization::make_nvp( "componentInfo", m_componentInfo );
-        }
-
-        const task::DeterminantHash determinant( tempFile );
-
-        if ( m_environment.restore( componentListingFilePath, determinant ) )
-        {
-            m_environment.setBuildHashCode( componentListingFilePath );
-            taskProgress.cached();
-            return;
-        }
-        else
-        {
-            m_environment.temp_to_real( componentListingFilePath );
-            m_environment.setBuildHashCode( componentListingFilePath );
-            m_environment.stash( componentListingFilePath, determinant );
-            taskProgress.succeeded();
-        }
-    }
-
-private:
-    const boost::filesystem::path m_srcDir;
-    const boost::filesystem::path m_buildDir;
-    mega::io::ComponentInfo       m_componentInfo;
-};
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
@@ -158,20 +86,18 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
 
-        task::Task::PtrVector tasks;
+        const mega::io::ComponentInfo componentInfo(
+            strComponentName, cppFlags, cppDefines, sourceDir, inputSourceFiles, includeDirectories );
 
-        Task_ComponentInfoToManifest* pTask = new Task_ComponentInfoToManifest( environment,
-                                                                                strComponentName,
-                                                                                cppFlags,
-                                                                                cppDefines,
-                                                                                sourceDir,
-                                                                                buildDir,
-                                                                                inputSourceFiles,
-                                                                                includeDirectories );
-        tasks.push_back( task::Task::Ptr( pTask ) );
-
-        task::Schedule::Ptr pSchedule( new task::Schedule( tasks ) );
-        task::run( pSchedule, std::cout );
+        const mega::io::ComponentListingFilePath componentListingFilePath
+            = environment.ComponentListingFilePath_fromPath( buildDir );
+        {
+            boost::filesystem::path         tempFile;
+            std::unique_ptr< std::ostream > pOfstream = environment.write_temp( componentListingFilePath, tempFile );
+            mega::OutputArchiveType         oa( *pOfstream );
+            oa << boost::serialization::make_nvp( "componentInfo", componentInfo );
+        }
+        environment.temp_to_real( componentListingFilePath );
     }
 }
 } // namespace list

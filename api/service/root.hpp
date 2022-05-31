@@ -6,6 +6,8 @@
 
 #include "boost/asio/io_context.hpp"
 
+#include "common/stash.hpp"
+
 namespace mega
 {
 namespace service
@@ -16,7 +18,10 @@ class Root
     class RootActivityFactory : public network::ActivityFactory
     {
     public:
-        RootActivityFactory( Root& root ) : m_root( root ) {}
+        RootActivityFactory( Root& root )
+            : m_root( root )
+        {
+        }
         virtual network::Activity::Ptr
         createRequestActivity( const network::Header&       msgHeader,
                                const network::ConnectionID& originatingConnectionID ) const;
@@ -35,6 +40,7 @@ private:
     RootActivityFactory      m_activityFactory;
     network::ActivityManager m_activityManager;
     network::Server          m_server;
+    task::Stash              m_stash;
 };
 
 } // namespace service

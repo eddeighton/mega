@@ -19,7 +19,7 @@ namespace network
 ConnectionID getConnectionID( boost::asio::ip::tcp::socket& socket )
 {
     std::ostringstream os;
-    os << socket.local_endpoint() << "-" << socket.remote_endpoint();
+    os << socket.local_endpoint();// << "-" << socket.remote_endpoint();
     return os.str();
 }
 
