@@ -55,5 +55,16 @@ namespace test
                 int i = 1;
             }
         }
+
+        action Test
+        {
+            std::cout << "Ed was here" << std::endl;
+            dim int foo;
+        }
+        action TestFFF
+        {
+            std::cout << "Ed was here" << std::endl;
+            dim int foo;
+        }
     }
 }
