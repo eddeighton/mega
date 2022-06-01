@@ -19,6 +19,6 @@ msg ListActivities
 
 msg PipelineRun
 {
-    request(mega::pipeline::Pipeline::ID pipelineID, mega::pipeline::Configuration configuration);
+    request(mega::pipeline::Configuration configuration);
     response(std::string result);
 }

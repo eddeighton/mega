@@ -46,8 +46,7 @@ public:
     std::string                        GetVersion();
     std::vector< std::string >         ListHosts();
     std::vector< network::ActivityID > listActivities();
-    std::string                        PipelineRun( const mega::pipeline::Pipeline::ID&  pipelineID,
-                                                    const mega::pipeline::Configuration& pipelineConfig );
+    std::string                        PipelineRun( const mega::pipeline::Configuration& pipelineConfig );
 
 private:
     HostActivityFactory      m_activityFactory;

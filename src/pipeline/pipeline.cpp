@@ -6,6 +6,7 @@
 
 #include "boost/dll.hpp"
 #include <boost/filesystem/operations.hpp>
+#include <boost/archive/xml_iarchive.hpp>
 
 namespace mega
 {
@@ -25,6 +26,15 @@ Configuration::Configuration() {}
 Configuration::Configuration( const Buffer& buffer )
     : m_buffer( buffer )
 {
+}
+
+PipelineID Configuration::getPipelineID() const
+{
+    std::istringstream           is( m_buffer );
+    boost::archive::xml_iarchive ia( is );
+    ConfigurationHeader          header;
+    ia&                          boost::serialization::make_nvp( "pipeline_header", header );
+    return header.pipelineID;
 }
 
 void Dependencies::add( const TaskDescriptor& newTask, const TaskDescriptor::Vector& dependencies )
@@ -70,8 +80,7 @@ TaskDescriptor::Vector Schedule::getReady() const
     return ready;
 }
 
-
-Stash::~Stash(){}
+Stash::~Stash() {}
 
 Progress::Progress() {}
 Progress::~Progress() {}
@@ -79,13 +88,11 @@ Progress::~Progress() {}
 Pipeline::Pipeline() {}
 Pipeline::~Pipeline() {}
 
-Pipeline::Ptr Registry::getPipeline( const Pipeline::ID& id, const Configuration& configuration )
+Pipeline::Ptr Registry::getPipeline( const Configuration& configuration )
 {
     try
     {
-        boost::filesystem::path cwd = boost::filesystem::current_path();
-
-        boost::dll::fs::path pipelineLibrary( id );
+        boost::dll::fs::path pipelineLibrary( configuration.getPipelineID() );
 
         Pipeline::Ptr pPipeline = boost::dll::import_symbol< mega::pipeline::Pipeline >(
             pipelineLibrary, "mega_pipeline", boost::dll::load_mode::append_decorations );
@@ -96,7 +103,7 @@ Pipeline::Ptr Registry::getPipeline( const Pipeline::ID& id, const Configuration
     }
     catch ( std::exception& ex )
     {
-        THROW_RTE( "Failed to load pipeline: " << id << " exception: " << ex.what() );
+        THROW_RTE( "Failed to load pipeline: " << configuration.get() << " exception: " << ex.what() );
     }
 }
 

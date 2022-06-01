@@ -12,6 +12,8 @@
 #include "common/requireSemicolon.hpp"
 #include "service/protocol/model/messages.hxx"
 
+#include <boost/asio/use_future.hpp>
+#include <boost/system/detail/error_code.hpp>
 #include <exception>
 #include <optional>
 #include <future>
@@ -27,7 +29,7 @@ class HostRequestActivity : public network::Activity, public network::daemon_hos
 
 public:
     HostRequestActivity( Host& host, const network::ActivityID& activityID,
-                     const network::ConnectionID& originatingConnectionID )
+                         const network::ConnectionID& originatingConnectionID )
         : Activity( host.m_activityManager, activityID, originatingConnectionID )
         , m_host( host )
     {
@@ -57,11 +59,11 @@ public:
         return network::daemon_host::Response_Encode( *this, m_host.m_client.getSocket(), yield_ctx );
     }
 
-    virtual void ReportActivities( boost::asio::yield_context& yield_ctx ) 
+    virtual void ReportActivities( boost::asio::yield_context& yield_ctx )
     {
         std::vector< network::ActivityID > activities;
 
-        for( const auto& id : m_activityManager.reportActivities() )
+        for ( const auto& id : m_activityManager.reportActivities() )
         {
             activities.push_back( id );
         }
@@ -74,7 +76,8 @@ network::Activity::Ptr
 Host::HostActivityFactory::createRequestActivity( const network::Header&       msgHeader,
                                                   const network::ConnectionID& originatingConnectionID ) const
 {
-    return network::Activity::Ptr( new HostRequestActivity( m_host, msgHeader.getActivityID(), originatingConnectionID ) );
+    return network::Activity::Ptr(
+        new HostRequestActivity( m_host, msgHeader.getActivityID(), originatingConnectionID ) );
 }
 
 Host::Host( std::optional< const std::string > optName /* = std::nullopt*/ )
@@ -94,19 +97,20 @@ Host::~Host()
     m_io_thread.join();
 }
 
-template < typename TPromiseType, typename TActivityFunctor >
+template < typename TResultType, typename TActivityFunctor >
 class GenericActivity : public HostRequestActivity
 {
-    Host&            m_host;
-    network::Client& m_client;
-    TPromiseType&    m_promise;
-    TActivityFunctor m_functor;
+    Host&                        m_host;
+    network::Client&             m_client;
+    std::promise< TResultType >& m_promise;
+    TActivityFunctor             m_functor;
 
 public:
     GenericActivity( Host& host, network::ActivityManager& activityManager, network::Client& client,
-                     const network::ConnectionID& originatingConnectionID, TPromiseType& promise,
+                     const network::ConnectionID& originatingConnectionID, std::promise< TResultType >& promise,
                      TActivityFunctor&& functor )
-        : HostRequestActivity( host, activityManager.createActivityID( originatingConnectionID ), originatingConnectionID )
+        : HostRequestActivity(
+            host, activityManager.createActivityID( originatingConnectionID ), originatingConnectionID )
         , m_host( host )
         , m_client( client )
         , m_promise( promise )
@@ -120,12 +124,14 @@ public:
         try
         {
             m_functor( m_promise, m_client, *this, yield_ctx );
-            requestCompleted();
         }
         catch ( std::exception& ex )
         {
-            m_promise.set_exception( std::current_exception() );
+            boost::asio::post( [ &promise = m_promise, ex = std::current_exception() ]()
+                               { promise.set_exception( ex ); } );
+            throw;
         }
+        requestCompleted();
     }
 };
 
@@ -168,40 +174,50 @@ public:
 
 std::string Host::GetVersion()
 {
-    //
-    SIMPLE_REQUEST( std::string, promise.set_value( daemon.GetVersion() ) );
+    SIMPLE_REQUEST(
+        std::string,
+        boost::asio::post( [ &promise = promise, result = daemon.GetVersion() ]() { promise.set_value( result ); } ); );
 }
 
 std::vector< std::string > Host::ListHosts()
 {
-    //
-    SIMPLE_REQUEST( std::vector< std::string >, promise.set_value( daemon.ListHosts() ) );
+    SIMPLE_REQUEST(
+        std::vector< std::string >,
+        boost::asio::post( [ &promise = promise, result = daemon.ListHosts() ]() { promise.set_value( result ); } ); );
 }
 
 std::vector< network::ActivityID > Host::listActivities()
 {
     //
-    SIMPLE_REQUEST( std::vector< network::ActivityID >, promise.set_value( daemon.ListActivities() ) );
+    SIMPLE_REQUEST( std::vector< network::ActivityID >,
+                    boost::asio::post( [ &promise = promise, result = daemon.ListActivities() ]()
+                                       { promise.set_value( result ); } ); );
 }
 
-std::string Host::PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID, const mega::pipeline::Configuration& pipelineConfig )
+std::string Host::PipelineRun( const mega::pipeline::Configuration& pipelineConfig )
 {
     using ResultType = std::string;
     std::promise< ResultType > promise;
     std::future< ResultType >  fResult = promise.get_future();
+
+    auto functor = [ &pipelineConfig ]( std::promise< ResultType >& promise, network::Client& client,
+                                        network::Activity& activity, boost::asio::yield_context& yield_ctx )
+    {
+        network::host_daemon::Request_Encode daemon( activity, client.getSocket(), yield_ctx );
+        {
+            auto result = daemon.PipelineRun( pipelineConfig );
+            boost::asio::post( [ &promise = promise, result ]() { promise.set_value( result ); } );
+        }
+        daemon.Complete();
+    };
+
+    auto pActivity = new GenericActivity< ResultType, decltype( functor ) >(
+        *this, m_activityManager, m_client, network::getConnectionID( m_client.getSocket() ), promise,
+        std::move( functor ) );
+
     try
     {
-        m_activityManager.activityStarted( network::Activity::Ptr( new GenericActivity(
-            *this, m_activityManager, m_client, network::getConnectionID( m_client.getSocket() ), promise,
-            [ &pipelineID, &pipelineConfig ]( std::promise< ResultType >& promise, network::Client& client, network::Activity& activity,
-                             boost::asio::yield_context& yield_ctx )
-            {
-                network::host_daemon::Request_Encode daemon( activity, client.getSocket(), yield_ctx );
-                {
-                    promise.set_value( daemon.PipelineRun( pipelineID, pipelineConfig ) );
-                }
-                daemon.Complete();
-            } ) ) );
+        m_activityManager.activityStarted( network::Activity::Ptr( pActivity ) );
         return fResult.get();
     }
     catch ( std::exception& ex )

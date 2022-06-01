@@ -25,7 +25,6 @@
 #include "nlohmann/json.hpp"
 
 #include <boost/filesystem/path.hpp>
-
 #include <boost/filesystem/path_traits.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>

@@ -977,6 +977,26 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                                            std::ostream&                                 osWarn )
 
     {
+
+
+        struct A
+        {
+            virtual ~A(){}
+            int i = 1;
+        };
+        struct B : public A
+        {
+            int j = 1;
+        };
+        B b;
+        A* pB = &b;
+        B* p = dynamic_cast< B* >( pB );
+        if( p->i != p->j )
+        {
+            THROW_RTE( "The world is broken" );
+        }
+
+
         boost::filesystem::path sourceDir = sourceFile;
         sourceDir.remove_filename();
 

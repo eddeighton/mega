@@ -46,6 +46,7 @@
 #include "boost/program_options.hpp"
 #include "boost/filesystem/path.hpp"
 
+#include <common/file.hpp>
 #include <common/stash.hpp>
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -58,8 +59,8 @@ namespace interface
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             projectName, strComponentInfoPaths;
-    boost::filesystem::path logDir, rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, clangPlugin,
-        databaseDll, templatesDir;
+    boost::filesystem::path rootSourceDir, rootBuildDir, parserDll, megaCompiler, clangCompiler, clangPlugin,
+        databaseDll, templatesDir, pipelineXML;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Compile Mega Project Interface" );
@@ -68,7 +69,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
         commandOptions.add_options()
         ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
         ( "components",     po::value< std::string >( &strComponentInfoPaths ),      "Component info files" )
-        ( "log_dir",        po::value< boost::filesystem::path >( &logDir ),         "Build log directory" )
         ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),  "Root source directory" )
         ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),   "Root build directory" )
         ( "mega_compiler",  po::value< boost::filesystem::path >( &megaCompiler ),   "Megastructure compiler pipeline path" )
@@ -77,6 +77,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         ( "clang_plugin",   po::value< boost::filesystem::path >( &clangPlugin ),    "Clang Plugin path" )
         ( "database_dll",   po::value< boost::filesystem::path >( &databaseDll ),    "Database DLL Path" )
         ( "templates",      po::value< boost::filesystem::path >( &templatesDir ),   "Inja Templates directory" )
+        ( "pipeline_xml",   po::value< boost::filesystem::path >( &pipelineXML ),    "Pipeline Configuration XML File to generate" )
         ;
         // clang-format on
     }
@@ -97,16 +98,19 @@ void command( bool bHelp, const std::vector< std::string >& args )
         const std::vector< boost::filesystem::path > componentInfoPaths
             = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( strComponentInfoPaths, ";" ) );
 
-        const boost::filesystem::path      compilerPath = megaCompiler.parent_path() / "compiler";
-        const mega::pipeline::Pipeline::ID pipelineID   = compilerPath.native();
+        const boost::filesystem::path    compilerPath = megaCompiler.parent_path() / "compiler";
+        const mega::pipeline::PipelineID pipelineID   = compilerPath.native();
 
         // calculate toolchain hash codes
         // clang-format off
+
+        // TODO - calculate these hashcodes as part of the mega build
         const task::FileHash fileHashparserDll     ( parserDll     );
         const task::FileHash fileHashmegaCompiler  ( megaCompiler  );
         const task::FileHash fileHashclangCompiler ( clangCompiler );
         const task::FileHash fileHashclangPlugin   ( clangPlugin   );
         const task::FileHash fileHashdatabaseDll   ( databaseDll   );
+
 
         const task::DeterminantHash toolChainHash( 
             { 
@@ -119,8 +123,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         mega::compiler::Configuration config =
         {
+            pipelineID,
             projectName,
-
             componentInfoPaths,
 
             mega::compiler::Directories
@@ -150,23 +154,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
         // clang-format on
 
         const mega::pipeline::Configuration pipelineConfig = mega::compiler::makePipelineConfiguration( config );
-
-        try
-        {
-            {
-                auto logThreads = mega::network::configureLog(
-                    logDir.native(), "interface_build", mega::network::fromStr( "warn" ), mega::network::fromStr( "info" ) );
-                {
-                    mega::service::Host host;
-                    host.PipelineRun( pipelineID, pipelineConfig );
-                }
-            }
-            spdlog::shutdown();
-        }
-        catch ( std::exception& ex )
-        {
-            THROW_RTE( "Could not connect to Megastructure Service: " << ex.what() );
-        }
+        auto                                pOutFile       = boost::filesystem::createNewFileStream( pipelineXML );
+        *pOutFile << pipelineConfig.get();
     }
 }
 } // namespace interface

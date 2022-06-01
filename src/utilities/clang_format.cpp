@@ -3,7 +3,7 @@
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
-
+/*
 #include "clang/Format/Format.h"
 //#include "clang/Basic/VirtualFileSystem.h"
 #include "clang/Basic/FileManager.h"
@@ -15,13 +15,14 @@
 #include "clang/Tooling/Refactoring.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
-
+*/
 namespace mega
 {
 namespace utilities
 {
 void clang_format( std::string& strNewFileContents, std::optional< boost::filesystem::path > formatSpecPath )
 {
+    /*
     std::vector< clang::tooling::Range > ranges;
     ranges.push_back( clang::tooling::Range( 0U, strNewFileContents.size() ) );
 
@@ -96,7 +97,7 @@ void clang_format( std::string& strNewFileContents, std::optional< boost::filesy
     if ( pChangedCode )
     {
         strNewFileContents = *pChangedCode;
-    }
+    }*/
 }
 
 } // namespace utilities

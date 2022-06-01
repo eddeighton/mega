@@ -17,6 +17,8 @@
 #include "boost/config.hpp"
 #include "boost/archive/binary_iarchive.hpp"
 #include "boost/archive/binary_oarchive.hpp"
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 #include <common/string.hpp>
 
@@ -91,14 +93,35 @@ namespace mega
 namespace compiler
 {
 
-pipeline::Configuration makePipelineConfiguration( const Configuration& config )
+pipeline::Configuration makePipelineConfiguration( const Configuration& configuration )
 {
     std::ostringstream os;
     {
-        boost::archive::binary_oarchive oa( os );
-        oa&                             config;
+        boost::archive::xml_oarchive oa( os );
+
+        pipeline::ConfigurationHeader header{ configuration.pipelineID };
+
+        oa& boost::serialization::make_nvp( "pipeline_header", header );
+        oa& boost::serialization::make_nvp( "pipeline_config", configuration );
     }
     return pipeline::Configuration( os.str() );
+}
+
+Configuration fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig )
+{
+    Configuration configuration;
+    {
+        std::istringstream           is( pipelineConfig.get() );
+        boost::archive::xml_iarchive ia( is );
+
+        pipeline::ConfigurationHeader header;
+
+        ia& boost::serialization::make_nvp( "pipeline_header", header );
+        ia& boost::serialization::make_nvp( "pipeline_config", configuration );
+
+        configuration.pipelineID = header.pipelineID;
+    }
+    return configuration;
 }
 
 namespace
@@ -106,7 +129,7 @@ namespace
 
 struct Task
 {
-    std::string strTaskName; // no serialised
+    std::string strTaskName; // not serialised
 
     using FilePathVar = std::variant< mega::io::megaFilePath, mega::io::manifestFilePath >;
     FilePathVar sourceFilePath;
@@ -186,17 +209,6 @@ Task decode( const pipeline::TaskDescriptor& taskDescriptor )
         ia&                             task;
     }
     return task;
-}
-
-Configuration fromPipelineConfiguration( const pipeline::Configuration& config )
-{
-    Configuration configuration;
-    {
-        std::istringstream              is( config.get() );
-        boost::archive::binary_iarchive ia( is );
-        ia&                             configuration;
-    }
-    return configuration;
 }
 
 class CompilerPipeline : public pipeline::Pipeline

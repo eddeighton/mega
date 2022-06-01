@@ -78,7 +78,6 @@ protected:
 
 public:
     using Ptr = boost::shared_ptr< Pipeline >;
-    using ID  = std::string;
 
     virtual ~Pipeline();
 
@@ -90,7 +89,7 @@ public:
 class Registry
 {
 public:
-    static Pipeline::Ptr getPipeline( const Pipeline::ID& id, const Configuration& configuration );
+    static Pipeline::Ptr getPipeline( const Configuration& configuration );
 };
 } // namespace pipeline
 } // namespace mega

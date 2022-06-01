@@ -16,7 +16,8 @@ add_definitions(-DNOMINMAX -D_NOMINMAX)
 
 ENDIF( ${WIN32} )
 
-
+set_property(GLOBAL PROPERTY LLVM_ENABLE_RTTI ON )
+set_property(GLOBAL PROPERTY LLVM_ENABLE_EH ON )
 set_property(GLOBAL PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 #setup some common directories from the root of the project
@@ -39,4 +40,4 @@ add_subdirectory(compiler)
 add_subdirectory(utilities)
 add_subdirectory(service)
 add_subdirectory(driver)
-add_subdirectory(tests)
+#add_subdirectory(tests)

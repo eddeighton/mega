@@ -14,7 +14,7 @@ msg ListThreads
 
 msg PipelineStartJobs
 {
-    request(mega::pipeline::Pipeline::ID pipelineID, mega::pipeline::Configuration configuration, network::ActivityID rootActivityID);
+    request(mega::pipeline::Configuration configuration, network::ActivityID rootActivityID);
     response(std::vector< network::ActivityID > jobs);
 }
 

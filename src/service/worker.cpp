@@ -82,8 +82,7 @@ public:
         getDaemonResponse( yield_ctx ).ListThreads( m_worker.getNumThreads() );
     }
 
-    virtual void PipelineStartJobs( const mega::pipeline::Pipeline::ID& pipelineID,
-                                    const pipeline::Configuration&      configuration,
+    virtual void PipelineStartJobs( const pipeline::Configuration&      configuration,
                                     const network::ActivityID&          rootActivityID,
                                     boost::asio::yield_context&          yield_ctx );
 };
@@ -209,17 +208,17 @@ public:
         catch ( std::exception& ex )
         {
             SPDLOG_ERROR( "JobActivity exception: {}", ex.what() );
+            throw;
         }
         requestCompleted();
     }
 };
 
-void WorkerRequestActivity::PipelineStartJobs( const mega::pipeline::Pipeline::ID& pipelineID,
-                                               const pipeline::Configuration&      configuration,
+void WorkerRequestActivity::PipelineStartJobs( const pipeline::Configuration&      configuration,
                                                const network::ActivityID&          rootActivityID,
                                                boost::asio::yield_context&          yield_ctx )
 {
-    mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( pipelineID, configuration );
+    mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( configuration );
 
     std::vector< network::ActivityID > jobIDs;
     std::vector< JobActivity::Ptr >    jobs;

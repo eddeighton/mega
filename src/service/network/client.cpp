@@ -42,15 +42,21 @@ Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityMan
 
 void Client::stop()
 {
-    m_receiver.stop();
-    m_socket.close();
-    m_ioContext.stop();
+    try
+    {
+        m_receiver.stop();
+        m_socket.shutdown( boost::asio::ip::tcp::socket::shutdown_both );
+        m_socket.close();
+    }
+    catch( std::exception& ex )
+    {
+        //SPDLOG_ERROR( "Exception in Client destructor: {}", ex.what() );
+    }
 }
 
 void Client::disconnected()
 {
     SPDLOG_INFO( "Client disconnected from: {}", m_connectionID );
-    stop();
 }
 
 Client::~Client()

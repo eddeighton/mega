@@ -67,6 +67,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_json.cpp
 		${DRIVER_SOURCE_DIR}/command_list.cpp
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
+		${DRIVER_SOURCE_DIR}/command_pipeline.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 	)
@@ -80,8 +81,8 @@ add_custom_target( PreprocessMain
 
 add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 
-target_link_libraries( mega utilities )
 target_link_libraries( mega database )
+target_link_libraries( mega utilities )
 target_link_libraries( mega network )
 target_link_libraries( mega service )
 target_link_libraries( mega compiler )

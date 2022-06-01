@@ -6,6 +6,7 @@
 
 #include "common/assert_verify.hpp"
 #include "common/string.hpp"
+#include "common/file.hpp"
 
 #include "boost/program_options.hpp"
 #include "service/protocol/common/header.hpp"
@@ -144,8 +145,10 @@ int main( int argc, const char* argv[] )
             }
             else if ( !strPipeline.empty() )
             {
-                //std::string strPipelineResult = host.PipelineRun( strPipeline );
-                //std::cout << "Pipeline result:\n" << strPipelineResult << std::endl;
+                mega::pipeline::Configuration pipelineConfig;
+                boost::filesystem::loadAsciiFile( boost::filesystem::path( strPipeline ), pipelineConfig.data() );
+                const std::string strResult = host.PipelineRun( pipelineConfig );
+                std::cout << "Pipeline result:\n" << strResult << std::endl;
             }
             else if ( bQuit )
             {

@@ -159,12 +159,11 @@ public:
         getOriginatingHostResponse( yield_ctx ).ListActivities( result );
     }
 
-    virtual void PipelineRun( const mega::pipeline::Pipeline::ID&  pipelineID,
-                              const mega::pipeline::Configuration& configuration,
+    virtual void PipelineRun( const mega::pipeline::Configuration& configuration,
                               boost::asio::yield_context&           yield_ctx ) override
     {
         auto        root                  = getRootRequest( yield_ctx );
-        std::string strTestPipelineResult = root.PipelineRun( pipelineID, configuration );
+        std::string strTestPipelineResult = root.PipelineRun( configuration );
         root.Complete();
         getOriginatingHostResponse( yield_ctx ).PipelineRun( strTestPipelineResult );
     }
@@ -285,8 +284,7 @@ public:
         getRootResponse( yield_ctx ).ReportActivities( activities );
     }
 
-    virtual void PipelineStartJobs( const mega::pipeline::Pipeline::ID&  pipelineID,
-                                    const mega::pipeline::Configuration& configuration,
+    virtual void PipelineStartJobs( const mega::pipeline::Configuration& configuration,
                                     const network::ActivityID&           rootActivityID,
                                     boost::asio::yield_context&           yield_ctx ) override
     {
@@ -295,7 +293,7 @@ public:
         {
             auto                               worker = getWorkerRequest( pWorker, yield_ctx );
             std::vector< network::ActivityID > jobs
-                = worker.PipelineStartJobs( pipelineID, configuration, rootActivityID );
+                = worker.PipelineStartJobs( configuration, rootActivityID );
             worker.Complete();
             std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
         }

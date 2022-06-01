@@ -4,7 +4,7 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
 #get clang
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
+#include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
 
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
@@ -42,7 +42,7 @@ link_boost( utilities timer )
 link_boost( utilities filesystem )
 link_boost( utilities iostreams )
 link_boost( utilities serialization )
-link_clang( utilities )
+#link_clang( utilities )
 link_json( utilities )
 link_inja( utilities )
 link_common( utilities )

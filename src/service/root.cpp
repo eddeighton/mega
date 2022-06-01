@@ -155,13 +155,12 @@ public:
                           const network::ActivityID&   activityID,
                           const network::ConnectionID& originatingConnectionID )
         : RootRequestActivity( root, activityID, originatingConnectionID )
-        , m_taskReady( root.m_io_context, 16 )
-        , m_taskComplete( root.m_io_context, 16 )
+        , m_taskReady( root.m_io_context )
+        , m_taskComplete( root.m_io_context )
     {
     }
 
-    virtual void PipelineRun( const mega::pipeline::Pipeline::ID& pipelineID,
-                              const pipeline::Configuration&      configuration,
+    virtual void PipelineRun( const pipeline::Configuration&      configuration,
                               boost::asio::yield_context&         yield_ctx ) override
     {
         SPDLOG_INFO( "Started pipeline: compiler" );
@@ -172,7 +171,7 @@ public:
         {
             auto                                     daemon = getDaemonRequest( pDaemon, yield_ctx );
             const std::vector< network::ActivityID > jobs
-                = daemon.PipelineStartJobs( pipelineID, configuration, getActivityID() );
+                = daemon.PipelineStartJobs( configuration, getActivityID() );
             daemon.Complete();
             for ( const network::ActivityID& id : jobs )
                 m_jobs.insert( id );
@@ -182,10 +181,10 @@ public:
             THROW_RTE( "Failed to find workers for pipeline" );
         }
 
-        mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( pipelineID, configuration );
+        mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( configuration );
         if ( !pPipeline )
         {
-            THROW_RTE( "Failed to load pipeline: " << pipelineID );
+            THROW_RTE( "Failed to load pipeline: " << configuration.get() );
         }
         mega::pipeline::Schedule                   schedule = pPipeline->getSchedule();
         std::set< mega::pipeline::TaskDescriptor > scheduledTasks, activeTasks;
@@ -253,9 +252,9 @@ public:
         {
             std::ostringstream os;
             if ( bScheduleFailed )
-                os << "Pipeline: " << pipelineID << " failed";
+                os << "Pipeline: " << configuration.get() << " failed";
             else
-                os << "Pipeline: " << pipelineID << " succeeded";
+                os << "Pipeline: " << configuration.get() << " succeeded";
             auto daemon = getOriginatingDaemonResponse( yield_ctx );
             daemon.PipelineRun( os.str() );
         }

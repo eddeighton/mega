@@ -27,19 +27,21 @@
 
 #include "session.hpp"
 
-#include "common/backtrace.hpp"
+//#include "common/backtrace.hpp"
+#include "common/assert_verify.hpp"
 
 #include "clang_utils.hpp"
 
 #include "clang/Sema/Lookup.h"
 #include "clang/Basic/DiagnosticParse.h"
 
-#include "boost/dll.hpp"
-#include <boost/dll/runtime_symbol_info.hpp>
+//#include "boost/dll.hpp"
+//#include <boost/dll/runtime_symbol_info.hpp>
 
 #include <sstream>
 #include <cstdlib>
 #include <memory>
+
 //#include <iostream>
 
 namespace clang
