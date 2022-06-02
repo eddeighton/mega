@@ -1,0 +1,6 @@
+
+
+object Septagon
+{
+    dim int x;
+}

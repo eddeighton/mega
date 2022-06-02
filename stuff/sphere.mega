@@ -2,13 +2,6 @@
 object Sphere
 {
     dim int m_counter1;
+    dim int m_counter2;
     include( <memory> );
-    include( <map> );
-    include( <thread> );
 }
-object Sphere2
-{
-    dim int m_counter1;
-
-}
-

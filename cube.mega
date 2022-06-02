@@ -18,11 +18,6 @@ namespace test
             {
 
             }
-        
-            action CoolInherit2 : CoolInherit, nested8::CoolStuff23
-            {
-
-            }
         }
 
         table TestTable
@@ -39,7 +34,6 @@ namespace test
             link Cube10 [ !123 : 123 ] << [ 123 : !123 ] : Cube3;
             link Cube11 [ !*   : *   ] >  [ *   : !*   ] : Cube3;
             link Cube12 [ !*   : *   ] <> [ *   : !*   ] : Cube3;
-
             //link CoolStuff23 [0:*]<<>[*:0] : nested8::CoolStuff23;
         }
 
@@ -49,7 +43,7 @@ namespace test
             {
                 std::cout << "This is cool" << std::endl;
             }
-            function foobar( int iValue, float fValue ) : void
+            function foobar( int iValue, float fValue, bool other ) : void
             {
                 // do stuff
                 int i = 1;
@@ -61,7 +55,7 @@ namespace test
             std::cout << "Ed was here" << std::endl;
             dim int foo;
         }
-        action TestFFF
+        action TestFF
         {
             std::cout << "Ed was here" << std::endl;
             dim int foo;
