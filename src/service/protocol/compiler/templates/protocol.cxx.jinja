@@ -26,31 +26,13 @@ namespace network
 namespace {{ filename }}
 {
 
-Request_Encode::Request_Encode( network::Activity&            activity,
+Request_Encode::Request_Encode( Activity&            activity,
                                 boost::asio::ip::tcp::socket& socket,
                                 boost::asio::yield_context&   yield_ctx )
     : m_activity( activity )
     , m_socket( socket )
     , m_yield_ctx( yield_ctx )
 {
-}
-
-
-void Request_Encode::Complete()
-{
-    if ( const boost::system::error_code ec = send( m_socket, m_yield_ctx, 
-        [&]( boost::archive::binary_oarchive& oa )
-        {
-            const Header header( MSG_Complete_Request::ID, m_activity.getActivityID() );
-            oa& header;
-        }) )
-    {
-        THROW_RTE( "Error writing: " << ec.what() );
-    }
-    else
-    {
-        SPDLOG_TRACE( "Sent request: MSG_Complete_Request" );
-    }
 }
 
 {% for request in requests %}
@@ -63,6 +45,7 @@ void Request_Encode::Complete()
 {%endfor%} 
 )
 {
+    Activity::RequestStack stack( m_activity, getConnectionID( m_socket ) );
     if ( const boost::system::error_code ec = send( m_socket, m_yield_ctx, 
         [&]( boost::archive::binary_oarchive& oa )
         {
@@ -77,7 +60,7 @@ void Request_Encode::Complete()
     }
     else
     {
-        SPDLOG_TRACE( "Sent request: {{ filename }}::MSG_{{ request.name }}_Request" );
+        SPDLOG_TRACE( "Sent request: {{ filename }}::MSG_{{ request.name }}_Request activity: {}", m_activity.getActivityID().getID() );
     }
 
     const MessageVariant msg = m_activity.dispatchRequestsUntilResponse( m_yield_ctx );
@@ -90,7 +73,7 @@ void Request_Encode::Complete()
 {% endfor %}
 
 
-Response_Encode::Response_Encode( network::Activity&            activity,
+Response_Encode::Response_Encode( Activity&            activity,
                                   boost::asio::ip::tcp::socket& socket,
                                   boost::asio::yield_context&   yield_ctx )
     : m_activity( activity )
@@ -123,7 +106,7 @@ void Response_Encode::{{ response.name }}
     }
     else
     {
-        SPDLOG_TRACE( "Sent response: {{ filename }}::MSG_{{ response.name }}_Response" );
+        SPDLOG_TRACE( "Sent response: {{ filename }}::MSG_{{ response.name }}_Response activity: {}", m_activity.getActivityID().getID() );
     }
 }
 {% endfor %}
@@ -144,7 +127,6 @@ namespace
 {% for request in requests %}
         bool operator() ( const {{ filename }}::MSG_{{ request.name }}_Request& msg ) const
         {
-            m_activity.requestStarted( msg.connectionID );
             m_impl.{{ request.name }}
             ( 
 {%for p in request.params%}

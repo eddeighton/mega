@@ -11,3 +11,15 @@ msg PipelineStartJobs
     request(mega::pipeline::Configuration configuration, network::ActivityID rootActivityID);
     response(std::vector< network::ActivityID > jobs);
 }
+
+msg PipelineStartTask
+{
+    request(mega::pipeline::TaskDescriptor task);
+    response(network::PipelineResult result);
+}
+
+msg ExecuteShutdown
+{
+    request();
+    response();
+}

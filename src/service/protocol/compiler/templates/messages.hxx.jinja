@@ -6,6 +6,7 @@
 
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/common/serialisation.hpp"
+#include "service/protocol/common/pipeline_result.hpp"
 
 #include "common/stash.hpp"
 
@@ -27,6 +28,7 @@ namespace mega
 namespace network
 {
 class Activity;
+
 
 {%for message in messages%}
 {%for namespace in message.namespaces%}

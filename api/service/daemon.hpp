@@ -33,7 +33,9 @@ public:
     Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP );
     ~Daemon();
 
+    void shutdown();
 private:
+    boost::asio::io_context& m_ioContext;
     RequestActivityFactory   m_requestActivityFactory;
     network::ActivityManager m_activityManager;
     network::Client          m_rootClient;

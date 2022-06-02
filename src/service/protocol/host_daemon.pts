@@ -22,3 +22,9 @@ msg PipelineRun
     request(mega::pipeline::Configuration configuration);
     response(std::string result);
 }
+
+msg Shutdown
+{
+    request();
+    response();
+}

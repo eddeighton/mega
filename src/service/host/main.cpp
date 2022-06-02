@@ -4,12 +4,13 @@
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
+#include "service/protocol/common/header.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/string.hpp"
 #include "common/file.hpp"
 
 #include "boost/program_options.hpp"
-#include "service/protocol/common/header.hpp"
 #include <boost/program_options/parsers.hpp>
 #include <boost/filesystem/operations.hpp>
 
@@ -20,8 +21,8 @@
 int main( int argc, const char* argv[] )
 {
     std::optional< std::string > optionalHostName;
-    boost::filesystem::path      logFolder   = boost::filesystem::current_path() / "log";
-    std::string             strConsoleLogLevel = "warn", strLogFileLevel = "warn";
+    boost::filesystem::path      logFolder          = boost::filesystem::current_path() / "log";
+    std::string                  strConsoleLogLevel = "warn", strLogFileLevel = "warn";
     {
         bool bShowHelp = false;
 
@@ -59,7 +60,7 @@ int main( int argc, const char* argv[] )
     try
     {
         auto logThreads = mega::network::configureLog( logFolder, "host", mega::network::fromStr( strConsoleLogLevel ),
-                                           mega::network::fromStr( strLogFileLevel ) );
+                                                       mega::network::fromStr( strLogFileLevel ) );
 
         mega::service::Host host( optionalHostName );
 
@@ -68,7 +69,8 @@ int main( int argc, const char* argv[] )
         bool        bListHosts      = false;
         bool        bListActivities = false;
         std::string strPipeline;
-        bool        bQuit = false;
+        bool        bShutdown = false;
+        bool        bQuit     = false;
 
         namespace po = boost::program_options;
         po::options_description options;
@@ -80,17 +82,18 @@ int main( int argc, const char* argv[] )
         ( "hosts,h",        po::bool_switch( &bListHosts ),             "List hosts"                )
         ( "activities,a",   po::bool_switch( &bListActivities ),        "List activiies"            )
         ( "pipeline,p",     po::value< std::string >( &strPipeline ),   "Run a pipeline"            )
+        ( "shutdown,s",     po::bool_switch( &bShutdown ),              "Shutdown service"          )
         ( "quit,q",         po::bool_switch( &bQuit ),                  "Quit this host"            )
         ;
         // clang-format on
-
-        while ( true )
+        while( host.running() )
         {
             bShowHelp    = false;
             bShowVersion = false;
             bListHosts   = false;
             strPipeline.clear();
-            bQuit = false;
+            bShutdown = false;
+            bQuit     = false;
 
             {
                 std::ostringstream os;
@@ -149,6 +152,11 @@ int main( int argc, const char* argv[] )
                 boost::filesystem::loadAsciiFile( boost::filesystem::path( strPipeline ), pipelineConfig.data() );
                 const std::string strResult = host.PipelineRun( pipelineConfig );
                 std::cout << "Pipeline result:\n" << strResult << std::endl;
+            }
+            else if ( bShutdown )
+            {
+                host.Shutdown();
+                break;
             }
             else if ( bQuit )
             {

@@ -45,8 +45,9 @@ inline boost::system::error_code send( boost::asio::ip::tcp::socket& socket, boo
     return send( buffer, socket, yield_ctx );
 }
 
-boost::system::error_code sendErrorResponse( const ActivityID& activityID, boost::asio::ip::tcp::socket& socket,
+void sendErrorResponse( const ActivityID& activityID, boost::asio::ip::tcp::socket& socket,
                                              const std::string& strErrorMsg, boost::asio::yield_context& yield_ctx );
+
 
 } // namespace network
 } // namespace mega

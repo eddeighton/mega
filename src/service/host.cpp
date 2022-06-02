@@ -5,6 +5,7 @@
 #include "service/network/activity_manager.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
+#include "service/network/log.hpp"
 
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/model/host_daemon.hxx"
@@ -17,6 +18,7 @@
 #include <exception>
 #include <optional>
 #include <future>
+#include <spdlog/spdlog.h>
 
 namespace mega
 {
@@ -37,8 +39,7 @@ public:
 
     virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
     {
-        return network::Activity::dispatchRequest( msg, yield_ctx )
-               || network::daemon_host::Impl::dispatchRequest( msg, *this, yield_ctx );
+        return network::daemon_host::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
@@ -50,7 +51,8 @@ public:
         }
         else
         {
-            // error cannot match connectionID! ???
+            SPDLOG_ERROR( "Cannot resolve connection in error handler" );
+            THROW_RTE( "Host Critical error in error handler" );
         }
     }
 
@@ -69,6 +71,11 @@ public:
         }
 
         getDaemonResponse( yield_ctx ).ReportActivities( activities );
+    }
+    virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx )
+    {
+        getDaemonResponse( yield_ctx ).ExecuteShutdown();
+        m_host.shutdown();
     }
 };
 
@@ -95,6 +102,7 @@ Host::~Host()
     m_client.stop();
     m_work_guard.reset();
     m_io_thread.join();
+    SPDLOG_INFO( "Host shutdown" );
 }
 
 template < typename TResultType, typename TActivityFunctor >
@@ -120,7 +128,7 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        requestStarted( network::getConnectionID( m_client.getSocket() ) );
+        Activity::RequestStack stack( *this, network::getConnectionID( m_client.getSocket() ) );
         try
         {
             m_functor( m_promise, m_client, *this, yield_ctx );
@@ -131,7 +139,6 @@ public:
                                { promise.set_exception( ex ); } );
             throw;
         }
-        requestCompleted();
     }
 };
 
@@ -157,7 +164,6 @@ public:
                             { \
                                 Code; \
                             } \
-                            daemon.Complete(); \
                         } \
                     ) \
                 ) \
@@ -208,7 +214,6 @@ std::string Host::PipelineRun( const mega::pipeline::Configuration& pipelineConf
             auto result = daemon.PipelineRun( pipelineConfig );
             boost::asio::post( [ &promise = promise, result ]() { promise.set_value( result ); } );
         }
-        daemon.Complete();
     };
 
     auto pActivity = new GenericActivity< ResultType, decltype( functor ) >(
@@ -226,5 +231,18 @@ std::string Host::PipelineRun( const mega::pipeline::Configuration& pipelineConf
         return std::string{};
     }
 }
+
+bool Host::Shutdown()
+{
+    SIMPLE_REQUEST( bool, daemon.Shutdown();
+                    boost::asio::post( [ &promise = promise ]() { promise.set_value( true ); } ); );
+}
+
+void Host::shutdown()
+{
+    m_client.stop();
+    m_io_context.stop();
+}
+
 } // namespace service
 } // namespace mega

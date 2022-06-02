@@ -32,8 +32,6 @@ public:
                     boost::asio::ip::tcp::socket& socket,
                     boost::asio::yield_context&   yield_ctx );
 
-    void Complete();
-
 {% for request in requests %}
     {{ request.return_type }} {{ request.name }}
     (

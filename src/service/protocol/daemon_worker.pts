@@ -18,3 +18,14 @@ msg PipelineStartJobs
     response(std::vector< network::ActivityID > jobs);
 }
 
+msg PipelineStartTask
+{
+    request(mega::pipeline::TaskDescriptor task);
+    response(network::PipelineResult result);
+}
+
+msg ExecuteShutdown
+{
+    request();
+    response();
+}

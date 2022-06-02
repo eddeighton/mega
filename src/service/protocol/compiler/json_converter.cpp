@@ -96,18 +96,9 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
     int idCounter = 0; // must match the variant index
 
     {
-        nlohmann::json completionRequest( { { "has_namespace", false },
-                                            { "name", "MSG_Complete_Request" },
-                                            { "is_request", true },
-                                            { "id", idCounter++ },
-                                            { "namespaces", nlohmann::json::array() },
-                                            { "members", nlohmann::json::array() } } );
-        data[ "messages" ].push_back( completionRequest );
-    }
-    {
         nlohmann::json errorResponse( { { "has_namespace", false },
                                         { "name", "MSG_Error_Response" },
-                                        { "is_request", true },
+                                        { "is_request", false },
                                         { "id", idCounter++ },
                                         { "namespaces", nlohmann::json::array() },
                                         { "members", nlohmann::json::array() } } );

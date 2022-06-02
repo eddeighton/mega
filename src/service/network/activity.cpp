@@ -18,56 +18,14 @@ Activity::Activity( ActivityManager& activityManager, const ActivityID& activity
     , m_activityID( activityID )
     , m_originatingEndPoint( originatingConnectionID )
     , m_channel( activityManager.getIOContext() )
-    , m_bStarted( false )
 {
 }
 
 Activity::~Activity() {}
 
-bool Activity::isComplete() const { return m_bStarted && m_stack.empty(); }
-
-void Activity::requestStarted( const ConnectionID& connectionID )
-{
-    m_bStarted = true;
-    m_stack.push_back( connectionID );
-}
-
-void Activity::requestCompleted()
-{
-    VERIFY_RTE( !m_stack.empty() );
-    m_stack.pop_back();
-    if ( m_stack.empty() )
-    {
-        m_activityManager.activityCompleted( shared_from_this() );
-    }
-}
-
-bool Activity::dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
-{
-    if ( msg.index() == network::MSG_Complete_Request::ID )
-    {
-        requestCompleted();
-        return true;
-    }
-    else if ( msg.index() == network::MSG_Error_Response::ID )
-    {
-        requestCompleted();
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
 MessageVariant Activity::receive( boost::asio::yield_context& yield_ctx )
 {
-    MessageVariant msg = m_channel.async_receive( yield_ctx );
-    if ( msg.index() == MSG_Error_Response::ID )
-    {
-        throw std::runtime_error( std::get< MSG_Error_Response >( msg ).what );
-    }
-    return msg;
+    return m_channel.async_receive( yield_ctx );
 }
 
 void Activity::send( const MessageVariant& msg )
@@ -83,15 +41,31 @@ void Activity::send( const MessageVariant& msg )
                           } );
 }
 
+void Activity::requestStarted( const ConnectionID& connectionID )
+{
+    //
+    m_stack.push_back( connectionID );
+}
+
+void Activity::requestCompleted()
+{
+    VERIFY_RTE( !m_stack.empty() );
+    m_stack.pop_back();
+    if ( m_stack.empty() )
+    {
+        m_activityManager.activityCompleted( shared_from_this() );
+    }
+}
+
 // run is ALWAYS call for each activity after it is created
 void Activity::run( boost::asio::yield_context& yield_ctx )
 {
     try
     {
-        while ( !isComplete() )
+        do
         {
             run_one( yield_ctx );
-        }
+        } while ( !m_stack.empty() );
     }
     catch ( std::exception& ex )
     {
@@ -102,12 +76,8 @@ void Activity::run( boost::asio::yield_context& yield_ctx )
 
 void Activity::run_one( boost::asio::yield_context& yield_ctx )
 {
-    const network::MessageVariant msg = receive( yield_ctx );
-    if ( !dispatchRequestImpl( msg, yield_ctx ) )
-    {
-        SPDLOG_ERROR( "Failed to dispatch request: {} on activity: {}", msg, getActivityID().getID() );
-        THROW_RTE( "Failed to dispatch request message: " << msg );
-    }
+    const MessageVariant msg = receive( yield_ctx );
+    dispatchRequestImpl( msg, yield_ctx );
 }
 
 MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
@@ -125,20 +95,29 @@ MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_conte
             break;
         }
     }
+    if ( msg.index() == MSG_Error_Response::ID )
+    {
+        throw std::runtime_error( std::get< MSG_Error_Response >( msg ).what );
+    }
     return msg;
 }
 
-bool Activity::dispatchRequestImpl( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
+void Activity::dispatchRequestImpl( const MessageVariant& msg, boost::asio::yield_context& yield_ctx )
 {
+    Activity::RequestStack stack( *this, getConnectionID( msg ) );
     try
     {
-        return dispatchRequest( msg, yield_ctx );
+        ASSERT( isRequest( msg ) );
+        if ( !dispatchRequest( msg, yield_ctx ) )
+        {
+            SPDLOG_ERROR( "Failed to dispatch request: {} on activity: {}", msg, getActivityID().getID() );
+            THROW_RTE( "Failed to dispatch request message: " << msg );
+        }
     }
     catch ( std::exception& ex )
     {
         SPDLOG_WARN( "Activity: {} exception: {}", getActivityID().getID(), ex.what() );
-        error( getConnectionID( msg ), ex.what(), yield_ctx );
-        return true;
+        error( m_stack.back(), ex.what(), yield_ctx );
     }
 }
 

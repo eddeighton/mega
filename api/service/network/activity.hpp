@@ -31,24 +31,41 @@ public:
 
     const ActivityID&                    getActivityID() const { return m_activityID; }
     const std::optional< ConnectionID >& getOriginatingEndPointID() const { return m_originatingEndPoint; }
-    const ConnectionID&                  getMostRecentRequestConnectionID() const { return m_stack.back(); }
 
     MessageVariant receive( boost::asio::yield_context& yield_ctx );
     void           send( const MessageVariant& msg );
 
-    bool isComplete() const;
+private:
     void requestStarted( const ConnectionID& connectionID );
     void requestCompleted();
+public:
+    class RequestStack
+    {
+        Activity& activity;
+        RequestStack( RequestStack& ) = delete;
+        RequestStack& operator=(RequestStack&) = delete;
+    public:
+        RequestStack( Activity& activity, const ConnectionID& connectionID )
+            :   activity( activity )
+        {
+            activity.requestStarted( connectionID );
+        }
+        ~RequestStack()
+        {
+            activity.requestCompleted();
+        }
+    };
+    friend class Activity::RequestStack;
 
 protected:
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx );
-
     void run_one( boost::asio::yield_context& yield_ctx );
 
 protected:
     friend class ActivityManager;
     // this is called by ActivityManager but can be overridden in initiating activities
     virtual void run( boost::asio::yield_context& yield_ctx );
+
+    virtual bool dispatchRequest( const MessageVariant& msg, boost::asio::yield_context& yield_ctx ) = 0;
     virtual void error( const ConnectionID& connectionID, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx )
         = 0;
@@ -58,7 +75,7 @@ public:
     MessageVariant dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx );
 
 private:
-    bool dispatchRequestImpl( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx );
+    void dispatchRequestImpl( const MessageVariant& msg, boost::asio::yield_context& yield_ctx );
 
 protected:
     ActivityManager&              m_activityManager;
@@ -66,7 +83,6 @@ protected:
     std::optional< ConnectionID > m_originatingEndPoint;
     std::vector< ConnectionID >   m_stack;
     MessageChannel                m_channel;
-    bool                          m_bStarted;
 };
 
 } // namespace network

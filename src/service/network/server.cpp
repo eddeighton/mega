@@ -61,9 +61,15 @@ Server::Server( boost::asio::io_context& ioContext, ActivityManager& activityMan
 
 void Server::stop()
 {
-    m_acceptor.cancel();
     m_acceptor.close();
-    m_ioContext.stop();
+    {
+        ConnectionMap temp = m_connections;
+        for( auto& [ id, pConnection ] : temp )
+        {
+            pConnection->disconnected();
+        }
+        m_connections.clear();
+    }
 }
 
 void Server::waitForConnection()
@@ -83,7 +89,8 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
         pNewConnection->start();
         m_connections.insert( std::make_pair( getConnectionID( pNewConnection->getSocket() ), pNewConnection ) );
     }
-    waitForConnection();
+    if( m_acceptor.is_open() )
+        waitForConnection();
 }
 
 void Server::onDisconnected( Connection::Ptr pConnection )

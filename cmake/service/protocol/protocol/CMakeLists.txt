@@ -77,6 +77,7 @@ add_custom_command(
 set( MEGA_PROTOCOL_COMMON
     ${MEGA_API_DIR}/service/protocol/common/serialisation.hpp
     ${MEGA_API_DIR}/service/protocol/common/header.hpp
+    ${MEGA_API_DIR}/service/protocol/common/pipeline_result.hpp
 	)
 
 add_library( protocol

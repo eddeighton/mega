@@ -39,8 +39,7 @@ public:
 
     virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
     {
-        return network::Activity::dispatchRequest( msg, yield_ctx )
-               || network::daemon_worker::Impl::dispatchRequest( msg, *this, yield_ctx );
+        return network::daemon_worker::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
@@ -52,7 +51,8 @@ public:
         }
         else
         {
-            // ?
+            SPDLOG_ERROR( "Cannot resolve connection in error handler" );
+            THROW_RTE( "Worker Critical error in error handler" );
         }
     }
 
@@ -81,6 +81,12 @@ public:
     {
         getDaemonResponse( yield_ctx ).ListThreads( m_worker.getNumThreads() );
     }
+    
+    virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx ) 
+    {
+        getDaemonResponse( yield_ctx ).ExecuteShutdown();
+        m_worker.shutdown();
+    }
 
     virtual void PipelineStartJobs( const pipeline::Configuration&      configuration,
                                     const network::ActivityID&          rootActivityID,
@@ -92,7 +98,6 @@ class JobActivity : public WorkerRequestActivity, public pipeline::Progress, pub
     const network::ActivityID      m_rootActivityID;
     mega::pipeline::Pipeline::Ptr  m_pPipeline;
     boost::asio::yield_context*    m_pYieldCtx = nullptr;
-    mega::pipeline::TaskDescriptor m_currentTask;
 
 public:
     using Ptr = std::shared_ptr< JobActivity >;
@@ -105,112 +110,54 @@ public:
         VERIFY_RTE( m_pPipeline );
     }
 
+    virtual void PipelineStartTask( const mega::pipeline::TaskDescriptor& task,  boost::asio::yield_context& yield_ctx ) override
+    {
+        m_pYieldCtx = &yield_ctx;
+        m_pPipeline->execute( task, *this, *this );
+    }
+
     // pipeline::Progress
     virtual void onStarted( const std::string& strMsg ) override
     {
-        std::ostringstream os;
-        os << std::this_thread::get_id() << " " << strMsg;
-        auto daemon = getDaemonRequest( *m_pYieldCtx );
-        daemon.PipelineWorkProgress( m_rootActivityID, m_currentTask, os.str() );
-        daemon.Complete();
+        getDaemonRequest( *m_pYieldCtx ).PipelineWorkProgress( strMsg );
     }
 
     virtual void onProgress( const std::string& strMsg ) override
     {
-        std::ostringstream os;
-        os << std::this_thread::get_id() << " " << strMsg;
-        auto daemon = getDaemonRequest( *m_pYieldCtx );
-        daemon.PipelineWorkProgress( m_rootActivityID, m_currentTask, os.str() );
-        daemon.Complete();
+        getDaemonRequest( *m_pYieldCtx ).PipelineWorkProgress( strMsg );
     }
 
     virtual void onFailed( const std::string& strMsg ) override
     {
-        std::ostringstream os;
-        os << std::this_thread::get_id() << " " << strMsg;
-        auto daemon = getDaemonRequest( *m_pYieldCtx );
-        daemon.PipelineWorkFailed( m_rootActivityID, m_currentTask, os.str() );
-        daemon.Complete();
+        getDaemonResponse( *m_pYieldCtx ).PipelineStartTask( network::PipelineResult( false, strMsg ) );
     }
 
     virtual void onCompleted( const std::string& strMsg ) override
     {
-        std::ostringstream os;
-        os << std::this_thread::get_id() << " " << strMsg;
-        auto daemon = getDaemonRequest( *m_pYieldCtx );
-        daemon.PipelineWorkCompleted( m_rootActivityID, m_currentTask, os.str() );
-        daemon.Complete();
+        getDaemonResponse( *m_pYieldCtx ).PipelineStartTask( network::PipelineResult( true, strMsg ) );
     }
 
     // pipeline::Stash
     virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath ) override
     {
-        auto           daemonRequest = getDaemonRequest( *m_pYieldCtx );
-        task::FileHash hashCode      = daemonRequest.getBuildHashCode( filePath );
-        daemonRequest.Complete();
-        return hashCode;
+        return getDaemonRequest( *m_pYieldCtx ).getBuildHashCode( filePath );
     }
     virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) override
     {
-        auto daemonRequest = getDaemonRequest( *m_pYieldCtx );
-        daemonRequest.setBuildHashCode( filePath, hashCode );
-        daemonRequest.Complete();
+        getDaemonRequest( *m_pYieldCtx ).setBuildHashCode( filePath, hashCode );
     }
     virtual void stash( const boost::filesystem::path& file, task::DeterminantHash code ) override
     {
-        auto daemonRequest = getDaemonRequest( *m_pYieldCtx );
-        daemonRequest.stash( file, code );
-        daemonRequest.Complete();
+        getDaemonRequest( *m_pYieldCtx ).stash( file, code );
     }
     virtual bool restore( const boost::filesystem::path& file, task::DeterminantHash code ) override
     {
-        auto daemonRequest = getDaemonRequest( *m_pYieldCtx );
-        bool bResult       = daemonRequest.restore( file, code );
-        daemonRequest.Complete();
-        return bResult;
+        return getDaemonRequest( *m_pYieldCtx ).restore( file, code );
     }
 
     void run( boost::asio::yield_context& yield_ctx ) override
     {
-        requestStarted( network::getConnectionID( m_worker.m_client.getSocket() ) );
-
-        try
-        {
-            SPDLOG_INFO( "JobActivity: {}", getActivityID() );
-
-            m_pYieldCtx = &yield_ctx;
-
-            auto daemonRequest = getDaemonRequest( yield_ctx );
-            while ( true )
-            {
-                m_currentTask = daemonRequest.PipelineReadyForWork( m_rootActivityID );
-                daemonRequest.Complete();
-                if ( m_currentTask != mega::pipeline::TaskDescriptor() )
-                {
-                    try
-                    {
-                        SPDLOG_INFO( "JobActivity got task: {}", m_currentTask.getName() );
-                        m_pPipeline->execute( m_currentTask, *this, *this );
-                    }
-                    catch ( std::exception& ex )
-                    {
-                        SPDLOG_WARN( "Pipeline task failed: {} error: {}", m_currentTask.getName(), ex.what() );
-                        daemonRequest.PipelineWorkFailed( m_rootActivityID, m_currentTask, ex.what() );
-                        daemonRequest.Complete();
-                    }
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-        catch ( std::exception& ex )
-        {
-            SPDLOG_ERROR( "JobActivity exception: {}", ex.what() );
-            throw;
-        }
-        requestCompleted();
+        getDaemonRequest( yield_ctx ).PipelineReadyForWork( m_rootActivityID );
     }
 };
 
@@ -254,14 +201,20 @@ Worker::Worker( boost::asio::io_context& io_context, int numThreads )
     , m_activityManager( m_io_context )
     , m_client(
           m_io_context, m_activityManager, m_activityFactory, "localhost", mega::network::MegaWorkerServiceName() )
-    , m_work_guard( m_io_context.get_executor() )
 {
 }
 
 Worker::~Worker()
 {
     m_client.stop();
-    m_work_guard.reset();
+    SPDLOG_INFO( "Worker shutdown" );
+}
+
+void Worker::shutdown()
+{
+    m_client.stop();
+    m_io_context.stop();
+
 }
 
 } // namespace service

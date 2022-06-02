@@ -42,15 +42,14 @@ public:
 
     virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
     {
-        return network::Activity::dispatchRequest( msg, yield_ctx )
-               || network::host_daemon::Impl::dispatchRequest( msg, *this, yield_ctx )
+        return network::host_daemon::Impl::dispatchRequest( msg, *this, yield_ctx )
                || network::worker_daemon::Impl::dispatchRequest( msg, *this, yield_ctx )
                || network::root_daemon::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connectionID,
                         const std::string&           strErrorMsg,
-                        boost::asio::yield_context&   yield_ctx ) override
+                        boost::asio::yield_context&  yield_ctx ) override
     {
         if ( network::getConnectionID( m_daemon.m_rootClient.getSocket() ) == connectionID )
         {
@@ -68,7 +67,8 @@ public:
         }
         else
         {
-            // ?
+            SPDLOG_ERROR( "Cannot resolve connection in error handler" );
+            THROW_RTE( "Daemon Critical error in error handler" );
         }
     }
 
@@ -102,20 +102,10 @@ public:
         THROW_RTE( "Could not locate originating connection" );
     }
 
-    network::worker_daemon::Response_Encode getMostRecentWorkerResponse( boost::asio::yield_context& yield_ctx )
+    network::daemon_worker::Request_Encode getOriginatingWorkerRequest( boost::asio::yield_context& yield_ctx )
     {
         if ( network::Server::Connection::Ptr pConnection
-             = m_daemon.m_workerServer.getConnection( getMostRecentRequestConnectionID() ) )
-        {
-            return network::worker_daemon::Response_Encode( *this, pConnection->getSocket(), yield_ctx );
-        }
-        THROW_RTE( "Could not locate originating connection" );
-    }
-
-    network::daemon_worker::Request_Encode getMostRecentWorkerRequest( boost::asio::yield_context& yield_ctx )
-    {
-        if ( network::Server::Connection::Ptr pConnection
-             = m_daemon.m_workerServer.getConnection( getMostRecentRequestConnectionID() ) )
+             = m_daemon.m_workerServer.getConnection( getOriginatingEndPointID().value() ) )
         {
             return network::daemon_worker::Request_Encode( *this, pConnection->getSocket(), yield_ctx );
         }
@@ -123,13 +113,13 @@ public:
     }
 
     network::daemon_worker::Request_Encode getWorkerRequest( network::Server::Connection::Ptr pWorker,
-                                                             boost::asio::yield_context&       yield_ctx )
+                                                             boost::asio::yield_context&      yield_ctx )
     {
         return network::daemon_worker::Request_Encode( *this, pWorker->getSocket(), yield_ctx );
     }
 
     network::daemon_host::Request_Encode getHostRequest( network::Server::Connection::Ptr pHost,
-                                                         boost::asio::yield_context&       yield_ctx )
+                                                         boost::asio::yield_context&      yield_ctx )
     {
         return network::daemon_host::Request_Encode( *this, pHost->getSocket(), yield_ctx );
     }
@@ -137,10 +127,7 @@ public:
     // network::host_daemon::Impl
     virtual void GetVersion( boost::asio::yield_context& yield_ctx ) override
     {
-        auto        root                    = getRootRequest( yield_ctx );
-        std::string strMegaStructureVersion = root.GetVersion();
-        root.Complete();
-        getOriginatingHostResponse( yield_ctx ).GetVersion( strMegaStructureVersion );
+        getOriginatingHostResponse( yield_ctx ).GetVersion( getRootRequest( yield_ctx ).GetVersion() );
     }
 
     virtual void ListHosts( boost::asio::yield_context& yield_ctx ) override
@@ -155,73 +142,45 @@ public:
     {
         auto root   = getRootRequest( yield_ctx );
         auto result = root.ListActivities();
-        root.Complete();
         getOriginatingHostResponse( yield_ctx ).ListActivities( result );
     }
 
     virtual void PipelineRun( const mega::pipeline::Configuration& configuration,
-                              boost::asio::yield_context&           yield_ctx ) override
+                              boost::asio::yield_context&          yield_ctx ) override
     {
         auto        root                  = getRootRequest( yield_ctx );
         std::string strTestPipelineResult = root.PipelineRun( configuration );
-        root.Complete();
         getOriginatingHostResponse( yield_ctx ).PipelineRun( strTestPipelineResult );
     }
 
+    virtual void Shutdown( boost::asio::yield_context& yield_ctx ) override
+    {
+        // swapped order - response first - then send actual request
+        getOriginatingHostResponse( yield_ctx ).Shutdown();
+        getRootRequest( yield_ctx ).Shutdown();
+    }
+
     // network::worker_daemon::Impl
-    virtual void PipelineReadyForWork( const network::ActivityID& rootActivityID,
+    virtual void PipelineReadyForWork( const network::ActivityID&  rootActivityID,
                                        boost::asio::yield_context& yield_ctx ) override
     {
-        SPDLOG_INFO( "PipelineReadyForWork: {}", getActivityID() );
-        auto                           root = getRootRequest( yield_ctx );
-        mega::pipeline::TaskDescriptor task = root.PipelineReadyForWork( rootActivityID );
-        root.Complete();
-        auto worker = getOriginatingWorkerResponse( yield_ctx );
-        worker.PipelineReadyForWork( task );
+        getRootRequest( yield_ctx ).PipelineReadyForWork( rootActivityID );
+        getOriginatingWorkerResponse( yield_ctx ).PipelineReadyForWork();
     }
 
-    virtual void PipelineWorkProgress( const network::ActivityID&            rootActivityID,
-                                       const mega::pipeline::TaskDescriptor& task,
-                                       const std::string&                    strMessage,
-                                       boost::asio::yield_context&            yield_ctx ) override
+    virtual void PipelineWorkProgress( const std::string& message, boost::asio::yield_context& yield_ctx ) override
     {
-        auto root = getRootRequest( yield_ctx );
-        root.PipelineWorkProgress( rootActivityID, task, strMessage );
-        root.Complete();
-        auto worker = getOriginatingWorkerResponse( yield_ctx );
-        worker.PipelineWorkProgress();
-    }
-
-    virtual void PipelineWorkFailed( const network::ActivityID&            rootActivityID,
-                                     const mega::pipeline::TaskDescriptor& task, const std::string& strMessage,
-                                     boost::asio::yield_context& yield_ctx ) override
-    {
-        auto root = getRootRequest( yield_ctx );
-        root.PipelineWorkFailed( rootActivityID, task, strMessage );
-        root.Complete();
-        auto worker = getOriginatingWorkerResponse( yield_ctx );
-        worker.PipelineWorkFailed();
-    }
-
-    virtual void PipelineWorkCompleted( const network::ActivityID&            rootActivityID,
-                                        const mega::pipeline::TaskDescriptor& task, const std::string& strMessage,
-                                        boost::asio::yield_context& yield_ctx ) override
-    {
-        auto root = getRootRequest( yield_ctx );
-        root.PipelineWorkCompleted( rootActivityID, task, strMessage );
-        root.Complete();
-        auto worker = getOriginatingWorkerResponse( yield_ctx );
-        worker.PipelineWorkCompleted();
+        getRootRequest( yield_ctx ).PipelineWorkProgress( message );
+        getOriginatingWorkerResponse( yield_ctx ).PipelineWorkProgress();
     }
 
     // network::worker_daemon::Impl worker stash
     virtual void getBuildHashCode( const boost::filesystem::path& filePath,
-                                   boost::asio::yield_context&     yield_ctx ) override
+                                   boost::asio::yield_context&    yield_ctx ) override
     {
         auto                 root     = getRootRequest( yield_ctx );
         const task::FileHash hashCode = root.getBuildHashCode( filePath );
-        root.Complete();
-        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        auto                 worker   = getOriginatingWorkerResponse( yield_ctx );
         worker.getBuildHashCode( hashCode );
     }
 
@@ -230,7 +189,6 @@ public:
     {
         auto root = getRootRequest( yield_ctx );
         root.setBuildHashCode( filePath, hashCode );
-        root.Complete();
         auto worker = getOriginatingWorkerResponse( yield_ctx );
         worker.setBuildHashCode();
     }
@@ -240,7 +198,6 @@ public:
     {
         auto root = getRootRequest( yield_ctx );
         root.stash( filePath, determinant );
-        root.Complete();
         auto worker = getOriginatingWorkerResponse( yield_ctx );
         worker.stash();
     }
@@ -250,8 +207,7 @@ public:
     {
         auto       root      = getRootRequest( yield_ctx );
         const bool bRestored = root.restore( filePath, determinant );
-        root.Complete();
-        auto worker = getOriginatingWorkerResponse( yield_ctx );
+        auto       worker    = getOriginatingWorkerResponse( yield_ctx );
         worker.restore( bRestored );
     }
 
@@ -269,7 +225,6 @@ public:
         {
             auto host           = getHostRequest( pDeamon, yield_ctx );
             auto hostActivities = host.ReportActivities();
-            host.Complete();
             std::copy( hostActivities.begin(), hostActivities.end(), std::back_inserter( activities ) );
         }
 
@@ -277,7 +232,6 @@ public:
         {
             auto worker           = getWorkerRequest( pDeamon, yield_ctx );
             auto workerActivities = worker.ReportActivities();
-            worker.Complete();
             std::copy( workerActivities.begin(), workerActivities.end(), std::back_inserter( activities ) );
         }
 
@@ -286,18 +240,37 @@ public:
 
     virtual void PipelineStartJobs( const mega::pipeline::Configuration& configuration,
                                     const network::ActivityID&           rootActivityID,
-                                    boost::asio::yield_context&           yield_ctx ) override
+                                    boost::asio::yield_context&          yield_ctx ) override
     {
         std::vector< network::ActivityID > allJobs;
         for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
         {
             auto                               worker = getWorkerRequest( pWorker, yield_ctx );
-            std::vector< network::ActivityID > jobs
-                = worker.PipelineStartJobs( configuration, rootActivityID );
-            worker.Complete();
+            std::vector< network::ActivityID > jobs   = worker.PipelineStartJobs( configuration, rootActivityID );
             std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
         }
         getRootResponse( yield_ctx ).PipelineStartJobs( allJobs );
+    }
+
+    virtual void PipelineStartTask( const mega::pipeline::TaskDescriptor& task,
+                                    boost::asio::yield_context&           yield_ctx ) override
+    {
+        getRootResponse( yield_ctx )
+            .PipelineStartTask( getOriginatingWorkerRequest( yield_ctx ).PipelineStartTask( task ) );
+    }
+
+    virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx ) override
+    {
+        for ( const auto& [ id, pDeamon ] : m_daemon.m_hostServer.getConnections() )
+        {
+            getHostRequest( pDeamon, yield_ctx ).ExecuteShutdown();
+        }
+        for ( const auto& [ id, pDeamon ] : m_daemon.m_workerServer.getConnections() )
+        {
+            getWorkerRequest( pDeamon, yield_ctx ).ExecuteShutdown();
+        }
+        getRootResponse( yield_ctx ).ExecuteShutdown();
+        m_daemon.shutdown();
     }
 };
 
@@ -316,7 +289,8 @@ Daemon::RequestActivityFactory::createRequestActivity( const network::Header&   
 ////////////////////////////////////////////////////////////////
 // Daemon
 Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP )
-    : m_requestActivityFactory( *this )
+    : m_ioContext( ioContext )
+    , m_requestActivityFactory( *this )
     , m_activityManager( ioContext )
     , m_rootClient(
           ioContext, m_activityManager, m_requestActivityFactory, strRootIP, mega::network::MegaRootServiceName() )
@@ -332,6 +306,15 @@ Daemon::~Daemon()
     m_rootClient.stop();
     m_hostServer.stop();
     m_workerServer.stop();
+    SPDLOG_INFO( "Daemon shutdown" );
+}
+
+void Daemon::shutdown()
+{
+    m_rootClient.stop();
+    m_hostServer.stop();
+    m_workerServer.stop();
+    m_ioContext.stop();
 }
 
 } // namespace service

@@ -42,11 +42,14 @@ class Host
 public:
     Host( std::optional< const std::string > optName = std::nullopt );
     ~Host();
+    void shutdown();
+    bool running() { return !m_io_context.stopped(); }
 
     std::string                        GetVersion();
     std::vector< std::string >         ListHosts();
     std::vector< network::ActivityID > listActivities();
     std::string                        PipelineRun( const mega::pipeline::Configuration& pipelineConfig );
+    bool                               Shutdown();
 
 private:
     HostActivityFactory      m_activityFactory;

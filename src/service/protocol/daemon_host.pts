@@ -5,3 +5,9 @@ msg ReportActivities
     request();
     response(std::vector< network::ActivityID > activities);
 }
+
+msg ExecuteShutdown
+{
+    request();
+    response();
+}

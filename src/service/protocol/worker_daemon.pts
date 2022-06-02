@@ -4,24 +4,12 @@
 msg PipelineReadyForWork
 {
     request(network::ActivityID rootActivityID);
-    response(mega::pipeline::TaskDescriptor task);
+    response();
 }
 
 msg PipelineWorkProgress
 {
-    request(network::ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string message);
-    response();
-}
-
-msg PipelineWorkFailed
-{
-    request(network::ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string message);
-    response();
-}
-
-msg PipelineWorkCompleted
-{
-    request(network::ActivityID rootActivityID, mega::pipeline::TaskDescriptor task, std::string message);
+    request(std::string message);
     response();
 }
 

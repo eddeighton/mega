@@ -23,7 +23,7 @@ class Worker
 {
     friend class WorkerRequestActivity;
     friend class JobActivity;
-    
+
     class HostActivityFactory : public network::ActivityFactory
     {
         Worker& m_worker;
@@ -41,6 +41,7 @@ class Worker
 public:
     Worker( boost::asio::io_context& io_context, int numThreads );
     ~Worker();
+    void shutdown();
 
     int getNumThreads() const { return m_numThreads; }
 
@@ -50,8 +51,6 @@ private:
     int                      m_numThreads;
     network::ActivityManager m_activityManager;
     network::Client          m_client;
-    using ExecutorType = decltype( m_io_context.get_executor() );
-    boost::asio::executor_work_guard< ExecutorType > m_work_guard;
 };
 
 } // namespace service

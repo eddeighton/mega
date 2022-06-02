@@ -38,7 +38,7 @@ private:
     using WriteLock = std::unique_lock< std::shared_mutex >;
     using ReadLock  = std::shared_lock< std::shared_mutex >;
 
-    mutable ActivityID::ID m_nextActivityID = 1U;
+    mutable ActivityID::ID m_nextActivityID = 0U;
 };
 
 class ActivityFactory

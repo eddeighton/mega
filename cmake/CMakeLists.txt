@@ -41,3 +41,10 @@ add_subdirectory(utilities)
 add_subdirectory(service)
 add_subdirectory(driver)
 #add_subdirectory(tests)
+
+# install scripts
+set( MEGA_SCRIPTS
+    ${MEGA_ROOT_DIR}/scripts/startup.sh 
+)
+
+install( FILES ${MEGA_SCRIPTS} DESTINATION bin )

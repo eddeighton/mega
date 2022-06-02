@@ -3,9 +3,9 @@
 
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
-/*
+
+#ifdef DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT
 #include "clang/Format/Format.h"
-//#include "clang/Basic/VirtualFileSystem.h"
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/SourceLocation.h"
 #include "clang/Basic/Diagnostic.h"
@@ -15,14 +15,15 @@
 #include "clang/Tooling/Refactoring.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/raw_os_ostream.h"
-*/
+#endif
+
 namespace mega
 {
 namespace utilities
 {
 void clang_format( std::string& strNewFileContents, std::optional< boost::filesystem::path > formatSpecPath )
 {
-    /*
+#ifdef DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT
     std::vector< clang::tooling::Range > ranges;
     ranges.push_back( clang::tooling::Range( 0U, strNewFileContents.size() ) );
 
@@ -97,7 +98,8 @@ void clang_format( std::string& strNewFileContents, std::optional< boost::filesy
     if ( pChangedCode )
     {
         strNewFileContents = *pChangedCode;
-    }*/
+    }
+#endif
 }
 
 } // namespace utilities

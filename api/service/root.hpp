@@ -34,7 +34,7 @@ class Root
 
 public:
     Root( boost::asio::io_context& ioContext );
-
+    void shutdown();
 private:
     boost::asio::io_context& m_io_context;
     RootActivityFactory      m_activityFactory;
