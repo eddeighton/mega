@@ -478,6 +478,10 @@ public:
         {
             bReusedOldDatabase = false;
         }
+        catch ( std::exception& )
+        {
+            bReusedOldDatabase = false;
+        }
 
         if ( !bReusedOldDatabase )
         {

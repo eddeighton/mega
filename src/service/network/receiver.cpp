@@ -3,7 +3,8 @@
 #include "service/network/end_point.hpp"
 
 #include "service/protocol/common/header.hpp"
-#include "service/protocol/common/serialisation.hpp"
+
+#include "utilities/serialization_helpers.hpp"
 
 #include "common/assert_verify.hpp"
 

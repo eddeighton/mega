@@ -22,6 +22,8 @@
 
 #include "object_loader.hpp"
 
+#include "utilities/serialization_helpers.hpp"
+
 #include "nlohmann/json.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -80,72 +82,6 @@ namespace boost
     {
         inline void to_json( nlohmann::json& j, const boost::filesystem::path& p ) { j = nlohmann::json{ { "path", p.string() } }; }
     } // namespace filesystem
-    namespace serialization
-    {
-        template < class Archive >
-        inline void serialize( Archive& ar, boost::filesystem::path& p, const unsigned int version )
-        {
-            std::string s;
-            if ( Archive::is_saving::value )
-                s = p.generic_string();
-            ar& boost::serialization::make_nvp( "string", s );
-            if ( Archive::is_loading::value )
-                p = s;
-        }
-
-        template < class Archive >
-        inline void serialize( Archive& ar, std::optional< boost::filesystem::path >& p, const unsigned int version )
-        {
-            std::string s;
-            if ( Archive::is_saving::value )
-            {
-                if ( p.has_value() )
-                    s = p.value().generic_string();
-                else
-                    s = "";
-            }
-            ar& boost::serialization::make_nvp( "string", s );
-            if ( Archive::is_loading::value )
-            {
-                if ( s.empty() )
-                    p = std::optional< boost::filesystem::path >();
-                else
-                    p = s;
-            }
-        }
-
-        template < class Archive, class T >
-        inline void serialize( Archive& ar, std::optional< T >& optionalValue, const unsigned int version )
-        {
-            if ( Archive::is_saving::value )
-            {
-                if ( optionalValue.has_value() )
-                {
-                    bool bTrueIsTrue = true;
-                    ar&  bTrueIsTrue;
-                    ar&  optionalValue.value();
-                }
-                else
-                {
-                    bool bFalseIsFalse = false;
-                    ar&  bFalseIsFalse;
-                }
-            }
-
-            if ( Archive::is_loading::value )
-            {
-                bool bHasValue = false;
-                ar&  bHasValue;
-                if ( bHasValue )
-                {
-                    T   temp;
-                    ar& temp;
-                    optionalValue = temp;
-                }
-            }
-        }
-
-    } // namespace serialization
 } // namespace boost
 
 #endif // ARCHIVE_18_04_2019

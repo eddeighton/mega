@@ -8,6 +8,8 @@
 #include "database/common/environments.hpp"
 #include "database/types/sources.hpp"
 
+#include "utilities/tool_chain_hash.hpp"
+
 #include "common/string.hpp"
 #include "common/terminal.hpp"
 #include "common/file.hpp"
@@ -62,13 +64,13 @@ namespace interface
 
 struct TaskArguments
 {
-    TaskArguments( const mega::io::StashEnvironment& environment, const mega::compiler::ToolChain& toolChain )
+    TaskArguments( const mega::io::StashEnvironment& environment, const mega::utilities::ToolChain& toolChain )
         : environment( environment )
         , toolChain( toolChain )
     {
     }
     const mega::io::StashEnvironment& environment;
-    const mega::compiler::ToolChain&  toolChain;
+    const mega::utilities::ToolChain& toolChain;
 };
 /*
 static const char psz_start[]   = "{} START   {:>55} -> {:<55}";
@@ -82,7 +84,7 @@ class BaseTask
 protected:
     std::string                       m_strTaskName;
     const mega::io::StashEnvironment& m_environment;
-    const mega::compiler::ToolChain&  m_toolChain;
+    const mega::utilities::ToolChain& m_toolChain;
 
 public:
     using Ptr = std::unique_ptr< BaseTask >;

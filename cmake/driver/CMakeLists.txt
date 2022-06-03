@@ -68,6 +68,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_list.cpp
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
 		${DRIVER_SOURCE_DIR}/command_pipeline.cpp
+		${DRIVER_SOURCE_DIR}/command_tool_chain_hash.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 	)
@@ -103,3 +104,27 @@ link_common( mega )
 install( TARGETS mega DESTINATION bin)
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )
 install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )
+
+
+# determine toolchain locations
+set( MEGA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX} )
+find_path(LLVM_CONFIGURATION_PATH NAMES "llvm/install" PATHS ${BUILD_PATH}/${CFG_TUPLE} REQUIRED NO_DEFAULT_PATH)
+find_file(CLANG_COMPILER NAMES clang PATHS ${LLVM_CONFIGURATION_PATH}/llvm/install/bin REQUIRED NO_DEFAULT_PATH)
+find_file(MEGA_COMPILER_PIPELINE NAMES libcompiler.so libcompiler.a PATHS ${MEGA_INSTALL_PATH}/bin REQUIRED NO_DEFAULT_PATH)
+find_file(MEGA_PARSER NAMES libparser.so PATHS ${MEGA_INSTALL_PATH}/bin REQUIRED NO_DEFAULT_PATH)
+find_file(MEGA_DATABASE NAMES libdatabase.so libdatabase.a PATHS ${MEGA_INSTALL_PATH}/bin REQUIRED NO_DEFAULT_PATH)
+find_file(CLANG_PLUGIN NAMES libclang_plugin.so PATHS ${MEGA_INSTALL_PATH}/bin REQUIRED NO_DEFAULT_PATH)
+
+add_custom_command( TARGET mega POST_BUILD 
+	COMMAND mega --tool_chain_hash
+	
+		--mega_compiler 	${MEGA_COMPILER_PIPELINE}
+		--clang_compiler 	${CLANG_COMPILER}
+		--parser_dll 		${MEGA_PARSER}
+		--clang_plugin 		${CLANG_PLUGIN}
+		--database_dll 		${MEGA_DATABASE}
+	
+		--output_xml		toolchain.xml
+		)
+
+install( FILES ${CMAKE_CURRENT_BINARY_DIR}/toolchain.xml DESTINATION etc )

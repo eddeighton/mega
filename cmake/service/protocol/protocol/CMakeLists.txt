@@ -75,7 +75,6 @@ add_custom_command(
     )
 
 set( MEGA_PROTOCOL_COMMON
-    ${MEGA_API_DIR}/service/protocol/common/serialisation.hpp
     ${MEGA_API_DIR}/service/protocol/common/header.hpp
     ${MEGA_API_DIR}/service/protocol/common/pipeline_result.hpp
 	)
@@ -86,6 +85,7 @@ add_library( protocol
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
 				)
 
+target_link_libraries( protocol utilities )
 target_link_libraries( protocol pipeline )
 
 target_compile_options( protocol PUBLIC "-fcoroutines" )
