@@ -35,6 +35,11 @@ Receiver::Receiver( ActivityManager& activityManager, ActivityFactory& activityF
     updateLastActivityTime();
 }
 
+Receiver::~Receiver()
+{
+    m_bContinue = false;
+}
+
 void Receiver::updateLastActivityTime() { m_lastActivityTime = std::chrono::steady_clock::now(); }
 
 void Receiver::onError( const ConnectionID& connectionID, const boost::system::error_code& ec )
@@ -48,6 +53,10 @@ void Receiver::onError( const ConnectionID& connectionID, const boost::system::e
     {
         // SPDLOG_INFO( "Connection: {} closed. Error: {}", connectionID, ec.what() );
         //  This is what happens when close socket normally
+    }
+    else if( ec == boost::asio::error::connection_reset )
+    {
+
     }
     else
     {
@@ -86,9 +95,8 @@ void Receiver::receive( boost::asio::yield_context& yield_ctx )
                         }
                         else
                         {
-                            // THROW_RTE( "Failed to read message size" );
                             SPDLOG_ERROR( "Socket: {} error reading message size", connectionID );
-                            m_socket.close();
+                            m_bContinue = false;
                         }
                     }
                     else // if( ec.failed() )

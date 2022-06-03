@@ -75,7 +75,8 @@ public:
     virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx )
     {
         getDaemonResponse( yield_ctx ).ExecuteShutdown();
-        m_host.shutdown();
+
+        boost::asio::post( [ &host = m_host ]() { host.shutdown(); } );
     }
 };
 
@@ -85,24 +86,6 @@ Host::HostActivityFactory::createRequestActivity( const network::Header&       m
 {
     return network::Activity::Ptr(
         new HostRequestActivity( m_host, msgHeader.getActivityID(), originatingConnectionID ) );
-}
-
-Host::Host( std::optional< const std::string > optName /* = std::nullopt*/ )
-    : m_activityFactory( *this )
-    , m_activityManager( "host", m_io_context )
-    , m_client(
-          m_io_context, m_activityManager, m_activityFactory, "localhost", mega::network::MegaDaemonServiceName() )
-    , m_work_guard( m_io_context.get_executor() )
-    , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
-{
-}
-
-Host::~Host()
-{
-    m_client.stop();
-    m_work_guard.reset();
-    m_io_thread.join();
-    SPDLOG_INFO( "Host shutdown" );
 }
 
 template < typename TResultType, typename TActivityFunctor >
@@ -231,6 +214,20 @@ network::PipelineResult Host::PipelineRun( const mega::pipeline::Configuration& 
     }
 }
 
+Host::Host( std::optional< const std::string > optName /* = std::nullopt*/ )
+    : m_activityFactory( *this )
+    , m_activityManager( "host", m_io_context )
+    , m_client(
+          m_io_context, m_activityManager, m_activityFactory, "localhost", mega::network::MegaDaemonServiceName() )
+    , m_work_guard( m_io_context.get_executor() )
+    , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
+{
+}
+
+Host::~Host()
+{
+}
+
 bool Host::Shutdown()
 {
     SIMPLE_REQUEST( bool, daemon.Shutdown();
@@ -240,7 +237,6 @@ bool Host::Shutdown()
 void Host::shutdown()
 {
     m_client.stop();
-    m_io_context.stop();
 }
 
 } // namespace service

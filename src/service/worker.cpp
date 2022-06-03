@@ -85,7 +85,8 @@ public:
     virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx ) 
     {
         getDaemonResponse( yield_ctx ).ExecuteShutdown();
-        m_worker.shutdown();
+
+        boost::asio::post( [ &worker = m_worker ]() { worker.shutdown(); } );
     }
 
     virtual void PipelineStartJobs( const pipeline::Configuration&      configuration,
@@ -206,14 +207,12 @@ Worker::Worker( boost::asio::io_context& io_context, int numThreads )
 
 Worker::~Worker()
 {
-    m_client.stop();
     SPDLOG_INFO( "Worker shutdown" );
 }
 
 void Worker::shutdown()
 {
     m_client.stop();
-    m_io_context.stop();
 
 }
 

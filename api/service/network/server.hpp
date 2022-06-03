@@ -40,6 +40,7 @@ public:
 
     protected:
         void start();
+        void stop();
         void disconnected();
 
     private:
@@ -55,6 +56,7 @@ public:
 public:
     Server( boost::asio::io_context& ioContext, ActivityManager& activityManager, ActivityFactory& activityFactory,
             short port );
+    ~Server();
 
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
     Connection::Ptr          getConnection( const ConnectionID& connectionID );

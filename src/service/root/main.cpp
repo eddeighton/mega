@@ -12,6 +12,7 @@
 #include <boost/filesystem/operations.hpp>
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <chrono>
 #include <thread>

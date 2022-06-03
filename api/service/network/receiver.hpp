@@ -21,6 +21,7 @@ class Receiver
 public:
     Receiver( ActivityManager& activityManager, ActivityFactory& activityFactory, boost::asio::ip::tcp::socket& socket,
               std::function< void() > disconnectHandler );
+    ~Receiver();
 
     template < typename TExecutor >
     void run( TExecutor& strandOrIOContext )

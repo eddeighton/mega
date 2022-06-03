@@ -120,7 +120,8 @@ public:
         {
             getDaemonRequest( pDeamon, yield_ctx ).ExecuteShutdown();
         }
-        m_root.shutdown();
+        
+        boost::asio::post( [ &root = m_root ]() { root.shutdown(); } );
     }
 
     // pipeline::Stash
@@ -461,8 +462,6 @@ Root::Root( boost::asio::io_context& ioContext )
 void Root::shutdown()
 {
     m_server.stop();
-    m_io_context.stop();
-
     SPDLOG_INFO( "Root shutdown" );
 }
 

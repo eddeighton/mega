@@ -270,7 +270,8 @@ public:
             getWorkerRequest( pDeamon, yield_ctx ).ExecuteShutdown();
         }
         getRootResponse( yield_ctx ).ExecuteShutdown();
-        m_daemon.shutdown();
+
+        boost::asio::post( [ &daemon = m_daemon ]() { daemon.shutdown(); } );
     }
 };
 
@@ -303,9 +304,6 @@ Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP
 
 Daemon::~Daemon()
 {
-    m_rootClient.stop();
-    m_hostServer.stop();
-    m_workerServer.stop();
     SPDLOG_INFO( "Daemon shutdown" );
 }
 
@@ -314,7 +312,6 @@ void Daemon::shutdown()
     m_rootClient.stop();
     m_hostServer.stop();
     m_workerServer.stop();
-    m_ioContext.stop();
 }
 
 } // namespace service

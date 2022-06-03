@@ -42,33 +42,19 @@ Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityMan
 
 void Client::stop()
 {
-    try
-    {
-        m_receiver.stop();
-        m_socket.shutdown( boost::asio::ip::tcp::socket::shutdown_both );
-        m_socket.close();
-    }
-    catch( std::exception& ex )
-    {
-        //SPDLOG_ERROR( "Exception in Client destructor: {}", ex.what() );
-    }
+    m_socket.shutdown( boost::asio::ip::tcp::socket::shutdown_both );
+    m_receiver.stop();
 }
 
 void Client::disconnected()
 {
     SPDLOG_INFO( "Client disconnected from: {}", m_connectionID );
+    if( m_socket.is_open() )
+        m_socket.close();
 }
 
 Client::~Client()
 {
-    try
-    {
-        stop();
-    }
-    catch ( std::exception& ex )
-    {
-        SPDLOG_ERROR( "Exception shutting down: {}", ex.what() );
-    }
 }
 
 } // namespace network

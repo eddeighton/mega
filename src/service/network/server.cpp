@@ -26,10 +26,6 @@ Server::Connection::Connection( Server& server, boost::asio::io_context& ioConte
 
 Server::Connection::~Connection()
 {
-    m_receiver.stop();
-    m_socket.close();
-
-    SPDLOG_INFO( "Connection stopped: {}", m_strName );
 }
 
 void Server::Connection::start()
@@ -48,7 +44,18 @@ void Server::Connection::start()
     SPDLOG_INFO( "New connection started: {}", m_strName );
 }
 
-void Server::Connection::disconnected() { m_server.onDisconnected( shared_from_this() ); }
+void Server::Connection::stop()
+{
+    m_socket.shutdown( boost::asio::ip::tcp::socket::shutdown_both );
+    m_receiver.stop();
+}
+
+void Server::Connection::disconnected() 
+{ 
+    if( m_socket.is_open() )
+        m_socket.close();
+    m_server.onDisconnected( shared_from_this() ); 
+}
 
 Server::Server( boost::asio::io_context& ioContext, ActivityManager& activityManager, ActivityFactory& activityFactory,
                 short port )
@@ -59,6 +66,10 @@ Server::Server( boost::asio::io_context& ioContext, ActivityManager& activityMan
 {
 }
 
+Server::~Server()
+{
+}
+
 void Server::stop()
 {
     m_acceptor.close();
@@ -66,9 +77,8 @@ void Server::stop()
         ConnectionMap temp = m_connections;
         for( auto& [ id, pConnection ] : temp )
         {
-            pConnection->disconnected();
+            pConnection->stop();
         }
-        m_connections.clear();
     }
 }
 
