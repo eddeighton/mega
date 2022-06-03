@@ -198,7 +198,7 @@ Worker::Worker( boost::asio::io_context& io_context, int numThreads )
     : m_activityFactory( *this )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
-    , m_activityManager( m_io_context )
+    , m_activityManager( "worker", m_io_context )
     , m_client(
           m_io_context, m_activityManager, m_activityFactory, "localhost", mega::network::MegaWorkerServiceName() )
 {

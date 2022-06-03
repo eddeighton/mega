@@ -45,7 +45,7 @@ Request_Encode::Request_Encode( Activity&            activity,
 {%endfor%} 
 )
 {
-    Activity::RequestStack stack( m_activity, getConnectionID( m_socket ) );
+    Activity::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_activity, getConnectionID( m_socket ) );
     if ( const boost::system::error_code ec = send( m_socket, m_yield_ctx, 
         [&]( boost::archive::binary_oarchive& oa )
         {
@@ -57,10 +57,6 @@ Request_Encode::Request_Encode( Activity&            activity,
         }) )
     {
         THROW_RTE( "Error writing: " << ec.what() );
-    }
-    else
-    {
-        SPDLOG_TRACE( "Sent request: {{ filename }}::MSG_{{ request.name }}_Request activity: {}", m_activity.getActivityID().getID() );
     }
 
     const MessageVariant msg = m_activity.dispatchRequestsUntilResponse( m_yield_ctx );

@@ -219,7 +219,7 @@ public:
     CompilerPipeline() {}
 
     // pipeline::Pipeline
-    virtual pipeline::Schedule getSchedule() override;
+    virtual pipeline::Schedule getSchedule( pipeline::Progress& progress, pipeline::Stash& stash ) override;
     virtual void               execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
                                         pipeline::Stash& stash ) override;
 
@@ -229,30 +229,33 @@ public:
     }
 };
 
-pipeline::Schedule CompilerPipeline::getSchedule()
+pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, pipeline::Stash& stash )
 {
     VERIFY_RTE( m_configuration.has_value() );
 
-    pipeline::Dependencies dependencies;
+    using TskDesc    = pipeline::TaskDescriptor;
+    using TskDescVec = pipeline::TaskDescriptor::Vector;
 
     Configuration& config = m_configuration.value();
 
     mega::io::BuildEnvironment environment(
         config.directories.rootSourceDir, config.directories.rootBuildDir, config.directories.templatesDir );
     mega::io::manifestFilePath manifestFilePath = environment.project_manifest();
-    mega::io::Manifest         manifest( environment, manifestFilePath );
 
-    using TskDesc    = pipeline::TaskDescriptor;
-    using TskDescVec = pipeline::TaskDescriptor::Vector;
+    // paradox - need a manifest to determine the schedule - the schedule generates the manifest!
+    {
+        const TskDesc generateManifest = encode( Task{ "Task_GenerateManifest", manifestFilePath } );
+        execute( generateManifest, progress, stash );
+    }
+    mega::io::Manifest manifest( environment, manifestFilePath );
 
-    TskDescVec                                  interfaceGenTasks, concreteTasks, symbolRolloutTasks;
+    TskDescVec                                  interfaceGenTasks;
     std::map< mega::io::megaFilePath, TskDesc > includePCHTasks;
 
-    const TskDesc generateManifest   = encode( Task{ "Task_GenerateManifest", manifestFilePath } );
-    const TskDesc generateComponents = encode( Task{ "Task_GenerateComponents", manifestFilePath } );
+    pipeline::Dependencies dependencies;
 
-    dependencies.add( generateManifest, {} );
-    dependencies.add( generateComponents, TskDescVec{ generateManifest } );
+    const TskDesc generateComponents = encode( Task{ "Task_GenerateComponents", manifestFilePath } );
+    dependencies.add( generateComponents, TskDescVec{} );
 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
@@ -278,16 +281,18 @@ pipeline::Schedule CompilerPipeline::getSchedule()
     dependencies.add( dependencyAnalysis, interfaceGenTasks );
     dependencies.add( symbolAnalysis, TskDescVec{ dependencyAnalysis } );
 
+    TskDescVec symbolRolloutTasks;
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc symbolRollout = encode( Task{ "Task_SymbolRollout", sourceFilePath } );
-
             symbolRolloutTasks.push_back( symbolRollout );
 
             dependencies.add( symbolRollout, TskDescVec{ symbolAnalysis } );
         }
     }
+
+    TskDescVec concreteTasks;
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
@@ -394,7 +399,19 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
     }
 
     VERIFY_RTE_MSG( pTask, "Failed to create task: " << task.strTaskName );
-    pTask->run( progress );
+
+    try
+    {
+        pTask->run( progress );
+    }
+    catch ( std::exception& ex )
+    {
+        std::ostringstream os;
+        os << "FAILED : " << pTask->getTaskName();
+        os << "\n" << ex.what();
+
+        progress.onFailed( os.str() );
+    }
 }
 
 } // namespace

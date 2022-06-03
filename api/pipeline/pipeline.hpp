@@ -63,7 +63,7 @@ public:
 
     virtual void onStarted( const std::string& strMsg )   = 0;
     virtual void onProgress( const std::string& strMsg )  = 0;
-    virtual void onFailed( const std::string& strMsg )  = 0;
+    virtual void onFailed( const std::string& strMsg )    = 0;
     virtual void onCompleted( const std::string& strMsg ) = 0;
 };
 
@@ -81,8 +81,8 @@ public:
 
     virtual ~Pipeline();
 
-    virtual void     initialise( const Configuration& configuration )          = 0;
-    virtual Schedule getSchedule()                                             = 0;
+    virtual void     initialise( const Configuration& configuration )                        = 0;
+    virtual Schedule getSchedule( Progress& progress, Stash& stash )                         = 0;
     virtual void     execute( const TaskDescriptor& task, Progress& progress, Stash& stash ) = 0;
 };
 

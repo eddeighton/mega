@@ -62,6 +62,7 @@ bool isRequest( const MessageVariant& msg );
 const ConnectionID& getConnectionID( const MessageVariant& msg );
 bool decode( boost::archive::binary_iarchive& archive, const Header& header, const ConnectionID& connectionID, std::shared_ptr< Activity > pActivity );
 
+const char* getMsgName( const MessageVariant& msg );
 std::ostream& operator<<( std::ostream& os, const MessageVariant& msg );
 const char* getMsgNameFromID( MessageID id );
 

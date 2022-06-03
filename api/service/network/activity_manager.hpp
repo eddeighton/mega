@@ -18,8 +18,9 @@ class ActivityManager
     using ActivityPtrMap = std::map< ActivityID, Activity::Ptr >;
 
 public:
-    ActivityManager( boost::asio::io_context& ioContext );
+    ActivityManager( const char* pszProcessName, boost::asio::io_context& ioContext );
 
+    const char*              getProcessName() const { return m_pszProcessName; }
     boost::asio::io_context& getIOContext() const;
 
     std::vector< ActivityID > reportActivities() const;
@@ -33,6 +34,7 @@ protected:
     boost::asio::io_context& m_ioContext;
 
 private:
+    const char*               m_pszProcessName;
     ActivityPtrMap            m_activities;
     mutable std::shared_mutex m_mutex;
     using WriteLock = std::unique_lock< std::shared_mutex >;

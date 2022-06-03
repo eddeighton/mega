@@ -20,7 +20,7 @@ msg ListActivities
 msg PipelineRun
 {
     request(mega::pipeline::Configuration configuration);
-    response(std::string result);
+    response(mega::network::PipelineResult result);
 }
 
 msg Shutdown

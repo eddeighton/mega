@@ -11,8 +11,9 @@ namespace mega
 namespace network
 {
 
-ActivityManager::ActivityManager( boost::asio::io_context& ioContext )
-    : m_ioContext( ioContext )
+ActivityManager::ActivityManager( const char* pszProcessName, boost::asio::io_context& ioContext )
+    : m_pszProcessName( pszProcessName ),
+        m_ioContext( ioContext )
 {
 }
 
@@ -43,8 +44,6 @@ void ActivityManager::activityStarted( Activity::Ptr pActivity )
         WriteLock lock( m_mutex );
         m_activities.insert( std::make_pair( pActivity->getActivityID(), pActivity ) );
     }
-    // this is the ONLY way activity is spawned
-    // boost::coroutines::attributes
     boost::asio::spawn(
         m_ioContext, [ pActivity ]( boost::asio::yield_context yield_ctx ) { pActivity->run( yield_ctx ); } );
     SPDLOG_TRACE( "Activity Started id: {} end point: {}", pActivity->getActivityID().getID(),
@@ -59,7 +58,7 @@ void ActivityManager::activityCompleted( Activity::Ptr pActivity )
         VERIFY_RTE( iFind != m_activities.end() );
         m_activities.erase( iFind );
     }
-    SPDLOG_TRACE( "Activity Completed id: {} end point: {}", pActivity->getActivityID().getID(),
+    SPDLOG_DEBUG( "Activity Completed id: {} end point: {}", pActivity->getActivityID().getID(),
                   pActivity->getActivityID().getConnectionID() );
 }
 

@@ -41,19 +41,14 @@ private:
 public:
     class RequestStack
     {
+        const char* m_pszMsg;
+        boost::asio::steady_timer::time_point m_startTime;
         Activity& activity;
         RequestStack( RequestStack& ) = delete;
         RequestStack& operator=(RequestStack&) = delete;
     public:
-        RequestStack( Activity& activity, const ConnectionID& connectionID )
-            :   activity( activity )
-        {
-            activity.requestStarted( connectionID );
-        }
-        ~RequestStack()
-        {
-            activity.requestCompleted();
-        }
+        RequestStack( const char* pszMsg, Activity& activity, const ConnectionID& connectionID );
+        ~RequestStack();
     };
     friend class Activity::RequestStack;
 

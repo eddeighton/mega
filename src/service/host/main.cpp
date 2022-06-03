@@ -129,7 +129,8 @@ int main( int argc, const char* argv[] )
             }
             else if ( bShowVersion )
             {
-                std::cout << "Version is: " << host.GetVersion() << std::endl;
+                auto version = host.GetVersion();
+                std::cout << "Version is: " << version << std::endl;
             }
             else if ( bListHosts )
             {
@@ -150,8 +151,8 @@ int main( int argc, const char* argv[] )
             {
                 mega::pipeline::Configuration pipelineConfig;
                 boost::filesystem::loadAsciiFile( boost::filesystem::path( strPipeline ), pipelineConfig.data() );
-                const std::string strResult = host.PipelineRun( pipelineConfig );
-                std::cout << "Pipeline result:\n" << strResult << std::endl;
+                const mega::network::PipelineResult result = host.PipelineRun( pipelineConfig );
+                std::cout << "Pipeline result:\n" << result.getSuccess() << " : " << result.getMessage() << std::endl;
             }
             else if ( bShutdown )
             {

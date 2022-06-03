@@ -94,6 +94,8 @@ public:
     }
     virtual ~BaseTask() {}
 
+    const std::string& getTaskName() const { return m_strTaskName; }
+
     template < typename TComponentType, typename TDatabase >
     TComponentType* getComponent( TDatabase& database, const mega::io::megaFilePath& sourceFilePath ) const
     {

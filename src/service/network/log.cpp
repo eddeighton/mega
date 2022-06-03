@@ -56,13 +56,14 @@ namespace mega
                 case eError:   fileLevel = spdlog::level::err; break;
                 case eOff:     fileLevel = spdlog::level::off; break;
             }
-
+            const spdlog::level::level_enum sinkLevel = std::min( consoleLevel, fileLevel );
+            
             spdlog::drop( strLogName );
             
             auto console_sink = std::make_shared< spdlog::sinks::stdout_color_sink_mt >();
             {
                 console_sink->set_level( consoleLevel );
-                console_sink->set_pattern( "%l [%^%l%$] %v");
+                console_sink->set_pattern( "[%^%l%$] %v");
             }
             
             std::ostringstream osLogFileName;
@@ -79,7 +80,7 @@ namespace mega
                 new spdlog::async_logger( strLogName, {console_sink, file_sink}, 
                     threadPool, spdlog::async_overflow_policy::block ) );
             {
-                logger->set_level( fileLevel );
+                logger->set_level( sinkLevel );
             }
             
             spdlog::flush_every( std::chrono::seconds( 1 ) );

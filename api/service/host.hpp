@@ -8,6 +8,8 @@
 #include "service/network/client.hpp"
 #include "service/network/activity_manager.hpp"
 
+#include "service/protocol/common/pipeline_result.hpp"
+
 #include <boost/asio/io_service.hpp>
 
 #include <memory>
@@ -48,7 +50,7 @@ public:
     std::string                        GetVersion();
     std::vector< std::string >         ListHosts();
     std::vector< network::ActivityID > listActivities();
-    std::string                        PipelineRun( const mega::pipeline::Configuration& pipelineConfig );
+    network::PipelineResult            PipelineRun( const pipeline::Configuration& pipelineConfig );
     bool                               Shutdown();
 
 private:

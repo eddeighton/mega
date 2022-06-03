@@ -148,9 +148,9 @@ public:
     virtual void PipelineRun( const mega::pipeline::Configuration& configuration,
                               boost::asio::yield_context&          yield_ctx ) override
     {
-        auto        root                  = getRootRequest( yield_ctx );
-        std::string strTestPipelineResult = root.PipelineRun( configuration );
-        getOriginatingHostResponse( yield_ctx ).PipelineRun( strTestPipelineResult );
+        auto root   = getRootRequest( yield_ctx );
+        auto result = root.PipelineRun( configuration );
+        getOriginatingHostResponse( yield_ctx ).PipelineRun( result );
     }
 
     virtual void Shutdown( boost::asio::yield_context& yield_ctx ) override
@@ -245,8 +245,8 @@ public:
         std::vector< network::ActivityID > allJobs;
         for ( auto& [ id, pWorker ] : m_daemon.m_workerServer.getConnections() )
         {
-            auto                               worker = getWorkerRequest( pWorker, yield_ctx );
-            std::vector< network::ActivityID > jobs   = worker.PipelineStartJobs( configuration, rootActivityID );
+            auto worker = getWorkerRequest( pWorker, yield_ctx );
+            auto jobs   = worker.PipelineStartJobs( configuration, rootActivityID );
             std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
         }
         getRootResponse( yield_ctx ).PipelineStartJobs( allJobs );
@@ -291,7 +291,7 @@ Daemon::RequestActivityFactory::createRequestActivity( const network::Header&   
 Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP )
     : m_ioContext( ioContext )
     , m_requestActivityFactory( *this )
-    , m_activityManager( ioContext )
+    , m_activityManager( "daemon", ioContext )
     , m_rootClient(
           ioContext, m_activityManager, m_requestActivityFactory, strRootIP, mega::network::MegaRootServiceName() )
     , m_hostServer( ioContext, m_activityManager, m_requestActivityFactory, network::MegaDaemonPort() )

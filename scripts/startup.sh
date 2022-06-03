@@ -12,13 +12,13 @@ fi
 
 rm -rf ./log
 
-./root --level trace --console warn &
+./root --level debug --console error &
 
 sleep 1
 
-./daemon --level trace --console warn &
+./daemon --level debug --console error &
 
 sleep 1
 
-./worker --level trace --console warn &
+./worker --level debug --console error &
 

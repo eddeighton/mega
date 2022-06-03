@@ -89,7 +89,7 @@ Host::HostActivityFactory::createRequestActivity( const network::Header&       m
 
 Host::Host( std::optional< const std::string > optName /* = std::nullopt*/ )
     : m_activityFactory( *this )
-    , m_activityManager( m_io_context )
+    , m_activityManager( "host", m_io_context )
     , m_client(
           m_io_context, m_activityManager, m_activityFactory, "localhost", mega::network::MegaDaemonServiceName() )
     , m_work_guard( m_io_context.get_executor() )
@@ -128,7 +128,7 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        Activity::RequestStack stack( *this, network::getConnectionID( m_client.getSocket() ) );
+        Activity::RequestStack stack( "GenericActivity", *this, network::getConnectionID( m_client.getSocket() ) );
         try
         {
             m_functor( m_promise, m_client, *this, yield_ctx );
@@ -200,9 +200,9 @@ std::vector< network::ActivityID > Host::listActivities()
                                        { promise.set_value( result ); } ); );
 }
 
-std::string Host::PipelineRun( const mega::pipeline::Configuration& pipelineConfig )
+network::PipelineResult Host::PipelineRun( const mega::pipeline::Configuration& pipelineConfig )
 {
-    using ResultType = std::string;
+    using ResultType = network::PipelineResult;
     std::promise< ResultType > promise;
     std::future< ResultType >  fResult = promise.get_future();
 
@@ -227,8 +227,7 @@ std::string Host::PipelineRun( const mega::pipeline::Configuration& pipelineConf
     }
     catch ( std::exception& ex )
     {
-        std::cout << "Exception: " << ex.what() << std::endl;
-        return std::string{};
+        return network::PipelineResult( false, ex.what() );
     }
 }
 

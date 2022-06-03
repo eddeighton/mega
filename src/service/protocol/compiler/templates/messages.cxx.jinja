@@ -69,31 +69,28 @@ namespace
 {
     struct Printer
     {
-        std::ostream& m_os;
-        Printer( std::ostream& os ) : m_os( os ) {}
 {%for message in messages%}
-        std::ostream& operator() ( const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg ) const
+        const char* operator() ( const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg ) const
         {
-            return m_os << "{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}";
-{#
-{%for member in message.members%}
-            << msg.{{ member.name }}
-{% if not loop.is_last %}, {%endif%}
-{%endfor%}
-#}
+            return "{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}";
         }
 {% endfor %}
         template< typename TOtherMsgType >
-        std::ostream& operator() ( const TOtherMsgType& ) const
+        const char* operator() ( const TOtherMsgType& ) const
         {
-            return m_os << "Unknown message type";
+            return "Unknown message type";
         }
     } ;
 }
+
+const char* getMsgName( const MessageVariant& msg )
+{
+    return std::visit( Printer{}, msg );
+}
+
 std::ostream& operator<<( std::ostream& os, const MessageVariant& msg )
 {
-    Printer printer( os );
-    return std::visit( printer, msg );
+    return os << getMsgName( msg );
 }
 
 const char* getMsgNameFromID( MessageID id )

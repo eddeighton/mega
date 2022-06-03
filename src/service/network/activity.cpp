@@ -5,12 +5,28 @@
 #include "service/network/end_point.hpp"
 #include "service/protocol/model/messages.hxx"
 
+#include <chrono>
 #include <iostream>
 
 namespace mega
 {
 namespace network
 {
+
+Activity::RequestStack::RequestStack( const char* pszMsg, Activity& activity, const ConnectionID& connectionID )
+    : m_pszMsg( pszMsg )
+    , m_startTime( std::chrono::steady_clock::now() )
+    , activity( activity )
+{
+    activity.requestStarted( connectionID );
+}
+Activity::RequestStack::~RequestStack()
+{
+    const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
+    SPDLOG_DEBUG( "{} {} {} {}", activity.m_activityManager.getProcessName(), activity.getActivityID().getID(),
+                  m_pszMsg, timeDelta );
+    activity.requestCompleted();
+}
 
 Activity::Activity( ActivityManager& activityManager, const ActivityID& activityID,
                     std::optional< ConnectionID > originatingConnectionID )
@@ -104,7 +120,7 @@ MessageVariant Activity::dispatchRequestsUntilResponse( boost::asio::yield_conte
 
 void Activity::dispatchRequestImpl( const MessageVariant& msg, boost::asio::yield_context& yield_ctx )
 {
-    Activity::RequestStack stack( *this, getConnectionID( msg ) );
+    Activity::RequestStack stack( getMsgName( msg ), *this, getConnectionID( msg ) );
     try
     {
         ASSERT( isRequest( msg ) );

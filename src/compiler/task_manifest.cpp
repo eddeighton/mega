@@ -32,28 +32,22 @@ public:
         const mega::io::manifestFilePath projectManifestPath = m_environment.project_manifest();
 
         start( taskProgress, "Task_GenerateManifest", boost::filesystem::path{}, projectManifestPath.path() );
-        // make a note of the schema version
-        //{
-        //    std::ostringstream os;
-        //    os << "Schema version: " << mega::io::Environment::VERSION;
-        //    msg( taskProgress, os.str() );
-        //}
 
         const mega::io::Manifest    manifest( m_environment, m_componentInfoPaths );
         const task::FileHash        hashCode = manifest.save_temp( m_environment, projectManifestPath );
-        const task::DeterminantHash determinant( hashCode );
+        //const task::DeterminantHash determinant( hashCode );
 
-        if ( m_environment.restore( projectManifestPath, determinant ) )
+        /*if ( m_environment.restore( projectManifestPath, determinant ) )
         {
             m_environment.setBuildHashCode( projectManifestPath, hashCode );
             cached( taskProgress );
             return;
         }
-        else
+        else*/
         {
             m_environment.temp_to_real( projectManifestPath );
-            m_environment.setBuildHashCode( projectManifestPath, hashCode );
-            m_environment.stash( projectManifestPath, determinant );
+            //m_environment.setBuildHashCode( projectManifestPath, hashCode );
+            //m_environment.stash( projectManifestPath, determinant );
             succeeded( taskProgress );
         }
     }
@@ -87,7 +81,7 @@ public:
 
         start( taskProgress, "Task_GenerateComponents", projectManifestPath.path(), componentsListing.path() );
 
-        task::DeterminantHash determinant = m_environment.getBuildHashCode( projectManifestPath );
+        /*task::DeterminantHash determinant = m_environment.getBuildHashCode( projectManifestPath );
         for ( const boost::filesystem::path& componentInfoPath : m_componentInfoPaths )
         {
             determinant ^= componentInfoPath;
@@ -98,7 +92,7 @@ public:
             m_environment.setBuildHashCode( componentsListing );
             cached( taskProgress );
             return;
-        }
+        }*/
 
         using namespace ComponentListing;
         Database database( m_environment, projectManifestPath );
@@ -131,9 +125,9 @@ public:
         }
 
         const task::FileHash fileHashCode = database.save_Components_to_temp();
-        m_environment.setBuildHashCode( componentsListing, fileHashCode );
+        //m_environment.setBuildHashCode( componentsListing, fileHashCode );
         m_environment.temp_to_real( componentsListing );
-        m_environment.stash( componentsListing, determinant );
+        //m_environment.stash( componentsListing, determinant );
 
         succeeded( taskProgress );
     }

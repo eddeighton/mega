@@ -20,6 +20,8 @@
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
+#include "service/network/log.hpp"
+
 #include "spdlog/spdlog.h"
 
 #include <boost/archive/archive_exception.hpp>
@@ -42,10 +44,10 @@
 
 namespace driver
 {
-#define COMMAND( cmd, desc )                                                       \
-    namespace cmd                                                                  \
-    {                                                                              \
-        extern void command( bool bHelp, const std::vector< std::string >& args ); \
+#define COMMAND( cmd, desc )                                                   \
+    namespace cmd                                                              \
+    {                                                                          \
+    extern void command( bool bHelp, const std::vector< std::string >& args ); \
     }
 #include "commands.hxx"
 #undef COMMAND
@@ -64,7 +66,8 @@ int main( int argc, const char* argv[] )
 {
     boost::timer::cpu_timer timer;
 
-    bool bWait = false;
+    boost::filesystem::path logDir = boost::filesystem::current_path();
+    bool                    bWait  = false;
 
     std::bitset< TOTAL_MAIN_COMMANDS > cmds;
     MainCommand                        mainCmd = TOTAL_MAIN_COMMANDS;
@@ -77,25 +80,25 @@ int main( int argc, const char* argv[] )
 
         namespace po = boost::program_options;
         po::variables_map vm;
-        try
-        {
-            bool bGeneralWait = false;
+        bool bGeneralWait = false;
 
 #define COMMAND( cmd, desc ) bool bCmd_##cmd = false;
 #include "commands.hxx"
 #undef COMMAND
 
-            po::options_description genericOptions( " General" );
-            {
-                genericOptions.add_options()
+        po::options_description genericOptions( " General" );
+        {
+            // clang-format off
+            genericOptions.add_options()
+            ( "help",                                                           "Produce general or command help message" )
+            ( "log_dir",    po::value< boost::filesystem::path >( &logDir ),    "Build log directory" )
+            ( "wait",       po::bool_switch( &bGeneralWait ),                   "Wait at startup for attaching a debugger" );
+            // clang-format on
+        }
 
-                    ( "help", "Produce general or command help message" )(
-                        "wait", po::bool_switch( &bGeneralWait ), "Wait at startup for attaching a debugger" );
-            }
-
-            po::options_description commandOptions( " Commands" );
-            {
-                commandOptions.add_options()
+        po::options_description commandOptions( " Commands" );
+        {
+            commandOptions.add_options()
 #define COMMAND( cmd, desc ) ( #cmd, po::bool_switch( &bCmd_##cmd ), desc )
 #include "commands.hxx"
 #undef COMMAND
@@ -104,33 +107,40 @@ int main( int argc, const char* argv[] )
 
             if ( cmds.count() > 1 )
             {
-                spdlog::info("Invalid command combination. Type '--help' for options");
+                spdlog::info( "Invalid command combination. Type '--help' for options" );
                 return 1;
             }
 
-            po::options_description commandHiddenOptions( "" );
-            {
-                commandHiddenOptions.add_options()( "args", po::value< std::vector< std::string > >( &commandArgs ) );
-            }
+        po::options_description commandHiddenOptions( "" );
+        {
+            commandHiddenOptions.add_options()( "args", po::value< std::vector< std::string > >( &commandArgs ) );
+        }
 
-            po::options_description visibleOptions( "Allowed options" );
-            visibleOptions.add( genericOptions ).add( commandOptions );
+        po::options_description visibleOptions( "Allowed options" );
+        visibleOptions.add( genericOptions ).add( commandOptions );
 
-            po::options_description allOptions( "all" );
-            allOptions.add( genericOptions ).add( commandOptions ).add( commandHiddenOptions );
+        po::options_description allOptions( "all" );
+        allOptions.add( genericOptions ).add( commandOptions ).add( commandHiddenOptions );
 
-            po::positional_options_description p;
-            p.add( "args", -1 );
+        po::positional_options_description p;
+        p.add( "args", -1 );
 
-            po::parsed_options parsedOptions
-                = po::command_line_parser( argc, argv ).options( allOptions ).positional( p ).allow_unregistered().run();
+        po::parsed_options parsedOptions = po::command_line_parser( argc, argv )
+                                                .options( allOptions )
+                                                .positional( p )
+                                                .allow_unregistered()
+                                                .run();
+        po::store( parsedOptions, vm );
+        po::notify( vm );
 
-            po::store( parsedOptions, vm );
-            po::notify( vm );
+        auto logThreads = mega::network::configureLog(
+            logDir, "driver", mega::network::fromStr( "warn" ), mega::network::fromStr( "info" ) );
 
+        try
+        {
             if ( bGeneralWait )
             {
-                spdlog::info("Waiting for input...");
+                spdlog::info( "Waiting for input..." );
                 char c;
                 std::cin >> c;
             }
@@ -147,7 +157,8 @@ int main( int argc, const char* argv[] )
 
             const bool bShowHelp = vm.count( "help" );
 
-            std::vector< std::string > commandArguments = po::collect_unrecognized( parsedOptions.options, po::include_positional );
+            std::vector< std::string > commandArguments
+                = po::collect_unrecognized( parsedOptions.options, po::include_positional );
 
             switch ( mainCmd )
             {
@@ -166,7 +177,7 @@ int main( int argc, const char* argv[] )
                     }
                     else
                     {
-                        spdlog::info("Invalid command. Type '--help' for options");
+                        spdlog::info( "Invalid command. Type '--help' for options" );
                         return 1;
                     }
             }
@@ -174,27 +185,27 @@ int main( int argc, const char* argv[] )
         }
         catch ( boost::program_options::error& e )
         {
-            spdlog::error("Invalid input. {}. Type '--help' for options", e.what() );
+            spdlog::error( "Invalid input. {}. Type '--help' for options", e.what() );
             return 1;
         }
-        catch( boost::archive::archive_exception& ex )
+        catch ( boost::archive::archive_exception& ex )
         {
-            spdlog::error("Archive Exception: {} {}", ex.code, ex.what() );
+            spdlog::error( "Archive Exception: {} {}", ex.code, ex.what() );
             return 1;
         }
         catch ( std::exception& e )
         {
-            spdlog::error("Error: {}", e.what() );
+            spdlog::error( "Exception: {}", e.what() );
             return 1;
         }
         catch ( ... )
         {
-            spdlog::error("Unknown error" );
+            spdlog::error( "Unknown error" );
             return 1;
         }
     }
 
-    //ensure standard output is flushed
+    // ensure standard output is flushed
     std::cout.flush();
 
     return 0;

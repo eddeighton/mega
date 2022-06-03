@@ -22,8 +22,6 @@
 #include "pipeline/stash.hpp"
 #include "service/host.hpp"
 
-#include "service/network/log.hpp"
-
 #include "pipeline/pipeline.hpp"
 
 #include "utilities/cmake.hpp"
@@ -47,7 +45,7 @@ namespace pipeline
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path logDir      = boost::filesystem::current_path(), stashDir, pipelineXML;
+    boost::filesystem::path stashDir, pipelineXML;
     bool                    bRunLocally = false;
 
     namespace po = boost::program_options;
@@ -55,7 +53,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
-        ( "log_dir",            po::value< boost::filesystem::path >( &logDir ),        "Build log directory" )
         ( "stash_dir",          po::value< boost::filesystem::path >( &stashDir ),      "Stash directory" )
         ( "configuration",      po::value< boost::filesystem::path >( &pipelineXML ),   "Pipeline Configuration XML File" )
         ( "local",              po::bool_switch( &bRunLocally ),                        "Run locally" )
@@ -94,23 +91,14 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     : m_bContinue( bContinue )
                 {
                 }
-                virtual void onStarted( const std::string& strMsg ) 
-                { 
-                    SPDLOG_INFO( strMsg );
-                }
-                virtual void onProgress( const std::string& strMsg ) 
-                { 
-                    SPDLOG_INFO( strMsg ); 
-                }
+                virtual void onStarted( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
+                virtual void onProgress( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
                 virtual void onFailed( const std::string& strMsg )
                 {
                     SPDLOG_INFO( strMsg );
                     m_bContinue = false;
                 }
-                virtual void onCompleted( const std::string& strMsg ) 
-                { 
-                    SPDLOG_INFO( strMsg );
-                }
+                virtual void onCompleted( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
             } progressReporter( bContinue );
 
             struct StashImpl : public mega::pipeline::Stash
@@ -139,7 +127,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 }
             } stashImpl( stash );
 
-            mega::pipeline::Schedule schedule = pPipeline->getSchedule();
+            mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
             while ( !schedule.isComplete() && bContinue )
             {
                 bool bProgress = false;
@@ -158,19 +146,18 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             try
             {
-                auto logThreads
-                    = mega::network::configureLog( logDir.native(), "interface_build", mega::network::fromStr( "warn" ),
-                                                   mega::network::fromStr( "info" ) );
+                mega::service::Host           host;
+                mega::network::PipelineResult result = host.PipelineRun( pipelineConfig );
+                if ( !result.getSuccess() )
                 {
-                    mega::service::Host host;
-                    host.PipelineRun( pipelineConfig );
+                    THROW_RTE( "Pipeline failed: " << result.getMessage() );
                 }
                 // spdlog::drop("interface_build");
                 // spdlog::shutdown();
             }
             catch ( std::exception& ex )
             {
-                THROW_RTE( "Could not connect to Megastructure Service: " << ex.what() );
+                THROW_RTE( "Exception executing pipeline: " << ex.what() );
             }
         }
     }

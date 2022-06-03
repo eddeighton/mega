@@ -39,9 +39,11 @@ PipelineID Configuration::getPipelineID() const
 
 void Dependencies::add( const TaskDescriptor& newTask, const TaskDescriptor::Vector& dependencies )
 {
+    VERIFY_RTE( newTask != TaskDescriptor() );
     m_tasks.insert( newTask );
     for ( const TaskDescriptor& task : dependencies )
     {
+        VERIFY_RTE( task != TaskDescriptor() );
         m_graph.insert( std::make_pair( newTask, task ) );
         m_tasks.insert( task );
     }
