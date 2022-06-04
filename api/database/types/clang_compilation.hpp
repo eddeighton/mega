@@ -3,6 +3,10 @@
 #define BUILDSYSTEM_TOOLS_15_SEPT_2020
 
 #include "database/common/object_info.hpp"
+#include "database/common/environments.hpp"
+
+#include "database/types/sources.hpp"
+#include "utilities/tool_chain_hash.hpp"
 
 #include "database/types/modes.hpp"
 
@@ -33,55 +37,122 @@ struct Compilation
     std::optional< mega::CompilationMode >   compilationMode;
     std::optional< boost::filesystem::path > srcDir, buildDir, sourceFile;
 
-    Compilation()                     = delete;
-    Compilation( const Compilation& ) = delete;
-    Compilation( Compilation&& )      = delete;
-    Compilation& operator=( const Compilation& ) = delete;
-
-    Compilation( const boost::filesystem::path&                compiler,
-                 const std::vector< std::string >&             flags,
-                 const std::vector< std::string >&             defines,
-                 const std::vector< boost::filesystem::path >& includeDirs,
-                 const boost::filesystem::path&                inputFile,
-                 const boost::filesystem::path&                outputPCH )
-        : compiler( compiler )
-        , flags( flags )
-        , defines( defines )
-        , includeDirs( includeDirs )
-        , inputFile( inputFile )
-        , outputPCH( outputPCH )
+    template < typename TComponentType >
+    static inline Compilation
+    make_includePCH_compilation( const io::BuildEnvironment& environment, const utilities::ToolChain& toolChain,
+                                 TComponentType* pComponent, const io::megaFilePath& sourceFile )
     {
+        Compilation compilation;
+
+        compilation.compiler = toolChain.clangCompilerPath;
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_includeDirectories();
+
+        compilation.inputFile = environment.FilePath( environment.Include( sourceFile ) );
+        compilation.outputPCH = environment.FilePath( environment.IncludePCH( sourceFile ) );
+
+        return compilation;
     }
 
-    Compilation( const boost::filesystem::path& compiler, const boost::filesystem::path& compiler_plugin,
-                 const std::vector< std::string >& flags, const std::vector< std::string >& defines,
-                 const std::vector< boost::filesystem::path >& includeDirs,
+    template < typename TComponentType >
+    static inline Compilation make_interfacePCH_compilation( const io::BuildEnvironment& environment,
+                                                             const utilities::ToolChain& toolChain,
+                                                             TComponentType*             pComponent,
+                                                             const io::megaFilePath&     sourceFile
 
-                 mega::CompilationMode compilationMode, const boost::filesystem::path& srcDir,
-                 const boost::filesystem::path& buildDir, const boost::filesystem::path& sourceFile,
-
-                 const boost::filesystem::path& inputPCH, const boost::filesystem::path& inputFile,
-                 const boost::filesystem::path& outputPCH )
-
-        : compiler( compiler )
-        , compiler_plugin( compiler_plugin )
-        , flags( flags )
-        , defines( defines )
-        , includeDirs( includeDirs )
-
-        , inputPCH( { inputPCH } )
-
-        , compilationMode( compilationMode )
-        , srcDir( srcDir )
-        , buildDir( buildDir )
-        , sourceFile( sourceFile )
-
-        , inputFile( inputFile )
-        , outputPCH( outputPCH )
+    )
     {
+        Compilation compilation;
+
+        compilation.compilationMode = CompilationMode::eInterface;
+
+        compilation.compiler        = toolChain.clangCompilerPath;
+        compilation.compiler_plugin = toolChain.clangPluginPath;
+
+        compilation.srcDir     = environment.rootSourceDir();
+        compilation.buildDir   = environment.rootBuildDir();
+        compilation.sourceFile = environment.FilePath( sourceFile );
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_includeDirectories();
+
+        compilation.inputPCH  = { environment.FilePath( environment.IncludePCH( sourceFile ) ) };
+        compilation.inputFile = environment.FilePath( environment.Interface( sourceFile ) );
+        compilation.outputPCH = environment.FilePath( environment.InterfacePCH( sourceFile ) );
+
+        return compilation;
+    }
+
+    template < typename TComponentType >
+    static inline Compilation make_operationsPCH_compilation( const io::BuildEnvironment& environment,
+                                                              const utilities::ToolChain& toolChain,
+                                                              TComponentType*             pComponent,
+                                                              const io::megaFilePath&     sourceFile
+
+    )
+    {
+        Compilation compilation;
+
+        compilation.compilationMode = CompilationMode::eOperations;
+
+        compilation.compiler        = toolChain.clangCompilerPath;
+        compilation.compiler_plugin = toolChain.clangPluginPath;
+
+        compilation.srcDir     = environment.rootSourceDir();
+        compilation.buildDir   = environment.rootBuildDir();
+        compilation.sourceFile = environment.FilePath( sourceFile );
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_includeDirectories();
+
+        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
+                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
+
+        compilation.inputFile = environment.FilePath( environment.Operations( sourceFile ) );
+        compilation.outputPCH = environment.FilePath( environment.OperationsPCH( sourceFile ) );
+
+        return compilation;
+    }
+
+    template < typename TComponentType >
+    static inline Compilation make_implementationObj_compilation( const io::BuildEnvironment& environment,
+                                                                  const utilities::ToolChain& toolChain,
+                                                                  TComponentType*             pComponent,
+                                                                  const io::megaFilePath&     sourceFile )
+    {
+        Compilation compilation;
+
+        compilation.compilationMode = CompilationMode::eImplementation;
+
+        compilation.compiler        = toolChain.clangCompilerPath;
+        compilation.compiler_plugin = toolChain.clangPluginPath;
+
+        compilation.srcDir     = environment.rootSourceDir();
+        compilation.buildDir   = environment.rootBuildDir();
+        compilation.sourceFile = environment.FilePath( sourceFile );
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_includeDirectories();
+
+        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
+                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ),
+                                 environment.FilePath( environment.OperationsPCH( sourceFile ) ) };
+
+        compilation.inputFile    = environment.FilePath( environment.Implementation( sourceFile ) );
+        compilation.outputObject = environment.FilePath( environment.ImplementationObj( sourceFile ) );
+
+        return compilation;
     }
 
     std::string operator()() const;
+
+private:
+    Compilation() {}
 };
 
 } // namespace mega

@@ -1,6 +1,6 @@
 
-#ifndef COMPILER_27_MAY_2022
-#define COMPILER_27_MAY_2022
+#ifndef COMPILER_CONFIGURATION_27_MAY_2022
+#define COMPILER_CONFIGURATION_27_MAY_2022
 
 #include "pipeline/configuration.hpp"
 #include "pipeline/pipeline.hpp"
@@ -57,8 +57,9 @@ struct Configuration
 };
 
 pipeline::Configuration makePipelineConfiguration( const Configuration& config );
+Configuration fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig );
 
 } // namespace compiler
 } // namespace mega
 
-#endif // COMPILER_27_MAY_2022
+#endif // COMPILER_CONFIGURATION_27_MAY_2022

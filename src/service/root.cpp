@@ -241,7 +241,12 @@ public:
     virtual void PipelineRun( const pipeline::Configuration& configuration,
                               boost::asio::yield_context&    yield_ctx ) override
     {
-        SPDLOG_INFO( "Started pipeline: {}", configuration.getPipelineID() );
+        mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( configuration );
+        if ( !pPipeline )
+        {
+            SPDLOG_ERROR( "Failed to load pipeline: {}", configuration.getPipelineID() );
+            THROW_RTE( "Failed to load pipeline: " << configuration.get() );
+        }
 
         m_root.m_stash.resetBuildHashCodes();
 
@@ -254,14 +259,11 @@ public:
         }
         if ( m_jobs.empty() )
         {
+            SPDLOG_WARN( "Failed to find workers for pipeline: {}", configuration.getPipelineID() );
             THROW_RTE( "Failed to find workers for pipeline" );
         }
+        SPDLOG_INFO( "Found {} jobs for pipeline {}", m_jobs.size(), configuration.getPipelineID() );
 
-        mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( configuration );
-        if ( !pPipeline )
-        {
-            THROW_RTE( "Failed to load pipeline: " << configuration.get() );
-        }
         mega::pipeline::Schedule                   schedule = pPipeline->getSchedule( *this, *this );
         std::set< mega::pipeline::TaskDescriptor > scheduledTasks, activeTasks;
         bool                                       bScheduleFailed = false;

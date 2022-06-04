@@ -6,6 +6,39 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#################################################################
+#################################################################
+# configuration library that can be statically linked
+set( COMPILER_LIB_HEADERS
+    ${MEGA_API_DIR}/compiler/configuration.hpp
+)
+
+set( COMPILER_LIB_SOURCE
+    ${MEGA_SRC_DIR}/compiler/configuration.cpp  
+)
+
+add_library( compiler_config
+    ${COMPILER_LIB_SOURCE} 
+    ${COMPILER_LIB_SOURCE}
+)
+
+target_include_directories( compiler_config PUBLIC ${MEGA_API_DIR} )
+
+link_boost( compiler_config system )
+link_boost( compiler_config filesystem )
+link_boost( compiler_config serialization )
+link_common( compiler_config )
+
+
+#################################################################
+#################################################################
+# dynamically loaded module that implements the compiler pipeline
+set( JINJA_TEMPLATES 
+    ${MEGA_SRC_DIR}/compiler/templates/context.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/namespace.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
+	)
 
 set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/base_task.hpp  
@@ -17,10 +50,8 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp  
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
-)
-
-set( COMPILER_HEADERS
-    ${MEGA_API_DIR}/compiler/compiler.hpp
+    ${MEGA_SRC_DIR}/compiler/task_operations.cpp
+    ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
 )
 
 set( COMPILER_SOURCE
@@ -28,14 +59,14 @@ set( COMPILER_SOURCE
     ${MEGA_SRC_DIR}/compiler/compiler.cpp
 )
 
-add_library( compiler SHARED
-    ${COMPILER_HEADERS} 
+add_library( compiler MODULE
     ${COMPILER_SOURCE}
 )
 
-target_link_libraries( compiler utilities)
+target_link_libraries( compiler compiler_config )
+target_link_libraries( compiler utilities )
 target_link_libraries( compiler database )
-target_link_libraries( compiler pipeline)
+target_link_libraries( compiler pipeline )
 
 target_include_directories( compiler PUBLIC ${MEGA_API_DIR} )
 
@@ -44,6 +75,13 @@ link_boost( compiler filesystem )
 link_boost( compiler serialization )
 link_common( compiler )
 
-install( FILES ${COMPILER_HEADERS} DESTINATION include/compiler )
+
+#################################################################
+#################################################################
+## install everything
+install( FILES ${JINJA_TEMPLATES} DESTINATION templates )
+install( FILES ${COMPILER_LIB_HEADERS} DESTINATION include/compiler )
+install( TARGETS compiler_config EXPORT compiler_config DESTINATION bin)
 install( TARGETS compiler EXPORT compiler DESTINATION bin)
+install( EXPORT compiler_config NAMESPACE MEGA:: FILE compiler_config-config.cmake DESTINATION share )
 install( EXPORT compiler NAMESPACE MEGA:: FILE compiler-config.cmake DESTINATION share )

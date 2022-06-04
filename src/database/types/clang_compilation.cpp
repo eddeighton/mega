@@ -35,7 +35,7 @@ std::string Compilation::operator()() const
     // input pch
     for ( const boost::filesystem::path& inputPCH : inputPCH )
     {
-        osCmd << "-Xclang -include-pch ";
+        osCmd << "-Xclang -fno-pch-timestamp -Xclang -include-pch ";
         osCmd << "-Xclang " << inputPCH.native() << " ";
     }
 
@@ -71,12 +71,12 @@ std::string Compilation::operator()() const
     if ( outputPCH.has_value() )
     {
         VERIFY_RTE( !outputObject.has_value() );
-        osCmd << "-Xclang -fno-pch-timestamp -Xclang -emit-pch -o " << outputPCH.value().native() << " ";
+        osCmd << " -Xclang -emit-pch -o " << outputPCH.value().native() << " ";
     }
     else if ( outputObject.has_value() )
     {
         VERIFY_RTE( !outputPCH.has_value() );
-        osCmd << "-c -o " << outputObject.value().native() << " ";
+        osCmd << " -c -o " << outputObject.value().native() << " ";
     }
     else
     {

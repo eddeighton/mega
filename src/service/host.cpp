@@ -226,6 +226,9 @@ Host::Host( std::optional< const std::string > optName /* = std::nullopt*/ )
 
 Host::~Host()
 {
+    m_client.stop();
+    m_work_guard.reset();
+    m_io_thread.join();
 }
 
 bool Host::Shutdown()

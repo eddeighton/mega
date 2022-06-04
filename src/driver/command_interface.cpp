@@ -39,7 +39,7 @@
 
 #include "pipeline/pipeline.hpp"
 
-#include "compiler/compiler.hpp"
+#include "compiler/configuration.hpp"
 
 #include "utilities/cmake.hpp"
 #include "utilities/tool_chain_hash.hpp"

@@ -74,15 +74,15 @@ public:
     {
     }
 
-    ~BuildEnvironment()
-    {
-    }
+    ~BuildEnvironment() {}
 
     const Path& rootSourceDir() const { return m_rootSourceDir; }
     const Path& rootBuildDir() const { return m_rootBuildDir; }
 
     Path FilePath( const GeneratedHPPSourceFilePath& filePath ) const { return toPath( filePath ); }
+    Path FilePath( const GeneratedCPPSourceFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const PrecompiledHeaderFile& filePath ) const { return toPath( filePath ); }
+    Path FilePath( const ObjectFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const megaFilePath& filePath ) const { return toPath( filePath ); }
 
     template < typename TFrom, typename TTo >
@@ -115,6 +115,14 @@ public:
         return result;
     }
 
+    Path OperationsTemplate() const
+    {
+        VERIFY_RTE( m_templatesDir.has_value() );
+        Path result = m_templatesDir.value() / "operations.jinja";
+        VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+        return result;
+    }
+
     GeneratedHPPSourceFilePath Include( const megaFilePath& source ) const
     {
         std::ostringstream os;
@@ -124,7 +132,7 @@ public:
         return GeneratedHPPSourceFilePath( dirPath / os.str() );
     }
 
-    PrecompiledHeaderFile PCH( const megaFilePath& source ) const
+    PrecompiledHeaderFile IncludePCH( const megaFilePath& source ) const
     {
         std::ostringstream os;
         os << source.path().filename().string() << ".include" << PrecompiledHeaderFile::extension().string();
@@ -160,6 +168,15 @@ public:
         return GeneratedHPPSourceFilePath( dirPath / os.str() );
     }
 
+    PrecompiledHeaderFile OperationsPCH( const megaFilePath& source ) const
+    {
+        std::ostringstream os;
+        os << source.path().filename().string() << ".operations" << PrecompiledHeaderFile::extension().string();
+        auto dirPath = source.path();
+        dirPath.remove_filename();
+        return PrecompiledHeaderFile( dirPath / os.str() );
+    }
+
     GeneratedCPPSourceFilePath Implementation( const megaFilePath& source ) const
     {
         std::ostringstream os;
@@ -167,6 +184,15 @@ public:
         auto dirPath = source.path();
         dirPath.remove_filename();
         return GeneratedCPPSourceFilePath( dirPath / os.str() );
+    }
+
+    ObjectFilePath ImplementationObj( const megaFilePath& source ) const
+    {
+        std::ostringstream os;
+        os << source.path().filename().string() << ".impl" << ObjectFilePath::extension().string();
+        auto dirPath = source.path();
+        dirPath.remove_filename();
+        return ObjectFilePath( dirPath / os.str() );
     }
 
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const
@@ -239,9 +265,7 @@ class StashEnvironment : public BuildEnvironment
     mega::pipeline::Stash& m_stash;
 
 public:
-    StashEnvironment( mega::pipeline::Stash& stash,
-                      const Path&            rootSourceDir,
-                      const Path&            rootBuildDir )
+    StashEnvironment( mega::pipeline::Stash& stash, const Path& rootSourceDir, const Path& rootBuildDir )
         : BuildEnvironment( rootSourceDir, rootBuildDir )
         , m_stash( stash )
     {

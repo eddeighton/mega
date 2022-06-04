@@ -42,20 +42,20 @@ Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityMan
 
 void Client::stop()
 {
-    m_socket.shutdown( boost::asio::ip::tcp::socket::shutdown_both );
-    m_receiver.stop();
+    //m_socket.shutdown( boost::asio::ip::tcp::socket::shutdown_both );
+    //m_receiver.stop();
+    boost::system::error_code ec;
+    m_socket.close( ec );
 }
 
 void Client::disconnected()
 {
     SPDLOG_INFO( "Client disconnected from: {}", m_connectionID );
-    if( m_socket.is_open() )
-        m_socket.close();
+    //boost::system::error_code ec;
+    //m_socket.close( ec );
 }
 
-Client::~Client()
-{
-}
+Client::~Client() {}
 
 } // namespace network
 } // namespace mega

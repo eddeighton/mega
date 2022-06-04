@@ -51,7 +51,7 @@ namespace mega
 {
 inline void to_json( nlohmann::json& j, const mega::CompilationMode& compilationMode )
 {
-    j = nlohmann::json{ { "ownership", compilationMode.str() } };
+    j = nlohmann::json{ { "compilation_mode", compilationMode.str() } };
 }
 } // namespace mega
 

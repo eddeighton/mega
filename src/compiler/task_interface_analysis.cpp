@@ -117,7 +117,12 @@ public:
         nlohmann::json contextData( { { "name", pContext->get_identifier() },
                                       { "typeid", pContext->get_type_id() },
                                       { "trait_structs", nlohmann::json::array() },
-                                      { "nested", osNested.str() } } );
+                                      { "nested", osNested.str() },
+                                      { "has_operation", false },
+                                      { "operation_return_type", "mega::ActionCoroutine" },
+                                      { "operation_parameters", "" }
+
+        } );
 
         if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
         {
@@ -144,6 +149,7 @@ public:
         }
         else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
         {
+            contextData[ "has_operation" ] = true;
             if ( auto opt = pAction->get_inheritance_trait() )
             {
                 for ( const nlohmann::json& trait : getInheritanceTraits( typenames, pAction, opt.value() ) )
@@ -168,6 +174,10 @@ public:
         }
         else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
         {
+            contextData[ "has_operation" ] = true;
+            contextData[ "operation_return_type" ] = pFunction->get_return_type_trait()->get_str();
+            contextData[ "operation_parameters" ] = pFunction->get_arguments_trait()->get_str();
+
             nlohmann::json functionTraitTypeNames = typenames;
             functionTraitTypeNames.push_back( mega::EG_FUNCTION_TRAIT_TYPE );
 
@@ -286,7 +296,8 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
-BaseTask::Ptr create_Task_ObjectInterfaceGeneration( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_ObjectInterfaceGeneration( const TaskArguments&          taskArguments,
+                                                     const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_ObjectInterfaceGeneration >( taskArguments, sourceFilePath );
 }
@@ -304,7 +315,7 @@ public:
     {
         const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader = m_environment.Interface( m_sourceFilePath );
-        const mega::io::PrecompiledHeaderFile      includePCH      = m_environment.PCH( m_sourceFilePath );
+        const mega::io::PrecompiledHeaderFile      includePCH      = m_environment.IncludePCH( m_sourceFilePath );
         const mega::io::PrecompiledHeaderFile interfacePCHFilePath = m_environment.InterfacePCH( m_sourceFilePath );
         const mega::io::CompilationFilePath   interfaceAnalysisFile
             = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
@@ -330,12 +341,8 @@ public:
         Database               database( m_environment, m_sourceFilePath );
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
-        const std::string strCmd = mega::Compilation(
-            m_toolChain.clangCompilerPath, m_toolChain.clangPluginPath, pComponent->get_cpp_flags(),
-            pComponent->get_cpp_defines(), pComponent->get_includeDirectories(), mega::CompilationMode::eInterface,
-            m_environment.rootSourceDir(), m_environment.rootBuildDir(), m_environment.FilePath( m_sourceFilePath ),
-            m_environment.FilePath( includePCH ), m_environment.FilePath( interfaceHeader ),
-            m_environment.FilePath( interfacePCHFilePath ) )();
+        const std::string strCmd = mega::Compilation::make_interfacePCH_compilation(
+            m_environment, m_toolChain, pComponent, m_sourceFilePath )();
 
         msg( taskProgress, strCmd );
 
@@ -365,7 +372,8 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
-BaseTask::Ptr create_Task_ObjectInterfaceAnalysis( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_ObjectInterfaceAnalysis( const TaskArguments&          taskArguments,
+                                                   const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_ObjectInterfaceAnalysis >( taskArguments, sourceFilePath );
 }

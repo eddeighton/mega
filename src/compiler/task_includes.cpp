@@ -94,7 +94,7 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
-        const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.PCH( m_sourceFilePath );
+        const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.IncludePCH( m_sourceFilePath );
         start( taskProgress, "Task_IncludePCH", includeFilePath.path(), pchPath.path() );
 
         const task::DeterminantHash determinant(
@@ -114,9 +114,7 @@ public:
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
         const std::string strCmd
-            = mega::Compilation( m_toolChain.clangCompilerPath, pComponent->get_cpp_flags(),
-                                 pComponent->get_cpp_defines(), pComponent->get_includeDirectories(),
-                                 m_environment.FilePath( includeFilePath ), m_environment.FilePath( pchPath ) )();
+            = mega::Compilation::make_includePCH_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath )();
 
         msg( taskProgress, strCmd );
 

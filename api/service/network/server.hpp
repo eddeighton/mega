@@ -36,6 +36,7 @@ public:
 
         Strand&                       getStrand() { return m_strand; }
         boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
+        const ConnectionID&           getConnectionID() const { return m_connectionID.value(); }
         const std::string&            getName() const { return m_strName; }
 
     protected:
@@ -44,11 +45,12 @@ public:
         void disconnected();
 
     private:
-        Server&                      m_server;
-        Strand                       m_strand;
-        boost::asio::ip::tcp::socket m_socket;
-        Receiver                     m_receiver;
-        std::string                  m_strName;
+        Server&                       m_server;
+        Strand                        m_strand;
+        boost::asio::ip::tcp::socket  m_socket;
+        Receiver                      m_receiver;
+        std::optional< ConnectionID > m_connectionID;
+        std::string                   m_strName;
     };
 
     using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;

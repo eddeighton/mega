@@ -40,11 +40,13 @@ add_subdirectory(compiler)
 add_subdirectory(utilities)
 add_subdirectory(service)
 add_subdirectory(driver)
-#add_subdirectory(tests)
+add_subdirectory(tests)
+add_subdirectory(mega)
+add_subdirectory(toolchain)
 
 # install scripts
 set( MEGA_SCRIPTS
-    ${MEGA_ROOT_DIR}/scripts/startup.sh 
+    ${MEGA_ROOT_DIR}/scripts/run_service.sh 
 )
 
 install( FILES ${MEGA_SCRIPTS} DESTINATION bin )

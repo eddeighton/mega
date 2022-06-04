@@ -1,7 +1,7 @@
 
 
 #include <gtest/gtest.h>
-
+/*
 #include "service/network/end_point.hpp"
 #include "service/protocol/common/serialisation.hpp"
 
@@ -11,10 +11,10 @@ struct TestMsg
     int                                         i;
     std::vector< std::map< int, std::string > > data;
 };
-
+*/
 TEST( Asio, EncodeDecode )
 {
-    using namespace mega::network;
+   // using namespace mega::network;
 
     // clang-format off
     /*TestMsg msg

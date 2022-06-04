@@ -27,38 +27,7 @@ set( DRIVER_SOURCE_DIR ${MEGA_SRC_DIR}/driver )
 
 set( JINJA_TEMPLATES 
 	${DRIVER_SOURCE_DIR}/graphviz.jinja 
-	${DRIVER_SOURCE_DIR}/context.jinja 
-	${DRIVER_SOURCE_DIR}/namespace.jinja 
-	${DRIVER_SOURCE_DIR}/interface.jinja 
 	)
-
-set( MEGA_LIBRARY
-	${MEGA_API_DIR}/mega/allocator.hpp
-	${MEGA_API_DIR}/mega/backtrace.hpp
-	${MEGA_API_DIR}/mega/basic_scheduler.cpp 
-	${MEGA_API_DIR}/mega/clock.cpp
-	${MEGA_API_DIR}/mega/clock.hpp
-	${MEGA_API_DIR}/mega/common_strings.hpp 
-	${MEGA_API_DIR}/mega/common.hpp
-	${MEGA_API_DIR}/mega/coroutine.hpp
-	${MEGA_API_DIR}/mega/default_traits.hpp
-	${MEGA_API_DIR}/mega/eg_common_strings.hpp
-	${MEGA_API_DIR}/mega/event_log.cpp
-	${MEGA_API_DIR}/mega/event.hpp
-	${MEGA_API_DIR}/mega/frame.cpp
-	${MEGA_API_DIR}/mega/frame.hpp
-	${MEGA_API_DIR}/mega/include.hpp
-	${MEGA_API_DIR}/mega/iterators.hpp
-	${MEGA_API_DIR}/mega/macros.hpp
-	${MEGA_API_DIR}/mega/operations.hpp
-	${MEGA_API_DIR}/mega/resource.cpp
-	${MEGA_API_DIR}/mega/resource.hpp
-	${MEGA_API_DIR}/mega/result_type.hpp
-	${MEGA_API_DIR}/mega/scheduler.hpp
-	${MEGA_API_DIR}/mega/type_path.hpp
-	${MEGA_API_DIR}/mega/variant.hpp
-)
-
 
 set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_archive.cpp
@@ -82,11 +51,11 @@ add_custom_target( PreprocessMain
 
 add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 
+target_link_libraries( mega compiler_config )
 target_link_libraries( mega database )
 target_link_libraries( mega utilities )
 target_link_libraries( mega network )
 target_link_libraries( mega service )
-target_link_libraries( mega compiler )
 
 set_target_properties( mega PROPERTIES FOLDER driver )
 
@@ -103,28 +72,4 @@ link_common( mega )
 
 install( TARGETS mega DESTINATION bin)
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )
-install( FILES ${MEGA_LIBRARY} DESTINATION include/mega )
 
-
-# determine toolchain locations
-set( MEGA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX} )
-find_path(LLVM_CONFIGURATION_PATH NAMES "llvm/install" PATHS ${BUILD_PATH}/${CFG_TUPLE} REQUIRED NO_DEFAULT_PATH)
-find_file(CLANG_COMPILER NAMES clang PATHS ${LLVM_CONFIGURATION_PATH}/llvm/install/bin REQUIRED NO_DEFAULT_PATH)
-find_file(MEGA_COMPILER_PIPELINE NAMES libcompiler.so libcompiler.a PATHS ${MEGA_INSTALL_PATH}/bin REQUIRED NO_DEFAULT_PATH)
-find_file(MEGA_PARSER NAMES libparser.so PATHS ${MEGA_INSTALL_PATH}/bin REQUIRED NO_DEFAULT_PATH)
-find_file(MEGA_DATABASE NAMES libdatabase.so libdatabase.a PATHS ${MEGA_INSTALL_PATH}/bin REQUIRED NO_DEFAULT_PATH)
-find_file(CLANG_PLUGIN NAMES libclang_plugin.so PATHS ${MEGA_INSTALL_PATH}/bin REQUIRED NO_DEFAULT_PATH)
-
-add_custom_command( TARGET mega POST_BUILD 
-	COMMAND mega --tool_chain_hash
-	
-		--mega_compiler 	${MEGA_COMPILER_PIPELINE}
-		--clang_compiler 	${CLANG_COMPILER}
-		--parser_dll 		${MEGA_PARSER}
-		--clang_plugin 		${CLANG_PLUGIN}
-		--database_dll 		${MEGA_DATABASE}
-	
-		--output_xml		toolchain.xml
-		)
-
-install( FILES ${CMAKE_CURRENT_BINARY_DIR}/toolchain.xml DESTINATION etc )

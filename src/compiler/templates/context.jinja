@@ -14,7 +14,9 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
     operator ::mega::ReferenceState() const;
     bool operator==( ::mega::ReferenceState cmp ) const;
     bool operator!=( ::mega::ReferenceState cmp ) const;
-    mega::ActionCoroutine operator()() const;
+{% if has_operation %}
+    {{ operation_return_type }} operator()( {{ operation_parameters }} ) const;
+{% endif %}
     template< typename TypePath, typename Operation, typename... Args >
     typename mega::result_type< {{ name }}, TypePath, Operation >::Type invoke( Args... args ) const;
 

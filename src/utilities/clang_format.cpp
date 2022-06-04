@@ -4,6 +4,7 @@
 #include "common/file.hpp"
 #include "common/assert_verify.hpp"
 
+#define DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT
 #ifdef DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT
 #include "clang/Format/Format.h"
 #include "clang/Basic/FileManager.h"

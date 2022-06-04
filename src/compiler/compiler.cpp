@@ -1,10 +1,9 @@
 
-#include "compiler/compiler.hpp"
+#include "compiler/configuration.hpp"
 
 #include "base_task.hpp"
 
 #include "pipeline/task.hpp"
-#include "pipeline/configuration.hpp"
 #include "pipeline/stash.hpp"
 #include "pipeline/pipeline.hpp"
 
@@ -17,8 +16,6 @@
 #include "boost/config.hpp"
 #include "boost/archive/binary_iarchive.hpp"
 #include "boost/archive/binary_oarchive.hpp"
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
 
 #include <common/string.hpp>
 
@@ -61,6 +58,16 @@ extern BaseTask::Ptr create_Task_ObjectInterfaceAnalysis( const TaskArguments&  
 extern BaseTask::Ptr create_Task_ConcreteTree( const TaskArguments&          taskArguments,
                                                const mega::io::megaFilePath& sourceFilePath );
 
+extern BaseTask::Ptr create_Task_Operations( const TaskArguments&          taskArguments,
+                                             const mega::io::megaFilePath& sourceFilePath );
+extern BaseTask::Ptr create_Task_OperationsPCH( const TaskArguments&          taskArguments,
+                                                const mega::io::megaFilePath& sourceFilePath );
+
+extern BaseTask::Ptr create_Task_Implementation( const TaskArguments&          taskArguments,
+                                                 const mega::io::megaFilePath& sourceFilePath );
+extern BaseTask::Ptr create_Task_ImplementationObj( const TaskArguments&          taskArguments,
+                                                    const mega::io::megaFilePath& sourceFilePath );
+
 class Task_Complete : public BaseTask
 {
     const mega::io::manifestFilePath& m_manifest;
@@ -92,38 +99,6 @@ namespace mega
 {
 namespace compiler
 {
-
-pipeline::Configuration makePipelineConfiguration( const Configuration& configuration )
-{
-    std::ostringstream os;
-    {
-        boost::archive::xml_oarchive oa( os );
-
-        pipeline::ConfigurationHeader header{ configuration.pipelineID };
-
-        oa& boost::serialization::make_nvp( "pipeline_header", header );
-        oa& boost::serialization::make_nvp( "pipeline_config", configuration );
-    }
-    return pipeline::Configuration( os.str() );
-}
-
-Configuration fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig )
-{
-    Configuration configuration;
-    {
-        std::istringstream           is( pipelineConfig.get() );
-        boost::archive::xml_iarchive ia( is );
-
-        pipeline::ConfigurationHeader header;
-
-        ia& boost::serialization::make_nvp( "pipeline_header", header );
-        ia& boost::serialization::make_nvp( "pipeline_config", configuration );
-
-        configuration.pipelineID = header.pipelineID;
-    }
-    return configuration;
-}
-
 namespace
 {
 
@@ -292,7 +267,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    TskDescVec concreteTasks;
+    TskDescVec implementationObjTasks;
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
@@ -300,18 +275,26 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                 = encode( Task{ "Task_ObjectInterfaceGeneration", sourceFilePath } );
             const TskDesc objectInterfaceAnalysis = encode( Task{ "Task_ObjectInterfaceAnalysis", sourceFilePath } );
             const TskDesc concreteTree            = encode( Task{ "Task_ConcreteTree", sourceFilePath } );
+            const TskDesc operations              = encode( Task{ "Task_Operations", sourceFilePath } );
+            const TskDesc operationsPCH           = encode( Task{ "Task_OperationsPCH", sourceFilePath } );
+            const TskDesc implementation          = encode( Task{ "Task_Implementation", sourceFilePath } );
+            const TskDesc implementationObj       = encode( Task{ "Task_ImplementationObj", sourceFilePath } );
 
             dependencies.add( objectInterfaceGeneration, symbolRolloutTasks );
             dependencies.add(
                 objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration, includePCHTasks[ sourceFilePath ] } );
             dependencies.add( concreteTree, TskDescVec{ objectInterfaceAnalysis } );
+            dependencies.add( operations, TskDescVec{ concreteTree } );
+            dependencies.add( operationsPCH, TskDescVec{ operations } );
+            dependencies.add( implementation, TskDescVec{ operationsPCH } );
+            dependencies.add( implementationObj, TskDescVec{ implementation } );
 
-            concreteTasks.push_back( concreteTree );
+            implementationObjTasks.push_back( implementationObj );
         }
     }
 
     TskDesc complete = encode( Task{ "Task_Complete", manifestFilePath } );
-    dependencies.add( complete, TskDescVec{ concreteTasks } );
+    dependencies.add( complete, TskDescVec{ implementationObjTasks } );
 
     return pipeline::Schedule( dependencies );
 }
@@ -387,6 +370,26 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
     else if ( task.strTaskName == "Task_ConcreteTree" )
     {
         pTask = driver::interface::create_Task_ConcreteTree(
+            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
+    }
+    else if ( task.strTaskName == "Task_Operations" )
+    {
+        pTask = driver::interface::create_Task_Operations(
+            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
+    }
+    else if ( task.strTaskName == "Task_OperationsPCH" )
+    {
+        pTask = driver::interface::create_Task_OperationsPCH(
+            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
+    }
+    else if ( task.strTaskName == "Task_Implementation" )
+    {
+        pTask = driver::interface::create_Task_Implementation(
+            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
+    }
+    else if ( task.strTaskName == "Task_ImplementationObj" )
+    {
+        pTask = driver::interface::create_Task_ImplementationObj(
             taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
     }
     else if ( task.strTaskName == "Task_Complete" )

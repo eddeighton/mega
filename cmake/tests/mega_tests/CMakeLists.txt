@@ -45,7 +45,6 @@ link_gtest( mega_tests )
 
 target_link_libraries( mega_tests database )
 target_link_libraries( mega_tests utilities )
-target_link_libraries( mega_tests parser )
 target_link_libraries( mega_tests database_compiler)
 target_link_libraries( mega_tests protocol)
 target_link_libraries( mega_tests network)

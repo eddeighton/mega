@@ -5,6 +5,8 @@
 #include "common/assert_verify.hpp"
 
 #include "boost/dll.hpp"
+#include "boost/dll/shared_library.hpp"
+#include <boost/dll/shared_library_load_mode.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 
@@ -95,6 +97,9 @@ Pipeline::Ptr Registry::getPipeline( const Configuration& configuration )
     try
     {
         boost::dll::fs::path pipelineLibrary( configuration.getPipelineID() );
+
+        //boost::dll::shared_library lib( pipelineLibrary, boost::dll::load_mode::append_decorations );
+        //mega::pipeline::Pipeline pipeline = lib.get< mega::pipeline::Pipeline >( "mega_pipeline" );
 
         Pipeline::Ptr pPipeline = boost::dll::import_symbol< mega::pipeline::Pipeline >(
             pipelineLibrary, "mega_pipeline", boost::dll::load_mode::append_decorations );

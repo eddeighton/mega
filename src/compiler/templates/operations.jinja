@@ -1,0 +1,18 @@
+
+
+{% for operation in operations %}
+
+{% for namespace in operation.namespaces %}{% if loop.is_first%}namespace {%else%}::{% endif %}{{namespace}}{% endfor %}
+{% if operation.has_namespaces %} 
+{ 
+{% endif %}
+    {{ operation.return_type }} 
+    {% for type in operation.types %}{{type}}::{% endfor %}operator()({{ operation.params }}) const
+    {
+        {{ operation.body }}
+    }
+{% if operation.has_namespaces %} 
+} 
+{% endif %}
+
+{% endfor %}

@@ -30,12 +30,12 @@ Server::Connection::~Connection()
 
 void Server::Connection::start()
 {
-    boost::asio::ip::tcp::endpoint t;
-
+    m_connectionID = network::getConnectionID( m_socket );
+    
     // calculate name
     {
         std::ostringstream os;
-        os << m_socket.local_endpoint();
+        os <<  m_connectionID.value();
         m_strName = os.str();
     }
 
@@ -53,7 +53,10 @@ void Server::Connection::stop()
 void Server::Connection::disconnected() 
 { 
     if( m_socket.is_open() )
-        m_socket.close();
+    {
+        boost::system::error_code ec;
+        m_socket.close(ec);
+    }
     m_server.onDisconnected( shared_from_this() ); 
 }
 
@@ -97,7 +100,7 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
     if ( !ec )
     {
         pNewConnection->start();
-        m_connections.insert( std::make_pair( getConnectionID( pNewConnection->getSocket() ), pNewConnection ) );
+        m_connections.insert( std::make_pair( pNewConnection->getConnectionID(), pNewConnection ) );
     }
     if( m_acceptor.is_open() )
         waitForConnection();
@@ -105,7 +108,7 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
 
 void Server::onDisconnected( Connection::Ptr pConnection )
 {
-    m_connections.erase( getConnectionID( pConnection->getSocket() ) );
+    m_connections.erase( pConnection->getConnectionID() );
 }
 
 Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )

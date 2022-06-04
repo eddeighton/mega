@@ -23,10 +23,8 @@
 #include "common.hpp"
 #include "event.hpp"
 
-#include "frame.hpp"
-
-//#define __cpp_impl_coroutine 1
-//#include <coroutine>
+#define __cpp_impl_coroutine 1
+#include <coroutine>
 
 #include <chrono>
 #include <optional>

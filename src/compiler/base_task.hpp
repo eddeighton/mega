@@ -1,8 +1,6 @@
 #ifndef BASE_TASK_10_MAY_2022
 #define BASE_TASK_10_MAY_2022
 
-#include "compiler/compiler.hpp"
-
 #include "pipeline/pipeline.hpp"
 
 #include "database/common/environments.hpp"
@@ -181,7 +179,7 @@ public:
     void msg( mega::pipeline::Progress& taskProgress, const std::string& strMsg )
     {
         std::ostringstream os;
-        os << "MSG    : " << m_strTaskName;
+        os << "MSG    : " << m_strTaskName << strMsg;
         taskProgress.onProgress( os.str() );
         /*spdlog::info( psz_msg,
                       fmt::format( fmt::bg( fmt::terminal_color::black ) | fmt::fg( fmt::terminal_color::white ),
