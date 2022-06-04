@@ -37,7 +37,7 @@ struct Directories
 
 struct Configuration
 {
-    pipeline::PipelineID                   pipelineID;
+    pipeline::ConfigurationHeader          header;
     std::string                            projectName;
     std::vector< boost::filesystem::path > componentInfoPaths;
     Directories                            directories;
@@ -46,9 +46,8 @@ struct Configuration
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        // ensure pipelineID is first thing to serialize
-        // use ConfigurationHeader for pipelineID
-        // archive& boost::serialization::make_nvp( "id", pipelineID );
+        //NOTE: header serialization handled seperately so can access in pipeline abstraction
+        //archive& boost::serialization::make_nvp( "header", header );
         archive& boost::serialization::make_nvp( "projectName", projectName );
         archive& boost::serialization::make_nvp( "componentInfoPaths", componentInfoPaths );
         archive& boost::serialization::make_nvp( "directories", directories );
@@ -57,7 +56,7 @@ struct Configuration
 };
 
 pipeline::Configuration makePipelineConfiguration( const Configuration& config );
-Configuration fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig );
+Configuration           fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig );
 
 } // namespace compiler
 } // namespace mega

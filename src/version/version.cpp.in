@@ -1,0 +1,29 @@
+
+
+#include "version/version.hpp"
+
+namespace
+{
+    mega::Version getVersionImpl()
+    {
+        // clang-format off
+        return mega::Version
+        {
+            ${CMAKE_VERSION_MAJOR},
+            ${CMAKE_VERSION_MINOR},
+            ${CMAKE_VERSION_REVISION},
+            "${CMAKE_VERSION_BUILD}"
+        };
+        // clang-format on
+    }
+}
+
+namespace mega
+{
+
+Version Version::getVersion()
+{
+    return getVersionImpl();
+}
+
+} // namespace mega

@@ -56,6 +56,7 @@ target_link_libraries( mega database )
 target_link_libraries( mega utilities )
 target_link_libraries( mega network )
 target_link_libraries( mega service )
+target_link_libraries( mega version )
 
 set_target_properties( mega PROPERTIES FOLDER driver )
 

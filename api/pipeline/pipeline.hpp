@@ -6,6 +6,8 @@
 #include "stash.hpp"
 #include "configuration.hpp"
 
+#include "version/version.hpp"
+
 #include "boost/config.hpp"
 #include "boost/shared_ptr.hpp"
 

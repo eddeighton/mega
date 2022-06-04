@@ -31,6 +31,7 @@
 #include "database/model/manifest.hxx"
 */
 
+#include "version/version.hpp"
 #include "pipeline/configuration.hpp"
 
 #include "service/host.hpp"
@@ -97,7 +98,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         const std::vector< boost::filesystem::path > componentInfoPaths
             = mega::utilities::pathListToFiles( mega::utilities::parseCMakeStringList( strComponentInfoPaths, ";" ) );
 
-       mega::utilities::ToolChain toolChain;
+        mega::utilities::ToolChain toolChain;
         {
             VERIFY_RTE_MSG( boost::filesystem::exists( toolchainXML ),
                             "Failed to locate toolchain file: " << toolchainXML.string() );
@@ -108,11 +109,14 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         const boost::filesystem::path    compilerPath = toolChain.megaCompilerPath.parent_path() / "compiler";
         const mega::pipeline::PipelineID pipelineID   = compilerPath.native();
+        const mega::Version              version      = mega::Version::getVersion();
 
         // clang-format off
         mega::compiler::Configuration config =
         {
             pipelineID,
+            version,
+
             projectName,
             componentInfoPaths,
 

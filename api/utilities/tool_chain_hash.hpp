@@ -18,11 +18,11 @@ namespace utilities
 struct ToolChain
 {
     ToolChain();
-    ToolChain(  const boost::filesystem::path& parserDll,
-                   const boost::filesystem::path& megaCompiler,
-                   const boost::filesystem::path& clangCompiler,
-                   const boost::filesystem::path& clangPlugin,
-                   const boost::filesystem::path& databaseDll );
+    ToolChain( const boost::filesystem::path& parserDll,
+               const boost::filesystem::path& megaCompiler,
+               const boost::filesystem::path& clangCompiler,
+               const boost::filesystem::path& clangPlugin,
+               const boost::filesystem::path& databaseDll );
 
     boost::filesystem::path parserDllPath, megaCompilerPath, clangCompilerPath, clangPluginPath, databasePath;
     task::FileHash          parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash;
@@ -44,7 +44,7 @@ struct ToolChain
     }
 
     template < typename Archive >
-    void save( Archive& archive, const unsigned int version ) const
+    void save( Archive& archive, const unsigned int v ) const
     {
         archive& boost::serialization::make_nvp( "parserDllPath", parserDllPath );
         archive& boost::serialization::make_nvp( "megaCompilerPath", megaCompilerPath );
@@ -62,7 +62,7 @@ struct ToolChain
     }
 
     template < typename Archive >
-    void load( Archive& archive, const unsigned int version )
+    void load( Archive& archive, const unsigned int v )
     {
         archive& boost::serialization::make_nvp( "parserDllPath", parserDllPath );
         archive& boost::serialization::make_nvp( "megaCompilerPath", megaCompilerPath );
@@ -81,55 +81,6 @@ struct ToolChain
 
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
-/*
-struct ToolChainHash
-{
-    ToolChainHash();
-    ToolChainHash( const boost::filesystem::path& parserDll,
-                   const boost::filesystem::path& megaCompiler,
-                   const boost::filesystem::path& clangCompiler,
-                   const boost::filesystem::path& clangPlugin,
-                   const boost::filesystem::path& databaseDll );
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& boost::serialization::make_nvp( "parserDll_path", parserDll_path );
-        archive& boost::serialization::make_nvp( "megaCompiler_path", megaCompiler_path );
-        archive& boost::serialization::make_nvp( "clangCompiler_path", clangCompiler_path );
-        archive& boost::serialization::make_nvp( "clangPlugin_path", clangPlugin_path );
-        archive& boost::serialization::make_nvp( "databaseDll_path", databaseDll_path );
-
-        const std::string strHexparserDll     = parserDll_hash.toHexString();
-        const std::string strHexmegaCompiler  = megaCompiler_hash.toHexString();
-        const std::string strHexclangCompiler = clangCompiler_hash.toHexString();
-        const std::string strHexclangPlugin   = clangPlugin_hash.toHexString();
-        const std::string strHexdatabaseDll   = databaseDll_hash.toHexString();
-
-        archive& boost::serialization::make_nvp( "parserDll_hash", strHexparserDll );
-        archive& boost::serialization::make_nvp( "megaCompiler_hash", strHexmegaCompiler );
-        archive& boost::serialization::make_nvp( "clangCompiler_hash", strHexclangCompiler );
-        archive& boost::serialization::make_nvp( "clangPlugin_hash", strHexclangPlugin );
-        archive& boost::serialization::make_nvp( "databaseDll_hash", strHexdatabaseDll );
-
-        const std::string strHexToolChainHash   = toolChain_hash.toHexString();
-        archive& boost::serialization::make_nvp( "toolChain_hash", strHexToolChainHash );
-    }
-
-    boost::filesystem::path parserDll_path;
-    boost::filesystem::path megaCompiler_path;
-    boost::filesystem::path clangCompiler_path;
-    boost::filesystem::path clangPlugin_path;
-    boost::filesystem::path databaseDll_path;
-
-    task::FileHash parserDll_hash;
-    task::FileHash megaCompiler_hash;
-    task::FileHash clangCompiler_hash;
-    task::FileHash clangPlugin_hash;
-    task::FileHash databaseDll_hash;
-
-    task::DeterminantHash toolChain_hash;
-};*/
 
 } // namespace utilities
 } // namespace mega

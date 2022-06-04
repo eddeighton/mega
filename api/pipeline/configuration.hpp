@@ -3,6 +3,8 @@
 #ifndef CONFIGURATION_30_MAY_2022
 #define CONFIGURATION_30_MAY_2022
 
+#include "version/version.hpp"
+
 #include "boost/serialization/nvp.hpp"
 
 #include <vector>
@@ -18,11 +20,13 @@ using PipelineID = std::string;
 struct ConfigurationHeader
 {
     PipelineID pipelineID;
+    Version    version;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int v )
     {
         archive& boost::serialization::make_nvp( "id", pipelineID );
+        archive& boost::serialization::make_nvp( "version", version );
     }
 };
 
@@ -38,7 +42,9 @@ public:
     inline bool operator==( const Configuration& cmp ) const { return m_buffer == cmp.m_buffer; }
     inline bool operator!=( const Configuration& cmp ) const { return m_buffer != cmp.m_buffer; }
 
-    PipelineID    getPipelineID() const;
+    PipelineID getPipelineID() const;
+    Version    getVersion() const;
+
     const Buffer& get() const { return m_buffer; }
     Buffer&       data() { return m_buffer; }
 
@@ -48,6 +54,7 @@ public:
     {
         archive& m_buffer;
     }
+
 private:
     Buffer m_buffer;
 };

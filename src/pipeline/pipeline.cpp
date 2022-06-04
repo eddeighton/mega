@@ -39,6 +39,15 @@ PipelineID Configuration::getPipelineID() const
     return header.pipelineID;
 }
 
+Version Configuration::getVersion() const
+{
+    std::istringstream           is( m_buffer );
+    boost::archive::xml_iarchive ia( is );
+    ConfigurationHeader          header;
+    ia&                          boost::serialization::make_nvp( "pipeline_header", header );
+    return header.version;
+}
+
 void Dependencies::add( const TaskDescriptor& newTask, const TaskDescriptor::Vector& dependencies )
 {
     VERIFY_RTE( newTask != TaskDescriptor() );

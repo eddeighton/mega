@@ -67,6 +67,7 @@ target_link_libraries( compiler compiler_config )
 target_link_libraries( compiler utilities )
 target_link_libraries( compiler database )
 target_link_libraries( compiler pipeline )
+target_link_libraries( compiler version )
 
 target_include_directories( compiler PUBLIC ${MEGA_API_DIR} )
 

@@ -201,6 +201,12 @@ public:
     virtual void initialise( const pipeline::Configuration& pipelineConfig ) override
     {
         m_configuration = fromPipelineConfiguration( pipelineConfig );
+
+        // check the version is latest
+        const auto actualVersion = Version::getVersion();
+        VERIFY_RTE_MSG( actualVersion == m_configuration->header.version,
+                        "Pipeine version mismatch: Configuration version: " << m_configuration->header.version
+                                                                            << " Actual Version: " << actualVersion );
     }
 };
 

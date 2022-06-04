@@ -35,6 +35,8 @@ add_library( utilities
     ${UTILITIES_SOURCE}
 )
 
+#target_link_libraries( utilities version )
+
 target_include_directories( utilities PUBLIC ${MEGA_API_DIR} )
 
 set_property(TARGET utilities PROPERTY POSITION_INDEPENDENT_CODE ON)
