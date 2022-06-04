@@ -7,8 +7,12 @@
 #include "boost/dll.hpp"
 #include "boost/dll/shared_library.hpp"
 #include <boost/dll/shared_library_load_mode.hpp>
+
 #include <boost/filesystem/operations.hpp>
 #include <boost/archive/xml_iarchive.hpp>
+
+#include "common/string.hpp"
+#include "common/file.hpp"
 
 namespace mega
 {
@@ -105,13 +109,22 @@ Pipeline::Ptr Registry::getPipeline( const Configuration& configuration )
 {
     try
     {
-        boost::dll::fs::path pipelineLibrary( configuration.getPipelineID() );
+        boost::filesystem::path tempDir = boost::filesystem::temp_directory_path() / "mega_registry";
+        boost::filesystem::ensureFoldersExist( tempDir );
 
-        //boost::dll::shared_library lib( pipelineLibrary, boost::dll::load_mode::append_decorations );
-        //mega::pipeline::Pipeline pipeline = lib.get< mega::pipeline::Pipeline >( "mega_pipeline" );
+        std::ostringstream osTempFileName;
+        {
+            const boost::filesystem::path actualFile = configuration.getPipelineID();
+            osTempFileName << common::uuid() << "_" << actualFile.filename().string();
+        }
 
-        Pipeline::Ptr pPipeline = boost::dll::import_symbol< mega::pipeline::Pipeline >(
-            pipelineLibrary, "mega_pipeline", boost::dll::load_mode::append_decorations );
+        const boost::filesystem::path tempDllPath = tempDir / osTempFileName.str();
+        boost::filesystem::copy( configuration.getPipelineID(), tempDllPath );
+
+        boost::dll::fs::path pipelineLibrary( tempDllPath );
+
+        Pipeline::Ptr pPipeline
+            = boost::dll::import_symbol< mega::pipeline::Pipeline >( pipelineLibrary, "mega_pipeline" );
 
         pPipeline->initialise( configuration );
 

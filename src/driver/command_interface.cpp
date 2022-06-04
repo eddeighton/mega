@@ -107,7 +107,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             ia&                          boost::serialization::make_nvp( "toolchain", toolChain );
         }
 
-        const boost::filesystem::path    compilerPath = toolChain.megaCompilerPath.parent_path() / "compiler";
+        const boost::filesystem::path    compilerPath = toolChain.megaCompilerPath;
         const mega::pipeline::PipelineID pipelineID   = compilerPath.native();
         const mega::Version              version      = mega::Version::getVersion();
 

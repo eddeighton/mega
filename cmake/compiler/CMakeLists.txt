@@ -57,6 +57,9 @@ set( COMPILER_TASKS
 set( COMPILER_SOURCE
     ${COMPILER_TASKS}
     ${MEGA_SRC_DIR}/compiler/compiler.cpp
+
+    ## ensure the version is baked into the shared object
+    ${MEGA_SRC_DIR}/version/version.cxx
 )
 
 add_library( compiler MODULE
@@ -67,7 +70,7 @@ target_link_libraries( compiler compiler_config )
 target_link_libraries( compiler utilities )
 target_link_libraries( compiler database )
 target_link_libraries( compiler pipeline )
-target_link_libraries( compiler version )
+#target_link_libraries( compiler version )
 
 target_include_directories( compiler PUBLIC ${MEGA_API_DIR} )
 

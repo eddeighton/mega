@@ -188,15 +188,10 @@ public:
         const mega::io::GeneratedHPPSourceFilePath operationsFile = m_environment.Operations( m_sourceFilePath );
         start( taskProgress, "Task_Operations", concreteFile.path(), operationsFile.path() );
 
-        task::DeterminantHash determinant( { m_toolChain.toolChainHash, m_environment.OperationsTemplate(),
-                                             m_environment.getBuildHashCode( concreteFile ) } );
-
-        {
-            std::ostringstream os;
-            os << m_strTaskName << "\n"
-               << "DeterminantHash: " << determinant.toHexString();
-            msg( taskProgress, os.str() );
-        }
+        task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.OperationsTemplate(),
+              m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( concreteFile ) } );
 
         if ( m_environment.restore( operationsFile, determinant ) )
         {

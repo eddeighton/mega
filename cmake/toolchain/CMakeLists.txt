@@ -10,7 +10,7 @@ find_file(CLANG_COMPILER NAMES clang++ PATHS ${LLVM_CONFIGURATION_PATH}/llvm/ins
 add_custom_target( GenerateToolChainXML
 	COMMAND mega --tool_chain_hash
 	
-		--mega_compiler 	${MEGA_INSTALL_PATH}/bin/$<TARGET_FILE_NAME:mega>
+		--mega_compiler 	${MEGA_INSTALL_PATH}/bin/$<TARGET_FILE_NAME:compiler>
 		--clang_compiler 	${CLANG_COMPILER}
 		--parser_dll 		${MEGA_INSTALL_PATH}/bin/$<TARGET_FILE_NAME:parser>
 		--clang_plugin 		${MEGA_INSTALL_PATH}/bin/$<TARGET_FILE_NAME:clang_plugin>
