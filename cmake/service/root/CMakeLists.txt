@@ -22,7 +22,6 @@ add_executable( root ${DAEMON_SOURCE}  )
 
 target_compile_options( root PUBLIC "-fcoroutines" )
 
-#target_link_libraries( root database )
 target_link_libraries( root utilities )
 target_link_libraries( root protocol )
 target_link_libraries( root network )

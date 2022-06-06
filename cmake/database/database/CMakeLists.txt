@@ -157,7 +157,7 @@ set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
 )
 
-add_library( database
+add_library( database SHARED
                     ${MEGA_DATABASE_COMMON}
 					${MEGA_DATABASE_SOURCES}
 					${MEGA_DATABASE_GENERATED_HEADERS}

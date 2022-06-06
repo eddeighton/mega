@@ -1025,5 +1025,12 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
         return parser.parse_file( database );
     }
 };
+
 extern "C" BOOST_SYMBOL_EXPORT EG_PARSER_IMPL g_parserSymbol;
 EG_PARSER_IMPL                                g_parserSymbol;
+
+/*
+std::unique_ptr< EG_PARSER_INTERFACE > getParser()
+{
+    return std::make_unique< EG_PARSER_IMPL >();
+}*/

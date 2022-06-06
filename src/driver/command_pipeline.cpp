@@ -26,10 +26,13 @@
 
 #include "utilities/cmake.hpp"
 
+#include "parser/parser.hpp"
+
 #include "boost/program_options.hpp"
 #include "boost/filesystem/path.hpp"
 #include "boost/filesystem/operations.hpp"
 #include "boost/program_options/value_semantic.hpp"
+#include "boost/dll.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -81,7 +84,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
             task::Stash stash( stashDir );
 
-            std::ostringstream osLog;
+            std::ostringstream            osLog;
             mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( pipelineConfig, osLog );
             SPDLOG_INFO( "{}", osLog.str() );
 
@@ -129,13 +132,24 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 }
             } stashImpl( stash );
 
+            struct Dependencies : public mega::pipeline::DependencyProvider
+            {
+                boost::shared_ptr< EG_PARSER_INTERFACE > m_pParser;
+                Dependencies()
+                {
+                    m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
+                        "parser", "g_parserSymbol", boost::dll::load_mode::append_decorations );
+                }
+                EG_PARSER_INTERFACE* getParser() { return m_pParser.get(); }
+            } dependencies;
+
             mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
             while ( !schedule.isComplete() && bContinue )
             {
                 bool bProgress = false;
                 for ( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
                 {
-                    pPipeline->execute( task, progressReporter, stashImpl );
+                    pPipeline->execute( task, progressReporter, stashImpl, dependencies );
                     if ( !bContinue )
                         break;
                     schedule.complete( task );

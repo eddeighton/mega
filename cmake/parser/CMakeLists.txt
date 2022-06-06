@@ -26,7 +26,7 @@ set( CLANG_PLUGIN_SOURCES
 
 add_definitions(-DEG_DATABASE_SHARED_MODULE)
 
-add_library( parser SHARED
+add_library( parser MODULE
                     ${CLANG_PLUGIN_API}
                     ${CLANG_PLUGIN_SOURCES} )
 
@@ -36,9 +36,6 @@ set_property(TARGET parser PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 set_target_properties( parser PROPERTIES FOLDER parser )
 
-target_link_libraries( parser utilities )
-target_link_libraries( parser database )
-target_link_libraries( parser pipeline )
 
 link_boost( parser filesystem )
 link_boost( parser iostreams )
@@ -47,6 +44,8 @@ link_boost( parser system )
 link_clang( parser )
 link_json( parser )
 link_common( parser )
+
+# NOTE: DOES NOT link the database
 
 install( FILES ${CLANG_PLUGIN_API} DESTINATION include/parser )
 install( TARGETS parser DESTINATION bin)

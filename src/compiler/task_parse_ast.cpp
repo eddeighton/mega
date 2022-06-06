@@ -29,15 +29,8 @@ public:
                                                      std::ostream&                             osError,
                                                      std::ostream&                             osWarn )
     {
-        boost::shared_ptr< EG_PARSER_INTERFACE > pParserInterface;
-        if ( !pParserInterface )
-        {
-            pParserInterface
-                = boost::dll::import_symbol< EG_PARSER_INTERFACE >( m_toolChain.parserDllPath, "g_parserSymbol" );
-        }
-
         ParserStage::Parser::ContextDef* pContextDef
-            = pParserInterface->parseEGSourceFile( database, m_environment.rootSourceDir() / sourceFilePath.path(),
+            = m_parser->parseEGSourceFile( database, m_environment.rootSourceDir() / sourceFilePath.path(),
                                                    pComponent->get_includeDirectories(), osError, osWarn );
         return pContextDef;
     }

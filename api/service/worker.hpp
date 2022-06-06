@@ -5,6 +5,8 @@
 #include "service/network/client.hpp"
 #include "service/network/activity_manager.hpp"
 
+#include "parser/parser.hpp"
+
 #include <boost/asio/io_service.hpp>
 
 #include <memory>
@@ -51,6 +53,8 @@ private:
     int                      m_numThreads;
     network::ActivityManager m_activityManager;
     network::Client          m_client;
+
+    boost::shared_ptr< EG_PARSER_INTERFACE > m_pParser;
 };
 
 } // namespace service

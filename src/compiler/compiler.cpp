@@ -125,7 +125,7 @@ public:
     // pipeline::Pipeline
     virtual pipeline::Schedule getSchedule( pipeline::Progress& progress, pipeline::Stash& stash ) override;
     virtual void               execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
-                                        pipeline::Stash& stash ) override;
+                                        pipeline::Stash& stash, pipeline::DependencyProvider& dependencies ) override;
 
     virtual void initialise( const pipeline::Configuration& pipelineConfig, std::ostream& osLog ) override
     {
@@ -136,9 +136,8 @@ public:
         VERIFY_RTE_MSG( actualVersion == m_configuration->header.version,
                         "Pipeine version mismatch: Configuration version: " << m_configuration->header.version
                                                                             << " Actual Version: " << actualVersion );
-
-        osLog << "SUCCESS: Initialised pipeline: " << m_configuration->header.pipelineID <<
-            " with version: " << m_configuration->header.version;
+        osLog << "SUCCESS: Initialised pipeline: " << m_configuration->header.pipelineID
+              << " with version: " << m_configuration->header.version;
     }
 };
 
@@ -158,7 +157,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     // paradox - need a manifest to determine the schedule - the schedule generates the manifest!
     {
         const TskDesc generateManifest = encode( Task{ eTask_GenerateManifest, manifestFilePath } );
-        execute( generateManifest, progress, stash );
+        struct Dummy : public pipeline::DependencyProvider
+        {
+            virtual EG_PARSER_INTERFACE* getParser() { return nullptr; }
+        }dummy;
+        execute( generateManifest, progress, stash, dummy );
     }
     mega::io::Manifest manifest( environment, manifestFilePath );
 
@@ -241,7 +244,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 }
 
 void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
-                                pipeline::Stash& stash )
+                                pipeline::Stash& stash, pipeline::DependencyProvider& dependencies )
 {
     VERIFY_RTE( m_configuration.has_value() );
     Configuration& config = m_configuration.value();
@@ -251,7 +254,7 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
     mega::io::StashEnvironment environment(
         stash, config.directories.rootSourceDir, config.directories.rootBuildDir, config.directories.templatesDir );
 
-    mega::compiler::TaskArguments taskArguments( environment, config.toolChain );
+    mega::compiler::TaskArguments taskArguments( environment, config.toolChain, dependencies.getParser() );
 
     mega::compiler::BaseTask::Ptr pTask;
 

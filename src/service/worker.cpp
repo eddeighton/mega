@@ -17,9 +17,12 @@
 
 #include "boost/dll.hpp"
 
+#include <boost/dll/shared_library_load_mode.hpp>
 #include <optional>
 #include <future>
 #include <thread>
+
+#include "parser/parser.hpp"
 
 namespace mega
 {
@@ -96,15 +99,19 @@ public:
                                     boost::asio::yield_context&    yield_ctx );
 };
 
-class JobActivity : public WorkerRequestActivity, public pipeline::Progress, public pipeline::Stash
+class JobActivity : public WorkerRequestActivity,
+                    public pipeline::Progress,
+                    public pipeline::Stash,
+                    public pipeline::DependencyProvider
 {
-    const network::ActivityID                m_rootActivityID;
-    mega::pipeline::Pipeline::Ptr            m_pPipeline;
-    boost::asio::yield_context*              m_pYieldCtx = nullptr;
+    const network::ActivityID     m_rootActivityID;
+    mega::pipeline::Pipeline::Ptr m_pPipeline;
+    boost::asio::yield_context*   m_pYieldCtx = nullptr;
 
 public:
     using Ptr = std::shared_ptr< JobActivity >;
-    JobActivity( Worker& worker, const network::ActivityID& activityID, mega::pipeline::Pipeline::Ptr pPipeline, const network::ActivityID& rootActivityID )
+    JobActivity( Worker& worker, const network::ActivityID& activityID, mega::pipeline::Pipeline::Ptr pPipeline,
+                 const network::ActivityID& rootActivityID )
         : WorkerRequestActivity( worker, activityID, activityID.getConnectionID() )
         , m_pPipeline( pPipeline )
         , m_rootActivityID( rootActivityID )
@@ -116,8 +123,11 @@ public:
                                     boost::asio::yield_context&           yield_ctx ) override
     {
         m_pYieldCtx = &yield_ctx;
-        m_pPipeline->execute( task, *this, *this );
+        m_pPipeline->execute( task, *this, *this, *this );
     }
+
+    // pipeline::DependencyProvider
+    virtual EG_PARSER_INTERFACE* getParser() override { return m_worker.m_pParser.get(); }
 
     // pipeline::Progress
     virtual void onStarted( const std::string& strMsg ) override
@@ -218,6 +228,8 @@ Worker::Worker( boost::asio::io_context& io_context, int numThreads )
     , m_client(
           m_io_context, m_activityManager, m_activityFactory, "localhost", mega::network::MegaWorkerServiceName() )
 {
+    m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
+        "parser", "g_parserSymbol", boost::dll::load_mode::append_decorations );
 }
 
 Worker::~Worker() { SPDLOG_INFO( "Worker shutdown" ); }

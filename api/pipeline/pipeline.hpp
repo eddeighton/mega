@@ -17,6 +17,8 @@
 #include <map>
 #include <set>
 
+struct EG_PARSER_INTERFACE;
+
 namespace mega
 {
 namespace pipeline
@@ -69,6 +71,14 @@ public:
     virtual void onCompleted( const std::string& strMsg ) = 0;
 };
 
+class DependencyProvider
+{
+public:
+    virtual ~DependencyProvider();
+
+    virtual EG_PARSER_INTERFACE* getParser() = 0;
+};
+
 class BOOST_SYMBOL_VISIBLE Pipeline
 {
     friend class Registry;
@@ -85,7 +95,7 @@ public:
 
     virtual void     initialise( const Configuration& configuration, std::ostream& osLog )   = 0;
     virtual Schedule getSchedule( Progress& progress, Stash& stash )                         = 0;
-    virtual void     execute( const TaskDescriptor& task, Progress& progress, Stash& stash ) = 0;
+    virtual void     execute( const TaskDescriptor& task, Progress& progress, Stash& stash, DependencyProvider& dependencies ) = 0;
 };
 
 class Registry

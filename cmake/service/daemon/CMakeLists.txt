@@ -22,7 +22,6 @@ add_executable( daemon ${DAEMON_HEADERS} ${DAEMON_SOURCE}  )
 
 target_compile_options( daemon PUBLIC "-fcoroutines" )
 
-target_link_libraries( daemon database )
 target_link_libraries( daemon utilities )
 target_link_libraries( daemon protocol )
 target_link_libraries( daemon network )

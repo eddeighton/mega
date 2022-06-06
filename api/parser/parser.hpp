@@ -21,7 +21,9 @@
 #define PARSER_14_SEPT_2020
 
 #include "boost/filesystem/path.hpp"
+
 #include <ostream>
+#include <memory>
 
 #if defined( _MSC_VER )
 
@@ -45,22 +47,25 @@
 
 namespace ParserStage
 {
-    class Database;
+class Database;
 
-    namespace Parser
-    {
-        class ContextDef;
-    }
+namespace Parser
+{
+class ContextDef;
+}
 } // namespace ParserStage
 
 struct EGDB_EXPORT EG_PARSER_INTERFACE
 {
-    virtual ParserStage::Parser::ContextDef* parseEGSourceFile( ParserStage::Database&                        database,
-                                                                const boost::filesystem::path&                sourceFilePath,
-                                                                const std::vector< boost::filesystem::path >& includeDirectories,
-                                                                std::ostream&                                 osError,
-                                                                std::ostream&                                 osWarn )
+    virtual ParserStage::Parser::ContextDef*
+    parseEGSourceFile( ParserStage::Database&                        database,
+                       const boost::filesystem::path&                sourceFilePath,
+                       const std::vector< boost::filesystem::path >& includeDirectories,
+                       std::ostream&                                 osError,
+                       std::ostream&                                 osWarn )
         = 0;
 };
+
+//std::unique_ptr< EG_PARSER_INTERFACE > getParser();
 
 #endif // PARSER_14_SEPT_2020

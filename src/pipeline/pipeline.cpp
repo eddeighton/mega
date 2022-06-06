@@ -105,6 +105,8 @@ Progress::~Progress() {}
 Pipeline::Pipeline() {}
 Pipeline::~Pipeline() {}
 
+DependencyProvider::~DependencyProvider() {}
+
 Pipeline::Ptr Registry::getPipeline( const Configuration& configuration, std::ostream& osLog )
 {
     try

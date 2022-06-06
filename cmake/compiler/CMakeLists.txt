@@ -98,6 +98,6 @@ link_common( compiler )
 install( FILES ${JINJA_TEMPLATES} DESTINATION templates )
 install( FILES ${COMPILER_LIB_HEADERS} DESTINATION include/compiler )
 install( TARGETS compiler_config EXPORT compiler_config DESTINATION bin)
-install( TARGETS compiler EXPORT compiler DESTINATION bin)
 install( EXPORT compiler_config NAMESPACE MEGA:: FILE compiler_config-config.cmake DESTINATION share )
-install( EXPORT compiler NAMESPACE MEGA:: FILE compiler-config.cmake DESTINATION share )
+
+install( TARGETS compiler DESTINATION bin)

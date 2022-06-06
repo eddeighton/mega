@@ -8,6 +8,8 @@
 
 #include "utilities/tool_chain_hash.hpp"
 
+#include "parser/parser.hpp"
+
 #include "common/string.hpp"
 #include "common/terminal.hpp"
 #include "common/file.hpp"
@@ -62,13 +64,16 @@ namespace compiler
 {
 struct TaskArguments
 {
-    TaskArguments( const mega::io::StashEnvironment& environment, const mega::utilities::ToolChain& toolChain )
+    TaskArguments( const mega::io::StashEnvironment& environment, const mega::utilities::ToolChain& toolChain,
+                   EG_PARSER_INTERFACE* parser )
         : environment( environment )
         , toolChain( toolChain )
+        , parser( parser )
     {
     }
     const mega::io::StashEnvironment& environment;
     const mega::utilities::ToolChain& toolChain;
+    EG_PARSER_INTERFACE*              parser;
 };
 /*
 static const char psz_start[]   = "{} START   {:>55} -> {:<55}";
@@ -83,6 +88,7 @@ protected:
     std::string                       m_strTaskName;
     const mega::io::StashEnvironment& m_environment;
     const mega::utilities::ToolChain& m_toolChain;
+    EG_PARSER_INTERFACE*              m_parser;
 
 public:
     using Ptr = std::unique_ptr< BaseTask >;
@@ -90,6 +96,7 @@ public:
     BaseTask( const TaskArguments& taskArguments )
         : m_environment( taskArguments.environment )
         , m_toolChain( taskArguments.toolChain )
+        , m_parser( taskArguments.parser )
     {
     }
     virtual ~BaseTask() {}
