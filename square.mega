@@ -1,13 +1,14 @@
 
 object Square
 {    
-    dependency( cube.mega );
-    dependency( stuff/sphere.mega );
-    dependency( stuff/triangle.mega );
-
     include( test_cpp_include.hpp );
     include( <string> );
     include( <vector> );
+    include( <iostream> );
+
+    dependency( cube.mega );
+    dependency( stuff/sphere.mega );
+    dependency( stuff/triangle.mega );
 
     include test_include( test_include.mega );
     

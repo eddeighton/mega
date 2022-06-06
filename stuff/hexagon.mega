@@ -4,6 +4,5 @@ object Hexagon
 {
     action TestingStuff
     {
-        // do stuff...
     }
 }

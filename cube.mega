@@ -6,6 +6,7 @@ namespace test
     {
         dependency( stuff/sphere.mega );
         dependency( stuff/triangle.mega );
+        include( <iostream> );
         
         namespace nested2
         {
@@ -52,7 +53,11 @@ namespace test
 
         action Test
         {
+
             std::cout << "Ed was here" << std::endl;
+            std::cout << "Ed was here" << std::endl;
+
+
             dim int foo;
         }
         action TestFF
