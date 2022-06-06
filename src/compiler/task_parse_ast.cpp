@@ -31,7 +31,7 @@ public:
                                                      std::ostream&                             osError,
                                                      std::ostream&                             osWarn )
     {
-        static boost::shared_ptr< EG_PARSER_INTERFACE > pParserInterface;
+        boost::shared_ptr< EG_PARSER_INTERFACE > pParserInterface;
         if ( !pParserInterface )
         {
             pParserInterface

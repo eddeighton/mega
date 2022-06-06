@@ -15,6 +15,8 @@
 
 #include "common/requireSemicolon.hpp"
 
+#include "boost/dll.hpp"
+
 #include <optional>
 #include <future>
 #include <thread>
@@ -81,29 +83,28 @@ public:
     {
         getDaemonResponse( yield_ctx ).ListThreads( m_worker.getNumThreads() );
     }
-    
-    virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx ) 
+
+    virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx )
     {
         getDaemonResponse( yield_ctx ).ExecuteShutdown();
 
         boost::asio::post( [ &worker = m_worker ]() { worker.shutdown(); } );
     }
 
-    virtual void PipelineStartJobs( const pipeline::Configuration&      configuration,
-                                    const network::ActivityID&          rootActivityID,
-                                    boost::asio::yield_context&          yield_ctx );
+    virtual void PipelineStartJobs( const pipeline::Configuration& configuration,
+                                    const network::ActivityID&     rootActivityID,
+                                    boost::asio::yield_context&    yield_ctx );
 };
 
 class JobActivity : public WorkerRequestActivity, public pipeline::Progress, public pipeline::Stash
 {
-    const network::ActivityID      m_rootActivityID;
-    mega::pipeline::Pipeline::Ptr  m_pPipeline;
-    boost::asio::yield_context*    m_pYieldCtx = nullptr;
+    const network::ActivityID                m_rootActivityID;
+    mega::pipeline::Pipeline::Ptr            m_pPipeline;
+    boost::asio::yield_context*              m_pYieldCtx = nullptr;
 
 public:
     using Ptr = std::shared_ptr< JobActivity >;
-    JobActivity( Worker& worker, const network::ActivityID& activityID, mega::pipeline::Pipeline::Ptr pPipeline,
-                 const network::ActivityID& rootActivityID )
+    JobActivity( Worker& worker, const network::ActivityID& activityID, mega::pipeline::Pipeline::Ptr pPipeline, const network::ActivityID& rootActivityID )
         : WorkerRequestActivity( worker, activityID, activityID.getConnectionID() )
         , m_pPipeline( pPipeline )
         , m_rootActivityID( rootActivityID )
@@ -111,7 +112,8 @@ public:
         VERIFY_RTE( m_pPipeline );
     }
 
-    virtual void PipelineStartTask( const mega::pipeline::TaskDescriptor& task,  boost::asio::yield_context& yield_ctx ) override
+    virtual void PipelineStartTask( const mega::pipeline::TaskDescriptor& task,
+                                    boost::asio::yield_context&           yield_ctx ) override
     {
         m_pYieldCtx = &yield_ctx;
         m_pPipeline->execute( task, *this, *this );
@@ -162,9 +164,9 @@ public:
     }
 };
 
-void WorkerRequestActivity::PipelineStartJobs( const pipeline::Configuration&      configuration,
-                                               const network::ActivityID&          rootActivityID,
-                                               boost::asio::yield_context&          yield_ctx )
+void WorkerRequestActivity::PipelineStartJobs( const pipeline::Configuration& configuration,
+                                               const network::ActivityID&     rootActivityID,
+                                               boost::asio::yield_context&    yield_ctx )
 {
     mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( configuration );
 
@@ -205,16 +207,9 @@ Worker::Worker( boost::asio::io_context& io_context, int numThreads )
 {
 }
 
-Worker::~Worker()
-{
-    SPDLOG_INFO( "Worker shutdown" );
-}
+Worker::~Worker() { SPDLOG_INFO( "Worker shutdown" ); }
 
-void Worker::shutdown()
-{
-    m_client.stop();
-
-}
+void Worker::shutdown() { m_client.stop(); }
 
 } // namespace service
 } // namespace mega

@@ -13,6 +13,8 @@
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
 
+#include "version/version.hpp"
+
 #include "pipeline/pipeline.hpp"
 
 #include <boost/filesystem/operations.hpp>
@@ -89,7 +91,9 @@ public:
     virtual void GetVersion( boost::asio::yield_context& yield_ctx ) override
     {
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        daemon.GetVersion( network::getVersion() );
+        std::ostringstream os;
+        os << mega::Version::getVersion();
+        daemon.GetVersion( os.str() );
     }
 
     virtual void ListActivities( boost::asio::yield_context& yield_ctx ) override

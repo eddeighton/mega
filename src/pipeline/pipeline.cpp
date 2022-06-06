@@ -110,7 +110,9 @@ Pipeline::Ptr Registry::getPipeline( const Configuration& configuration )
     try
     {
         boost::filesystem::path tempDir = boost::filesystem::temp_directory_path() / "mega_registry";
-        boost::filesystem::ensureFoldersExist( tempDir );
+        boost::filesystem::ensureFoldersExist( tempDir / "test" );
+        VERIFY_RTE_MSG( boost::filesystem::exists( tempDir ),
+            "Failed to create temporary folder: " << tempDir.string() );
 
         std::ostringstream osTempFileName;
         {

@@ -22,6 +22,7 @@ add_library( compiler_config
     ${COMPILER_LIB_SOURCE}
 )
 
+set_property(TARGET compiler_config PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories( compiler_config PUBLIC ${MEGA_API_DIR} )
 
 link_boost( compiler_config system )
@@ -62,7 +63,7 @@ set( COMPILER_SOURCE
     ${MEGA_SRC_DIR}/version/version.cxx
 )
 
-add_library( compiler MODULE
+add_library( compiler SHARED
     ${COMPILER_SOURCE}
 )
 
@@ -70,7 +71,6 @@ target_link_libraries( compiler compiler_config )
 target_link_libraries( compiler utilities )
 target_link_libraries( compiler database )
 target_link_libraries( compiler pipeline )
-#target_link_libraries( compiler version )
 
 target_include_directories( compiler PUBLIC ${MEGA_API_DIR} )
 
