@@ -40,6 +40,9 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_tool_chain_hash.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
+
+		## ensure the version is baked into the shared object
+		${MEGA_SRC_DIR}/version/version.cxx
 	)
 	
 source_group( src FILES ${DRIVER_SOURCES} )
@@ -56,7 +59,6 @@ target_link_libraries( mega database )
 target_link_libraries( mega utilities )
 target_link_libraries( mega network )
 target_link_libraries( mega service )
-target_link_libraries( mega version )
 
 set_target_properties( mega PROPERTIES FOLDER driver )
 

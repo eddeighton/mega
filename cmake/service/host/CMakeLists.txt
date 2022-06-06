@@ -21,7 +21,7 @@ add_executable( host ${HOST_SOURCE}  )
 
 target_compile_options( host PUBLIC "-fcoroutines" )
 
-target_link_libraries( host database )
+#target_link_libraries( host database )
 target_link_libraries( host utilities )
 target_link_libraries( host protocol )
 target_link_libraries( host network )

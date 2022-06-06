@@ -91,9 +91,9 @@ public:
     virtual void GetVersion( boost::asio::yield_context& yield_ctx ) override
     {
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        std::ostringstream os;
-        os << mega::Version::getVersion();
-        daemon.GetVersion( os.str() );
+        //std::ostringstream os;
+        //os << mega::Version::getVersion();
+        daemon.GetVersion( "0.0.0.0" );
     }
 
     virtual void ListActivities( boost::asio::yield_context& yield_ctx ) override
@@ -245,11 +245,19 @@ public:
     virtual void PipelineRun( const pipeline::Configuration& configuration,
                               boost::asio::yield_context&    yield_ctx ) override
     {
-        mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( configuration );
-        if ( !pPipeline )
+        mega::pipeline::Pipeline::Ptr pPipeline;
         {
-            SPDLOG_ERROR( "Failed to load pipeline: {}", configuration.getPipelineID() );
-            THROW_RTE( "Failed to load pipeline: " << configuration.get() );
+            std::ostringstream osLog;
+            pPipeline = pipeline::Registry::getPipeline( configuration, osLog );
+            if ( !pPipeline )
+            {
+                SPDLOG_ERROR( "Failed to load pipeline: {}", configuration.getPipelineID() );
+                THROW_RTE( "Failed to load pipeline: " << configuration.get() );
+            }
+            else
+            {
+                SPDLOG_INFO( "{}", osLog.str() );
+            }
         }
 
         m_root.m_stash.resetBuildHashCodes();

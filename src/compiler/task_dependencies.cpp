@@ -1,5 +1,3 @@
-#ifndef TASK_DEPENDENCIES_10_MAY_2022
-#define TASK_DEPENDENCIES_10_MAY_2022
 
 #include "base_task.hpp"
 
@@ -11,9 +9,9 @@
 #include "database/model/manifest.hxx"
 #include "utilities/glob.hpp"
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
 
 class Task_DependencyAnalysis : public BaseTask
@@ -364,7 +362,6 @@ BaseTask::Ptr create_Task_DependencyAnalysis( const TaskArguments&              
 {
     return std::make_unique< Task_DependencyAnalysis >( taskArguments, manifestFilePath );
 }
-} // namespace interface
-} // namespace driver
 
-#endif // TASK_DEPENDENCIES_10_MAY_2022
+} // namespace compiler
+} // namespace mega

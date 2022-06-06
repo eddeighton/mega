@@ -38,6 +38,7 @@
 #include <ostream>
 #include <vector>
 #include <string>
+#include <memory>
 
 /*
 inline std::ostream& operator<<( std::ostream& os, const std::vector< std::string >& name )
@@ -55,11 +56,10 @@ inline std::ostream& operator<<( std::ostream& os, const std::vector< std::strin
         throw std::runtime_error( _os2.str() );                                                                 \
     } )
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
-
 struct TaskArguments
 {
     TaskArguments( const mega::io::StashEnvironment& environment, const mega::utilities::ToolChain& toolChain )
@@ -201,7 +201,7 @@ inline const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&   
     THROW_RTE( "Failed to locate file: " << filePath << " in manifest" );
 }
 
-} // namespace interface
-} // namespace driver
+} // namespace compiler
+} // namespace mega
 
 #endif // BASE_TASK_10_MAY_2022

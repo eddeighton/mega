@@ -105,7 +105,7 @@ Progress::~Progress() {}
 Pipeline::Pipeline() {}
 Pipeline::~Pipeline() {}
 
-Pipeline::Ptr Registry::getPipeline( const Configuration& configuration )
+Pipeline::Ptr Registry::getPipeline( const Configuration& configuration, std::ostream& osLog )
 {
     try
     {
@@ -128,7 +128,7 @@ Pipeline::Ptr Registry::getPipeline( const Configuration& configuration )
         Pipeline::Ptr pPipeline
             = boost::dll::import_symbol< mega::pipeline::Pipeline >( pipelineLibrary, "mega_pipeline" );
 
-        pPipeline->initialise( configuration );
+        pPipeline->initialise( configuration, osLog );
 
         return pPipeline;
     }

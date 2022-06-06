@@ -11,9 +11,9 @@
 
 #include <common/stash.hpp>
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
 
 class Task_GenerateManifest : public BaseTask
@@ -33,9 +33,9 @@ public:
 
         start( taskProgress, "Task_GenerateManifest", boost::filesystem::path{}, projectManifestPath.path() );
 
-        const mega::io::Manifest    manifest( m_environment, m_componentInfoPaths );
-        const task::FileHash        hashCode = manifest.save_temp( m_environment, projectManifestPath );
-        //const task::DeterminantHash determinant( hashCode );
+        const mega::io::Manifest manifest( m_environment, m_componentInfoPaths );
+        const task::FileHash     hashCode = manifest.save_temp( m_environment, projectManifestPath );
+        // const task::DeterminantHash determinant( hashCode );
 
         /*if ( m_environment.restore( projectManifestPath, determinant ) )
         {
@@ -46,15 +46,15 @@ public:
         else*/
         {
             m_environment.temp_to_real( projectManifestPath );
-            //m_environment.setBuildHashCode( projectManifestPath, hashCode );
-            //m_environment.stash( projectManifestPath, determinant );
+            // m_environment.setBuildHashCode( projectManifestPath, hashCode );
+            // m_environment.stash( projectManifestPath, determinant );
             succeeded( taskProgress );
         }
     }
 };
 
 BaseTask::Ptr create_Task_GenerateManifest( const TaskArguments&                          taskArguments,
-                                           const std::vector< boost::filesystem::path >& componentInfoPaths )
+                                            const std::vector< boost::filesystem::path >& componentInfoPaths )
 {
     return std::make_unique< Task_GenerateManifest >( taskArguments, componentInfoPaths );
 }
@@ -125,19 +125,19 @@ public:
         }
 
         const task::FileHash fileHashCode = database.save_Components_to_temp();
-        //m_environment.setBuildHashCode( componentsListing, fileHashCode );
+        // m_environment.setBuildHashCode( componentsListing, fileHashCode );
         m_environment.temp_to_real( componentsListing );
-        //m_environment.stash( componentsListing, determinant );
+        // m_environment.stash( componentsListing, determinant );
 
         succeeded( taskProgress );
     }
 };
 
 BaseTask::Ptr create_Task_GenerateComponents( const TaskArguments&                          taskArguments,
-                                             const std::vector< boost::filesystem::path >& componentInfoPaths )
+                                              const std::vector< boost::filesystem::path >& componentInfoPaths )
 {
     return std::make_unique< Task_GenerateComponents >( taskArguments, componentInfoPaths );
 }
 
-} // namespace interface
-} // namespace driver
+} // namespace compiler
+} // namespace mega

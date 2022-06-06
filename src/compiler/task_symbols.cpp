@@ -1,5 +1,3 @@
-#ifndef TASK_SYMBOLS_10_MAY_2022
-#define TASK_SYMBOLS_10_MAY_2022
 
 #include "base_task.hpp"
 
@@ -9,9 +7,9 @@
 
 #include "database/common/exception.hpp"
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
 
 class Task_SymbolAnalysis : public BaseTask
@@ -605,7 +603,5 @@ BaseTask::Ptr create_Task_SymbolRollout( const TaskArguments&          taskArgum
     return std::make_unique< Task_SymbolRollout >( taskArguments, sourceFilePath );
 }
 
-} // namespace interface
-} // namespace driver
-
-#endif // TASK_SYMBOLS_10_MAY_2022
+} // namespace compiler
+} // namespace mega

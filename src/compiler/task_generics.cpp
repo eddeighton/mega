@@ -1,3 +1,5 @@
+#ifndef TASK_OPERATIONS_4_JUNE_2022
+#define TASK_OPERATIONS_4_JUNE_2022
 
 #include "base_task.hpp"
 
@@ -23,7 +25,7 @@ namespace mega
 {
 namespace compiler
 {
-
+    
 struct CleverUtility
 {
     using IDList = std::vector< std::string >;
@@ -36,7 +38,7 @@ struct CleverUtility
     ~CleverUtility() { theList.pop_back(); }
 };
 
-class Task_Operations : public BaseTask
+class Task_Generics : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
 
@@ -44,24 +46,24 @@ class Task_Operations : public BaseTask
     {
         const mega::io::StashEnvironment& m_environment;
         ::inja::Environment&              m_injaEnvironment;
-        ::inja::Template                  m_operationsTemplate;
+        ::inja::Template                  m_genericsTemplate;
 
     public:
         TemplateEngine( const mega::io::StashEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
             : m_environment( buildEnvironment )
             , m_injaEnvironment( injaEnv )
-            , m_operationsTemplate( m_injaEnvironment.parse_template( m_environment.OperationsTemplate().native() ) )
+            , m_genericsTemplate( m_injaEnvironment.parse_template( m_environment.GenericsTemplate().native() ) )
         {
         }
 
         void renderOperations( const nlohmann::json& data, std::ostream& os ) const
         {
-            m_injaEnvironment.render_to( os, m_operationsTemplate, data );
+            m_injaEnvironment.render_to( os, m_genericsTemplate, data );
         }
     };
 
 public:
-    Task_Operations( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+    Task_Generics( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
@@ -106,24 +108,10 @@ public:
         {
             CleverUtility c( types, pAction->get_identifier() );
 
-            std::ostringstream osBody;
-            for ( auto pDef : pAction->get_action_defs() )
-            {
-                if ( !pDef->get_body().empty() )
-                {
-                    osBody << pDef->get_body();
-                    break;
-                }
-            }
-            osBody << "\nco_return mega::done();";
-
-            nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
-                                        { "body", osBody.str() },
-                                        { "has_namespaces", !namespaces.empty() },
+            nlohmann::json generic( { { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },
-                                        { "types", types },
-                                        { "params", "" } } );
-            data[ "operations" ].push_back( operation );
+                                        { "types", types } } );
+            data[ "generics" ].push_back( generic );
 
             for ( Context* pNestedContext : pAction->get_children() )
             {
@@ -137,24 +125,10 @@ public:
         {
             CleverUtility c( types, pFunction->get_identifier() );
 
-            std::string strBody;
-            {
-                for ( auto pDef : pFunction->get_function_defs() )
-                {
-                    if ( !pDef->get_body().empty() )
-                    {
-                        strBody = pDef->get_body();
-                        break;
-                    }
-                }
-            }
-            nlohmann::json operation( { { "return_type", pFunction->get_return_type_trait()->get_str() },
-                                        { "body", strBody },
-                                        { "has_namespaces", !namespaces.empty() },
+            nlohmann::json generic( { { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },
-                                        { "types", types },
-                                        { "params", pFunction->get_arguments_trait()->get_str() } } );
-            data[ "operations" ].push_back( operation );
+                                        { "types", types } } );
+            data[ "generics" ].push_back( generic );
         }
         else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
         {
@@ -184,17 +158,17 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath concreteFile = m_environment.ConcreteStage_Concrete( m_sourceFilePath );
-        const mega::io::GeneratedHPPSourceFilePath operationsFile = m_environment.Operations( m_sourceFilePath );
-        start( taskProgress, "Task_Operations", concreteFile.path(), operationsFile.path() );
+        const mega::io::GeneratedHPPSourceFilePath genericsFile = m_environment.Generics( m_sourceFilePath );
+        start( taskProgress, "Task_Generics", concreteFile.path(), genericsFile.path() );
 
         task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.OperationsTemplate(),
               m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( concreteFile ) } );
 
-        if ( m_environment.restore( operationsFile, determinant ) )
+        if ( m_environment.restore( genericsFile, determinant ) )
         {
-            m_environment.setBuildHashCode( operationsFile );
+            m_environment.setBuildHashCode( genericsFile );
             cached( taskProgress );
             return;
         }
@@ -213,7 +187,7 @@ public:
                 }
                 TemplateEngine templateEngine( m_environment, injaEnvironment );
 
-                nlohmann::json data( { { "operations", nlohmann::json::array() } } );
+                nlohmann::json data( { { "generics", nlohmann::json::array() } } );
 
                 Interface::Root*      pRoot = database.one< Interface::Root >( m_sourceFilePath );
                 CleverUtility::IDList namespaces, types;
@@ -226,27 +200,27 @@ public:
             }
             std::string strOperations = os.str();
             mega::utilities::clang_format( strOperations, std::optional< boost::filesystem::path >() );
-            boost::filesystem::updateFileIfChanged( m_environment.FilePath( operationsFile ), strOperations );
+            boost::filesystem::updateFileIfChanged( m_environment.FilePath( genericsFile ), strOperations );
         }
 
-        m_environment.setBuildHashCode( operationsFile );
-        m_environment.stash( operationsFile, determinant );
+        m_environment.setBuildHashCode( genericsFile );
+        m_environment.stash( genericsFile, determinant );
 
         succeeded( taskProgress );
     }
 };
 
-BaseTask::Ptr create_Task_Operations( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_Generics( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
 {
-    return std::make_unique< Task_Operations >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_Generics >( taskArguments, sourceFilePath );
 }
 
-class Task_OperationsPCH : public BaseTask
+class Task_GenericsPCH : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
 
 public:
-    Task_OperationsPCH( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+    Task_GenericsPCH( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
@@ -254,16 +228,16 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        const mega::io::GeneratedHPPSourceFilePath operationsFile = m_environment.Operations( m_sourceFilePath );
-        const mega::io::PrecompiledHeaderFile      operationsPCH  = m_environment.OperationsPCH( m_sourceFilePath );
-        start( taskProgress, "Task_OperationsPCH", operationsFile.path(), operationsPCH.path() );
+        const mega::io::GeneratedHPPSourceFilePath genericsFile = m_environment.Generics( m_sourceFilePath );
+        const mega::io::PrecompiledHeaderFile      genericsPCH  = m_environment.GenericsPCH( m_sourceFilePath );
+        start( taskProgress, "Task_GenericsPCH", genericsFile.path(), genericsPCH.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, 123, m_environment.getBuildHashCode( operationsFile ) } );
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( genericsFile ) } );
 
-        if ( m_environment.restore( operationsPCH, determinant ) )
+        if ( m_environment.restore( genericsPCH, determinant ) )
         {
-            m_environment.setBuildHashCode( operationsPCH );
+            m_environment.setBuildHashCode( genericsPCH );
             cached( taskProgress );
             return;
         }
@@ -274,7 +248,7 @@ public:
 
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
-        const std::string strCmd = mega::Compilation::make_operationsPCH_compilation(
+        const std::string strCmd = mega::Compilation::make_genericsPCH_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath )();
 
         msg( taskProgress, strCmd );
@@ -287,18 +261,20 @@ public:
             throw std::runtime_error( os.str() );
         }
 
-        m_environment.setBuildHashCode( operationsPCH );
-        m_environment.stash( operationsPCH, determinant );
+        m_environment.setBuildHashCode( genericsPCH );
+        m_environment.stash( genericsPCH, determinant );
 
         succeeded( taskProgress );
     }
 };
 
-BaseTask::Ptr create_Task_OperationsPCH( const TaskArguments&          taskArguments,
-                                         const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_GenericsPCH( const TaskArguments&          taskArguments,
+                                       const mega::io::megaFilePath& sourceFilePath )
 {
-    return std::make_unique< Task_OperationsPCH >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_GenericsPCH >( taskArguments, sourceFilePath );
 }
 
 } // namespace compiler
 } // namespace mega
+
+#endif // TASK_OPERATIONS_4_JUNE_2022

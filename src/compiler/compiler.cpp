@@ -2,6 +2,7 @@
 #include "compiler/configuration.hpp"
 
 #include "base_task.hpp"
+#include "task_utils.hpp"
 
 #include "pipeline/task.hpp"
 #include "pipeline/stash.hpp"
@@ -11,89 +12,17 @@
 #include "database/types/sources.hpp"
 #include "database/common/environments.hpp"
 
+#include <common/string.hpp>
 #include "common/assert_verify.hpp"
 
 #include "boost/config.hpp"
 #include "boost/archive/binary_iarchive.hpp"
 #include "boost/archive/binary_oarchive.hpp"
 
-#include <common/string.hpp>
-
 #include <sstream>
 #include <thread>
 #include <chrono>
 #include <variant>
-
-namespace driver
-{
-namespace interface
-{
-
-extern BaseTask::Ptr create_Task_GenerateManifest( const TaskArguments&                          taskArguments,
-                                                   const std::vector< boost::filesystem::path >& componentInfoPaths );
-extern BaseTask::Ptr create_Task_GenerateComponents( const TaskArguments&                          taskArguments,
-                                                     const std::vector< boost::filesystem::path >& componentInfoPaths );
-
-extern BaseTask::Ptr create_Task_ParseAST( const TaskArguments&          taskArguments,
-                                           const mega::io::megaFilePath& sourceFilePath );
-
-extern BaseTask::Ptr create_Task_Include( const TaskArguments&          taskArguments,
-                                          const mega::io::megaFilePath& sourceFilePath );
-extern BaseTask::Ptr create_Task_IncludePCH( const TaskArguments&          taskArguments,
-                                             const mega::io::megaFilePath& sourceFilePath );
-extern BaseTask::Ptr create_Task_ObjectInterfaceGen( const TaskArguments&          taskArguments,
-                                                     const mega::io::megaFilePath& sourceFilePath );
-
-extern BaseTask::Ptr create_Task_SymbolAnalysis( const TaskArguments&              taskArguments,
-                                                 const mega::io::manifestFilePath& manifestFilePath );
-extern BaseTask::Ptr create_Task_DependencyAnalysis( const TaskArguments&              taskArguments,
-                                                     const mega::io::manifestFilePath& manifestFilePath );
-
-extern BaseTask::Ptr create_Task_SymbolRollout( const TaskArguments&          taskArguments,
-                                                const mega::io::megaFilePath& sourceFilePath );
-extern BaseTask::Ptr create_Task_ObjectInterfaceGeneration( const TaskArguments&          taskArguments,
-                                                            const mega::io::megaFilePath& sourceFilePath );
-extern BaseTask::Ptr create_Task_ObjectInterfaceAnalysis( const TaskArguments&          taskArguments,
-                                                          const mega::io::megaFilePath& sourceFilePath );
-extern BaseTask::Ptr create_Task_ConcreteTree( const TaskArguments&          taskArguments,
-                                               const mega::io::megaFilePath& sourceFilePath );
-
-extern BaseTask::Ptr create_Task_Operations( const TaskArguments&          taskArguments,
-                                             const mega::io::megaFilePath& sourceFilePath );
-extern BaseTask::Ptr create_Task_OperationsPCH( const TaskArguments&          taskArguments,
-                                                const mega::io::megaFilePath& sourceFilePath );
-
-extern BaseTask::Ptr create_Task_Implementation( const TaskArguments&          taskArguments,
-                                                 const mega::io::megaFilePath& sourceFilePath );
-extern BaseTask::Ptr create_Task_ImplementationObj( const TaskArguments&          taskArguments,
-                                                    const mega::io::megaFilePath& sourceFilePath );
-
-class Task_Complete : public BaseTask
-{
-    const mega::io::manifestFilePath& m_manifest;
-
-public:
-    Task_Complete( const TaskArguments& taskArguments, const mega::io::manifestFilePath& manifest )
-        : BaseTask( taskArguments )
-        , m_manifest( manifest )
-    {
-    }
-
-    virtual void run( mega::pipeline::Progress& taskProgress )
-    {
-        start( taskProgress, "Task_Complete", m_manifest.path(), m_manifest.path() );
-        succeeded( taskProgress );
-    }
-};
-
-BaseTask::Ptr create_Task_Complete( const TaskArguments&              taskArguments,
-                                    const mega::io::manifestFilePath& manifestFilePath )
-{
-    return std::make_unique< Task_Complete >( taskArguments, manifestFilePath );
-}
-
-} // namespace interface
-} // namespace driver
 
 namespace mega
 {
@@ -109,12 +38,12 @@ struct Task
     using FilePathVar = std::variant< mega::io::megaFilePath, mega::io::manifestFilePath >;
     FilePathVar sourceFilePath;
 
-    Task( const std::string& strName )
-        : strTaskName( strName )
+    Task( mega::compiler::TaskType taskType )
+        : strTaskName( taskTypeToName( taskType ) )
     {
     }
-    Task( const std::string& strName, const FilePathVar& filePathVar )
-        : strTaskName( strName )
+    Task( mega::compiler::TaskType taskType, const FilePathVar& filePathVar )
+        : strTaskName( taskTypeToName( taskType ) )
         , sourceFilePath( filePathVar )
     {
     }
@@ -177,7 +106,7 @@ pipeline::TaskDescriptor encode( const Task& task )
 
 Task decode( const pipeline::TaskDescriptor& taskDescriptor )
 {
-    Task task( taskDescriptor.getName() );
+    Task task( nameToTaskType( taskDescriptor.getName().c_str() ) );
     {
         std::istringstream              is( taskDescriptor.getBuffer() );
         boost::archive::binary_iarchive ia( is );
@@ -198,7 +127,7 @@ public:
     virtual void               execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
                                         pipeline::Stash& stash ) override;
 
-    virtual void initialise( const pipeline::Configuration& pipelineConfig ) override
+    virtual void initialise( const pipeline::Configuration& pipelineConfig, std::ostream& osLog ) override
     {
         m_configuration = fromPipelineConfiguration( pipelineConfig );
 
@@ -207,6 +136,9 @@ public:
         VERIFY_RTE_MSG( actualVersion == m_configuration->header.version,
                         "Pipeine version mismatch: Configuration version: " << m_configuration->header.version
                                                                             << " Actual Version: " << actualVersion );
+
+        osLog << "SUCCESS: Initialised pipeline: " << m_configuration->header.pipelineID <<
+            " with version: " << m_configuration->header.version;
     }
 };
 
@@ -225,7 +157,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     // paradox - need a manifest to determine the schedule - the schedule generates the manifest!
     {
-        const TskDesc generateManifest = encode( Task{ "Task_GenerateManifest", manifestFilePath } );
+        const TskDesc generateManifest = encode( Task{ eTask_GenerateManifest, manifestFilePath } );
         execute( generateManifest, progress, stash );
     }
     mega::io::Manifest manifest( environment, manifestFilePath );
@@ -235,16 +167,16 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     pipeline::Dependencies dependencies;
 
-    const TskDesc generateComponents = encode( Task{ "Task_GenerateComponents", manifestFilePath } );
+    const TskDesc generateComponents = encode( Task{ eTask_GenerateComponents, manifestFilePath } );
     dependencies.add( generateComponents, TskDescVec{} );
 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc parseAst           = encode( Task{ "Task_ParseAST", sourceFilePath } );
-            const TskDesc includes           = encode( Task{ "Task_Include", sourceFilePath } );
-            const TskDesc includePCH         = encode( Task{ "Task_IncludePCH", sourceFilePath } );
-            const TskDesc objectInterfaceGen = encode( Task{ "Task_ObjectInterfaceGen", sourceFilePath } );
+            const TskDesc parseAst           = encode( Task{ eTask_ParseAST, sourceFilePath } );
+            const TskDesc includes           = encode( Task{ eTask_Include, sourceFilePath } );
+            const TskDesc includePCH         = encode( Task{ eTask_IncludePCH, sourceFilePath } );
+            const TskDesc objectInterfaceGen = encode( Task{ eTask_ObjectInterfaceGen, sourceFilePath } );
 
             dependencies.add( parseAst, TskDescVec{ generateComponents } );
             dependencies.add( includes, TskDescVec{ parseAst } );
@@ -256,8 +188,8 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    const TskDesc dependencyAnalysis = encode( Task{ "Task_DependencyAnalysis", manifestFilePath } );
-    const TskDesc symbolAnalysis     = encode( Task{ "Task_SymbolAnalysis", manifestFilePath } );
+    const TskDesc dependencyAnalysis = encode( Task{ eTask_DependencyAnalysis, manifestFilePath } );
+    const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis, manifestFilePath } );
 
     dependencies.add( dependencyAnalysis, interfaceGenTasks );
     dependencies.add( symbolAnalysis, TskDescVec{ dependencyAnalysis } );
@@ -266,7 +198,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc symbolRollout = encode( Task{ "Task_SymbolRollout", sourceFilePath } );
+            const TskDesc symbolRollout = encode( Task{ eTask_SymbolRollout, sourceFilePath } );
             symbolRolloutTasks.push_back( symbolRollout );
 
             dependencies.add( symbolRollout, TskDescVec{ symbolAnalysis } );
@@ -277,20 +209,23 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc objectInterfaceGeneration
-                = encode( Task{ "Task_ObjectInterfaceGeneration", sourceFilePath } );
-            const TskDesc objectInterfaceAnalysis = encode( Task{ "Task_ObjectInterfaceAnalysis", sourceFilePath } );
-            const TskDesc concreteTree            = encode( Task{ "Task_ConcreteTree", sourceFilePath } );
-            const TskDesc operations              = encode( Task{ "Task_Operations", sourceFilePath } );
-            const TskDesc operationsPCH           = encode( Task{ "Task_OperationsPCH", sourceFilePath } );
-            const TskDesc implementation          = encode( Task{ "Task_Implementation", sourceFilePath } );
-            const TskDesc implementationObj       = encode( Task{ "Task_ImplementationObj", sourceFilePath } );
+            const TskDesc objectInterfaceGeneration = encode( Task{ eTask_ObjectInterfaceGeneration, sourceFilePath } );
+            const TskDesc objectInterfaceAnalysis   = encode( Task{ eTask_ObjectInterfaceAnalysis, sourceFilePath } );
+            const TskDesc concreteTree              = encode( Task{ eTask_ConcreteTree, sourceFilePath } );
+            const TskDesc generics                  = encode( Task{ eTask_Generics, sourceFilePath } );
+            const TskDesc genericsPCH               = encode( Task{ eTask_GenericsPCH, sourceFilePath } );
+            const TskDesc operations                = encode( Task{ eTask_Operations, sourceFilePath } );
+            const TskDesc operationsPCH             = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
+            const TskDesc implementation            = encode( Task{ eTask_Implementation, sourceFilePath } );
+            const TskDesc implementationObj         = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
 
             dependencies.add( objectInterfaceGeneration, symbolRolloutTasks );
             dependencies.add(
                 objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration, includePCHTasks[ sourceFilePath ] } );
             dependencies.add( concreteTree, TskDescVec{ objectInterfaceAnalysis } );
-            dependencies.add( operations, TskDescVec{ concreteTree } );
+            dependencies.add( generics, TskDescVec{ concreteTree } );
+            dependencies.add( genericsPCH, TskDescVec{ generics } );
+            dependencies.add( operations, TskDescVec{ genericsPCH } );
             dependencies.add( operationsPCH, TskDescVec{ operations } );
             dependencies.add( implementation, TskDescVec{ operationsPCH } );
             dependencies.add( implementationObj, TskDescVec{ implementation } );
@@ -299,7 +234,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    TskDesc complete = encode( Task{ "Task_Complete", manifestFilePath } );
+    TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
     dependencies.add( complete, TskDescVec{ implementationObjTasks } );
 
     return pipeline::Schedule( dependencies );
@@ -316,96 +251,18 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
     mega::io::StashEnvironment environment(
         stash, config.directories.rootSourceDir, config.directories.rootBuildDir, config.directories.templatesDir );
 
-    driver::interface::TaskArguments taskArguments( environment, config.toolChain );
+    mega::compiler::TaskArguments taskArguments( environment, config.toolChain );
 
-    driver::interface::BaseTask::Ptr pTask;
+    mega::compiler::BaseTask::Ptr pTask;
 
-    if ( task.strTaskName == "Task_GenerateManifest" )
-    {
-        pTask = driver::interface::create_Task_GenerateManifest( taskArguments, config.componentInfoPaths );
+#define TASK( taskName, sourceFileType, argumentType )                                   \
+    if ( task.strTaskName == "Task_" #taskName )                                         \
+    {                                                                                    \
+        VERIFY_RTE( !pTask );                                                            \
+        pTask = mega::compiler::create_Task_##taskName( taskArguments, sourceFileType ); \
     }
-    else if ( task.strTaskName == "Task_GenerateComponents" )
-    {
-        pTask = driver::interface::create_Task_GenerateComponents( taskArguments, config.componentInfoPaths );
-    }
-    else if ( task.strTaskName == "Task_ParseAST" )
-    {
-        pTask = driver::interface::create_Task_ParseAST(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_Include" )
-    {
-        pTask = driver::interface::create_Task_Include(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_IncludePCH" )
-    {
-        pTask = driver::interface::create_Task_IncludePCH(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_ObjectInterfaceGen" )
-    {
-        pTask = driver::interface::create_Task_ObjectInterfaceGen(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_DependencyAnalysis" )
-    {
-        pTask = driver::interface::create_Task_DependencyAnalysis(
-            taskArguments, std::get< mega::io::manifestFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_SymbolAnalysis" )
-    {
-        pTask = driver::interface::create_Task_SymbolAnalysis(
-            taskArguments, std::get< mega::io::manifestFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_SymbolRollout" )
-    {
-        pTask = driver::interface::create_Task_SymbolRollout(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_ObjectInterfaceGeneration" )
-    {
-        pTask = driver::interface::create_Task_ObjectInterfaceGeneration(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_ObjectInterfaceAnalysis" )
-    {
-        pTask = driver::interface::create_Task_ObjectInterfaceAnalysis(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_ConcreteTree" )
-    {
-        pTask = driver::interface::create_Task_ConcreteTree(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_Operations" )
-    {
-        pTask = driver::interface::create_Task_Operations(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_OperationsPCH" )
-    {
-        pTask = driver::interface::create_Task_OperationsPCH(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_Implementation" )
-    {
-        pTask = driver::interface::create_Task_Implementation(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_ImplementationObj" )
-    {
-        pTask = driver::interface::create_Task_ImplementationObj(
-            taskArguments, std::get< mega::io::megaFilePath >( task.sourceFilePath ) );
-    }
-    else if ( task.strTaskName == "Task_Complete" )
-    {
-        pTask = create_Task_Complete( taskArguments, std::get< mega::io::manifestFilePath >( task.sourceFilePath ) );
-    }
-    else
-    {
-        THROW_RTE( "Unexpected task type: " << task.strTaskName );
-    }
+#include "tasks.hxx"
+#undef TASK
 
     VERIFY_RTE_MSG( pTask, "Failed to create task: " << task.strTaskName );
 

@@ -1,5 +1,3 @@
-#ifndef TASK_INTERFACE_ANALYSIS_10_MAY_2022
-#define TASK_INTERFACE_ANALYSIS_10_MAY_2022
 
 #include "base_task.hpp"
 
@@ -19,9 +17,9 @@
 
 #include <memory>
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
 
 class Task_ObjectInterfaceGeneration : public BaseTask
@@ -174,9 +172,9 @@ public:
         }
         else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
         {
-            contextData[ "has_operation" ] = true;
+            contextData[ "has_operation" ]         = true;
             contextData[ "operation_return_type" ] = pFunction->get_return_type_trait()->get_str();
-            contextData[ "operation_parameters" ] = pFunction->get_arguments_trait()->get_str();
+            contextData[ "operation_parameters" ]  = pFunction->get_arguments_trait()->get_str();
 
             nlohmann::json functionTraitTypeNames = typenames;
             functionTraitTypeNames.push_back( mega::EG_FUNCTION_TRAIT_TYPE );
@@ -378,7 +376,6 @@ BaseTask::Ptr create_Task_ObjectInterfaceAnalysis( const TaskArguments&         
     return std::make_unique< Task_ObjectInterfaceAnalysis >( taskArguments, sourceFilePath );
 }
 
-} // namespace interface
-} // namespace driver
+} // namespace compiler
+} // namespace mega
 
-#endif // TASK_INTERFACE_ANALYSIS_10_MAY_2022

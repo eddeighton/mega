@@ -81,7 +81,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
             VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
             task::Stash stash( stashDir );
 
-            mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( pipelineConfig );
+            std::ostringstream osLog;
+            mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( pipelineConfig, osLog );
+            SPDLOG_INFO( "{}", osLog.str() );
 
             bool bContinue = true;
             struct ProgressReport : public mega::pipeline::Progress

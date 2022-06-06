@@ -168,7 +168,20 @@ void WorkerRequestActivity::PipelineStartJobs( const pipeline::Configuration& co
                                                const network::ActivityID&     rootActivityID,
                                                boost::asio::yield_context&    yield_ctx )
 {
-    mega::pipeline::Pipeline::Ptr pPipeline = pipeline::Registry::getPipeline( configuration );
+    mega::pipeline::Pipeline::Ptr pPipeline;
+    {
+        std::ostringstream osLog;
+        pPipeline = pipeline::Registry::getPipeline( configuration, osLog );
+        if ( !pPipeline )
+        {
+            SPDLOG_ERROR( "Failed to load pipeline: {}", configuration.getPipelineID() );
+            THROW_RTE( "Failed to load pipeline: " << configuration.get() );
+        }
+        else
+        {
+            SPDLOG_INFO( "{}", osLog.str() );
+        }
+    }
 
     std::vector< network::ActivityID > jobIDs;
     std::vector< JobActivity::Ptr >    jobs;

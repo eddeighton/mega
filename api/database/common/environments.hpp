@@ -123,6 +123,14 @@ public:
         return result;
     }
 
+    Path GenericsTemplate() const
+    {
+        VERIFY_RTE( m_templatesDir.has_value() );
+        Path result = m_templatesDir.value() / "generics.jinja";
+        VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+        return result;
+    }
+
     GeneratedHPPSourceFilePath Include( const megaFilePath& source ) const
     {
         std::ostringstream os;
@@ -172,6 +180,24 @@ public:
     {
         std::ostringstream os;
         os << source.path().filename().string() << ".operations" << PrecompiledHeaderFile::extension().string();
+        auto dirPath = source.path();
+        dirPath.remove_filename();
+        return PrecompiledHeaderFile( dirPath / os.str() );
+    }
+
+    GeneratedHPPSourceFilePath Generics( const megaFilePath& source ) const
+    {
+        std::ostringstream os;
+        os << source.path().filename().string() << ".generics" << GeneratedHPPSourceFilePath::extension().string();
+        auto dirPath = source.path();
+        dirPath.remove_filename();
+        return GeneratedHPPSourceFilePath( dirPath / os.str() );
+    }
+
+    PrecompiledHeaderFile GenericsPCH( const megaFilePath& source ) const
+    {
+        std::ostringstream os;
+        os << source.path().filename().string() << ".generics" << PrecompiledHeaderFile::extension().string();
         auto dirPath = source.path();
         dirPath.remove_filename();
         return PrecompiledHeaderFile( dirPath / os.str() );

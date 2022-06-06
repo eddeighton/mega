@@ -1,6 +1,3 @@
-#ifndef TASK_IMPLEMENTATION_4_JUNE_2022
-#define TASK_IMPLEMENTATION_4_JUNE_2022
-
 #include "base_task.hpp"
 
 #include "database/model/ParserStage.hxx"
@@ -9,9 +6,9 @@
 #include "database/types/clang_compilation.hpp"
 #include <common/file.hpp>
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
 
 class Task_Implementation : public BaseTask
@@ -142,7 +139,5 @@ BaseTask::Ptr create_Task_ImplementationObj( const TaskArguments&          taskA
     return std::make_unique< Task_ImplementationObj >( taskArguments, sourceFilePath );
 }
 
-} // namespace interface
-} // namespace driver
-
-#endif // TASK_IMPLEMENTATION_4_JUNE_2022
+} // namespace compiler
+} // namespace mega

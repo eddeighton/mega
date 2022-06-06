@@ -3,11 +3,11 @@
 #include "database/model/ConcreteStage.hxx"
 #include <common/stash.hpp>
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
-
+    
 class Task_ConcreteTree : public BaseTask
 {
 public:
@@ -47,23 +47,23 @@ public:
         }
     };
 
-    template< typename TContextType >
+    template < typename TContextType >
     void collectDimensions( TContextType* pInterfaceContext, IdentifierMap& identifierMap )
     {
         using namespace ConcreteStage;
         VERIFY_RTE( pInterfaceContext );
-        for( Interface::DimensionTrait* pDimension : pInterfaceContext->get_dimension_traits() )
+        for ( Interface::DimensionTrait* pDimension : pInterfaceContext->get_dimension_traits() )
         {
             identifierMap.addDimension( pDimension );
         }
     }
 
-    template< typename TContextType >
+    template < typename TContextType >
     void collectContexts( TContextType* pInterfaceContext, IdentifierMap& identifierMap )
     {
         using namespace ConcreteStage;
         VERIFY_RTE( pInterfaceContext );
-        for( Interface::Context* pContext : pInterfaceContext->get_children() )
+        for ( Interface::Context* pContext : pInterfaceContext->get_children() )
         {
             identifierMap.addContext( pContext );
         }
@@ -155,7 +155,7 @@ public:
 
         for ( Interface::Context* pChildContext : inheritedContexts.contexts )
         {
-            if( Context* pContext = recurse( database, pChildContext ) )
+            if ( Context* pContext = recurse( database, pChildContext ) )
                 childContexts.push_back( pContext );
         }
 
@@ -181,8 +181,8 @@ public:
             std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
             constructElements( database, inheritedContexts, childContexts, dimensions );
 
-            Namespace* pConcrete = database.construct< Namespace >(
-                Namespace::Args{ Context::Args{ inheritedContexts.inherited, childContexts }, pNamespace, dimensions } );
+            Namespace* pConcrete = database.construct< Namespace >( Namespace::Args{
+                Context::Args{ inheritedContexts.inherited, childContexts }, pNamespace, dimensions } );
             return pConcrete;
         }
         else if ( Interface::Abstract* pAbstract = dynamic_database_cast< Interface::Abstract >( pContext ) )
@@ -304,7 +304,7 @@ public:
         std::vector< Context* > contexts;
         for ( Interface::Context* pChildContext : pRoot->get_children() )
         {
-            if( Context* pConcreteContext = recurse( database, pChildContext ) )
+            if ( Context* pConcreteContext = recurse( database, pChildContext ) )
                 contexts.push_back( pConcreteContext );
         }
 
@@ -321,10 +321,11 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
-BaseTask::Ptr create_Task_ConcreteTree( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_ConcreteTree( const TaskArguments&          taskArguments,
+                                        const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_ConcreteTree >( taskArguments, sourceFilePath );
 }
 
-} // namespace interface
-} // namespace driver
+} // namespace compiler
+} // namespace mega

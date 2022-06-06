@@ -87,6 +87,38 @@ struct Compilation
     }
 
     template < typename TComponentType >
+    static inline Compilation make_genericsPCH_compilation( const io::BuildEnvironment& environment,
+                                                            const utilities::ToolChain& toolChain,
+                                                            TComponentType*             pComponent,
+                                                            const io::megaFilePath&     sourceFile
+
+    )
+    {
+        Compilation compilation;
+
+        compilation.compilationMode = CompilationMode::eOperations;
+
+        compilation.compiler        = toolChain.clangCompilerPath;
+        compilation.compiler_plugin = toolChain.clangPluginPath;
+
+        compilation.srcDir     = environment.rootSourceDir();
+        compilation.buildDir   = environment.rootBuildDir();
+        compilation.sourceFile = environment.FilePath( sourceFile );
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_includeDirectories();
+
+        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
+                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
+
+        compilation.inputFile = environment.FilePath( environment.Generics( sourceFile ) );
+        compilation.outputPCH = environment.FilePath( environment.GenericsPCH( sourceFile ) );
+
+        return compilation;
+    }
+
+    template < typename TComponentType >
     static inline Compilation make_operationsPCH_compilation( const io::BuildEnvironment& environment,
                                                               const utilities::ToolChain& toolChain,
                                                               TComponentType*             pComponent,
@@ -110,7 +142,8 @@ struct Compilation
         compilation.includeDirs = pComponent->get_includeDirectories();
 
         compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
-                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
+                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ),
+                                 environment.FilePath( environment.GenericsPCH( sourceFile ) ) };
 
         compilation.inputFile = environment.FilePath( environment.Operations( sourceFile ) );
         compilation.outputPCH = environment.FilePath( environment.OperationsPCH( sourceFile ) );
@@ -141,6 +174,7 @@ struct Compilation
 
         compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
                                  environment.FilePath( environment.InterfacePCH( sourceFile ) ),
+                                 environment.FilePath( environment.GenericsPCH( sourceFile ) ),
                                  environment.FilePath( environment.OperationsPCH( sourceFile ) ) };
 
         compilation.inputFile    = environment.FilePath( environment.Implementation( sourceFile ) );

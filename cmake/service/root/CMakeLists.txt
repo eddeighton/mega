@@ -16,16 +16,13 @@ set( DAEMON_SOURCE_DIR ${MEGA_SRC_DIR}/service/root )
 
 set( DAEMON_SOURCE 
     ${DAEMON_SOURCE_DIR}/main.cpp
-    
-    ## ensure the version is baked into the shared object
-    ${MEGA_SRC_DIR}/version/version.cxx
  )
 
 add_executable( root ${DAEMON_SOURCE}  )
 
 target_compile_options( root PUBLIC "-fcoroutines" )
 
-target_link_libraries( root database )
+#target_link_libraries( root database )
 target_link_libraries( root utilities )
 target_link_libraries( root protocol )
 target_link_libraries( root network )

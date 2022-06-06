@@ -83,7 +83,7 @@ public:
 
     virtual ~Pipeline();
 
-    virtual void     initialise( const Configuration& configuration )                        = 0;
+    virtual void     initialise( const Configuration& configuration, std::ostream& osLog )   = 0;
     virtual Schedule getSchedule( Progress& progress, Stash& stash )                         = 0;
     virtual void     execute( const TaskDescriptor& task, Progress& progress, Stash& stash ) = 0;
 };
@@ -91,7 +91,7 @@ public:
 class Registry
 {
 public:
-    static Pipeline::Ptr getPipeline( const Configuration& configuration );
+    static Pipeline::Ptr getPipeline( const Configuration& configuration, std::ostream& osLog );
 };
 } // namespace pipeline
 } // namespace mega

@@ -29,12 +29,13 @@ add_executable( worker ${WORKER_API} ${WORKER_SOURCE}  )
 target_compile_options( worker PUBLIC "-fcoroutines" )
 
 #target_link_libraries( worker utilities )
+target_link_libraries( worker compiler_config )
 target_link_libraries( worker protocol )
 target_link_libraries( worker network )
 target_link_libraries( worker service )
 target_link_libraries( worker pipeline )
 
-target_link_libraries( worker parser )
+#target_link_libraries( worker parser )
 target_link_libraries( worker database )
 
 set_target_properties( worker PROPERTIES FOLDER driver )

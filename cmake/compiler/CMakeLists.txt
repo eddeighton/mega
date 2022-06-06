@@ -6,6 +6,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
+#get handy function to preprocess files for the xmacros stuff
+include( ../preprocess_cpp.cmake )
+
 #################################################################
 #################################################################
 # configuration library that can be statically linked
@@ -39,9 +42,11 @@ set( JINJA_TEMPLATES
 	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/namespace.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/generics.jinja 
 	)
 
 set( COMPILER_TASKS
+    ${MEGA_SRC_DIR}/compiler/task_utils.hpp  
     ${MEGA_SRC_DIR}/compiler/base_task.hpp  
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp 
@@ -51,8 +56,10 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp  
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
+    ${MEGA_SRC_DIR}/compiler/task_generics.cpp
     ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
+    ${MEGA_SRC_DIR}/compiler/task_complete.cpp
 )
 
 set( COMPILER_SOURCE
@@ -63,9 +70,14 @@ set( COMPILER_SOURCE
     ${MEGA_SRC_DIR}/version/version.cxx
 )
 
-add_library( compiler SHARED
+add_library( compiler MODULE
     ${COMPILER_SOURCE}
 )
+
+add_c_preprocessor_command( OUTPUT task_utils.hpp.i SOURCE ${MEGA_SRC_DIR}/compiler/task_utils.hpp TARGET compiler )
+add_custom_target( PreprocessCompilerXMacros 
+	SOURCES task_utils.hpp.i
+	COMMENT "Proprocessing task_utils.hpp")
 
 target_link_libraries( compiler compiler_config )
 target_link_libraries( compiler utilities )

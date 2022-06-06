@@ -1,5 +1,3 @@
-#ifndef PARSE_AST_10_MAY_2022
-#define PARSE_AST_10_MAY_2022
 
 #include "base_task.hpp"
 
@@ -7,9 +5,9 @@
 
 #include "parser/parser.hpp"
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
 
 class Task_ParseAST : public BaseTask
@@ -158,13 +156,10 @@ public:
     }
 };
 
-
 BaseTask::Ptr create_Task_ParseAST( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_ParseAST >( taskArguments, sourceFilePath );
 }
 
-} // namespace interface
-} // namespace driver
-
-#endif // PARSE_AST_10_MAY_2022
+} // namespace compiler
+} // namespace mega

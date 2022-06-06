@@ -1,13 +1,11 @@
-#ifndef TASK_INTERFACE_10_MAY_2022
-#define TASK_INTERFACE_10_MAY_2022
 
 #include "base_task.hpp"
 
 #include "database/model/InterfaceStage.hxx"
 
-namespace driver
+namespace mega
 {
-namespace interface
+namespace compiler
 {
 
 class Task_ObjectInterfaceGen : public BaseTask
@@ -279,9 +277,9 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Parser::TableDef* pTableDef ) -> Table*
                     {
-                        return database.construct< Table >(
-                            Table::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
-                                        { pTableDef } ) );
+                        return database.construct< Table >( Table::Args(
+                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            { pTableDef } ) );
                     },
                     []( Table* pTable, Parser::TableDef* pTableDef ) { pTable->push_back_table_defs( pTableDef ); } );
             }
@@ -490,19 +488,19 @@ public:
 
             Parser::Link* pLinkSpec = pDef->get_link();
 
-            Interface::LinkTrait* pLinkTrait = database.construct< Interface::LinkTrait >(
-                    Interface::LinkTrait::Args{ pLinkSpec } );
+            Interface::LinkTrait* pLinkTrait
+                = database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkSpec } );
 
             pLink->set_link_trait( pLinkTrait );
-            
+
             Parser::Inheritance* pLinkTarget = pDef->get_target();
 
             using namespace InterfaceStage;
             const std::vector< std::string >& strings = pLinkTarget->get_strings();
             VERIFY_PARSER( !strings.empty(), "Invalid link target", pDef->get_id() );
 
-            Interface::InheritanceTrait* pInheritance = database.construct< Interface::InheritanceTrait >(
-                    Interface::InheritanceTrait::Args{ pLinkTarget } );
+            Interface::InheritanceTrait* pInheritance
+                = database.construct< Interface::InheritanceTrait >( Interface::InheritanceTrait::Args{ pLinkTarget } );
 
             pLink->set_link_target( pInheritance );
         }
@@ -586,12 +584,12 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
-BaseTask::Ptr create_Task_ObjectInterfaceGen( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_ObjectInterfaceGen( const TaskArguments&          taskArguments,
+                                              const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_ObjectInterfaceGen >( taskArguments, sourceFilePath );
 }
 
-} // namespace interface
-} // namespace driver
+} // namespace compiler
+} // namespace mega
 
-#endif // TASK_INTERFACE_10_MAY_2022
