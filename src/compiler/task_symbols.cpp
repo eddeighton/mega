@@ -51,14 +51,14 @@ public:
     }
 
     using SymbolMap               = std::map< std::string, ::SymbolAnalysis::Symbols::Symbol* >;
-    using TypeIDContextMap        = std::map< int32_t, SymbolAnalysis::Interface::Context* >;
+    using TypeIDContextMap        = std::map< int32_t, SymbolAnalysis::Interface::IContext* >;
     using TypeIDDimensionTraitMap = std::map< int32_t, SymbolAnalysis::Interface::DimensionTrait* >;
     using SymbolIDMap             = std::map< int32_t, ::SymbolAnalysis::Symbols::Symbol* >;
 
     struct ContextDimensionSymbolSet
     {
         SymbolAnalysis::Symbols::SymbolSet*        pSymbolSet = nullptr;
-        SymbolAnalysis::Interface::Context*        pContext   = nullptr;
+        SymbolAnalysis::Interface::IContext*        pContext   = nullptr;
         SymbolAnalysis::Interface::DimensionTrait* pDimension = nullptr;
     };
     using TypeMap = std::multimap< int32_t, ContextDimensionSymbolSet >;
@@ -97,7 +97,7 @@ public:
                          SymbolMap& symbolMap, TypeMap& typeMap ) const
         {
             using namespace SymbolAnalysis;
-            for ( Interface::Context* pContext : database.many< Interface::Context >( pSymbolSet->get_source_file() ) )
+            for ( Interface::IContext* pContext : database.many< Interface::IContext >( pSymbolSet->get_source_file() ) )
             {
                 Symbols::Symbol* pSymbol
                     = findOrCreateSymbol( database, pSymbolSet, pContext->get_identifier(), symbolMap );
@@ -357,8 +357,8 @@ public:
                                             for ( const auto& [ pOldContext, typeID ] :
                                                   pOldSymbolSet->get_context_type_ids() )
                                             {
-                                                New::Interface::Context* pNewContext
-                                                    = newDatabase.convert< New::Interface::Context >( pOldContext );
+                                                New::Interface::IContext* pNewContext
+                                                    = newDatabase.convert< New::Interface::IContext >( pOldContext );
                                                 pNewSymbolSet->insert_context_type_ids( pNewContext, typeID );
                                                 typeMap.insert(
                                                     std::make_pair( typeID,
@@ -384,7 +384,7 @@ public:
                                             SymbolMap::iterator iFind = symbolMap.find( pOldSymbol->get_symbol() );
                                             VERIFY_RTE( iFind != symbolMap.end() );
                                             pNewSymbolSet->insert_context_symbols(
-                                                newDatabase.convert< New::Interface::Context >( pOldContext ),
+                                                newDatabase.convert< New::Interface::IContext >( pOldContext ),
                                                 iFind->second );
                                         }
                                         for ( const auto& [ pOldDimension, pOldSymbol ] :
@@ -577,7 +577,7 @@ public:
 
         for ( auto& [ pContext, pSymbol ] : pSymbolSet->get_context_symbols() )
         {
-            database.construct< Interface::Context >( Interface::Context::Args( pContext, pSymbol->get_id() ) );
+            database.construct< Interface::IContext >( Interface::IContext::Args( pContext, pSymbol->get_id() ) );
         }
         for ( auto& [ pDimension, pSymbol ] : pSymbolSet->get_dimension_symbols() )
         {

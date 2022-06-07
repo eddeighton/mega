@@ -1,18 +1,50 @@
 
 namespace Operations
 {
+    
+    object InterfaceVariant -> OperationsStage::Operations
+    {
+        opt< ref< Interface::IContext > > context;
+        opt< ref< Interface::DimensionTrait > > dimension;
+    }
+
+    object ConcreteVariant -> OperationsStage::Operations
+    {
+        ref< Concrete::Context > context;
+        ref< Concrete::Dimension > dimension;
+    }
+
+    object Element -> OperationsStage::Operations
+    {
+        ref< InterfaceVariant > interface;
+        ref< ConcreteVariant > concrete;
+    }
+
+    object ElementVector -> OperationsStage::Operations
+    {
+        array< ref< Element > > elements;
+    }
+
+    object Context : ElementVector -> OperationsStage::Operations
+    {
+    }
+
+    object TypePath -> OperationsStage::Operations
+    {
+        array< ref< ElementVector > > vectors;
+    }
+
     object Invocation -> OperationsStage::Operations
     {
-        //array< ref< Symbols::Symbol > > context;
-        //array< ref< Symbols::Symbol > > type_path;
-        //value< mega::TypeID > operation;
-
-        
+        value< mega::invocation::ID > id;
+        ref< Context > context;
+        ref< TypePath > type_path;
     }
 
     object Invocations -> OperationsStage::Operations
     {
         map< value< mega::invocation::ID >, ref< Invocation > > invocations;
     }
+
 
 }

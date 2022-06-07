@@ -8,7 +8,7 @@ namespace Concrete
 
     object Context -> ConcreteStage::Concrete
     {
-        array< ref< Interface::Context > > inheritance;
+        array< ref< Interface::IContext > > inheritance;
         array< ref< Context > > children;
     }
 

@@ -45,7 +45,7 @@ namespace driver
 namespace graph
 {
 
-const std::string& getIdentifier( FinalStage::Interface::Context* pContext )
+const std::string& getIdentifier( FinalStage::Interface::IContext* pContext )
 {
     return pContext->get_identifier();
 }
@@ -102,7 +102,7 @@ void addInheritance( const std::optional< ::FinalStage::Interface::InheritanceTr
 
     if ( inheritance.has_value() )
     {
-        for ( Context* pInherited : inheritance.value()->get_contexts() )
+        for ( IContext* pInherited : inheritance.value()->get_contexts() )
         {
             nlohmann::json base
                 = nlohmann::json::object( { { "label", pInherited->get_identifier() },
@@ -113,7 +113,7 @@ void addInheritance( const std::optional< ::FinalStage::Interface::InheritanceTr
     }
 }
 
-void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
+void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
 {
     using namespace FinalStage;
     using namespace FinalStage::Interface;
@@ -194,7 +194,7 @@ void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
 
     data[ "nodes" ].push_back( node );
 
-    for ( Interface::Context* pChildContext : pContext->get_children() )
+    for ( Interface::IContext* pChildContext : pContext->get_children() )
     {
         recurse( data, pChildContext );
 
@@ -206,7 +206,7 @@ void recurse( nlohmann::json& data, FinalStage::Interface::Context* pContext )
 }
 
 /*
-void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
+void recurse( nlohmann::json& data, FinalStage::Concrete::IContext* pContext )
 {
     using namespace FinalStage;
     using namespace FinalStage::Concrete;
@@ -287,7 +287,7 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
 
     data[ "nodes" ].push_back( node );
 
-    for ( Interface::Context* pChildContext : pContext->get_children() )
+    for ( Interface::IContext* pChildContext : pContext->get_children() )
     {
         recurse( data, pChildContext );
 
@@ -345,7 +345,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                         Database database( environment, sourceFilePath );
                         for ( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
                         {
-                            for ( Interface::Context* pChildContext : pRoot->get_children() )
+                            for ( Interface::IContext* pChildContext : pRoot->get_children() )
                             {
                                 recurse( data, pChildContext );
                             }

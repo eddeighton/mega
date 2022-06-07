@@ -71,7 +71,7 @@ stage SymbolAnalysis
 
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::DimensionTrait >;
-    persource accessor ref< Interface::Context >;
+    persource accessor ref< Interface::IContext >;
 }
 
 stage SymbolAnalysisView
@@ -81,7 +81,7 @@ stage SymbolAnalysisView
 
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::DimensionTrait >;
-    persource accessor ref< Interface::Context >;
+    persource accessor ref< Interface::IContext >;
 }
 
 stage SymbolRollout
@@ -93,7 +93,7 @@ stage SymbolRollout
 
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::DimensionTrait >;
-    persource accessor ref< Interface::Context >;
+    persource accessor ref< Interface::IContext >;
 }
 
 stage InterfaceAnalysisStage
@@ -128,7 +128,7 @@ stage OperationsStage
     file Operations;
 
     global accessor ref< Symbols::SymbolTable >;
-    persource accessor ref< Operations::Invocations >;
+    //persource accessor ref< Operations::Invocations >;
 }
 
 stage FinalStage

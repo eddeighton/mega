@@ -9,6 +9,7 @@
 #include "invocation/invocation.hpp"
 
 #include "mega/common_strings.hpp"
+#include "clang/Basic/SourceLocation.h"
 
 #pragma warning( push )
 #include "common/clang_warnings.hpp"
@@ -30,9 +31,8 @@ namespace clang
 
 class OperationsSession : public AnalysisSession
 {
-    OperationsStage::Database                                     m_database;
-    std::map< std::string, ::OperationsStage::Symbols::Symbol* >  m_symbols;
-    std::map< std::int32_t, ::OperationsStage::Symbols::Symbol* > m_symbolIDMap;
+    OperationsStage::Database                                    m_database;
+    std::map< std::string, ::OperationsStage::Symbols::Symbol* > m_symbols;
 
     using InvocationsMap = std::map< mega::invocation::ID, ::OperationsStage::Operations::Invocation* >;
     InvocationsMap m_invocationsMap;
@@ -52,8 +52,7 @@ public:
 
         Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
-        m_symbols     = pSymbolTable->get_symbols();
-        m_symbolIDMap = pSymbolTable->get_symbol_id_map();
+        m_symbols = pSymbolTable->get_symbols();
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
@@ -417,135 +416,106 @@ public:
                         {
                             if ( pTemplateType->getNumArgs() == 3U )
                             {
-                                clang::QualType context       = pTemplateType->getArg( 0U ).getAsType();
-                                clang::QualType typePath      = pTemplateType->getArg( 1U ).getAsType();
-                                clang::QualType operationType = pTemplateType->getArg( 2U ).getAsType();
-
-                                std::vector< mega::SymbolID > contextSymbolIDs;
-                                if ( !clang::getContextSymbolIDs( pASTContext, context, contextSymbolIDs ) )
-                                {
-                                    std::ostringstream os;
-                                    os << "Invalid context for invocation of type: "
-                                              + context.getCanonicalType().getAsString();
-                                    pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                                        << os.str();
-                                    m_bError = true;
-                                    return false;
-                                }
-
-                                std::vector< mega::SymbolID > typePathSymbolIDs;
-                                if ( !clang::getTypePathSymbolIDs( pASTContext, typePath, typePathSymbolIDs ) )
-                                {
-                                    pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                                        << "Invalid type path for invocation";
-                                    m_bError = true;
-                                    return false;
-                                }
-
-                                std::optional< mega::SymbolID > operationTypeIDOpt
-                                    = getEGSymbolID( pASTContext, operationType );
-                                if ( !operationTypeIDOpt )
-                                {
-                                    pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                                        << "Invalid operation for invocation";
-                                    m_bError = true;
-                                    return false;
-                                }
-                                mega::OperationID operationTypeID
-                                    = static_cast< mega::OperationID >( operationTypeIDOpt.value() );
-
-                                using namespace OperationsStage;
-
-                                const mega::invocation::ID id{
-                                    contextSymbolIDs, typePathSymbolIDs, operationTypeID };
-
-                                Operations::Invocation* pInvocation = nullptr;
-                                {
-                                    auto iFind = m_invocationsMap.find( id );
-                                    if( iFind != m_invocationsMap.end() )
-                                    {
-                                        // existing invocation solution exists
-                                        pInvocation = iFind->second;
-                                    }
-                                    else
-                                    {
-                                        std::vector< Symbols::Symbol* > contextSymbols;
-                                        {
-                                            for ( mega::SymbolID typeID : contextSymbolIDs )
-                                            {
-                                                auto iFind = m_symbolIDMap.find( typeID );
-                                                if ( iFind != m_symbolIDMap.end() )
-                                                {
-                                                    contextSymbols.push_back( iFind->second );
-                                                }
-                                                else
-                                                {
-                                                    pASTContext->getDiagnostics().Report(
-                                                        loc, clang::diag::err_mega_generic_error )
-                                                        << "Invalid symbol ID: " << typeID;
-                                                    m_bError = true;
-                                                    return false;
-                                                }
-                                            }
-                                        }
-                                        std::vector< Symbols::Symbol* > typePathSymbols;
-                                        {
-                                            for ( mega::SymbolID typeID : typePathSymbolIDs )
-                                            {
-                                                auto iFind = m_symbolIDMap.find( typeID );
-                                                if ( iFind != m_symbolIDMap.end() )
-                                                {
-                                                    typePathSymbols.push_back( iFind->second );
-                                                }
-                                                else
-                                                {
-                                                    pASTContext->getDiagnostics().Report(
-                                                        loc, clang::diag::err_mega_generic_error )
-                                                        << "Invalid symbol ID: " << typeID;
-                                                    m_bError = true;
-                                                    return false;
-                                                }
-                                            }
-                                        }
-
-                                        pInvocation = mega::invocation::construct( id, m_database, m_sourceFile );
-                                        m_invocationsMap.insert( std::make_pair( id, pInvocation ) );
-                                    }
-                                }
-
-                                // pInvocation
-
-
-                                // mega::invocation::Solution
-
-                                /*const InvocationSolution::InvocationID invocationID
-                                    = InvocationSolution::invocationIDFromTypeIDs(
-                                        g_pOperationsSession->getObjects( IndexedObject::MASTER_FILE ),
-                                        g_pOperationsSession->getIdentifiers(), contextTypes, typePathTypes,
-                                        operationTypeID );
-
                                 try
                                 {
-                                    if ( const InvocationSolution* pSolution
-                                         = g_pOperationsSession->getInvocation( invocationID, typePathTypes ) )
+                                    clang::QualType context       = pTemplateType->getArg( 0U ).getAsType();
+                                    clang::QualType typePath      = pTemplateType->getArg( 1U ).getAsType();
+                                    clang::QualType operationType = pTemplateType->getArg( 2U ).getAsType();
+
+                                    std::vector< mega::SymbolID > contextSymbolIDs;
+                                    if ( !clang::getContextSymbolIDs( pASTContext, context, contextSymbolIDs ) )
                                     {
-                                        calculateReturnType( pSolution, resultType );
+                                        std::ostringstream os;
+                                        os << "Invalid context for invocation of type: "
+                                                  + context.getCanonicalType().getAsString();
+                                        pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
+                                            << os.str();
+                                        m_bError = true;
+                                        return false;
                                     }
+
+                                    std::vector< mega::SymbolID > typePathSymbolIDs;
+                                    if ( !clang::getTypePathSymbolIDs( pASTContext, typePath, typePathSymbolIDs ) )
+                                    {
+                                        pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
+                                            << "Invalid type path for invocation";
+                                        m_bError = true;
+                                        return false;
+                                    }
+
+                                    std::optional< mega::SymbolID > operationTypeIDOpt
+                                        = getEGSymbolID( pASTContext, operationType );
+                                    if ( !operationTypeIDOpt )
+                                    {
+                                        pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
+                                            << "Invalid operation for invocation";
+                                        m_bError = true;
+                                        return false;
+                                    }
+                                    mega::OperationID operationTypeID
+                                        = static_cast< mega::OperationID >( operationTypeIDOpt.value() );
+
+                                    using namespace OperationsStage;
+
+                                    const mega::invocation::ID id{
+                                        contextSymbolIDs, typePathSymbolIDs, operationTypeID };
+
+                                    Operations::Invocation* pInvocation = nullptr;
+                                    {
+                                        // auto iFind = m_invocationsMap.find( id );
+                                        // if ( iFind != m_invocationsMap.end() )
+                                        //{
+                                        //     // existing invocation solution exists
+                                        //     pInvocation = iFind->second;
+                                        // }
+                                        // else
+                                        //{
+                                        //     pInvocation = mega::invocation::construct(
+                                        //         m_environment, id, m_database, m_sourceFile );
+                                        //     m_invocationsMap.insert( std::make_pair( id, pInvocation ) );
+                                        // }
+                                    }
+
+                                    // pInvocation
+
+                                    // mega::invocation::Solution
+
+                                    /*const InvocationSolution::InvocationID invocationID
+                                        = InvocationSolution::invocationIDFromTypeIDs(
+                                            g_pOperationsSession->getObjects( IndexedObject::MASTER_FILE ),
+                                            g_pOperationsSession->getIdentifiers(), contextTypes, typePathTypes,
+                                            operationTypeID );
+
+                                    try
+                                    {
+                                        if ( const InvocationSolution* pSolution
+                                            = g_pOperationsSession->getInvocation( invocationID, typePathTypes ) )
+                                        {
+                                            calculateReturnType( pSolution, resultType );
+                                        }
+                                    }
+                                    catch ( mega::NameResolutionException& nameResolutionException )
+                                    {
+                                        pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
+                                            << nameResolutionException.what();
+                                        m_bError = true;
+                                        return false;
+                                    }
+                                    catch ( mega::InvocationException& invocationException )
+                                    {
+                                        pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
+                                            << invocationException.what();
+                                        m_bError = true;
+                                        return false;
+                                    }*/
                                 }
-                                catch ( mega::NameResolutionException& nameResolutionException )
+                                catch ( std::exception& ex )
                                 {
                                     pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                                        << nameResolutionException.what();
+                                        << ex.what();
                                     m_bError = true;
                                     return false;
                                 }
-                                catch ( mega::InvocationException& invocationException )
-                                {
-                                    pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                                        << invocationException.what();
-                                    m_bError = true;
-                                    return false;
-                                }*/
 
                                 return true;
                             }
@@ -556,7 +526,30 @@ public:
         }
         return bFound;
     }
-    virtual void runFinalAnalysis() {}
+    virtual void runFinalAnalysis()
+    {
+        bool bSuccess = true;
+
+        using namespace OperationsStage;
+        try
+        {
+            m_database.construct< Operations::Invocations >( Operations::Invocations::Args{ m_invocationsMap } );
+        }
+        catch ( std::exception& ex )
+        {
+            pASTContext->getDiagnostics().Report( SourceLocation(), clang::diag::err_mega_generic_error ) << ex.what();
+            m_bError = true;
+            bSuccess = false;
+        }
+
+        if ( bSuccess )
+        {
+            const mega::io::CompilationFilePath operationsSession
+                = m_environment.OperationsStage_Operations( m_sourceFile );
+            m_database.save_Operations_to_temp();
+            m_environment.temp_to_real( operationsSession );
+        }
+    }
 };
 
 Session::Ptr make_operations_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,

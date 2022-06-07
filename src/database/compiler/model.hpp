@@ -454,10 +454,11 @@ public:
     std::vector< Accessor::Ptr >    m_accessors;
     std::vector< Constructor::Ptr > m_constructors;
 
-    std::vector< Interface::Ptr > m_interfaceTopological;
-    std::vector< Interface::Ptr > m_readOnlyInterfaces;
-    std::vector< Interface::Ptr > m_readWriteInterfaces;
-    std::vector< SuperType::Ptr > m_superTypes;
+    std::vector< Interface::Ptr >                                         m_interfaceTopological;
+    std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > m_interfaceTopologicalSet;
+    std::vector< Interface::Ptr >                                         m_readOnlyInterfaces;
+    std::vector< Interface::Ptr >                                         m_readWriteInterfaces;
+    std::vector< SuperType::Ptr >                                         m_superTypes;
 
     void getDependencies( std::vector< Ptr >& dependencies )
     {

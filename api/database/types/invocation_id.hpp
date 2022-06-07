@@ -7,26 +7,12 @@
 
 #include "nlohmann/json.hpp"
 
-#include <stdexcept>
 #include <vector>
 
 namespace mega
 {
 namespace invocation
 {
-
-class Exception : public std::runtime_error
-{
-public:
-    Exception( const std::string& strMessage )
-        : std::runtime_error( strMessage )
-    {
-    }
-};
-
-#define THROW_INVOCATION_EXCEPTION( msg ) \
-    DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << msg; throw Exception( _os.str() ); )
-
 class ID
 {
 public:

@@ -117,13 +117,13 @@ std::string Object::inheritanceGroupVariant() const
     std::ostringstream os;
     os << "std::variant< ";
     bool bFirst = true;
-    for( WeakPtr pObjectWeak : *m_pInheritanceGroup )
+    for ( WeakPtr pObjectWeak : *m_pInheritanceGroup )
     {
-        if( bFirst )
+        if ( bFirst )
             bFirst = false;
         else
             os << ", ";
-        os << "data::Ptr< data::" << pObjectWeak.lock()->m_primaryObjectPart->getDataType("::") << " >";
+        os << "data::Ptr< data::" << pObjectWeak.lock()->m_primaryObjectPart->getDataType( "::" ) << " >";
     }
     os << " >";
     return os.str();
@@ -172,7 +172,6 @@ using FileMap                       = std::map< schema::IdentifierList, File::Pt
 using StageMap                      = std::map< schema::Identifier, Stage::Ptr >;
 using NamespaceMap                  = std::map< schema::Identifier, Namespace::Ptr >;
 using ObjectVector                  = std::vector< Object::Ptr >;
-using ObjectRefVector               = std::vector< RefType::Ptr >;
 using MapTypeVector                 = std::vector< MapType::Ptr >;
 using InheritanceMap                = std::map< schema::IdentifierList, Object::Ptr >;
 using SourceMap                     = std::map< schema::Identifier, Source::Ptr >;
@@ -187,7 +186,6 @@ struct Mapping
     StageMap                      stageMap;
     NamespaceMap                  namespaceMap;
     ObjectVector                  objects;
-    ObjectRefVector               objectRefs;
     MapTypeVector                 mapTypes;
     SourceMap                     sourceMap;
 };
@@ -270,7 +268,6 @@ Type::Ptr getType( const schema::Type& type, Mapping& mapping, Namespace::Ptr pN
                 if ( cppType.m_children.empty() && !cppType.m_idList.empty() )
                 {
                     RefType::Ptr pRefType = std::make_shared< RefType >( mapping.counter );
-                    mapping.objectRefs.push_back( pRefType );
                     // record the type name for later resolution
                     mapping.typeNameResMap.insert(
                         std::make_pair( pRefType, NameResolution{ pNamespace, cppType.m_idList } ) );
@@ -748,7 +745,7 @@ void stageInterfaces( Mapping& mapping, Schema::Ptr pSchema )
         }
 
         using InterfaceMap = std::map< Object::Ptr, Interface::Ptr >;
-        InterfaceMap interfaceMap;
+        InterfaceMap interfaceMap; // only finds on this so no comparator
 
         // add the read-write interfaces
         for ( ObjectPartMap::iterator i = objectParts.begin(), iEnd = objectParts.end(); i != iEnd; ++i )
@@ -901,7 +898,7 @@ void stageInterfaces( Mapping& mapping, Schema::Ptr pSchema )
         // create stage functions
         for ( Interface::Ptr pInterface : pStage->m_readWriteInterfaces )
         {
-            if( pInterface->ownsPrimaryObjectPart() || pInterface->ownsInheritedSecondaryObjectPart() )
+            if ( pInterface->ownsPrimaryObjectPart() || pInterface->ownsInheritedSecondaryObjectPart() )
             {
                 Constructor::Ptr pConstructor = std::make_shared< Constructor >( mapping.counter );
                 pConstructor->m_interface     = pInterface;
@@ -923,24 +920,24 @@ void objectGroups( Mapping& mapping, Schema::Ptr pSchema )
                 getObjects( pNamespace, objects );
             }
         }
-        for( Object::Ptr pObject : objects )
+        for ( Object::Ptr pObject : objects )
         {
             open_objects.insert( pObject );
         }
     }
     std::vector< std::set< Object::Ptr > > groups;
-    while( !open_objects.empty() )
+    while ( !open_objects.empty() )
     {
-        for( Object::Ptr pObject : open_objects )
+        for ( Object::Ptr pObject : open_objects )
         {
             bool bFound = false;
-            for( std::set< Object::Ptr >& group : groups )
+            for ( std::set< Object::Ptr >& group : groups )
             {
-                if( pObject->m_base )
+                if ( pObject->m_base )
                 {
-                    for( Object::Ptr pGroupMember : group )
+                    for ( Object::Ptr pGroupMember : group )
                     {
-                        if( pObject->m_base == pGroupMember )
+                        if ( pObject->m_base == pGroupMember )
                         {
                             bFound = true;
                             group.insert( pObject );
@@ -949,11 +946,11 @@ void objectGroups( Mapping& mapping, Schema::Ptr pSchema )
                         }
                     }
                 }
-                if( bFound )
+                if ( bFound )
                     break;
-                for( Object::Ptr pGroupMember : group )
+                for ( Object::Ptr pGroupMember : group )
                 {
-                    if( pGroupMember->m_base == pObject )
+                    if ( pGroupMember->m_base == pObject )
                     {
                         bFound = true;
                         group.insert( pObject );
@@ -961,10 +958,10 @@ void objectGroups( Mapping& mapping, Schema::Ptr pSchema )
                         break;
                     }
                 }
-                if( bFound )
+                if ( bFound )
                     break;
             }
-            if( !bFound )
+            if ( !bFound )
             {
                 groups.push_back( std::set< Object::Ptr >{ pObject } );
                 open_objects.erase( pObject );
@@ -973,17 +970,15 @@ void objectGroups( Mapping& mapping, Schema::Ptr pSchema )
         }
     }
 
-    for( std::set< Object::Ptr >& group : groups )
+    for ( std::set< Object::Ptr >& group : groups )
     {
-        Object::WeakObjectPtrSetPtr pGroup =
-            std::make_shared< Object::WeakObjectPtrSet >();
-        for( Object::Ptr pObject : group )
+        Object::WeakObjectPtrSetPtr pGroup = std::make_shared< Object::WeakObjectPtrSet >();
+        for ( Object::Ptr pObject : group )
         {
             pGroup->insert( pObject );
             pObject->m_pInheritanceGroup = pGroup;
         }
     }
-
 }
 
 void superTypes( Mapping& mapping, Schema::Ptr pSchema )
@@ -1045,15 +1040,15 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
         for ( const std::vector< Interface::Ptr >& group : disjointInheritanceSets )
         {
             SuperType::Ptr pSuperType = std::make_shared< SuperType >( mapping.counter );
-            pSuperType->m_stage            = pStage;
-            pSuperType->m_interfaces       = group;
+            pSuperType->m_stage       = pStage;
+            pSuperType->m_interfaces  = group;
             pStage->m_superTypes.push_back( pSuperType );
 
             for ( Interface::Ptr pInterface : pSuperType->m_interfaces )
             {
                 pInterface->m_superInterface = pSuperType;
 
-                if( !pInterface->m_base )
+                if ( !pInterface->m_base )
                 {
                     Object::Ptr pObject = pInterface->m_object.lock();
                     VERIFY_RTE( !pSuperType->m_base_object );
@@ -1106,7 +1101,15 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
                     }
                 }
             }
-            std::copy( topological.begin(), topological.end(), std::back_inserter( pStage->m_interfaceTopological ) );
+
+            for ( Interface::Ptr pInterface : topological )
+            {
+                if ( pStage->m_interfaceTopologicalSet.count( pInterface ) == 0 )
+                {
+                    pStage->m_interfaceTopologicalSet.insert( pInterface );
+                    pStage->m_interfaceTopological.push_back( pInterface );
+                }
+            }
         }
     }
 }
@@ -1114,7 +1117,8 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
 void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
 {
     // calculate the object part conversions
-    std::vector< Object::Ptr > objects;
+    std::vector< Object::Ptr >                                      objects;
+    std::set< Object::Ptr, CountedObjectComparator< Object::Ptr > > objectsUnique;
     {
         for ( Namespace::Ptr pNamespace : pSchema->m_namespaces )
         {
@@ -1129,7 +1133,7 @@ void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
             std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pObject->m_primaryObjectPart },
                             Schema::ObjectPartVector{} ) );
 
-        if( !pObject->m_base )
+        if ( !pObject->m_base )
         {
             pSchema->m_base_conversions.insert(
                 std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pObject->m_primaryObjectPart },
@@ -1152,10 +1156,11 @@ void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
                 pSchema->m_conversions.insert( std::make_pair(
                     Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart }, baseList ) );
 
-                if( !pBase->m_base )
+                if ( !pBase->m_base )
                 {
                     pSchema->m_base_conversions.insert( std::make_pair(
-                        Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart }, baseList ) );
+                        Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart },
+                        baseList ) );
                 }
 
                 for ( ObjectPart::Ptr pSecondary : pBase->m_secondaryParts )

@@ -9,8 +9,6 @@
 #include "database/model/ThirdStage.hxx"
 #include "database/model/FourthStage.hxx"
 
-#include "database/model/ComponentListing.hxx"
-#include "database/model/ParserStage.hxx"
 #include "database/model/manifest.hxx"
 #include "database/model/environment.hxx"
 

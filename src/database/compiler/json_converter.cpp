@@ -898,14 +898,20 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
 
 void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
 {
-    for ( model::SuperType::Ptr pSuperType : pStage->m_superTypes )
     {
-        for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
+        std::set< model::Interface::Ptr, model::CountedObjectComparator< model::Interface::Ptr > > interfaces;
+        for ( model::SuperType::Ptr pSuperType : pStage->m_superTypes )
         {
-            nlohmann::json cast
-                = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
-                                            { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) } } );
-            stage[ "casts" ].push_back( cast );
+            for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
+            {
+                VERIFY_RTE ( interfaces.count( pInterface ) == 0 );
+                
+                interfaces.insert( pInterface );
+                nlohmann::json cast = nlohmann::json::object(
+                    { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
+                        { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) } } );
+                stage[ "casts" ].push_back( cast );
+            }
         }
     }
 

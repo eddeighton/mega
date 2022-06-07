@@ -31,7 +31,7 @@ class InterfaceSession : public AnalysisSession
 {
     InterfaceAnalysisStage::Database                                          m_database;
     std::map< std::string, ::InterfaceAnalysisStage::Symbols::Symbol* >       m_symbols;
-    std::map< int32_t, ::InterfaceAnalysisStage::Interface::Context* >        m_contextTypeIDs;
+    std::map< int32_t, ::InterfaceAnalysisStage::Interface::IContext* >        m_contextTypeIDs;
     std::map< int32_t, ::InterfaceAnalysisStage::Interface::DimensionTrait* > m_dimensionTypeIDs;
 
 public:
@@ -133,8 +133,8 @@ public:
                             if ( index > 0 && index < static_cast< ::mega::SymbolID >( objects.size() ) )
                             {
                                 ::mega::TypeIDIndexedObject* pObject = objects[ index ];
-                                if ( ::mega::TypeIDinterface::Context* pContext
-                                        = dynamic_cast< ::mega::TypeIDinterface::Context* >( pObject ) )
+                                if ( ::mega::TypeIDinterface::IContext* pContext
+                                        = dynamic_cast< ::mega::TypeIDinterface::IContext* >( pObject ) )
                                 {
                                     //AbstractMutator::appendActionTypes( *pDimension, pContext );
                                 }
@@ -213,7 +213,7 @@ public:
 
         VERIFY_RTE( pInheritanceTrait );
 
-        std::vector< Context* > inheritedContexts;
+        std::vector< IContext* > inheritedContexts;
 
         int iCounter = 0;
         for ( const std::string& strBaseType : pInheritanceTrait->get_strings() )
@@ -306,7 +306,7 @@ public:
         return true;
     }
 
-    bool interfaceAnalysis( InterfaceAnalysisStage::Interface::Context* pContext, SourceLocation loc,
+    bool interfaceAnalysis( InterfaceAnalysisStage::Interface::IContext* pContext, SourceLocation loc,
                             DeclContext* pDeclContext )
     {
         using namespace InterfaceAnalysisStage;
@@ -400,7 +400,7 @@ public:
             return false;
         }
 
-        for ( Context* pContextChild : pContext->get_children() )
+        for ( IContext* pContextChild : pContext->get_children() )
         {
             if ( !interfaceAnalysis( pContextChild, result.loc, result.pDeclContext ) )
                 return false;
@@ -420,7 +420,7 @@ public:
             DeclContext*   pDeclContext = pASTContext->getTranslationUnitDecl();
 
             Interface::Root* pRoot = m_database.one< Interface::Root >( m_sourceFile );
-            for ( Context* pContext : pRoot->get_children() )
+            for ( IContext* pContext : pRoot->get_children() )
             {
                 if ( !interfaceAnalysis( pContext, loc, pDeclContext ) )
                 {

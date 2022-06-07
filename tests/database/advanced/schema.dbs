@@ -1,0 +1,49 @@
+
+
+
+stage FirstStage
+{
+    source .manifest;
+    file FirstFile;
+}
+
+stage SecondStage
+{
+    dependency FirstStage;
+    source .manifest;
+    file SecondFile;
+}
+
+stage ThirdStage
+{
+    dependency SecondStage;
+    source .manifest;
+    file ThirdFile;
+}
+
+stage FourthStage
+{
+    dependency ThirdStage;
+    source .manifest;
+    file FourthFile;
+}
+
+namespace TestNamespace
+{
+
+    object BaseObject -> FirstStage::FirstFile
+    {
+        array< ref< TestObject > > children;
+    }
+
+    object TestObject -> FirstStage::FirstFile
+    {
+        ref< TestObject > parent;
+        
+        value< int > firstStageValue;
+        value< int > secondStageValue -> SecondStage::SecondFile;
+        value< int > thirdStageValue -> ThirdStage::ThirdFile;
+    }
+
+
+}

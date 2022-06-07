@@ -97,7 +97,7 @@ public:
         return traits;
     }
 
-    void recurse( TemplateEngine& templateEngine, InterfaceAnalysisStage::Interface::Context* pContext,
+    void recurse( TemplateEngine& templateEngine, InterfaceAnalysisStage::Interface::IContext* pContext,
                   nlohmann::json& structs, const nlohmann::json& parentTypeNames, std::ostream& os )
     {
         using namespace InterfaceAnalysisStage;
@@ -107,7 +107,7 @@ public:
         typenames.push_back( pContext->get_identifier() );
 
         std::ostringstream osNested;
-        for ( Context* pNestedContext : pContext->get_children() )
+        for ( IContext* pNestedContext : pContext->get_children() )
         {
             recurse( templateEngine, pNestedContext, structs, typenames, osNested );
         }
@@ -267,7 +267,7 @@ public:
         std::ostringstream os;
         {
             Interface::Root* pRoot = database.one< Interface::Root >( m_sourceFilePath );
-            for ( Context* pContext : pRoot->get_children() )
+            for ( IContext* pContext : pRoot->get_children() )
             {
                 recurse( templateEngine, pContext, structs, typenames, os );
             }

@@ -62,7 +62,7 @@ public:
             {
                 pInterfaceContextGroup = dynamic_database_cast< TInterfaceContextType >( pContextGroup );
                 VERIFY_PARSER( pInterfaceContextGroup,
-                               "Context definition of identifier: " << name << " with mixed types",
+                               "IContext definition of identifier: " << name << " with mixed types",
                                pContextDef->get_id() );
                 aggregateFunctor( pInterfaceContextGroup, pContextDef );
             }
@@ -135,7 +135,7 @@ public:
                     {
                         pInterfaceContextGroup = dynamic_database_cast< Namespace >( pContextGroup );
                         VERIFY_PARSER( pInterfaceContextGroup,
-                                       "Context definition of identifier: " << name << " with mixed types",
+                                       "IContext definition of identifier: " << name << " with mixed types",
                                        pContextDef->get_id() );
                         pInterfaceContextGroup->push_back_namespace_defs( pIncludeContextDef );
                     }
@@ -153,7 +153,7 @@ public:
                         const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
 
                         pInterfaceContextGroup = database.construct< Namespace >( Namespace::Args(
-                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name.back(), pParent ),
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name.back(), pParent ),
                             bIsGlobalNamespace, { pIncludeContextDef } ) );
                         pParent->push_back_children( pInterfaceContextGroup );
                         namedContexts.insert( std::make_pair( name, pInterfaceContextGroup ) );
@@ -180,7 +180,7 @@ public:
                     {
                         const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
                         return database.construct< Namespace >( Namespace::Args(
-                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                             bIsGlobalNamespace, { pNamespaceDef } ) );
                     },
                     []( Namespace* pNamespace, Parser::ContextDef* pNamespaceDef )
@@ -195,7 +195,7 @@ public:
                         Parser::AbstractDef* pAbstractDef ) -> Abstract*
                     {
                         return database.construct< Abstract >( Abstract::Args(
-                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                             { pAbstractDef } ) );
                     },
                     []( Abstract* pAbstract, Parser::AbstractDef* pAbstractDef )
@@ -209,7 +209,7 @@ public:
                         Parser::ActionDef* pActionDef ) -> Action*
                     {
                         return database.construct< Action >( Action::Args(
-                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                             { pActionDef } ) );
                     },
                     []( Action* pAction, Parser::ActionDef* pActionDef )
@@ -223,7 +223,7 @@ public:
                         Parser::EventDef* pEventDef ) -> Event*
                     {
                         return database.construct< Event >( Event::Args(
-                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                             { pEventDef } ) );
                     },
                     []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
@@ -237,7 +237,7 @@ public:
                         Parser::FunctionDef* pFunctionDef ) -> Function*
                     {
                         return database.construct< Function >( Function::Args(
-                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                             { pFunctionDef } ) );
                     },
                     []( Function* pFunction, Parser::FunctionDef* pFunctionDef )
@@ -251,7 +251,7 @@ public:
                         Parser::ObjectDef* pObjectDef ) -> Object*
                     {
                         return database.construct< Object >( Object::Args(
-                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                             { pObjectDef } ) );
                     },
                     []( Object* pObject, Parser::ObjectDef* pObjectDef )
@@ -265,7 +265,7 @@ public:
                         Parser::LinkDef* pLinkDef ) -> Link*
                     {
                         return database.construct< Link >(
-                            Link::Args( Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            Link::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                                         { pLinkDef } ) );
                     },
                     []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
@@ -278,7 +278,7 @@ public:
                         Parser::TableDef* pTableDef ) -> Table*
                     {
                         return database.construct< Table >( Table::Args(
-                            Context::Args( ContextGroup::Args( std::vector< Context* >{} ), name, pParent ),
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                             { pTableDef } ) );
                     },
                     []( Table* pTable, Parser::TableDef* pTableDef ) { pTable->push_back_table_defs( pTableDef ); } );
@@ -300,7 +300,7 @@ public:
             for ( Parser::Dimension* pExistingDimension : dimensions )
             {
                 VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
-                               "Context has duplicate dimensions", pDef->get_id() );
+                               "IContext has duplicate dimensions", pDef->get_id() );
             }
             dimensions.push_back(
                 database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args( pParserDim ) ) );
