@@ -10,6 +10,9 @@
 
 #include "nlohmann/json.hpp"
 
+#include "mega/common.hpp"
+#include "database/types/invocation_id.hpp"
+
 #include <string>
 #include <cstddef>
 #include <cstdint>
@@ -114,6 +117,11 @@ namespace Concrete
     struct Link;
     struct Table;
     struct Root;
+}
+namespace Operations
+{
+    struct Invocation;
+    struct Invocations;
 }
 
 // definitions
@@ -926,7 +934,7 @@ namespace DPGraph
         Glob( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& location, const std::string& glob);
         enum 
         {
-            Object_Part_Type_ID = 59
+            Object_Part_Type_ID = 61
         };
         boost::filesystem::path location;
         std::string glob;
@@ -943,7 +951,7 @@ namespace DPGraph
         ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Glob > >& globs, const std::vector< boost::filesystem::path >& resolution);
         enum 
         {
-            Object_Part_Type_ID = 60
+            Object_Part_Type_ID = 62
         };
         mega::io::megaFilePath source_file;
         std::size_t hash_code;
@@ -962,7 +970,7 @@ namespace DPGraph
         Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::ObjectDependencies > >& objects);
         enum 
         {
-            Object_Part_Type_ID = 61
+            Object_Part_Type_ID = 63
         };
         std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > objects;
         std::variant< data::Ptr< data::DPGraph::Analysis > > m_inheritance;
@@ -981,7 +989,7 @@ namespace SymbolTable
         Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& symbol, const std::int32_t& id, const std::vector< data::Ptr< data::Tree::Context > >& contexts, const std::vector< data::Ptr< data::Tree::DimensionTrait > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 62
+            Object_Part_Type_ID = 64
         };
         std::string symbol;
         std::int32_t id;
@@ -1000,7 +1008,7 @@ namespace SymbolTable
         SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Context >, data::Ptr< data::SymbolTable::Symbol > >& context_symbols, const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > >& dimension_symbols, const std::map< data::Ptr< data::Tree::Context >, int32_t >& context_type_ids, const std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t >& dimension_type_ids);
         enum 
         {
-            Object_Part_Type_ID = 63
+            Object_Part_Type_ID = 65
         };
         std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > symbols;
         mega::io::megaFilePath source_file;
@@ -1019,15 +1027,16 @@ namespace SymbolTable
     struct SymbolTable : public mega::io::Object
     {
         SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >& symbols, const std::map< int32_t, data::Ptr< data::Tree::Context > >& context_type_ids, const std::map< int32_t, data::Ptr< data::Tree::DimensionTrait > >& dimension_type_ids);
+        SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >& symbols, const std::map< int32_t, data::Ptr< data::Tree::Context > >& context_type_ids, const std::map< int32_t, data::Ptr< data::Tree::DimensionTrait > >& dimension_type_ids, const std::map< int32_t, data::Ptr< data::SymbolTable::Symbol > >& symbol_id_map);
         enum 
         {
-            Object_Part_Type_ID = 64
+            Object_Part_Type_ID = 66
         };
         std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > symbol_sets;
         std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > symbols;
         std::map< int32_t, data::Ptr< data::Tree::Context > > context_type_ids;
         std::map< int32_t, data::Ptr< data::Tree::DimensionTrait > > dimension_type_ids;
+        std::map< int32_t, data::Ptr< data::SymbolTable::Symbol > > symbol_id_map;
         std::variant< data::Ptr< data::SymbolTable::SymbolTable > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
@@ -1259,6 +1268,39 @@ namespace Concrete
         };
         Ptr< Concrete::Context > p_Concrete_Context;
         std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >, data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >, data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+}
+namespace Operations
+{
+    struct Invocation : public mega::io::Object
+    {
+        Invocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 59
+        };
+        std::variant< data::Ptr< data::Operations::Invocation > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Invocations : public mega::io::Object
+    {
+        Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::invocation::ID, data::Ptr< data::Operations::Invocation > >& invocations);
+        enum 
+        {
+            Object_Part_Type_ID = 60
+        };
+        std::map< mega::invocation::ID, data::Ptr< data::Operations::Invocation > > invocations;
+        std::variant< data::Ptr< data::Operations::Invocations > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1888,6 +1930,16 @@ inline Ptr< Concrete::Root > convert( const Ptr< Concrete::Root >& from )
     return from;
 }
 template <>
+inline Ptr< Operations::Invocation > convert( const Ptr< Operations::Invocation >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< Operations::Invocations > convert( const Ptr< Operations::Invocations >& from )
+{
+    return from;
+}
+template <>
 inline Ptr< DPGraph::Glob > convert( const Ptr< DPGraph::Glob >& from )
 {
     return from;
@@ -2136,6 +2188,14 @@ inline Ptr< Concrete::Context > to_base( const Ptr< Concrete::Table >& from )
 inline Ptr< Concrete::Context > to_base( const Ptr< Concrete::Root >& from )
 {
     return from->p_Concrete_Context;
+}
+inline Ptr< Operations::Invocation > to_base( const Ptr< Operations::Invocation >& from )
+{
+    return from;
+}
+inline Ptr< Operations::Invocations > to_base( const Ptr< Operations::Invocations >& from )
+{
+    return from;
 }
 inline Ptr< DPGraph::Glob > to_base( const Ptr< DPGraph::Glob >& from )
 {

@@ -116,13 +116,25 @@ stage ConcreteStage
     file Concrete;
 
     global accessor array< ref< Components::Component > >;
+    global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::Root >;
+}
+
+stage OperationsStage
+{
+    source .mega;
+    dependency ConcreteStage;
+
+    file Operations;
+
+    global accessor ref< Symbols::SymbolTable >;
+    persource accessor ref< Operations::Invocations >;
 }
 
 stage FinalStage
 {
     source .mega;
-    dependency ConcreteStage;
+    dependency OperationsStage;
 
     persource accessor array< ref< Interface::Root > >;
     persource accessor array< ref< Concrete::Root > >;

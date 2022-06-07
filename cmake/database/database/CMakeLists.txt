@@ -33,6 +33,7 @@ set( MEGA_DATABASE_GENERATED_HEADERS
     ${MEGA_API_DIR}/database/model/SymbolRollout.hxx
     ${MEGA_API_DIR}/database/model/InterfaceAnalysisStage.hxx
     ${MEGA_API_DIR}/database/model/ConcreteStage.hxx
+    ${MEGA_API_DIR}/database/model/OperationsStage.hxx
     ${MEGA_API_DIR}/database/model/FinalStage.hxx
 	)
 
@@ -53,6 +54,7 @@ set( MEGA_DATABASE_GENERATED_SOURCES
     ${MEGA_SRC_DIR}/database/model/SymbolRollout.cxx
     ${MEGA_SRC_DIR}/database/model/InterfaceAnalysisStage.cxx
     ${MEGA_SRC_DIR}/database/model/ConcreteStage.cxx
+    ${MEGA_SRC_DIR}/database/model/OperationsStage.cxx
     ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
 )
 
@@ -61,6 +63,7 @@ set( DATABASE_SCHEMAS
         ${MEGA_SRC_DIR}/database/parser.dbs
         ${MEGA_SRC_DIR}/database/interface.dbs
         ${MEGA_SRC_DIR}/database/concrete.dbs
+        ${MEGA_SRC_DIR}/database/operations.dbs
         ${MEGA_SRC_DIR}/database/analysis.dbs
         )
 
@@ -81,6 +84,7 @@ set( COMPILER_BYPRODUCTS
     SymbolRollout.json
     InterfaceAnalysisStage.json
     ConcreteStage.json
+    OperationsStage.json
     FinalStage.json
     )
 
@@ -146,6 +150,7 @@ set( MEGA_TYPES_HEADERS
     ${MEGA_API_DIR}/database/types/sources.hpp
     ${MEGA_API_DIR}/database/types/modes.hpp
     ${MEGA_API_DIR}/database/types/clang_compilation.hpp
+    ${MEGA_API_DIR}/database/types/invocation_id.hpp
 )
 
 set( MEGA_TYPES_SOURCES
@@ -155,6 +160,7 @@ set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/sources.cpp
     ${MEGA_SRC_DIR}/database/types/modes.cpp
     ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
+    ${MEGA_SRC_DIR}/database/types/invocation_id.cpp
 )
 
 add_library( database SHARED
@@ -167,7 +173,6 @@ add_library( database SHARED
 				)
 
 add_dependencies( database database_compiler_driver )
-#add_dependencies( database database_generation )
 
 target_include_directories( database PUBLIC ${MEGA_API_DIR} )
 
@@ -182,19 +187,8 @@ link_boost( database atomic )
 link_json( database )
 link_common( database )
 
-#install( FILES ${MEGA_LIBRARY} DESTINATION include/database/mega )
 install( FILES ${MEGA_DATABASE_COMMON} DESTINATION include/database/common )
 install( FILES ${MEGA_TYPES_HEADERS} DESTINATION include/database/types )
 install( FILES ${MEGA_DATABASE_GENERATED_HEADERS} DESTINATION include/database/model )
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )
-
-#add_c_preprocessor_command( OUTPUT stages.hpp.i SOURCE ${MEGA_API_DIR}/database/io/stages.hpp TARGET database )
-#add_custom_target( PreprocessStages
-#	SOURCES stages.hpp.i
-#	COMMENT "Proprocessing stages.hpp")
-#
-#add_c_preprocessor_command( OUTPUT file_info.hxx.i SOURCE ${MEGA_API_DIR}/database/io/file_info.hxx TARGET database )
-#add_custom_target( PreprocessFileInfo
-#    SOURCES file_info.hxx.i
-#    COMMENT "Proprocessing file_info.hxx")

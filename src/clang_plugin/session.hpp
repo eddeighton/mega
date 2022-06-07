@@ -49,6 +49,12 @@ public:
     {
         // do nothing
     }
+
+    virtual bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& type,
+                                          clang::QualType& resultType )
+    {
+        THROW_RTE( "Unimplemented" );
+    }
 };
 
 class AnalysisSession : public Session

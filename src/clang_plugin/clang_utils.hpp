@@ -35,13 +35,13 @@
 
 namespace clang
 {
-    std::optional< mega::TypeID > getEGTypeID( ASTContext* pASTContext, QualType type );
+    std::optional< mega::TypeID > getEGSymbolID( ASTContext* pASTContext, QualType type );
 
     const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool bHasParameters );
     
-    bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< mega::TypeID >& contextTypes );
+    bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::vector< mega::SymbolID >& contextTypes );
     
-    bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< mega::TypeID >& typePathTypes );
+    bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, std::vector< mega::SymbolID >& typePathTypes );
     
     std::optional< std::size_t > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, 
         const SourceLocation& loc, const std::string& strConstantName );

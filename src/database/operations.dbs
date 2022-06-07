@@ -1,0 +1,18 @@
+
+namespace Operations
+{
+    object Invocation -> OperationsStage::Operations
+    {
+        //array< ref< Symbols::Symbol > > context;
+        //array< ref< Symbols::Symbol > > type_path;
+        //value< mega::TypeID > operation;
+
+        
+    }
+
+    object Invocations -> OperationsStage::Operations
+    {
+        map< value< mega::invocation::ID >, ref< Invocation > > invocations;
+    }
+
+}

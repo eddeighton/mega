@@ -29,6 +29,7 @@
 namespace mega
 {
     using Instance    = std::uint32_t; //32bit only for now
+    using SymbolID    = std::int32_t;
     using TypeID      = std::int32_t;
     using TimeStamp   = std::uint32_t;
     

@@ -47,9 +47,9 @@
 namespace clang
 {
 
-std::optional< mega::TypeID > getEGTypeID( ASTContext* pASTContext, QualType type )
+std::optional< mega::SymbolID > getEGSymbolID( ASTContext* pASTContext, QualType type )
 {
-    std::optional< mega::TypeID > result;
+    std::optional< mega::SymbolID > result;
 
     if ( type.getTypePtrOrNull() && !type->isDependentType() )
     {
@@ -194,7 +194,7 @@ const IdentifierInfo* getOperationID( ASTContext* pASTContext, QualType ty, bool
     return nullptr;
 }
 
-bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector< mega::TypeID >& contextTypes )
+bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::vector< mega::SymbolID >& contextTypes )
 {
     QualType canonicalType = contextType.getCanonicalType();
     if ( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
@@ -215,7 +215,7 @@ bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector
                       pIter != pIterEnd;
                       ++pIter )
                 {
-                    if ( !getContextTypes( pASTContext, pIter->getAsType(), contextTypes ) )
+                    if ( !getContextSymbolIDs( pASTContext, pIter->getAsType(), contextTypes ) )
                         return false;
                     else
                         bSuccess = true;
@@ -248,7 +248,7 @@ bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector
                               ++j )
                         {
                             const TemplateArgument& packArg = *j;
-                            if ( !getContextTypes( pASTContext, packArg.getAsType(), contextTypes ) )
+                            if ( !getContextSymbolIDs( pASTContext, packArg.getAsType(), contextTypes ) )
                                 return false;
                             else
                                 bSuccess = true;
@@ -256,7 +256,7 @@ bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector
                     }
                     else if ( arg.getKind() == TemplateArgument::Type )
                     {
-                        if ( !getContextTypes( pASTContext, arg.getAsType(), contextTypes ) )
+                        if ( !getContextSymbolIDs( pASTContext, arg.getAsType(), contextTypes ) )
                             return false;
                         else
                             bSuccess = true;
@@ -275,7 +275,7 @@ bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector
         }
         else
         {
-            if ( std::optional< mega::TypeID > egTypeID = getEGTypeID( pASTContext, canonicalType ) )
+            if ( std::optional< mega::SymbolID > egTypeID = getEGSymbolID( pASTContext, canonicalType ) )
             {
                 contextTypes.push_back( egTypeID.value() );
                 return true;
@@ -292,7 +292,7 @@ bool getContextTypes( ASTContext* pASTContext, QualType contextType, std::vector
     }
 }
 
-bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< mega::TypeID >& typePathTypes )
+bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, std::vector< mega::SymbolID >& typePathTypes )
 {
     QualType              canonicalType = typePath.getCanonicalType();
     const IdentifierInfo* pBaseTypeID   = canonicalType.getBaseTypeIdentifier();
@@ -312,7 +312,7 @@ bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< 
             for ( TemplateSpecializationType::iterator pIter = pTemplateType->begin(), pIterEnd = pTemplateType->end();
                   pIter != pIterEnd; ++pIter )
             {
-                if ( !getTypePathTypes( pASTContext, pIter->getAsType(), typePathTypes ) )
+                if ( !getTypePathSymbolIDs( pASTContext, pIter->getAsType(), typePathTypes ) )
                     return false;
                 else
                     bSuccess = true;
@@ -344,7 +344,7 @@ bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< 
                     for ( TemplateArgument::pack_iterator j = arg.pack_begin(), jEnd = arg.pack_end(); j != jEnd; ++j )
                     {
                         const TemplateArgument& packArg = *j;
-                        if ( !getTypePathTypes( pASTContext, packArg.getAsType(), typePathTypes ) )
+                        if ( !getTypePathSymbolIDs( pASTContext, packArg.getAsType(), typePathTypes ) )
                             return false;
                         else
                             bSuccess = true;
@@ -352,7 +352,7 @@ bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< 
                 }
                 else if ( arg.getKind() == TemplateArgument::Type )
                 {
-                    if ( !getTypePathTypes( pASTContext, arg.getAsType(), typePathTypes ) )
+                    if ( !getTypePathSymbolIDs( pASTContext, arg.getAsType(), typePathTypes ) )
                         return false;
                     else
                         bSuccess = true;
@@ -371,7 +371,7 @@ bool getTypePathTypes( ASTContext* pASTContext, QualType typePath, std::vector< 
     }
     else
     {
-        if ( std::optional< mega::TypeID > egTypeID = getEGTypeID( pASTContext, canonicalType ) )
+        if ( std::optional< mega::SymbolID > egTypeID = getEGSymbolID( pASTContext, canonicalType ) )
         {
             typePathTypes.push_back( egTypeID.value() );
             return true;

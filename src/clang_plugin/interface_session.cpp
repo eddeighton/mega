@@ -113,12 +113,12 @@ public:
 
                     QualType typeTypeCanonical = typeType.getCanonicalType();
 
-                    std::vector< mega::TypeID > dimensionTypes;
+                    std::vector< mega::SymbolID > dimensionTypes;
 
                     // only attempt this is it has a base type identifier
                     if ( typeTypeCanonical.getBaseTypeIdentifier() )
                     {
-                        getContextTypes( pASTContext, typeTypeCanonical, dimensionTypes );
+                        getContextSymbolIDs( pASTContext, typeTypeCanonical, dimensionTypes );
                     }
 
                     if ( dimensionTypes.empty()
@@ -130,7 +130,7 @@ public:
                     {
                         for ( mega::index : dimensionTypes )
                         {
-                            if ( index > 0 && index < static_cast< ::mega::TypeID >( objects.size() ) )
+                            if ( index > 0 && index < static_cast< ::mega::SymbolID >( objects.size() ) )
                             {
                                 ::mega::TypeIDIndexedObject* pObject = objects[ index ];
                                 if ( ::mega::TypeIDinterface::Context* pContext
@@ -234,8 +234,8 @@ public:
                 if( pTypeDeclContext )
                 {
                     QualType typeTypeCanonical = typeType.getCanonicalType();
-                    if ( std::optional< mega::TypeID > inheritanceTypeIDOpt
-                            = getEGTypeID( pASTContext, typeTypeCanonical ) )
+                    if ( std::optional< mega::SymbolID > inheritanceTypeIDOpt
+                            = getEGSymbolID( pASTContext, typeTypeCanonical ) )
                     {
                         auto iFind = m_contextTypeIDs.find( inheritanceTypeIDOpt.value() );
                         if ( iFind != m_contextTypeIDs.end() )

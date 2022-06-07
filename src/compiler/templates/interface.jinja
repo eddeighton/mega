@@ -1,6 +1,9 @@
 #ifndef INTERFACE_GUARD_{{ guard }}
 #define INTERFACE_GUARD_{{ guard }}
 
+struct [[clang::eg_type( 26 )]]Square;
+struct [[clang::eg_type( 27 )]]x;
+
 {{ interface }}
 
 {% for struct in structs %}

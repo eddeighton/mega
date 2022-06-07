@@ -20,16 +20,11 @@ set( CLANG_PLUGIN_SOURCES
     ${MEGA_SRC_DIR}/clang_plugin/clang_utils.hpp
     ${MEGA_SRC_DIR}/clang_plugin/clang_utils.cpp
     ${MEGA_SRC_DIR}/clang_plugin/session.hpp
-    ${MEGA_SRC_DIR}/clang_plugin/interface_analysis.cpp
+    ${MEGA_SRC_DIR}/clang_plugin/interface_session.cpp
+    ${MEGA_SRC_DIR}/clang_plugin/operations_session.cpp
     )
 
 add_definitions(-DEG_DATABASE_SHARED_MODULE)
-
-# use the LLVM provided cmake macro - need the plugin to IMPORT the llvm symbols
-#add_llvm_library( clang_plugin MODULE 
-#    ${CLANG_PLUGIN_API}
-#    ${CLANG_PLUGIN_SOURCES} 
-#    PLUGIN_TOOL clang )
 
 add_library( clang_plugin MODULE
                     ${CLANG_PLUGIN_API}
@@ -46,6 +41,7 @@ link_common( clang_plugin )
 import_clang( clang_plugin )
 
 target_link_libraries( clang_plugin database )
+target_link_libraries( clang_plugin invocation )
 
 install( FILES ${CLANG_PLUGIN_API} DESTINATION include/clang_plugin )
 install( TARGETS clang_plugin DESTINATION bin)
