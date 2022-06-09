@@ -4,17 +4,11 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get graphviz
-#include( ${WORKSPACE_ROOT_PATH}/thirdparty/graphviz/graphviz_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
-
-#get handy function to preprocess files for the xmacros stuff
-#include( ../preprocess_cpp.cmake )
 
 set( MEGA_DATABASE_GENERATED_HEADERS
 
@@ -24,17 +18,21 @@ set( MEGA_DATABASE_GENERATED_HEADERS
     ${MEGA_API_DIR}/database/model/file_info.hxx
 
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
-    ${MEGA_API_DIR}/database/model/ParserStage.hxx
-    ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
+    ${MEGA_API_DIR}/database/model/ConcreteStage.hxx
     ${MEGA_API_DIR}/database/model/DependencyAnalysis.hxx
     ${MEGA_API_DIR}/database/model/DependencyAnalysisView.hxx
+    ${MEGA_API_DIR}/database/model/DerivationAnalysis.hxx
+    ${MEGA_API_DIR}/database/model/DerivationAnalysisView.hxx
+    ${MEGA_API_DIR}/database/model/FinalStage.hxx    
+    ${MEGA_API_DIR}/database/model/HyperGraphAnalysis.hxx
+    ${MEGA_API_DIR}/database/model/HyperGraphAnalysisView.hxx
+    ${MEGA_API_DIR}/database/model/InterfaceAnalysisStage.hxx
+    ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
+    ${MEGA_API_DIR}/database/model/OperationsStage.hxx
+    ${MEGA_API_DIR}/database/model/ParserStage.hxx
     ${MEGA_API_DIR}/database/model/SymbolAnalysis.hxx
     ${MEGA_API_DIR}/database/model/SymbolAnalysisView.hxx
     ${MEGA_API_DIR}/database/model/SymbolRollout.hxx
-    ${MEGA_API_DIR}/database/model/InterfaceAnalysisStage.hxx
-    ${MEGA_API_DIR}/database/model/ConcreteStage.hxx
-    ${MEGA_API_DIR}/database/model/OperationsStage.hxx
-    ${MEGA_API_DIR}/database/model/FinalStage.hxx
 	)
 
 set( MEGA_DATABASE_GENERATED_SOURCES
@@ -45,17 +43,21 @@ set( MEGA_DATABASE_GENERATED_SOURCES
     ${MEGA_SRC_DIR}/database/model/file_info.cxx
 
     ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
-    ${MEGA_SRC_DIR}/database/model/ParserStage.cxx
-    ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
+    ${MEGA_SRC_DIR}/database/model/ConcreteStage.cxx
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysis.cxx
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysisView.cxx
+    ${MEGA_SRC_DIR}/database/model/DerivationAnalysis.cxx
+    ${MEGA_SRC_DIR}/database/model/DerivationAnalysisView.cxx
+    ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
+    ${MEGA_SRC_DIR}/database/model/HyperGraphAnalysis.cxx
+    ${MEGA_SRC_DIR}/database/model/HyperGraphAnalysisView.cxx
+    ${MEGA_SRC_DIR}/database/model/InterfaceAnalysisStage.cxx
+    ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
+    ${MEGA_SRC_DIR}/database/model/OperationsStage.cxx
+    ${MEGA_SRC_DIR}/database/model/ParserStage.cxx
     ${MEGA_SRC_DIR}/database/model/SymbolAnalysis.cxx
     ${MEGA_SRC_DIR}/database/model/SymbolAnalysisView.cxx
     ${MEGA_SRC_DIR}/database/model/SymbolRollout.cxx
-    ${MEGA_SRC_DIR}/database/model/InterfaceAnalysisStage.cxx
-    ${MEGA_SRC_DIR}/database/model/ConcreteStage.cxx
-    ${MEGA_SRC_DIR}/database/model/OperationsStage.cxx
-    ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
 )
 
 set( DATABASE_SCHEMAS 
@@ -75,17 +77,21 @@ set( COMPILER_BYPRODUCTS
     data.json 
     stages.json
     ComponentListing.json
-    ParserStage.json
-    InterfaceStage.json
+    ConcreteStage.json
     DependencyAnalysis.json
     DependencyAnalysisView.json
+    DerivationAnalysis.json
+    DerivationAnalysisView.json
+    FinalStage.json
+    HyperGraphAnalysis.json
+    HyperGraphAnalysisView.json
+    InterfaceAnalysisStage.json
+    InterfaceStage.json
+    OperationsStage.json
+    ParserStage.json
     SymbolAnalysis.json
     SymbolAnalysisView.json
     SymbolRollout.json
-    InterfaceAnalysisStage.json
-    ConcreteStage.json
-    OperationsStage.json
-    FinalStage.json
     )
 
 set( TEMPLATES 

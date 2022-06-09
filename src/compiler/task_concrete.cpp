@@ -7,7 +7,7 @@ namespace mega
 {
 namespace compiler
 {
-    
+
 class Task_ConcreteTree : public BaseTask
 {
 public:
@@ -163,10 +163,14 @@ public:
         {
             Dimension* pConcreteDimension = database.construct< Dimension >( Dimension::Args{ pInterfaceDimension } );
             dimensions.push_back( pConcreteDimension );
+
+            // set the pointer in interface to concrete dimension
+            database.construct< Interface::DimensionTrait >(
+                Interface::DimensionTrait::Args{ pInterfaceDimension, pConcreteDimension } );
         }
     }
 
-    ConcreteStage::Concrete::Context* recurse( ConcreteStage::Database&           database,
+    ConcreteStage::Concrete::Context* recurse( ConcreteStage::Database&            database,
                                                ConcreteStage::Interface::IContext* pContext )
     {
         using namespace ConcreteStage;
@@ -190,7 +194,8 @@ public:
         }
         else if ( Interface::Abstract* pAbstract = dynamic_database_cast< Interface::Abstract >( pContext ) )
         {
-            database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { std::optional< Context* >() } } );
+            database.construct< Interface::IContext >(
+                Interface::IContext::Args{ pContext, { std::optional< Context* >() } } );
 
             // do nothing
             return nullptr;

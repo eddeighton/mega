@@ -40,6 +40,13 @@ public:
 };
 
 template < typename T >
+class CountedObjectEquality
+{
+public:
+    bool operator()( T left, T right ) const { return left->getCounter() == right->getCounter(); }
+};
+
+template < typename T >
 class CountedObjectComparatorWeak
 {
 public:
@@ -56,7 +63,7 @@ public:
 
     bool m_bLate = false;
 
-    Type( std::size_t& szCounter )
+    Type( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -89,7 +96,7 @@ class Property : public CountedObject
 public:
     using Ptr = std::shared_ptr< Property >;
 
-    Property( std::size_t& szCounter )
+    Property( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -110,7 +117,7 @@ class ObjectPart : public CountedObject
 public:
     using Ptr = std::shared_ptr< ObjectPart >;
 
-    ObjectPart( std::size_t& szCounter )
+    ObjectPart( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -127,7 +134,7 @@ public:
 class PrimaryObjectPart : public ObjectPart
 {
 public:
-    PrimaryObjectPart( std::size_t& szCounter )
+    PrimaryObjectPart( Counter& szCounter )
         : ObjectPart( szCounter )
     {
     }
@@ -137,7 +144,7 @@ public:
 class SecondaryObjectPart : public ObjectPart
 {
 public:
-    SecondaryObjectPart( std::size_t& szCounter )
+    SecondaryObjectPart( Counter& szCounter )
         : ObjectPart( szCounter )
     {
     }
@@ -147,7 +154,7 @@ public:
 class InheritedObjectPart : public SecondaryObjectPart
 {
 public:
-    InheritedObjectPart( std::size_t& szCounter )
+    InheritedObjectPart( Counter& szCounter )
         : SecondaryObjectPart( szCounter )
     {
     }
@@ -157,7 +164,7 @@ public:
 class AggregatedObjectPart : public SecondaryObjectPart
 {
 public:
-    AggregatedObjectPart( std::size_t& szCounter )
+    AggregatedObjectPart( Counter& szCounter )
         : SecondaryObjectPart( szCounter )
     {
     }
@@ -167,7 +174,7 @@ public:
 class Object : public CountedObject
 {
 public:
-    Object( std::size_t& szCounter )
+    Object( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -198,7 +205,7 @@ public:
 class Namespace : public CountedObject
 {
 public:
-    Namespace( std::size_t& szCounter )
+    Namespace( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -215,7 +222,7 @@ public:
 class File : public CountedObject
 {
 public:
-    File( std::size_t& szCounter )
+    File( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -232,7 +239,7 @@ class Function : public CountedObject
 {
 public:
     using Ptr = std::shared_ptr< Function >;
-    Function( std::size_t& szCounter )
+    Function( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -254,7 +261,7 @@ class FunctionGetter : public Function
 {
 public:
     using Ptr = std::shared_ptr< FunctionGetter >;
-    FunctionGetter( std::size_t& szCounter )
+    FunctionGetter( Counter& szCounter )
         : Function( szCounter )
     {
     }
@@ -280,7 +287,7 @@ class FunctionSetter : public Function
 {
 public:
     using Ptr = std::shared_ptr< FunctionSetter >;
-    FunctionSetter( std::size_t& szCounter )
+    FunctionSetter( Counter& szCounter )
         : Function( szCounter )
     {
     }
@@ -302,7 +309,7 @@ class FunctionInserter : public Function
 {
 public:
     using Ptr = std::shared_ptr< FunctionInserter >;
-    FunctionInserter( std::size_t& szCounter )
+    FunctionInserter( Counter& szCounter )
         : Function( szCounter )
     {
     }
@@ -316,7 +323,7 @@ class Interface : public CountedObject
 {
 public:
     using Ptr = std::shared_ptr< Interface >;
-    Interface( std::size_t& szCounter )
+    Interface( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -367,7 +374,7 @@ public:
 class SuperType : public CountedObject
 {
 public:
-    SuperType( std::size_t& szCounter )
+    SuperType( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -387,7 +394,7 @@ public:
 class StageFunction : public CountedObject
 {
 public:
-    StageFunction( std::size_t& szCounter )
+    StageFunction( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -399,7 +406,7 @@ public:
 class Accessor : public StageFunction
 {
 public:
-    Accessor( std::size_t& szCounter )
+    Accessor( Counter& szCounter )
         : StageFunction( szCounter )
     {
     }
@@ -412,7 +419,7 @@ public:
 class Constructor : public StageFunction
 {
 public:
-    Constructor( std::size_t& szCounter )
+    Constructor( Counter& szCounter )
         : StageFunction( szCounter )
     {
     }
@@ -425,7 +432,7 @@ class Stage;
 class Source : public CountedObject
 {
 public:
-    Source( std::size_t& szCounter )
+    Source( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -437,7 +444,7 @@ public:
 class Stage : public CountedObject, public std::enable_shared_from_this< Stage >
 {
 public:
-    Stage( std::size_t& szCounter )
+    Stage( Counter& szCounter )
         : CountedObject( szCounter )
     {
     }
@@ -492,7 +499,7 @@ public:
 class Schema : public CountedObject
 {
 public:
-    Schema( std::size_t& szCounter, common::Hash schemaHash )
+    Schema( Counter& szCounter, common::Hash schemaHash )
         : CountedObject( szCounter )
         , m_schemaHash( schemaHash )
     {
@@ -546,7 +553,7 @@ inline std::string toOptional( const std::string& strType )
 class ValueType : public Type
 {
 public:
-    ValueType( std::size_t& szCounter )
+    ValueType( Counter& szCounter )
         : Type( szCounter )
     {
     }
@@ -580,7 +587,7 @@ public:
 class RefType : public Type
 {
 public:
-    RefType( std::size_t& szCounter )
+    RefType( Counter& szCounter )
         : Type( szCounter )
     {
     }
@@ -623,7 +630,7 @@ public:
 class OptType : public Type
 {
 public:
-    OptType( std::size_t& szCounter )
+    OptType( Counter& szCounter )
         : Type( szCounter )
     {
     }
@@ -672,7 +679,7 @@ public:
 class ArrayType : public Type
 {
 public:
-    ArrayType( std::size_t& szCounter )
+    ArrayType( Counter& szCounter )
         : Type( szCounter )
     {
     }
@@ -720,9 +727,12 @@ public:
 
 class MapType : public Type
 {
+    bool m_bIsMultiMap = false;
+
 public:
-    MapType( std::size_t& szCounter )
+    MapType( Counter& szCounter, bool bIsMultiMap )
         : Type( szCounter )
+        , m_bIsMultiMap( bIsMultiMap )
     {
     }
     using Ptr = std::shared_ptr< MapType >;
@@ -735,8 +745,17 @@ public:
         VERIFY_RTE( m_fromType );
         VERIFY_RTE( m_toType );
         std::ostringstream os;
-        os << "std::map< " << m_fromType->getViewType( strStageNamespace, false ) << ", "
-           << m_toType->getViewType( strStageNamespace, false ) << " >";
+
+        if ( m_bIsMultiMap )
+        {
+            os << "std::multimap< " << m_fromType->getViewType( strStageNamespace, false ) << ", "
+               << m_toType->getViewType( strStageNamespace, false ) << " >";
+        }
+        else
+        {
+            os << "std::map< " << m_fromType->getViewType( strStageNamespace, false ) << ", "
+               << m_toType->getViewType( strStageNamespace, false ) << " >";
+        }
 
         if ( std::dynamic_pointer_cast< RefType >( m_fromType ) || std::dynamic_pointer_cast< RefType >( m_toType ) )
         {
@@ -752,8 +771,17 @@ public:
         VERIFY_RTE( m_fromType );
         VERIFY_RTE( m_toType );
         std::ostringstream os;
-        os << "std::map< " << m_fromType->getDatabaseType( eNormal ) << ", " << m_toType->getDatabaseType( eNormal )
-           << " >";
+
+        if ( m_bIsMultiMap )
+        {
+            os << "std::multimap< " << m_fromType->getDatabaseType( eNormal ) << ", "
+               << m_toType->getDatabaseType( eNormal ) << " >";
+        }
+        else
+        {
+            os << "std::map< " << m_fromType->getDatabaseType( eNormal ) << ", " << m_toType->getDatabaseType( eNormal )
+               << " >";
+        }
 
         switch ( formatType )
         {

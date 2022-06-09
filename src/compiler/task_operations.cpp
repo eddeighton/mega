@@ -77,7 +77,7 @@ public:
 
         if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
         {
-            if ( pNamespace->get_is_global() )
+            /*if ( pNamespace->get_is_global() )
             {
                 CleverUtility c( namespaces, pNamespace->get_identifier() );
                 for ( IContext* pNestedContext : pNamespace->get_children() )
@@ -85,7 +85,7 @@ public:
                     recurse( pNestedContext, data, namespaces, types );
                 }
             }
-            else
+            else*/
             {
                 CleverUtility c( types, pNamespace->get_identifier() );
                 for ( IContext* pNestedContext : pNamespace->get_children() )

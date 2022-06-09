@@ -1,8 +1,9 @@
 #ifndef INTERFACE_GUARD_{{ guard }}
 #define INTERFACE_GUARD_{{ guard }}
 
-struct [[clang::eg_type( 26 )]]Square;
-struct [[clang::eg_type( 27 )]]x;
+{% for forward_decl in forward_decls %}
+struct [[clang::eg_type( {{ forward_decl.symbol }} )]]{{ forward_decl.name }};
+{% endfor %}
 
 {{ interface }}
 

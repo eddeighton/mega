@@ -26,13 +26,18 @@
 
 namespace clang
 {
+using namespace InterfaceAnalysisStage;
+using namespace InterfaceAnalysisStage::Interface;
 
 class InterfaceSession : public AnalysisSession
 {
-    InterfaceAnalysisStage::Database                                          m_database;
-    std::map< std::string, ::InterfaceAnalysisStage::Symbols::Symbol* >       m_symbols;
-    std::map< int32_t, ::InterfaceAnalysisStage::Interface::IContext* >        m_contextTypeIDs;
-    std::map< int32_t, ::InterfaceAnalysisStage::Interface::DimensionTrait* > m_dimensionTypeIDs;
+    InterfaceAnalysisStage::Database                                    m_database;
+    std::map< std::string, ::InterfaceAnalysisStage::Symbols::Symbol* > m_symbols;
+    std::map< int32_t, IContext* >                                      m_contextTypeIDs;
+    std::map< int32_t, DimensionTrait* >                                m_dimensionTypeIDs;
+
+    using SymbolIDMap = std::map< int32_t, ::InterfaceAnalysisStage::Symbols::Symbol* >;
+    SymbolIDMap m_symbolIDMap;
 
 public:
     InterfaceSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
@@ -40,14 +45,12 @@ public:
         : AnalysisSession( pASTContext, pSema, strSrcDir, strBuildDir, strSourceFile )
         , m_database( m_environment, m_sourceFile )
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
-
         Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
         m_symbols          = pSymbolTable->get_symbols();
         m_contextTypeIDs   = pSymbolTable->get_context_type_ids();
         m_dimensionTypeIDs = pSymbolTable->get_dimension_type_ids();
+        m_symbolIDMap      = pSymbolTable->get_symbol_id_map();
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
@@ -65,9 +68,6 @@ public:
     template < typename TContextType >
     bool argumentListAnalysis( TContextType* pContext, SourceLocation loc, CXXRecordDecl* pCXXRecordDecl )
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
-
         CXXMethodDecl* pApplicationOperator = nullptr;
         for ( CXXRecordDecl::method_iterator i = pCXXRecordDecl->method_begin(), iEnd = pCXXRecordDecl->method_end();
               i != iEnd; ++i )
@@ -98,15 +98,15 @@ public:
     template < typename TContextType >
     bool dimensionAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
-        for ( Interface::DimensionTrait* pDimension : pContext->get_dimension_traits() )
+        for ( Interface::DimensionTrait* pDimensionTrait : pContext->get_dimension_traits() )
         {
-            /*DeclLocType dimensionResult
-                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pDimension->get_id()->get_str(), true );
+            DeclLocType dimensionResult
+                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pDimensionTrait->get_id()->get_str() );
             if ( dimensionResult.pDeclContext )
             {
                 // determine the type
+                std::string strCanonicalType;
+                std::vector< Symbols::Symbol* > symbols;
                 {
                     QualType typeType
                         = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
@@ -122,41 +122,39 @@ public:
                     }
 
                     if ( dimensionTypes.empty()
-                            || ( ( dimensionTypes.size() == 1U ) && ( dimensionTypes.front() == 0 ) ) )
+                         || ( ( dimensionTypes.size() == 1U ) && ( dimensionTypes.front() == 0 ) ) )
                     {
-                        //AbstractMutator::setCanonicalType( *pDimension, typeTypeCanonical.getAsString() );
+                        strCanonicalType = typeTypeCanonical.getAsString();
                     }
                     else if ( !dimensionTypes.empty() )
                     {
-                        for ( mega::index : dimensionTypes )
+                        for ( mega::SymbolID symbolID : dimensionTypes )
                         {
-                            if ( index > 0 && index < static_cast< ::mega::SymbolID >( objects.size() ) )
+                            SymbolIDMap::const_iterator iFind = m_symbolIDMap.find( symbolID );
+                            if ( iFind != m_symbolIDMap.end() )
                             {
-                                ::mega::TypeIDIndexedObject* pObject = objects[ index ];
-                                if ( ::mega::TypeIDinterface::IContext* pContext
-                                        = dynamic_cast< ::mega::TypeIDinterface::IContext* >( pObject ) )
-                                {
-                                    //AbstractMutator::appendActionTypes( *pDimension, pContext );
-                                }
+                                Symbols::Symbol* pSymbol = iFind->second;
+                                symbols.push_back( pSymbol );
                             }
                             else
                             {
                                 // diag
                                 std::ostringstream os;
-                                os << "Invalid dimension type: " << pDimension->get_id()->get_str();
-                                pASTContext->getDiagnostics().Report( clang::diag::err_eg_generic_error )
-                                    << os.str();
+                                os << "Invalid dimension type: " << pDimensionTrait->get_id()->get_str();
+                                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                                 return false;
                             }
                         }
                     }
                 }
+
                 // determine the size
+                std::size_t szSize = 0U;
                 if ( std::optional< std::size_t > sizeOpt
-                        = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
-                                    ::mega::TypeIDEG_TRAITS_SIZE ) )
+                     = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
+                                    ::mega::EG_TRAITS_SIZE ) )
                 {
-                    //AbstractMutator::setSize( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
+                    szSize = static_cast< std::size_t >( sizeOpt.value() );
                 }
                 else
                 {
@@ -164,13 +162,21 @@ public:
                 }
 
                 // determine if the type is simple
+                bool bIsSimple = true;
                 if ( std::optional< std::size_t > sizeOpt
-                        = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
-                                    ::mega::TypeIDEG_TRAITS_SIMPLE ) )
+                     = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
+                                    ::mega::EG_TRAITS_SIMPLE ) )
                 {
-                    //AbstractMutator::setSimple( *pDimension, static_cast< std::size_t >( sizeOpt.value() ) );
+                    bIsSimple = static_cast< bool >( sizeOpt.value() );
                 }
-            }*/
+                else
+                {
+                    THROW_RTE( "Error attempting to record if dimension is simple" );
+                }
+
+                m_database.construct< Interface::DimensionTrait >(
+                    Interface::DimensionTrait::Args{ pDimensionTrait, strCanonicalType, szSize, bIsSimple, symbols } );
+            }
         }
         return true;
     }
@@ -178,9 +184,6 @@ public:
     template < typename TContextType >
     bool sizeAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
-
         /*if ( std::optional< std::size_t > sizeOpt
              = getConstant( pASTContext, pSema, pDeclContext, loc, ::mega::EG_TRAITS_SIZE ) )
         {
@@ -193,9 +196,6 @@ public:
     template < typename TContextType >
     bool returnTypeAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
-
         /*if ( std::optional< std::size_t > sizeOpt
              = getConstant( pASTContext, pSema, pDeclContext, loc, ::mega::EG_TRAITS_SIZE ) )
         {
@@ -206,11 +206,9 @@ public:
     }
 
     template < typename TContextType >
-    bool inheritanceAnalysis( TContextType* pContext, InterfaceAnalysisStage::Interface::InheritanceTrait* pInheritanceTrait, SourceLocation loc, DeclContext* pDeclContext )
+    bool inheritanceAnalysis( TContextType* pContext, InheritanceTrait* pInheritanceTrait, SourceLocation loc,
+                              DeclContext* pDeclContext )
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
-
         VERIFY_RTE( pInheritanceTrait );
 
         std::vector< IContext* > inheritedContexts;
@@ -229,13 +227,12 @@ public:
             if ( traitDecl.pDeclContext )
             {
                 DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
-                QualType typeType
-                    = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
-                if( pTypeDeclContext )
+                QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
+                if ( pTypeDeclContext )
                 {
                     QualType typeTypeCanonical = typeType.getCanonicalType();
                     if ( std::optional< mega::SymbolID > inheritanceTypeIDOpt
-                            = getEGSymbolID( pASTContext, typeTypeCanonical ) )
+                         = getEGSymbolID( pASTContext, typeTypeCanonical ) )
                     {
                         auto iFind = m_contextTypeIDs.find( inheritanceTypeIDOpt.value() );
                         if ( iFind != m_contextTypeIDs.end() )
@@ -247,7 +244,7 @@ public:
                             // error invalid inheritance type
                             std::ostringstream os;
                             os << "Invalid inheritance type for " << pContext->get_identifier() << "("
-                                << pContext->get_type_id() << ") of: " << typeTypeCanonical.getAsString();
+                               << pContext->get_type_id() << ") of: " << typeTypeCanonical.getAsString();
                             pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                             return false;
                         }
@@ -256,7 +253,7 @@ public:
                     {
                         std::ostringstream os;
                         os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
-                            << pContext->get_type_id() << ") of: " << strBaseType;
+                           << pContext->get_type_id() << ") of: " << strBaseType;
                         pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                         return false;
                     }
@@ -265,7 +262,7 @@ public:
                 {
                     std::ostringstream os;
                     os << "Failed to resolve inheritance target type for " << pContext->get_identifier() << "("
-                        << pContext->get_type_id() << ") of: " << strBaseType;
+                       << pContext->get_type_id() << ") of: " << strBaseType;
                     pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                     return false;
                 }
@@ -274,7 +271,7 @@ public:
             {
                 std::ostringstream os;
                 os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
-                    << pContext->get_type_id() << ") of: " << strBaseType;
+                   << pContext->get_type_id() << ") of: " << strBaseType;
                 pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                 return false;
             }
@@ -289,8 +286,6 @@ public:
     template < typename TContextType >
     bool usingAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
         // determine the using types
         /*std::vector< ::mega::TypeIDinterface::Using* > usings;
         pContext->getUsings( usings );
@@ -306,12 +301,8 @@ public:
         return true;
     }
 
-    bool interfaceAnalysis( InterfaceAnalysisStage::Interface::IContext* pContext, SourceLocation loc,
-                            DeclContext* pDeclContext )
+    bool interfaceAnalysis( IContext* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
-
         DeclLocType result = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pContext->get_identifier() );
         if ( nullptr == result.pDeclContext )
         {
@@ -334,28 +325,28 @@ public:
 
             if ( std::optional< InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
             {
-                if( !inheritanceAnalysis( pAbstract, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                if ( !inheritanceAnalysis( pAbstract, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                     return false;
             }
         }
         else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
         {
-            dimensionAnalysis( pAction, result.loc, pDeclContext );
+            dimensionAnalysis( pAction, result.loc, result.pDeclContext );
 
             if ( std::optional< InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
             {
-                if( !inheritanceAnalysis( pAction, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                if ( !inheritanceAnalysis( pAction, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                     return false;
             }
             sizeAnalysis( pAction, result.loc, result.pDeclContext );
         }
         else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
         {
-            dimensionAnalysis( pEvent, result.loc, pDeclContext );
+            dimensionAnalysis( pEvent, result.loc, result.pDeclContext );
 
             if ( std::optional< InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait() )
             {
-                if( !inheritanceAnalysis( pEvent, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                if ( !inheritanceAnalysis( pEvent, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                     return false;
             }
             sizeAnalysis( pEvent, result.loc, result.pDeclContext );
@@ -376,17 +367,17 @@ public:
         }
         else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
         {
-            dimensionAnalysis( pObject, result.loc, pDeclContext );
+            dimensionAnalysis( pObject, result.loc, result.pDeclContext );
 
             if ( std::optional< InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
             {
-                if( !inheritanceAnalysis( pObject, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                if ( !inheritanceAnalysis( pObject, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
                     return false;
             }
         }
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
         {
-            if( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
+            if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
                 return false;
         }
         else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
@@ -411,9 +402,6 @@ public:
 
     virtual void runFinalAnalysis()
     {
-        using namespace InterfaceAnalysisStage;
-        using namespace InterfaceAnalysisStage::Interface;
-
         bool bSuccess = true;
         {
             SourceLocation loc;

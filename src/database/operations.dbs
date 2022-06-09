@@ -10,8 +10,8 @@ namespace Operations
 
     object ConcreteVariant -> OperationsStage::Operations
     {
-        ref< Concrete::Context > context;
-        ref< Concrete::Dimension > dimension;
+        opt< ref< Concrete::Context > > context;
+        opt< ref< Concrete::Dimension > > dimension;
     }
 
     object Element -> OperationsStage::Operations
@@ -25,8 +25,9 @@ namespace Operations
         array< ref< Element > > elements;
     }
 
-    object Context : ElementVector -> OperationsStage::Operations
+    object Context -> OperationsStage::Operations
     {
+        array< ref< ElementVector > > vectors;
     }
 
     object TypePath -> OperationsStage::Operations
@@ -34,11 +35,29 @@ namespace Operations
         array< ref< ElementVector > > vectors;
     }
 
+    object NameRoot -> OperationsStage::Operations
+    {
+        array< ref< Name > > children;
+    }
+
+    object Name : NameRoot -> OperationsStage::Operations
+    {
+        ref< Element > element;
+        value< bool > is_member;
+        value< bool > is_reference;
+    }
+
+    object NameResolution -> OperationsStage::Operations
+    {
+        ref< NameRoot > root_name;
+    }
+
     object Invocation -> OperationsStage::Operations
     {
-        value< mega::invocation::ID > id;
         ref< Context > context;
         ref< TypePath > type_path;
+        value< mega::OperationID > operation;
+        late< ref< NameResolution > > name_resolution;
     }
 
     object Invocations -> OperationsStage::Operations

@@ -28,8 +28,7 @@ public:
 #define THROW_INVOCATION_EXCEPTION( msg ) \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << msg; throw Exception( _os.str() ); )
 
-
-template< class T >
+template < class T >
 inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
 {
     /*
@@ -38,12 +37,12 @@ inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
     auto last = std::unique( ids.begin(), ids.end() );
     ids.erase( last, ids.end() );
     */
-    
+
     std::vector< T > result;
-    std::set< T > uniq;
-    for( const T& value : ids )
+    std::set< T >    uniq;
+    for ( const T& value : ids )
     {
-        if( uniq.count( value ) == 0 )
+        if ( uniq.count( value ) == 0 )
         {
             result.push_back( value );
             uniq.insert( value );
@@ -51,6 +50,23 @@ inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
     }
     return result;
 }
+
+using InterfaceVariantVector       = std::vector< OperationsStage::Operations::InterfaceVariant* >;
+using InterfaceVariantVectorVector = std::vector< InterfaceVariantVector >;
+
+using SymbolIDMap = std::map< std::int32_t, OperationsStage::Symbols::Symbol* >;
+
+InterfaceVariantVectorVector
+symbolVectorToInterfaceVariantVector( OperationsStage::Database&                              database,
+                                      const std::vector< OperationsStage::Symbols::Symbol* >& symbols );
+
+using InheritanceMapping
+    = std::multimap< OperationsStage::Interface::IContext*, OperationsStage::Interface::IContext* >;
+
+std::vector< OperationsStage::Operations::ElementVector* >
+toElementVector( OperationsStage::Database& database, const InheritanceMapping& inheritance,
+                 const InterfaceVariantVectorVector& interfaceVariantVectorVector );
+
 
 OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::invocation::ID& id,
                                                     OperationsStage::Database&    database,

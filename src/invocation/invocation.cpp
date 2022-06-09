@@ -1,6 +1,7 @@
 
 #include "invocation/invocation.hpp"
-#include "database/model/OperationsStage.hxx"
+#include "invocation/name_resolution.hpp"
+
 #include "mega/common.hpp"
 
 namespace mega
@@ -10,38 +11,52 @@ namespace invocation
 using namespace OperationsStage;
 using namespace OperationsStage::Operations;
 
-using SymbolIDMap = std::map< std::int32_t, Symbols::Symbol* >;
-
-// 1. Convert from the SymbolIDs to Interface Contexts
-std::vector< InterfaceVariant* > symbolIDToInterfaceVariant( Database& database, const SymbolIDMap& symbolIDMap,
-                                                             mega::SymbolID symbolID )
+InterfaceVariantVector symbolToInterfaceVariantVector( Database& database, Symbols::Symbol* pSymbol )
 {
-    std::vector< InterfaceVariant* > result;
-
-    auto iFind = symbolIDMap.find( symbolID );
-    VERIFY_RTE( iFind != symbolIDMap.end() );
-
-    Symbols::Symbol* pSymbol = iFind->second;
-
+    InterfaceVariantVector result;
     for ( Interface::IContext* pContext : pSymbol->get_contexts() )
     {
-        database.construct< InterfaceVariant >( InterfaceVariant::Args{ pContext, nullptr } );
+        InterfaceVariant* pInterfaceVariant = database.construct< InterfaceVariant >(
+            InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
+        result.push_back( pInterfaceVariant );
     }
 
     for ( Interface::DimensionTrait* pDimension : pSymbol->get_dimensions() )
     {
-        database.construct< InterfaceVariant >( InterfaceVariant::Args{ nullptr, pDimension } );
+        InterfaceVariant* pInterfaceVariant = database.construct< InterfaceVariant >(
+            InterfaceVariant::Args{ std::optional< Interface::IContext* >(), pDimension } );
+        result.push_back( pInterfaceVariant );
     }
-
     return result;
 }
 
-std::vector< std::vector< InterfaceVariant* > >
+// 1. Convert from the SymbolIDs to Interface Contexts
+InterfaceVariantVector symbolIDToInterfaceVariant( Database& database, const SymbolIDMap& symbolIDMap,
+                                                   mega::SymbolID symbolID )
+{
+    auto iFind = symbolIDMap.find( symbolID );
+    VERIFY_RTE( iFind != symbolIDMap.end() );
+    return symbolToInterfaceVariantVector( database, iFind->second );
+}
+
+InterfaceVariantVectorVector symbolVectorToInterfaceVariantVector( Database&                              database,
+                                                                   const std::vector< Symbols::Symbol* >& symbols )
+{
+    InterfaceVariantVectorVector result;
+    for ( Symbols::Symbol* pSymbol : symbols )
+    {
+        InterfaceVariantVector interfaceVariantVector = symbolToInterfaceVariantVector( database, pSymbol );
+        result.push_back( interfaceVariantVector );
+    }
+    return result;
+}
+
+InterfaceVariantVectorVector
 symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolIDMap& symbolIDMap,
                                         const std::vector< mega::SymbolID >& symbolIDs,
                                         std::optional< mega::OperationID >&  operationIDOpt )
 {
-    std::vector< std::vector< InterfaceVariant* > > result;
+    InterfaceVariantVectorVector result;
 
     for ( mega::SymbolID symbolID : symbolIDs )
     {
@@ -50,9 +65,9 @@ symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolIDMap& s
             operationIDOpt = static_cast< mega::OperationID >( symbolID );
             continue;
         }
-        std::vector< InterfaceVariant* > i = symbolIDToInterfaceVariant( database, symbolIDMap, symbolID );
-        VERIFY_RTE( !i.empty() );
-        result.push_back( i );
+        InterfaceVariantVector interfaceVariantVector = symbolIDToInterfaceVariant( database, symbolIDMap, symbolID );
+        VERIFY_RTE( !interfaceVariantVector.empty() );
+        result.push_back( interfaceVariantVector );
     }
 
     return result;
@@ -60,47 +75,75 @@ symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolIDMap& s
 
 // 2. Convert from Interface Contexts to Interface/Concrete context pairs
 
-ElementVector* toElementVector( Database& database, const std::vector< InterfaceVariant* >& interfaceVariantVector )
+ElementVector* toElementVector( Database& database, const InheritanceMapping& inheritance,
+                                const InterfaceVariantVector& interfaceVariantVector )
 {
-    ElementVector* pElementVector = nullptr;
-
     std::vector< Element* > elements;
+
+    auto addElement = [ &database, &elements ]( Interface::IContext* pContext )
+    {
+        Interface::IContext* pDerived = pContext;
+        VERIFY_RTE( pDerived->get_concrete().has_value() );
+        Concrete::Context* pConcrete = pDerived->get_concrete().value();
+
+        InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
+            InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
+        ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
+            ConcreteVariant::Args{ pConcrete, std::optional< Concrete::Dimension* >() } );
+
+        Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
+        elements.push_back( pElement );
+    };
 
     for ( InterfaceVariant* pInterfaceVariant : interfaceVariantVector )
     {
-        InterfaceVariant* pInterface = nullptr;
-        ConcreteVariant*  pConcrete  = nullptr;
-
         if ( pInterfaceVariant->get_context().has_value() )
         {
             Interface::IContext* pContext = pInterfaceVariant->get_context().value();
-            if( pContext->get_concrete().has_value() )
+
+            addElement( pContext );
+            for ( InheritanceMapping::const_iterator i    = inheritance.lower_bound( pContext ),
+                                                     iEnd = inheritance.upper_bound( pContext );
+                  i != iEnd;
+                  ++i )
             {
-                Concrete::Context* pConcrete = pContext->get_concrete().value();
-                //
-            }
-            else
-            {
-                THROW_RTE( "Interface context missing concrete instance" );
+                addElement( i->second );
             }
         }
         else if ( pInterfaceVariant->get_dimension().has_value() )
         {
+            Interface::DimensionTrait* pDimension = pInterfaceVariant->get_dimension().value();
+            VERIFY_RTE( pDimension->get_concrete().has_value() );
+            Concrete::Dimension* pConcreteDimension = pDimension->get_concrete().value();
+
+            InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
+                InterfaceVariant::Args{ std::optional< Interface::IContext* >(), pDimension } );
+            ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
+                ConcreteVariant::Args{ std::optional< Concrete::Context* >(), pConcreteDimension } );
+            Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
+            elements.push_back( pElement );
         }
         else
         {
             THROW_RTE( "Missing context in interface variant" );
         }
-
-        Element* pElement = database.construct< Element >( Element::Args{ pInterface, pConcrete } );
-        elements.push_back( pElement );
     }
 
-    pElementVector = database.construct< ElementVector >( ElementVector::Args{ elements } );
+    VERIFY_RTE( !elements.empty() );
 
-    return pElementVector;
+    return database.construct< ElementVector >( ElementVector::Args{ elements } );
 }
 
+std::vector< ElementVector* > toElementVector( Database& database, const InheritanceMapping& inheritance,
+                                               const InterfaceVariantVectorVector& interfaceVariantVectorVector )
+{
+    std::vector< ElementVector* > result;
+    for ( const InterfaceVariantVector& interfaceVariantVector : interfaceVariantVectorVector )
+    {
+        result.push_back( toElementVector( database, inheritance, interfaceVariantVector ) );
+    }
+    return result;
+}
 // 3. Compute name resolution
 
 // 4. Solve the invocation instructions
@@ -110,53 +153,41 @@ ElementVector* toElementVector( Database& database, const std::vector< Interface
 OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::invocation::ID& id,
                                                     Database& database, const mega::io::megaFilePath& sourceFile )
 {
-    Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( environment.project_manifest() );
+    const mega::io::manifestFilePath manifestFile = environment.project_manifest();
+    Symbols::SymbolTable*            pSymbolTable = database.one< Symbols::SymbolTable >( manifestFile );
 
-    SymbolIDMap symbolIDMap = pSymbolTable->get_symbol_id_map();
+    const SymbolIDMap symbolIDMap = pSymbolTable->get_symbol_id_map();
 
-    std::vector< Symbols::Symbol* > contextSymbols;
+    std::optional< mega::OperationID > operationIDOpt;
+
+    InterfaceVariantVectorVector context
+        = symbolIDVectorToInterfaceVariantVector( database, symbolIDMap, id.m_context, operationIDOpt );
+
+    InterfaceVariantVectorVector typePath
+        = symbolIDVectorToInterfaceVariantVector( database, symbolIDMap, id.m_type_path, operationIDOpt );
+
+    if ( operationIDOpt.has_value() )
     {
-        for ( mega::SymbolID typeID : id.m_context )
-        {
-            auto iFind = symbolIDMap.find( typeID );
-            if ( iFind != symbolIDMap.end() )
-            {
-                contextSymbols.push_back( iFind->second );
-            }
-            else
-            {
-                // pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                //     << "Invalid symbol ID: " << typeID;
-                // m_bError = true;
-                // return false;
-            }
-        }
-    }
-    std::vector< Symbols::Symbol* > typePathSymbols;
-    {
-        for ( mega::SymbolID typeID : id.m_type_path )
-        {
-            auto iFind = symbolIDMap.find( typeID );
-            if ( iFind != symbolIDMap.end() )
-            {
-                typePathSymbols.push_back( iFind->second );
-            }
-            else
-            {
-                // pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                //     << "Invalid symbol ID: " << typeID;
-                // m_bError = true;
-                // return false;
-            }
-        }
+        THROW_RTE( "Invalid operation specified in invocation" );
     }
 
-    // Invocation* pInvocation = database.construct< Invocation >( Invocation::Args{ id } );
+    const Derivation::Mapping* pMapping    = database.one< Derivation::Mapping >( manifestFile );
+    const InheritanceMapping   inheritance = pMapping->get_inheritance();
 
-    // Invocations* pInvocations = database.one< Invocations >( sourceFile );
-    // pInvocations->insert_invocations( id, pInvocation );
+    std::vector< ElementVector* > contextElements  = toElementVector( database, inheritance, context );
+    std::vector< ElementVector* > typePathElements = toElementVector( database, inheritance, typePath );
 
-    return nullptr;
+    Context*  pContext  = database.construct< Context >( Context::Args{ contextElements } );
+    TypePath* pTypePath = database.construct< TypePath >( TypePath::Args{ typePathElements } );
+
+    Invocation* pInvocation
+        = database.construct< Invocation >( Invocation::Args{ pContext, pTypePath, id.m_operation } );
+
+    NameResolution* pNameResolution = resolve( database, pMapping, pSymbolTable, pInvocation );
+
+    pInvocation->set_name_resolution( pNameResolution );
+
+    return pInvocation;
 }
 
 } // namespace invocation

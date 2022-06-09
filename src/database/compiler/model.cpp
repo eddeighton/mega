@@ -284,7 +284,24 @@ Type::Ptr getType( const schema::Type& type, Mapping& mapping, Namespace::Ptr pN
                 const schema::Type& toType   = type.m_children.back();
                 if ( !fromType.m_idList.empty() && !toType.m_idList.empty() )
                 {
-                    MapType::Ptr pMapType = std::make_shared< MapType >( mapping.counter );
+                    MapType::Ptr pMapType = std::make_shared< MapType >( mapping.counter, false );
+                    mapping.mapTypes.push_back( pMapType );
+                    pMapType->m_fromType = getType( fromType, mapping, pNamespace );
+                    pMapType->m_toType   = getType( toType, mapping, pNamespace );
+                    return pMapType;
+                }
+            }
+        }
+        else if ( strID == "multimap" )
+        {
+            // ref< ObjectType >
+            if ( type.m_children.size() == 2U )
+            {
+                const schema::Type& fromType = type.m_children.front();
+                const schema::Type& toType   = type.m_children.back();
+                if ( !fromType.m_idList.empty() && !toType.m_idList.empty() )
+                {
+                    MapType::Ptr pMapType = std::make_shared< MapType >( mapping.counter, true );
                     mapping.mapTypes.push_back( pMapType );
                     pMapType->m_fromType = getType( fromType, mapping, pNamespace );
                     pMapType->m_toType   = getType( toType, mapping, pNamespace );
@@ -992,6 +1009,15 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
 
         std::sort( interfaces.begin(), interfaces.end(), CountedObjectComparator< Interface::Ptr >() );
 
+        {
+            std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > uniqueInterfaces;
+            for ( Interface::Ptr pInterface : interfaces )
+            {
+                uniqueInterfaces.insert( pInterface );
+            }
+            VERIFY_RTE( uniqueInterfaces.size() == interfaces.size() );
+        }
+
         std::vector< std::vector< Interface::Ptr > > disjointInheritanceSets;
         {
             std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > remaining(
@@ -1009,6 +1035,10 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
                         pInterface = pInterface->m_base;
                     }
                     std::sort( group.begin(), group.end(), CountedObjectComparator< Interface::Ptr >() );
+
+                    group.resize( std::distance(
+                        group.begin(),
+                        std::unique( group.begin(), group.end(), CountedObjectEquality< Interface::Ptr >() ) ) );
                 }
 
                 bool bFound = false;
@@ -1017,14 +1047,26 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
                     // is the object in the group?
                     std::vector< Interface::Ptr > intersection;
                     std::set_intersection( group.begin(), group.end(), existingGroup.begin(), existingGroup.end(),
-                                           std::back_inserter( intersection ) );
+                                           std::back_inserter( intersection ), CountedObjectComparator< Interface::Ptr >() );
                     if ( !intersection.empty() )
                     {
                         std::copy( group.begin(), group.end(), std::back_inserter( existingGroup ) );
                         std::sort(
                             existingGroup.begin(), existingGroup.end(), CountedObjectComparator< Interface::Ptr >() );
-                        existingGroup.erase(
-                            std::unique( existingGroup.begin(), existingGroup.end() ), existingGroup.end() );
+
+                        auto uniqueEndIter = std::unique(
+                            existingGroup.begin(), existingGroup.end(), CountedObjectEquality< Interface::Ptr >() );
+                        existingGroup.resize( std::distance( existingGroup.begin(), uniqueEndIter ) );
+
+                        {
+                            std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > uniqueInterfaces;
+                            for ( Interface::Ptr pInterface : existingGroup )
+                            {
+                                uniqueInterfaces.insert( pInterface );
+                            }
+                            VERIFY_RTE( uniqueInterfaces.size() == existingGroup.size() );
+                        }
+
                         bFound = true;
                         break;
                     }
@@ -1034,11 +1076,32 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
                 {
                     // add a new group
                     disjointInheritanceSets.push_back( group );
+
+                    {
+                        std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > uniqueInterfaces;
+                        for ( Interface::Ptr pInterface : group )
+                        {
+                            uniqueInterfaces.insert( pInterface );
+                        }
+                        VERIFY_RTE( uniqueInterfaces.size() == group.size() );
+                    }
                 }
             }
         }
+
+        std::set< Interface::Ptr, CountedObjectComparator< Interface::Ptr > > uniqueInterfaces;
+
         for ( const std::vector< Interface::Ptr >& group : disjointInheritanceSets )
         {
+            // check unique
+            {
+                for ( Interface::Ptr pInterface : group )
+                {
+                    VERIFY_RTE( uniqueInterfaces.count( pInterface ) == 0 );
+                    uniqueInterfaces.insert( pInterface );
+                }
+            }
+
             SuperType::Ptr pSuperType = std::make_shared< SuperType >( mapping.counter );
             pSuperType->m_stage       = pStage;
             pSuperType->m_interfaces  = group;

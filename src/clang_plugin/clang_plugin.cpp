@@ -19,15 +19,10 @@
 
 #include "clang_plugin/clang_plugin.hpp"
 
-//#include "eg_compiler/identifiers.hpp"
-//#include "eg_compiler/eg.hpp"
-//#include "eg_compiler/codegen/codegen.hpp"
-//#include "eg_compiler/name_resolution.hpp"
-//#include "eg_compiler/invocation.hpp"
+#include "database/common/exception.hpp"
 
 #include "session.hpp"
 
-//#include "common/backtrace.hpp"
 #include "common/assert_verify.hpp"
 
 #include "clang_utils.hpp"
@@ -35,14 +30,9 @@
 #include "clang/Sema/Lookup.h"
 #include "clang/Basic/DiagnosticParse.h"
 
-//#include "boost/dll.hpp"
-//#include <boost/dll/runtime_symbol_info.hpp>
-
 #include <sstream>
 #include <cstdlib>
 #include <memory>
-
-//#include <iostream>
 
 namespace clang
 {
@@ -50,14 +40,15 @@ extern Session::Ptr make_interface_session( clang::ASTContext* pASTContext, clan
                                             const char* strBuildDir, const char* strSourceFile );
 
 extern Session::Ptr make_operations_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,
-                                     const char* strBuildDir, const char* strSourceFile );
-}
+                                             const char* strBuildDir, const char* strSourceFile );
+} // namespace clang
 
 namespace
 {
 clang::Session::Ptr g_pSession;
 clang::ASTContext*  g_pASTContext = nullptr;
 clang::Sema*        g_pSema       = nullptr;
+std::string         g_error;
 } // namespace
 
 namespace mega
@@ -71,40 +62,75 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
         g_pSema       = pSema;
         VERIFY_RTE( g_pASTContext );
         VERIFY_RTE( g_pSema );
-        VERIFY_RTE( g_pSession );
-        g_pSession->setContext( g_pASTContext, g_pSema );
+        if( g_pSession )
+        {
+            g_pSession->setContext( g_pASTContext, g_pSema );
+        }
     }
 
     virtual void setMode( const char* strMode, const char* strSrcDir, const char* strBuildDir,
                           const char* strSourceFile )
     {
-        // std::cout << "EG_PLUGIN_INTERFACE_IMPL::setMode: " << strMode << " : " << strSrcDir << " : " << strBuildDir
-        //           << " : " << strSourceFile << std::endl;
-        const mega::CompilationMode compilationMode = mega::CompilationMode::fromStr( strMode );
-        switch ( compilationMode.get() )
+        try
         {
-            case mega::CompilationMode::eInterface:
-                g_pSession
-                    = clang::make_interface_session( g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
-                break;
-            case mega::CompilationMode::eOperations:
-                g_pSession
-                    = clang::make_operations_session( g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
-                break;
-            case mega::CompilationMode::eImplementation:
-            case mega::CompilationMode::eCPP:
-            case mega::CompilationMode::TOTAL_COMPILATION_MODES:
-            default:
-                g_pSession = std::make_unique< clang::Session >( g_pASTContext, g_pSema );
-                return;
+            const mega::CompilationMode compilationMode = mega::CompilationMode::fromStr( strMode );
+            switch ( compilationMode.get() )
+            {
+                case mega::CompilationMode::eInterface:
+                    g_pSession = clang::make_interface_session(
+                        g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                    break;
+                case mega::CompilationMode::eOperations:
+                    g_pSession = clang::make_operations_session(
+                        g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                    break;
+                case mega::CompilationMode::eImplementation:
+                case mega::CompilationMode::eCPP:
+                case mega::CompilationMode::TOTAL_COMPILATION_MODES:
+                default:
+                    g_pSession = std::make_unique< clang::Session >( g_pASTContext, g_pSema );
+                    return;
+            }
         }
-
-        // Common::debug_break();
+        catch ( mega::io::DatabaseVersionException& ex )
+        {
+            g_pSession = nullptr;
+            std::ostringstream os;
+            os << "DatabaseVersion Exception constructing session for: " << strSourceFile;
+            if ( g_pASTContext )
+            {
+                g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+            }
+            else
+            {
+                g_error = os.str();
+            }
+        }
+        catch ( std::exception& ex )
+        {
+            g_pSession = nullptr;
+            std::ostringstream os;
+            os << "Exception for: " << strSourceFile << " constructing session: " << ex.what();
+            if ( g_pASTContext )
+            {
+                g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+            }
+            else
+            {
+                g_error = os.str();
+            }
+        }
     }
 
     virtual void runFinalAnalysis()
     {
-        if ( g_pSession )
+        if( !g_error.empty() )
+        {
+            std::ostringstream os;
+            os << "Error in final analysis: " << g_error;
+            g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+        }
+        else if ( g_pSession )
         {
             try
             {
@@ -266,7 +292,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
     virtual bool getInvocationResultType( const clang::SourceLocation& loc, const clang::QualType& type,
                                           clang::QualType& resultType )
     {
-        if( g_pSession )
+        if ( g_pSession )
         {
             return g_pSession->getInvocationResultType( loc, type, resultType );
         }

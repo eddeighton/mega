@@ -120,15 +120,54 @@ stage ConcreteStage
     persource accessor ref< Interface::Root >;
 }
 
+stage HyperGraphAnalysis
+{
+    source .manifest;
+    dependency ConcreteStage;
+
+    file Model;
+
+    persource accessor array< ref< Interface::Root > >;
+}
+
+stage HyperGraphAnalysisView
+{
+    source .manifest;
+    dependency HyperGraphAnalysis;
+
+    persource accessor ref< Interface::Root >;
+    persource accessor ref< Concrete::Root >;
+    global accessor ref< HyperGraph::Graph >;
+}
+
+stage DerivationAnalysis
+{
+    source .manifest;
+    dependency HyperGraphAnalysis;
+
+    file Derivations;
+
+    persource accessor array< ref< Interface::IContext > >;
+    persource accessor array< ref< Interface::Root > >;
+}
+
+stage DerivationAnalysisView
+{
+    source .manifest;
+    dependency DerivationAnalysis;
+
+    global accessor ref< Derivation::Mapping >;
+}
+
 stage OperationsStage
 {
     source .mega;
-    dependency ConcreteStage;
+    dependency DerivationAnalysis;
 
     file Operations;
 
     global accessor ref< Symbols::SymbolTable >;
-    //persource accessor ref< Operations::Invocations >;
+    global accessor ref< Derivation::Mapping >;
 }
 
 stage FinalStage

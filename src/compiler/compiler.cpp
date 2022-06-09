@@ -160,7 +160,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         struct Dummy : public pipeline::DependencyProvider
         {
             virtual EG_PARSER_INTERFACE* getParser() { return nullptr; }
-        }dummy;
+        } dummy;
         execute( generateManifest, progress, stash, dummy );
     }
     mega::io::Manifest manifest( environment, manifestFilePath );
@@ -208,25 +208,41 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    TskDescVec implementationObjTasks;
+    TskDescVec concreteTreeTasks;
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc objectInterfaceGeneration = encode( Task{ eTask_ObjectInterfaceGeneration, sourceFilePath } );
             const TskDesc objectInterfaceAnalysis   = encode( Task{ eTask_ObjectInterfaceAnalysis, sourceFilePath } );
             const TskDesc concreteTree              = encode( Task{ eTask_ConcreteTree, sourceFilePath } );
-            const TskDesc generics                  = encode( Task{ eTask_Generics, sourceFilePath } );
-            const TskDesc genericsPCH               = encode( Task{ eTask_GenericsPCH, sourceFilePath } );
-            const TskDesc operations                = encode( Task{ eTask_Operations, sourceFilePath } );
-            const TskDesc operationsPCH             = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
-            const TskDesc implementation            = encode( Task{ eTask_Implementation, sourceFilePath } );
-            const TskDesc implementationObj         = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
 
             dependencies.add( objectInterfaceGeneration, symbolRolloutTasks );
             dependencies.add(
                 objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration, includePCHTasks[ sourceFilePath ] } );
             dependencies.add( concreteTree, TskDescVec{ objectInterfaceAnalysis } );
-            dependencies.add( generics, TskDescVec{ concreteTree } );
+
+            concreteTreeTasks.push_back( concreteTree );
+        }
+    }
+
+    const TskDesc hyperGraph = encode( Task{ eTask_HyperGraph, manifestFilePath } );
+    const TskDesc derivation = encode( Task{ eTask_Derivation, manifestFilePath } );
+
+    dependencies.add( hyperGraph, concreteTreeTasks );
+    dependencies.add( derivation, TskDescVec{ hyperGraph } );
+
+    TskDescVec implementationObjTasks;
+    {
+        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        {
+            const TskDesc generics          = encode( Task{ eTask_Generics, sourceFilePath } );
+            const TskDesc genericsPCH       = encode( Task{ eTask_GenericsPCH, sourceFilePath } );
+            const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
+            const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
+            const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
+            const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
+
+            dependencies.add( generics, TskDescVec{ derivation } );
             dependencies.add( genericsPCH, TskDescVec{ generics } );
             dependencies.add( operations, TskDescVec{ genericsPCH } );
             dependencies.add( operationsPCH, TskDescVec{ operations } );

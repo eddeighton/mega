@@ -140,7 +140,7 @@ inline data::Ptr< typename traits< TFromView >::DataType > toData( SuperFactory&
     using TToData = typename traits< TFromView >::DataType;
     using SuperType   = typename traits< TToData >::SuperType;
     SuperType *pSuper = dynamic_cast< SuperType * >( pFrom );
-    VERIFY_RTE_MSG( pFrom, "Null pointer" );
+    VERIFY_RTE_MSG( pFrom, "Null pointer: " << typeid( TFromView ).name() );
     return data::convert< TToData >( pSuper->m_data );
 }
 
@@ -269,6 +269,93 @@ inline std::map< typename traits< TKeyFromData >::ViewType*, typename traits< TV
 
     std::map< TKeyToView*, TValueToView* > result;
     for( typename std::map< data::Ptr< TKeyFromData >, data::Ptr< TValueFromData > >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( 
+            toView( factory, i->first ), 
+            toView( factory, i->second )) );
+    }
+    return result;
+}
+
+
+
+
+
+
+
+
+template< typename TFromView, typename TKey >
+inline std::multimap< TKey, data::Ptr< typename traits< TFromView >::DataType > > toData( SuperFactory& factory, const std::multimap< TKey, TFromView* >& from )
+{
+    using TToData = typename traits< TFromView >::DataType;
+    std::multimap< TKey, data::Ptr< TToData > > result;
+    for( typename std::multimap< TKey, TFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( i->first, toData( factory, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TFromData, typename TKey >
+inline std::multimap< TKey, typename traits< TFromData >::ViewType* > toView( SuperFactory& factory, const std::multimap< TKey, data::Ptr< TFromData > >& from )
+{
+    using TToView = typename traits< TFromData >::ViewType;
+    std::multimap< TKey, TToView* > result;
+    for( typename std::multimap< TKey, data::Ptr< TFromData > >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( i->first, toView( factory, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TFromView, typename TValue >
+inline std::multimap< data::Ptr< typename traits< TFromView >::DataType >, TValue > toData( SuperFactory& factory, const std::multimap< TFromView*, TValue >& from )
+{
+    using TToData = typename traits< TFromView >::DataType;
+    std::multimap< data::Ptr< TToData >, TValue > result;
+    for( typename std::multimap< TFromView*, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( toData( factory, i->first ), i->second ) );
+    }
+    return result;
+}
+
+template< typename TFromData, typename TValue >
+inline std::multimap< typename traits< TFromData >::ViewType*, TValue > toView( SuperFactory& factory, const std::multimap< data::Ptr< TFromData >, TValue >& from )
+{
+    using TToView = typename traits< TFromData >::ViewType;
+    std::multimap< TToView*, TValue > result;
+    for( typename std::multimap< data::Ptr< TFromData >, TValue >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( toView( factory, i->first ), i->second ) );
+    }
+    return result;
+}
+
+template< typename TKeyFromView, typename TValueFromView >
+inline std::multimap< data::Ptr< typename traits< TKeyFromView >::DataType >, data::Ptr< typename traits< TValueFromView >::DataType > > toData( SuperFactory& factory, const std::multimap< TKeyFromView*, TValueFromView* >& from )
+{
+    using TKeyToData = typename traits< TKeyFromView >::DataType;
+    using TValueToData = typename traits< TValueFromView >::DataType;
+
+    std::multimap< data::Ptr< TKeyToData >, data::Ptr< TValueToData > > result;
+    for( typename std::multimap< TKeyFromView*, TValueFromView* >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
+    {
+        result.insert( std::make_pair( 
+            toData( factory, i->first ), 
+            toData( factory, i->second ) ) );
+    }
+    return result;
+}
+
+template< typename TKeyFromData, typename TValueFromData >
+inline std::multimap< typename traits< TKeyFromData >::ViewType*, typename traits< TValueFromData >::ViewType* > toView( SuperFactory& factory, const std::multimap< data::Ptr< TKeyFromData >, data::Ptr< TValueFromData > >& from )
+{
+    using TKeyToView = typename traits< TKeyFromData >::ViewType;
+    using TValueToView = typename traits< TValueFromData >::ViewType;
+
+    std::multimap< TKeyToView*, TValueToView* > result;
+    for( typename std::multimap< data::Ptr< TKeyFromData >, data::Ptr< TValueFromData > >::const_iterator i = from.begin(), iEnd = from.end(); i!=iEnd; ++i )
     {
         result.insert( std::make_pair( 
             toView( factory, i->first ), 

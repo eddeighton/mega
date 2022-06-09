@@ -54,6 +54,7 @@ public:
 
                 // mega library includes
                 os << "#include \"mega/include.hpp\"\n";
+                os << "#include \"mega/default_traits.hpp\"\n";
 
                 for ( Parser::SystemInclude* pSystemInclude :
                       database.many< Parser::SystemInclude >( m_sourceFilePath ) )

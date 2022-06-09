@@ -51,8 +51,40 @@ namespace Symbols
     {
         map< value< mega::io::megaFilePath >, ref< SymbolSet > >    symbol_sets;
         map< value< std::string >, ref< Symbol > >                  symbols;
-        map< value< int32_t >, ref< Interface::IContext > >          context_type_ids;
+        map< value< int32_t >, ref< Interface::IContext > >         context_type_ids;
         map< value< int32_t >, ref< Interface::DimensionTrait > >   dimension_type_ids;
         map< value< int32_t >, ref< Symbol > >                      symbol_id_map;
+    }
+}
+
+namespace HyperGraph
+{
+    object ObjectGraph -> HyperGraphAnalysis::Model
+    {
+        value< mega::io::megaFilePath > source_file;
+        value< std::size_t > hash_code;
+
+    }
+
+    object Graph -> HyperGraphAnalysis::Model
+    {
+        array< ref< ObjectGraph > > objects;
+    }
+}
+
+namespace Derivation
+{
+    object ObjectMapping -> DerivationAnalysis::Derivations
+    {
+        value< mega::io::megaFilePath > source_file;
+        value< std::size_t > hash_code;
+
+        multimap< ref< Interface::IContext >, ref< Interface::IContext > > inheritance;
+    }
+
+    object Mapping -> DerivationAnalysis::Derivations
+    {
+        array< ref< ObjectMapping > > mappings;
+        late< multimap< ref< Interface::IContext >, ref< Interface::IContext > > > inheritance;
     }
 }

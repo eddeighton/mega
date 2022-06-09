@@ -11,10 +11,12 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( INVOCATION_HEADERS
     ${MEGA_API_DIR}/invocation/invocation.hpp
+    ${MEGA_API_DIR}/invocation/name_resolution.hpp
 )
 
 set( INVOCATION_SOURCE
     ${MEGA_SRC_DIR}/invocation/invocation.cpp
+    ${MEGA_SRC_DIR}/invocation/name_resolution.cpp
 )
 
 add_library( invocation

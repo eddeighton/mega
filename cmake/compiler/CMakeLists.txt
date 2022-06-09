@@ -40,26 +40,27 @@ link_common( compiler_config )
 set( JINJA_TEMPLATES 
     ${MEGA_SRC_DIR}/compiler/templates/context.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/namespace.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/generics.jinja 
 	)
 
 set( COMPILER_TASKS
-    ${MEGA_SRC_DIR}/compiler/task_utils.hpp  
     ${MEGA_SRC_DIR}/compiler/base_task.hpp  
+    ${MEGA_SRC_DIR}/compiler/task_complete.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp 
+    ${MEGA_SRC_DIR}/compiler/task_derivation.cpp
+    ${MEGA_SRC_DIR}/compiler/task_generics.cpp
+    ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
+    ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
     ${MEGA_SRC_DIR}/compiler/task_includes.cpp  
     ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp  
     ${MEGA_SRC_DIR}/compiler/task_interface.cpp  
     ${MEGA_SRC_DIR}/compiler/task_manifest.cpp
+    ${MEGA_SRC_DIR}/compiler/task_operations.cpp
     ${MEGA_SRC_DIR}/compiler/task_parse_ast.cpp  
     ${MEGA_SRC_DIR}/compiler/task_symbols.cpp
-    ${MEGA_SRC_DIR}/compiler/task_generics.cpp
-    ${MEGA_SRC_DIR}/compiler/task_operations.cpp
-    ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
-    ${MEGA_SRC_DIR}/compiler/task_complete.cpp
+    ${MEGA_SRC_DIR}/compiler/task_utils.hpp  
 )
 
 set( COMPILER_SOURCE

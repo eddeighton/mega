@@ -462,52 +462,21 @@ public:
 
                                     Operations::Invocation* pInvocation = nullptr;
                                     {
-                                        // auto iFind = m_invocationsMap.find( id );
-                                        // if ( iFind != m_invocationsMap.end() )
-                                        //{
-                                        //     // existing invocation solution exists
-                                        //     pInvocation = iFind->second;
-                                        // }
-                                        // else
-                                        //{
-                                        //     pInvocation = mega::invocation::construct(
-                                        //         m_environment, id, m_database, m_sourceFile );
-                                        //     m_invocationsMap.insert( std::make_pair( id, pInvocation ) );
-                                        // }
-                                    }
-
-                                    // pInvocation
-
-                                    // mega::invocation::Solution
-
-                                    /*const InvocationSolution::InvocationID invocationID
-                                        = InvocationSolution::invocationIDFromTypeIDs(
-                                            g_pOperationsSession->getObjects( IndexedObject::MASTER_FILE ),
-                                            g_pOperationsSession->getIdentifiers(), contextTypes, typePathTypes,
-                                            operationTypeID );
-
-                                    try
-                                    {
-                                        if ( const InvocationSolution* pSolution
-                                            = g_pOperationsSession->getInvocation( invocationID, typePathTypes ) )
+                                        auto iFind = m_invocationsMap.find( id );
+                                        if ( iFind != m_invocationsMap.end() )
                                         {
-                                            calculateReturnType( pSolution, resultType );
+                                            // existing invocation solution exists
+                                            pInvocation = iFind->second;
+                                        }
+                                        else
+                                        {
+                                            pInvocation = mega::invocation::construct(
+                                                m_environment, id, m_database, m_sourceFile );
+                                            m_invocationsMap.insert( std::make_pair( id, pInvocation ) );
                                         }
                                     }
-                                    catch ( mega::NameResolutionException& nameResolutionException )
-                                    {
-                                        pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                                            << nameResolutionException.what();
-                                        m_bError = true;
-                                        return false;
-                                    }
-                                    catch ( mega::InvocationException& invocationException )
-                                    {
-                                        pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
-                                            << invocationException.what();
-                                        m_bError = true;
-                                        return false;
-                                    }*/
+
+                                    //calculateReturnType( pInvocation, resultType );
                                 }
                                 catch ( std::exception& ex )
                                 {
@@ -516,6 +485,20 @@ public:
                                     m_bError = true;
                                     return false;
                                 }
+                                /*catch ( mega::NameResolutionException& nameResolutionException )
+                                {
+                                    pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
+                                        << nameResolutionException.what();
+                                    m_bError = true;
+                                    return false;
+                                }
+                                catch ( mega::InvocationException& invocationException )
+                                {
+                                    pASTContext->getDiagnostics().Report( loc, clang::diag::err_mega_generic_error )
+                                        << invocationException.what();
+                                    m_bError = true;
+                                    return false;
+                                }*/
 
                                 return true;
                             }
