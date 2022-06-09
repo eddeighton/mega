@@ -16,6 +16,21 @@ object Square
 
     dim int x;
 
+    event SomeData
+    {
+        dim std::vector< Square > squares;
+        dim std::vector< Square > squares1;
+        dim std::vector< Square > squares2;
+
+        
+        event SomeData2
+        {
+            dim std::vector< Square > squares;
+            dim std::vector< Square > squares1;
+            dim std::vector< Square > squares2;
+        }
+    }
+
     function test( int iValue, float fValue ) : void
     {
         // do stuff
@@ -25,6 +40,8 @@ object Square
     action size_test_1
     {
         Square.x();
+
+        Square.SomeData2.squares();
     }
 
 
