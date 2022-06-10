@@ -42,14 +42,11 @@ void expandReferences( OperationsStage::Database& database, const OperationsStag
                         Concrete::Dimension*       pConcreteDimension  = pConVar->get_dimension().value();
                         Interface::DimensionTrait* pInterfaceDimension = pConcreteDimension->get_interface_dimension();
 
-                        // pInterfaceDimension->get_canonical_type()
-
                         if ( bIsToMegaType )
                         {
                             bContinue = true;
                             pName->set_is_reference( true );
 
-                            // pInterfaceDimension->
                             std::vector< Symbols::Symbol* > symbols = pInterfaceDimension->get_symbols();
 
                             InterfaceVariantVectorVector interfaceVariantVectorVector

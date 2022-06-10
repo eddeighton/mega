@@ -58,6 +58,9 @@ namespace Operations
         ref< TypePath > type_path;
         value< mega::OperationID > operation;
         late< ref< NameResolution > > name_resolution;
+
+        late< ref< Invocations::Variables::Context > > root_variable;
+        late< ref< Invocations::Instructions::Root > > root_instruction;
     }
 
     object Invocations -> OperationsStage::Operations

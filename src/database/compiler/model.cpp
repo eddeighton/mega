@@ -17,11 +17,39 @@ namespace db
 namespace model
 {
 
+std::string Object::delimitTypeName( const std::string& str ) const
+{
+    std::ostringstream os;
+    {
+        std::vector< Namespace::Ptr > namespaces;
+        {
+            Namespace::Ptr pIter = m_namespace.lock();
+            while ( pIter )
+            {
+                namespaces.push_back( pIter );
+                pIter = pIter->m_namespace.lock();
+            }
+            std::reverse( namespaces.begin(), namespaces.end() );
+        }
+        for ( Namespace::Ptr pNamespace : namespaces )
+        {
+            os << pNamespace->m_strName << str;
+        }
+        os << m_strName;
+    }
+    return os.str();
+}
+
+std::string Object::getDataTypeName() const
+{
+    return delimitTypeName( "_" );
+}
+
 std::string ObjectPart::getDataType( const std::string& strDelimiter ) const
 {
     std::ostringstream osObjectPartType;
     {
-        osObjectPartType << m_file.lock()->m_strName << strDelimiter << m_object.lock()->m_strName;
+        osObjectPartType << m_file.lock()->m_strName << strDelimiter << m_object.lock()->getDataTypeName();
     }
     return osObjectPartType.str();
 }
@@ -73,29 +101,6 @@ std::string FunctionInserter::getParams( const std::string& strStageNamespace ) 
     else
     {
         THROW_RTE( "Unsupported inserter type" );
-    }
-    return os.str();
-}
-
-std::string Object::delimitTypeName( const std::string& str ) const
-{
-    std::ostringstream os;
-    {
-        std::vector< Namespace::Ptr > namespaces;
-        {
-            Namespace::Ptr pIter = m_namespace.lock();
-            while ( pIter )
-            {
-                namespaces.push_back( pIter );
-                pIter = pIter->m_namespace.lock();
-            }
-            std::reverse( namespaces.begin(), namespaces.end() );
-        }
-        for ( Namespace::Ptr pNamespace : namespaces )
-        {
-            os << pNamespace->m_strName << str;
-        }
-        os << m_strName;
     }
     return os.str();
 }
@@ -476,10 +481,9 @@ struct NamespaceVariantVisitor : boost::static_visitor< void >
 
     void operator()( const schema::Object& object ) const
     {
-        Object::Ptr pObject = std::make_shared< Object >( mapping.counter );
+        Object::Ptr pObject = std::make_shared< Object >( mapping.counter, object.m_name );
         mapping.objects.push_back( pObject );
 
-        pObject->m_strName   = object.m_name;
         pObject->m_namespace = pNamespace;
         if ( object.m_optInheritance.has_value() )
         {
@@ -613,7 +617,7 @@ Object::Ptr findType( const NameResolution& nameRes, Namespace::Ptr pNamespace,
     {
         for ( Object::Ptr pObject : pNamespace->m_objects )
         {
-            if ( pObject->m_strName == *i )
+            if ( pObject->getIdentifier() == *i )
             {
                 checkAmbiguity( pResult, nameRes );
                 pResult = pObject;

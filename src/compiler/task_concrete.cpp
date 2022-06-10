@@ -2,6 +2,7 @@
 
 #include "database/model/ConcreteStage.hxx"
 #include <common/stash.hpp>
+#include <optional>
 
 namespace mega
 {
@@ -69,8 +70,8 @@ public:
         }
     }
 
-    void recurseInheritance( ConcreteStage::Database& database, ConcreteStage::Interface::IContext* pContext,
-                             IdentifierMap& identifierMap )
+    void recurseInheritance( ConcreteStage::Database& database, ConcreteStage::Concrete::Context* pConcreteRoot,
+                             ConcreteStage::Interface::IContext* pContext, IdentifierMap& identifierMap )
     {
         using namespace ConcreteStage;
         using namespace ConcreteStage::Concrete;
@@ -91,7 +92,7 @@ public:
             {
                 for ( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
-                    recurseInheritance( database, pInheritedContext, identifierMap );
+                    recurseInheritance( database, pConcreteRoot, pInheritedContext, identifierMap );
                 }
             }
         }
@@ -102,7 +103,7 @@ public:
             {
                 for ( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
-                    recurseInheritance( database, pInheritedContext, identifierMap );
+                    recurseInheritance( database, pConcreteRoot, pInheritedContext, identifierMap );
                 }
             }
         }
@@ -113,7 +114,7 @@ public:
             {
                 for ( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
-                    recurseInheritance( database, pInheritedContext, identifierMap );
+                    recurseInheritance( database, pConcreteRoot, pInheritedContext, identifierMap );
                 }
             }
         }
@@ -128,7 +129,7 @@ public:
             {
                 for ( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
                 {
-                    recurseInheritance( database, pInheritedContext, identifierMap );
+                    recurseInheritance( database, pConcreteRoot, pInheritedContext, identifierMap );
                 }
             }
         }
@@ -146,7 +147,9 @@ public:
         }
     }
 
-    void constructElements( ConcreteStage::Database& database, const IdentifierMap& inheritedContexts,
+    void constructElements( ConcreteStage::Database&                            database,
+                            ConcreteStage::Concrete::Context*                   parentConcreteContext,
+                            const IdentifierMap&                                inheritedContexts,
                             std::vector< ConcreteStage::Concrete::Context* >&   childContexts,
                             std::vector< ConcreteStage::Concrete::Dimension* >& dimensions )
     {
@@ -155,13 +158,14 @@ public:
 
         for ( Interface::IContext* pChildContext : inheritedContexts.contexts )
         {
-            if ( Context* pContext = recurse( database, pChildContext ) )
+            if ( Context* pContext = recurse( database, parentConcreteContext, pChildContext ) )
                 childContexts.push_back( pContext );
         }
 
         for ( Interface::DimensionTrait* pInterfaceDimension : inheritedContexts.dimensions )
         {
-            Dimension* pConcreteDimension = database.construct< Dimension >( Dimension::Args{ pInterfaceDimension } );
+            Dimension* pConcreteDimension
+                = database.construct< Dimension >( Dimension::Args{ parentConcreteContext, pInterfaceDimension } );
             dimensions.push_back( pConcreteDimension );
 
             // set the pointer in interface to concrete dimension
@@ -171,6 +175,7 @@ public:
     }
 
     ConcreteStage::Concrete::Context* recurse( ConcreteStage::Database&            database,
+                                               ConcreteStage::Concrete::Context*   pParentConcreteContext,
                                                ConcreteStage::Interface::IContext* pContext )
     {
         using namespace ConcreteStage;
@@ -178,15 +183,21 @@ public:
 
         if ( Interface::Namespace* pNamespace = dynamic_database_cast< Interface::Namespace >( pContext ) )
         {
+            Namespace* pConcrete = database.construct< Namespace >(
+                Namespace::Args{ Context::Args{ pParentConcreteContext, {}, {} }, pNamespace, {} } );
+
             IdentifierMap inheritedContexts;
-            recurseInheritance( database, pNamespace, inheritedContexts );
+            {
+                recurseInheritance( database, pConcrete, pNamespace, inheritedContexts );
+                pConcrete->set_inheritance( inheritedContexts.inherited );
+            }
 
             std::vector< ConcreteStage::Concrete::Context* >   childContexts;
             std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
-            constructElements( database, inheritedContexts, childContexts, dimensions );
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
 
-            Namespace* pConcrete = database.construct< Namespace >( Namespace::Args{
-                Context::Args{ inheritedContexts.inherited, childContexts }, pNamespace, dimensions } );
+            pConcrete->set_dimensions( dimensions );
+            pConcrete->set_children( childContexts );
 
             database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
@@ -194,23 +205,28 @@ public:
         }
         else if ( Interface::Abstract* pAbstract = dynamic_database_cast< Interface::Abstract >( pContext ) )
         {
-            database.construct< Interface::IContext >(
-                Interface::IContext::Args{ pContext, { std::optional< Context* >() } } );
+            database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { std::nullopt } } );
 
             // do nothing
             return nullptr;
         }
         else if ( Interface::Action* pAction = dynamic_database_cast< Interface::Action >( pContext ) )
         {
+            Action* pConcrete = database.construct< Action >(
+                Action::Args{ Context::Args{ pParentConcreteContext, {}, {} }, pAction, {} } );
+
             IdentifierMap inheritedContexts;
-            recurseInheritance( database, pAction, inheritedContexts );
+            {
+                recurseInheritance( database, pConcrete, pAction, inheritedContexts );
+                pConcrete->set_inheritance( inheritedContexts.inherited );
+            }
 
             std::vector< ConcreteStage::Concrete::Context* >   childContexts;
             std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
-            constructElements( database, inheritedContexts, childContexts, dimensions );
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
 
-            Action* pConcrete = database.construct< Action >(
-                Action::Args{ Context::Args{ inheritedContexts.inherited, childContexts }, pAction, dimensions } );
+            pConcrete->set_dimensions( dimensions );
+            pConcrete->set_children( childContexts );
 
             database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
@@ -218,15 +234,21 @@ public:
         }
         else if ( Interface::Event* pEvent = dynamic_database_cast< Interface::Event >( pContext ) )
         {
+            Event* pConcrete = database.construct< Event >(
+                Event::Args{ Context::Args{ pParentConcreteContext, {}, {} }, pEvent, {} } );
+
             IdentifierMap inheritedContexts;
-            recurseInheritance( database, pEvent, inheritedContexts );
+            {
+                recurseInheritance( database, pConcrete, pEvent, inheritedContexts );
+                pConcrete->set_inheritance( inheritedContexts.inherited );
+            }
 
             std::vector< ConcreteStage::Concrete::Context* >   childContexts;
             std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
-            constructElements( database, inheritedContexts, childContexts, dimensions );
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
 
-            Event* pConcrete = database.construct< Event >(
-                Event::Args{ Context::Args{ inheritedContexts.inherited, childContexts }, pEvent, dimensions } );
+            pConcrete->set_dimensions( dimensions );
+            pConcrete->set_children( childContexts );
 
             database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
@@ -234,16 +256,21 @@ public:
         }
         else if ( Interface::Function* pFunction = dynamic_database_cast< Interface::Function >( pContext ) )
         {
+            Function* pConcrete = database.construct< Function >(
+                Function::Args{ Context::Args{ pParentConcreteContext, {}, {} }, pFunction } );
+
             IdentifierMap inheritedContexts;
-            recurseInheritance( database, pFunction, inheritedContexts );
+            {
+                recurseInheritance( database, pConcrete, pFunction, inheritedContexts );
+                pConcrete->set_inheritance( inheritedContexts.inherited );
+            }
 
             std::vector< ConcreteStage::Concrete::Context* >   childContexts;
             std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
-            constructElements( database, inheritedContexts, childContexts, dimensions );
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
             VERIFY_RTE( dimensions.empty() );
 
-            Function* pConcrete = database.construct< Function >(
-                Function::Args{ Context::Args{ inheritedContexts.inherited, childContexts }, pFunction } );
+            pConcrete->set_children( childContexts );
 
             database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
@@ -251,15 +278,21 @@ public:
         }
         else if ( Interface::Object* pObject = dynamic_database_cast< Interface::Object >( pContext ) )
         {
+            Object* pConcrete = database.construct< Object >(
+                Object::Args{ Context::Args{ pParentConcreteContext, {}, {} }, pObject, {} } );
+
             IdentifierMap inheritedContexts;
-            recurseInheritance( database, pObject, inheritedContexts );
+            {
+                recurseInheritance( database, pConcrete, pObject, inheritedContexts );
+                pConcrete->set_inheritance( inheritedContexts.inherited );
+            }
 
             std::vector< ConcreteStage::Concrete::Context* >   childContexts;
             std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
-            constructElements( database, inheritedContexts, childContexts, dimensions );
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
 
-            Object* pConcrete = database.construct< Object >(
-                Object::Args{ Context::Args{ inheritedContexts.inherited, childContexts }, pObject, dimensions } );
+            pConcrete->set_dimensions( dimensions );
+            pConcrete->set_children( childContexts );
 
             database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
@@ -267,16 +300,21 @@ public:
         }
         else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
         {
+            Link* pConcrete
+                = database.construct< Link >( Link::Args{ Context::Args{ pParentConcreteContext, {}, {} }, pLink } );
+
             IdentifierMap inheritedContexts;
-            recurseInheritance( database, pLink, inheritedContexts );
+            {
+                recurseInheritance( database, pConcrete, pLink, inheritedContexts );
+                pConcrete->set_inheritance( inheritedContexts.inherited );
+            }
 
             std::vector< ConcreteStage::Concrete::Context* >   childContexts;
             std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
-            constructElements( database, inheritedContexts, childContexts, dimensions );
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
             VERIFY_RTE( dimensions.empty() );
 
-            Link* pConcrete = database.construct< Link >(
-                Link::Args{ Context::Args{ inheritedContexts.inherited, childContexts }, pLink } );
+            pConcrete->set_children( childContexts );
 
             database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
@@ -284,16 +322,21 @@ public:
         }
         else if ( Interface::Table* pTable = dynamic_database_cast< Interface::Table >( pContext ) )
         {
+            Table* pConcrete
+                = database.construct< Table >( Table::Args{ Context::Args{ pParentConcreteContext, {}, {} }, pTable } );
+
             IdentifierMap inheritedContexts;
-            recurseInheritance( database, pTable, inheritedContexts );
+            {
+                recurseInheritance( database, pConcrete, pTable, inheritedContexts );
+                pConcrete->set_inheritance( inheritedContexts.inherited );
+            }
 
             std::vector< ConcreteStage::Concrete::Context* >   childContexts;
             std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
-            constructElements( database, inheritedContexts, childContexts, dimensions );
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
             VERIFY_RTE( dimensions.empty() );
 
-            Table* pConcrete = database.construct< Table >(
-                Table::Args{ Context::Args{ inheritedContexts.inherited, childContexts }, pTable } );
+            pConcrete->set_children( childContexts );
 
             database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
@@ -329,14 +372,13 @@ public:
 
         Interface::Root* pRoot = database.one< Interface::Root >( m_sourceFilePath );
 
-        std::vector< Context* > contexts;
+        Concrete::Root* pConcreteRoot
+            = database.construct< Root >( Root::Args{ Context::Args{ std::nullopt, {}, {} } } );
+
         for ( Interface::IContext* pChildContext : pRoot->get_children() )
         {
-            if ( Context* pConcreteContext = recurse( database, pChildContext ) )
-                contexts.push_back( pConcreteContext );
+            recurse( database, pConcreteRoot, pChildContext );
         }
-
-        database.construct< Root >( Root::Args{ Context::Args{ {}, contexts } } );
 
         const task::FileHash buildHash = database.save_Concrete_to_temp();
         m_environment.temp_to_real( concreteFile );

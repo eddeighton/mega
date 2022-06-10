@@ -1,0 +1,189 @@
+
+namespace Invocations
+{
+    namespace Variables
+    {
+        object Variable -> OperationsStage::Operations
+        {
+            opt< ref< Variable > > parent;
+        }
+
+        object Instance : Variable -> OperationsStage::Operations
+        {
+            ref< Concrete::Context > concrete;
+        }
+
+        object Reference : Variable -> OperationsStage::Operations
+        {
+            array< ref< Concrete::Context > > types;
+        }
+
+        object Dimension : Reference -> OperationsStage::Operations
+        {
+
+        }
+
+        object Context : Reference -> OperationsStage::Operations
+        {
+
+        }
+    }
+
+    namespace Instructions
+    {
+        object Instruction -> OperationsStage::Operations
+        {
+        }
+
+        object InstructionGroup : Instruction -> OperationsStage::Operations
+        {
+            array< ref< Instruction > > children;
+        }
+
+        object Root : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Context > context;
+        }
+
+        object ParentDerivation : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Instance > from;
+            ref< Variables::Instance > to;
+        }
+
+        object ChildDerivation : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Instance > from;
+            ref< Variables::Instance > to;
+        }
+
+        object EnumDerivation : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Instance > from;
+            ref< Variables::Instance > to;
+        }
+
+        object Enumeration : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Instance > instance;
+            array< ref< Interface::IContext > > return_types;
+        }
+
+        object DimensionReferenceRead : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Instance > instance;
+            ref< Variables::Dimension > dimension_reference;
+            ref< Concrete::Dimension > concrete;
+        }
+
+        object MonoReference : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Reference > reference;
+            ref< Variables::Instance > instance;
+        }
+
+        object PolyReference : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Reference > from_reference;
+        }
+
+        object PolyCase : InstructionGroup -> OperationsStage::Operations
+        {
+            ref< Variables::Reference > reference;
+            ref< Variables::Instance > to;
+        }
+
+        object Failure : InstructionGroup -> OperationsStage::Operations
+        {
+        }
+
+        object Elimination : InstructionGroup -> OperationsStage::Operations
+        {
+        }
+
+        object Prune : InstructionGroup -> OperationsStage::Operations
+        {
+        }
+
+    }
+
+    namespace Operations
+    {
+        object Operation : Instructions::Instruction -> OperationsStage::Operations
+        {
+            ref< Variables::Instance > instance;
+        }
+
+        object BasicOperation : Operation -> OperationsStage::Operations
+        {
+            ref< Interface::IContext > interface;
+            ref< Concrete::Context > concrete_target;
+        }
+        object DimensionOperation : Operation -> OperationsStage::Operations
+        {
+            ref< Interface::DimensionTrait > interface_dimension;
+            ref< Concrete::Dimension > concrete_dimension;
+        }
+
+        object Call : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
+        object Start : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
+        object Stop : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
+        object Pause : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
+        object Resume : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
+        object Done : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
+        object WaitAction : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
+        object WaitDimension : DimensionOperation -> OperationsStage::Operations
+        {
+        }
+
+        object GetAction : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
+        object GetDimension : DimensionOperation -> OperationsStage::Operations
+        {
+        }
+
+        object Read : DimensionOperation -> OperationsStage::Operations
+        {
+        }
+
+        object Write : DimensionOperation -> OperationsStage::Operations
+        {
+        }
+
+        object WriteLink : DimensionOperation -> OperationsStage::Operations
+        {
+            ref< Variables::Dimension > dimension_reference;
+            // LinkGroup
+        }
+
+        object Range : BasicOperation -> OperationsStage::Operations
+        {
+            // RangeType
+        }
+
+    }
+
+}

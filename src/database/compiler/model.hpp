@@ -174,8 +174,9 @@ public:
 class Object : public CountedObject
 {
 public:
-    Object( Counter& szCounter )
+    Object( Counter& szCounter, const std::string& strIdentifier )
         : CountedObject( szCounter )
+        , m_strName( strIdentifier )
     {
     }
     using Ptr     = std::shared_ptr< Object >;
@@ -188,7 +189,6 @@ public:
     std::string inheritanceGroupVariant() const;
     std::string delimitTypeName( const std::string& str ) const;
 
-    std::string                m_strName;
     std::weak_ptr< Namespace > m_namespace;
     std::weak_ptr< File >      m_primaryFile;
     std::weak_ptr< Stage >     m_stage;
@@ -200,6 +200,12 @@ public:
 
     Ptr                                    m_base;
     std::vector< std::weak_ptr< Object > > m_deriving;
+
+    const std::string& getIdentifier() const { return m_strName; }
+    std::string        getDataTypeName() const;
+
+private:
+    std::string m_strName;
 };
 
 class Namespace : public CountedObject
@@ -599,7 +605,7 @@ public:
         VERIFY_RTE( m_object );
         std::ostringstream os;
         os << "::" << strStageNamespace << "::" << m_object->m_namespace.lock()->m_strFullName
-           << "::" << m_object->m_strName << "*";
+           << "::" << m_object->getIdentifier() << "*";
         return os.str();
     }
     virtual std::string getDatabaseType( DatabaseTypeFormat formatType ) const
@@ -607,7 +613,8 @@ public:
         VERIFY_RTE( m_object );
 
         std::ostringstream os;
-        os << "data::Ptr< data::" << m_object->m_primaryFile.lock()->m_strName << "::" << m_object->m_strName << " >";
+        os << "data::Ptr< data::" << m_object->m_primaryFile.lock()->m_strName << "::" << m_object->getDataTypeName()
+           << " >";
 
         switch ( formatType )
         {

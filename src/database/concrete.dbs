@@ -3,11 +3,13 @@ namespace Concrete
 {
     object Dimension -> ConcreteStage::Concrete
     {
+        ref< Context > parent;
         ref< Interface::DimensionTrait > interface_dimension;
     }
 
     object Context -> ConcreteStage::Concrete
     {
+        opt< ref< Context > > parent;
         array< ref< Interface::IContext > > inheritance;
         array< ref< Context > > children;
     }

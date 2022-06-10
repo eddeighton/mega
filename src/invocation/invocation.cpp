@@ -1,6 +1,7 @@
 
 #include "invocation/invocation.hpp"
 #include "invocation/name_resolution.hpp"
+#include "invocation/generic_operation_visitor.hpp"
 
 #include "mega/common.hpp"
 
@@ -30,7 +31,6 @@ InterfaceVariantVector symbolToInterfaceVariantVector( Database& database, Symbo
     return result;
 }
 
-// 1. Convert from the SymbolIDs to Interface Contexts
 InterfaceVariantVector symbolIDToInterfaceVariant( Database& database, const SymbolIDMap& symbolIDMap,
                                                    mega::SymbolID symbolID )
 {
@@ -72,8 +72,6 @@ symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolIDMap& s
 
     return result;
 }
-
-// 2. Convert from Interface Contexts to Interface/Concrete context pairs
 
 ElementVector* toElementVector( Database& database, const InheritanceMapping& inheritance,
                                 const InterfaceVariantVector& interfaceVariantVector )
@@ -144,11 +142,36 @@ std::vector< ElementVector* > toElementVector( Database& database, const Inherit
     }
     return result;
 }
-// 3. Compute name resolution
 
-// 4. Solve the invocation instructions
-
-// 5. Determine the return type
+void build( Database& database, Invocation* pInvocation )
+{
+    switch ( pInvocation->get_operation() )
+    {
+        case id_Imp_NoParams:
+        case id_Imp_Params:
+        case id_Start:
+        case id_Stop:
+        case id_Pause:
+        case id_Resume:
+        case id_Wait:
+        case id_Get:
+        case id_Done:
+        {
+            GenericOperationVisitor visitor{ database, pInvocation };
+            visitor();
+        }
+        break;
+        case id_Raw:
+        case id_Range:
+        {
+            // EnumerationOperationVisitor builder( *this, resolution );
+            // builder( m_pRoot, pContextVariable );
+        }
+        break;
+        case HIGHEST_OPERATION_TYPE:
+            break;
+    }
+}
 
 OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::invocation::ID& id,
                                                     Database& database, const mega::io::megaFilePath& sourceFile )
@@ -160,6 +183,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
 
     std::optional< mega::OperationID > operationIDOpt;
 
+    // 1. Convert from the SymbolIDs to Interface Contexts
     InterfaceVariantVectorVector context
         = symbolIDVectorToInterfaceVariantVector( database, symbolIDMap, id.m_context, operationIDOpt );
 
@@ -171,6 +195,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
         THROW_RTE( "Invalid operation specified in invocation" );
     }
 
+    // 2. Convert from Interface Contexts to Interface/Concrete context pair element vectors
     const Derivation::Mapping* pMapping    = database.one< Derivation::Mapping >( manifestFile );
     const InheritanceMapping   inheritance = pMapping->get_inheritance();
 
@@ -183,9 +208,14 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     Invocation* pInvocation
         = database.construct< Invocation >( Invocation::Args{ pContext, pTypePath, id.m_operation } );
 
+    // 3. Compute name resolution
     NameResolution* pNameResolution = resolve( database, pMapping, pSymbolTable, pInvocation );
-
     pInvocation->set_name_resolution( pNameResolution );
+
+    // 4. Build the instructions
+    build( database, pInvocation );
+
+    // 5. Determine the return type
 
     return pInvocation;
 }

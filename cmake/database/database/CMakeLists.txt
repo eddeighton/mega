@@ -64,6 +64,7 @@ set( DATABASE_SCHEMAS
         ${MEGA_SRC_DIR}/database/stages.dbs
         ${MEGA_SRC_DIR}/database/parser.dbs
         ${MEGA_SRC_DIR}/database/interface.dbs
+        ${MEGA_SRC_DIR}/database/invocation.dbs
         ${MEGA_SRC_DIR}/database/concrete.dbs
         ${MEGA_SRC_DIR}/database/operations.dbs
         ${MEGA_SRC_DIR}/database/analysis.dbs

@@ -37,26 +37,27 @@ namespace data
 
     namespace Components
     {
-        // struct Component : public mega::io::Object
-        Component::Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Component >( loader, this ) )
+        // struct Components_Component : public mega::io::Object
+        Components_Component::Components_Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) )
         {
         }
-        Component::Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &name,
-                              const boost::filesystem::path &directory, const std::vector< std::string > &cpp_flags,
-                              const std::vector< std::string > &cpp_defines, const std::vector< boost::filesystem::path > &includeDirectories,
-                              const std::vector< boost::filesystem::path > &sourceFiles )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Component >( loader, this ) ), name( name ), directory( directory ),
-              cpp_flags( cpp_flags ), cpp_defines( cpp_defines ), includeDirectories( includeDirectories ), sourceFiles( sourceFiles )
+        Components_Component::Components_Component( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &name,
+                                                    const boost::filesystem::path &directory, const std::vector< std::string > &cpp_flags,
+                                                    const std::vector< std::string >             &cpp_defines,
+                                                    const std::vector< boost::filesystem::path > &includeDirectories,
+                                                    const std::vector< boost::filesystem::path > &sourceFiles )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) ), name( name ),
+              directory( directory ), cpp_flags( cpp_flags ), cpp_defines( cpp_defines ), includeDirectories( includeDirectories ), sourceFiles( sourceFiles )
         {
         }
-        bool Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Components_Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Components::Component > >{
-                                        data::Ptr< data::Components::Component >( loader, const_cast< Component * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Components::Components_Component > >{
+                                        data::Ptr< data::Components::Components_Component >( loader, const_cast< Components_Component * >( this ) ) };
         }
-        void Component::set_inheritance_pointer() {}
-        void Component::load( mega::io::Loader &loader )
+        void Components_Component::set_inheritance_pointer() {}
+        void Components_Component::load( mega::io::Loader &loader )
         {
             loader.load( name );
             loader.load( directory );
@@ -65,7 +66,7 @@ namespace data
             loader.load( includeDirectories );
             loader.load( sourceFiles );
         }
-        void Component::store( mega::io::Storer &storer ) const
+        void Components_Component::store( mega::io::Storer &storer ) const
         {
             storer.store( name );
             storer.store( directory );
@@ -74,9 +75,9 @@ namespace data
             storer.store( includeDirectories );
             storer.store( sourceFiles );
         }
-        void Component::to_json( nlohmann::json &part ) const
+        void Components_Component::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Component" },
+            part = nlohmann::json::object( { { "partname", "Components_Component" },
                                              { "filetype", "Components" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -111,26 +112,26 @@ namespace data
     } // namespace Components
     namespace AST
     {
-        // struct Identifier : public mega::io::Object
-        Identifier::Identifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Identifier >( loader, this ) )
+        // struct Parser_Identifier : public mega::io::Object
+        Parser_Identifier::Parser_Identifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Identifier >( loader, this ) )
         {
         }
-        Identifier::Identifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Identifier >( loader, this ) ), str( str )
+        Parser_Identifier::Parser_Identifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Identifier >( loader, this ) ), str( str )
         {
         }
-        bool Identifier::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_Identifier::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Identifier > >{ data::Ptr< data::AST::Identifier >( loader, const_cast< Identifier * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Identifier > >{
+                                        data::Ptr< data::AST::Parser_Identifier >( loader, const_cast< Parser_Identifier * >( this ) ) };
         }
-        void Identifier::set_inheritance_pointer() {}
-        void Identifier::load( mega::io::Loader &loader ) { loader.load( str ); }
-        void Identifier::store( mega::io::Storer &storer ) const { storer.store( str ); }
-        void Identifier::to_json( nlohmann::json &part ) const
+        void Parser_Identifier::set_inheritance_pointer() {}
+        void Parser_Identifier::load( mega::io::Loader &loader ) { loader.load( str ); }
+        void Parser_Identifier::store( mega::io::Storer &storer ) const { storer.store( str ); }
+        void Parser_Identifier::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Identifier" },
+            part = nlohmann::json::object( { { "partname", "Parser_Identifier" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -142,39 +143,39 @@ namespace data
             }
         }
 
-        // struct ScopedIdentifier : public mega::io::Object
-        ScopedIdentifier::ScopedIdentifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ScopedIdentifier >( loader, this ) )
+        // struct Parser_ScopedIdentifier : public mega::io::Object
+        Parser_ScopedIdentifier::Parser_ScopedIdentifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ScopedIdentifier >( loader, this ) )
         {
         }
-        ScopedIdentifier::ScopedIdentifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                            const std::vector< data::Ptr< data::AST::Identifier > > &ids, const std::string &source_file,
-                                            const std::size_t &line_number )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ScopedIdentifier >( loader, this ) ), ids( ids ), source_file( source_file ),
-              line_number( line_number )
+        Parser_ScopedIdentifier::Parser_ScopedIdentifier( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                          const std::vector< data::Ptr< data::AST::Parser_Identifier > > &ids, const std::string &source_file,
+                                                          const std::size_t &line_number )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ScopedIdentifier >( loader, this ) ), ids( ids ),
+              source_file( source_file ), line_number( line_number )
         {
         }
-        bool ScopedIdentifier::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_ScopedIdentifier::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ScopedIdentifier > >{
-                                        data::Ptr< data::AST::ScopedIdentifier >( loader, const_cast< ScopedIdentifier * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ScopedIdentifier > >{
+                                        data::Ptr< data::AST::Parser_ScopedIdentifier >( loader, const_cast< Parser_ScopedIdentifier * >( this ) ) };
         }
-        void ScopedIdentifier::set_inheritance_pointer() {}
-        void ScopedIdentifier::load( mega::io::Loader &loader )
+        void Parser_ScopedIdentifier::set_inheritance_pointer() {}
+        void Parser_ScopedIdentifier::load( mega::io::Loader &loader )
         {
             loader.load( ids );
             loader.load( source_file );
             loader.load( line_number );
         }
-        void ScopedIdentifier::store( mega::io::Storer &storer ) const
+        void Parser_ScopedIdentifier::store( mega::io::Storer &storer ) const
         {
             storer.store( ids );
             storer.store( source_file );
             storer.store( line_number );
         }
-        void ScopedIdentifier::to_json( nlohmann::json &part ) const
+        void Parser_ScopedIdentifier::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ScopedIdentifier" },
+            part = nlohmann::json::object( { { "partname", "Parser_ScopedIdentifier" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -194,26 +195,26 @@ namespace data
             }
         }
 
-        // struct ArgumentList : public mega::io::Object
-        ArgumentList::ArgumentList( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ArgumentList >( loader, this ) )
+        // struct Parser_ArgumentList : public mega::io::Object
+        Parser_ArgumentList::Parser_ArgumentList( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ArgumentList >( loader, this ) )
         {
         }
-        ArgumentList::ArgumentList( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ArgumentList >( loader, this ) ), str( str )
+        Parser_ArgumentList::Parser_ArgumentList( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ArgumentList >( loader, this ) ), str( str )
         {
         }
-        bool ArgumentList::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_ArgumentList::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > >{
-                                        data::Ptr< data::AST::ArgumentList >( loader, const_cast< ArgumentList * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ArgumentList >, data::Ptr< data::Tree::Interface_ArgumentListTrait > >{
+                                        data::Ptr< data::AST::Parser_ArgumentList >( loader, const_cast< Parser_ArgumentList * >( this ) ) };
         }
-        void ArgumentList::set_inheritance_pointer() {}
-        void ArgumentList::load( mega::io::Loader &loader ) { loader.load( str ); }
-        void ArgumentList::store( mega::io::Storer &storer ) const { storer.store( str ); }
-        void ArgumentList::to_json( nlohmann::json &part ) const
+        void Parser_ArgumentList::set_inheritance_pointer() {}
+        void Parser_ArgumentList::load( mega::io::Loader &loader ) { loader.load( str ); }
+        void Parser_ArgumentList::store( mega::io::Storer &storer ) const { storer.store( str ); }
+        void Parser_ArgumentList::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ArgumentList" },
+            part = nlohmann::json::object( { { "partname", "Parser_ArgumentList" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -225,26 +226,26 @@ namespace data
             }
         }
 
-        // struct ReturnType : public mega::io::Object
-        ReturnType::ReturnType( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ReturnType >( loader, this ) )
+        // struct Parser_ReturnType : public mega::io::Object
+        Parser_ReturnType::Parser_ReturnType( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ReturnType >( loader, this ) )
         {
         }
-        ReturnType::ReturnType( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ReturnType >( loader, this ) ), str( str )
+        Parser_ReturnType::Parser_ReturnType( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ReturnType >( loader, this ) ), str( str )
         {
         }
-        bool ReturnType::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_ReturnType::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > >{
-                                        data::Ptr< data::AST::ReturnType >( loader, const_cast< ReturnType * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ReturnType >, data::Ptr< data::Tree::Interface_ReturnTypeTrait > >{
+                                        data::Ptr< data::AST::Parser_ReturnType >( loader, const_cast< Parser_ReturnType * >( this ) ) };
         }
-        void ReturnType::set_inheritance_pointer() {}
-        void ReturnType::load( mega::io::Loader &loader ) { loader.load( str ); }
-        void ReturnType::store( mega::io::Storer &storer ) const { storer.store( str ); }
-        void ReturnType::to_json( nlohmann::json &part ) const
+        void Parser_ReturnType::set_inheritance_pointer() {}
+        void Parser_ReturnType::load( mega::io::Loader &loader ) { loader.load( str ); }
+        void Parser_ReturnType::store( mega::io::Storer &storer ) const { storer.store( str ); }
+        void Parser_ReturnType::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ReturnType" },
+            part = nlohmann::json::object( { { "partname", "Parser_ReturnType" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -256,26 +257,26 @@ namespace data
             }
         }
 
-        // struct Inheritance : public mega::io::Object
-        Inheritance::Inheritance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Inheritance >( loader, this ) )
+        // struct Parser_Inheritance : public mega::io::Object
+        Parser_Inheritance::Parser_Inheritance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Inheritance >( loader, this ) )
         {
         }
-        Inheritance::Inheritance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< std::string > &strings )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Inheritance >( loader, this ) ), strings( strings )
+        Parser_Inheritance::Parser_Inheritance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< std::string > &strings )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Inheritance >( loader, this ) ), strings( strings )
         {
         }
-        bool Inheritance::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_Inheritance::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > >{
-                                        data::Ptr< data::AST::Inheritance >( loader, const_cast< Inheritance * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Inheritance >, data::Ptr< data::Tree::Interface_InheritanceTrait > >{
+                                        data::Ptr< data::AST::Parser_Inheritance >( loader, const_cast< Parser_Inheritance * >( this ) ) };
         }
-        void Inheritance::set_inheritance_pointer() {}
-        void Inheritance::load( mega::io::Loader &loader ) { loader.load( strings ); }
-        void Inheritance::store( mega::io::Storer &storer ) const { storer.store( strings ); }
-        void Inheritance::to_json( nlohmann::json &part ) const
+        void Parser_Inheritance::set_inheritance_pointer() {}
+        void Parser_Inheritance::load( mega::io::Loader &loader ) { loader.load( strings ); }
+        void Parser_Inheritance::store( mega::io::Storer &storer ) const { storer.store( strings ); }
+        void Parser_Inheritance::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Inheritance" },
+            part = nlohmann::json::object( { { "partname", "Parser_Inheritance" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -287,26 +288,26 @@ namespace data
             }
         }
 
-        // struct Size : public mega::io::Object
-        Size::Size( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Size >( loader, this ) )
+        // struct Parser_Size : public mega::io::Object
+        Parser_Size::Parser_Size( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Size >( loader, this ) )
         {
         }
-        Size::Size( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Size >( loader, this ) ), str( str )
+        Parser_Size::Parser_Size( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Size >( loader, this ) ), str( str )
         {
         }
-        bool Size::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_Size::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > >{
-                                        data::Ptr< data::AST::Size >( loader, const_cast< Size * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Size >, data::Ptr< data::Tree::Interface_SizeTrait > >{
+                                        data::Ptr< data::AST::Parser_Size >( loader, const_cast< Parser_Size * >( this ) ) };
         }
-        void Size::set_inheritance_pointer() {}
-        void Size::load( mega::io::Loader &loader ) { loader.load( str ); }
-        void Size::store( mega::io::Storer &storer ) const { storer.store( str ); }
-        void Size::to_json( nlohmann::json &part ) const
+        void Parser_Size::set_inheritance_pointer() {}
+        void Parser_Size::load( mega::io::Loader &loader ) { loader.load( str ); }
+        void Parser_Size::store( mega::io::Storer &storer ) const { storer.store( str ); }
+        void Parser_Size::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Size" },
+            part = nlohmann::json::object( { { "partname", "Parser_Size" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -318,24 +319,24 @@ namespace data
             }
         }
 
-        // struct Link : public mega::io::Object
-        Link::Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Link >( loader, this ) )
+        // struct Parser_Link : public mega::io::Object
+        Parser_Link::Parser_Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Link >( loader, this ) )
         {
         }
-        Link::Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const mega::CardinalityRange &linker,
-                    const mega::CardinalityRange &linkee, const bool &derive_from, const bool &derive_to, const mega::Ownership &ownership )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Link >( loader, this ) ), linker( linker ), linkee( linkee ),
+        Parser_Link::Parser_Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const mega::CardinalityRange &linker,
+                                  const mega::CardinalityRange &linkee, const bool &derive_from, const bool &derive_to, const mega::Ownership &ownership )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Link >( loader, this ) ), linker( linker ), linkee( linkee ),
               derive_from( derive_from ), derive_to( derive_to ), ownership( ownership )
         {
         }
-        bool Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::Link >, data::Ptr< data::Tree::LinkTrait > >{
-                                        data::Ptr< data::AST::Link >( loader, const_cast< Link * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >{
+                                        data::Ptr< data::AST::Parser_Link >( loader, const_cast< Parser_Link * >( this ) ) };
         }
-        void Link::set_inheritance_pointer() {}
-        void Link::load( mega::io::Loader &loader )
+        void Parser_Link::set_inheritance_pointer() {}
+        void Parser_Link::load( mega::io::Loader &loader )
         {
             loader.load( linker );
             loader.load( linkee );
@@ -343,7 +344,7 @@ namespace data
             loader.load( derive_to );
             loader.load( ownership );
         }
-        void Link::store( mega::io::Storer &storer ) const
+        void Parser_Link::store( mega::io::Storer &storer ) const
         {
             storer.store( linker );
             storer.store( linkee );
@@ -351,9 +352,9 @@ namespace data
             storer.store( derive_to );
             storer.store( ownership );
         }
-        void Link::to_json( nlohmann::json &part ) const
+        void Parser_Link::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Link" },
+            part = nlohmann::json::object( { { "partname", "Parser_Link" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -381,37 +382,38 @@ namespace data
             }
         }
 
-        // struct Dimension : public mega::io::Object
-        Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Dimension >( loader, this ) ), id( loader )
+        // struct Parser_Dimension : public mega::io::Object
+        Parser_Dimension::Parser_Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Dimension >( loader, this ) ), id( loader )
         {
         }
-        Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const bool &isConst,
-                              const data::Ptr< data::AST::Identifier > &id, const std::string &type )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Dimension >( loader, this ) ), isConst( isConst ), id( id ), type( type )
+        Parser_Dimension::Parser_Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const bool &isConst,
+                                            const data::Ptr< data::AST::Parser_Identifier > &id, const std::string &type )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Dimension >( loader, this ) ), isConst( isConst ), id( id ),
+              type( type )
         {
         }
-        bool Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait > >{
-                                        data::Ptr< data::AST::Dimension >( loader, const_cast< Dimension * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >{
+                                        data::Ptr< data::AST::Parser_Dimension >( loader, const_cast< Parser_Dimension * >( this ) ) };
         }
-        void Dimension::set_inheritance_pointer() {}
-        void Dimension::load( mega::io::Loader &loader )
+        void Parser_Dimension::set_inheritance_pointer() {}
+        void Parser_Dimension::load( mega::io::Loader &loader )
         {
             loader.load( isConst );
             loader.load( id );
             loader.load( type );
         }
-        void Dimension::store( mega::io::Storer &storer ) const
+        void Parser_Dimension::store( mega::io::Storer &storer ) const
         {
             storer.store( isConst );
             storer.store( id );
             storer.store( type );
         }
-        void Dimension::to_json( nlohmann::json &part ) const
+        void Parser_Dimension::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Dimension" },
+            part = nlohmann::json::object( { { "partname", "Parser_Dimension" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -431,24 +433,24 @@ namespace data
             }
         }
 
-        // struct Include : public mega::io::Object
-        Include::Include( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Include >( loader, this ) )
+        // struct Parser_Include : public mega::io::Object
+        Parser_Include::Parser_Include( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Include >( loader, this ) )
         {
         }
-        bool Include::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_Include::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
-                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::Include >( loader, const_cast< Include * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Include >, data::Ptr< data::AST::Parser_SystemInclude >,
+                                                  data::Ptr< data::AST::Parser_MegaInclude >, data::Ptr< data::AST::Parser_MegaIncludeInline >,
+                                                  data::Ptr< data::AST::Parser_MegaIncludeNested >, data::Ptr< data::AST::Parser_CPPInclude > >{
+                                        data::Ptr< data::AST::Parser_Include >( loader, const_cast< Parser_Include * >( this ) ) };
         }
-        void Include::set_inheritance_pointer() {}
-        void Include::load( mega::io::Loader &loader ) {}
-        void Include::store( mega::io::Storer &storer ) const {}
-        void Include::to_json( nlohmann::json &part ) const
+        void Parser_Include::set_inheritance_pointer() {}
+        void Parser_Include::load( mega::io::Loader &loader ) {}
+        void Parser_Include::store( mega::io::Storer &storer ) const {}
+        void Parser_Include::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Include" },
+            part = nlohmann::json::object( { { "partname", "Parser_Include" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -456,36 +458,40 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct SystemInclude : public mega::io::Object
-        SystemInclude::SystemInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::SystemInclude >( loader, this ) ), p_AST_Include( loader )
+        // struct Parser_SystemInclude : public mega::io::Object
+        Parser_SystemInclude::Parser_SystemInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_SystemInclude >( loader, this ) ), p_AST_Parser_Include( loader )
         {
         }
-        SystemInclude::SystemInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::SystemInclude >( loader, this ) ), p_AST_Include( loader ), str( str )
+        Parser_SystemInclude::Parser_SystemInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_SystemInclude >( loader, this ) ), p_AST_Parser_Include( loader ),
+              str( str )
         {
         }
-        bool SystemInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_SystemInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
-                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::SystemInclude >( loader, const_cast< SystemInclude * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Include >, data::Ptr< data::AST::Parser_SystemInclude >,
+                                                  data::Ptr< data::AST::Parser_MegaInclude >, data::Ptr< data::AST::Parser_MegaIncludeInline >,
+                                                  data::Ptr< data::AST::Parser_MegaIncludeNested >, data::Ptr< data::AST::Parser_CPPInclude > >{
+                                        data::Ptr< data::AST::Parser_SystemInclude >( loader, const_cast< Parser_SystemInclude * >( this ) ) };
         }
-        void SystemInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = data::Ptr< data::AST::SystemInclude >( p_AST_Include, this ); }
-        void SystemInclude::load( mega::io::Loader &loader )
+        void Parser_SystemInclude::set_inheritance_pointer()
         {
-            loader.load( p_AST_Include );
+            p_AST_Parser_Include->m_inheritance = data::Ptr< data::AST::Parser_SystemInclude >( p_AST_Parser_Include, this );
+        }
+        void Parser_SystemInclude::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_Include );
             loader.load( str );
         }
-        void SystemInclude::store( mega::io::Storer &storer ) const
+        void Parser_SystemInclude::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_Include );
+            storer.store( p_AST_Parser_Include );
             storer.store( str );
         }
-        void SystemInclude::to_json( nlohmann::json &part ) const
+        void Parser_SystemInclude::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "SystemInclude" },
+            part = nlohmann::json::object( { { "partname", "Parser_SystemInclude" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -497,40 +503,45 @@ namespace data
             }
         }
 
-        // struct MegaInclude : public mega::io::Object
-        MegaInclude::MegaInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaInclude >( loader, this ) ), p_AST_Include( loader ), root( loader )
+        // struct Parser_MegaInclude : public mega::io::Object
+        Parser_MegaInclude::Parser_MegaInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_MegaInclude >( loader, this ) ), p_AST_Parser_Include( loader ),
+              root( loader )
         {
         }
-        MegaInclude::MegaInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &megaSourceFilePath )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaInclude >( loader, this ) ), p_AST_Include( loader ),
+        Parser_MegaInclude::Parser_MegaInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const boost::filesystem::path &megaSourceFilePath )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_MegaInclude >( loader, this ) ), p_AST_Parser_Include( loader ),
               megaSourceFilePath( megaSourceFilePath )
         {
         }
-        bool MegaInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_MegaInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
-                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::MegaInclude >( loader, const_cast< MegaInclude * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Include >, data::Ptr< data::AST::Parser_SystemInclude >,
+                                                  data::Ptr< data::AST::Parser_MegaInclude >, data::Ptr< data::AST::Parser_MegaIncludeInline >,
+                                                  data::Ptr< data::AST::Parser_MegaIncludeNested >, data::Ptr< data::AST::Parser_CPPInclude > >{
+                                        data::Ptr< data::AST::Parser_MegaInclude >( loader, const_cast< Parser_MegaInclude * >( this ) ) };
         }
-        void MegaInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = data::Ptr< data::AST::MegaInclude >( p_AST_Include, this ); }
-        void MegaInclude::load( mega::io::Loader &loader )
+        void Parser_MegaInclude::set_inheritance_pointer()
         {
-            loader.load( p_AST_Include );
+            p_AST_Parser_Include->m_inheritance = data::Ptr< data::AST::Parser_MegaInclude >( p_AST_Parser_Include, this );
+        }
+        void Parser_MegaInclude::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_Include );
             loader.load( megaSourceFilePath );
             loader.load( root );
         }
-        void MegaInclude::store( mega::io::Storer &storer ) const
+        void Parser_MegaInclude::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_Include );
+            storer.store( p_AST_Parser_Include );
             storer.store( megaSourceFilePath );
-            VERIFY_RTE_MSG( root.has_value(), "AST::MegaInclude.root has NOT been set" );
+            VERIFY_RTE_MSG( root.has_value(), "AST::Parser_MegaInclude.root has NOT been set" );
             storer.store( root );
         }
-        void MegaInclude::to_json( nlohmann::json &part ) const
+        void Parser_MegaInclude::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "MegaInclude" },
+            part = nlohmann::json::object( { { "partname", "Parser_MegaInclude" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -546,27 +557,28 @@ namespace data
             }
         }
 
-        // struct MegaIncludeInline : public mega::io::Object
-        MegaIncludeInline::MegaIncludeInline( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaIncludeInline >( loader, this ) ), p_AST_MegaInclude( loader )
+        // struct Parser_MegaIncludeInline : public mega::io::Object
+        Parser_MegaIncludeInline::Parser_MegaIncludeInline( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_MegaIncludeInline >( loader, this ) ),
+              p_AST_Parser_MegaInclude( loader )
         {
         }
-        bool MegaIncludeInline::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_MegaIncludeInline::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
-                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::MegaIncludeInline >( loader, const_cast< MegaIncludeInline * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Include >, data::Ptr< data::AST::Parser_SystemInclude >,
+                                                  data::Ptr< data::AST::Parser_MegaInclude >, data::Ptr< data::AST::Parser_MegaIncludeInline >,
+                                                  data::Ptr< data::AST::Parser_MegaIncludeNested >, data::Ptr< data::AST::Parser_CPPInclude > >{
+                                        data::Ptr< data::AST::Parser_MegaIncludeInline >( loader, const_cast< Parser_MegaIncludeInline * >( this ) ) };
         }
-        void MegaIncludeInline::set_inheritance_pointer()
+        void Parser_MegaIncludeInline::set_inheritance_pointer()
         {
-            p_AST_MegaInclude->m_inheritance = data::Ptr< data::AST::MegaIncludeInline >( p_AST_MegaInclude, this );
+            p_AST_Parser_MegaInclude->m_inheritance = data::Ptr< data::AST::Parser_MegaIncludeInline >( p_AST_Parser_MegaInclude, this );
         }
-        void MegaIncludeInline::load( mega::io::Loader &loader ) { loader.load( p_AST_MegaInclude ); }
-        void MegaIncludeInline::store( mega::io::Storer &storer ) const { storer.store( p_AST_MegaInclude ); }
-        void MegaIncludeInline::to_json( nlohmann::json &part ) const
+        void Parser_MegaIncludeInline::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_MegaInclude ); }
+        void Parser_MegaIncludeInline::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_MegaInclude ); }
+        void Parser_MegaIncludeInline::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "MegaIncludeInline" },
+            part = nlohmann::json::object( { { "partname", "Parser_MegaIncludeInline" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -574,41 +586,42 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct MegaIncludeNested : public mega::io::Object
-        MegaIncludeNested::MegaIncludeNested( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaIncludeNested >( loader, this ) ), p_AST_MegaInclude( loader ),
-              id( loader )
+        // struct Parser_MegaIncludeNested : public mega::io::Object
+        Parser_MegaIncludeNested::Parser_MegaIncludeNested( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_MegaIncludeNested >( loader, this ) ),
+              p_AST_Parser_MegaInclude( loader ), id( loader )
         {
         }
-        MegaIncludeNested::MegaIncludeNested( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                              const data::Ptr< data::AST::ScopedIdentifier > &id )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::MegaIncludeNested >( loader, this ) ), p_AST_MegaInclude( loader ), id( id )
+        Parser_MegaIncludeNested::Parser_MegaIncludeNested( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                            const data::Ptr< data::AST::Parser_ScopedIdentifier > &id )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_MegaIncludeNested >( loader, this ) ),
+              p_AST_Parser_MegaInclude( loader ), id( id )
         {
         }
-        bool MegaIncludeNested::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_MegaIncludeNested::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
-                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::MegaIncludeNested >( loader, const_cast< MegaIncludeNested * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Include >, data::Ptr< data::AST::Parser_SystemInclude >,
+                                                  data::Ptr< data::AST::Parser_MegaInclude >, data::Ptr< data::AST::Parser_MegaIncludeInline >,
+                                                  data::Ptr< data::AST::Parser_MegaIncludeNested >, data::Ptr< data::AST::Parser_CPPInclude > >{
+                                        data::Ptr< data::AST::Parser_MegaIncludeNested >( loader, const_cast< Parser_MegaIncludeNested * >( this ) ) };
         }
-        void MegaIncludeNested::set_inheritance_pointer()
+        void Parser_MegaIncludeNested::set_inheritance_pointer()
         {
-            p_AST_MegaInclude->m_inheritance = data::Ptr< data::AST::MegaIncludeNested >( p_AST_MegaInclude, this );
+            p_AST_Parser_MegaInclude->m_inheritance = data::Ptr< data::AST::Parser_MegaIncludeNested >( p_AST_Parser_MegaInclude, this );
         }
-        void MegaIncludeNested::load( mega::io::Loader &loader )
+        void Parser_MegaIncludeNested::load( mega::io::Loader &loader )
         {
-            loader.load( p_AST_MegaInclude );
+            loader.load( p_AST_Parser_MegaInclude );
             loader.load( id );
         }
-        void MegaIncludeNested::store( mega::io::Storer &storer ) const
+        void Parser_MegaIncludeNested::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_MegaInclude );
+            storer.store( p_AST_Parser_MegaInclude );
             storer.store( id );
         }
-        void MegaIncludeNested::to_json( nlohmann::json &part ) const
+        void Parser_MegaIncludeNested::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "MegaIncludeNested" },
+            part = nlohmann::json::object( { { "partname", "Parser_MegaIncludeNested" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -620,37 +633,41 @@ namespace data
             }
         }
 
-        // struct CPPInclude : public mega::io::Object
-        CPPInclude::CPPInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::CPPInclude >( loader, this ) ), p_AST_Include( loader )
+        // struct Parser_CPPInclude : public mega::io::Object
+        Parser_CPPInclude::Parser_CPPInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_CPPInclude >( loader, this ) ), p_AST_Parser_Include( loader )
         {
         }
-        CPPInclude::CPPInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &cppSourceFilePath )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::CPPInclude >( loader, this ) ), p_AST_Include( loader ),
+        Parser_CPPInclude::Parser_CPPInclude( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                              const boost::filesystem::path &cppSourceFilePath )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_CPPInclude >( loader, this ) ), p_AST_Parser_Include( loader ),
               cppSourceFilePath( cppSourceFilePath )
         {
         }
-        bool CPPInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_CPPInclude::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Include >, data::Ptr< data::AST::SystemInclude >, data::Ptr< data::AST::MegaInclude >,
-                                 data::Ptr< data::AST::MegaIncludeInline >, data::Ptr< data::AST::MegaIncludeNested >, data::Ptr< data::AST::CPPInclude > >{
-                       data::Ptr< data::AST::CPPInclude >( loader, const_cast< CPPInclude * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Include >, data::Ptr< data::AST::Parser_SystemInclude >,
+                                                  data::Ptr< data::AST::Parser_MegaInclude >, data::Ptr< data::AST::Parser_MegaIncludeInline >,
+                                                  data::Ptr< data::AST::Parser_MegaIncludeNested >, data::Ptr< data::AST::Parser_CPPInclude > >{
+                                        data::Ptr< data::AST::Parser_CPPInclude >( loader, const_cast< Parser_CPPInclude * >( this ) ) };
         }
-        void CPPInclude::set_inheritance_pointer() { p_AST_Include->m_inheritance = data::Ptr< data::AST::CPPInclude >( p_AST_Include, this ); }
-        void CPPInclude::load( mega::io::Loader &loader )
+        void Parser_CPPInclude::set_inheritance_pointer()
         {
-            loader.load( p_AST_Include );
+            p_AST_Parser_Include->m_inheritance = data::Ptr< data::AST::Parser_CPPInclude >( p_AST_Parser_Include, this );
+        }
+        void Parser_CPPInclude::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_Include );
             loader.load( cppSourceFilePath );
         }
-        void CPPInclude::store( mega::io::Storer &storer ) const
+        void Parser_CPPInclude::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_Include );
+            storer.store( p_AST_Parser_Include );
             storer.store( cppSourceFilePath );
         }
-        void CPPInclude::to_json( nlohmann::json &part ) const
+        void Parser_CPPInclude::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "CPPInclude" },
+            part = nlohmann::json::object( { { "partname", "Parser_CPPInclude" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -662,26 +679,26 @@ namespace data
             }
         }
 
-        // struct Dependency : public mega::io::Object
-        Dependency::Dependency( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Dependency >( loader, this ) )
+        // struct Parser_Dependency : public mega::io::Object
+        Parser_Dependency::Parser_Dependency( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Dependency >( loader, this ) )
         {
         }
-        Dependency::Dependency( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Dependency >( loader, this ) ), str( str )
+        Parser_Dependency::Parser_Dependency( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &str )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Dependency >( loader, this ) ), str( str )
         {
         }
-        bool Dependency::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_Dependency::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::Dependency > >{ data::Ptr< data::AST::Dependency >( loader, const_cast< Dependency * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Dependency > >{
+                                        data::Ptr< data::AST::Parser_Dependency >( loader, const_cast< Parser_Dependency * >( this ) ) };
         }
-        void Dependency::set_inheritance_pointer() {}
-        void Dependency::load( mega::io::Loader &loader ) { loader.load( str ); }
-        void Dependency::store( mega::io::Storer &storer ) const { storer.store( str ); }
-        void Dependency::to_json( nlohmann::json &part ) const
+        void Parser_Dependency::set_inheritance_pointer() {}
+        void Parser_Dependency::load( mega::io::Loader &loader ) { loader.load( str ); }
+        void Parser_Dependency::store( mega::io::Storer &storer ) const { storer.store( str ); }
+        void Parser_Dependency::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Dependency" },
+            part = nlohmann::json::object( { { "partname", "Parser_Dependency" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -693,49 +710,53 @@ namespace data
             }
         }
 
-        // struct ContextDef : public mega::io::Object
-        ContextDef::ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ContextDef >( loader, this ) ), p_Body_ContextDef( loader ), id( loader )
+        // struct Parser_ContextDef : public mega::io::Object
+        Parser_ContextDef::Parser_ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ContextDef >( loader, this ) ), p_Body_Parser_ContextDef( loader ),
+              id( loader )
         {
         }
-        ContextDef::ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ScopedIdentifier > &id,
-                                const std::vector< data::Ptr< data::AST::ContextDef > > &children,
-                                const std::vector< data::Ptr< data::AST::Dimension > >  &dimensions,
-                                const std::vector< data::Ptr< data::AST::Include > >    &includes,
-                                const std::vector< data::Ptr< data::AST::Dependency > > &dependencies )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ContextDef >( loader, this ) ), p_Body_ContextDef( loader ), id( id ),
-              children( children ), dimensions( dimensions ), includes( includes ), dependencies( dependencies )
+        Parser_ContextDef::Parser_ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                              const data::Ptr< data::AST::Parser_ScopedIdentifier >          &id,
+                                              const std::vector< data::Ptr< data::AST::Parser_ContextDef > > &children,
+                                              const std::vector< data::Ptr< data::AST::Parser_Dimension > >  &dimensions,
+                                              const std::vector< data::Ptr< data::AST::Parser_Include > >    &includes,
+                                              const std::vector< data::Ptr< data::AST::Parser_Dependency > > &dependencies )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ContextDef >( loader, this ) ), p_Body_Parser_ContextDef( loader ),
+              id( id ), children( children ), dimensions( dimensions ), includes( includes ), dependencies( dependencies )
         {
         }
-        bool ContextDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_ContextDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::ContextDef >( loader, const_cast< ContextDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_ContextDef >( loader, const_cast< Parser_ContextDef * >( this ) ) };
         }
-        void ContextDef::set_inheritance_pointer() {}
-        void ContextDef::load( mega::io::Loader &loader )
+        void Parser_ContextDef::set_inheritance_pointer() {}
+        void Parser_ContextDef::load( mega::io::Loader &loader )
         {
-            loader.load( p_Body_ContextDef );
+            loader.load( p_Body_Parser_ContextDef );
             loader.load( id );
             loader.load( children );
             loader.load( dimensions );
             loader.load( includes );
             loader.load( dependencies );
         }
-        void ContextDef::store( mega::io::Storer &storer ) const
+        void Parser_ContextDef::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Body_ContextDef );
+            storer.store( p_Body_Parser_ContextDef );
             storer.store( id );
             storer.store( children );
             storer.store( dimensions );
             storer.store( includes );
             storer.store( dependencies );
         }
-        void ContextDef::to_json( nlohmann::json &part ) const
+        void Parser_ContextDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ContextDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_ContextDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -763,24 +784,29 @@ namespace data
             }
         }
 
-        // struct NamespaceDef : public mega::io::Object
-        NamespaceDef::NamespaceDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::NamespaceDef >( loader, this ) ), p_AST_ContextDef( loader )
+        // struct Parser_NamespaceDef : public mega::io::Object
+        Parser_NamespaceDef::Parser_NamespaceDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_NamespaceDef >( loader, this ) ), p_AST_Parser_ContextDef( loader )
         {
         }
-        bool NamespaceDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_NamespaceDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::NamespaceDef >( loader, const_cast< NamespaceDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_NamespaceDef >( loader, const_cast< Parser_NamespaceDef * >( this ) ) };
         }
-        void NamespaceDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::NamespaceDef >( p_AST_ContextDef, this ); }
-        void NamespaceDef::load( mega::io::Loader &loader ) { loader.load( p_AST_ContextDef ); }
-        void NamespaceDef::store( mega::io::Storer &storer ) const { storer.store( p_AST_ContextDef ); }
-        void NamespaceDef::to_json( nlohmann::json &part ) const
+        void Parser_NamespaceDef::set_inheritance_pointer()
         {
-            part = nlohmann::json::object( { { "partname", "NamespaceDef" },
+            p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_NamespaceDef >( p_AST_Parser_ContextDef, this );
+        }
+        void Parser_NamespaceDef::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_ContextDef ); }
+        void Parser_NamespaceDef::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_ContextDef ); }
+        void Parser_NamespaceDef::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Parser_NamespaceDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -788,38 +814,44 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct AbstractDef : public mega::io::Object
-        AbstractDef::AbstractDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::AbstractDef >( loader, this ) ), p_AST_ContextDef( loader ),
+        // struct Parser_AbstractDef : public mega::io::Object
+        Parser_AbstractDef::Parser_AbstractDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_AbstractDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
               inheritance( loader )
         {
         }
-        AbstractDef::AbstractDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::AbstractDef >( loader, this ) ), p_AST_ContextDef( loader ),
+        Parser_AbstractDef::Parser_AbstractDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const data::Ptr< data::AST::Parser_Inheritance > &inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_AbstractDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
               inheritance( inheritance )
         {
         }
-        bool AbstractDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_AbstractDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::AbstractDef >( loader, const_cast< AbstractDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_AbstractDef >( loader, const_cast< Parser_AbstractDef * >( this ) ) };
         }
-        void AbstractDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::AbstractDef >( p_AST_ContextDef, this ); }
-        void AbstractDef::load( mega::io::Loader &loader )
+        void Parser_AbstractDef::set_inheritance_pointer()
         {
-            loader.load( p_AST_ContextDef );
+            p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_AbstractDef >( p_AST_Parser_ContextDef, this );
+        }
+        void Parser_AbstractDef::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_ContextDef );
             loader.load( inheritance );
         }
-        void AbstractDef::store( mega::io::Storer &storer ) const
+        void Parser_AbstractDef::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_ContextDef );
+            storer.store( p_AST_Parser_ContextDef );
             storer.store( inheritance );
         }
-        void AbstractDef::to_json( nlohmann::json &part ) const
+        void Parser_AbstractDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "AbstractDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_AbstractDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -831,41 +863,46 @@ namespace data
             }
         }
 
-        // struct ActionDef : public mega::io::Object
-        ActionDef::ActionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ActionDef >( loader, this ) ), p_AST_ContextDef( loader ), size( loader ),
-              inheritance( loader )
+        // struct Parser_ActionDef : public mega::io::Object
+        Parser_ActionDef::Parser_ActionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ActionDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
+              size( loader ), inheritance( loader )
         {
         }
-        ActionDef::ActionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Size > &size,
-                              const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ActionDef >( loader, this ) ), p_AST_ContextDef( loader ), size( size ),
-              inheritance( inheritance )
+        Parser_ActionDef::Parser_ActionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Parser_Size > &size,
+                                            const data::Ptr< data::AST::Parser_Inheritance > &inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ActionDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
+              size( size ), inheritance( inheritance )
         {
         }
-        bool ActionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_ActionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::ActionDef >( loader, const_cast< ActionDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_ActionDef >( loader, const_cast< Parser_ActionDef * >( this ) ) };
         }
-        void ActionDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::ActionDef >( p_AST_ContextDef, this ); }
-        void ActionDef::load( mega::io::Loader &loader )
+        void Parser_ActionDef::set_inheritance_pointer()
         {
-            loader.load( p_AST_ContextDef );
+            p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_ActionDef >( p_AST_Parser_ContextDef, this );
+        }
+        void Parser_ActionDef::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_ContextDef );
             loader.load( size );
             loader.load( inheritance );
         }
-        void ActionDef::store( mega::io::Storer &storer ) const
+        void Parser_ActionDef::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_ContextDef );
+            storer.store( p_AST_Parser_ContextDef );
             storer.store( size );
             storer.store( inheritance );
         }
-        void ActionDef::to_json( nlohmann::json &part ) const
+        void Parser_ActionDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ActionDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_ActionDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -881,41 +918,46 @@ namespace data
             }
         }
 
-        // struct EventDef : public mega::io::Object
-        EventDef::EventDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::EventDef >( loader, this ) ), p_AST_ContextDef( loader ), size( loader ),
-              inheritance( loader )
+        // struct Parser_EventDef : public mega::io::Object
+        Parser_EventDef::Parser_EventDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_EventDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
+              size( loader ), inheritance( loader )
         {
         }
-        EventDef::EventDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Size > &size,
-                            const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::EventDef >( loader, this ) ), p_AST_ContextDef( loader ), size( size ),
-              inheritance( inheritance )
+        Parser_EventDef::Parser_EventDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Parser_Size > &size,
+                                          const data::Ptr< data::AST::Parser_Inheritance > &inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_EventDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
+              size( size ), inheritance( inheritance )
         {
         }
-        bool EventDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_EventDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::EventDef >( loader, const_cast< EventDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_EventDef >( loader, const_cast< Parser_EventDef * >( this ) ) };
         }
-        void EventDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::EventDef >( p_AST_ContextDef, this ); }
-        void EventDef::load( mega::io::Loader &loader )
+        void Parser_EventDef::set_inheritance_pointer()
         {
-            loader.load( p_AST_ContextDef );
+            p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_EventDef >( p_AST_Parser_ContextDef, this );
+        }
+        void Parser_EventDef::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_ContextDef );
             loader.load( size );
             loader.load( inheritance );
         }
-        void EventDef::store( mega::io::Storer &storer ) const
+        void Parser_EventDef::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_ContextDef );
+            storer.store( p_AST_Parser_ContextDef );
             storer.store( size );
             storer.store( inheritance );
         }
-        void EventDef::to_json( nlohmann::json &part ) const
+        void Parser_EventDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "EventDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_EventDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -931,41 +973,47 @@ namespace data
             }
         }
 
-        // struct FunctionDef : public mega::io::Object
-        FunctionDef::FunctionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::FunctionDef >( loader, this ) ), p_AST_ContextDef( loader ),
+        // struct Parser_FunctionDef : public mega::io::Object
+        Parser_FunctionDef::Parser_FunctionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_FunctionDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
               argumentList( loader ), returnType( loader )
         {
         }
-        FunctionDef::FunctionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ArgumentList > &argumentList,
-                                  const data::Ptr< data::AST::ReturnType > &returnType )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::FunctionDef >( loader, this ) ), p_AST_ContextDef( loader ),
+        Parser_FunctionDef::Parser_FunctionDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const data::Ptr< data::AST::Parser_ArgumentList > &argumentList,
+                                                const data::Ptr< data::AST::Parser_ReturnType >   &returnType )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_FunctionDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
               argumentList( argumentList ), returnType( returnType )
         {
         }
-        bool FunctionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_FunctionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::FunctionDef >( loader, const_cast< FunctionDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_FunctionDef >( loader, const_cast< Parser_FunctionDef * >( this ) ) };
         }
-        void FunctionDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::FunctionDef >( p_AST_ContextDef, this ); }
-        void FunctionDef::load( mega::io::Loader &loader )
+        void Parser_FunctionDef::set_inheritance_pointer()
         {
-            loader.load( p_AST_ContextDef );
+            p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_FunctionDef >( p_AST_Parser_ContextDef, this );
+        }
+        void Parser_FunctionDef::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_ContextDef );
             loader.load( argumentList );
             loader.load( returnType );
         }
-        void FunctionDef::store( mega::io::Storer &storer ) const
+        void Parser_FunctionDef::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_ContextDef );
+            storer.store( p_AST_Parser_ContextDef );
             storer.store( argumentList );
             storer.store( returnType );
         }
-        void FunctionDef::to_json( nlohmann::json &part ) const
+        void Parser_FunctionDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "FunctionDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_FunctionDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -981,38 +1029,44 @@ namespace data
             }
         }
 
-        // struct ObjectDef : public mega::io::Object
-        ObjectDef::ObjectDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ObjectDef >( loader, this ) ), p_AST_ContextDef( loader ),
+        // struct Parser_ObjectDef : public mega::io::Object
+        Parser_ObjectDef::Parser_ObjectDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ObjectDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
               inheritance( loader )
         {
         }
-        ObjectDef::ObjectDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ObjectDef >( loader, this ) ), p_AST_ContextDef( loader ),
+        Parser_ObjectDef::Parser_ObjectDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                            const data::Ptr< data::AST::Parser_Inheritance > &inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ObjectDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
               inheritance( inheritance )
         {
         }
-        bool ObjectDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_ObjectDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::ObjectDef >( loader, const_cast< ObjectDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_ObjectDef >( loader, const_cast< Parser_ObjectDef * >( this ) ) };
         }
-        void ObjectDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::ObjectDef >( p_AST_ContextDef, this ); }
-        void ObjectDef::load( mega::io::Loader &loader )
+        void Parser_ObjectDef::set_inheritance_pointer()
         {
-            loader.load( p_AST_ContextDef );
+            p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_ObjectDef >( p_AST_Parser_ContextDef, this );
+        }
+        void Parser_ObjectDef::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_ContextDef );
             loader.load( inheritance );
         }
-        void ObjectDef::store( mega::io::Storer &storer ) const
+        void Parser_ObjectDef::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_ContextDef );
+            storer.store( p_AST_Parser_ContextDef );
             storer.store( inheritance );
         }
-        void ObjectDef::to_json( nlohmann::json &part ) const
+        void Parser_ObjectDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ObjectDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_ObjectDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1024,41 +1078,46 @@ namespace data
             }
         }
 
-        // struct LinkDef : public mega::io::Object
-        LinkDef::LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::LinkDef >( loader, this ) ), p_AST_ContextDef( loader ), link( loader ),
-              target( loader )
+        // struct Parser_LinkDef : public mega::io::Object
+        Parser_LinkDef::Parser_LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_LinkDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
+              link( loader ), target( loader )
         {
         }
-        LinkDef::LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Link > &link,
-                          const data::Ptr< data::AST::Inheritance > &target )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::LinkDef >( loader, this ) ), p_AST_ContextDef( loader ), link( link ),
-              target( target )
+        Parser_LinkDef::Parser_LinkDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Parser_Link > &link,
+                                        const data::Ptr< data::AST::Parser_Inheritance > &target )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_LinkDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
+              link( link ), target( target )
         {
         }
-        bool LinkDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_LinkDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::LinkDef >( loader, const_cast< LinkDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_LinkDef >( loader, const_cast< Parser_LinkDef * >( this ) ) };
         }
-        void LinkDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::LinkDef >( p_AST_ContextDef, this ); }
-        void LinkDef::load( mega::io::Loader &loader )
+        void Parser_LinkDef::set_inheritance_pointer()
         {
-            loader.load( p_AST_ContextDef );
+            p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_LinkDef >( p_AST_Parser_ContextDef, this );
+        }
+        void Parser_LinkDef::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_ContextDef );
             loader.load( link );
             loader.load( target );
         }
-        void LinkDef::store( mega::io::Storer &storer ) const
+        void Parser_LinkDef::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_ContextDef );
+            storer.store( p_AST_Parser_ContextDef );
             storer.store( link );
             storer.store( target );
         }
-        void LinkDef::to_json( nlohmann::json &part ) const
+        void Parser_LinkDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "LinkDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_LinkDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1074,38 +1133,44 @@ namespace data
             }
         }
 
-        // struct TableDef : public mega::io::Object
-        TableDef::TableDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::TableDef >( loader, this ) ), p_AST_ContextDef( loader ),
+        // struct Parser_TableDef : public mega::io::Object
+        Parser_TableDef::Parser_TableDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_TableDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
               inheritance( loader )
         {
         }
-        TableDef::TableDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Inheritance > &inheritance )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::TableDef >( loader, this ) ), p_AST_ContextDef( loader ),
+        Parser_TableDef::Parser_TableDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                          const data::Ptr< data::AST::Parser_Inheritance > &inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_TableDef >( loader, this ) ), p_AST_Parser_ContextDef( loader ),
               inheritance( inheritance )
         {
         }
-        bool TableDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_TableDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ContextDef >, data::Ptr< data::AST::NamespaceDef >, data::Ptr< data::AST::AbstractDef >,
-                                                  data::Ptr< data::AST::ActionDef >, data::Ptr< data::AST::EventDef >, data::Ptr< data::AST::FunctionDef >,
-                                                  data::Ptr< data::AST::ObjectDef >, data::Ptr< data::AST::LinkDef >, data::Ptr< data::AST::TableDef > >{
-                                        data::Ptr< data::AST::TableDef >( loader, const_cast< TableDef * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >,
+                                 data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >,
+                                 data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >,
+                                 data::Ptr< data::AST::Parser_TableDef > >{
+                       data::Ptr< data::AST::Parser_TableDef >( loader, const_cast< Parser_TableDef * >( this ) ) };
         }
-        void TableDef::set_inheritance_pointer() { p_AST_ContextDef->m_inheritance = data::Ptr< data::AST::TableDef >( p_AST_ContextDef, this ); }
-        void TableDef::load( mega::io::Loader &loader )
+        void Parser_TableDef::set_inheritance_pointer()
         {
-            loader.load( p_AST_ContextDef );
+            p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_TableDef >( p_AST_Parser_ContextDef, this );
+        }
+        void Parser_TableDef::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_ContextDef );
             loader.load( inheritance );
         }
-        void TableDef::store( mega::io::Storer &storer ) const
+        void Parser_TableDef::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_AST_ContextDef );
+            storer.store( p_AST_Parser_ContextDef );
             storer.store( inheritance );
         }
-        void TableDef::to_json( nlohmann::json &part ) const
+        void Parser_TableDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "TableDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_TableDef" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1117,39 +1182,40 @@ namespace data
             }
         }
 
-        // struct SourceRoot : public mega::io::Object
-        SourceRoot::SourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::SourceRoot >( loader, this ) ), component( loader ), ast( loader )
+        // struct Parser_SourceRoot : public mega::io::Object
+        Parser_SourceRoot::Parser_SourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_SourceRoot >( loader, this ) ), component( loader ), ast( loader )
         {
         }
-        SourceRoot::SourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &sourceFile,
-                                const data::Ptr< data::Components::Component > &component, const data::Ptr< data::AST::ContextDef > &ast )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::SourceRoot >( loader, this ) ), sourceFile( sourceFile ),
+        Parser_SourceRoot::Parser_SourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &sourceFile,
+                                              const data::Ptr< data::Components::Components_Component > &component,
+                                              const data::Ptr< data::AST::Parser_ContextDef >           &ast )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_SourceRoot >( loader, this ) ), sourceFile( sourceFile ),
               component( component ), ast( ast )
         {
         }
-        bool SourceRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_SourceRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
-                       data::Ptr< data::AST::SourceRoot >( loader, const_cast< SourceRoot * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_SourceRoot >, data::Ptr< data::AST::Parser_IncludeRoot >,
+                                                  data::Ptr< data::AST::Parser_ObjectSourceRoot > >{
+                                        data::Ptr< data::AST::Parser_SourceRoot >( loader, const_cast< Parser_SourceRoot * >( this ) ) };
         }
-        void SourceRoot::set_inheritance_pointer() {}
-        void SourceRoot::load( mega::io::Loader &loader )
+        void Parser_SourceRoot::set_inheritance_pointer() {}
+        void Parser_SourceRoot::load( mega::io::Loader &loader )
         {
             loader.load( sourceFile );
             loader.load( component );
             loader.load( ast );
         }
-        void SourceRoot::store( mega::io::Storer &storer ) const
+        void Parser_SourceRoot::store( mega::io::Storer &storer ) const
         {
             storer.store( sourceFile );
             storer.store( component );
             storer.store( ast );
         }
-        void SourceRoot::to_json( nlohmann::json &part ) const
+        void Parser_SourceRoot::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "SourceRoot" },
+            part = nlohmann::json::object( { { "partname", "Parser_SourceRoot" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1169,23 +1235,26 @@ namespace data
             }
         }
 
-        // struct IncludeRoot : public mega::io::Object
-        IncludeRoot::IncludeRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::IncludeRoot >( loader, this ) ), p_AST_SourceRoot( loader )
+        // struct Parser_IncludeRoot : public mega::io::Object
+        Parser_IncludeRoot::Parser_IncludeRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_IncludeRoot >( loader, this ) ), p_AST_Parser_SourceRoot( loader )
         {
         }
-        bool IncludeRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_IncludeRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
-                       data::Ptr< data::AST::IncludeRoot >( loader, const_cast< IncludeRoot * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_SourceRoot >, data::Ptr< data::AST::Parser_IncludeRoot >,
+                                                  data::Ptr< data::AST::Parser_ObjectSourceRoot > >{
+                                        data::Ptr< data::AST::Parser_IncludeRoot >( loader, const_cast< Parser_IncludeRoot * >( this ) ) };
         }
-        void IncludeRoot::set_inheritance_pointer() { p_AST_SourceRoot->m_inheritance = data::Ptr< data::AST::IncludeRoot >( p_AST_SourceRoot, this ); }
-        void IncludeRoot::load( mega::io::Loader &loader ) { loader.load( p_AST_SourceRoot ); }
-        void IncludeRoot::store( mega::io::Storer &storer ) const { storer.store( p_AST_SourceRoot ); }
-        void IncludeRoot::to_json( nlohmann::json &part ) const
+        void Parser_IncludeRoot::set_inheritance_pointer()
         {
-            part = nlohmann::json::object( { { "partname", "IncludeRoot" },
+            p_AST_Parser_SourceRoot->m_inheritance = data::Ptr< data::AST::Parser_IncludeRoot >( p_AST_Parser_SourceRoot, this );
+        }
+        void Parser_IncludeRoot::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_SourceRoot ); }
+        void Parser_IncludeRoot::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_SourceRoot ); }
+        void Parser_IncludeRoot::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Parser_IncludeRoot" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1193,26 +1262,27 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct ObjectSourceRoot : public mega::io::Object
-        ObjectSourceRoot::ObjectSourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::ObjectSourceRoot >( loader, this ) ), p_AST_SourceRoot( loader )
+        // struct Parser_ObjectSourceRoot : public mega::io::Object
+        Parser_ObjectSourceRoot::Parser_ObjectSourceRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ObjectSourceRoot >( loader, this ) ),
+              p_AST_Parser_SourceRoot( loader )
         {
         }
-        bool ObjectSourceRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Parser_ObjectSourceRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::AST::SourceRoot >, data::Ptr< data::AST::IncludeRoot >, data::Ptr< data::AST::ObjectSourceRoot > >{
-                       data::Ptr< data::AST::ObjectSourceRoot >( loader, const_cast< ObjectSourceRoot * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_SourceRoot >, data::Ptr< data::AST::Parser_IncludeRoot >,
+                                                  data::Ptr< data::AST::Parser_ObjectSourceRoot > >{
+                                        data::Ptr< data::AST::Parser_ObjectSourceRoot >( loader, const_cast< Parser_ObjectSourceRoot * >( this ) ) };
         }
-        void ObjectSourceRoot::set_inheritance_pointer()
+        void Parser_ObjectSourceRoot::set_inheritance_pointer()
         {
-            p_AST_SourceRoot->m_inheritance = data::Ptr< data::AST::ObjectSourceRoot >( p_AST_SourceRoot, this );
+            p_AST_Parser_SourceRoot->m_inheritance = data::Ptr< data::AST::Parser_ObjectSourceRoot >( p_AST_Parser_SourceRoot, this );
         }
-        void ObjectSourceRoot::load( mega::io::Loader &loader ) { loader.load( p_AST_SourceRoot ); }
-        void ObjectSourceRoot::store( mega::io::Storer &storer ) const { storer.store( p_AST_SourceRoot ); }
-        void ObjectSourceRoot::to_json( nlohmann::json &part ) const
+        void Parser_ObjectSourceRoot::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_SourceRoot ); }
+        void Parser_ObjectSourceRoot::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_SourceRoot ); }
+        void Parser_ObjectSourceRoot::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ObjectSourceRoot" },
+            part = nlohmann::json::object( { { "partname", "Parser_ObjectSourceRoot" },
                                              { "filetype", "AST" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1223,19 +1293,19 @@ namespace data
     } // namespace AST
     namespace Body
     {
-        // struct ContextDef : public mega::io::Object
-        ContextDef::ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
-        ContextDef::ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &body )
+        // struct Parser_ContextDef : public mega::io::Object
+        Parser_ContextDef::Parser_ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ) {}
+        Parser_ContextDef::Parser_ContextDef( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &body )
             : mega::io::Object( objectInfo ), body( body )
         {
         }
-        bool ContextDef::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
-        void ContextDef::set_inheritance_pointer() {}
-        void ContextDef::load( mega::io::Loader &loader ) { loader.load( body ); }
-        void ContextDef::store( mega::io::Storer &storer ) const { storer.store( body ); }
-        void ContextDef::to_json( nlohmann::json &part ) const
+        bool Parser_ContextDef::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Parser_ContextDef::set_inheritance_pointer() {}
+        void Parser_ContextDef::load( mega::io::Loader &loader ) { loader.load( body ); }
+        void Parser_ContextDef::store( mega::io::Storer &storer ) const { storer.store( body ); }
+        void Parser_ContextDef::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ContextDef" },
+            part = nlohmann::json::object( { { "partname", "Parser_ContextDef" },
                                              { "filetype", "Body" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1250,23 +1320,27 @@ namespace data
     } // namespace Body
     namespace Tree
     {
-        // struct DimensionTrait : public mega::io::Object
-        DimensionTrait::DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::DimensionTrait >( loader, this ) ), p_AST_Dimension( loader ),
-              p_PerSourceSymbols_DimensionTrait( loader ), p_Concrete_DimensionTrait( loader ), p_Clang_DimensionTrait( loader )
+        // struct Interface_DimensionTrait : public mega::io::Object
+        Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_DimensionTrait >( loader, this ) ),
+              p_AST_Parser_Dimension( loader ), p_PerSourceSymbols_Interface_DimensionTrait( loader ), p_Concrete_Interface_DimensionTrait( loader ),
+              p_Clang_Interface_DimensionTrait( loader )
         {
         }
-        bool DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::Dimension >, data::Ptr< data::Tree::DimensionTrait > >{
-                                        data::Ptr< data::Tree::DimensionTrait >( loader, const_cast< DimensionTrait * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >{
+                                        data::Ptr< data::Tree::Interface_DimensionTrait >( loader, const_cast< Interface_DimensionTrait * >( this ) ) };
         }
-        void DimensionTrait::set_inheritance_pointer() { p_AST_Dimension->m_inheritance = data::Ptr< data::Tree::DimensionTrait >( p_AST_Dimension, this ); }
-        void DimensionTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Dimension ); }
-        void DimensionTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Dimension ); }
-        void DimensionTrait::to_json( nlohmann::json &part ) const
+        void Interface_DimensionTrait::set_inheritance_pointer()
         {
-            part = nlohmann::json::object( { { "partname", "DimensionTrait" },
+            p_AST_Parser_Dimension->m_inheritance = data::Ptr< data::Tree::Interface_DimensionTrait >( p_AST_Parser_Dimension, this );
+        }
+        void Interface_DimensionTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_Dimension ); }
+        void Interface_DimensionTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_Dimension ); }
+        void Interface_DimensionTrait::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Interface_DimensionTrait" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1274,26 +1348,26 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct InheritanceTrait : public mega::io::Object
-        InheritanceTrait::InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::InheritanceTrait >( loader, this ) ), p_AST_Inheritance( loader ),
-              p_Clang_InheritanceTrait( loader )
+        // struct Interface_InheritanceTrait : public mega::io::Object
+        Interface_InheritanceTrait::Interface_InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_InheritanceTrait >( loader, this ) ),
+              p_AST_Parser_Inheritance( loader ), p_Clang_Interface_InheritanceTrait( loader )
         {
         }
-        bool InheritanceTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_InheritanceTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::Inheritance >, data::Ptr< data::Tree::InheritanceTrait > >{
-                                        data::Ptr< data::Tree::InheritanceTrait >( loader, const_cast< InheritanceTrait * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Inheritance >, data::Ptr< data::Tree::Interface_InheritanceTrait > >{
+                                        data::Ptr< data::Tree::Interface_InheritanceTrait >( loader, const_cast< Interface_InheritanceTrait * >( this ) ) };
         }
-        void InheritanceTrait::set_inheritance_pointer()
+        void Interface_InheritanceTrait::set_inheritance_pointer()
         {
-            p_AST_Inheritance->m_inheritance = data::Ptr< data::Tree::InheritanceTrait >( p_AST_Inheritance, this );
+            p_AST_Parser_Inheritance->m_inheritance = data::Ptr< data::Tree::Interface_InheritanceTrait >( p_AST_Parser_Inheritance, this );
         }
-        void InheritanceTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Inheritance ); }
-        void InheritanceTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Inheritance ); }
-        void InheritanceTrait::to_json( nlohmann::json &part ) const
+        void Interface_InheritanceTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_Inheritance ); }
+        void Interface_InheritanceTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_Inheritance ); }
+        void Interface_InheritanceTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "InheritanceTrait" },
+            part = nlohmann::json::object( { { "partname", "Interface_InheritanceTrait" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1301,22 +1375,25 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct LinkTrait : public mega::io::Object
-        LinkTrait::LinkTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::LinkTrait >( loader, this ) ), p_AST_Link( loader )
+        // struct Interface_LinkTrait : public mega::io::Object
+        Interface_LinkTrait::Interface_LinkTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_LinkTrait >( loader, this ) ), p_AST_Parser_Link( loader )
         {
         }
-        bool LinkTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_LinkTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::Link >, data::Ptr< data::Tree::LinkTrait > >{
-                                        data::Ptr< data::Tree::LinkTrait >( loader, const_cast< LinkTrait * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >{
+                                        data::Ptr< data::Tree::Interface_LinkTrait >( loader, const_cast< Interface_LinkTrait * >( this ) ) };
         }
-        void LinkTrait::set_inheritance_pointer() { p_AST_Link->m_inheritance = data::Ptr< data::Tree::LinkTrait >( p_AST_Link, this ); }
-        void LinkTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Link ); }
-        void LinkTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Link ); }
-        void LinkTrait::to_json( nlohmann::json &part ) const
+        void Interface_LinkTrait::set_inheritance_pointer()
         {
-            part = nlohmann::json::object( { { "partname", "LinkTrait" },
+            p_AST_Parser_Link->m_inheritance = data::Ptr< data::Tree::Interface_LinkTrait >( p_AST_Parser_Link, this );
+        }
+        void Interface_LinkTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_Link ); }
+        void Interface_LinkTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_Link ); }
+        void Interface_LinkTrait::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Interface_LinkTrait" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1324,25 +1401,26 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct ReturnTypeTrait : public mega::io::Object
-        ReturnTypeTrait::ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::ReturnTypeTrait >( loader, this ) ), p_AST_ReturnType( loader )
+        // struct Interface_ReturnTypeTrait : public mega::io::Object
+        Interface_ReturnTypeTrait::Interface_ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_ReturnTypeTrait >( loader, this ) ),
+              p_AST_Parser_ReturnType( loader )
         {
         }
-        bool ReturnTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_ReturnTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ReturnType >, data::Ptr< data::Tree::ReturnTypeTrait > >{
-                                        data::Ptr< data::Tree::ReturnTypeTrait >( loader, const_cast< ReturnTypeTrait * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ReturnType >, data::Ptr< data::Tree::Interface_ReturnTypeTrait > >{
+                                        data::Ptr< data::Tree::Interface_ReturnTypeTrait >( loader, const_cast< Interface_ReturnTypeTrait * >( this ) ) };
         }
-        void ReturnTypeTrait::set_inheritance_pointer()
+        void Interface_ReturnTypeTrait::set_inheritance_pointer()
         {
-            p_AST_ReturnType->m_inheritance = data::Ptr< data::Tree::ReturnTypeTrait >( p_AST_ReturnType, this );
+            p_AST_Parser_ReturnType->m_inheritance = data::Ptr< data::Tree::Interface_ReturnTypeTrait >( p_AST_Parser_ReturnType, this );
         }
-        void ReturnTypeTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_ReturnType ); }
-        void ReturnTypeTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_ReturnType ); }
-        void ReturnTypeTrait::to_json( nlohmann::json &part ) const
+        void Interface_ReturnTypeTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_ReturnType ); }
+        void Interface_ReturnTypeTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_ReturnType ); }
+        void Interface_ReturnTypeTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ReturnTypeTrait" },
+            part = nlohmann::json::object( { { "partname", "Interface_ReturnTypeTrait" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1350,25 +1428,26 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct ArgumentListTrait : public mega::io::Object
-        ArgumentListTrait::ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::ArgumentListTrait >( loader, this ) ), p_AST_ArgumentList( loader )
+        // struct Interface_ArgumentListTrait : public mega::io::Object
+        Interface_ArgumentListTrait::Interface_ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_ArgumentListTrait >( loader, this ) ),
+              p_AST_Parser_ArgumentList( loader )
         {
         }
-        bool ArgumentListTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_ArgumentListTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::ArgumentList >, data::Ptr< data::Tree::ArgumentListTrait > >{
-                                        data::Ptr< data::Tree::ArgumentListTrait >( loader, const_cast< ArgumentListTrait * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ArgumentList >, data::Ptr< data::Tree::Interface_ArgumentListTrait > >{
+                                        data::Ptr< data::Tree::Interface_ArgumentListTrait >( loader, const_cast< Interface_ArgumentListTrait * >( this ) ) };
         }
-        void ArgumentListTrait::set_inheritance_pointer()
+        void Interface_ArgumentListTrait::set_inheritance_pointer()
         {
-            p_AST_ArgumentList->m_inheritance = data::Ptr< data::Tree::ArgumentListTrait >( p_AST_ArgumentList, this );
+            p_AST_Parser_ArgumentList->m_inheritance = data::Ptr< data::Tree::Interface_ArgumentListTrait >( p_AST_Parser_ArgumentList, this );
         }
-        void ArgumentListTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_ArgumentList ); }
-        void ArgumentListTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_ArgumentList ); }
-        void ArgumentListTrait::to_json( nlohmann::json &part ) const
+        void Interface_ArgumentListTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_ArgumentList ); }
+        void Interface_ArgumentListTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_ArgumentList ); }
+        void Interface_ArgumentListTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ArgumentListTrait" },
+            part = nlohmann::json::object( { { "partname", "Interface_ArgumentListTrait" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1376,22 +1455,25 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct SizeTrait : public mega::io::Object
-        SizeTrait::SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::SizeTrait >( loader, this ) ), p_AST_Size( loader )
+        // struct Interface_SizeTrait : public mega::io::Object
+        Interface_SizeTrait::Interface_SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_SizeTrait >( loader, this ) ), p_AST_Parser_Size( loader )
         {
         }
-        bool SizeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_SizeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::AST::Size >, data::Ptr< data::Tree::SizeTrait > >{
-                                        data::Ptr< data::Tree::SizeTrait >( loader, const_cast< SizeTrait * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::AST::Parser_Size >, data::Ptr< data::Tree::Interface_SizeTrait > >{
+                                        data::Ptr< data::Tree::Interface_SizeTrait >( loader, const_cast< Interface_SizeTrait * >( this ) ) };
         }
-        void SizeTrait::set_inheritance_pointer() { p_AST_Size->m_inheritance = data::Ptr< data::Tree::SizeTrait >( p_AST_Size, this ); }
-        void SizeTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Size ); }
-        void SizeTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Size ); }
-        void SizeTrait::to_json( nlohmann::json &part ) const
+        void Interface_SizeTrait::set_inheritance_pointer()
         {
-            part = nlohmann::json::object( { { "partname", "SizeTrait" },
+            p_AST_Parser_Size->m_inheritance = data::Ptr< data::Tree::Interface_SizeTrait >( p_AST_Parser_Size, this );
+        }
+        void Interface_SizeTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_Size ); }
+        void Interface_SizeTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_Size ); }
+        void Interface_SizeTrait::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Interface_SizeTrait" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1399,30 +1481,32 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
         }
 
-        // struct ContextGroup : public mega::io::Object
-        ContextGroup::ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::ContextGroup >( loader, this ) )
+        // struct Interface_ContextGroup : public mega::io::Object
+        Interface_ContextGroup::Interface_ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_ContextGroup >( loader, this ) )
         {
         }
-        ContextGroup::ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                    const std::vector< data::Ptr< data::Tree::IContext > > &children )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::ContextGroup >( loader, this ) ), children( children )
+        Interface_ContextGroup::Interface_ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                        const std::vector< data::Ptr< data::Tree::Interface_IContext > > &children )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_ContextGroup >( loader, this ) ), children( children )
         {
         }
-        bool ContextGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_ContextGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::ContextGroup >( loader, const_cast< ContextGroup * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_ContextGroup >( loader, const_cast< Interface_ContextGroup * >( this ) ) };
         }
-        void ContextGroup::set_inheritance_pointer() {}
-        void ContextGroup::load( mega::io::Loader &loader ) { loader.load( children ); }
-        void ContextGroup::store( mega::io::Storer &storer ) const { storer.store( children ); }
-        void ContextGroup::to_json( nlohmann::json &part ) const
+        void Interface_ContextGroup::set_inheritance_pointer() {}
+        void Interface_ContextGroup::load( mega::io::Loader &loader ) { loader.load( children ); }
+        void Interface_ContextGroup::store( mega::io::Storer &storer ) const { storer.store( children ); }
+        void Interface_ContextGroup::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ContextGroup" },
+            part = nlohmann::json::object( { { "partname", "Interface_ContextGroup" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1434,37 +1518,45 @@ namespace data
             }
         }
 
-        // struct Root : public mega::io::Object
-        Root::Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Root >( loader, this ) ), p_Tree_ContextGroup( loader ), root( loader )
+        // struct Interface_Root : public mega::io::Object
+        Interface_Root::Interface_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Root >( loader, this ) ), p_Tree_Interface_ContextGroup( loader ),
+              root( loader )
         {
         }
-        Root::Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::ObjectSourceRoot > &root )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Root >( loader, this ) ), p_Tree_ContextGroup( loader ), root( root )
+        Interface_Root::Interface_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                        const data::Ptr< data::AST::Parser_ObjectSourceRoot > &root )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Root >( loader, this ) ), p_Tree_Interface_ContextGroup( loader ),
+              root( root )
         {
         }
-        bool Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Root >( loader, const_cast< Root * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Root >( loader, const_cast< Interface_Root * >( this ) ) };
         }
-        void Root::set_inheritance_pointer() { p_Tree_ContextGroup->m_inheritance = data::Ptr< data::Tree::Root >( p_Tree_ContextGroup, this ); }
-        void Root::load( mega::io::Loader &loader )
+        void Interface_Root::set_inheritance_pointer()
         {
-            loader.load( p_Tree_ContextGroup );
+            p_Tree_Interface_ContextGroup->m_inheritance = data::Ptr< data::Tree::Interface_Root >( p_Tree_Interface_ContextGroup, this );
+        }
+        void Interface_Root::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_ContextGroup );
             loader.load( root );
         }
-        void Root::store( mega::io::Storer &storer ) const
+        void Interface_Root::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_ContextGroup );
+            storer.store( p_Tree_Interface_ContextGroup );
             storer.store( root );
         }
-        void Root::to_json( nlohmann::json &part ) const
+        void Interface_Root::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Root" },
+            part = nlohmann::json::object( { { "partname", "Interface_Root" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1476,42 +1568,49 @@ namespace data
             }
         }
 
-        // struct IContext : public mega::io::Object
-        IContext::IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::IContext >( loader, this ) ), p_Tree_ContextGroup( loader ),
-              p_PerSourceSymbols_IContext( loader ), p_Concrete_IContext( loader ), parent( loader )
+        // struct Interface_IContext : public mega::io::Object
+        Interface_IContext::Interface_IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_IContext >( loader, this ) ),
+              p_Tree_Interface_ContextGroup( loader ), p_PerSourceSymbols_Interface_IContext( loader ), p_Concrete_Interface_IContext( loader ),
+              parent( loader )
         {
         }
-        IContext::IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &identifier,
-                            const data::Ptr< data::Tree::ContextGroup > &parent )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::IContext >( loader, this ) ), p_Tree_ContextGroup( loader ),
-              p_PerSourceSymbols_IContext( loader ), p_Concrete_IContext( loader ), identifier( identifier ), parent( parent )
+        Interface_IContext::Interface_IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &identifier,
+                                                const data::Ptr< data::Tree::Interface_ContextGroup > &parent )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_IContext >( loader, this ) ),
+              p_Tree_Interface_ContextGroup( loader ), p_PerSourceSymbols_Interface_IContext( loader ), p_Concrete_Interface_IContext( loader ),
+              identifier( identifier ), parent( parent )
         {
         }
-        bool IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::IContext >( loader, const_cast< IContext * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_IContext >( loader, const_cast< Interface_IContext * >( this ) ) };
         }
-        void IContext::set_inheritance_pointer() { p_Tree_ContextGroup->m_inheritance = data::Ptr< data::Tree::IContext >( p_Tree_ContextGroup, this ); }
-        void IContext::load( mega::io::Loader &loader )
+        void Interface_IContext::set_inheritance_pointer()
         {
-            loader.load( p_Tree_ContextGroup );
+            p_Tree_Interface_ContextGroup->m_inheritance = data::Ptr< data::Tree::Interface_IContext >( p_Tree_Interface_ContextGroup, this );
+        }
+        void Interface_IContext::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_ContextGroup );
             loader.load( identifier );
             loader.load( parent );
         }
-        void IContext::store( mega::io::Storer &storer ) const
+        void Interface_IContext::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_ContextGroup );
+            storer.store( p_Tree_Interface_ContextGroup );
             storer.store( identifier );
             storer.store( parent );
         }
-        void IContext::to_json( nlohmann::json &part ) const
+        void Interface_IContext::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "IContext" },
+            part = nlohmann::json::object( { { "partname", "Interface_IContext" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1527,44 +1626,49 @@ namespace data
             }
         }
 
-        // struct Namespace : public mega::io::Object
-        Namespace::Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Namespace >( loader, this ) ), p_Tree_IContext( loader )
+        // struct Interface_Namespace : public mega::io::Object
+        Interface_Namespace::Interface_Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Namespace >( loader, this ) ), p_Tree_Interface_IContext( loader )
         {
         }
-        Namespace::Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const bool &is_global,
-                              const std::vector< data::Ptr< data::AST::ContextDef > > &namespace_defs )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Namespace >( loader, this ) ), p_Tree_IContext( loader ),
-              is_global( is_global ), namespace_defs( namespace_defs )
+        Interface_Namespace::Interface_Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const bool &is_global,
+                                                  const std::vector< data::Ptr< data::AST::Parser_ContextDef > > &namespace_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Namespace >( loader, this ) ),
+              p_Tree_Interface_IContext( loader ), is_global( is_global ), namespace_defs( namespace_defs )
         {
         }
-        bool Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Namespace >( loader, const_cast< Namespace * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Namespace >( loader, const_cast< Interface_Namespace * >( this ) ) };
         }
-        void Namespace::set_inheritance_pointer() { p_Tree_IContext->m_inheritance = data::Ptr< data::Tree::Namespace >( p_Tree_IContext, this ); }
-        void Namespace::load( mega::io::Loader &loader )
+        void Interface_Namespace::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Namespace >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_Namespace::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( is_global );
             loader.load( namespace_defs );
             loader.load( dimension_traits );
         }
-        void Namespace::store( mega::io::Storer &storer ) const
+        void Interface_Namespace::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( is_global );
             storer.store( namespace_defs );
-            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Namespace.dimension_traits has NOT been set" );
+            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Namespace.dimension_traits has NOT been set" );
             storer.store( dimension_traits );
         }
-        void Namespace::to_json( nlohmann::json &part ) const
+        void Interface_Namespace::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Namespace" },
+            part = nlohmann::json::object( { { "partname", "Interface_Namespace" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1584,45 +1688,50 @@ namespace data
             }
         }
 
-        // struct Abstract : public mega::io::Object
-        Abstract::Abstract( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Abstract >( loader, this ) ), p_Tree_IContext( loader )
+        // struct Interface_Abstract : public mega::io::Object
+        Interface_Abstract::Interface_Abstract( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Abstract >( loader, this ) ), p_Tree_Interface_IContext( loader )
         {
         }
-        Abstract::Abstract( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                            const std::vector< data::Ptr< data::AST::AbstractDef > > &abstract_defs )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Abstract >( loader, this ) ), p_Tree_IContext( loader ),
+        Interface_Abstract::Interface_Abstract( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const std::vector< data::Ptr< data::AST::Parser_AbstractDef > > &abstract_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Abstract >( loader, this ) ), p_Tree_Interface_IContext( loader ),
               abstract_defs( abstract_defs )
         {
         }
-        bool Abstract::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Abstract::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Abstract >( loader, const_cast< Abstract * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Abstract >( loader, const_cast< Interface_Abstract * >( this ) ) };
         }
-        void Abstract::set_inheritance_pointer() { p_Tree_IContext->m_inheritance = data::Ptr< data::Tree::Abstract >( p_Tree_IContext, this ); }
-        void Abstract::load( mega::io::Loader &loader )
+        void Interface_Abstract::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Abstract >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_Abstract::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( abstract_defs );
             loader.load( dimension_traits );
             loader.load( inheritance_trait );
         }
-        void Abstract::store( mega::io::Storer &storer ) const
+        void Interface_Abstract::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( abstract_defs );
-            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Abstract.dimension_traits has NOT been set" );
+            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Abstract.dimension_traits has NOT been set" );
             storer.store( dimension_traits );
-            VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Abstract.inheritance_trait has NOT been set" );
+            VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Interface_Abstract.inheritance_trait has NOT been set" );
             storer.store( inheritance_trait );
         }
-        void Abstract::to_json( nlohmann::json &part ) const
+        void Interface_Abstract::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Abstract" },
+            part = nlohmann::json::object( { { "partname", "Interface_Abstract" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1642,47 +1751,53 @@ namespace data
             }
         }
 
-        // struct Action : public mega::io::Object
-        Action::Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Action >( loader, this ) ), p_Tree_IContext( loader )
+        // struct Interface_Action : public mega::io::Object
+        Interface_Action::Interface_Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Action >( loader, this ) ), p_Tree_Interface_IContext( loader )
         {
         }
-        Action::Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ActionDef > > &action_defs )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Action >( loader, this ) ), p_Tree_IContext( loader ),
+        Interface_Action::Interface_Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                            const std::vector< data::Ptr< data::AST::Parser_ActionDef > > &action_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Action >( loader, this ) ), p_Tree_Interface_IContext( loader ),
               action_defs( action_defs )
         {
         }
-        bool Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Action >( loader, const_cast< Action * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Action >( loader, const_cast< Interface_Action * >( this ) ) };
         }
-        void Action::set_inheritance_pointer() { p_Tree_IContext->m_inheritance = data::Ptr< data::Tree::Action >( p_Tree_IContext, this ); }
-        void Action::load( mega::io::Loader &loader )
+        void Interface_Action::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Action >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_Action::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( action_defs );
             loader.load( dimension_traits );
             loader.load( inheritance_trait );
             loader.load( size_trait );
         }
-        void Action::store( mega::io::Storer &storer ) const
+        void Interface_Action::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( action_defs );
-            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Action.dimension_traits has NOT been set" );
+            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Action.dimension_traits has NOT been set" );
             storer.store( dimension_traits );
-            VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Action.inheritance_trait has NOT been set" );
+            VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Interface_Action.inheritance_trait has NOT been set" );
             storer.store( inheritance_trait );
-            VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Action.size_trait has NOT been set" );
+            VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Action.size_trait has NOT been set" );
             storer.store( size_trait );
         }
-        void Action::to_json( nlohmann::json &part ) const
+        void Interface_Action::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Action" },
+            part = nlohmann::json::object( { { "partname", "Interface_Action" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1706,47 +1821,53 @@ namespace data
             }
         }
 
-        // struct Event : public mega::io::Object
-        Event::Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Event >( loader, this ) ), p_Tree_IContext( loader )
+        // struct Interface_Event : public mega::io::Object
+        Interface_Event::Interface_Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Event >( loader, this ) ), p_Tree_Interface_IContext( loader )
         {
         }
-        Event::Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::EventDef > > &event_defs )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Event >( loader, this ) ), p_Tree_IContext( loader ),
+        Interface_Event::Interface_Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                          const std::vector< data::Ptr< data::AST::Parser_EventDef > > &event_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Event >( loader, this ) ), p_Tree_Interface_IContext( loader ),
               event_defs( event_defs )
         {
         }
-        bool Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Event >( loader, const_cast< Event * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Event >( loader, const_cast< Interface_Event * >( this ) ) };
         }
-        void Event::set_inheritance_pointer() { p_Tree_IContext->m_inheritance = data::Ptr< data::Tree::Event >( p_Tree_IContext, this ); }
-        void Event::load( mega::io::Loader &loader )
+        void Interface_Event::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Event >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_Event::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( event_defs );
             loader.load( dimension_traits );
             loader.load( inheritance_trait );
             loader.load( size_trait );
         }
-        void Event::store( mega::io::Storer &storer ) const
+        void Interface_Event::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( event_defs );
-            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Event.dimension_traits has NOT been set" );
+            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Event.dimension_traits has NOT been set" );
             storer.store( dimension_traits );
-            VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Event.inheritance_trait has NOT been set" );
+            VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Interface_Event.inheritance_trait has NOT been set" );
             storer.store( inheritance_trait );
-            VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Event.size_trait has NOT been set" );
+            VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Event.size_trait has NOT been set" );
             storer.store( size_trait );
         }
-        void Event::to_json( nlohmann::json &part ) const
+        void Interface_Event::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Event" },
+            part = nlohmann::json::object( { { "partname", "Interface_Event" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1770,46 +1891,51 @@ namespace data
             }
         }
 
-        // struct Function : public mega::io::Object
-        Function::Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Function >( loader, this ) ), p_Tree_IContext( loader ),
+        // struct Interface_Function : public mega::io::Object
+        Interface_Function::Interface_Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Function >( loader, this ) ), p_Tree_Interface_IContext( loader ),
               return_type_trait( loader ), arguments_trait( loader )
         {
         }
-        Function::Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                            const std::vector< data::Ptr< data::AST::FunctionDef > > &function_defs )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Function >( loader, this ) ), p_Tree_IContext( loader ),
+        Interface_Function::Interface_Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const std::vector< data::Ptr< data::AST::Parser_FunctionDef > > &function_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Function >( loader, this ) ), p_Tree_Interface_IContext( loader ),
               function_defs( function_defs )
         {
         }
-        bool Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Function >( loader, const_cast< Function * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Function >( loader, const_cast< Interface_Function * >( this ) ) };
         }
-        void Function::set_inheritance_pointer() { p_Tree_IContext->m_inheritance = data::Ptr< data::Tree::Function >( p_Tree_IContext, this ); }
-        void Function::load( mega::io::Loader &loader )
+        void Interface_Function::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Function >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_Function::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( function_defs );
             loader.load( return_type_trait );
             loader.load( arguments_trait );
         }
-        void Function::store( mega::io::Storer &storer ) const
+        void Interface_Function::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( function_defs );
-            VERIFY_RTE_MSG( return_type_trait.has_value(), "Tree::Function.return_type_trait has NOT been set" );
+            VERIFY_RTE_MSG( return_type_trait.has_value(), "Tree::Interface_Function.return_type_trait has NOT been set" );
             storer.store( return_type_trait );
-            VERIFY_RTE_MSG( arguments_trait.has_value(), "Tree::Function.arguments_trait has NOT been set" );
+            VERIFY_RTE_MSG( arguments_trait.has_value(), "Tree::Interface_Function.arguments_trait has NOT been set" );
             storer.store( arguments_trait );
         }
-        void Function::to_json( nlohmann::json &part ) const
+        void Interface_Function::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Function" },
+            part = nlohmann::json::object( { { "partname", "Interface_Function" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1829,44 +1955,50 @@ namespace data
             }
         }
 
-        // struct Object : public mega::io::Object
-        Object::Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Object >( loader, this ) ), p_Tree_IContext( loader )
+        // struct Interface_Object : public mega::io::Object
+        Interface_Object::Interface_Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Object >( loader, this ) ), p_Tree_Interface_IContext( loader )
         {
         }
-        Object::Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::ObjectDef > > &object_defs )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Object >( loader, this ) ), p_Tree_IContext( loader ),
+        Interface_Object::Interface_Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                            const std::vector< data::Ptr< data::AST::Parser_ObjectDef > > &object_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Object >( loader, this ) ), p_Tree_Interface_IContext( loader ),
               object_defs( object_defs )
         {
         }
-        bool Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Object >( loader, const_cast< Object * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Object >( loader, const_cast< Interface_Object * >( this ) ) };
         }
-        void Object::set_inheritance_pointer() { p_Tree_IContext->m_inheritance = data::Ptr< data::Tree::Object >( p_Tree_IContext, this ); }
-        void Object::load( mega::io::Loader &loader )
+        void Interface_Object::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Object >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_Object::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( object_defs );
             loader.load( dimension_traits );
             loader.load( inheritance_trait );
         }
-        void Object::store( mega::io::Storer &storer ) const
+        void Interface_Object::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( object_defs );
-            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Object.dimension_traits has NOT been set" );
+            VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Object.dimension_traits has NOT been set" );
             storer.store( dimension_traits );
-            VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Object.inheritance_trait has NOT been set" );
+            VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Interface_Object.inheritance_trait has NOT been set" );
             storer.store( inheritance_trait );
         }
-        void Object::to_json( nlohmann::json &part ) const
+        void Interface_Object::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Object" },
+            part = nlohmann::json::object( { { "partname", "Interface_Object" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1886,44 +2018,51 @@ namespace data
             }
         }
 
-        // struct Link : public mega::io::Object
-        Link::Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Link >( loader, this ) ), p_Tree_IContext( loader ), link_trait( loader ),
-              link_target( loader )
+        // struct Interface_Link : public mega::io::Object
+        Interface_Link::Interface_Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Link >( loader, this ) ), p_Tree_Interface_IContext( loader ),
+              link_trait( loader ), link_target( loader )
         {
         }
-        Link::Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::LinkDef > > &link_defs )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Link >( loader, this ) ), p_Tree_IContext( loader ), link_defs( link_defs )
+        Interface_Link::Interface_Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                        const std::vector< data::Ptr< data::AST::Parser_LinkDef > > &link_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Link >( loader, this ) ), p_Tree_Interface_IContext( loader ),
+              link_defs( link_defs )
         {
         }
-        bool Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Link >( loader, const_cast< Link * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Link >( loader, const_cast< Interface_Link * >( this ) ) };
         }
-        void Link::set_inheritance_pointer() { p_Tree_IContext->m_inheritance = data::Ptr< data::Tree::Link >( p_Tree_IContext, this ); }
-        void Link::load( mega::io::Loader &loader )
+        void Interface_Link::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Link >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_Link::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( link_defs );
             loader.load( link_trait );
             loader.load( link_target );
         }
-        void Link::store( mega::io::Storer &storer ) const
+        void Interface_Link::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( link_defs );
-            VERIFY_RTE_MSG( link_trait.has_value(), "Tree::Link.link_trait has NOT been set" );
+            VERIFY_RTE_MSG( link_trait.has_value(), "Tree::Interface_Link.link_trait has NOT been set" );
             storer.store( link_trait );
-            VERIFY_RTE_MSG( link_target.has_value(), "Tree::Link.link_target has NOT been set" );
+            VERIFY_RTE_MSG( link_target.has_value(), "Tree::Interface_Link.link_target has NOT been set" );
             storer.store( link_target );
         }
-        void Link::to_json( nlohmann::json &part ) const
+        void Interface_Link::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Link" },
+            part = nlohmann::json::object( { { "partname", "Interface_Link" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1943,38 +2082,44 @@ namespace data
             }
         }
 
-        // struct Table : public mega::io::Object
-        Table::Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Table >( loader, this ) ), p_Tree_IContext( loader )
+        // struct Interface_Table : public mega::io::Object
+        Interface_Table::Interface_Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Table >( loader, this ) ), p_Tree_Interface_IContext( loader )
         {
         }
-        Table::Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::AST::TableDef > > &table_defs )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Table >( loader, this ) ), p_Tree_IContext( loader ),
+        Interface_Table::Interface_Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                          const std::vector< data::Ptr< data::AST::Parser_TableDef > > &table_defs )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Table >( loader, this ) ), p_Tree_Interface_IContext( loader ),
               table_defs( table_defs )
         {
         }
-        bool Table::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Interface_Table::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Tree::ContextGroup >, data::Ptr< data::Tree::Root >, data::Ptr< data::Tree::IContext >,
-                                                  data::Ptr< data::Tree::Namespace >, data::Ptr< data::Tree::Abstract >, data::Ptr< data::Tree::Action >,
-                                                  data::Ptr< data::Tree::Event >, data::Ptr< data::Tree::Function >, data::Ptr< data::Tree::Object >,
-                                                  data::Ptr< data::Tree::Link >, data::Ptr< data::Tree::Table > >{
-                                        data::Ptr< data::Tree::Table >( loader, const_cast< Table * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >,
+                                 data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >,
+                                 data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >,
+                                 data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >,
+                                 data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{
+                       data::Ptr< data::Tree::Interface_Table >( loader, const_cast< Interface_Table * >( this ) ) };
         }
-        void Table::set_inheritance_pointer() { p_Tree_IContext->m_inheritance = data::Ptr< data::Tree::Table >( p_Tree_IContext, this ); }
-        void Table::load( mega::io::Loader &loader )
+        void Interface_Table::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Table >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_Table::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( table_defs );
         }
-        void Table::store( mega::io::Storer &storer ) const
+        void Interface_Table::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( table_defs );
         }
-        void Table::to_json( nlohmann::json &part ) const
+        void Interface_Table::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Table" },
+            part = nlohmann::json::object( { { "partname", "Interface_Table" },
                                              { "filetype", "Tree" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -1989,34 +2134,35 @@ namespace data
     } // namespace Tree
     namespace DPGraph
     {
-        // struct Glob : public mega::io::Object
-        Glob::Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Glob >( loader, this ) )
+        // struct Dependencies_Glob : public mega::io::Object
+        Dependencies_Glob::Dependencies_Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_Glob >( loader, this ) )
         {
         }
-        Glob::Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &location, const std::string &glob )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Glob >( loader, this ) ), location( location ), glob( glob )
+        Dependencies_Glob::Dependencies_Glob( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const boost::filesystem::path &location,
+                                              const std::string &glob )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_Glob >( loader, this ) ), location( location ), glob( glob )
         {
         }
-        bool Glob::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Dependencies_Glob::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::DPGraph::Glob > >{ data::Ptr< data::DPGraph::Glob >( loader, const_cast< Glob * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::DPGraph::Dependencies_Glob > >{
+                                        data::Ptr< data::DPGraph::Dependencies_Glob >( loader, const_cast< Dependencies_Glob * >( this ) ) };
         }
-        void Glob::set_inheritance_pointer() {}
-        void Glob::load( mega::io::Loader &loader )
+        void Dependencies_Glob::set_inheritance_pointer() {}
+        void Dependencies_Glob::load( mega::io::Loader &loader )
         {
             loader.load( location );
             loader.load( glob );
         }
-        void Glob::store( mega::io::Storer &storer ) const
+        void Dependencies_Glob::store( mega::io::Storer &storer ) const
         {
             storer.store( location );
             storer.store( glob );
         }
-        void Glob::to_json( nlohmann::json &part ) const
+        void Dependencies_Glob::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Glob" },
+            part = nlohmann::json::object( { { "partname", "Dependencies_Glob" },
                                              { "filetype", "DPGraph" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2032,41 +2178,43 @@ namespace data
             }
         }
 
-        // struct ObjectDependencies : public mega::io::Object
-        ObjectDependencies::ObjectDependencies( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::ObjectDependencies >( loader, this ) )
+        // struct Dependencies_ObjectDependencies : public mega::io::Object
+        Dependencies_ObjectDependencies::Dependencies_ObjectDependencies( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_ObjectDependencies >( loader, this ) )
         {
         }
-        ObjectDependencies::ObjectDependencies( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const mega::io::megaFilePath &source_file,
-                                                const std::size_t &hash_code, const std::vector< data::Ptr< data::DPGraph::Glob > > &globs,
-                                                const std::vector< boost::filesystem::path > &resolution )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::ObjectDependencies >( loader, this ) ), source_file( source_file ),
-              hash_code( hash_code ), globs( globs ), resolution( resolution )
+        Dependencies_ObjectDependencies::Dependencies_ObjectDependencies( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                          const mega::io::megaFilePath &source_file, const std::size_t &hash_code,
+                                                                          const std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > > &globs,
+                                                                          const std::vector< boost::filesystem::path >                       &resolution )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_ObjectDependencies >( loader, this ) ),
+              source_file( source_file ), hash_code( hash_code ), globs( globs ), resolution( resolution )
         {
         }
-        bool ObjectDependencies::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Dependencies_ObjectDependencies::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::DPGraph::ObjectDependencies > >{
-                                        data::Ptr< data::DPGraph::ObjectDependencies >( loader, const_cast< ObjectDependencies * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > >{
+                       data::Ptr< data::DPGraph::Dependencies_ObjectDependencies >( loader, const_cast< Dependencies_ObjectDependencies * >( this ) ) };
         }
-        void ObjectDependencies::set_inheritance_pointer() {}
-        void ObjectDependencies::load( mega::io::Loader &loader )
+        void Dependencies_ObjectDependencies::set_inheritance_pointer() {}
+        void Dependencies_ObjectDependencies::load( mega::io::Loader &loader )
         {
             loader.load( source_file );
             loader.load( hash_code );
             loader.load( globs );
             loader.load( resolution );
         }
-        void ObjectDependencies::store( mega::io::Storer &storer ) const
+        void Dependencies_ObjectDependencies::store( mega::io::Storer &storer ) const
         {
             storer.store( source_file );
             storer.store( hash_code );
             storer.store( globs );
             storer.store( resolution );
         }
-        void ObjectDependencies::to_json( nlohmann::json &part ) const
+        void Dependencies_ObjectDependencies::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ObjectDependencies" },
+            part = nlohmann::json::object( { { "partname", "Dependencies_ObjectDependencies" },
                                              { "filetype", "DPGraph" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2090,27 +2238,27 @@ namespace data
             }
         }
 
-        // struct Analysis : public mega::io::Object
-        Analysis::Analysis( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Analysis >( loader, this ) )
+        // struct Dependencies_Analysis : public mega::io::Object
+        Dependencies_Analysis::Dependencies_Analysis( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_Analysis >( loader, this ) )
         {
         }
-        Analysis::Analysis( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                            const std::vector< data::Ptr< data::DPGraph::ObjectDependencies > > &objects )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Analysis >( loader, this ) ), objects( objects )
+        Dependencies_Analysis::Dependencies_Analysis( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                      const std::vector< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > > &objects )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_Analysis >( loader, this ) ), objects( objects )
         {
         }
-        bool Analysis::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Dependencies_Analysis::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::DPGraph::Analysis > >{ data::Ptr< data::DPGraph::Analysis >( loader, const_cast< Analysis * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::DPGraph::Dependencies_Analysis > >{
+                                        data::Ptr< data::DPGraph::Dependencies_Analysis >( loader, const_cast< Dependencies_Analysis * >( this ) ) };
         }
-        void Analysis::set_inheritance_pointer() {}
-        void Analysis::load( mega::io::Loader &loader ) { loader.load( objects ); }
-        void Analysis::store( mega::io::Storer &storer ) const { storer.store( objects ); }
-        void Analysis::to_json( nlohmann::json &part ) const
+        void Dependencies_Analysis::set_inheritance_pointer() {}
+        void Dependencies_Analysis::load( mega::io::Loader &loader ) { loader.load( objects ); }
+        void Dependencies_Analysis::store( mega::io::Storer &storer ) const { storer.store( objects ); }
+        void Dependencies_Analysis::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Analysis" },
+            part = nlohmann::json::object( { { "partname", "Dependencies_Analysis" },
                                              { "filetype", "DPGraph" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2125,41 +2273,41 @@ namespace data
     } // namespace DPGraph
     namespace SymbolTable
     {
-        // struct Symbol : public mega::io::Object
-        Symbol::Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbol >( loader, this ) )
+        // struct Symbols_Symbol : public mega::io::Object
+        Symbols_Symbol::Symbols_Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_Symbol >( loader, this ) )
         {
         }
-        Symbol::Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &symbol, const std::int32_t &id,
-                        const std::vector< data::Ptr< data::Tree::IContext > >       &contexts,
-                        const std::vector< data::Ptr< data::Tree::DimensionTrait > > &dimensions )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbol >( loader, this ) ), symbol( symbol ), id( id ),
+        Symbols_Symbol::Symbols_Symbol( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::string &symbol, const std::int32_t &id,
+                                        const std::vector< data::Ptr< data::Tree::Interface_IContext > >       &contexts,
+                                        const std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > &dimensions )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_Symbol >( loader, this ) ), symbol( symbol ), id( id ),
               contexts( contexts ), dimensions( dimensions )
         {
         }
-        bool Symbol::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Symbols_Symbol::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::SymbolTable::Symbol > >{ data::Ptr< data::SymbolTable::Symbol >( loader, const_cast< Symbol * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::SymbolTable::Symbols_Symbol > >{
+                                        data::Ptr< data::SymbolTable::Symbols_Symbol >( loader, const_cast< Symbols_Symbol * >( this ) ) };
         }
-        void Symbol::set_inheritance_pointer() {}
-        void Symbol::load( mega::io::Loader &loader )
+        void Symbols_Symbol::set_inheritance_pointer() {}
+        void Symbols_Symbol::load( mega::io::Loader &loader )
         {
             loader.load( symbol );
             loader.load( id );
             loader.load( contexts );
             loader.load( dimensions );
         }
-        void Symbol::store( mega::io::Storer &storer ) const
+        void Symbols_Symbol::store( mega::io::Storer &storer ) const
         {
             storer.store( symbol );
             storer.store( id );
             storer.store( contexts );
             storer.store( dimensions );
         }
-        void Symbol::to_json( nlohmann::json &part ) const
+        void Symbols_Symbol::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Symbol" },
+            part = nlohmann::json::object( { { "partname", "Symbols_Symbol" },
                                              { "filetype", "SymbolTable" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2183,30 +2331,31 @@ namespace data
             }
         }
 
-        // struct SymbolSet : public mega::io::Object
-        SymbolSet::SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolSet >( loader, this ) )
+        // struct Symbols_SymbolSet : public mega::io::Object
+        Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, this ) )
         {
         }
-        SymbolSet::SymbolSet( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                              const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > > &symbols, const mega::io::megaFilePath &source_file,
-                              const std::size_t                                                                                 &hash_code,
-                              const std::map< data::Ptr< data::Tree::IContext >, data::Ptr< data::SymbolTable::Symbol > >       &context_symbols,
-                              const std::map< data::Ptr< data::Tree::DimensionTrait >, data::Ptr< data::SymbolTable::Symbol > > &dimension_symbols,
-                              const std::map< data::Ptr< data::Tree::IContext >, int32_t >                                      &context_type_ids,
-                              const std::map< data::Ptr< data::Tree::DimensionTrait >, int32_t >                                &dimension_type_ids )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolSet >( loader, this ) ), symbols( symbols ),
+        Symbols_SymbolSet::Symbols_SymbolSet(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+            const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > > &symbols, const mega::io::megaFilePath &source_file,
+            const std::size_t                                                                                                   &hash_code,
+            const std::map< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::SymbolTable::Symbols_Symbol > >       &context_symbols,
+            const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::SymbolTable::Symbols_Symbol > > &dimension_symbols,
+            const std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >                                              &context_type_ids,
+            const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >                                        &dimension_type_ids )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, this ) ), symbols( symbols ),
               source_file( source_file ), hash_code( hash_code ), context_symbols( context_symbols ), dimension_symbols( dimension_symbols ),
               context_type_ids( context_type_ids ), dimension_type_ids( dimension_type_ids )
         {
         }
-        bool SymbolSet::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Symbols_SymbolSet::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::SymbolTable::SymbolSet > >{
-                                        data::Ptr< data::SymbolTable::SymbolSet >( loader, const_cast< SymbolSet * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >{
+                                        data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, const_cast< Symbols_SymbolSet * >( this ) ) };
         }
-        void SymbolSet::set_inheritance_pointer() {}
-        void SymbolSet::load( mega::io::Loader &loader )
+        void Symbols_SymbolSet::set_inheritance_pointer() {}
+        void Symbols_SymbolSet::load( mega::io::Loader &loader )
         {
             loader.load( symbols );
             loader.load( source_file );
@@ -2216,7 +2365,7 @@ namespace data
             loader.load( context_type_ids );
             loader.load( dimension_type_ids );
         }
-        void SymbolSet::store( mega::io::Storer &storer ) const
+        void Symbols_SymbolSet::store( mega::io::Storer &storer ) const
         {
             storer.store( symbols );
             storer.store( source_file );
@@ -2226,9 +2375,9 @@ namespace data
             storer.store( context_type_ids );
             storer.store( dimension_type_ids );
         }
-        void SymbolSet::to_json( nlohmann::json &part ) const
+        void Symbols_SymbolSet::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "SymbolSet" },
+            part = nlohmann::json::object( { { "partname", "Symbols_SymbolSet" },
                                              { "filetype", "SymbolTable" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2264,28 +2413,28 @@ namespace data
             }
         }
 
-        // struct SymbolTable : public mega::io::Object
-        SymbolTable::SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolTable >( loader, this ) )
+        // struct Symbols_SymbolTable : public mega::io::Object
+        Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, this ) )
         {
         }
-        SymbolTable::SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                  const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::SymbolSet > > &symbol_sets,
-                                  const std::map< std::string, data::Ptr< data::SymbolTable::Symbol > >               &symbols,
-                                  const std::map< int32_t, data::Ptr< data::Tree::IContext > >                        &context_type_ids,
-                                  const std::map< int32_t, data::Ptr< data::Tree::DimensionTrait > >                  &dimension_type_ids,
-                                  const std::map< int32_t, data::Ptr< data::SymbolTable::Symbol > >                   &symbol_id_map )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::SymbolTable >( loader, this ) ), symbol_sets( symbol_sets ),
+        Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                  const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > > &symbol_sets,
+                                                  const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >               &symbols,
+                                                  const std::map< int32_t, data::Ptr< data::Tree::Interface_IContext > >                      &context_type_ids,
+                                                  const std::map< int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > > &dimension_type_ids,
+                                                  const std::map< int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >    &symbol_id_map )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, this ) ), symbol_sets( symbol_sets ),
               symbols( symbols ), context_type_ids( context_type_ids ), dimension_type_ids( dimension_type_ids ), symbol_id_map( symbol_id_map )
         {
         }
-        bool SymbolTable::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Symbols_SymbolTable::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::SymbolTable::SymbolTable > >{
-                                        data::Ptr< data::SymbolTable::SymbolTable >( loader, const_cast< SymbolTable * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >{
+                                        data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, const_cast< Symbols_SymbolTable * >( this ) ) };
         }
-        void SymbolTable::set_inheritance_pointer() {}
-        void SymbolTable::load( mega::io::Loader &loader )
+        void Symbols_SymbolTable::set_inheritance_pointer() {}
+        void Symbols_SymbolTable::load( mega::io::Loader &loader )
         {
             loader.load( symbol_sets );
             loader.load( symbols );
@@ -2293,7 +2442,7 @@ namespace data
             loader.load( dimension_type_ids );
             loader.load( symbol_id_map );
         }
-        void SymbolTable::store( mega::io::Storer &storer ) const
+        void Symbols_SymbolTable::store( mega::io::Storer &storer ) const
         {
             storer.store( symbol_sets );
             storer.store( symbols );
@@ -2301,9 +2450,9 @@ namespace data
             storer.store( dimension_type_ids );
             storer.store( symbol_id_map );
         }
-        void SymbolTable::to_json( nlohmann::json &part ) const
+        void Symbols_SymbolTable::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "SymbolTable" },
+            part = nlohmann::json::object( { { "partname", "Symbols_SymbolTable" },
                                              { "filetype", "SymbolTable" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2334,37 +2483,38 @@ namespace data
     } // namespace SymbolTable
     namespace PerSourceSymbols
     {
-        // struct DimensionTrait : public mega::io::Object
-        DimensionTrait::DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_DimensionTrait( loader )
+        // struct Interface_DimensionTrait : public mega::io::Object
+        Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_DimensionTrait( loader )
         {
         }
-        DimensionTrait::DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait,
-                                        const std::int32_t &symbol )
-            : mega::io::Object( objectInfo ), p_Tree_DimensionTrait( p_Tree_DimensionTrait ), symbol( symbol )
+        Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                            Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::int32_t &symbol )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait ), symbol( symbol )
         {
         }
-        bool DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
-        void DimensionTrait::set_inheritance_pointer()
+        bool Interface_DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_DimensionTrait::set_inheritance_pointer()
         {
-            p_Tree_DimensionTrait->p_PerSourceSymbols_DimensionTrait = data::Ptr< data::PerSourceSymbols::DimensionTrait >( p_Tree_DimensionTrait, this );
+            p_Tree_Interface_DimensionTrait->p_PerSourceSymbols_Interface_DimensionTrait =
+                data::Ptr< data::PerSourceSymbols::Interface_DimensionTrait >( p_Tree_Interface_DimensionTrait, this );
         }
-        void DimensionTrait::load( mega::io::Loader &loader )
+        void Interface_DimensionTrait::load( mega::io::Loader &loader )
         {
-            loader.load( p_Tree_DimensionTrait );
+            loader.load( p_Tree_Interface_DimensionTrait );
             loader.load( symbol );
             loader.load( type_id );
         }
-        void DimensionTrait::store( mega::io::Storer &storer ) const
+        void Interface_DimensionTrait::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_DimensionTrait );
+            storer.store( p_Tree_Interface_DimensionTrait );
             storer.store( symbol );
-            VERIFY_RTE_MSG( type_id.has_value(), "Tree::DimensionTrait.type_id has NOT been set" );
+            VERIFY_RTE_MSG( type_id.has_value(), "Tree::Interface_DimensionTrait.type_id has NOT been set" );
             storer.store( type_id );
         }
-        void DimensionTrait::to_json( nlohmann::json &part ) const
+        void Interface_DimensionTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "DimensionTrait" },
+            part = nlohmann::json::object( { { "partname", "Interface_DimensionTrait" },
                                              { "filetype", "PerSourceSymbols" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2380,34 +2530,38 @@ namespace data
             }
         }
 
-        // struct IContext : public mega::io::Object
-        IContext::IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_Tree_IContext( loader ) {}
-        IContext::IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::IContext > p_Tree_IContext,
-                            const std::int32_t &symbol )
-            : mega::io::Object( objectInfo ), p_Tree_IContext( p_Tree_IContext ), symbol( symbol )
+        // struct Interface_IContext : public mega::io::Object
+        Interface_IContext::Interface_IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_IContext( loader )
         {
         }
-        bool IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
-        void IContext::set_inheritance_pointer()
+        Interface_IContext::Interface_IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const std::int32_t &symbol )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_IContext( p_Tree_Interface_IContext ), symbol( symbol )
         {
-            p_Tree_IContext->p_PerSourceSymbols_IContext = data::Ptr< data::PerSourceSymbols::IContext >( p_Tree_IContext, this );
         }
-        void IContext::load( mega::io::Loader &loader )
+        bool Interface_IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_IContext::set_inheritance_pointer()
         {
-            loader.load( p_Tree_IContext );
+            p_Tree_Interface_IContext->p_PerSourceSymbols_Interface_IContext =
+                data::Ptr< data::PerSourceSymbols::Interface_IContext >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_IContext::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( symbol );
             loader.load( type_id );
         }
-        void IContext::store( mega::io::Storer &storer ) const
+        void Interface_IContext::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( symbol );
-            VERIFY_RTE_MSG( type_id.has_value(), "Tree::IContext.type_id has NOT been set" );
+            VERIFY_RTE_MSG( type_id.has_value(), "Tree::Interface_IContext.type_id has NOT been set" );
             storer.store( type_id );
         }
-        void IContext::to_json( nlohmann::json &part ) const
+        void Interface_IContext::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "IContext" },
+            part = nlohmann::json::object( { { "partname", "Interface_IContext" },
                                              { "filetype", "PerSourceSymbols" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2426,42 +2580,44 @@ namespace data
     } // namespace PerSourceSymbols
     namespace Clang
     {
-        // struct DimensionTrait : public mega::io::Object
-        DimensionTrait::DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_DimensionTrait( loader )
+        // struct Interface_DimensionTrait : public mega::io::Object
+        Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_DimensionTrait( loader )
         {
         }
-        DimensionTrait::DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait,
-                                        const std::string &canonical_type, const std::size_t &size, const bool &simple,
-                                        const std::vector< data::Ptr< data::SymbolTable::Symbol > > &symbols )
-            : mega::io::Object( objectInfo ), p_Tree_DimensionTrait( p_Tree_DimensionTrait ), canonical_type( canonical_type ), size( size ), simple( simple ),
-              symbols( symbols )
+        Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                            Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait,
+                                                            const std::string &canonical_type, const std::size_t &size, const bool &simple,
+                                                            const std::vector< data::Ptr< data::SymbolTable::Symbols_Symbol > > &symbols )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait ), canonical_type( canonical_type ),
+              size( size ), simple( simple ), symbols( symbols )
         {
         }
-        bool DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
-        void DimensionTrait::set_inheritance_pointer()
+        bool Interface_DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_DimensionTrait::set_inheritance_pointer()
         {
-            p_Tree_DimensionTrait->p_Clang_DimensionTrait = data::Ptr< data::Clang::DimensionTrait >( p_Tree_DimensionTrait, this );
+            p_Tree_Interface_DimensionTrait->p_Clang_Interface_DimensionTrait =
+                data::Ptr< data::Clang::Interface_DimensionTrait >( p_Tree_Interface_DimensionTrait, this );
         }
-        void DimensionTrait::load( mega::io::Loader &loader )
+        void Interface_DimensionTrait::load( mega::io::Loader &loader )
         {
-            loader.load( p_Tree_DimensionTrait );
+            loader.load( p_Tree_Interface_DimensionTrait );
             loader.load( canonical_type );
             loader.load( size );
             loader.load( simple );
             loader.load( symbols );
         }
-        void DimensionTrait::store( mega::io::Storer &storer ) const
+        void Interface_DimensionTrait::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_DimensionTrait );
+            storer.store( p_Tree_Interface_DimensionTrait );
             storer.store( canonical_type );
             storer.store( size );
             storer.store( simple );
             storer.store( symbols );
         }
-        void DimensionTrait::to_json( nlohmann::json &part ) const
+        void Interface_DimensionTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "DimensionTrait" },
+            part = nlohmann::json::object( { { "partname", "Interface_DimensionTrait" },
                                              { "filetype", "Clang" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2485,35 +2641,36 @@ namespace data
             }
         }
 
-        // struct InheritanceTrait : public mega::io::Object
-        InheritanceTrait::InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_InheritanceTrait( loader )
+        // struct Interface_InheritanceTrait : public mega::io::Object
+        Interface_InheritanceTrait::Interface_InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_InheritanceTrait( loader )
         {
         }
-        InheritanceTrait::InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                            Ptr< Tree::InheritanceTrait >                           p_Tree_InheritanceTrait,
-                                            const std::vector< data::Ptr< data::Tree::IContext > > &contexts )
-            : mega::io::Object( objectInfo ), p_Tree_InheritanceTrait( p_Tree_InheritanceTrait ), contexts( contexts )
+        Interface_InheritanceTrait::Interface_InheritanceTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                Ptr< Tree::Interface_InheritanceTrait > p_Tree_Interface_InheritanceTrait,
+                                                                const std::vector< data::Ptr< data::Tree::Interface_IContext > > &contexts )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_InheritanceTrait( p_Tree_Interface_InheritanceTrait ), contexts( contexts )
         {
         }
-        bool InheritanceTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
-        void InheritanceTrait::set_inheritance_pointer()
+        bool Interface_InheritanceTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_InheritanceTrait::set_inheritance_pointer()
         {
-            p_Tree_InheritanceTrait->p_Clang_InheritanceTrait = data::Ptr< data::Clang::InheritanceTrait >( p_Tree_InheritanceTrait, this );
+            p_Tree_Interface_InheritanceTrait->p_Clang_Interface_InheritanceTrait =
+                data::Ptr< data::Clang::Interface_InheritanceTrait >( p_Tree_Interface_InheritanceTrait, this );
         }
-        void InheritanceTrait::load( mega::io::Loader &loader )
+        void Interface_InheritanceTrait::load( mega::io::Loader &loader )
         {
-            loader.load( p_Tree_InheritanceTrait );
+            loader.load( p_Tree_Interface_InheritanceTrait );
             loader.load( contexts );
         }
-        void InheritanceTrait::store( mega::io::Storer &storer ) const
+        void Interface_InheritanceTrait::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_InheritanceTrait );
+            storer.store( p_Tree_Interface_InheritanceTrait );
             storer.store( contexts );
         }
-        void InheritanceTrait::to_json( nlohmann::json &part ) const
+        void Interface_InheritanceTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "InheritanceTrait" },
+            part = nlohmann::json::object( { { "partname", "Interface_InheritanceTrait" },
                                              { "filetype", "Clang" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2528,34 +2685,36 @@ namespace data
     } // namespace Clang
     namespace Concrete
     {
-        // struct DimensionTrait : public mega::io::Object
-        DimensionTrait::DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), p_Tree_DimensionTrait( loader )
+        // struct Interface_DimensionTrait : public mega::io::Object
+        Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_DimensionTrait( loader )
         {
         }
-        DimensionTrait::DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::DimensionTrait > p_Tree_DimensionTrait,
-                                        const std::optional< data::Ptr< data::Concrete::Dimension > > &concrete )
-            : mega::io::Object( objectInfo ), p_Tree_DimensionTrait( p_Tree_DimensionTrait ), concrete( concrete )
+        Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                            Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait,
+                                                            const std::optional< data::Ptr< data::Concrete::Concrete_Dimension > > &concrete )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait ), concrete( concrete )
         {
         }
-        bool DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
-        void DimensionTrait::set_inheritance_pointer()
+        bool Interface_DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_DimensionTrait::set_inheritance_pointer()
         {
-            p_Tree_DimensionTrait->p_Concrete_DimensionTrait = data::Ptr< data::Concrete::DimensionTrait >( p_Tree_DimensionTrait, this );
+            p_Tree_Interface_DimensionTrait->p_Concrete_Interface_DimensionTrait =
+                data::Ptr< data::Concrete::Interface_DimensionTrait >( p_Tree_Interface_DimensionTrait, this );
         }
-        void DimensionTrait::load( mega::io::Loader &loader )
+        void Interface_DimensionTrait::load( mega::io::Loader &loader )
         {
-            loader.load( p_Tree_DimensionTrait );
+            loader.load( p_Tree_Interface_DimensionTrait );
             loader.load( concrete );
         }
-        void DimensionTrait::store( mega::io::Storer &storer ) const
+        void Interface_DimensionTrait::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_DimensionTrait );
+            storer.store( p_Tree_Interface_DimensionTrait );
             storer.store( concrete );
         }
-        void DimensionTrait::to_json( nlohmann::json &part ) const
+        void Interface_DimensionTrait::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "DimensionTrait" },
+            part = nlohmann::json::object( { { "partname", "Interface_DimensionTrait" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2567,28 +2726,35 @@ namespace data
             }
         }
 
-        // struct IContext : public mega::io::Object
-        IContext::IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo ) : mega::io::Object( objectInfo ), p_Tree_IContext( loader ) {}
-        IContext::IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::IContext > p_Tree_IContext,
-                            const std::optional< data::Ptr< data::Concrete::Context > > &concrete )
-            : mega::io::Object( objectInfo ), p_Tree_IContext( p_Tree_IContext ), concrete( concrete )
+        // struct Interface_IContext : public mega::io::Object
+        Interface_IContext::Interface_IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_IContext( loader )
         {
         }
-        bool IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
-        void IContext::set_inheritance_pointer() { p_Tree_IContext->p_Concrete_IContext = data::Ptr< data::Concrete::IContext >( p_Tree_IContext, this ); }
-        void IContext::load( mega::io::Loader &loader )
+        Interface_IContext::Interface_IContext( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                Ptr< Tree::Interface_IContext >                                       p_Tree_Interface_IContext,
+                                                const std::optional< data::Ptr< data::Concrete::Concrete_Context > > &concrete )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_IContext( p_Tree_Interface_IContext ), concrete( concrete )
         {
-            loader.load( p_Tree_IContext );
+        }
+        bool Interface_IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_IContext::set_inheritance_pointer()
+        {
+            p_Tree_Interface_IContext->p_Concrete_Interface_IContext = data::Ptr< data::Concrete::Interface_IContext >( p_Tree_Interface_IContext, this );
+        }
+        void Interface_IContext::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_IContext );
             loader.load( concrete );
         }
-        void IContext::store( mega::io::Storer &storer ) const
+        void Interface_IContext::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Tree_IContext );
+            storer.store( p_Tree_Interface_IContext );
             storer.store( concrete );
         }
-        void IContext::to_json( nlohmann::json &part ) const
+        void Interface_IContext::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "IContext" },
+            part = nlohmann::json::object( { { "partname", "Interface_IContext" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2600,77 +2766,100 @@ namespace data
             }
         }
 
-        // struct Dimension : public mega::io::Object
-        Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Dimension >( loader, this ) ), interface_dimension( loader )
+        // struct Concrete_Dimension : public mega::io::Object
+        Concrete_Dimension::Concrete_Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimension >( loader, this ) ), parent( loader ),
+              interface_dimension( loader )
         {
         }
-        Dimension::Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                              const data::Ptr< data::Tree::DimensionTrait > &interface_dimension )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Dimension >( loader, this ) ),
+        Concrete_Dimension::Concrete_Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const data::Ptr< data::Concrete::Concrete_Context >     &parent,
+                                                const data::Ptr< data::Tree::Interface_DimensionTrait > &interface_dimension )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimension >( loader, this ) ), parent( parent ),
               interface_dimension( interface_dimension )
         {
         }
-        bool Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Dimension > >{
-                                        data::Ptr< data::Concrete::Dimension >( loader, const_cast< Dimension * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Dimension > >{
+                                        data::Ptr< data::Concrete::Concrete_Dimension >( loader, const_cast< Concrete_Dimension * >( this ) ) };
         }
-        void Dimension::set_inheritance_pointer() {}
-        void Dimension::load( mega::io::Loader &loader ) { loader.load( interface_dimension ); }
-        void Dimension::store( mega::io::Storer &storer ) const { storer.store( interface_dimension ); }
-        void Dimension::to_json( nlohmann::json &part ) const
+        void Concrete_Dimension::set_inheritance_pointer() {}
+        void Concrete_Dimension::load( mega::io::Loader &loader )
         {
-            part = nlohmann::json::object( { { "partname", "Dimension" },
+            loader.load( parent );
+            loader.load( interface_dimension );
+        }
+        void Concrete_Dimension::store( mega::io::Storer &storer ) const
+        {
+            storer.store( parent );
+            storer.store( interface_dimension );
+        }
+        void Concrete_Dimension::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Concrete_Dimension" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
                                              { "index", getIndex() },
                                              { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "parent", parent } } );
+                part[ "properties" ].push_back( property );
+            }
             {
                 nlohmann::json property = nlohmann::json::object( { { "interface_dimension", interface_dimension } } );
                 part[ "properties" ].push_back( property );
             }
         }
 
-        // struct Context : public mega::io::Object
-        Context::Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Context >( loader, this ) )
+        // struct Concrete_Context : public mega::io::Object
+        Concrete_Context::Concrete_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )
         {
         }
-        Context::Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::Tree::IContext > > &inheritance,
-                          const std::vector< data::Ptr< data::Concrete::Context > > &children )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Context >( loader, this ) ), inheritance( inheritance ),
-              children( children )
+        Concrete_Context::Concrete_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                            const std::optional< data::Ptr< data::Concrete::Concrete_Context > > &parent,
+                                            const std::vector< data::Ptr< data::Tree::Interface_IContext > >     &inheritance,
+                                            const std::vector< data::Ptr< data::Concrete::Concrete_Context > >   &children )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) ), parent( parent ),
+              inheritance( inheritance ), children( children )
         {
         }
-        bool Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Context >( loader, const_cast< Context * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Context >( loader, const_cast< Concrete_Context * >( this ) ) };
         }
-        void Context::set_inheritance_pointer() {}
-        void Context::load( mega::io::Loader &loader )
+        void Concrete_Context::set_inheritance_pointer() {}
+        void Concrete_Context::load( mega::io::Loader &loader )
         {
+            loader.load( parent );
             loader.load( inheritance );
             loader.load( children );
         }
-        void Context::store( mega::io::Storer &storer ) const
+        void Concrete_Context::store( mega::io::Storer &storer ) const
         {
+            storer.store( parent );
             storer.store( inheritance );
             storer.store( children );
         }
-        void Context::to_json( nlohmann::json &part ) const
+        void Concrete_Context::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Context" },
+            part = nlohmann::json::object( { { "partname", "Concrete_Context" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
                                              { "index", getIndex() },
                                              { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "parent", parent } } );
+                part[ "properties" ].push_back( property );
+            }
             {
                 nlohmann::json property = nlohmann::json::object( { { "inheritance", inheritance } } );
                 part[ "properties" ].push_back( property );
@@ -2681,42 +2870,47 @@ namespace data
             }
         }
 
-        // struct Namespace : public mega::io::Object
-        Namespace::Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Namespace >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_namespace( loader )
+        // struct Concrete_Namespace : public mega::io::Object
+        Concrete_Namespace::Concrete_Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Namespace >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_namespace( loader )
         {
         }
-        Namespace::Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Namespace > &interface_namespace,
-                              const std::vector< data::Ptr< data::Concrete::Dimension > > &dimensions )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Namespace >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_namespace( interface_namespace ), dimensions( dimensions )
+        Concrete_Namespace::Concrete_Namespace( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const data::Ptr< data::Tree::Interface_Namespace >                   &interface_namespace,
+                                                const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > &dimensions )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Namespace >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_namespace( interface_namespace ), dimensions( dimensions )
         {
         }
-        bool Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Namespace >( loader, const_cast< Namespace * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Namespace >( loader, const_cast< Concrete_Namespace * >( this ) ) };
         }
-        void Namespace::set_inheritance_pointer() { p_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Namespace >( p_Concrete_Context, this ); }
-        void Namespace::load( mega::io::Loader &loader )
+        void Concrete_Namespace::set_inheritance_pointer()
         {
-            loader.load( p_Concrete_Context );
+            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Namespace >( p_Concrete_Concrete_Context, this );
+        }
+        void Concrete_Namespace::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Concrete_Concrete_Context );
             loader.load( interface_namespace );
             loader.load( dimensions );
         }
-        void Namespace::store( mega::io::Storer &storer ) const
+        void Concrete_Namespace::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Concrete_Context );
+            storer.store( p_Concrete_Concrete_Context );
             storer.store( interface_namespace );
             storer.store( dimensions );
         }
-        void Namespace::to_json( nlohmann::json &part ) const
+        void Concrete_Namespace::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Namespace" },
+            part = nlohmann::json::object( { { "partname", "Concrete_Namespace" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2732,42 +2926,47 @@ namespace data
             }
         }
 
-        // struct Action : public mega::io::Object
-        Action::Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Action >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_action( loader )
+        // struct Concrete_Action : public mega::io::Object
+        Concrete_Action::Concrete_Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_action( loader )
         {
         }
-        Action::Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Action > &interface_action,
-                        const std::vector< data::Ptr< data::Concrete::Dimension > > &dimensions )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Action >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_action( interface_action ), dimensions( dimensions )
+        Concrete_Action::Concrete_Action( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                          const data::Ptr< data::Tree::Interface_Action >                      &interface_action,
+                                          const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > &dimensions )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_action( interface_action ), dimensions( dimensions )
         {
         }
-        bool Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Action >( loader, const_cast< Action * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Action >( loader, const_cast< Concrete_Action * >( this ) ) };
         }
-        void Action::set_inheritance_pointer() { p_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Action >( p_Concrete_Context, this ); }
-        void Action::load( mega::io::Loader &loader )
+        void Concrete_Action::set_inheritance_pointer()
         {
-            loader.load( p_Concrete_Context );
+            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Action >( p_Concrete_Concrete_Context, this );
+        }
+        void Concrete_Action::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Concrete_Concrete_Context );
             loader.load( interface_action );
             loader.load( dimensions );
         }
-        void Action::store( mega::io::Storer &storer ) const
+        void Concrete_Action::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Concrete_Context );
+            storer.store( p_Concrete_Concrete_Context );
             storer.store( interface_action );
             storer.store( dimensions );
         }
-        void Action::to_json( nlohmann::json &part ) const
+        void Concrete_Action::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Action" },
+            part = nlohmann::json::object( { { "partname", "Concrete_Action" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2783,42 +2982,47 @@ namespace data
             }
         }
 
-        // struct Event : public mega::io::Object
-        Event::Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Event >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_event( loader )
+        // struct Concrete_Event : public mega::io::Object
+        Concrete_Event::Concrete_Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_event( loader )
         {
         }
-        Event::Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Event > &interface_event,
-                      const std::vector< data::Ptr< data::Concrete::Dimension > > &dimensions )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Event >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_event( interface_event ), dimensions( dimensions )
+        Concrete_Event::Concrete_Event( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                        const data::Ptr< data::Tree::Interface_Event >                       &interface_event,
+                                        const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > &dimensions )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_event( interface_event ), dimensions( dimensions )
         {
         }
-        bool Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Event >( loader, const_cast< Event * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Event >( loader, const_cast< Concrete_Event * >( this ) ) };
         }
-        void Event::set_inheritance_pointer() { p_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Event >( p_Concrete_Context, this ); }
-        void Event::load( mega::io::Loader &loader )
+        void Concrete_Event::set_inheritance_pointer()
         {
-            loader.load( p_Concrete_Context );
+            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Event >( p_Concrete_Concrete_Context, this );
+        }
+        void Concrete_Event::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Concrete_Concrete_Context );
             loader.load( interface_event );
             loader.load( dimensions );
         }
-        void Event::store( mega::io::Storer &storer ) const
+        void Concrete_Event::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Concrete_Context );
+            storer.store( p_Concrete_Concrete_Context );
             storer.store( interface_event );
             storer.store( dimensions );
         }
-        void Event::to_json( nlohmann::json &part ) const
+        void Concrete_Event::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Event" },
+            part = nlohmann::json::object( { { "partname", "Concrete_Event" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2834,39 +3038,44 @@ namespace data
             }
         }
 
-        // struct Function : public mega::io::Object
-        Function::Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Function >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_function( loader )
+        // struct Concrete_Function : public mega::io::Object
+        Concrete_Function::Concrete_Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Function >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_function( loader )
         {
         }
-        Function::Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Function > &interface_function )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Function >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_function( interface_function )
+        Concrete_Function::Concrete_Function( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                              const data::Ptr< data::Tree::Interface_Function > &interface_function )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Function >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_function( interface_function )
         {
         }
-        bool Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Function >( loader, const_cast< Function * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Function >( loader, const_cast< Concrete_Function * >( this ) ) };
         }
-        void Function::set_inheritance_pointer() { p_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Function >( p_Concrete_Context, this ); }
-        void Function::load( mega::io::Loader &loader )
+        void Concrete_Function::set_inheritance_pointer()
         {
-            loader.load( p_Concrete_Context );
+            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Function >( p_Concrete_Concrete_Context, this );
+        }
+        void Concrete_Function::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Concrete_Concrete_Context );
             loader.load( interface_function );
         }
-        void Function::store( mega::io::Storer &storer ) const
+        void Concrete_Function::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Concrete_Context );
+            storer.store( p_Concrete_Concrete_Context );
             storer.store( interface_function );
         }
-        void Function::to_json( nlohmann::json &part ) const
+        void Concrete_Function::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Function" },
+            part = nlohmann::json::object( { { "partname", "Concrete_Function" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2878,42 +3087,47 @@ namespace data
             }
         }
 
-        // struct Object : public mega::io::Object
-        Object::Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Object >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_object( loader )
+        // struct Concrete_Object : public mega::io::Object
+        Concrete_Object::Concrete_Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_object( loader )
         {
         }
-        Object::Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Object > &interface_object,
-                        const std::vector< data::Ptr< data::Concrete::Dimension > > &dimensions )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Object >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_object( interface_object ), dimensions( dimensions )
+        Concrete_Object::Concrete_Object( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                          const data::Ptr< data::Tree::Interface_Object >                      &interface_object,
+                                          const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > &dimensions )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_object( interface_object ), dimensions( dimensions )
         {
         }
-        bool Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Object >( loader, const_cast< Object * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Object >( loader, const_cast< Concrete_Object * >( this ) ) };
         }
-        void Object::set_inheritance_pointer() { p_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Object >( p_Concrete_Context, this ); }
-        void Object::load( mega::io::Loader &loader )
+        void Concrete_Object::set_inheritance_pointer()
         {
-            loader.load( p_Concrete_Context );
+            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Object >( p_Concrete_Concrete_Context, this );
+        }
+        void Concrete_Object::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Concrete_Concrete_Context );
             loader.load( interface_object );
             loader.load( dimensions );
         }
-        void Object::store( mega::io::Storer &storer ) const
+        void Concrete_Object::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Concrete_Context );
+            storer.store( p_Concrete_Concrete_Context );
             storer.store( interface_object );
             storer.store( dimensions );
         }
-        void Object::to_json( nlohmann::json &part ) const
+        void Concrete_Object::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Object" },
+            part = nlohmann::json::object( { { "partname", "Concrete_Object" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2929,39 +3143,44 @@ namespace data
             }
         }
 
-        // struct Link : public mega::io::Object
-        Link::Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Link >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_link( loader )
+        // struct Concrete_Link : public mega::io::Object
+        Concrete_Link::Concrete_Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_link( loader )
         {
         }
-        Link::Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Link > &interface_link )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Link >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_link( interface_link )
+        Concrete_Link::Concrete_Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                      const data::Ptr< data::Tree::Interface_Link > &interface_link )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_link( interface_link )
         {
         }
-        bool Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Link >( loader, const_cast< Link * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Link >( loader, const_cast< Concrete_Link * >( this ) ) };
         }
-        void Link::set_inheritance_pointer() { p_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Link >( p_Concrete_Context, this ); }
-        void Link::load( mega::io::Loader &loader )
+        void Concrete_Link::set_inheritance_pointer()
         {
-            loader.load( p_Concrete_Context );
+            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Link >( p_Concrete_Concrete_Context, this );
+        }
+        void Concrete_Link::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Concrete_Concrete_Context );
             loader.load( interface_link );
         }
-        void Link::store( mega::io::Storer &storer ) const
+        void Concrete_Link::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Concrete_Context );
+            storer.store( p_Concrete_Concrete_Context );
             storer.store( interface_link );
         }
-        void Link::to_json( nlohmann::json &part ) const
+        void Concrete_Link::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Link" },
+            part = nlohmann::json::object( { { "partname", "Concrete_Link" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -2973,39 +3192,44 @@ namespace data
             }
         }
 
-        // struct Table : public mega::io::Object
-        Table::Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Table >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_table( loader )
+        // struct Concrete_Table : public mega::io::Object
+        Concrete_Table::Concrete_Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Table >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_table( loader )
         {
         }
-        Table::Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Table > &interface_table )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Table >( loader, this ) ), p_Concrete_Context( loader ),
-              interface_table( interface_table )
+        Concrete_Table::Concrete_Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                        const data::Ptr< data::Tree::Interface_Table > &interface_table )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Table >( loader, this ) ),
+              p_Concrete_Concrete_Context( loader ), interface_table( interface_table )
         {
         }
-        bool Table::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Table::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Table >( loader, const_cast< Table * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Table >( loader, const_cast< Concrete_Table * >( this ) ) };
         }
-        void Table::set_inheritance_pointer() { p_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Table >( p_Concrete_Context, this ); }
-        void Table::load( mega::io::Loader &loader )
+        void Concrete_Table::set_inheritance_pointer()
         {
-            loader.load( p_Concrete_Context );
+            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Table >( p_Concrete_Concrete_Context, this );
+        }
+        void Concrete_Table::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Concrete_Concrete_Context );
             loader.load( interface_table );
         }
-        void Table::store( mega::io::Storer &storer ) const
+        void Concrete_Table::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Concrete_Context );
+            storer.store( p_Concrete_Concrete_Context );
             storer.store( interface_table );
         }
-        void Table::to_json( nlohmann::json &part ) const
+        void Concrete_Table::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Table" },
+            part = nlohmann::json::object( { { "partname", "Concrete_Table" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3017,25 +3241,29 @@ namespace data
             }
         }
 
-        // struct Root : public mega::io::Object
-        Root::Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Root >( loader, this ) ), p_Concrete_Context( loader )
+        // struct Concrete_Root : public mega::io::Object
+        Concrete_Root::Concrete_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Root >( loader, this ) ), p_Concrete_Concrete_Context( loader )
         {
         }
-        bool Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Concrete_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Concrete::Context >, data::Ptr< data::Concrete::Namespace >, data::Ptr< data::Concrete::Action >,
-                                 data::Ptr< data::Concrete::Event >, data::Ptr< data::Concrete::Function >, data::Ptr< data::Concrete::Object >,
-                                 data::Ptr< data::Concrete::Link >, data::Ptr< data::Concrete::Table >, data::Ptr< data::Concrete::Root > >{
-                       data::Ptr< data::Concrete::Root >( loader, const_cast< Root * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
+                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
+                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
+                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_Root >( loader, const_cast< Concrete_Root * >( this ) ) };
         }
-        void Root::set_inheritance_pointer() { p_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Root >( p_Concrete_Context, this ); }
-        void Root::load( mega::io::Loader &loader ) { loader.load( p_Concrete_Context ); }
-        void Root::store( mega::io::Storer &storer ) const { storer.store( p_Concrete_Context ); }
-        void Root::to_json( nlohmann::json &part ) const
+        void Concrete_Root::set_inheritance_pointer()
         {
-            part = nlohmann::json::object( { { "partname", "Root" },
+            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Root >( p_Concrete_Concrete_Context, this );
+        }
+        void Concrete_Root::load( mega::io::Loader &loader ) { loader.load( p_Concrete_Concrete_Context ); }
+        void Concrete_Root::store( mega::io::Storer &storer ) const { storer.store( p_Concrete_Concrete_Context ); }
+        void Concrete_Root::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Concrete_Root" },
                                              { "filetype", "Concrete" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3046,36 +3274,36 @@ namespace data
     } // namespace Concrete
     namespace Model
     {
-        // struct ObjectGraph : public mega::io::Object
-        ObjectGraph::ObjectGraph( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::ObjectGraph >( loader, this ) )
+        // struct HyperGraph_ObjectGraph : public mega::io::Object
+        HyperGraph_ObjectGraph::HyperGraph_ObjectGraph( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_ObjectGraph >( loader, this ) )
         {
         }
-        ObjectGraph::ObjectGraph( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const mega::io::megaFilePath &source_file,
-                                  const std::size_t &hash_code )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::ObjectGraph >( loader, this ) ), source_file( source_file ),
+        HyperGraph_ObjectGraph::HyperGraph_ObjectGraph( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                        const mega::io::megaFilePath &source_file, const std::size_t &hash_code )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_ObjectGraph >( loader, this ) ), source_file( source_file ),
               hash_code( hash_code )
         {
         }
-        bool ObjectGraph::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool HyperGraph_ObjectGraph::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Model::ObjectGraph > >{
-                                        data::Ptr< data::Model::ObjectGraph >( loader, const_cast< ObjectGraph * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_ObjectGraph > >{
+                                        data::Ptr< data::Model::HyperGraph_ObjectGraph >( loader, const_cast< HyperGraph_ObjectGraph * >( this ) ) };
         }
-        void ObjectGraph::set_inheritance_pointer() {}
-        void ObjectGraph::load( mega::io::Loader &loader )
+        void HyperGraph_ObjectGraph::set_inheritance_pointer() {}
+        void HyperGraph_ObjectGraph::load( mega::io::Loader &loader )
         {
             loader.load( source_file );
             loader.load( hash_code );
         }
-        void ObjectGraph::store( mega::io::Storer &storer ) const
+        void HyperGraph_ObjectGraph::store( mega::io::Storer &storer ) const
         {
             storer.store( source_file );
             storer.store( hash_code );
         }
-        void ObjectGraph::to_json( nlohmann::json &part ) const
+        void HyperGraph_ObjectGraph::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ObjectGraph" },
+            part = nlohmann::json::object( { { "partname", "HyperGraph_ObjectGraph" },
                                              { "filetype", "Model" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3091,25 +3319,27 @@ namespace data
             }
         }
 
-        // struct Graph : public mega::io::Object
-        Graph::Graph( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::Graph >( loader, this ) )
+        // struct HyperGraph_Graph : public mega::io::Object
+        HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Graph >( loader, this ) )
         {
         }
-        Graph::Graph( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const std::vector< data::Ptr< data::Model::ObjectGraph > > &objects )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::Graph >( loader, this ) ), objects( objects )
+        HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                            const std::vector< data::Ptr< data::Model::HyperGraph_ObjectGraph > > &objects )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Graph >( loader, this ) ), objects( objects )
         {
         }
-        bool Graph::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool HyperGraph_Graph::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Model::Graph > >{ data::Ptr< data::Model::Graph >( loader, const_cast< Graph * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Graph > >{
+                                        data::Ptr< data::Model::HyperGraph_Graph >( loader, const_cast< HyperGraph_Graph * >( this ) ) };
         }
-        void Graph::set_inheritance_pointer() {}
-        void Graph::load( mega::io::Loader &loader ) { loader.load( objects ); }
-        void Graph::store( mega::io::Storer &storer ) const { storer.store( objects ); }
-        void Graph::to_json( nlohmann::json &part ) const
+        void HyperGraph_Graph::set_inheritance_pointer() {}
+        void HyperGraph_Graph::load( mega::io::Loader &loader ) { loader.load( objects ); }
+        void HyperGraph_Graph::store( mega::io::Storer &storer ) const { storer.store( objects ); }
+        void HyperGraph_Graph::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Graph" },
+            part = nlohmann::json::object( { { "partname", "HyperGraph_Graph" },
                                              { "filetype", "Model" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3124,39 +3354,39 @@ namespace data
     } // namespace Model
     namespace Derivations
     {
-        // struct ObjectMapping : public mega::io::Object
-        ObjectMapping::ObjectMapping( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::ObjectMapping >( loader, this ) )
+        // struct Derivation_ObjectMapping : public mega::io::Object
+        Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )
         {
         }
-        ObjectMapping::ObjectMapping( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const mega::io::megaFilePath &source_file,
-                                      const std::size_t                                                                           &hash_code,
-                                      const std::multimap< data::Ptr< data::Tree::IContext >, data::Ptr< data::Tree::IContext > > &inheritance )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::ObjectMapping >( loader, this ) ), source_file( source_file ),
-              hash_code( hash_code ), inheritance( inheritance )
+        Derivation_ObjectMapping::Derivation_ObjectMapping(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const mega::io::megaFilePath &source_file, const std::size_t &hash_code,
+            const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > &inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) ),
+              source_file( source_file ), hash_code( hash_code ), inheritance( inheritance )
         {
         }
-        bool ObjectMapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Derivation_ObjectMapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Derivations::ObjectMapping > >{
-                                        data::Ptr< data::Derivations::ObjectMapping >( loader, const_cast< ObjectMapping * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >{
+                                        data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, const_cast< Derivation_ObjectMapping * >( this ) ) };
         }
-        void ObjectMapping::set_inheritance_pointer() {}
-        void ObjectMapping::load( mega::io::Loader &loader )
+        void Derivation_ObjectMapping::set_inheritance_pointer() {}
+        void Derivation_ObjectMapping::load( mega::io::Loader &loader )
         {
             loader.load( source_file );
             loader.load( hash_code );
             loader.load( inheritance );
         }
-        void ObjectMapping::store( mega::io::Storer &storer ) const
+        void Derivation_ObjectMapping::store( mega::io::Storer &storer ) const
         {
             storer.store( source_file );
             storer.store( hash_code );
             storer.store( inheritance );
         }
-        void ObjectMapping::to_json( nlohmann::json &part ) const
+        void Derivation_ObjectMapping::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ObjectMapping" },
+            part = nlohmann::json::object( { { "partname", "Derivation_ObjectMapping" },
                                              { "filetype", "Derivations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3176,36 +3406,36 @@ namespace data
             }
         }
 
-        // struct Mapping : public mega::io::Object
-        Mapping::Mapping( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Mapping >( loader, this ) )
+        // struct Derivation_Mapping : public mega::io::Object
+        Derivation_Mapping::Derivation_Mapping( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )
         {
         }
-        Mapping::Mapping( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                          const std::vector< data::Ptr< data::Derivations::ObjectMapping > > &mappings )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Mapping >( loader, this ) ), mappings( mappings )
+        Derivation_Mapping::Derivation_Mapping( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > > &mappings )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) ), mappings( mappings )
         {
         }
-        bool Mapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Derivation_Mapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Derivations::Mapping > >{
-                                        data::Ptr< data::Derivations::Mapping >( loader, const_cast< Mapping * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >{
+                                        data::Ptr< data::Derivations::Derivation_Mapping >( loader, const_cast< Derivation_Mapping * >( this ) ) };
         }
-        void Mapping::set_inheritance_pointer() {}
-        void Mapping::load( mega::io::Loader &loader )
+        void Derivation_Mapping::set_inheritance_pointer() {}
+        void Derivation_Mapping::load( mega::io::Loader &loader )
         {
             loader.load( mappings );
             loader.load( inheritance );
         }
-        void Mapping::store( mega::io::Storer &storer ) const
+        void Derivation_Mapping::store( mega::io::Storer &storer ) const
         {
             storer.store( mappings );
-            VERIFY_RTE_MSG( inheritance.has_value(), "Derivations::Mapping.inheritance has NOT been set" );
+            VERIFY_RTE_MSG( inheritance.has_value(), "Derivations::Derivation_Mapping.inheritance has NOT been set" );
             storer.store( inheritance );
         }
-        void Mapping::to_json( nlohmann::json &part ) const
+        void Derivation_Mapping::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Mapping" },
+            part = nlohmann::json::object( { { "partname", "Derivation_Mapping" },
                                              { "filetype", "Derivations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3224,37 +3454,370 @@ namespace data
     } // namespace Derivations
     namespace Operations
     {
-        // struct InterfaceVariant : public mega::io::Object
-        InterfaceVariant::InterfaceVariant( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::InterfaceVariant >( loader, this ) )
+        // struct Invocations_Variables_Variable : public mega::io::Object
+        Invocations_Variables_Variable::Invocations_Variables_Variable( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Variable >( loader, this ) )
         {
         }
-        InterfaceVariant::InterfaceVariant( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                            const std::optional< data::Ptr< data::Tree::IContext > >       &context,
-                                            const std::optional< data::Ptr< data::Tree::DimensionTrait > > &dimension )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::InterfaceVariant >( loader, this ) ), context( context ),
-              dimension( dimension )
+        Invocations_Variables_Variable::Invocations_Variables_Variable(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+            const std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > > &parent )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Variable >( loader, this ) ), parent( parent )
         {
         }
-        bool InterfaceVariant::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Invocations_Variables_Variable::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::InterfaceVariant > >{
-                                        data::Ptr< data::Operations::InterfaceVariant >( loader, const_cast< InterfaceVariant * >( this ) ) };
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Reference >, data::Ptr< data::Operations::Invocations_Variables_Dimension >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Context > >{
+                       data::Ptr< data::Operations::Invocations_Variables_Variable >( loader, const_cast< Invocations_Variables_Variable * >( this ) ) };
         }
-        void InterfaceVariant::set_inheritance_pointer() {}
-        void InterfaceVariant::load( mega::io::Loader &loader )
+        void Invocations_Variables_Variable::set_inheritance_pointer() {}
+        void Invocations_Variables_Variable::load( mega::io::Loader &loader ) { loader.load( parent ); }
+        void Invocations_Variables_Variable::store( mega::io::Storer &storer ) const { storer.store( parent ); }
+        void Invocations_Variables_Variable::to_json( nlohmann::json &part ) const
         {
+            part = nlohmann::json::object( { { "partname", "Invocations_Variables_Variable" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "parent", parent } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Variables_Instance : public mega::io::Object
+        Invocations_Variables_Instance::Invocations_Variables_Instance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Instance >( loader, this ) ),
+              p_Operations_Invocations_Variables_Variable( loader ), concrete( loader )
+        {
+        }
+        Invocations_Variables_Instance::Invocations_Variables_Instance( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                        const data::Ptr< data::Concrete::Concrete_Context > &concrete )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Instance >( loader, this ) ),
+              p_Operations_Invocations_Variables_Variable( loader ), concrete( concrete )
+        {
+        }
+        bool Invocations_Variables_Instance::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Reference >, data::Ptr< data::Operations::Invocations_Variables_Dimension >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Context > >{
+                       data::Ptr< data::Operations::Invocations_Variables_Instance >( loader, const_cast< Invocations_Variables_Instance * >( this ) ) };
+        }
+        void Invocations_Variables_Instance::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Variables_Variable->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Variables_Instance >( p_Operations_Invocations_Variables_Variable, this );
+        }
+        void Invocations_Variables_Instance::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Variables_Variable );
+            loader.load( concrete );
+        }
+        void Invocations_Variables_Instance::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Variables_Variable );
+            storer.store( concrete );
+        }
+        void Invocations_Variables_Instance::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Variables_Instance" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "concrete", concrete } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Variables_Reference : public mega::io::Object
+        Invocations_Variables_Reference::Invocations_Variables_Reference( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Reference >( loader, this ) ),
+              p_Operations_Invocations_Variables_Variable( loader )
+        {
+        }
+        Invocations_Variables_Reference::Invocations_Variables_Reference( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                          const std::vector< data::Ptr< data::Concrete::Concrete_Context > > &types )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Reference >( loader, this ) ),
+              p_Operations_Invocations_Variables_Variable( loader ), types( types )
+        {
+        }
+        bool Invocations_Variables_Reference::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Reference >, data::Ptr< data::Operations::Invocations_Variables_Dimension >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Context > >{
+                       data::Ptr< data::Operations::Invocations_Variables_Reference >( loader, const_cast< Invocations_Variables_Reference * >( this ) ) };
+        }
+        void Invocations_Variables_Reference::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Variables_Variable->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Variables_Reference >( p_Operations_Invocations_Variables_Variable, this );
+        }
+        void Invocations_Variables_Reference::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Variables_Variable );
+            loader.load( types );
+        }
+        void Invocations_Variables_Reference::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Variables_Variable );
+            storer.store( types );
+        }
+        void Invocations_Variables_Reference::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Variables_Reference" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "types", types } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Variables_Dimension : public mega::io::Object
+        Invocations_Variables_Dimension::Invocations_Variables_Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Dimension >( loader, this ) ),
+              p_Operations_Invocations_Variables_Reference( loader )
+        {
+        }
+        bool Invocations_Variables_Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Reference >, data::Ptr< data::Operations::Invocations_Variables_Dimension >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Context > >{
+                       data::Ptr< data::Operations::Invocations_Variables_Dimension >( loader, const_cast< Invocations_Variables_Dimension * >( this ) ) };
+        }
+        void Invocations_Variables_Dimension::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Variables_Reference->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Variables_Dimension >( p_Operations_Invocations_Variables_Reference, this );
+        }
+        void Invocations_Variables_Dimension::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Variables_Reference ); }
+        void Invocations_Variables_Dimension::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Variables_Reference ); }
+        void Invocations_Variables_Dimension::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Variables_Dimension" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Variables_Context : public mega::io::Object
+        Invocations_Variables_Context::Invocations_Variables_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Variables_Context >( loader, this ) ),
+              p_Operations_Invocations_Variables_Reference( loader )
+        {
+        }
+        bool Invocations_Variables_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Reference >, data::Ptr< data::Operations::Invocations_Variables_Dimension >,
+                                 data::Ptr< data::Operations::Invocations_Variables_Context > >{
+                       data::Ptr< data::Operations::Invocations_Variables_Context >( loader, const_cast< Invocations_Variables_Context * >( this ) ) };
+        }
+        void Invocations_Variables_Context::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Variables_Reference->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Variables_Context >( p_Operations_Invocations_Variables_Reference, this );
+        }
+        void Invocations_Variables_Context::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Variables_Reference ); }
+        void Invocations_Variables_Context::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Variables_Reference ); }
+        void Invocations_Variables_Context::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Variables_Context" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Instructions_Instruction : public mega::io::Object
+        Invocations_Instructions_Instruction::Invocations_Instructions_Instruction( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Instruction >( loader, this ) )
+        {
+        }
+        bool Invocations_Instructions_Instruction::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Instruction >(
+                       loader, const_cast< Invocations_Instructions_Instruction * >( this ) ) };
+        }
+        void Invocations_Instructions_Instruction::set_inheritance_pointer() {}
+        void Invocations_Instructions_Instruction::load( mega::io::Loader &loader ) {}
+        void Invocations_Instructions_Instruction::store( mega::io::Storer &storer ) const {}
+        void Invocations_Instructions_Instruction::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_Instruction" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Instructions_InstructionGroup : public mega::io::Object
+        Invocations_Instructions_InstructionGroup::Invocations_Instructions_InstructionGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >( loader, this ) ),
+              p_Operations_Invocations_Instructions_Instruction( loader )
+        {
+        }
+        Invocations_Instructions_InstructionGroup::Invocations_Instructions_InstructionGroup(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+            const std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > > &children )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >( loader, this ) ),
+              p_Operations_Invocations_Instructions_Instruction( loader ), children( children )
+        {
+        }
+        bool Invocations_Instructions_InstructionGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >(
+                       loader, const_cast< Invocations_Instructions_InstructionGroup * >( this ) ) };
+        }
+        void Invocations_Instructions_InstructionGroup::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_Instruction->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >( p_Operations_Invocations_Instructions_Instruction, this );
+        }
+        void Invocations_Instructions_InstructionGroup::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_Instruction );
+            loader.load( children );
+        }
+        void Invocations_Instructions_InstructionGroup::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_Instruction );
+            storer.store( children );
+        }
+        void Invocations_Instructions_InstructionGroup::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_InstructionGroup" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "children", children } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Instructions_Root : public mega::io::Object
+        Invocations_Instructions_Root::Invocations_Instructions_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), context( loader )
+        {
+        }
+        Invocations_Instructions_Root::Invocations_Instructions_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                      const data::Ptr< data::Operations::Invocations_Variables_Context > &context )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), context( context )
+        {
+        }
+        bool Invocations_Instructions_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, const_cast< Invocations_Instructions_Root * >( this ) ) };
+        }
+        void Invocations_Instructions_Root::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_Root >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_Root::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
             loader.load( context );
-            loader.load( dimension );
         }
-        void InterfaceVariant::store( mega::io::Storer &storer ) const
+        void Invocations_Instructions_Root::store( mega::io::Storer &storer ) const
         {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
             storer.store( context );
-            storer.store( dimension );
         }
-        void InterfaceVariant::to_json( nlohmann::json &part ) const
+        void Invocations_Instructions_Root::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "InterfaceVariant" },
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_Root" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3264,88 +3827,1809 @@ namespace data
                 nlohmann::json property = nlohmann::json::object( { { "context", context } } );
                 part[ "properties" ].push_back( property );
             }
-            {
-                nlohmann::json property = nlohmann::json::object( { { "dimension", dimension } } );
-                part[ "properties" ].push_back( property );
-            }
         }
 
-        // struct ConcreteVariant : public mega::io::Object
-        ConcreteVariant::ConcreteVariant( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::ConcreteVariant >( loader, this ) )
+        // struct Invocations_Instructions_ParentDerivation : public mega::io::Object
+        Invocations_Instructions_ParentDerivation::Invocations_Instructions_ParentDerivation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), from( loader ), to( loader )
         {
         }
-        ConcreteVariant::ConcreteVariant( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                          const std::optional< data::Ptr< data::Concrete::Context > >   &context,
-                                          const std::optional< data::Ptr< data::Concrete::Dimension > > &dimension )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::ConcreteVariant >( loader, this ) ), context( context ),
-              dimension( dimension )
+        Invocations_Instructions_ParentDerivation::Invocations_Instructions_ParentDerivation(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance > &from,
+            const data::Ptr< data::Operations::Invocations_Variables_Instance > &to )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), from( from ), to( to )
         {
         }
-        bool ConcreteVariant::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Invocations_Instructions_ParentDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::ConcreteVariant > >{
-                                        data::Ptr< data::Operations::ConcreteVariant >( loader, const_cast< ConcreteVariant * >( this ) ) };
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >(
+                       loader, const_cast< Invocations_Instructions_ParentDerivation * >( this ) ) };
         }
-        void ConcreteVariant::set_inheritance_pointer() {}
-        void ConcreteVariant::load( mega::io::Loader &loader )
+        void Invocations_Instructions_ParentDerivation::set_inheritance_pointer()
         {
-            loader.load( context );
-            loader.load( dimension );
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >( p_Operations_Invocations_Instructions_InstructionGroup, this );
         }
-        void ConcreteVariant::store( mega::io::Storer &storer ) const
+        void Invocations_Instructions_ParentDerivation::load( mega::io::Loader &loader )
         {
-            storer.store( context );
-            storer.store( dimension );
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
+            loader.load( from );
+            loader.load( to );
         }
-        void ConcreteVariant::to_json( nlohmann::json &part ) const
+        void Invocations_Instructions_ParentDerivation::store( mega::io::Storer &storer ) const
         {
-            part = nlohmann::json::object( { { "partname", "ConcreteVariant" },
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+            storer.store( from );
+            storer.store( to );
+        }
+        void Invocations_Instructions_ParentDerivation::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_ParentDerivation" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
                                              { "index", getIndex() },
                                              { "properties", nlohmann::json::array() } } );
             {
-                nlohmann::json property = nlohmann::json::object( { { "context", context } } );
+                nlohmann::json property = nlohmann::json::object( { { "from", from } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( { { "dimension", dimension } } );
+                nlohmann::json property = nlohmann::json::object( { { "to", to } } );
                 part[ "properties" ].push_back( property );
             }
         }
 
-        // struct Element : public mega::io::Object
-        Element::Element( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Element >( loader, this ) ), interface( loader ), concrete( loader )
+        // struct Invocations_Instructions_ChildDerivation : public mega::io::Object
+        Invocations_Instructions_ChildDerivation::Invocations_Instructions_ChildDerivation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), from( loader ), to( loader )
         {
         }
-        Element::Element( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::InterfaceVariant > &interface,
-                          const data::Ptr< data::Operations::ConcreteVariant > &concrete )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Element >( loader, this ) ), interface( interface ),
+        Invocations_Instructions_ChildDerivation::Invocations_Instructions_ChildDerivation(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance > &from,
+            const data::Ptr< data::Operations::Invocations_Variables_Instance > &to )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), from( from ), to( to )
+        {
+        }
+        bool Invocations_Instructions_ChildDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >(
+                       loader, const_cast< Invocations_Instructions_ChildDerivation * >( this ) ) };
+        }
+        void Invocations_Instructions_ChildDerivation::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_ChildDerivation::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
+            loader.load( from );
+            loader.load( to );
+        }
+        void Invocations_Instructions_ChildDerivation::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+            storer.store( from );
+            storer.store( to );
+        }
+        void Invocations_Instructions_ChildDerivation::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_ChildDerivation" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "from", from } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "to", to } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Instructions_EnumDerivation : public mega::io::Object
+        Invocations_Instructions_EnumDerivation::Invocations_Instructions_EnumDerivation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), from( loader ), to( loader )
+        {
+        }
+        Invocations_Instructions_EnumDerivation::Invocations_Instructions_EnumDerivation(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance > &from,
+            const data::Ptr< data::Operations::Invocations_Variables_Instance > &to )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), from( from ), to( to )
+        {
+        }
+        bool Invocations_Instructions_EnumDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >(
+                       loader, const_cast< Invocations_Instructions_EnumDerivation * >( this ) ) };
+        }
+        void Invocations_Instructions_EnumDerivation::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_EnumDerivation::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
+            loader.load( from );
+            loader.load( to );
+        }
+        void Invocations_Instructions_EnumDerivation::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+            storer.store( from );
+            storer.store( to );
+        }
+        void Invocations_Instructions_EnumDerivation::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_EnumDerivation" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "from", from } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "to", to } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Instructions_Enumeration : public mega::io::Object
+        Invocations_Instructions_Enumeration::Invocations_Instructions_Enumeration( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), instance( loader )
+        {
+        }
+        Invocations_Instructions_Enumeration::Invocations_Instructions_Enumeration(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance,
+            const std::vector< data::Ptr< data::Tree::Interface_IContext > > &return_types )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), instance( instance ), return_types( return_types )
+        {
+        }
+        bool Invocations_Instructions_Enumeration::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Enumeration >(
+                       loader, const_cast< Invocations_Instructions_Enumeration * >( this ) ) };
+        }
+        void Invocations_Instructions_Enumeration::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_Enumeration::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
+            loader.load( instance );
+            loader.load( return_types );
+        }
+        void Invocations_Instructions_Enumeration::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+            storer.store( instance );
+            storer.store( return_types );
+        }
+        void Invocations_Instructions_Enumeration::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_Enumeration" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "instance", instance } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "return_types", return_types } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Instructions_DimensionReferenceRead : public mega::io::Object
+        Invocations_Instructions_DimensionReferenceRead::Invocations_Instructions_DimensionReferenceRead( ObjectPartLoader           &loader,
+                                                                                                          const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), instance( loader ), dimension_reference( loader ), concrete( loader )
+        {
+        }
+        Invocations_Instructions_DimensionReferenceRead::Invocations_Instructions_DimensionReferenceRead(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance,
+            const data::Ptr< data::Operations::Invocations_Variables_Dimension > &dimension_reference,
+            const data::Ptr< data::Concrete::Concrete_Dimension >                &concrete )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), instance( instance ), dimension_reference( dimension_reference ),
               concrete( concrete )
         {
         }
-        bool Element::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Invocations_Instructions_DimensionReferenceRead::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
             return m_inheritance ==
-                   std::variant< data::Ptr< data::Operations::Element > >{ data::Ptr< data::Operations::Element >( loader, const_cast< Element * >( this ) ) };
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >(
+                           loader, const_cast< Invocations_Instructions_DimensionReferenceRead * >( this ) ) };
         }
-        void Element::set_inheritance_pointer() {}
-        void Element::load( mega::io::Loader &loader )
+        void Invocations_Instructions_DimensionReferenceRead::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_DimensionReferenceRead::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
+            loader.load( instance );
+            loader.load( dimension_reference );
+            loader.load( concrete );
+        }
+        void Invocations_Instructions_DimensionReferenceRead::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+            storer.store( instance );
+            storer.store( dimension_reference );
+            storer.store( concrete );
+        }
+        void Invocations_Instructions_DimensionReferenceRead::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_DimensionReferenceRead" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "instance", instance } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "dimension_reference", dimension_reference } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "concrete", concrete } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Instructions_MonoReference : public mega::io::Object
+        Invocations_Instructions_MonoReference::Invocations_Instructions_MonoReference( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), reference( loader ), instance( loader )
+        {
+        }
+        Invocations_Instructions_MonoReference::Invocations_Instructions_MonoReference(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference > &reference,
+            const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), reference( reference ), instance( instance )
+        {
+        }
+        bool Invocations_Instructions_MonoReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_MonoReference >(
+                       loader, const_cast< Invocations_Instructions_MonoReference * >( this ) ) };
+        }
+        void Invocations_Instructions_MonoReference::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_MonoReference::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
+            loader.load( reference );
+            loader.load( instance );
+        }
+        void Invocations_Instructions_MonoReference::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+            storer.store( reference );
+            storer.store( instance );
+        }
+        void Invocations_Instructions_MonoReference::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_MonoReference" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "reference", reference } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "instance", instance } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Instructions_PolyReference : public mega::io::Object
+        Invocations_Instructions_PolyReference::Invocations_Instructions_PolyReference( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), from_reference( loader )
+        {
+        }
+        Invocations_Instructions_PolyReference::Invocations_Instructions_PolyReference(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+            const data::Ptr< data::Operations::Invocations_Variables_Reference > &from_reference )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), from_reference( from_reference )
+        {
+        }
+        bool Invocations_Instructions_PolyReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyReference >(
+                       loader, const_cast< Invocations_Instructions_PolyReference * >( this ) ) };
+        }
+        void Invocations_Instructions_PolyReference::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_PolyReference::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
+            loader.load( from_reference );
+        }
+        void Invocations_Instructions_PolyReference::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+            storer.store( from_reference );
+        }
+        void Invocations_Instructions_PolyReference::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_PolyReference" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "from_reference", from_reference } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Instructions_PolyCase : public mega::io::Object
+        Invocations_Instructions_PolyCase::Invocations_Instructions_PolyCase( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), reference( loader ), to( loader )
+        {
+        }
+        Invocations_Instructions_PolyCase::Invocations_Instructions_PolyCase( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                              const data::Ptr< data::Operations::Invocations_Variables_Reference > &reference,
+                                                                              const data::Ptr< data::Operations::Invocations_Variables_Instance >  &to )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), reference( reference ), to( to )
+        {
+        }
+        bool Invocations_Instructions_PolyCase::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, const_cast< Invocations_Instructions_PolyCase * >( this ) ) };
+        }
+        void Invocations_Instructions_PolyCase::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_PolyCase::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
+            loader.load( reference );
+            loader.load( to );
+        }
+        void Invocations_Instructions_PolyCase::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+            storer.store( reference );
+            storer.store( to );
+        }
+        void Invocations_Instructions_PolyCase::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_PolyCase" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "reference", reference } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "to", to } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Instructions_Failure : public mega::io::Object
+        Invocations_Instructions_Failure::Invocations_Instructions_Failure( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Failure >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader )
+        {
+        }
+        bool Invocations_Instructions_Failure::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >( loader, const_cast< Invocations_Instructions_Failure * >( this ) ) };
+        }
+        void Invocations_Instructions_Failure::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_Failure >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_Failure::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Instructions_InstructionGroup ); }
+        void Invocations_Instructions_Failure::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+        }
+        void Invocations_Instructions_Failure::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_Failure" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Instructions_Elimination : public mega::io::Object
+        Invocations_Instructions_Elimination::Invocations_Instructions_Elimination( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Elimination >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader )
+        {
+        }
+        bool Invocations_Instructions_Elimination::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Elimination >(
+                       loader, const_cast< Invocations_Instructions_Elimination * >( this ) ) };
+        }
+        void Invocations_Instructions_Elimination::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_Elimination >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_Elimination::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Instructions_InstructionGroup ); }
+        void Invocations_Instructions_Elimination::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
+        }
+        void Invocations_Instructions_Elimination::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_Elimination" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Instructions_Prune : public mega::io::Object
+        Invocations_Instructions_Prune::Invocations_Instructions_Prune( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Prune >( loader, this ) ),
+              p_Operations_Invocations_Instructions_InstructionGroup( loader )
+        {
+        }
+        bool Invocations_Instructions_Prune::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >( loader, const_cast< Invocations_Instructions_Prune * >( this ) ) };
+        }
+        void Invocations_Instructions_Prune::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_InstructionGroup->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Instructions_Prune >( p_Operations_Invocations_Instructions_InstructionGroup, this );
+        }
+        void Invocations_Instructions_Prune::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Instructions_InstructionGroup ); }
+        void Invocations_Instructions_Prune::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Instructions_InstructionGroup ); }
+        void Invocations_Instructions_Prune::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Instructions_Prune" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_Operation : public mega::io::Object
+        Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, this ) ),
+              p_Operations_Invocations_Instructions_Instruction( loader ), instance( loader )
+        {
+        }
+        Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                            const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, this ) ),
+              p_Operations_Invocations_Instructions_Instruction( loader ), instance( instance )
+        {
+        }
+        bool Invocations_Operations_Operation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, const_cast< Invocations_Operations_Operation * >( this ) ) };
+        }
+        void Invocations_Operations_Operation::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Instructions_Instruction->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Operation >( p_Operations_Invocations_Instructions_Instruction, this );
+        }
+        void Invocations_Operations_Operation::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Instructions_Instruction );
+            loader.load( instance );
+        }
+        void Invocations_Operations_Operation::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Instructions_Instruction );
+            storer.store( instance );
+        }
+        void Invocations_Operations_Operation::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Operation" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "instance", instance } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Operations_BasicOperation : public mega::io::Object
+        Invocations_Operations_BasicOperation::Invocations_Operations_BasicOperation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >( loader, this ) ),
+              p_Operations_Invocations_Operations_Operation( loader ), interface( loader ), concrete_target( loader )
+        {
+        }
+        Invocations_Operations_BasicOperation::Invocations_Operations_BasicOperation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                                      const data::Ptr< data::Tree::Interface_IContext >   &interface,
+                                                                                      const data::Ptr< data::Concrete::Concrete_Context > &concrete_target )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_BasicOperation >( loader, this ) ),
+              p_Operations_Invocations_Operations_Operation( loader ), interface( interface ), concrete_target( concrete_target )
+        {
+        }
+        bool Invocations_Operations_BasicOperation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_BasicOperation >(
+                       loader, const_cast< Invocations_Operations_BasicOperation * >( this ) ) };
+        }
+        void Invocations_Operations_BasicOperation::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_Operation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_BasicOperation >( p_Operations_Invocations_Operations_Operation, this );
+        }
+        void Invocations_Operations_BasicOperation::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Operations_Operation );
+            loader.load( interface );
+            loader.load( concrete_target );
+        }
+        void Invocations_Operations_BasicOperation::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Operations_Operation );
+            storer.store( interface );
+            storer.store( concrete_target );
+        }
+        void Invocations_Operations_BasicOperation::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_BasicOperation" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "interface", interface } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "concrete_target", concrete_target } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Operations_DimensionOperation : public mega::io::Object
+        Invocations_Operations_DimensionOperation::Invocations_Operations_DimensionOperation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >( loader, this ) ),
+              p_Operations_Invocations_Operations_Operation( loader ), interface_dimension( loader ), concrete_dimension( loader )
+        {
+        }
+        Invocations_Operations_DimensionOperation::Invocations_Operations_DimensionOperation(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Interface_DimensionTrait > &interface_dimension,
+            const data::Ptr< data::Concrete::Concrete_Dimension > &concrete_dimension )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >( loader, this ) ),
+              p_Operations_Invocations_Operations_Operation( loader ), interface_dimension( interface_dimension ), concrete_dimension( concrete_dimension )
+        {
+        }
+        bool Invocations_Operations_DimensionOperation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >(
+                       loader, const_cast< Invocations_Operations_DimensionOperation * >( this ) ) };
+        }
+        void Invocations_Operations_DimensionOperation::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_Operation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >( p_Operations_Invocations_Operations_Operation, this );
+        }
+        void Invocations_Operations_DimensionOperation::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Operations_Operation );
+            loader.load( interface_dimension );
+            loader.load( concrete_dimension );
+        }
+        void Invocations_Operations_DimensionOperation::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Operations_Operation );
+            storer.store( interface_dimension );
+            storer.store( concrete_dimension );
+        }
+        void Invocations_Operations_DimensionOperation::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_DimensionOperation" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "interface_dimension", interface_dimension } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "concrete_dimension", concrete_dimension } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Operations_Call : public mega::io::Object
+        Invocations_Operations_Call::Invocations_Operations_Call( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Call >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Call::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Call >( loader, const_cast< Invocations_Operations_Call * >( this ) ) };
+        }
+        void Invocations_Operations_Call::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Call >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_Call::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Call::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Call::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Call" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_Start : public mega::io::Object
+        Invocations_Operations_Start::Invocations_Operations_Start( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Start >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Start::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Start >( loader, const_cast< Invocations_Operations_Start * >( this ) ) };
+        }
+        void Invocations_Operations_Start::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Start >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_Start::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Start::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Start::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Start" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_Stop : public mega::io::Object
+        Invocations_Operations_Stop::Invocations_Operations_Stop( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Stop >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Stop::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Stop >( loader, const_cast< Invocations_Operations_Stop * >( this ) ) };
+        }
+        void Invocations_Operations_Stop::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Stop >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_Stop::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Stop::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Stop::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Stop" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_Pause : public mega::io::Object
+        Invocations_Operations_Pause::Invocations_Operations_Pause( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Pause >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Pause::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >( loader, const_cast< Invocations_Operations_Pause * >( this ) ) };
+        }
+        void Invocations_Operations_Pause::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Pause >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_Pause::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Pause::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Pause::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Pause" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_Resume : public mega::io::Object
+        Invocations_Operations_Resume::Invocations_Operations_Resume( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Resume >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Resume::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Resume >( loader, const_cast< Invocations_Operations_Resume * >( this ) ) };
+        }
+        void Invocations_Operations_Resume::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Resume >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_Resume::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Resume::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Resume::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Resume" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_Done : public mega::io::Object
+        Invocations_Operations_Done::Invocations_Operations_Done( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Done >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Done::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Done >( loader, const_cast< Invocations_Operations_Done * >( this ) ) };
+        }
+        void Invocations_Operations_Done::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Done >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_Done::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Done::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Done::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Done" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_WaitAction : public mega::io::Object
+        Invocations_Operations_WaitAction::Invocations_Operations_WaitAction( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_WaitAction >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_WaitAction::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_WaitAction >( loader, const_cast< Invocations_Operations_WaitAction * >( this ) ) };
+        }
+        void Invocations_Operations_WaitAction::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_WaitAction >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_WaitAction::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_WaitAction::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_WaitAction::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_WaitAction" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_WaitDimension : public mega::io::Object
+        Invocations_Operations_WaitDimension::Invocations_Operations_WaitDimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_WaitDimension >( loader, this ) ),
+              p_Operations_Invocations_Operations_DimensionOperation( loader )
+        {
+        }
+        bool Invocations_Operations_WaitDimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WaitDimension >(
+                       loader, const_cast< Invocations_Operations_WaitDimension * >( this ) ) };
+        }
+        void Invocations_Operations_WaitDimension::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_DimensionOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_WaitDimension >( p_Operations_Invocations_Operations_DimensionOperation, this );
+        }
+        void Invocations_Operations_WaitDimension::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_DimensionOperation ); }
+        void Invocations_Operations_WaitDimension::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Operations_DimensionOperation );
+        }
+        void Invocations_Operations_WaitDimension::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_WaitDimension" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_GetAction : public mega::io::Object
+        Invocations_Operations_GetAction::Invocations_Operations_GetAction( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_GetAction >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_GetAction::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_GetAction >( loader, const_cast< Invocations_Operations_GetAction * >( this ) ) };
+        }
+        void Invocations_Operations_GetAction::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_GetAction >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_GetAction::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_GetAction::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_GetAction::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_GetAction" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_GetDimension : public mega::io::Object
+        Invocations_Operations_GetDimension::Invocations_Operations_GetDimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_GetDimension >( loader, this ) ),
+              p_Operations_Invocations_Operations_DimensionOperation( loader )
+        {
+        }
+        bool Invocations_Operations_GetDimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetDimension >(
+                       loader, const_cast< Invocations_Operations_GetDimension * >( this ) ) };
+        }
+        void Invocations_Operations_GetDimension::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_DimensionOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_GetDimension >( p_Operations_Invocations_Operations_DimensionOperation, this );
+        }
+        void Invocations_Operations_GetDimension::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_DimensionOperation ); }
+        void Invocations_Operations_GetDimension::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Operations_DimensionOperation );
+        }
+        void Invocations_Operations_GetDimension::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_GetDimension" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_Read : public mega::io::Object
+        Invocations_Operations_Read::Invocations_Operations_Read( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Read >( loader, this ) ),
+              p_Operations_Invocations_Operations_DimensionOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Read::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Read >( loader, const_cast< Invocations_Operations_Read * >( this ) ) };
+        }
+        void Invocations_Operations_Read::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_DimensionOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Read >( p_Operations_Invocations_Operations_DimensionOperation, this );
+        }
+        void Invocations_Operations_Read::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_DimensionOperation ); }
+        void Invocations_Operations_Read::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_DimensionOperation ); }
+        void Invocations_Operations_Read::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Read" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_Write : public mega::io::Object
+        Invocations_Operations_Write::Invocations_Operations_Write( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Write >( loader, this ) ),
+              p_Operations_Invocations_Operations_DimensionOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Write::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Write >( loader, const_cast< Invocations_Operations_Write * >( this ) ) };
+        }
+        void Invocations_Operations_Write::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_DimensionOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Write >( p_Operations_Invocations_Operations_DimensionOperation, this );
+        }
+        void Invocations_Operations_Write::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_DimensionOperation ); }
+        void Invocations_Operations_Write::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_DimensionOperation ); }
+        void Invocations_Operations_Write::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Write" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Invocations_Operations_WriteLink : public mega::io::Object
+        Invocations_Operations_WriteLink::Invocations_Operations_WriteLink( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, this ) ),
+              p_Operations_Invocations_Operations_DimensionOperation( loader ), dimension_reference( loader )
+        {
+        }
+        Invocations_Operations_WriteLink::Invocations_Operations_WriteLink(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+            const data::Ptr< data::Operations::Invocations_Variables_Dimension > &dimension_reference )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, this ) ),
+              p_Operations_Invocations_Operations_DimensionOperation( loader ), dimension_reference( dimension_reference )
+        {
+        }
+        bool Invocations_Operations_WriteLink::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, const_cast< Invocations_Operations_WriteLink * >( this ) ) };
+        }
+        void Invocations_Operations_WriteLink::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_DimensionOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_WriteLink >( p_Operations_Invocations_Operations_DimensionOperation, this );
+        }
+        void Invocations_Operations_WriteLink::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Invocations_Operations_DimensionOperation );
+            loader.load( dimension_reference );
+        }
+        void Invocations_Operations_WriteLink::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Operations_Invocations_Operations_DimensionOperation );
+            storer.store( dimension_reference );
+        }
+        void Invocations_Operations_WriteLink::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_WriteLink" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "dimension_reference", dimension_reference } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Invocations_Operations_Range : public mega::io::Object
+        Invocations_Operations_Range::Invocations_Operations_Range( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Range >( loader, this ) ),
+              p_Operations_Invocations_Operations_BasicOperation( loader )
+        {
+        }
+        bool Invocations_Operations_Range::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant<
+                       data::Ptr< data::Operations::Invocations_Instructions_Instruction >,
+                       data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Enumeration >,
+                       data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >,
+                       data::Ptr< data::Operations::Invocations_Instructions_MonoReference >,
+                       data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >,
+                       data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >,
+                       data::Ptr< data::Operations::Invocations_Operations_BasicOperation >,
+                       data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >,
+                       data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >,
+                       data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >,
+                       data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >,
+                       data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >,
+                       data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >,
+                       data::Ptr< data::Operations::Invocations_Operations_Range > >{
+                       data::Ptr< data::Operations::Invocations_Operations_Range >( loader, const_cast< Invocations_Operations_Range * >( this ) ) };
+        }
+        void Invocations_Operations_Range::set_inheritance_pointer()
+        {
+            p_Operations_Invocations_Operations_BasicOperation->m_inheritance =
+                data::Ptr< data::Operations::Invocations_Operations_Range >( p_Operations_Invocations_Operations_BasicOperation, this );
+        }
+        void Invocations_Operations_Range::load( mega::io::Loader &loader ) { loader.load( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Range::store( mega::io::Storer &storer ) const { storer.store( p_Operations_Invocations_Operations_BasicOperation ); }
+        void Invocations_Operations_Range::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Invocations_Operations_Range" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+        }
+
+        // struct Operations_InterfaceVariant : public mega::io::Object
+        Operations_InterfaceVariant::Operations_InterfaceVariant( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_InterfaceVariant >( loader, this ) )
+        {
+        }
+        Operations_InterfaceVariant::Operations_InterfaceVariant( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                  const std::optional< data::Ptr< data::Tree::Interface_IContext > >       &context,
+                                                                  const std::optional< data::Ptr< data::Tree::Interface_DimensionTrait > > &dimension )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_InterfaceVariant >( loader, this ) ), context( context ),
+              dimension( dimension )
+        {
+        }
+        bool Operations_InterfaceVariant::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Operations::Operations_InterfaceVariant > >{
+                       data::Ptr< data::Operations::Operations_InterfaceVariant >( loader, const_cast< Operations_InterfaceVariant * >( this ) ) };
+        }
+        void Operations_InterfaceVariant::set_inheritance_pointer() {}
+        void Operations_InterfaceVariant::load( mega::io::Loader &loader )
+        {
+            loader.load( context );
+            loader.load( dimension );
+        }
+        void Operations_InterfaceVariant::store( mega::io::Storer &storer ) const
+        {
+            storer.store( context );
+            storer.store( dimension );
+        }
+        void Operations_InterfaceVariant::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Operations_InterfaceVariant" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "context", context } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "dimension", dimension } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Operations_ConcreteVariant : public mega::io::Object
+        Operations_ConcreteVariant::Operations_ConcreteVariant( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_ConcreteVariant >( loader, this ) )
+        {
+        }
+        Operations_ConcreteVariant::Operations_ConcreteVariant( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                const std::optional< data::Ptr< data::Concrete::Concrete_Context > >   &context,
+                                                                const std::optional< data::Ptr< data::Concrete::Concrete_Dimension > > &dimension )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_ConcreteVariant >( loader, this ) ), context( context ),
+              dimension( dimension )
+        {
+        }
+        bool Operations_ConcreteVariant::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance ==
+                   std::variant< data::Ptr< data::Operations::Operations_ConcreteVariant > >{
+                       data::Ptr< data::Operations::Operations_ConcreteVariant >( loader, const_cast< Operations_ConcreteVariant * >( this ) ) };
+        }
+        void Operations_ConcreteVariant::set_inheritance_pointer() {}
+        void Operations_ConcreteVariant::load( mega::io::Loader &loader )
+        {
+            loader.load( context );
+            loader.load( dimension );
+        }
+        void Operations_ConcreteVariant::store( mega::io::Storer &storer ) const
+        {
+            storer.store( context );
+            storer.store( dimension );
+        }
+        void Operations_ConcreteVariant::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Operations_ConcreteVariant" },
+                                             { "filetype", "Operations" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "context", context } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "dimension", dimension } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Operations_Element : public mega::io::Object
+        Operations_Element::Operations_Element( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Element >( loader, this ) ), interface( loader ),
+              concrete( loader )
+        {
+        }
+        Operations_Element::Operations_Element( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const data::Ptr< data::Operations::Operations_InterfaceVariant > &interface,
+                                                const data::Ptr< data::Operations::Operations_ConcreteVariant >  &concrete )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Element >( loader, this ) ), interface( interface ),
+              concrete( concrete )
+        {
+        }
+        bool Operations_Element::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_Element > >{
+                                        data::Ptr< data::Operations::Operations_Element >( loader, const_cast< Operations_Element * >( this ) ) };
+        }
+        void Operations_Element::set_inheritance_pointer() {}
+        void Operations_Element::load( mega::io::Loader &loader )
         {
             loader.load( interface );
             loader.load( concrete );
         }
-        void Element::store( mega::io::Storer &storer ) const
+        void Operations_Element::store( mega::io::Storer &storer ) const
         {
             storer.store( interface );
             storer.store( concrete );
         }
-        void Element::to_json( nlohmann::json &part ) const
+        void Operations_Element::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Element" },
+            part = nlohmann::json::object( { { "partname", "Operations_Element" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3361,27 +5645,27 @@ namespace data
             }
         }
 
-        // struct ElementVector : public mega::io::Object
-        ElementVector::ElementVector( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::ElementVector >( loader, this ) )
+        // struct Operations_ElementVector : public mega::io::Object
+        Operations_ElementVector::Operations_ElementVector( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_ElementVector >( loader, this ) )
         {
         }
-        ElementVector::ElementVector( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                      const std::vector< data::Ptr< data::Operations::Element > > &elements )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::ElementVector >( loader, this ) ), elements( elements )
+        Operations_ElementVector::Operations_ElementVector( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                            const std::vector< data::Ptr< data::Operations::Operations_Element > > &elements )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_ElementVector >( loader, this ) ), elements( elements )
         {
         }
-        bool ElementVector::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Operations_ElementVector::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::ElementVector > >{
-                                        data::Ptr< data::Operations::ElementVector >( loader, const_cast< ElementVector * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_ElementVector > >{
+                                        data::Ptr< data::Operations::Operations_ElementVector >( loader, const_cast< Operations_ElementVector * >( this ) ) };
         }
-        void ElementVector::set_inheritance_pointer() {}
-        void ElementVector::load( mega::io::Loader &loader ) { loader.load( elements ); }
-        void ElementVector::store( mega::io::Storer &storer ) const { storer.store( elements ); }
-        void ElementVector::to_json( nlohmann::json &part ) const
+        void Operations_ElementVector::set_inheritance_pointer() {}
+        void Operations_ElementVector::load( mega::io::Loader &loader ) { loader.load( elements ); }
+        void Operations_ElementVector::store( mega::io::Storer &storer ) const { storer.store( elements ); }
+        void Operations_ElementVector::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "ElementVector" },
+            part = nlohmann::json::object( { { "partname", "Operations_ElementVector" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3393,27 +5677,27 @@ namespace data
             }
         }
 
-        // struct Context : public mega::io::Object
-        Context::Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Context >( loader, this ) )
+        // struct Operations_Context : public mega::io::Object
+        Operations_Context::Operations_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Context >( loader, this ) )
         {
         }
-        Context::Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                          const std::vector< data::Ptr< data::Operations::ElementVector > > &vectors )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Context >( loader, this ) ), vectors( vectors )
+        Operations_Context::Operations_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                const std::vector< data::Ptr< data::Operations::Operations_ElementVector > > &vectors )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Context >( loader, this ) ), vectors( vectors )
         {
         }
-        bool Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Operations_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance ==
-                   std::variant< data::Ptr< data::Operations::Context > >{ data::Ptr< data::Operations::Context >( loader, const_cast< Context * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_Context > >{
+                                        data::Ptr< data::Operations::Operations_Context >( loader, const_cast< Operations_Context * >( this ) ) };
         }
-        void Context::set_inheritance_pointer() {}
-        void Context::load( mega::io::Loader &loader ) { loader.load( vectors ); }
-        void Context::store( mega::io::Storer &storer ) const { storer.store( vectors ); }
-        void Context::to_json( nlohmann::json &part ) const
+        void Operations_Context::set_inheritance_pointer() {}
+        void Operations_Context::load( mega::io::Loader &loader ) { loader.load( vectors ); }
+        void Operations_Context::store( mega::io::Storer &storer ) const { storer.store( vectors ); }
+        void Operations_Context::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Context" },
+            part = nlohmann::json::object( { { "partname", "Operations_Context" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3425,27 +5709,27 @@ namespace data
             }
         }
 
-        // struct TypePath : public mega::io::Object
-        TypePath::TypePath( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::TypePath >( loader, this ) )
+        // struct Operations_TypePath : public mega::io::Object
+        Operations_TypePath::Operations_TypePath( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_TypePath >( loader, this ) )
         {
         }
-        TypePath::TypePath( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                            const std::vector< data::Ptr< data::Operations::ElementVector > > &vectors )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::TypePath >( loader, this ) ), vectors( vectors )
+        Operations_TypePath::Operations_TypePath( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                  const std::vector< data::Ptr< data::Operations::Operations_ElementVector > > &vectors )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_TypePath >( loader, this ) ), vectors( vectors )
         {
         }
-        bool TypePath::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Operations_TypePath::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::TypePath > >{
-                                        data::Ptr< data::Operations::TypePath >( loader, const_cast< TypePath * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_TypePath > >{
+                                        data::Ptr< data::Operations::Operations_TypePath >( loader, const_cast< Operations_TypePath * >( this ) ) };
         }
-        void TypePath::set_inheritance_pointer() {}
-        void TypePath::load( mega::io::Loader &loader ) { loader.load( vectors ); }
-        void TypePath::store( mega::io::Storer &storer ) const { storer.store( vectors ); }
-        void TypePath::to_json( nlohmann::json &part ) const
+        void Operations_TypePath::set_inheritance_pointer() {}
+        void Operations_TypePath::load( mega::io::Loader &loader ) { loader.load( vectors ); }
+        void Operations_TypePath::store( mega::io::Storer &storer ) const { storer.store( vectors ); }
+        void Operations_TypePath::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "TypePath" },
+            part = nlohmann::json::object( { { "partname", "Operations_TypePath" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3457,27 +5741,27 @@ namespace data
             }
         }
 
-        // struct NameRoot : public mega::io::Object
-        NameRoot::NameRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::NameRoot >( loader, this ) )
+        // struct Operations_NameRoot : public mega::io::Object
+        Operations_NameRoot::Operations_NameRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_NameRoot >( loader, this ) )
         {
         }
-        NameRoot::NameRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                            const std::vector< data::Ptr< data::Operations::Name > > &children )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::NameRoot >( loader, this ) ), children( children )
+        Operations_NameRoot::Operations_NameRoot( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                  const std::vector< data::Ptr< data::Operations::Operations_Name > > &children )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_NameRoot >( loader, this ) ), children( children )
         {
         }
-        bool NameRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Operations_NameRoot::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::NameRoot >, data::Ptr< data::Operations::Name > >{
-                                        data::Ptr< data::Operations::NameRoot >( loader, const_cast< NameRoot * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_NameRoot >, data::Ptr< data::Operations::Operations_Name > >{
+                                        data::Ptr< data::Operations::Operations_NameRoot >( loader, const_cast< Operations_NameRoot * >( this ) ) };
         }
-        void NameRoot::set_inheritance_pointer() {}
-        void NameRoot::load( mega::io::Loader &loader ) { loader.load( children ); }
-        void NameRoot::store( mega::io::Storer &storer ) const { storer.store( children ); }
-        void NameRoot::to_json( nlohmann::json &part ) const
+        void Operations_NameRoot::set_inheritance_pointer() {}
+        void Operations_NameRoot::load( mega::io::Loader &loader ) { loader.load( children ); }
+        void Operations_NameRoot::store( mega::io::Storer &storer ) const { storer.store( children ); }
+        void Operations_NameRoot::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "NameRoot" },
+            part = nlohmann::json::object( { { "partname", "Operations_NameRoot" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3489,41 +5773,44 @@ namespace data
             }
         }
 
-        // struct Name : public mega::io::Object
-        Name::Name( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Name >( loader, this ) ), p_Operations_NameRoot( loader ),
-              element( loader )
+        // struct Operations_Name : public mega::io::Object
+        Operations_Name::Operations_Name( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Name >( loader, this ) ),
+              p_Operations_Operations_NameRoot( loader ), element( loader )
         {
         }
-        Name::Name( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Element > &element,
-                    const bool &is_member, const bool &is_reference )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Name >( loader, this ) ), p_Operations_NameRoot( loader ),
-              element( element ), is_member( is_member ), is_reference( is_reference )
+        Operations_Name::Operations_Name( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                          const data::Ptr< data::Operations::Operations_Element > &element, const bool &is_member, const bool &is_reference )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Name >( loader, this ) ),
+              p_Operations_Operations_NameRoot( loader ), element( element ), is_member( is_member ), is_reference( is_reference )
         {
         }
-        bool Name::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Operations_Name::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::NameRoot >, data::Ptr< data::Operations::Name > >{
-                                        data::Ptr< data::Operations::Name >( loader, const_cast< Name * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_NameRoot >, data::Ptr< data::Operations::Operations_Name > >{
+                                        data::Ptr< data::Operations::Operations_Name >( loader, const_cast< Operations_Name * >( this ) ) };
         }
-        void Name::set_inheritance_pointer() { p_Operations_NameRoot->m_inheritance = data::Ptr< data::Operations::Name >( p_Operations_NameRoot, this ); }
-        void Name::load( mega::io::Loader &loader )
+        void Operations_Name::set_inheritance_pointer()
         {
-            loader.load( p_Operations_NameRoot );
+            p_Operations_Operations_NameRoot->m_inheritance = data::Ptr< data::Operations::Operations_Name >( p_Operations_Operations_NameRoot, this );
+        }
+        void Operations_Name::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Operations_Operations_NameRoot );
             loader.load( element );
             loader.load( is_member );
             loader.load( is_reference );
         }
-        void Name::store( mega::io::Storer &storer ) const
+        void Operations_Name::store( mega::io::Storer &storer ) const
         {
-            storer.store( p_Operations_NameRoot );
+            storer.store( p_Operations_Operations_NameRoot );
             storer.store( element );
             storer.store( is_member );
             storer.store( is_reference );
         }
-        void Name::to_json( nlohmann::json &part ) const
+        void Operations_Name::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Name" },
+            part = nlohmann::json::object( { { "partname", "Operations_Name" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3543,27 +5830,27 @@ namespace data
             }
         }
 
-        // struct NameResolution : public mega::io::Object
-        NameResolution::NameResolution( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::NameResolution >( loader, this ) ), root_name( loader )
+        // struct Operations_NameResolution : public mega::io::Object
+        Operations_NameResolution::Operations_NameResolution( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_NameResolution >( loader, this ) ), root_name( loader )
         {
         }
-        NameResolution::NameResolution( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                        const data::Ptr< data::Operations::NameRoot > &root_name )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::NameResolution >( loader, this ) ), root_name( root_name )
+        Operations_NameResolution::Operations_NameResolution( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                              const data::Ptr< data::Operations::Operations_NameRoot > &root_name )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_NameResolution >( loader, this ) ), root_name( root_name )
         {
         }
-        bool NameResolution::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Operations_NameResolution::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::NameResolution > >{
-                                        data::Ptr< data::Operations::NameResolution >( loader, const_cast< NameResolution * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_NameResolution > >{
+                                        data::Ptr< data::Operations::Operations_NameResolution >( loader, const_cast< Operations_NameResolution * >( this ) ) };
         }
-        void NameResolution::set_inheritance_pointer() {}
-        void NameResolution::load( mega::io::Loader &loader ) { loader.load( root_name ); }
-        void NameResolution::store( mega::io::Storer &storer ) const { storer.store( root_name ); }
-        void NameResolution::to_json( nlohmann::json &part ) const
+        void Operations_NameResolution::set_inheritance_pointer() {}
+        void Operations_NameResolution::load( mega::io::Loader &loader ) { loader.load( root_name ); }
+        void Operations_NameResolution::store( mega::io::Storer &storer ) const { storer.store( root_name ); }
+        void Operations_NameResolution::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "NameResolution" },
+            part = nlohmann::json::object( { { "partname", "Operations_NameResolution" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3575,42 +5862,49 @@ namespace data
             }
         }
 
-        // struct Invocation : public mega::io::Object
-        Invocation::Invocation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocation >( loader, this ) ), context( loader ),
-              type_path( loader ), name_resolution( loader )
+        // struct Operations_Invocation : public mega::io::Object
+        Operations_Invocation::Operations_Invocation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocation >( loader, this ) ), context( loader ),
+              type_path( loader ), name_resolution( loader ), root_variable( loader ), root_instruction( loader )
         {
         }
-        Invocation::Invocation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Context > &context,
-                                const data::Ptr< data::Operations::TypePath > &type_path, const mega::OperationID &operation )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocation >( loader, this ) ), context( context ),
+        Operations_Invocation::Operations_Invocation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                      const data::Ptr< data::Operations::Operations_Context >  &context,
+                                                      const data::Ptr< data::Operations::Operations_TypePath > &type_path, const mega::OperationID &operation )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocation >( loader, this ) ), context( context ),
               type_path( type_path ), operation( operation )
         {
         }
-        bool Invocation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Operations_Invocation::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::Invocation > >{
-                                        data::Ptr< data::Operations::Invocation >( loader, const_cast< Invocation * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_Invocation > >{
+                                        data::Ptr< data::Operations::Operations_Invocation >( loader, const_cast< Operations_Invocation * >( this ) ) };
         }
-        void Invocation::set_inheritance_pointer() {}
-        void Invocation::load( mega::io::Loader &loader )
+        void Operations_Invocation::set_inheritance_pointer() {}
+        void Operations_Invocation::load( mega::io::Loader &loader )
         {
             loader.load( context );
             loader.load( type_path );
             loader.load( operation );
             loader.load( name_resolution );
+            loader.load( root_variable );
+            loader.load( root_instruction );
         }
-        void Invocation::store( mega::io::Storer &storer ) const
+        void Operations_Invocation::store( mega::io::Storer &storer ) const
         {
             storer.store( context );
             storer.store( type_path );
             storer.store( operation );
-            VERIFY_RTE_MSG( name_resolution.has_value(), "Operations::Invocation.name_resolution has NOT been set" );
+            VERIFY_RTE_MSG( name_resolution.has_value(), "Operations::Operations_Invocation.name_resolution has NOT been set" );
             storer.store( name_resolution );
+            VERIFY_RTE_MSG( root_variable.has_value(), "Operations::Operations_Invocation.root_variable has NOT been set" );
+            storer.store( root_variable );
+            VERIFY_RTE_MSG( root_instruction.has_value(), "Operations::Operations_Invocation.root_instruction has NOT been set" );
+            storer.store( root_instruction );
         }
-        void Invocation::to_json( nlohmann::json &part ) const
+        void Operations_Invocation::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Invocation" },
+            part = nlohmann::json::object( { { "partname", "Operations_Invocation" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3632,29 +5926,38 @@ namespace data
                 nlohmann::json property = nlohmann::json::object( { { "name_resolution", name_resolution.value() } } );
                 part[ "properties" ].push_back( property );
             }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "root_variable", root_variable.value() } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "root_instruction", root_instruction.value() } } );
+                part[ "properties" ].push_back( property );
+            }
         }
 
-        // struct Invocations : public mega::io::Object
-        Invocations::Invocations( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations >( loader, this ) )
+        // struct Operations_Invocations : public mega::io::Object
+        Operations_Invocations::Operations_Invocations( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocations >( loader, this ) )
         {
         }
-        Invocations::Invocations( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                  const std::map< mega::invocation::ID, data::Ptr< data::Operations::Invocation > > &invocations )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations >( loader, this ) ), invocations( invocations )
+        Operations_Invocations::Operations_Invocations(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+            const std::map< mega::invocation::ID, data::Ptr< data::Operations::Operations_Invocation > > &invocations )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocations >( loader, this ) ), invocations( invocations )
         {
         }
-        bool Invocations::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        bool Operations_Invocations::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations > >{
-                                        data::Ptr< data::Operations::Invocations >( loader, const_cast< Invocations * >( this ) ) };
+            return m_inheritance == std::variant< data::Ptr< data::Operations::Operations_Invocations > >{
+                                        data::Ptr< data::Operations::Operations_Invocations >( loader, const_cast< Operations_Invocations * >( this ) ) };
         }
-        void Invocations::set_inheritance_pointer() {}
-        void Invocations::load( mega::io::Loader &loader ) { loader.load( invocations ); }
-        void Invocations::store( mega::io::Storer &storer ) const { storer.store( invocations ); }
-        void Invocations::to_json( nlohmann::json &part ) const
+        void Operations_Invocations::set_inheritance_pointer() {}
+        void Operations_Invocations::load( mega::io::Loader &loader ) { loader.load( invocations ); }
+        void Operations_Invocations::store( mega::io::Storer &storer ) const { storer.store( invocations ); }
+        void Operations_Invocations::to_json( nlohmann::json &part ) const
         {
-            part = nlohmann::json::object( { { "partname", "Invocations" },
+            part = nlohmann::json::object( { { "partname", "Operations_Invocations" },
                                              { "filetype", "Operations" },
                                              { "typeID", Object_Part_Type_ID },
                                              { "fileID", getFileID() },
@@ -3673,171 +5976,243 @@ namespace data
         switch( objectInfo.getType() )
         {
         case 0:
-            return new Components::Component( loader, objectInfo );
+            return new Components::Components_Component( loader, objectInfo );
         case 1:
-            return new AST::Identifier( loader, objectInfo );
+            return new AST::Parser_Identifier( loader, objectInfo );
         case 2:
-            return new AST::ScopedIdentifier( loader, objectInfo );
+            return new AST::Parser_ScopedIdentifier( loader, objectInfo );
         case 3:
-            return new AST::ArgumentList( loader, objectInfo );
+            return new AST::Parser_ArgumentList( loader, objectInfo );
         case 4:
-            return new AST::ReturnType( loader, objectInfo );
+            return new AST::Parser_ReturnType( loader, objectInfo );
         case 5:
-            return new AST::Inheritance( loader, objectInfo );
+            return new AST::Parser_Inheritance( loader, objectInfo );
         case 6:
-            return new AST::Size( loader, objectInfo );
+            return new AST::Parser_Size( loader, objectInfo );
         case 7:
-            return new AST::Link( loader, objectInfo );
+            return new AST::Parser_Link( loader, objectInfo );
         case 8:
-            return new AST::Dimension( loader, objectInfo );
+            return new AST::Parser_Dimension( loader, objectInfo );
         case 9:
-            return new AST::Include( loader, objectInfo );
+            return new AST::Parser_Include( loader, objectInfo );
         case 10:
-            return new AST::SystemInclude( loader, objectInfo );
+            return new AST::Parser_SystemInclude( loader, objectInfo );
         case 11:
-            return new AST::MegaInclude( loader, objectInfo );
+            return new AST::Parser_MegaInclude( loader, objectInfo );
         case 12:
-            return new AST::MegaIncludeInline( loader, objectInfo );
+            return new AST::Parser_MegaIncludeInline( loader, objectInfo );
         case 13:
-            return new AST::MegaIncludeNested( loader, objectInfo );
+            return new AST::Parser_MegaIncludeNested( loader, objectInfo );
         case 14:
-            return new AST::CPPInclude( loader, objectInfo );
+            return new AST::Parser_CPPInclude( loader, objectInfo );
         case 15:
-            return new AST::Dependency( loader, objectInfo );
+            return new AST::Parser_Dependency( loader, objectInfo );
         case 16:
-            return new AST::ContextDef( loader, objectInfo );
+            return new AST::Parser_ContextDef( loader, objectInfo );
         case 18:
-            return new AST::NamespaceDef( loader, objectInfo );
+            return new AST::Parser_NamespaceDef( loader, objectInfo );
         case 19:
-            return new AST::AbstractDef( loader, objectInfo );
+            return new AST::Parser_AbstractDef( loader, objectInfo );
         case 20:
-            return new AST::ActionDef( loader, objectInfo );
+            return new AST::Parser_ActionDef( loader, objectInfo );
         case 21:
-            return new AST::EventDef( loader, objectInfo );
+            return new AST::Parser_EventDef( loader, objectInfo );
         case 22:
-            return new AST::FunctionDef( loader, objectInfo );
+            return new AST::Parser_FunctionDef( loader, objectInfo );
         case 23:
-            return new AST::ObjectDef( loader, objectInfo );
+            return new AST::Parser_ObjectDef( loader, objectInfo );
         case 24:
-            return new AST::LinkDef( loader, objectInfo );
+            return new AST::Parser_LinkDef( loader, objectInfo );
         case 25:
-            return new AST::TableDef( loader, objectInfo );
+            return new AST::Parser_TableDef( loader, objectInfo );
         case 26:
-            return new AST::SourceRoot( loader, objectInfo );
+            return new AST::Parser_SourceRoot( loader, objectInfo );
         case 27:
-            return new AST::IncludeRoot( loader, objectInfo );
+            return new AST::Parser_IncludeRoot( loader, objectInfo );
         case 28:
-            return new AST::ObjectSourceRoot( loader, objectInfo );
+            return new AST::Parser_ObjectSourceRoot( loader, objectInfo );
         case 17:
-            return new Body::ContextDef( loader, objectInfo );
+            return new Body::Parser_ContextDef( loader, objectInfo );
         case 29:
-            return new Tree::DimensionTrait( loader, objectInfo );
+            return new Tree::Interface_DimensionTrait( loader, objectInfo );
         case 33:
-            return new Tree::InheritanceTrait( loader, objectInfo );
+            return new Tree::Interface_InheritanceTrait( loader, objectInfo );
         case 35:
-            return new Tree::LinkTrait( loader, objectInfo );
+            return new Tree::Interface_LinkTrait( loader, objectInfo );
         case 36:
-            return new Tree::ReturnTypeTrait( loader, objectInfo );
+            return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
         case 37:
-            return new Tree::ArgumentListTrait( loader, objectInfo );
+            return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
         case 38:
-            return new Tree::SizeTrait( loader, objectInfo );
+            return new Tree::Interface_SizeTrait( loader, objectInfo );
         case 39:
-            return new Tree::ContextGroup( loader, objectInfo );
+            return new Tree::Interface_ContextGroup( loader, objectInfo );
         case 40:
-            return new Tree::Root( loader, objectInfo );
+            return new Tree::Interface_Root( loader, objectInfo );
         case 41:
-            return new Tree::IContext( loader, objectInfo );
+            return new Tree::Interface_IContext( loader, objectInfo );
         case 44:
-            return new Tree::Namespace( loader, objectInfo );
+            return new Tree::Interface_Namespace( loader, objectInfo );
         case 45:
-            return new Tree::Abstract( loader, objectInfo );
+            return new Tree::Interface_Abstract( loader, objectInfo );
         case 46:
-            return new Tree::Action( loader, objectInfo );
+            return new Tree::Interface_Action( loader, objectInfo );
         case 47:
-            return new Tree::Event( loader, objectInfo );
+            return new Tree::Interface_Event( loader, objectInfo );
         case 48:
-            return new Tree::Function( loader, objectInfo );
+            return new Tree::Interface_Function( loader, objectInfo );
         case 49:
-            return new Tree::Object( loader, objectInfo );
+            return new Tree::Interface_Object( loader, objectInfo );
         case 50:
-            return new Tree::Link( loader, objectInfo );
+            return new Tree::Interface_Link( loader, objectInfo );
         case 51:
-            return new Tree::Table( loader, objectInfo );
-        case 73:
-            return new DPGraph::Glob( loader, objectInfo );
-        case 74:
-            return new DPGraph::ObjectDependencies( loader, objectInfo );
-        case 75:
-            return new DPGraph::Analysis( loader, objectInfo );
-        case 76:
-            return new SymbolTable::Symbol( loader, objectInfo );
-        case 77:
-            return new SymbolTable::SymbolSet( loader, objectInfo );
-        case 78:
-            return new SymbolTable::SymbolTable( loader, objectInfo );
+            return new Tree::Interface_Table( loader, objectInfo );
+        case 109:
+            return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 110:
+            return new DPGraph::Dependencies_ObjectDependencies( loader, objectInfo );
+        case 111:
+            return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 112:
+            return new SymbolTable::Symbols_Symbol( loader, objectInfo );
+        case 113:
+            return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
+        case 114:
+            return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 30:
-            return new PerSourceSymbols::DimensionTrait( loader, objectInfo );
+            return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 42:
-            return new PerSourceSymbols::IContext( loader, objectInfo );
+            return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 32:
-            return new Clang::DimensionTrait( loader, objectInfo );
+            return new Clang::Interface_DimensionTrait( loader, objectInfo );
         case 34:
-            return new Clang::InheritanceTrait( loader, objectInfo );
+            return new Clang::Interface_InheritanceTrait( loader, objectInfo );
         case 31:
-            return new Concrete::DimensionTrait( loader, objectInfo );
+            return new Concrete::Interface_DimensionTrait( loader, objectInfo );
         case 43:
-            return new Concrete::IContext( loader, objectInfo );
+            return new Concrete::Interface_IContext( loader, objectInfo );
+        case 88:
+            return new Concrete::Concrete_Dimension( loader, objectInfo );
+        case 89:
+            return new Concrete::Concrete_Context( loader, objectInfo );
+        case 90:
+            return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 91:
+            return new Concrete::Concrete_Action( loader, objectInfo );
+        case 92:
+            return new Concrete::Concrete_Event( loader, objectInfo );
+        case 93:
+            return new Concrete::Concrete_Function( loader, objectInfo );
+        case 94:
+            return new Concrete::Concrete_Object( loader, objectInfo );
+        case 95:
+            return new Concrete::Concrete_Link( loader, objectInfo );
+        case 96:
+            return new Concrete::Concrete_Table( loader, objectInfo );
+        case 97:
+            return new Concrete::Concrete_Root( loader, objectInfo );
+        case 115:
+            return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
+        case 116:
+            return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 117:
+            return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 118:
+            return new Derivations::Derivation_Mapping( loader, objectInfo );
         case 52:
-            return new Concrete::Dimension( loader, objectInfo );
+            return new Operations::Invocations_Variables_Variable( loader, objectInfo );
         case 53:
-            return new Concrete::Context( loader, objectInfo );
+            return new Operations::Invocations_Variables_Instance( loader, objectInfo );
         case 54:
-            return new Concrete::Namespace( loader, objectInfo );
+            return new Operations::Invocations_Variables_Reference( loader, objectInfo );
         case 55:
-            return new Concrete::Action( loader, objectInfo );
+            return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
         case 56:
-            return new Concrete::Event( loader, objectInfo );
+            return new Operations::Invocations_Variables_Context( loader, objectInfo );
         case 57:
-            return new Concrete::Function( loader, objectInfo );
+            return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
         case 58:
-            return new Concrete::Object( loader, objectInfo );
+            return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
         case 59:
-            return new Concrete::Link( loader, objectInfo );
+            return new Operations::Invocations_Instructions_Root( loader, objectInfo );
         case 60:
-            return new Concrete::Table( loader, objectInfo );
+            return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
         case 61:
-            return new Concrete::Root( loader, objectInfo );
-        case 79:
-            return new Model::ObjectGraph( loader, objectInfo );
-        case 80:
-            return new Model::Graph( loader, objectInfo );
-        case 81:
-            return new Derivations::ObjectMapping( loader, objectInfo );
-        case 82:
-            return new Derivations::Mapping( loader, objectInfo );
+            return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
         case 62:
-            return new Operations::InterfaceVariant( loader, objectInfo );
+            return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
         case 63:
-            return new Operations::ConcreteVariant( loader, objectInfo );
+            return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
         case 64:
-            return new Operations::Element( loader, objectInfo );
+            return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
         case 65:
-            return new Operations::ElementVector( loader, objectInfo );
+            return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
         case 66:
-            return new Operations::Context( loader, objectInfo );
+            return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
         case 67:
-            return new Operations::TypePath( loader, objectInfo );
+            return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
         case 68:
-            return new Operations::NameRoot( loader, objectInfo );
+            return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
         case 69:
-            return new Operations::Name( loader, objectInfo );
+            return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
         case 70:
-            return new Operations::NameResolution( loader, objectInfo );
+            return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
         case 71:
-            return new Operations::Invocation( loader, objectInfo );
+            return new Operations::Invocations_Operations_Operation( loader, objectInfo );
         case 72:
-            return new Operations::Invocations( loader, objectInfo );
+            return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
+        case 73:
+            return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
+        case 74:
+            return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 75:
+            return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 76:
+            return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 77:
+            return new Operations::Invocations_Operations_Pause( loader, objectInfo );
+        case 78:
+            return new Operations::Invocations_Operations_Resume( loader, objectInfo );
+        case 79:
+            return new Operations::Invocations_Operations_Done( loader, objectInfo );
+        case 80:
+            return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
+        case 81:
+            return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
+        case 82:
+            return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 83:
+            return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 84:
+            return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 85:
+            return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 86:
+            return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 87:
+            return new Operations::Invocations_Operations_Range( loader, objectInfo );
+        case 98:
+            return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 99:
+            return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 100:
+            return new Operations::Operations_Element( loader, objectInfo );
+        case 101:
+            return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 102:
+            return new Operations::Operations_Context( loader, objectInfo );
+        case 103:
+            return new Operations::Operations_TypePath( loader, objectInfo );
+        case 104:
+            return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 105:
+            return new Operations::Operations_Name( loader, objectInfo );
+        case 106:
+            return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 107:
+            return new Operations::Operations_Invocation( loader, objectInfo );
+        case 108:
+            return new Operations::Operations_Invocations( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
         }

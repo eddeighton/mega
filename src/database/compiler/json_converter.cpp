@@ -85,7 +85,7 @@ nlohmann::json writeInterface( model::Stage::Ptr pStage, model::Interface::Ptr p
 {
     model::Object::Ptr pObject   = pInterface->m_object.lock();
     nlohmann::json     interface = nlohmann::json::object( {
-        { "name", pObject->m_strName },
+        { "name", pObject->getIdentifier() },
         { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
         { "readwrite", pInterface->m_isReadWrite },
         { "functions", nlohmann::json::array() },
@@ -304,7 +304,7 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
                     = nlohmann::json::object( { { "type_id", pPart->m_typeID },
                                                 { "supertype", pSuper->getTypeName() },
                                                 { "file", pFile->m_strName },
-                                                { "object", pPart->m_object.lock()->m_strName } } );
+                                                { "object", pPart->m_object.lock()->getDataTypeName() } } );
                 stage[ "super_conversions" ].push_back( conversion );
             }
         }
@@ -317,7 +317,7 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
             = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
                                         { "file", pPart->m_file.lock()->m_strName },
                                         { "supertype", pSuper->getTypeName() },
-                                        { "object", pPart->m_object.lock()->m_strName },
+                                        { "object", pPart->m_object.lock()->getDataTypeName() },
                                         { "index", pPart->m_typeID } } );
         stage[ "interface_conversions" ].push_back( conversion );
     }
@@ -341,7 +341,7 @@ void writeAccessors( nlohmann::json& stage, model::Stage::Ptr pStage )
                 = nlohmann::json::object( { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
                                             { "longname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
                                             { "read_write", bReadWrite },
-                                            { "object", pPrimaryPart->m_object.lock()->m_strName },
+                                            { "object", pPrimaryPart->m_object.lock()->getDataTypeName() },
                                             { "file", pPrimaryPart->m_file.lock()->m_strName },
                                             { "stage", pPrimaryPart->m_file.lock()->m_stage.lock()->m_strName },
                                             { "supertype", pInterface->m_superInterface.lock()->getTypeName() } } );
@@ -371,7 +371,7 @@ void writeAccessors( nlohmann::json& stage, model::Stage::Ptr pStage )
                         { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
                           { "longname", pInterface->delimitTypeName( pStage->m_strName, "_" ) },
                           { "read_write", bReadWrite },
-                          { "object", pPrimaryPart->m_object.lock()->m_strName },
+                          { "object", pPrimaryPart->m_object.lock()->getDataTypeName() },
                           { "file", pPrimaryPart->m_file.lock()->m_strName },
                           { "stage", pPrimaryPart->m_file.lock()->m_stage.lock()->m_strName },
                           { "supertype", pInterface->m_superInterface.lock()->getTypeName() } } );
@@ -393,7 +393,7 @@ void writeAccessors( nlohmann::json& stage, model::Stage::Ptr pStage )
 
 nlohmann::json writeCtorPart( model::Stage::Ptr pStage, model::ObjectPart::Ptr pPart, bool bAddBaseArg )
 {
-    nlohmann::json part = nlohmann::json::object( { { "object", pPart->m_object.lock()->m_strName },
+    nlohmann::json part = nlohmann::json::object( { { "object", pPart->m_object.lock()->getDataTypeName() },
                                                     { "file", pPart->m_file.lock()->m_strName },
                                                     { "args", nlohmann::json::array() } } );
     {
@@ -603,21 +603,6 @@ void writeConstructors( nlohmann::json& stage, model::Stage::Ptr pStage )
         std::reverse( bases.begin(), bases.end() );
         for ( const nlohmann::json& base : bases )
             ctor[ "bases_reverse" ].push_back( base );
-
-        // std::reverse( bases_reversed.begin(), bases_reversed.end() );
-
-        /*for ( model::Interface::Ptr pBase : bases_reversed )
-        {
-            nlohmann::json base
-                = nlohmann::json::object( { { "typename", pBase->delimitTypeName( pStage->m_strName, "::" ) },
-                                            { "owns_primary_part", pBase->ownsPrimaryObjectPart() } } );
-
-            model::PrimaryObjectPart::Ptr pPrimaryPart = pBase->getPrimaryObjectPart();
-            base[ "primary_part" ] = nlohmann::json::object( { { "object", pPrimaryPart->m_object.lock()->m_strName },
-                                                               { "file", pPrimaryPart->m_file.lock()->m_strName } } );
-
-            ctor[ "bases_reverse" ].push_back( base );
-        }*/
 
         stage[ "constructors" ].push_back( ctor );
     }
@@ -904,12 +889,12 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
         {
             for ( model::Interface::Ptr pInterface : pSuperType->m_interfaces )
             {
-                VERIFY_RTE ( interfaces.count( pInterface ) == 0 );
-                
+                VERIFY_RTE( interfaces.count( pInterface ) == 0 );
+
                 interfaces.insert( pInterface );
                 nlohmann::json cast = nlohmann::json::object(
                     { { "type", pInterface->delimitTypeName( pStage->m_strName, "::" ) },
-                        { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) } } );
+                      { "fullname", pInterface->delimitTypeName( pStage->m_strName, "_" ) } } );
                 stage[ "casts" ].push_back( cast );
             }
         }
@@ -1141,7 +1126,7 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
             VERIFY_RTE( pObject->m_primaryObjectPart );
 
             nlohmann::json part
-                = nlohmann::json::object( { { "name", pObject->m_strName },
+                = nlohmann::json::object( { { "name", pObject->getDataTypeName() },
                                             { "typeID", pPart->m_typeID },
                                             { "has_base", false },
                                             { "has_inheritance", false },
