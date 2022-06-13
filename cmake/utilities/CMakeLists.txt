@@ -4,7 +4,7 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
 #get clang
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
+#include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
 
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
@@ -39,13 +39,15 @@ target_include_directories( utilities PUBLIC ${MEGA_API_DIR} )
 
 set_property(TARGET utilities PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+#target_compile_definitions( utilities PRIVATE DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT )
+
 link_boost( utilities atomic )
 link_boost( utilities program_options )
 link_boost( utilities timer )
 link_boost( utilities filesystem )
 link_boost( utilities iostreams )
 link_boost( utilities serialization )
-link_clang( utilities )
+#link_clang( utilities )
 link_json( utilities )
 link_inja( utilities )
 link_common( utilities )

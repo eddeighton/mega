@@ -61,6 +61,7 @@ namespace {{ stage.name }}
             {{ interface.name }}& operator=( const {{ interface.name }}& ) = delete;
             virtual ~{{ interface.name }}() = 0;
         public:
+            static constexpr const char* TYPE_NAME = "{{ interface.fullname }}";
 {% if interface.readwrite %}
             struct Args
             {
@@ -85,9 +86,7 @@ namespace {{ stage.name }}
         private:
             template< typename TFrom, typename TTo >
             friend struct ::{{ stage.name }}::PointerCast;
-{% for test in interface.tests %}
-            virtual bool is_{{ test }}() const = 0;
-{% endfor %}{#interface.functions#}
+            virtual bool isa( const char* pszTypeName ) const = 0;
         };
 {% for namespace in interface.namespaces %}
     } //{{ namespace }}
@@ -148,27 +147,15 @@ namespace {{ stage.name }}
         std::shared_ptr< Pimpl > m_pimpl;
     };
 
-{% for cast in stage.casts %}
-    template< typename TFrom >
-    struct PointerCast< TFrom, {{ cast.type }} >
-    {
-        inline {{ cast.type }}* operator()( TFrom* pFrom ) const
-        {
-            if( pFrom->is_{{ cast.fullname }}() )
-                return dynamic_cast< {{ cast.type }}* >( pFrom );
-            else
-                return nullptr;
-        }
-    };
-{% endfor %}
-
     template< typename TFrom, typename TTo >
     struct PointerCast
     {
         inline TTo* operator()( TFrom* pFrom ) const
         {
-            static_assert( 0 && typeid( TFrom ).name() && typeid( TTo ).name(), "Invalid dynamic_database_cast types" );
-            return nullptr;
+            if( pFrom->isa( TTo::TYPE_NAME ) )
+                return dynamic_cast< TTo* >( pFrom );
+            else
+                return nullptr;
         }
     };
 

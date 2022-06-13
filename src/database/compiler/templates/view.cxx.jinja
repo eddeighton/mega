@@ -14,6 +14,7 @@
 #include <variant>
 #include <memory>
 #include <unordered_map>
+#include <any>
 
 namespace {{ stage.name }}
 {
@@ -64,9 +65,7 @@ public:
 {% for function in stype.functions %}
     {{ function.returntype }} {{ function.name }}({{function.params }}) const;
 {% endfor %}{# stype.functions #}
-{% for interface in stype.interfaces %}
-    virtual bool is_{{ stage.name }}_{{ interface.fullname }}() const;
-{% endfor %}{# stype.interfaces #}
+    virtual bool isa( const char* pszTypeName ) const;
     virtual const mega::io::ObjectInfo& _get_object_info() const;
 };
 {% endfor %}{# stage.supertypes #}
@@ -389,18 +388,21 @@ void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} 
     struct Visitor
     {
 {% for variant in function.variants %}
-        {{ function.propertytype }}& operator()( const data::Ptr< data::{{ variant.primaryobjectpart }} >& data ) const
-        {
 {% if variant.matched %}
+        inline {{ function.propertytype }}& operator()( const data::Ptr< data::{{ variant.primaryobjectpart }} >& data ) const
+        {
             data::Ptr< data::{{ variant.dataobjectpart }} > part = 
                 data::convert< data::{{ variant.dataobjectpart }} >( data );
             VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                 "Invalid data reference in: {{ function.name }}" );
             return part->{{ function.property }};
-{% else %}
-            THROW_RTE( "Invalid function call" );
-{% endif %}
         }
+{% else %}
+        inline {{ function.propertytype }}& operator()( const data::Ptr< data::{{ variant.primaryobjectpart }} >& ) const
+        {
+            THROW_RTE( "Invalid call to {{ function.name }}" );
+        }
+{% endif %}
 {% endfor %}{# function.bodies #}
     } visitor;
     {{ function.propertytype }}& data = std::visit( visitor, m_data );
@@ -410,22 +412,27 @@ void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} 
 }
 {% endfor %}{# stype.functions #}
 
-{% for interface in stype.interfaces %}
-bool {{ stype.name }}::is_{{ stage.name }}_{{ interface.fullname }}() const
+bool {{ stype.name }}::isa( const char* pszTypeName ) const
 {
     m_data = data::to_upper( m_data );
-    struct Visit
+{% for interface in stype.interfaces %}
+    if( strcmp( pszTypeName, "{{ stage.name }}_{{ interface.fullname }}" ) == 0 )
     {
-{% for cast in interface.casts %}
-        bool operator()( const data::Ptr< data::{{ cast.type }} >& p ) const
+        struct Visit
         {
-            return {{ cast.truth }};
-        }
+{% for cast in interface.casts %}
+            bool operator()( const data::Ptr< data::{{ cast.type }} >& ) const
+            {
+                return {{ cast.truth }};
+            }
 {% endfor %}
-    } visitor;
-    return std::visit( visitor, m_data );
-}
+        } visitor;
+        return std::visit( visitor, m_data );
+    }
 {% endfor %}{# stype.interfaces #}
+    return false;
+}
+
 const mega::io::ObjectInfo& {{ stype.name }}::_get_object_info() const
 {
     return std::visit( []( auto&& arg ) -> const mega::io::ObjectInfo& { return arg.getObjectInfo(); }, m_data );
