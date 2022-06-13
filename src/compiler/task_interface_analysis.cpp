@@ -484,7 +484,6 @@ public:
     {
         const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader = m_environment.Interface( m_sourceFilePath );
-        const mega::io::PrecompiledHeaderFile      includePCH      = m_environment.IncludePCH( m_sourceFilePath );
         const mega::io::PrecompiledHeaderFile interfacePCHFilePath = m_environment.InterfacePCH( m_sourceFilePath );
         const mega::io::CompilationFilePath   interfaceAnalysisFile
             = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
@@ -493,7 +492,8 @@ public:
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceHeader ),
-              m_environment.getBuildHashCode( includePCH ), m_environment.getBuildHashCode( interfaceTreeFile ) } );
+              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( interfaceTreeFile ) } );
 
         if ( m_environment.restore( interfacePCHFilePath, determinant )
              && m_environment.restore( interfaceAnalysisFile, determinant ) )

@@ -71,7 +71,7 @@ std::string Compilation::operator()() const
     if ( outputPCH.has_value() )
     {
         VERIFY_RTE( !outputObject.has_value() );
-        osCmd << " -Xclang -emit-pch -o " << outputPCH.value().native() << " ";
+        osCmd << " -Xclang -fno-pch-timestamp -Xclang -emit-pch -o " << outputPCH.value().native() << " ";
     }
     else if ( outputObject.has_value() )
     {

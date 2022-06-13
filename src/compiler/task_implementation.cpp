@@ -169,7 +169,12 @@ public:
         start( taskProgress, "Task_ImplementationObj", implementationFile.path(), implementationObj.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( implementationFile ) } );
+            { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( implementationFile ),
+
+              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.GenericsPCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.OperationsPCH( m_sourceFilePath ) ) } );
 
         if ( m_environment.restore( implementationObj, determinant ) )
         {

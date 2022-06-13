@@ -260,12 +260,12 @@ public:
         const mega::io::PrecompiledHeaderFile      operationsPCH = m_environment.OperationsPCH( m_sourceFilePath );
         start( taskProgress, "Task_OperationsPCH", operationsHeaderFile.path(), operationsPCH.path() );
 
-        const task::DeterminantHash determinant( {
-            m_toolChain.toolChainHash,
-            m_environment.getBuildHashCode( operationsHeaderFile ),
-            m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
-            m_environment.getBuildHashCode( m_environment.GenericsPCH( m_sourceFilePath ) ),
-        } );
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( operationsHeaderFile ),
+              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.GenericsPCH( m_sourceFilePath ) ) 
+              } );
 
         if ( m_environment.restore( operationsPCH, determinant )
              && m_environment.restore( compilationFile, determinant ) )

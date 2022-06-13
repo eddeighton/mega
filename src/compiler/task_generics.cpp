@@ -25,7 +25,7 @@ namespace mega
 {
 namespace compiler
 {
-    
+
 struct CleverUtility
 {
     using IDList = std::vector< std::string >;
@@ -70,9 +70,9 @@ public:
     }
 
     void recurse( ConcreteStage::Interface::IContext* pContext,
-                  nlohmann::json&                    data,
-                  CleverUtility::IDList&             namespaces,
-                  CleverUtility::IDList&             types )
+                  nlohmann::json&                     data,
+                  CleverUtility::IDList&              namespaces,
+                  CleverUtility::IDList&              types )
     {
         using namespace ConcreteStage;
         using namespace ConcreteStage::Interface;
@@ -108,9 +108,8 @@ public:
         {
             CleverUtility c( types, pAction->get_identifier() );
 
-            nlohmann::json generic( { { "has_namespaces", !namespaces.empty() },
-                                        { "namespaces", namespaces },
-                                        { "types", types } } );
+            nlohmann::json generic(
+                { { "has_namespaces", !namespaces.empty() }, { "namespaces", namespaces }, { "types", types } } );
             data[ "generics" ].push_back( generic );
 
             for ( IContext* pNestedContext : pAction->get_children() )
@@ -125,9 +124,8 @@ public:
         {
             CleverUtility c( types, pFunction->get_identifier() );
 
-            nlohmann::json generic( { { "has_namespaces", !namespaces.empty() },
-                                        { "namespaces", namespaces },
-                                        { "types", types } } );
+            nlohmann::json generic(
+                { { "has_namespaces", !namespaces.empty() }, { "namespaces", namespaces }, { "types", types } } );
             data[ "generics" ].push_back( generic );
         }
         else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
@@ -233,7 +231,9 @@ public:
         start( taskProgress, "Task_GenericsPCH", genericsFile.path(), genericsPCH.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( genericsFile ) } );
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( genericsFile ),
+              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ) } );
 
         if ( m_environment.restore( genericsPCH, determinant ) )
         {
