@@ -42,15 +42,12 @@
 
 #pragma warning( pop )
 
-#include <iostream>
 
 namespace clang
 {
 
 std::optional< mega::SymbolID > getEGSymbolID( ASTContext* pASTContext, QualType type )
 {
-    std::optional< mega::SymbolID > result;
-
     if ( type.getTypePtrOrNull() && !type->isDependentType() )
     {
         QualType canonicalType = type.getCanonicalType();
@@ -94,7 +91,9 @@ std::optional< mega::SymbolID > getEGSymbolID( ASTContext* pASTContext, QualType
         }*/
     }
 
-    return result;
+    //CLANG_PLUGIN_LOG( "No symbol id for: "  << type.getAsString() );
+
+    return std::optional< mega::SymbolID >();
 }
 
 const IdentifierInfo* getOperationIdentifier( ASTContext* pASTContext, const std::string& strName )
@@ -199,7 +198,7 @@ bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::ve
     QualType canonicalType = contextType.getCanonicalType();
     if ( const IdentifierInfo* pBaseTypeID = canonicalType.getBaseTypeIdentifier() )
     {
-        if ( pBaseTypeID == pASTContext->getEGVariantName() )
+        /*if ( pBaseTypeID == pASTContext->getEGVariantName() )
         {
             const Type* pType = canonicalType.getTypePtr();
 
@@ -273,7 +272,7 @@ bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::ve
                 return false;
             }
         }
-        else
+        else*/
         {
             if ( std::optional< mega::SymbolID > egTypeID = getEGSymbolID( pASTContext, canonicalType ) )
             {
@@ -565,8 +564,8 @@ QualType getTypeTrait( ASTContext* pASTContext, Sema* pSema, DeclContext*& pDecl
     pDeclContext = nullptr;
     return QualType();
 }
-
-QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName, const std::string& strTypeParam,
+/*
+QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTypeName,
                   DeclContext*& pDeclContext, SourceLocation& loc, bool bLast )
 {
     IdentifierInfo& identifierInfo = pASTContext->Idents.get( strTypeName );
@@ -603,13 +602,13 @@ QualType getType( ASTContext* pASTContext, Sema* pSema, const std::string& strTy
     pDeclContext = nullptr;
     return QualType();
 }
-
+*/
 DeclLocType getNestedDeclContext( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                                  const std::string& str )
+                                  const std::string& strIdentifier )
 {
     DeclLocType result;
 
-    IdentifierInfo& identifierInfo = pASTContext->Idents.get( str );
+    IdentifierInfo& identifierInfo = pASTContext->Idents.get( strIdentifier );
     LookupResult    lookupResult( *pSema, &identifierInfo, loc, Sema::LookupAnyName );
     if ( pSema->LookupQualifiedName( lookupResult, pDeclContext ) )
     {

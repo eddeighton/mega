@@ -68,9 +68,9 @@ public:
     }
 
     void recurse( ConcreteStage::Interface::IContext* pContext,
-                  nlohmann::json&                    data,
-                  CleverUtility::IDList&             namespaces,
-                  CleverUtility::IDList&             types )
+                  nlohmann::json&                     data,
+                  CleverUtility::IDList&              namespaces,
+                  CleverUtility::IDList&              types )
     {
         using namespace ConcreteStage;
         using namespace ConcreteStage::Interface;
@@ -254,16 +254,24 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        const mega::io::GeneratedHPPSourceFilePath operationsFile = m_environment.Operations( m_sourceFilePath );
-        const mega::io::PrecompiledHeaderFile      operationsPCH  = m_environment.OperationsPCH( m_sourceFilePath );
-        start( taskProgress, "Task_OperationsPCH", operationsFile.path(), operationsPCH.path() );
+        const mega::io::CompilationFilePath compilationFile
+            = m_environment.OperationsStage_Operations( m_sourceFilePath );
+        const mega::io::GeneratedHPPSourceFilePath operationsHeaderFile = m_environment.Operations( m_sourceFilePath );
+        const mega::io::PrecompiledHeaderFile      operationsPCH = m_environment.OperationsPCH( m_sourceFilePath );
+        start( taskProgress, "Task_OperationsPCH", operationsHeaderFile.path(), operationsPCH.path() );
 
-        const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, 123, m_environment.getBuildHashCode( operationsFile ) } );
+        const task::DeterminantHash determinant( {
+            m_toolChain.toolChainHash,
+            m_environment.getBuildHashCode( operationsHeaderFile ),
+            m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
+            m_environment.getBuildHashCode( m_environment.GenericsPCH( m_sourceFilePath ) ),
+        } );
 
-        if ( m_environment.restore( operationsPCH, determinant ) )
+        if ( m_environment.restore( operationsPCH, determinant )
+             && m_environment.restore( compilationFile, determinant ) )
         {
             m_environment.setBuildHashCode( operationsPCH );
+            m_environment.setBuildHashCode( compilationFile );
             cached( taskProgress );
             return;
         }
@@ -287,10 +295,20 @@ public:
             throw std::runtime_error( os.str() );
         }
 
-        m_environment.setBuildHashCode( operationsPCH );
-        m_environment.stash( operationsPCH, determinant );
+        if ( m_environment.exists( compilationFile ) && m_environment.exists( operationsPCH ) )
+        {
+            m_environment.setBuildHashCode( compilationFile );
+            m_environment.stash( compilationFile, determinant );
 
-        succeeded( taskProgress );
+            m_environment.setBuildHashCode( operationsPCH );
+            m_environment.stash( operationsPCH, determinant );
+
+            succeeded( taskProgress );
+        }
+        else
+        {
+            failed( taskProgress );
+        }
     }
 };
 

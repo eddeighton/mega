@@ -54,8 +54,6 @@ inline std::vector< T > uniquify_without_reorder( const std::vector< T >& ids )
 using InterfaceVariantVector       = std::vector< OperationsStage::Operations::InterfaceVariant* >;
 using InterfaceVariantVectorVector = std::vector< InterfaceVariantVector >;
 
-using SymbolIDMap = std::map< std::int32_t, OperationsStage::Symbols::Symbol* >;
-
 InterfaceVariantVectorVector
 symbolVectorToInterfaceVariantVector( OperationsStage::Database&                              database,
                                       const std::vector< OperationsStage::Symbols::Symbol* >& symbols );

@@ -19,11 +19,8 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
 {% endif %}
     template< typename TypePath, typename Operation, typename... Args >
     typename mega::result_type< {{ name }}, TypePath, Operation >::Type invoke( Args... args ) const;
-
-    // Ed was here
 {% for trait_struct in trait_structs %}
     struct [[clang::eg_type( {{ trait_struct.typeid }} )]]{{ trait_struct.name }};
 {% endfor %}
-
     {{ nested }}
 };

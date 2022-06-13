@@ -127,7 +127,7 @@ stage HyperGraphAnalysis
 
     file Model;
 
-    persource accessor array< ref< Interface::Root > >;
+    persource accessor ref< Interface::Root >;
 }
 
 stage HyperGraphAnalysisView
@@ -148,7 +148,6 @@ stage DerivationAnalysis
     file Derivations;
 
     persource accessor array< ref< Interface::IContext > >;
-    persource accessor array< ref< Interface::Root > >;
 }
 
 stage DerivationAnalysisView
@@ -175,6 +174,8 @@ stage FinalStage
     source .mega;
     dependency OperationsStage;
 
-    persource accessor array< ref< Interface::Root > >;
-    persource accessor array< ref< Concrete::Root > >;
+    global accessor array< ref< Components::Component > >;
+    persource accessor ref< Interface::Root >;
+    persource accessor ref< Concrete::Root >;
+    persource accessor ref< Operations::Invocations >;
 }

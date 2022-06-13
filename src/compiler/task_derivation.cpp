@@ -213,7 +213,7 @@ public:
 
         } hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
-        bool bReusedOldDatabase = false;
+        /*bool bReusedOldDatabase = false;
         try
         {
             // try loading previous one...
@@ -341,7 +341,7 @@ public:
             bReusedOldDatabase = false;
         }
 
-        if ( !bReusedOldDatabase )
+        if ( !bReusedOldDatabase )*/
         {
             using namespace DerivationAnalysis;
             using namespace DerivationAnalysis::Derivation;

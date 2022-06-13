@@ -66,7 +66,6 @@ namespace Invocations
         object Enumeration : InstructionGroup -> OperationsStage::Operations
         {
             ref< Variables::Instance > instance;
-            array< ref< Interface::IContext > > return_types;
         }
 
         object DimensionReferenceRead : InstructionGroup -> OperationsStage::Operations
@@ -111,7 +110,9 @@ namespace Invocations
     {
         object Operation : Instructions::Instruction -> OperationsStage::Operations
         {
-            ref< Variables::Instance > instance;
+            ref< Variables::Instance >                   instance;
+            array< ref< Operations::InterfaceVariant > > return_types;
+            array< ref< Operations::InterfaceVariant > > parameter_types;
         }
 
         object BasicOperation : Operation -> OperationsStage::Operations

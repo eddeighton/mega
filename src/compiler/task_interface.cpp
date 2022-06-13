@@ -264,9 +264,9 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Parser::LinkDef* pLinkDef ) -> Link*
                     {
-                        return database.construct< Link >(
-                            Link::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
-                                        { pLinkDef } ) );
+                        return database.construct< Link >( Link::Args(
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
+                            { pLinkDef } ) );
                     },
                     []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
             }
@@ -290,7 +290,8 @@ public:
         }
     }
 
-    void collectDimensionTraits( InterfaceStage::Database& database, InterfaceStage::Parser::ContextDef* pDef,
+    void collectDimensionTraits( InterfaceStage::Database& database, InterfaceStage::Interface::IContext* pContext,
+                                 InterfaceStage::Parser::ContextDef*                        pDef,
                                  std::vector< InterfaceStage::Interface::DimensionTrait* >& dimensions )
     {
         using namespace InterfaceStage;
@@ -302,8 +303,8 @@ public:
                 VERIFY_PARSER( pParserDim->get_id()->get_str() != pExistingDimension->get_id()->get_str(),
                                "IContext has duplicate dimensions", pDef->get_id() );
             }
-            dimensions.push_back(
-                database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args( pParserDim ) ) );
+            dimensions.push_back( database.construct< Interface::DimensionTrait >(
+                Interface::DimensionTrait::Args( pParserDim, pContext ) ) );
         }
     }
 
@@ -351,7 +352,7 @@ public:
                 }
                 else
                 {
-                    collectDimensionTraits( database, pDef, dimensions );
+                    collectDimensionTraits( database, pNamespace, pDef, dimensions );
                 }
 
                 VERIFY_PARSER( pDef->get_body().empty(), "Namespace has body", pDef->get_id() );
@@ -368,7 +369,7 @@ public:
         std::optional< Interface::InheritanceTrait* >             inheritance;
         for ( Parser::AbstractDef* pDef : pAbstract->get_abstract_defs() )
         {
-            collectDimensionTraits( database, pDef, dimensions );
+            collectDimensionTraits( database, pAbstract, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
         }
 
@@ -384,7 +385,7 @@ public:
         std::optional< Interface::SizeTrait* >                    size;
         for ( Parser::ActionDef* pDef : pAction->get_action_defs() )
         {
-            collectDimensionTraits( database, pDef, dimensions );
+            collectDimensionTraits( database, pAction, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
         }
@@ -401,7 +402,7 @@ public:
         std::optional< Interface::SizeTrait* >                    size;
         for ( Parser::EventDef* pDef : pEvent->get_event_defs() )
         {
-            collectDimensionTraits( database, pDef, dimensions );
+            collectDimensionTraits( database, pEvent, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
             collectSizeTrait( database, pDef, size );
         }
@@ -469,7 +470,7 @@ public:
         std::optional< Interface::InheritanceTrait* >             inheritance;
         for ( Parser::ObjectDef* pDef : pObject->get_object_defs() )
         {
-            collectDimensionTraits( database, pDef, dimensions );
+            collectDimensionTraits( database, pObject, pDef, dimensions );
             collectInheritanceTrait( database, pDef, inheritance );
             VERIFY_PARSER( pDef->get_body().empty(), "Object has body", pDef->get_id() );
         }
@@ -592,4 +593,3 @@ BaseTask::Ptr create_Task_ObjectInterfaceGen( const TaskArguments&          task
 
 } // namespace compiler
 } // namespace mega
-

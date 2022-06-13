@@ -14,8 +14,7 @@ using namespace OperationsStage;
 namespace
 {
 
-void expandReferences( OperationsStage::Database& database, const OperationsStage::Derivation::Mapping* pMapping,
-                       OperationsStage::Symbols::SymbolTable* pSymbolTable, std::vector< Operations::Name* >& names )
+void expandReferences( OperationsStage::Database& database, const OperationsStage::Derivation::Mapping* pMapping, std::vector< Operations::Name* >& names )
 {
     using namespace OperationsStage::Operations;
 
@@ -259,7 +258,6 @@ void pruneBranches( OperationsStage::Operations::Name* pName )
 
 OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&                  database,
                                                       const OperationsStage::Derivation::Mapping* pMapping,
-                                                      OperationsStage::Symbols::SymbolTable*      pSymbolTable,
                                                       OperationsStage::Operations::Invocation*    pInvocation )
 {
     bool bExpandFinalReferences = false;
@@ -290,8 +288,6 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
 
     using namespace OperationsStage::Operations;
 
-    const SymbolIDMap symbolIDMap = pSymbolTable->get_symbol_id_map();
-
     Operations::Context* pContext = pInvocation->get_context();
 
     Operations::TypePath* pTypePath = pInvocation->get_type_path();
@@ -311,7 +307,7 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
 
     for ( ElementVector* pElementVector : pTypePath->get_vectors() )
     {
-        expandReferences( database, pMapping, pSymbolTable, names );
+        expandReferences( database, pMapping, names );
         addType( database, names, pElementVector );
 
         for ( Name* pName : pNameRoot->get_children() )
@@ -322,7 +318,7 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
 
     if ( bExpandFinalReferences )
     {
-        expandReferences( database, pMapping, pSymbolTable, names );
+        expandReferences( database, pMapping, names );
         for ( Name* pName : pNameRoot->get_children() )
         {
             pruneBranches( pName );

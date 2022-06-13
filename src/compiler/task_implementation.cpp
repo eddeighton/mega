@@ -1,10 +1,18 @@
 #include "base_task.hpp"
 
-#include "database/model/ParserStage.hxx"
-#include "database/model/InterfaceStage.hxx"
+#include "database/model/FinalStage.hxx"
 
 #include "database/types/clang_compilation.hpp"
+
 #include <common/file.hpp>
+#include <common/string.hpp>
+
+#include "database/types/operation.hpp"
+#include "nlohmann/json.hpp"
+
+#include "inja/inja.hpp"
+#include "inja/environment.hpp"
+#include "inja/template.hpp"
 
 namespace mega
 {
@@ -15,6 +23,26 @@ class Task_Implementation : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
 
+    class TemplateEngine
+    {
+        const mega::io::StashEnvironment& m_environment;
+        ::inja::Environment&              m_injaEnvironment;
+        ::inja::Template                  m_implTemplate;
+
+    public:
+        TemplateEngine( const mega::io::StashEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
+            : m_environment( buildEnvironment )
+            , m_injaEnvironment( injaEnv )
+            , m_implTemplate( m_injaEnvironment.parse_template( m_environment.ImplTemplate().native() ) )
+        {
+        }
+
+        void renderImpl( const nlohmann::json& data, std::ostream& os ) const
+        {
+            m_injaEnvironment.render_to( os, m_implTemplate, data );
+        }
+    };
+
 public:
     Task_Implementation( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
@@ -22,15 +50,44 @@ public:
     {
     }
 
+    void recurse( TemplateEngine& templateEngine, FinalStage::Interface::IContext* pContext, nlohmann::json& implData,
+                  std::vector< std::string >& typeNameStack )
+    {
+        using namespace FinalStage;
+        using namespace FinalStage::Interface;
+
+        std::ostringstream os;
+        {
+            common::delimit( typeNameStack.begin(), typeNameStack.end(), "::", os );
+            if ( !typeNameStack.empty() )
+                os << "::";
+            os << pContext->get_identifier();
+        }
+
+        implData[ "interfaces" ].push_back( os.str() );
+
+        for ( IContext* pNestedContext : pContext->get_children() )
+        {
+            typeNameStack.push_back( pContext->get_identifier() );
+            recurse( templateEngine, pNestedContext, implData, typeNameStack );
+            typeNameStack.pop_back();
+        }
+    }
+
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        const mega::io::CompilationFilePath        astFile = m_environment.ParserStage_AST( m_sourceFilePath );
+        using namespace FinalStage;
+        using namespace FinalStage::Interface;
+
+        const mega::io::CompilationFilePath operationsStage
+            = m_environment.OperationsStage_Operations( m_sourceFilePath );
         const mega::io::GeneratedCPPSourceFilePath implementationFile
             = m_environment.Implementation( m_sourceFilePath );
-        start( taskProgress, "Task_Implementation", astFile.path(), implementationFile.path() );
+        start( taskProgress, "Task_Implementation", operationsStage.path(), implementationFile.path() );
 
-        const task::DeterminantHash determinant(
-            { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( astFile ) } );
+        const task::DeterminantHash determinant( { m_toolChain.clangCompilerHash,
+                                                   m_environment.getBuildHashCode( operationsStage ),
+                                                   m_environment.ImplTemplate() } );
 
         if ( m_environment.restore( implementationFile, determinant ) )
         {
@@ -40,28 +97,42 @@ public:
         }
 
         {
-            using namespace InterfaceStage;
-            using namespace InterfaceStage::Interface;
-
             Database database( m_environment, m_sourceFilePath );
 
-            std::ostringstream os;
+            ::inja::Environment injaEnvironment;
             {
-                /*for ( Parser::CPPInclude* pCPPInclude : database.many< Parser::CPPInclude >( m_sourceFilePath ) )
-                {
-                    os << "#include \"" << pCPPInclude->get_cppSourceFilePath().string() << "\"\n";
-                }
-
-                // mega library includes
-                os << "#include \"mega/include.hpp\"\n";
-
-                for ( Parser::SystemInclude* pSystemInclude :
-                      database.many< Parser::SystemInclude >( m_sourceFilePath ) )
-                {
-                    os << "#include <" << pSystemInclude->get_str() << ">\n";
-                }
-                os << "\n";*/
+                injaEnvironment.set_trim_blocks( true );
             }
+
+            TemplateEngine templateEngine( m_environment, injaEnvironment );
+
+            nlohmann::json implData(
+                { { "invocations", nlohmann::json::array() }, { "interfaces", nlohmann::json::array() } } );
+
+            {
+                std::vector< std::string > typeNameStack;
+                Interface::Root*           pRoot = database.one< Interface::Root >( m_sourceFilePath );
+                for ( Interface::IContext* pContext : pRoot->get_children() )
+                {
+                    recurse( templateEngine, pContext, implData, typeNameStack );
+                }
+
+                Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
+                for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                {
+                    nlohmann::json invocation(
+                        { { "return_type", pInvocation->get_return_type_str() },
+                          { "context", pInvocation->get_context_str() },
+                          { "type_path", pInvocation->get_type_path_str() },
+                          { "operation", mega::getOperationString( pInvocation->get_operation() ) },
+                          { "impl", "" } } );
+
+                    implData[ "invocations" ].push_back( invocation );
+                }
+            }
+
+            std::ostringstream os;
+            templateEngine.renderImpl( implData, os );
 
             boost::filesystem::updateFileIfChanged( m_environment.FilePath( implementationFile ), os.str() );
         }
@@ -107,7 +178,7 @@ public:
             return;
         }
 
-        using namespace ParserStage;
+        using namespace FinalStage;
 
         Database database( m_environment, m_sourceFilePath );
 
@@ -121,15 +192,20 @@ public:
         const int iResult = boost::process::system( strCmd );
         if ( iResult )
         {
-            std::ostringstream os;
-            os << "Error compiling operations file to pch for source file: " << m_sourceFilePath.path();
-            throw std::runtime_error( os.str() );
+            failed( taskProgress );
+            return;
         }
 
-        m_environment.setBuildHashCode( implementationObj );
-        m_environment.stash( implementationObj, determinant );
-
-        succeeded( taskProgress );
+        if ( m_environment.exists( implementationObj ) )
+        {
+            m_environment.setBuildHashCode( implementationObj );
+            m_environment.stash( implementationObj, determinant );
+            succeeded( taskProgress );
+        }
+        else
+        {
+            failed( taskProgress );
+        }
     }
 };
 

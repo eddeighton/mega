@@ -5,6 +5,8 @@ namespace Interface
     // context traits
     object DimensionTrait : Parser::Dimension -> InterfaceStage::Tree
     {
+        ref< IContext > parent;
+        
         value< std::int32_t > symbol -> SymbolRollout::PerSourceSymbols;
         late< value< std::int32_t > > type_id -> SymbolRollout::PerSourceSymbols;
         
@@ -28,17 +30,17 @@ namespace Interface
 
     object ReturnTypeTrait : Parser::ReturnType -> InterfaceStage::Tree
     {
-
+        value< std::string > canonical_type  -> InterfaceAnalysisStage::Clang;
     }
 
     object ArgumentListTrait : Parser::ArgumentList -> InterfaceStage::Tree
     {
-
+        array< value< std::string > > canonical_types  -> InterfaceAnalysisStage::Clang;
     }
 
     object SizeTrait : Parser::Size -> InterfaceStage::Tree
     {
-
+        value< std::size_t > size -> InterfaceAnalysisStage::Clang;
     }
 
     // basic context types

@@ -7,11 +7,16 @@ namespace Concrete
         ref< Interface::DimensionTrait > interface_dimension;
     }
 
-    object Context -> ConcreteStage::Concrete
+    object ContextGroup -> ConcreteStage::Concrete
     {
-        opt< ref< Context > > parent;
-        array< ref< Interface::IContext > > inheritance;
         array< ref< Context > > children;
+    }
+
+    object Context : ContextGroup -> ConcreteStage::Concrete
+    {
+        ref< ContextGroup > parent;
+        ref< Interface::IContext > interface;
+        array< ref< Interface::IContext > > inheritance;
     }
 
     object Namespace : Context -> ConcreteStage::Concrete
@@ -53,7 +58,8 @@ namespace Concrete
         ref< Interface::Table > interface_table;
     }
 
-    object Root : Context -> ConcreteStage::Concrete
+    object Root : ContextGroup -> ConcreteStage::Concrete
     {
+        ref< Interface::Root > interface_root;
     }
 }

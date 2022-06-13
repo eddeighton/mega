@@ -104,12 +104,16 @@ namespace data
     {
         struct Interface_DimensionTrait;
         struct Interface_InheritanceTrait;
+        struct Interface_ReturnTypeTrait;
+        struct Interface_ArgumentListTrait;
+        struct Interface_SizeTrait;
     } // namespace Clang
     namespace Concrete
     {
         struct Interface_DimensionTrait;
         struct Interface_IContext;
         struct Concrete_Dimension;
+        struct Concrete_ContextGroup;
         struct Concrete_Context;
         struct Concrete_Namespace;
         struct Concrete_Action;
@@ -758,10 +762,13 @@ namespace data
         struct Interface_DimensionTrait : public mega::io::Object
         {
             Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                      const data::Ptr< data::Tree::Interface_IContext > &parent );
             enum
             {
                 Object_Part_Type_ID = 29
             };
+            data::Ptr< data::Tree::Interface_IContext >       parent;
             Ptr< AST::Parser_Dimension >                      p_AST_Parser_Dimension;
             Ptr< PerSourceSymbols::Interface_DimensionTrait > p_PerSourceSymbols_Interface_DimensionTrait;
             Ptr< Concrete::Interface_DimensionTrait >         p_Concrete_Interface_DimensionTrait;
@@ -812,6 +819,7 @@ namespace data
                 Object_Part_Type_ID = 36
             };
             Ptr< AST::Parser_ReturnType >                                                                                 p_AST_Parser_ReturnType;
+            Ptr< Clang::Interface_ReturnTypeTrait >                                                                       p_Clang_Interface_ReturnTypeTrait;
             std::variant< data::Ptr< data::AST::Parser_ReturnType >, data::Ptr< data::Tree::Interface_ReturnTypeTrait > > m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -824,9 +832,10 @@ namespace data
             Interface_ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 37
+                Object_Part_Type_ID = 38
             };
-            Ptr< AST::Parser_ArgumentList >                                                                                   p_AST_Parser_ArgumentList;
+            Ptr< AST::Parser_ArgumentList >           p_AST_Parser_ArgumentList;
+            Ptr< Clang::Interface_ArgumentListTrait > p_Clang_Interface_ArgumentListTrait;
             std::variant< data::Ptr< data::AST::Parser_ArgumentList >, data::Ptr< data::Tree::Interface_ArgumentListTrait > > m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -839,9 +848,10 @@ namespace data
             Interface_SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 38
+                Object_Part_Type_ID = 40
             };
             Ptr< AST::Parser_Size >                                                                           p_AST_Parser_Size;
+            Ptr< Clang::Interface_SizeTrait >                                                                 p_Clang_Interface_SizeTrait;
             std::variant< data::Ptr< data::AST::Parser_Size >, data::Ptr< data::Tree::Interface_SizeTrait > > m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -856,7 +866,7 @@ namespace data
                                     const std::vector< data::Ptr< data::Tree::Interface_IContext > > &children );
             enum
             {
-                Object_Part_Type_ID = 39
+                Object_Part_Type_ID = 42
             };
             std::vector< data::Ptr< data::Tree::Interface_IContext > > children;
             std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >,
@@ -876,7 +886,7 @@ namespace data
             Interface_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::AST::Parser_ObjectSourceRoot > &root );
             enum
             {
-                Object_Part_Type_ID = 40
+                Object_Part_Type_ID = 43
             };
             data::Ptr< data::AST::Parser_ObjectSourceRoot > root;
             Ptr< Tree::Interface_ContextGroup >             p_Tree_Interface_ContextGroup;
@@ -898,7 +908,7 @@ namespace data
                                 const data::Ptr< data::Tree::Interface_ContextGroup > &parent );
             enum
             {
-                Object_Part_Type_ID = 41
+                Object_Part_Type_ID = 44
             };
             std::string                                     identifier;
             data::Ptr< data::Tree::Interface_ContextGroup > parent;
@@ -923,7 +933,7 @@ namespace data
                                  const std::vector< data::Ptr< data::AST::Parser_ContextDef > > &namespace_defs );
             enum
             {
-                Object_Part_Type_ID = 44
+                Object_Part_Type_ID = 47
             };
             bool                                                                              is_global;
             std::vector< data::Ptr< data::AST::Parser_ContextDef > >                          namespace_defs;
@@ -947,7 +957,7 @@ namespace data
                                 const std::vector< data::Ptr< data::AST::Parser_AbstractDef > > &abstract_defs );
             enum
             {
-                Object_Part_Type_ID = 45
+                Object_Part_Type_ID = 48
             };
             std::vector< data::Ptr< data::AST::Parser_AbstractDef > >                             abstract_defs;
             std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >     dimension_traits;
@@ -971,7 +981,7 @@ namespace data
                               const std::vector< data::Ptr< data::AST::Parser_ActionDef > > &action_defs );
             enum
             {
-                Object_Part_Type_ID = 46
+                Object_Part_Type_ID = 49
             };
             std::vector< data::Ptr< data::AST::Parser_ActionDef > >                               action_defs;
             std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >     dimension_traits;
@@ -996,7 +1006,7 @@ namespace data
                              const std::vector< data::Ptr< data::AST::Parser_EventDef > > &event_defs );
             enum
             {
-                Object_Part_Type_ID = 47
+                Object_Part_Type_ID = 50
             };
             std::vector< data::Ptr< data::AST::Parser_EventDef > >                                event_defs;
             std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >     dimension_traits;
@@ -1021,7 +1031,7 @@ namespace data
                                 const std::vector< data::Ptr< data::AST::Parser_FunctionDef > > &function_defs );
             enum
             {
-                Object_Part_Type_ID = 48
+                Object_Part_Type_ID = 51
             };
             std::vector< data::Ptr< data::AST::Parser_FunctionDef > >             function_defs;
             std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >   return_type_trait;
@@ -1045,7 +1055,7 @@ namespace data
                               const std::vector< data::Ptr< data::AST::Parser_ObjectDef > > &object_defs );
             enum
             {
-                Object_Part_Type_ID = 49
+                Object_Part_Type_ID = 52
             };
             std::vector< data::Ptr< data::AST::Parser_ObjectDef > >                               object_defs;
             std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >     dimension_traits;
@@ -1069,7 +1079,7 @@ namespace data
                             const std::vector< data::Ptr< data::AST::Parser_LinkDef > > &link_defs );
             enum
             {
-                Object_Part_Type_ID = 50
+                Object_Part_Type_ID = 53
             };
             std::vector< data::Ptr< data::AST::Parser_LinkDef > >                link_defs;
             std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >        link_trait;
@@ -1093,7 +1103,7 @@ namespace data
                              const std::vector< data::Ptr< data::AST::Parser_TableDef > > &table_defs );
             enum
             {
-                Object_Part_Type_ID = 51
+                Object_Part_Type_ID = 54
             };
             std::vector< data::Ptr< data::AST::Parser_TableDef > > table_defs;
             Ptr< Tree::Interface_IContext >                        p_Tree_Interface_IContext;
@@ -1118,7 +1128,7 @@ namespace data
                                const std::string &glob );
             enum
             {
-                Object_Part_Type_ID = 109
+                Object_Part_Type_ID = 113
             };
             boost::filesystem::path                                       location;
             std::string                                                   glob;
@@ -1137,7 +1147,7 @@ namespace data
                                              const std::vector< boost::filesystem::path > &resolution );
             enum
             {
-                Object_Part_Type_ID = 110
+                Object_Part_Type_ID = 114
             };
             mega::io::megaFilePath                                                      source_file;
             std::size_t                                                                 hash_code;
@@ -1157,7 +1167,7 @@ namespace data
                                    const std::vector< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > > &objects );
             enum
             {
-                Object_Part_Type_ID = 111
+                Object_Part_Type_ID = 115
             };
             std::vector< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > > objects;
             std::variant< data::Ptr< data::DPGraph::Dependencies_Analysis > >          m_inheritance;
@@ -1178,7 +1188,7 @@ namespace data
                             const std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > &dimensions );
             enum
             {
-                Object_Part_Type_ID = 112
+                Object_Part_Type_ID = 116
             };
             std::string                                                      symbol;
             std::int32_t                                                     id;
@@ -1204,7 +1214,7 @@ namespace data
                 const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >                                        &dimension_type_ids );
             enum
             {
-                Object_Part_Type_ID = 113
+                Object_Part_Type_ID = 117
             };
             std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >                                       symbols;
             mega::io::megaFilePath                                                                                        source_file;
@@ -1231,7 +1241,7 @@ namespace data
                                  const std::map< int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >                   &symbol_id_map );
             enum
             {
-                Object_Part_Type_ID = 114
+                Object_Part_Type_ID = 118
             };
             std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > > symbol_sets;
             std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >               symbols;
@@ -1273,7 +1283,7 @@ namespace data
                                 const std::int32_t &symbol );
             enum
             {
-                Object_Part_Type_ID = 42
+                Object_Part_Type_ID = 45
             };
             std::int32_t                    symbol;
             std::optional< std::int32_t >   type_id;
@@ -1327,6 +1337,58 @@ namespace data
             virtual void                                               store( mega::io::Storer &storer ) const;
             virtual void                                               to_json( nlohmann::json &data ) const;
         };
+        struct Interface_ReturnTypeTrait : public mega::io::Object
+        {
+            Interface_ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Interface_ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                       Ptr< Tree::Interface_ReturnTypeTrait > p_Tree_Interface_ReturnTypeTrait, const std::string &canonical_type );
+            enum
+            {
+                Object_Part_Type_ID = 37
+            };
+            std::string                            canonical_type;
+            Ptr< Tree::Interface_ReturnTypeTrait > p_Tree_Interface_ReturnTypeTrait;
+            virtual bool                           test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                           set_inheritance_pointer();
+            virtual void                           load( mega::io::Loader &loader );
+            virtual void                           store( mega::io::Storer &storer ) const;
+            virtual void                           to_json( nlohmann::json &data ) const;
+        };
+        struct Interface_ArgumentListTrait : public mega::io::Object
+        {
+            Interface_ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Interface_ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                         Ptr< Tree::Interface_ArgumentListTrait > p_Tree_Interface_ArgumentListTrait,
+                                         const std::vector< std::string >        &canonical_types );
+            enum
+            {
+                Object_Part_Type_ID = 39
+            };
+            std::vector< std::string >               canonical_types;
+            Ptr< Tree::Interface_ArgumentListTrait > p_Tree_Interface_ArgumentListTrait;
+            virtual bool                             test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                             set_inheritance_pointer();
+            virtual void                             load( mega::io::Loader &loader );
+            virtual void                             store( mega::io::Storer &storer ) const;
+            virtual void                             to_json( nlohmann::json &data ) const;
+        };
+        struct Interface_SizeTrait : public mega::io::Object
+        {
+            Interface_SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Interface_SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, Ptr< Tree::Interface_SizeTrait > p_Tree_Interface_SizeTrait,
+                                 const std::size_t &size );
+            enum
+            {
+                Object_Part_Type_ID = 41
+            };
+            std::size_t                      size;
+            Ptr< Tree::Interface_SizeTrait > p_Tree_Interface_SizeTrait;
+            virtual bool                     test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                     set_inheritance_pointer();
+            virtual void                     load( mega::io::Loader &loader );
+            virtual void                     store( mega::io::Storer &storer ) const;
+            virtual void                     to_json( nlohmann::json &data ) const;
+        };
     } // namespace Clang
     namespace Concrete
     {
@@ -1355,7 +1417,7 @@ namespace data
                                 const std::optional< data::Ptr< data::Concrete::Concrete_Context > > &concrete );
             enum
             {
-                Object_Part_Type_ID = 43
+                Object_Part_Type_ID = 46
             };
             std::optional< data::Ptr< data::Concrete::Concrete_Context > > concrete;
             Ptr< Tree::Interface_IContext >                                p_Tree_Interface_IContext;
@@ -1372,7 +1434,7 @@ namespace data
                                 const data::Ptr< data::Tree::Interface_DimensionTrait > &interface_dimension );
             enum
             {
-                Object_Part_Type_ID = 88
+                Object_Part_Type_ID = 91
             };
             data::Ptr< data::Concrete::Concrete_Context >                   parent;
             data::Ptr< data::Tree::Interface_DimensionTrait >               interface_dimension;
@@ -1383,24 +1445,47 @@ namespace data
             virtual void                                                    store( mega::io::Storer &storer ) const;
             virtual void                                                    to_json( nlohmann::json &data ) const;
         };
+        struct Concrete_ContextGroup : public mega::io::Object
+        {
+            Concrete_ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Concrete_ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                   const std::vector< data::Ptr< data::Concrete::Concrete_Context > > &children );
+            enum
+            {
+                Object_Part_Type_ID = 92
+            };
+            std::vector< data::Ptr< data::Concrete::Concrete_Context > > children;
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
+                         m_inheritance;
+            virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void set_inheritance_pointer();
+            virtual void load( mega::io::Loader &loader );
+            virtual void store( mega::io::Storer &storer ) const;
+            virtual void to_json( nlohmann::json &data ) const;
+        };
         struct Concrete_Context : public mega::io::Object
         {
             Concrete_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             Concrete_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                              const std::optional< data::Ptr< data::Concrete::Concrete_Context > > &parent,
-                              const std::vector< data::Ptr< data::Tree::Interface_IContext > >     &inheritance,
-                              const std::vector< data::Ptr< data::Concrete::Concrete_Context > >   &children );
+                              const data::Ptr< data::Concrete::Concrete_ContextGroup > &parent, const data::Ptr< data::Tree::Interface_IContext > &interface,
+                              const std::vector< data::Ptr< data::Tree::Interface_IContext > > &inheritance );
             enum
             {
-                Object_Part_Type_ID = 89
+                Object_Part_Type_ID = 93
             };
-            std::optional< data::Ptr< data::Concrete::Concrete_Context > > parent;
-            std::vector< data::Ptr< data::Tree::Interface_IContext > >     inheritance;
-            std::vector< data::Ptr< data::Concrete::Concrete_Context > >   children;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            data::Ptr< data::Concrete::Concrete_ContextGroup >         parent;
+            data::Ptr< data::Tree::Interface_IContext >                interface;
+            std::vector< data::Ptr< data::Tree::Interface_IContext > > inheritance;
+            Ptr< Concrete::Concrete_ContextGroup >                     p_Concrete_Concrete_ContextGroup;
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1416,15 +1501,16 @@ namespace data
                                 const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > &dimensions );
             enum
             {
-                Object_Part_Type_ID = 90
+                Object_Part_Type_ID = 94
             };
             data::Ptr< data::Tree::Interface_Namespace >                   interface_namespace;
             std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > dimensions;
             Ptr< Concrete::Concrete_Context >                              p_Concrete_Concrete_Context;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1440,15 +1526,16 @@ namespace data
                              const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > &dimensions );
             enum
             {
-                Object_Part_Type_ID = 91
+                Object_Part_Type_ID = 95
             };
             data::Ptr< data::Tree::Interface_Action >                      interface_action;
             std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > dimensions;
             Ptr< Concrete::Concrete_Context >                              p_Concrete_Concrete_Context;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1463,15 +1550,16 @@ namespace data
                             const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > &dimensions );
             enum
             {
-                Object_Part_Type_ID = 92
+                Object_Part_Type_ID = 96
             };
             data::Ptr< data::Tree::Interface_Event >                       interface_event;
             std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > dimensions;
             Ptr< Concrete::Concrete_Context >                              p_Concrete_Concrete_Context;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1486,14 +1574,15 @@ namespace data
                                const data::Ptr< data::Tree::Interface_Function > &interface_function );
             enum
             {
-                Object_Part_Type_ID = 93
+                Object_Part_Type_ID = 97
             };
             data::Ptr< data::Tree::Interface_Function > interface_function;
             Ptr< Concrete::Concrete_Context >           p_Concrete_Concrete_Context;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1509,15 +1598,16 @@ namespace data
                              const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > &dimensions );
             enum
             {
-                Object_Part_Type_ID = 94
+                Object_Part_Type_ID = 98
             };
             data::Ptr< data::Tree::Interface_Object >                      interface_object;
             std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > dimensions;
             Ptr< Concrete::Concrete_Context >                              p_Concrete_Concrete_Context;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1531,14 +1621,15 @@ namespace data
             Concrete_Link( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Interface_Link > &interface_link );
             enum
             {
-                Object_Part_Type_ID = 95
+                Object_Part_Type_ID = 99
             };
             data::Ptr< data::Tree::Interface_Link > interface_link;
             Ptr< Concrete::Concrete_Context >       p_Concrete_Concrete_Context;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1552,14 +1643,15 @@ namespace data
             Concrete_Table( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Interface_Table > &interface_table );
             enum
             {
-                Object_Part_Type_ID = 96
+                Object_Part_Type_ID = 100
             };
             data::Ptr< data::Tree::Interface_Table > interface_table;
             Ptr< Concrete::Concrete_Context >        p_Concrete_Concrete_Context;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1570,15 +1662,18 @@ namespace data
         struct Concrete_Root : public mega::io::Object
         {
             Concrete_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
+            Concrete_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Tree::Interface_Root > &interface_root );
             enum
             {
-                Object_Part_Type_ID = 97
+                Object_Part_Type_ID = 101
             };
-            Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
-            std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                          data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                          data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                          data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >
+            data::Ptr< data::Tree::Interface_Root > interface_root;
+            Ptr< Concrete::Concrete_ContextGroup >  p_Concrete_Concrete_ContextGroup;
+            std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                          data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                          data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                          data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
+                          data::Ptr< data::Concrete::Concrete_Root > >
                          m_inheritance;
             virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
             virtual void set_inheritance_pointer();
@@ -1596,7 +1691,7 @@ namespace data
                                     const std::size_t &hash_code );
             enum
             {
-                Object_Part_Type_ID = 115
+                Object_Part_Type_ID = 119
             };
             mega::io::megaFilePath                                           source_file;
             std::size_t                                                      hash_code;
@@ -1614,7 +1709,7 @@ namespace data
                               const std::vector< data::Ptr< data::Model::HyperGraph_ObjectGraph > > &objects );
             enum
             {
-                Object_Part_Type_ID = 116
+                Object_Part_Type_ID = 120
             };
             std::vector< data::Ptr< data::Model::HyperGraph_ObjectGraph > > objects;
             std::variant< data::Ptr< data::Model::HyperGraph_Graph > >      m_inheritance;
@@ -1635,7 +1730,7 @@ namespace data
                 const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > &inheritance );
             enum
             {
-                Object_Part_Type_ID = 117
+                Object_Part_Type_ID = 121
             };
             mega::io::megaFilePath                                                                                    source_file;
             std::size_t                                                                                               hash_code;
@@ -1654,7 +1749,7 @@ namespace data
                                 const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > > &mappings );
             enum
             {
-                Object_Part_Type_ID = 118
+                Object_Part_Type_ID = 122
             };
             std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >                                                    mappings;
             std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > > inheritance;
@@ -1675,7 +1770,7 @@ namespace data
                                             const std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > > &parent );
             enum
             {
-                Object_Part_Type_ID = 52
+                Object_Part_Type_ID = 55
             };
             std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > > parent;
             std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >,
@@ -1695,7 +1790,7 @@ namespace data
                                             const data::Ptr< data::Concrete::Concrete_Context > &concrete );
             enum
             {
-                Object_Part_Type_ID = 53
+                Object_Part_Type_ID = 56
             };
             data::Ptr< data::Concrete::Concrete_Context >     concrete;
             Ptr< Operations::Invocations_Variables_Variable > p_Operations_Invocations_Variables_Variable;
@@ -1716,7 +1811,7 @@ namespace data
                                              const std::vector< data::Ptr< data::Concrete::Concrete_Context > > &types );
             enum
             {
-                Object_Part_Type_ID = 54
+                Object_Part_Type_ID = 57
             };
             std::vector< data::Ptr< data::Concrete::Concrete_Context > > types;
             Ptr< Operations::Invocations_Variables_Variable >            p_Operations_Invocations_Variables_Variable;
@@ -1735,7 +1830,7 @@ namespace data
             Invocations_Variables_Dimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 55
+                Object_Part_Type_ID = 58
             };
             Ptr< Operations::Invocations_Variables_Reference > p_Operations_Invocations_Variables_Reference;
             std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >,
@@ -1753,7 +1848,7 @@ namespace data
             Invocations_Variables_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 56
+                Object_Part_Type_ID = 59
             };
             Ptr< Operations::Invocations_Variables_Reference > p_Operations_Invocations_Variables_Reference;
             std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >,
@@ -1771,7 +1866,7 @@ namespace data
             Invocations_Instructions_Instruction( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 57
+                Object_Part_Type_ID = 60
             };
             std::variant<
                 data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >,
@@ -1805,7 +1900,7 @@ namespace data
                                                        const std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > > &children );
             enum
             {
-                Object_Part_Type_ID = 58
+                Object_Part_Type_ID = 61
             };
             std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > > children;
             Ptr< Operations::Invocations_Instructions_Instruction >                            p_Operations_Invocations_Instructions_Instruction;
@@ -1841,7 +1936,7 @@ namespace data
                                            const data::Ptr< data::Operations::Invocations_Variables_Context > &context );
             enum
             {
-                Object_Part_Type_ID = 59
+                Object_Part_Type_ID = 62
             };
             data::Ptr< data::Operations::Invocations_Variables_Context > context;
             Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
@@ -1878,7 +1973,7 @@ namespace data
                                                        const data::Ptr< data::Operations::Invocations_Variables_Instance > &to );
             enum
             {
-                Object_Part_Type_ID = 60
+                Object_Part_Type_ID = 63
             };
             data::Ptr< data::Operations::Invocations_Variables_Instance > from;
             data::Ptr< data::Operations::Invocations_Variables_Instance > to;
@@ -1916,7 +2011,7 @@ namespace data
                                                       const data::Ptr< data::Operations::Invocations_Variables_Instance > &to );
             enum
             {
-                Object_Part_Type_ID = 61
+                Object_Part_Type_ID = 64
             };
             data::Ptr< data::Operations::Invocations_Variables_Instance > from;
             data::Ptr< data::Operations::Invocations_Variables_Instance > to;
@@ -1954,7 +2049,7 @@ namespace data
                                                      const data::Ptr< data::Operations::Invocations_Variables_Instance > &to );
             enum
             {
-                Object_Part_Type_ID = 62
+                Object_Part_Type_ID = 65
             };
             data::Ptr< data::Operations::Invocations_Variables_Instance > from;
             data::Ptr< data::Operations::Invocations_Variables_Instance > to;
@@ -1988,14 +2083,12 @@ namespace data
         {
             Invocations_Instructions_Enumeration( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             Invocations_Instructions_Enumeration( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                                  const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance,
-                                                  const std::vector< data::Ptr< data::Tree::Interface_IContext > >    &return_types );
+                                                  const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance );
             enum
             {
-                Object_Part_Type_ID = 63
+                Object_Part_Type_ID = 66
             };
             data::Ptr< data::Operations::Invocations_Variables_Instance > instance;
-            std::vector< data::Ptr< data::Tree::Interface_IContext > >    return_types;
             Ptr< Operations::Invocations_Instructions_InstructionGroup >  p_Operations_Invocations_Instructions_InstructionGroup;
             std::variant<
                 data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >,
@@ -2031,7 +2124,7 @@ namespace data
                                                              const data::Ptr< data::Concrete::Concrete_Dimension >                &concrete );
             enum
             {
-                Object_Part_Type_ID = 64
+                Object_Part_Type_ID = 67
             };
             data::Ptr< data::Operations::Invocations_Variables_Instance >  instance;
             data::Ptr< data::Operations::Invocations_Variables_Dimension > dimension_reference;
@@ -2070,7 +2163,7 @@ namespace data
                                                     const data::Ptr< data::Operations::Invocations_Variables_Instance >  &instance );
             enum
             {
-                Object_Part_Type_ID = 65
+                Object_Part_Type_ID = 68
             };
             data::Ptr< data::Operations::Invocations_Variables_Reference > reference;
             data::Ptr< data::Operations::Invocations_Variables_Instance >  instance;
@@ -2107,7 +2200,7 @@ namespace data
                                                     const data::Ptr< data::Operations::Invocations_Variables_Reference > &from_reference );
             enum
             {
-                Object_Part_Type_ID = 66
+                Object_Part_Type_ID = 69
             };
             data::Ptr< data::Operations::Invocations_Variables_Reference > from_reference;
             Ptr< Operations::Invocations_Instructions_InstructionGroup >   p_Operations_Invocations_Instructions_InstructionGroup;
@@ -2144,7 +2237,7 @@ namespace data
                                                const data::Ptr< data::Operations::Invocations_Variables_Instance >  &to );
             enum
             {
-                Object_Part_Type_ID = 67
+                Object_Part_Type_ID = 70
             };
             data::Ptr< data::Operations::Invocations_Variables_Reference > reference;
             data::Ptr< data::Operations::Invocations_Variables_Instance >  to;
@@ -2179,7 +2272,7 @@ namespace data
             Invocations_Instructions_Failure( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 68
+                Object_Part_Type_ID = 71
             };
             Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
             std::variant<
@@ -2212,7 +2305,7 @@ namespace data
             Invocations_Instructions_Elimination( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 69
+                Object_Part_Type_ID = 72
             };
             Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
             std::variant<
@@ -2245,7 +2338,7 @@ namespace data
             Invocations_Instructions_Prune( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 70
+                Object_Part_Type_ID = 73
             };
             Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
             std::variant<
@@ -2277,13 +2370,17 @@ namespace data
         {
             Invocations_Operations_Operation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             Invocations_Operations_Operation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                              const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance );
+                                              const data::Ptr< data::Operations::Invocations_Variables_Instance >             &instance,
+                                              const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > > &return_types,
+                                              const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > > &parameter_types );
             enum
             {
-                Object_Part_Type_ID = 71
+                Object_Part_Type_ID = 74
             };
-            data::Ptr< data::Operations::Invocations_Variables_Instance > instance;
-            Ptr< Operations::Invocations_Instructions_Instruction >       p_Operations_Invocations_Instructions_Instruction;
+            data::Ptr< data::Operations::Invocations_Variables_Instance >             instance;
+            std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > > return_types;
+            std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > > parameter_types;
+            Ptr< Operations::Invocations_Instructions_Instruction >                   p_Operations_Invocations_Instructions_Instruction;
             std::variant<
                 data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >,
                 data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >,
@@ -2317,7 +2414,7 @@ namespace data
                                                    const data::Ptr< data::Concrete::Concrete_Context > &concrete_target );
             enum
             {
-                Object_Part_Type_ID = 72
+                Object_Part_Type_ID = 75
             };
             data::Ptr< data::Tree::Interface_IContext >         interface;
             data::Ptr< data::Concrete::Concrete_Context >       concrete_target;
@@ -2355,7 +2452,7 @@ namespace data
                                                        const data::Ptr< data::Concrete::Concrete_Dimension >   &concrete_dimension );
             enum
             {
-                Object_Part_Type_ID = 73
+                Object_Part_Type_ID = 76
             };
             data::Ptr< data::Tree::Interface_DimensionTrait >   interface_dimension;
             data::Ptr< data::Concrete::Concrete_Dimension >     concrete_dimension;
@@ -2390,7 +2487,7 @@ namespace data
             Invocations_Operations_Call( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 74
+                Object_Part_Type_ID = 77
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2423,7 +2520,7 @@ namespace data
             Invocations_Operations_Start( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 75
+                Object_Part_Type_ID = 78
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2456,7 +2553,7 @@ namespace data
             Invocations_Operations_Stop( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 76
+                Object_Part_Type_ID = 79
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2489,7 +2586,7 @@ namespace data
             Invocations_Operations_Pause( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 77
+                Object_Part_Type_ID = 80
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2522,7 +2619,7 @@ namespace data
             Invocations_Operations_Resume( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 78
+                Object_Part_Type_ID = 81
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2555,7 +2652,7 @@ namespace data
             Invocations_Operations_Done( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 79
+                Object_Part_Type_ID = 82
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2588,7 +2685,7 @@ namespace data
             Invocations_Operations_WaitAction( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 80
+                Object_Part_Type_ID = 83
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2621,7 +2718,7 @@ namespace data
             Invocations_Operations_WaitDimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 81
+                Object_Part_Type_ID = 84
             };
             Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
             std::variant<
@@ -2654,7 +2751,7 @@ namespace data
             Invocations_Operations_GetAction( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 82
+                Object_Part_Type_ID = 85
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2687,7 +2784,7 @@ namespace data
             Invocations_Operations_GetDimension( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 83
+                Object_Part_Type_ID = 86
             };
             Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
             std::variant<
@@ -2720,7 +2817,7 @@ namespace data
             Invocations_Operations_Read( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 84
+                Object_Part_Type_ID = 87
             };
             Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
             std::variant<
@@ -2753,7 +2850,7 @@ namespace data
             Invocations_Operations_Write( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 85
+                Object_Part_Type_ID = 88
             };
             Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
             std::variant<
@@ -2788,7 +2885,7 @@ namespace data
                                               const data::Ptr< data::Operations::Invocations_Variables_Dimension > &dimension_reference );
             enum
             {
-                Object_Part_Type_ID = 86
+                Object_Part_Type_ID = 89
             };
             data::Ptr< data::Operations::Invocations_Variables_Dimension > dimension_reference;
             Ptr< Operations::Invocations_Operations_DimensionOperation >   p_Operations_Invocations_Operations_DimensionOperation;
@@ -2822,7 +2919,7 @@ namespace data
             Invocations_Operations_Range( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             enum
             {
-                Object_Part_Type_ID = 87
+                Object_Part_Type_ID = 90
             };
             Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
             std::variant<
@@ -2858,7 +2955,7 @@ namespace data
                                          const std::optional< data::Ptr< data::Tree::Interface_DimensionTrait > > &dimension );
             enum
             {
-                Object_Part_Type_ID = 98
+                Object_Part_Type_ID = 102
             };
             std::optional< data::Ptr< data::Tree::Interface_IContext > >               context;
             std::optional< data::Ptr< data::Tree::Interface_DimensionTrait > >         dimension;
@@ -2877,7 +2974,7 @@ namespace data
                                         const std::optional< data::Ptr< data::Concrete::Concrete_Dimension > > &dimension );
             enum
             {
-                Object_Part_Type_ID = 99
+                Object_Part_Type_ID = 103
             };
             std::optional< data::Ptr< data::Concrete::Concrete_Context > >            context;
             std::optional< data::Ptr< data::Concrete::Concrete_Dimension > >          dimension;
@@ -2896,7 +2993,7 @@ namespace data
                                 const data::Ptr< data::Operations::Operations_ConcreteVariant >  &concrete );
             enum
             {
-                Object_Part_Type_ID = 100
+                Object_Part_Type_ID = 104
             };
             data::Ptr< data::Operations::Operations_InterfaceVariant >        interface;
             data::Ptr< data::Operations::Operations_ConcreteVariant >         concrete;
@@ -2914,7 +3011,7 @@ namespace data
                                       const std::vector< data::Ptr< data::Operations::Operations_Element > > &elements );
             enum
             {
-                Object_Part_Type_ID = 101
+                Object_Part_Type_ID = 105
             };
             std::vector< data::Ptr< data::Operations::Operations_Element > >        elements;
             std::variant< data::Ptr< data::Operations::Operations_ElementVector > > m_inheritance;
@@ -2931,7 +3028,7 @@ namespace data
                                 const std::vector< data::Ptr< data::Operations::Operations_ElementVector > > &vectors );
             enum
             {
-                Object_Part_Type_ID = 102
+                Object_Part_Type_ID = 106
             };
             std::vector< data::Ptr< data::Operations::Operations_ElementVector > > vectors;
             std::variant< data::Ptr< data::Operations::Operations_Context > >      m_inheritance;
@@ -2948,7 +3045,7 @@ namespace data
                                  const std::vector< data::Ptr< data::Operations::Operations_ElementVector > > &vectors );
             enum
             {
-                Object_Part_Type_ID = 103
+                Object_Part_Type_ID = 107
             };
             std::vector< data::Ptr< data::Operations::Operations_ElementVector > > vectors;
             std::variant< data::Ptr< data::Operations::Operations_TypePath > >     m_inheritance;
@@ -2965,7 +3062,7 @@ namespace data
                                  const std::vector< data::Ptr< data::Operations::Operations_Name > > &children );
             enum
             {
-                Object_Part_Type_ID = 104
+                Object_Part_Type_ID = 108
             };
             std::vector< data::Ptr< data::Operations::Operations_Name > >                                                      children;
             std::variant< data::Ptr< data::Operations::Operations_NameRoot >, data::Ptr< data::Operations::Operations_Name > > m_inheritance;
@@ -2982,7 +3079,7 @@ namespace data
                              const bool &is_member, const bool &is_reference );
             enum
             {
-                Object_Part_Type_ID = 105
+                Object_Part_Type_ID = 109
             };
             data::Ptr< data::Operations::Operations_Element >                                                                  element;
             bool                                                                                                               is_member;
@@ -3002,7 +3099,7 @@ namespace data
                                        const data::Ptr< data::Operations::Operations_NameRoot > &root_name );
             enum
             {
-                Object_Part_Type_ID = 106
+                Object_Part_Type_ID = 110
             };
             data::Ptr< data::Operations::Operations_NameRoot >                       root_name;
             std::variant< data::Ptr< data::Operations::Operations_NameResolution > > m_inheritance;
@@ -3017,23 +3114,31 @@ namespace data
             Operations_Invocation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo );
             Operations_Invocation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                                    const data::Ptr< data::Operations::Operations_Context >  &context,
-                                   const data::Ptr< data::Operations::Operations_TypePath > &type_path, const mega::OperationID &operation );
+                                   const data::Ptr< data::Operations::Operations_TypePath > &type_path, const mega::OperationID &operation,
+                                   const std::string &name, const std::string &context_str, const std::string &type_path_str );
             enum
             {
-                Object_Part_Type_ID = 107
+                Object_Part_Type_ID = 111
             };
-            data::Ptr< data::Operations::Operations_Context >                             context;
-            data::Ptr< data::Operations::Operations_TypePath >                            type_path;
-            mega::OperationID                                                             operation;
-            std::optional< data::Ptr< data::Operations::Operations_NameResolution > >     name_resolution;
-            std::optional< data::Ptr< data::Operations::Invocations_Variables_Context > > root_variable;
-            std::optional< data::Ptr< data::Operations::Invocations_Instructions_Root > > root_instruction;
-            std::variant< data::Ptr< data::Operations::Operations_Invocation > >          m_inheritance;
-            virtual bool                                                                  test_inheritance_pointer( ObjectPartLoader &loader ) const;
-            virtual void                                                                  set_inheritance_pointer();
-            virtual void                                                                  load( mega::io::Loader &loader );
-            virtual void                                                                  store( mega::io::Storer &storer ) const;
-            virtual void                                                                  to_json( nlohmann::json &data ) const;
+            data::Ptr< data::Operations::Operations_Context >                                 context;
+            data::Ptr< data::Operations::Operations_TypePath >                                type_path;
+            mega::OperationID                                                                 operation;
+            std::string                                                                       name;
+            std::string                                                                       context_str;
+            std::string                                                                       type_path_str;
+            std::optional< std::string >                                                      return_type_str;
+            std::optional< data::Ptr< data::Operations::Operations_NameResolution > >         name_resolution;
+            std::optional< data::Ptr< data::Operations::Invocations_Variables_Context > >     root_variable;
+            std::optional< data::Ptr< data::Operations::Invocations_Instructions_Root > >     root_instruction;
+            std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > >       return_types_context;
+            std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > return_types_dimension;
+            std::optional< bool >                                                             homogeneous;
+            std::variant< data::Ptr< data::Operations::Operations_Invocation > >              m_inheritance;
+            virtual bool                                                                      test_inheritance_pointer( ObjectPartLoader &loader ) const;
+            virtual void                                                                      set_inheritance_pointer();
+            virtual void                                                                      load( mega::io::Loader &loader );
+            virtual void                                                                      store( mega::io::Storer &storer ) const;
+            virtual void                                                                      to_json( nlohmann::json &data ) const;
         };
         struct Operations_Invocations : public mega::io::Object
         {
@@ -3042,7 +3147,7 @@ namespace data
                                     const std::map< mega::invocation::ID, data::Ptr< data::Operations::Operations_Invocation > > &invocations );
             enum
             {
-                Object_Part_Type_ID = 108
+                Object_Part_Type_ID = 112
             };
             std::map< mega::invocation::ID, data::Ptr< data::Operations::Operations_Invocation > > invocations;
             std::variant< data::Ptr< data::Operations::Operations_Invocations > >                  m_inheritance;
@@ -3161,15 +3266,24 @@ namespace data
     template <> inline Ptr< AST::Parser_Link >          convert( const Ptr< Tree::Interface_LinkTrait > &from ) { return from->p_AST_Parser_Link; }
     template <> inline Ptr< Tree::Interface_LinkTrait > convert( const Ptr< Tree::Interface_LinkTrait > &from ) { return from; }
     template <> inline Ptr< AST::Parser_ReturnType >    convert( const Ptr< Tree::Interface_ReturnTypeTrait > &from ) { return from->p_AST_Parser_ReturnType; }
-    template <> inline Ptr< Tree::Interface_ReturnTypeTrait > convert( const Ptr< Tree::Interface_ReturnTypeTrait > &from ) { return from; }
-    template <> inline Ptr< AST::Parser_ArgumentList >        convert( const Ptr< Tree::Interface_ArgumentListTrait > &from )
+    template <> inline Ptr< Tree::Interface_ReturnTypeTrait >  convert( const Ptr< Tree::Interface_ReturnTypeTrait > &from ) { return from; }
+    template <> inline Ptr< Clang::Interface_ReturnTypeTrait > convert( const Ptr< Tree::Interface_ReturnTypeTrait > &from )
+    {
+        return from->p_Clang_Interface_ReturnTypeTrait;
+    }
+    template <> inline Ptr< AST::Parser_ArgumentList > convert( const Ptr< Tree::Interface_ArgumentListTrait > &from )
     {
         return from->p_AST_Parser_ArgumentList;
     }
-    template <> inline Ptr< Tree::Interface_ArgumentListTrait > convert( const Ptr< Tree::Interface_ArgumentListTrait > &from ) { return from; }
-    template <> inline Ptr< AST::Parser_Size >                  convert( const Ptr< Tree::Interface_SizeTrait > &from ) { return from->p_AST_Parser_Size; }
-    template <> inline Ptr< Tree::Interface_SizeTrait >         convert( const Ptr< Tree::Interface_SizeTrait > &from ) { return from; }
-    template <> inline Ptr< Tree::Interface_ContextGroup >      convert( const Ptr< Tree::Interface_ContextGroup > &from ) { return from; }
+    template <> inline Ptr< Tree::Interface_ArgumentListTrait >  convert( const Ptr< Tree::Interface_ArgumentListTrait > &from ) { return from; }
+    template <> inline Ptr< Clang::Interface_ArgumentListTrait > convert( const Ptr< Tree::Interface_ArgumentListTrait > &from )
+    {
+        return from->p_Clang_Interface_ArgumentListTrait;
+    }
+    template <> inline Ptr< AST::Parser_Size >             convert( const Ptr< Tree::Interface_SizeTrait > &from ) { return from->p_AST_Parser_Size; }
+    template <> inline Ptr< Tree::Interface_SizeTrait >    convert( const Ptr< Tree::Interface_SizeTrait > &from ) { return from; }
+    template <> inline Ptr< Clang::Interface_SizeTrait >   convert( const Ptr< Tree::Interface_SizeTrait > &from ) { return from->p_Clang_Interface_SizeTrait; }
+    template <> inline Ptr< Tree::Interface_ContextGroup > convert( const Ptr< Tree::Interface_ContextGroup > &from ) { return from; }
     template <> inline Ptr< Tree::Interface_ContextGroup > convert( const Ptr< Tree::Interface_Root > &from ) { return from->p_Tree_Interface_ContextGroup; }
     template <> inline Ptr< Tree::Interface_Root >         convert( const Ptr< Tree::Interface_Root > &from ) { return from; }
     template <> inline Ptr< Tree::Interface_ContextGroup > convert( const Ptr< Tree::Interface_IContext > &from )
@@ -3760,26 +3874,62 @@ namespace data
     }
     template <> inline Ptr< Operations::Invocations_Operations_Range > convert( const Ptr< Operations::Invocations_Operations_Range > &from ) { return from; }
     template <> inline Ptr< Concrete::Concrete_Dimension >             convert( const Ptr< Concrete::Concrete_Dimension > &from ) { return from; }
-    template <> inline Ptr< Concrete::Concrete_Context >               convert( const Ptr< Concrete::Concrete_Context > &from ) { return from; }
-    template <> inline Ptr< Concrete::Concrete_Context >               convert( const Ptr< Concrete::Concrete_Namespace > &from )
+    template <> inline Ptr< Concrete::Concrete_ContextGroup >          convert( const Ptr< Concrete::Concrete_ContextGroup > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup >          convert( const Ptr< Concrete::Concrete_Context > &from )
+    {
+        return from->p_Concrete_Concrete_ContextGroup;
+    }
+    template <> inline Ptr< Concrete::Concrete_Context >      convert( const Ptr< Concrete::Concrete_Context > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Namespace > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    template <> inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Namespace > &from )
     {
         return from->p_Concrete_Concrete_Context;
     }
-    template <> inline Ptr< Concrete::Concrete_Namespace > convert( const Ptr< Concrete::Concrete_Namespace > &from ) { return from; }
-    template <> inline Ptr< Concrete::Concrete_Context >   convert( const Ptr< Concrete::Concrete_Action > &from ) { return from->p_Concrete_Concrete_Context; }
-    template <> inline Ptr< Concrete::Concrete_Action >    convert( const Ptr< Concrete::Concrete_Action > &from ) { return from; }
-    template <> inline Ptr< Concrete::Concrete_Context >   convert( const Ptr< Concrete::Concrete_Event > &from ) { return from->p_Concrete_Concrete_Context; }
-    template <> inline Ptr< Concrete::Concrete_Event >     convert( const Ptr< Concrete::Concrete_Event > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_Namespace >    convert( const Ptr< Concrete::Concrete_Namespace > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Action > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    template <> inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Action > &from ) { return from->p_Concrete_Concrete_Context; }
+    template <> inline Ptr< Concrete::Concrete_Action >  convert( const Ptr< Concrete::Concrete_Action > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Event > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    template <> inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Event > &from ) { return from->p_Concrete_Concrete_Context; }
+    template <> inline Ptr< Concrete::Concrete_Event >   convert( const Ptr< Concrete::Concrete_Event > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Function > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
     template <> inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Function > &from ) { return from->p_Concrete_Concrete_Context; }
-    template <> inline Ptr< Concrete::Concrete_Function > convert( const Ptr< Concrete::Concrete_Function > &from ) { return from; }
-    template <> inline Ptr< Concrete::Concrete_Context >  convert( const Ptr< Concrete::Concrete_Object > &from ) { return from->p_Concrete_Concrete_Context; }
-    template <> inline Ptr< Concrete::Concrete_Object >   convert( const Ptr< Concrete::Concrete_Object > &from ) { return from; }
-    template <> inline Ptr< Concrete::Concrete_Context >  convert( const Ptr< Concrete::Concrete_Link > &from ) { return from->p_Concrete_Concrete_Context; }
-    template <> inline Ptr< Concrete::Concrete_Link >     convert( const Ptr< Concrete::Concrete_Link > &from ) { return from; }
-    template <> inline Ptr< Concrete::Concrete_Context >  convert( const Ptr< Concrete::Concrete_Table > &from ) { return from->p_Concrete_Concrete_Context; }
-    template <> inline Ptr< Concrete::Concrete_Table >    convert( const Ptr< Concrete::Concrete_Table > &from ) { return from; }
-    template <> inline Ptr< Concrete::Concrete_Context >  convert( const Ptr< Concrete::Concrete_Root > &from ) { return from->p_Concrete_Concrete_Context; }
-    template <> inline Ptr< Concrete::Concrete_Root >     convert( const Ptr< Concrete::Concrete_Root > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_Function >     convert( const Ptr< Concrete::Concrete_Function > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Object > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    template <> inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Object > &from ) { return from->p_Concrete_Concrete_Context; }
+    template <> inline Ptr< Concrete::Concrete_Object >  convert( const Ptr< Concrete::Concrete_Object > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Link > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    template <> inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Link > &from ) { return from->p_Concrete_Concrete_Context; }
+    template <> inline Ptr< Concrete::Concrete_Link >    convert( const Ptr< Concrete::Concrete_Link > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Table > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    template <> inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Table > &from ) { return from->p_Concrete_Concrete_Context; }
+    template <> inline Ptr< Concrete::Concrete_Table >   convert( const Ptr< Concrete::Concrete_Table > &from ) { return from; }
+    template <> inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Root > &from )
+    {
+        return from->p_Concrete_Concrete_ContextGroup;
+    }
+    template <> inline Ptr< Concrete::Concrete_Root >                 convert( const Ptr< Concrete::Concrete_Root > &from ) { return from; }
     template <> inline Ptr< Operations::Operations_InterfaceVariant > convert( const Ptr< Operations::Operations_InterfaceVariant > &from ) { return from; }
     template <> inline Ptr< Operations::Operations_ConcreteVariant >  convert( const Ptr< Operations::Operations_ConcreteVariant > &from ) { return from; }
     template <> inline Ptr< Operations::Operations_Element >          convert( const Ptr< Operations::Operations_Element > &from ) { return from; }
@@ -4035,16 +4185,38 @@ namespace data
         return from->p_Operations_Invocations_Operations_BasicOperation->p_Operations_Invocations_Operations_Operation
             ->p_Operations_Invocations_Instructions_Instruction;
     }
-    inline Ptr< Concrete::Concrete_Dimension > to_base( const Ptr< Concrete::Concrete_Dimension > &from ) { return from; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Context > &from ) { return from; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Namespace > &from ) { return from->p_Concrete_Concrete_Context; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Action > &from ) { return from->p_Concrete_Concrete_Context; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Event > &from ) { return from->p_Concrete_Concrete_Context; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Function > &from ) { return from->p_Concrete_Concrete_Context; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Object > &from ) { return from->p_Concrete_Concrete_Context; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Link > &from ) { return from->p_Concrete_Concrete_Context; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Table > &from ) { return from->p_Concrete_Concrete_Context; }
-    inline Ptr< Concrete::Concrete_Context >   to_base( const Ptr< Concrete::Concrete_Root > &from ) { return from->p_Concrete_Concrete_Context; }
+    inline Ptr< Concrete::Concrete_Dimension >    to_base( const Ptr< Concrete::Concrete_Dimension > &from ) { return from; }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_ContextGroup > &from ) { return from; }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Context > &from ) { return from->p_Concrete_Concrete_ContextGroup; }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Namespace > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Action > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Event > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Function > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Object > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Link > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Table > &from )
+    {
+        return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+    }
+    inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Root > &from ) { return from->p_Concrete_Concrete_ContextGroup; }
     inline Ptr< Operations::Operations_InterfaceVariant > to_base( const Ptr< Operations::Operations_InterfaceVariant > &from ) { return from; }
     inline Ptr< Operations::Operations_ConcreteVariant >  to_base( const Ptr< Operations::Operations_ConcreteVariant > &from ) { return from; }
     inline Ptr< Operations::Operations_Element >          to_base( const Ptr< Operations::Operations_Element > &from ) { return from; }

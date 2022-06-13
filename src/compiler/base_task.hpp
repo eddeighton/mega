@@ -89,6 +89,7 @@ protected:
     const mega::io::StashEnvironment& m_environment;
     const mega::utilities::ToolChain& m_toolChain;
     EG_PARSER_INTERFACE*              m_parser;
+    bool                              m_bCompleted = false;
 
 public:
     using Ptr = std::unique_ptr< BaseTask >;
@@ -148,6 +149,9 @@ public:
 
     void cached( mega::pipeline::Progress& taskProgress )
     {
+        VERIFY_RTE( !m_bCompleted );
+        m_bCompleted = true;
+
         std::ostringstream os;
         os << "CACHED : " << m_strTaskName;
         taskProgress.onCompleted( os.str() );
@@ -161,6 +165,9 @@ public:
     }
     void succeeded( mega::pipeline::Progress& taskProgress )
     {
+        VERIFY_RTE( !m_bCompleted );
+        m_bCompleted = true;
+
         std::ostringstream os;
         os << "SUCCESS: " << m_strTaskName;
         taskProgress.onCompleted( os.str() );
@@ -173,6 +180,9 @@ public:
     }
     virtual void failed( mega::pipeline::Progress& taskProgress )
     {
+        VERIFY_RTE( !m_bCompleted );
+        m_bCompleted = true;
+
         std::ostringstream os;
         os << "FAILED : " << m_strTaskName;
         taskProgress.onFailed( os.str() );

@@ -131,6 +131,14 @@ public:
         return result;
     }
 
+    Path ImplTemplate() const
+    {
+        VERIFY_RTE( m_templatesDir.has_value() );
+        Path result = m_templatesDir.value() / "impl.jinja";
+        VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+        return result;
+    }
+
     GeneratedHPPSourceFilePath Include( const megaFilePath& source ) const
     {
         std::ostringstream os;

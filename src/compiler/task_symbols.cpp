@@ -119,16 +119,18 @@ public:
         void labelNewSymbols( SymbolMap& symbolMap ) const
         {
             using namespace SymbolAnalysis;
+            // symbol id are negative
+            // type id are positive
 
             std::set< std::int32_t > symbolLabels;
             // std::set< std::int32_t > paranoiCheck;
             for ( SymbolMap::iterator i = symbolMap.begin(); i != symbolMap.end(); ++i )
             {
                 Symbols::Symbol* pSymbol = i->second;
-                if ( pSymbol->get_id() != 0 )
+                if ( pSymbol->get_id() != 0 ) // zero means not set
                 {
                     VERIFY_RTE( !symbolLabels.count( pSymbol->get_id() ) );
-                    symbolLabels.insert( pSymbol->get_id() );
+                    symbolLabels.insert( -pSymbol->get_id() );
                     // paranoiCheck.insert( pSymbol->get_id() );
                 }
             }
@@ -141,7 +143,7 @@ public:
                 {
                     while ( labelIter != symbolLabels.end() )
                     {
-                        if ( *labelIter > szNextLabel )
+                        if ( (-*labelIter) > szNextLabel )
                         {
                             break;
                         }
@@ -151,7 +153,7 @@ public:
                             ++labelIter;
                         }
                     }
-                    pSymbol->set_id( szNextLabel );
+                    pSymbol->set_id( -szNextLabel );
                     // paranoiCheck.insert( szNextLabel );
                     ++szNextLabel;
                 }
@@ -255,7 +257,7 @@ public:
 
         InterfaceHashCodeGenerator hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
-        bool bReusedOldDatabase = false;
+        /*bool bReusedOldDatabase = false;
         try
         {
             // try loading previous one...
@@ -485,7 +487,7 @@ public:
             bReusedOldDatabase = false;
         }
 
-        if ( !bReusedOldDatabase )
+        if ( !bReusedOldDatabase )*/
         {
             using namespace SymbolAnalysis;
             using namespace SymbolAnalysis::Symbols;

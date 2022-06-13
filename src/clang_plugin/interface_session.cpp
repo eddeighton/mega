@@ -66,7 +66,7 @@ public:
     }
 
     template < typename TContextType >
-    bool argumentListAnalysis( TContextType* pContext, SourceLocation loc, CXXRecordDecl* pCXXRecordDecl )
+    bool argumentAnalysis( TContextType* pContext, SourceLocation loc, CXXRecordDecl* pCXXRecordDecl )
     {
         CXXMethodDecl* pApplicationOperator = nullptr;
         for ( CXXRecordDecl::method_iterator i = pCXXRecordDecl->method_begin(), iEnd = pCXXRecordDecl->method_end();
@@ -89,12 +89,39 @@ public:
         }
         else
         {
-            // AbstractMutator::setParameters( *pContext, pApplicationOperator->parameters() );
+            std::vector< std::string > canonicalTypes;
+            for ( auto param : pApplicationOperator->parameters() )
+            {
+                canonicalTypes.push_back( param->getType().getCanonicalType().getAsString() );
+            }
+            m_database.construct< Interface::ArgumentListTrait >(
+                Interface::ArgumentListTrait::Args{ pContext->get_arguments_trait(), canonicalTypes } );
+        }
+        return true;
+    }
+
+    template < typename TContextType >
+    bool returnTypeAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
+    {
+        DeclLocType returnTypeResult
+            = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, ::mega::EG_FUNCTION_TRAIT_TYPE );
+        if ( !returnTypeResult.pDeclContext )
+        {
+            return false;
+        }
+        else
+        {
+            // determine the type
+            QualType typeType
+                = getTypeTrait( pASTContext, pSema, returnTypeResult.pDeclContext, returnTypeResult.loc, "Type" );
+            QualType typeTypeCanonical = typeType.getCanonicalType();
+
+            m_database.construct< Interface::ReturnTypeTrait >( Interface::ReturnTypeTrait::Args{
+                pContext->get_return_type_trait(), std::string{ typeTypeCanonical.getAsString() } } );
         }
 
         return true;
     }
-
     template < typename TContextType >
     bool dimensionAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
@@ -105,14 +132,12 @@ public:
             if ( dimensionResult.pDeclContext )
             {
                 // determine the type
-                std::string strCanonicalType;
+                std::string                     strCanonicalType;
                 std::vector< Symbols::Symbol* > symbols;
                 {
                     QualType typeType
                         = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
-
-                    QualType typeTypeCanonical = typeType.getCanonicalType();
-
+                    QualType                      typeTypeCanonical = typeType.getCanonicalType();
                     std::vector< mega::SymbolID > dimensionTypes;
 
                     // only attempt this is it has a base type identifier
@@ -120,7 +145,6 @@ public:
                     {
                         getContextSymbolIDs( pASTContext, typeTypeCanonical, dimensionTypes );
                     }
-
                     if ( dimensionTypes.empty()
                          || ( ( dimensionTypes.size() == 1U ) && ( dimensionTypes.front() == 0 ) ) )
                     {
@@ -146,6 +170,10 @@ public:
                             }
                         }
                     }
+                }
+                if( strCanonicalType.empty() && symbols.empty() )
+                {
+                    THROW_RTE( "Failed to determine dimension type" );
                 }
 
                 // determine the size
@@ -177,32 +205,29 @@ public:
                 m_database.construct< Interface::DimensionTrait >(
                     Interface::DimensionTrait::Args{ pDimensionTrait, strCanonicalType, szSize, bIsSimple, symbols } );
             }
+            else
+            {
+                THROW_RTE( "Error attempting to resolve dimension type" );
+            }
         }
         return true;
     }
 
     template < typename TContextType >
-    bool sizeAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
+    bool sizeAnalysis( TContextType* pContext, Interface::SizeTrait* pSizeTrait, SourceLocation loc,
+                       DeclContext* pDeclContext )
     {
-        /*if ( std::optional< std::size_t > sizeOpt
-             = getConstant( pASTContext, pSema, pDeclContext, loc, ::mega::EG_TRAITS_SIZE ) )
+        if ( std::optional< std::size_t > sizeOpt
+             = getConstant( pASTContext, pSema, pDeclContext, loc, ::mega::EG_SIZE_PREFIX_TRAIT_TYPE ) )
         {
-            // AbstractMutator::setSize( *pContext, static_cast< std::size_t >( sizeOpt.value() ) );
-        }*/
-
-        return true;
-    }
-
-    template < typename TContextType >
-    bool returnTypeAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
-    {
-        /*if ( std::optional< std::size_t > sizeOpt
-             = getConstant( pASTContext, pSema, pDeclContext, loc, ::mega::EG_TRAITS_SIZE ) )
+            m_database.construct< Interface::SizeTrait >(
+                Interface::SizeTrait::Args{ pSizeTrait, static_cast< std::size_t >( sizeOpt.value() ) } );
+            return true;
+        }
+        else
         {
-            // AbstractMutator::setSize( *pContext, static_cast< std::size_t >( sizeOpt.value() ) );
-        }*/
-
-        return true;
+            return false;
+        }
     }
 
     template < typename TContextType >
@@ -311,79 +336,110 @@ public:
             pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
             return false;
         }
-
-        if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+        bool bProcess = false;
         {
-            if ( !pNamespace->get_is_global() )
+            if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
             {
-                dimensionAnalysis( pNamespace, result.loc, result.pDeclContext );
+                if ( !pNamespace->get_is_global() )
+                {
+                    dimensionAnalysis( pNamespace, result.loc, result.pDeclContext );
+                }
+                bProcess = true;
             }
         }
-        else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
         {
-            dimensionAnalysis( pAbstract, result.loc, result.pDeclContext );
-
-            if ( std::optional< InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
+            if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
             {
-                if ( !inheritanceAnalysis( pAbstract, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                dimensionAnalysis( pAbstract, result.loc, result.pDeclContext );
+
+                if ( std::optional< InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
+                {
+                    if ( !inheritanceAnalysis( pAbstract, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
+                }
+                bProcess = true;
+            }
+        }
+        {
+            if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+            {
+                dimensionAnalysis( pAction, result.loc, result.pDeclContext );
+
+                if ( std::optional< InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
+                {
+                    if ( !inheritanceAnalysis( pAction, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
+                }
+                if ( std::optional< Interface::SizeTrait* > sizeOpt = pAction->get_size_trait() )
+                {
+                    sizeAnalysis( pAction, sizeOpt.value(), result.loc, result.pDeclContext );
+                }
+                bProcess = true;
+            }
+        }
+        {
+            if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+            {
+                dimensionAnalysis( pEvent, result.loc, result.pDeclContext );
+
+                if ( std::optional< InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait() )
+                {
+                    if ( !inheritanceAnalysis( pEvent, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
+                }
+                if ( std::optional< Interface::SizeTrait* > sizeOpt = pEvent->get_size_trait() )
+                {
+                    sizeAnalysis( pEvent, sizeOpt.value(), result.loc, result.pDeclContext );
+                }
+                bProcess = true;
+            }
+        }
+        {
+            if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+            {
+                CXXRecordDecl* pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
+                if ( !pCXXRecordDecl )
+                {
+                    std::ostringstream os;
+                    os << "Invalid function context type: " << pContext->get_identifier() << "("
+                       << pContext->get_type_id() << ")";
+                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
                     return false;
+                }
+                argumentAnalysis( pFunction, result.loc, pCXXRecordDecl );
+                returnTypeAnalysis( pFunction, result.loc, pCXXRecordDecl );
+                bProcess = true;
             }
         }
-        else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
         {
-            dimensionAnalysis( pAction, result.loc, result.pDeclContext );
+            if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+            {
+                dimensionAnalysis( pObject, result.loc, result.pDeclContext );
 
-            if ( std::optional< InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
-            {
-                if ( !inheritanceAnalysis( pAction, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
-                    return false;
+                if ( std::optional< InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
+                {
+                    if ( !inheritanceAnalysis( pObject, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
+                }
+                bProcess = true;
             }
-            sizeAnalysis( pAction, result.loc, result.pDeclContext );
         }
-        else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
         {
-            dimensionAnalysis( pEvent, result.loc, result.pDeclContext );
+            if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+            {
+                if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
+                    return false;
+                bProcess = true;
+            }
+        }
+        {
+            if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
+            {
+                bProcess = true;
+            }
+        }
 
-            if ( std::optional< InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait() )
-            {
-                if ( !inheritanceAnalysis( pEvent, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
-                    return false;
-            }
-            sizeAnalysis( pEvent, result.loc, result.pDeclContext );
-        }
-        else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
-        {
-            CXXRecordDecl* pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
-            if ( !pCXXRecordDecl )
-            {
-                std::ostringstream os;
-                os << "Invalid function context type: " << pContext->get_identifier() << "(" << pContext->get_type_id()
-                   << ")";
-                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-                return false;
-            }
-            argumentListAnalysis( pFunction, result.loc, pCXXRecordDecl );
-            returnTypeAnalysis( pFunction, result.loc, result.pDeclContext );
-        }
-        else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
-        {
-            dimensionAnalysis( pObject, result.loc, result.pDeclContext );
-
-            if ( std::optional< InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
-            {
-                if ( !inheritanceAnalysis( pObject, inheritanceOpt.value(), result.loc, result.pDeclContext ) )
-                    return false;
-            }
-        }
-        else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
-        {
-            if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
-                return false;
-        }
-        else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
-        {
-        }
-        else
+        if ( !bProcess )
         {
             std::ostringstream os;
             os << "Unknown context type: " << pContext->get_identifier() << "(" << pContext->get_type_id() << ")";

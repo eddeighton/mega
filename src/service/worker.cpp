@@ -204,12 +204,12 @@ void WorkerRequestActivity::PipelineStartJobs( const pipeline::Configuration& co
         jobIDs.push_back( pJob->getActivityID() );
         jobs.push_back( pJob );
     }
+    getDaemonResponse( yield_ctx ).PipelineStartJobs( jobIDs );
 
     for ( JobActivity::Ptr pJob : jobs )
     {
         m_worker.m_activityManager.activityStarted( pJob );
     }
-    getDaemonResponse( yield_ctx ).PipelineStartJobs( jobIDs );
 }
 
 network::Activity::Ptr

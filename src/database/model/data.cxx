@@ -1324,7 +1324,14 @@ namespace data
         Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_DimensionTrait >( loader, this ) ),
               p_AST_Parser_Dimension( loader ), p_PerSourceSymbols_Interface_DimensionTrait( loader ), p_Concrete_Interface_DimensionTrait( loader ),
-              p_Clang_Interface_DimensionTrait( loader )
+              p_Clang_Interface_DimensionTrait( loader ), parent( loader )
+        {
+        }
+        Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                            const data::Ptr< data::Tree::Interface_IContext > &parent )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_DimensionTrait >( loader, this ) ),
+              p_AST_Parser_Dimension( loader ), p_PerSourceSymbols_Interface_DimensionTrait( loader ), p_Concrete_Interface_DimensionTrait( loader ),
+              p_Clang_Interface_DimensionTrait( loader ), parent( parent )
         {
         }
         bool Interface_DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -1336,8 +1343,16 @@ namespace data
         {
             p_AST_Parser_Dimension->m_inheritance = data::Ptr< data::Tree::Interface_DimensionTrait >( p_AST_Parser_Dimension, this );
         }
-        void Interface_DimensionTrait::load( mega::io::Loader &loader ) { loader.load( p_AST_Parser_Dimension ); }
-        void Interface_DimensionTrait::store( mega::io::Storer &storer ) const { storer.store( p_AST_Parser_Dimension ); }
+        void Interface_DimensionTrait::load( mega::io::Loader &loader )
+        {
+            loader.load( p_AST_Parser_Dimension );
+            loader.load( parent );
+        }
+        void Interface_DimensionTrait::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_AST_Parser_Dimension );
+            storer.store( parent );
+        }
         void Interface_DimensionTrait::to_json( nlohmann::json &part ) const
         {
             part = nlohmann::json::object( { { "partname", "Interface_DimensionTrait" },
@@ -1346,6 +1361,10 @@ namespace data
                                              { "fileID", getFileID() },
                                              { "index", getIndex() },
                                              { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "parent", parent } } );
+                part[ "properties" ].push_back( property );
+            }
         }
 
         // struct Interface_InheritanceTrait : public mega::io::Object
@@ -1404,7 +1423,7 @@ namespace data
         // struct Interface_ReturnTypeTrait : public mega::io::Object
         Interface_ReturnTypeTrait::Interface_ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_ReturnTypeTrait >( loader, this ) ),
-              p_AST_Parser_ReturnType( loader )
+              p_AST_Parser_ReturnType( loader ), p_Clang_Interface_ReturnTypeTrait( loader )
         {
         }
         bool Interface_ReturnTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -1431,7 +1450,7 @@ namespace data
         // struct Interface_ArgumentListTrait : public mega::io::Object
         Interface_ArgumentListTrait::Interface_ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_ArgumentListTrait >( loader, this ) ),
-              p_AST_Parser_ArgumentList( loader )
+              p_AST_Parser_ArgumentList( loader ), p_Clang_Interface_ArgumentListTrait( loader )
         {
         }
         bool Interface_ArgumentListTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -1457,7 +1476,8 @@ namespace data
 
         // struct Interface_SizeTrait : public mega::io::Object
         Interface_SizeTrait::Interface_SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_SizeTrait >( loader, this ) ), p_AST_Parser_Size( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_SizeTrait >( loader, this ) ), p_AST_Parser_Size( loader ),
+              p_Clang_Interface_SizeTrait( loader )
         {
         }
         bool Interface_SizeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -2682,6 +2702,127 @@ namespace data
             }
         }
 
+        // struct Interface_ReturnTypeTrait : public mega::io::Object
+        Interface_ReturnTypeTrait::Interface_ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_ReturnTypeTrait( loader )
+        {
+        }
+        Interface_ReturnTypeTrait::Interface_ReturnTypeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                              Ptr< Tree::Interface_ReturnTypeTrait > p_Tree_Interface_ReturnTypeTrait,
+                                                              const std::string                     &canonical_type )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_ReturnTypeTrait( p_Tree_Interface_ReturnTypeTrait ), canonical_type( canonical_type )
+        {
+        }
+        bool Interface_ReturnTypeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_ReturnTypeTrait::set_inheritance_pointer()
+        {
+            p_Tree_Interface_ReturnTypeTrait->p_Clang_Interface_ReturnTypeTrait =
+                data::Ptr< data::Clang::Interface_ReturnTypeTrait >( p_Tree_Interface_ReturnTypeTrait, this );
+        }
+        void Interface_ReturnTypeTrait::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_ReturnTypeTrait );
+            loader.load( canonical_type );
+        }
+        void Interface_ReturnTypeTrait::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Tree_Interface_ReturnTypeTrait );
+            storer.store( canonical_type );
+        }
+        void Interface_ReturnTypeTrait::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Interface_ReturnTypeTrait" },
+                                             { "filetype", "Clang" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "canonical_type", canonical_type } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Interface_ArgumentListTrait : public mega::io::Object
+        Interface_ArgumentListTrait::Interface_ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_ArgumentListTrait( loader )
+        {
+        }
+        Interface_ArgumentListTrait::Interface_ArgumentListTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                                  Ptr< Tree::Interface_ArgumentListTrait > p_Tree_Interface_ArgumentListTrait,
+                                                                  const std::vector< std::string >        &canonical_types )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_ArgumentListTrait( p_Tree_Interface_ArgumentListTrait ), canonical_types( canonical_types )
+        {
+        }
+        bool Interface_ArgumentListTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_ArgumentListTrait::set_inheritance_pointer()
+        {
+            p_Tree_Interface_ArgumentListTrait->p_Clang_Interface_ArgumentListTrait =
+                data::Ptr< data::Clang::Interface_ArgumentListTrait >( p_Tree_Interface_ArgumentListTrait, this );
+        }
+        void Interface_ArgumentListTrait::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_ArgumentListTrait );
+            loader.load( canonical_types );
+        }
+        void Interface_ArgumentListTrait::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Tree_Interface_ArgumentListTrait );
+            storer.store( canonical_types );
+        }
+        void Interface_ArgumentListTrait::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Interface_ArgumentListTrait" },
+                                             { "filetype", "Clang" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "canonical_types", canonical_types } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
+        // struct Interface_SizeTrait : public mega::io::Object
+        Interface_SizeTrait::Interface_SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_SizeTrait( loader )
+        {
+        }
+        Interface_SizeTrait::Interface_SizeTrait( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                  Ptr< Tree::Interface_SizeTrait > p_Tree_Interface_SizeTrait, const std::size_t &size )
+            : mega::io::Object( objectInfo ), p_Tree_Interface_SizeTrait( p_Tree_Interface_SizeTrait ), size( size )
+        {
+        }
+        bool Interface_SizeTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const { return false; }
+        void Interface_SizeTrait::set_inheritance_pointer()
+        {
+            p_Tree_Interface_SizeTrait->p_Clang_Interface_SizeTrait = data::Ptr< data::Clang::Interface_SizeTrait >( p_Tree_Interface_SizeTrait, this );
+        }
+        void Interface_SizeTrait::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Tree_Interface_SizeTrait );
+            loader.load( size );
+        }
+        void Interface_SizeTrait::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Tree_Interface_SizeTrait );
+            storer.store( size );
+        }
+        void Interface_SizeTrait::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Interface_SizeTrait" },
+                                             { "filetype", "Clang" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "size", size } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
     } // namespace Clang
     namespace Concrete
     {
@@ -2813,40 +2954,82 @@ namespace data
             }
         }
 
+        // struct Concrete_ContextGroup : public mega::io::Object
+        Concrete_ContextGroup::Concrete_ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_ContextGroup >( loader, this ) )
+        {
+        }
+        Concrete_ContextGroup::Concrete_ContextGroup( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                                      const std::vector< data::Ptr< data::Concrete::Concrete_Context > > &children )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_ContextGroup >( loader, this ) ), children( children )
+        {
+        }
+        bool Concrete_ContextGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
+        {
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
+                                        data::Ptr< data::Concrete::Concrete_ContextGroup >( loader, const_cast< Concrete_ContextGroup * >( this ) ) };
+        }
+        void Concrete_ContextGroup::set_inheritance_pointer() {}
+        void Concrete_ContextGroup::load( mega::io::Loader &loader ) { loader.load( children ); }
+        void Concrete_ContextGroup::store( mega::io::Storer &storer ) const { storer.store( children ); }
+        void Concrete_ContextGroup::to_json( nlohmann::json &part ) const
+        {
+            part = nlohmann::json::object( { { "partname", "Concrete_ContextGroup" },
+                                             { "filetype", "Concrete" },
+                                             { "typeID", Object_Part_Type_ID },
+                                             { "fileID", getFileID() },
+                                             { "index", getIndex() },
+                                             { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "children", children } } );
+                part[ "properties" ].push_back( property );
+            }
+        }
+
         // struct Concrete_Context : public mega::io::Object
         Concrete_Context::Concrete_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) ),
+              p_Concrete_Concrete_ContextGroup( loader ), parent( loader ), interface( loader )
         {
         }
         Concrete_Context::Concrete_Context( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                            const std::optional< data::Ptr< data::Concrete::Concrete_Context > > &parent,
-                                            const std::vector< data::Ptr< data::Tree::Interface_IContext > >     &inheritance,
-                                            const std::vector< data::Ptr< data::Concrete::Concrete_Context > >   &children )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) ), parent( parent ),
-              inheritance( inheritance ), children( children )
+                                            const data::Ptr< data::Concrete::Concrete_ContextGroup >         &parent,
+                                            const data::Ptr< data::Tree::Interface_IContext >                &interface,
+                                            const std::vector< data::Ptr< data::Tree::Interface_IContext > > &inheritance )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) ),
+              p_Concrete_Concrete_ContextGroup( loader ), parent( parent ), interface( interface ), inheritance( inheritance )
         {
         }
         bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Context >( loader, const_cast< Concrete_Context * >( this ) ) };
         }
-        void Concrete_Context::set_inheritance_pointer() {}
+        void Concrete_Context::set_inheritance_pointer()
+        {
+            p_Concrete_Concrete_ContextGroup->m_inheritance = data::Ptr< data::Concrete::Concrete_Context >( p_Concrete_Concrete_ContextGroup, this );
+        }
         void Concrete_Context::load( mega::io::Loader &loader )
         {
+            loader.load( p_Concrete_Concrete_ContextGroup );
             loader.load( parent );
+            loader.load( interface );
             loader.load( inheritance );
-            loader.load( children );
         }
         void Concrete_Context::store( mega::io::Storer &storer ) const
         {
+            storer.store( p_Concrete_Concrete_ContextGroup );
             storer.store( parent );
+            storer.store( interface );
             storer.store( inheritance );
-            storer.store( children );
         }
         void Concrete_Context::to_json( nlohmann::json &part ) const
         {
@@ -2861,11 +3044,11 @@ namespace data
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( { { "inheritance", inheritance } } );
+                nlohmann::json property = nlohmann::json::object( { { "interface", interface } } );
                 part[ "properties" ].push_back( property );
             }
             {
-                nlohmann::json property = nlohmann::json::object( { { "children", children } } );
+                nlohmann::json property = nlohmann::json::object( { { "inheritance", inheritance } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -2885,11 +3068,11 @@ namespace data
         }
         bool Concrete_Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Namespace >( loader, const_cast< Concrete_Namespace * >( this ) ) };
         }
         void Concrete_Namespace::set_inheritance_pointer()
@@ -2941,11 +3124,11 @@ namespace data
         }
         bool Concrete_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Action >( loader, const_cast< Concrete_Action * >( this ) ) };
         }
         void Concrete_Action::set_inheritance_pointer()
@@ -2997,11 +3180,11 @@ namespace data
         }
         bool Concrete_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Event >( loader, const_cast< Concrete_Event * >( this ) ) };
         }
         void Concrete_Event::set_inheritance_pointer()
@@ -3052,11 +3235,11 @@ namespace data
         }
         bool Concrete_Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Function >( loader, const_cast< Concrete_Function * >( this ) ) };
         }
         void Concrete_Function::set_inheritance_pointer()
@@ -3102,11 +3285,11 @@ namespace data
         }
         bool Concrete_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Object >( loader, const_cast< Concrete_Object * >( this ) ) };
         }
         void Concrete_Object::set_inheritance_pointer()
@@ -3157,11 +3340,11 @@ namespace data
         }
         bool Concrete_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Link >( loader, const_cast< Concrete_Link * >( this ) ) };
         }
         void Concrete_Link::set_inheritance_pointer()
@@ -3206,11 +3389,11 @@ namespace data
         }
         bool Concrete_Table::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Table >( loader, const_cast< Concrete_Table * >( this ) ) };
         }
         void Concrete_Table::set_inheritance_pointer()
@@ -3243,24 +3426,39 @@ namespace data
 
         // struct Concrete_Root : public mega::io::Object
         Concrete_Root::Concrete_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo )
-            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Root >( loader, this ) ), p_Concrete_Concrete_Context( loader )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Root >( loader, this ) ),
+              p_Concrete_Concrete_ContextGroup( loader ), interface_root( loader )
+        {
+        }
+        Concrete_Root::Concrete_Root( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
+                                      const data::Ptr< data::Tree::Interface_Root > &interface_root )
+            : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Root >( loader, this ) ),
+              p_Concrete_Concrete_ContextGroup( loader ), interface_root( interface_root )
         {
         }
         bool Concrete_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
         {
-            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >,
-                                                  data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >,
-                                                  data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >,
-                                                  data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >,
-                                                  data::Ptr< data::Concrete::Concrete_Root > >{
+            return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >,
+                                                  data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >,
+                                                  data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >,
+                                                  data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >,
+                                                  data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{
                                         data::Ptr< data::Concrete::Concrete_Root >( loader, const_cast< Concrete_Root * >( this ) ) };
         }
         void Concrete_Root::set_inheritance_pointer()
         {
-            p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Root >( p_Concrete_Concrete_Context, this );
+            p_Concrete_Concrete_ContextGroup->m_inheritance = data::Ptr< data::Concrete::Concrete_Root >( p_Concrete_Concrete_ContextGroup, this );
         }
-        void Concrete_Root::load( mega::io::Loader &loader ) { loader.load( p_Concrete_Concrete_Context ); }
-        void Concrete_Root::store( mega::io::Storer &storer ) const { storer.store( p_Concrete_Concrete_Context ); }
+        void Concrete_Root::load( mega::io::Loader &loader )
+        {
+            loader.load( p_Concrete_Concrete_ContextGroup );
+            loader.load( interface_root );
+        }
+        void Concrete_Root::store( mega::io::Storer &storer ) const
+        {
+            storer.store( p_Concrete_Concrete_ContextGroup );
+            storer.store( interface_root );
+        }
         void Concrete_Root::to_json( nlohmann::json &part ) const
         {
             part = nlohmann::json::object( { { "partname", "Concrete_Root" },
@@ -3269,6 +3467,10 @@ namespace data
                                              { "fileID", getFileID() },
                                              { "index", getIndex() },
                                              { "properties", nlohmann::json::array() } } );
+            {
+                nlohmann::json property = nlohmann::json::object( { { "interface_root", interface_root } } );
+                part[ "properties" ].push_back( property );
+            }
         }
 
     } // namespace Concrete
@@ -4058,10 +4260,9 @@ namespace data
         {
         }
         Invocations_Instructions_Enumeration::Invocations_Instructions_Enumeration(
-            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance,
-            const std::vector< data::Ptr< data::Tree::Interface_IContext > > &return_types )
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( loader, this ) ),
-              p_Operations_Invocations_Instructions_InstructionGroup( loader ), instance( instance ), return_types( return_types )
+              p_Operations_Invocations_Instructions_InstructionGroup( loader ), instance( instance )
         {
         }
         bool Invocations_Instructions_Enumeration::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4099,13 +4300,11 @@ namespace data
         {
             loader.load( p_Operations_Invocations_Instructions_InstructionGroup );
             loader.load( instance );
-            loader.load( return_types );
         }
         void Invocations_Instructions_Enumeration::store( mega::io::Storer &storer ) const
         {
             storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
             storer.store( instance );
-            storer.store( return_types );
         }
         void Invocations_Instructions_Enumeration::to_json( nlohmann::json &part ) const
         {
@@ -4117,10 +4316,6 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
             {
                 nlohmann::json property = nlohmann::json::object( { { "instance", instance } } );
-                part[ "properties" ].push_back( property );
-            }
-            {
-                nlohmann::json property = nlohmann::json::object( { { "return_types", return_types } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -4584,10 +4779,13 @@ namespace data
               p_Operations_Invocations_Instructions_Instruction( loader ), instance( loader )
         {
         }
-        Invocations_Operations_Operation::Invocations_Operations_Operation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
-                                                                            const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance )
+        Invocations_Operations_Operation::Invocations_Operations_Operation(
+            ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance > &instance,
+            const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > > &return_types,
+            const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > > &parameter_types )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, this ) ),
-              p_Operations_Invocations_Instructions_Instruction( loader ), instance( instance )
+              p_Operations_Invocations_Instructions_Instruction( loader ), instance( instance ), return_types( return_types ),
+              parameter_types( parameter_types )
         {
         }
         bool Invocations_Operations_Operation::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4625,11 +4823,15 @@ namespace data
         {
             loader.load( p_Operations_Invocations_Instructions_Instruction );
             loader.load( instance );
+            loader.load( return_types );
+            loader.load( parameter_types );
         }
         void Invocations_Operations_Operation::store( mega::io::Storer &storer ) const
         {
             storer.store( p_Operations_Invocations_Instructions_Instruction );
             storer.store( instance );
+            storer.store( return_types );
+            storer.store( parameter_types );
         }
         void Invocations_Operations_Operation::to_json( nlohmann::json &part ) const
         {
@@ -4641,6 +4843,14 @@ namespace data
                                              { "properties", nlohmann::json::array() } } );
             {
                 nlohmann::json property = nlohmann::json::object( { { "instance", instance } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "return_types", return_types } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "parameter_types", parameter_types } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -5870,9 +6080,10 @@ namespace data
         }
         Operations_Invocation::Operations_Invocation( ObjectPartLoader &loader, const mega::io::ObjectInfo &objectInfo,
                                                       const data::Ptr< data::Operations::Operations_Context >  &context,
-                                                      const data::Ptr< data::Operations::Operations_TypePath > &type_path, const mega::OperationID &operation )
+                                                      const data::Ptr< data::Operations::Operations_TypePath > &type_path, const mega::OperationID &operation,
+                                                      const std::string &name, const std::string &context_str, const std::string &type_path_str )
             : mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocation >( loader, this ) ), context( context ),
-              type_path( type_path ), operation( operation )
+              type_path( type_path ), operation( operation ), name( name ), context_str( context_str ), type_path_str( type_path_str )
         {
         }
         bool Operations_Invocation::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5886,21 +6097,39 @@ namespace data
             loader.load( context );
             loader.load( type_path );
             loader.load( operation );
+            loader.load( name );
+            loader.load( context_str );
+            loader.load( type_path_str );
+            loader.load( return_type_str );
             loader.load( name_resolution );
             loader.load( root_variable );
             loader.load( root_instruction );
+            loader.load( return_types_context );
+            loader.load( return_types_dimension );
+            loader.load( homogeneous );
         }
         void Operations_Invocation::store( mega::io::Storer &storer ) const
         {
             storer.store( context );
             storer.store( type_path );
             storer.store( operation );
+            storer.store( name );
+            storer.store( context_str );
+            storer.store( type_path_str );
+            VERIFY_RTE_MSG( return_type_str.has_value(), "Operations::Operations_Invocation.return_type_str has NOT been set" );
+            storer.store( return_type_str );
             VERIFY_RTE_MSG( name_resolution.has_value(), "Operations::Operations_Invocation.name_resolution has NOT been set" );
             storer.store( name_resolution );
             VERIFY_RTE_MSG( root_variable.has_value(), "Operations::Operations_Invocation.root_variable has NOT been set" );
             storer.store( root_variable );
             VERIFY_RTE_MSG( root_instruction.has_value(), "Operations::Operations_Invocation.root_instruction has NOT been set" );
             storer.store( root_instruction );
+            VERIFY_RTE_MSG( return_types_context.has_value(), "Operations::Operations_Invocation.return_types_context has NOT been set" );
+            storer.store( return_types_context );
+            VERIFY_RTE_MSG( return_types_dimension.has_value(), "Operations::Operations_Invocation.return_types_dimension has NOT been set" );
+            storer.store( return_types_dimension );
+            VERIFY_RTE_MSG( homogeneous.has_value(), "Operations::Operations_Invocation.homogeneous has NOT been set" );
+            storer.store( homogeneous );
         }
         void Operations_Invocation::to_json( nlohmann::json &part ) const
         {
@@ -5923,6 +6152,22 @@ namespace data
                 part[ "properties" ].push_back( property );
             }
             {
+                nlohmann::json property = nlohmann::json::object( { { "name", name } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "context_str", context_str } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "type_path_str", type_path_str } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "return_type_str", return_type_str.value() } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
                 nlohmann::json property = nlohmann::json::object( { { "name_resolution", name_resolution.value() } } );
                 part[ "properties" ].push_back( property );
             }
@@ -5932,6 +6177,18 @@ namespace data
             }
             {
                 nlohmann::json property = nlohmann::json::object( { { "root_instruction", root_instruction.value() } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "return_types_context", return_types_context.value() } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "return_types_dimension", return_types_dimension.value() } } );
+                part[ "properties" ].push_back( property );
+            }
+            {
+                nlohmann::json property = nlohmann::json::object( { { "homogeneous", homogeneous.value() } } );
                 part[ "properties" ].push_back( property );
             }
         }
@@ -6041,177 +6298,185 @@ namespace data
             return new Tree::Interface_LinkTrait( loader, objectInfo );
         case 36:
             return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 37:
-            return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
         case 38:
-            return new Tree::Interface_SizeTrait( loader, objectInfo );
-        case 39:
-            return new Tree::Interface_ContextGroup( loader, objectInfo );
+            return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
         case 40:
+            return new Tree::Interface_SizeTrait( loader, objectInfo );
+        case 42:
+            return new Tree::Interface_ContextGroup( loader, objectInfo );
+        case 43:
             return new Tree::Interface_Root( loader, objectInfo );
-        case 41:
-            return new Tree::Interface_IContext( loader, objectInfo );
         case 44:
-            return new Tree::Interface_Namespace( loader, objectInfo );
-        case 45:
-            return new Tree::Interface_Abstract( loader, objectInfo );
-        case 46:
-            return new Tree::Interface_Action( loader, objectInfo );
+            return new Tree::Interface_IContext( loader, objectInfo );
         case 47:
-            return new Tree::Interface_Event( loader, objectInfo );
+            return new Tree::Interface_Namespace( loader, objectInfo );
         case 48:
-            return new Tree::Interface_Function( loader, objectInfo );
+            return new Tree::Interface_Abstract( loader, objectInfo );
         case 49:
-            return new Tree::Interface_Object( loader, objectInfo );
+            return new Tree::Interface_Action( loader, objectInfo );
         case 50:
-            return new Tree::Interface_Link( loader, objectInfo );
+            return new Tree::Interface_Event( loader, objectInfo );
         case 51:
+            return new Tree::Interface_Function( loader, objectInfo );
+        case 52:
+            return new Tree::Interface_Object( loader, objectInfo );
+        case 53:
+            return new Tree::Interface_Link( loader, objectInfo );
+        case 54:
             return new Tree::Interface_Table( loader, objectInfo );
-        case 109:
-            return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 110:
-            return new DPGraph::Dependencies_ObjectDependencies( loader, objectInfo );
-        case 111:
-            return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 112:
-            return new SymbolTable::Symbols_Symbol( loader, objectInfo );
         case 113:
-            return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
+            return new DPGraph::Dependencies_Glob( loader, objectInfo );
         case 114:
+            return new DPGraph::Dependencies_ObjectDependencies( loader, objectInfo );
+        case 115:
+            return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 116:
+            return new SymbolTable::Symbols_Symbol( loader, objectInfo );
+        case 117:
+            return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
+        case 118:
             return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 30:
             return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
-        case 42:
+        case 45:
             return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 32:
             return new Clang::Interface_DimensionTrait( loader, objectInfo );
         case 34:
             return new Clang::Interface_InheritanceTrait( loader, objectInfo );
+        case 37:
+            return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
+        case 39:
+            return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
+        case 41:
+            return new Clang::Interface_SizeTrait( loader, objectInfo );
         case 31:
             return new Concrete::Interface_DimensionTrait( loader, objectInfo );
-        case 43:
+        case 46:
             return new Concrete::Interface_IContext( loader, objectInfo );
-        case 88:
-            return new Concrete::Concrete_Dimension( loader, objectInfo );
-        case 89:
-            return new Concrete::Concrete_Context( loader, objectInfo );
-        case 90:
-            return new Concrete::Concrete_Namespace( loader, objectInfo );
         case 91:
-            return new Concrete::Concrete_Action( loader, objectInfo );
+            return new Concrete::Concrete_Dimension( loader, objectInfo );
         case 92:
-            return new Concrete::Concrete_Event( loader, objectInfo );
+            return new Concrete::Concrete_ContextGroup( loader, objectInfo );
         case 93:
-            return new Concrete::Concrete_Function( loader, objectInfo );
+            return new Concrete::Concrete_Context( loader, objectInfo );
         case 94:
-            return new Concrete::Concrete_Object( loader, objectInfo );
+            return new Concrete::Concrete_Namespace( loader, objectInfo );
         case 95:
-            return new Concrete::Concrete_Link( loader, objectInfo );
+            return new Concrete::Concrete_Action( loader, objectInfo );
         case 96:
-            return new Concrete::Concrete_Table( loader, objectInfo );
+            return new Concrete::Concrete_Event( loader, objectInfo );
         case 97:
-            return new Concrete::Concrete_Root( loader, objectInfo );
-        case 115:
-            return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
-        case 116:
-            return new Model::HyperGraph_Graph( loader, objectInfo );
-        case 117:
-            return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 118:
-            return new Derivations::Derivation_Mapping( loader, objectInfo );
-        case 52:
-            return new Operations::Invocations_Variables_Variable( loader, objectInfo );
-        case 53:
-            return new Operations::Invocations_Variables_Instance( loader, objectInfo );
-        case 54:
-            return new Operations::Invocations_Variables_Reference( loader, objectInfo );
-        case 55:
-            return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
-        case 56:
-            return new Operations::Invocations_Variables_Context( loader, objectInfo );
-        case 57:
-            return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
-        case 58:
-            return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
-        case 59:
-            return new Operations::Invocations_Instructions_Root( loader, objectInfo );
-        case 60:
-            return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
-        case 61:
-            return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
-        case 62:
-            return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
-        case 63:
-            return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
-        case 64:
-            return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
-        case 65:
-            return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
-        case 66:
-            return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
-        case 67:
-            return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
-        case 68:
-            return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
-        case 69:
-            return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
-        case 70:
-            return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
-        case 71:
-            return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 72:
-            return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
-        case 73:
-            return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
-        case 74:
-            return new Operations::Invocations_Operations_Call( loader, objectInfo );
-        case 75:
-            return new Operations::Invocations_Operations_Start( loader, objectInfo );
-        case 76:
-            return new Operations::Invocations_Operations_Stop( loader, objectInfo );
-        case 77:
-            return new Operations::Invocations_Operations_Pause( loader, objectInfo );
-        case 78:
-            return new Operations::Invocations_Operations_Resume( loader, objectInfo );
-        case 79:
-            return new Operations::Invocations_Operations_Done( loader, objectInfo );
-        case 80:
-            return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
-        case 81:
-            return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
-        case 82:
-            return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
-        case 83:
-            return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
-        case 84:
-            return new Operations::Invocations_Operations_Read( loader, objectInfo );
-        case 85:
-            return new Operations::Invocations_Operations_Write( loader, objectInfo );
-        case 86:
-            return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
-        case 87:
-            return new Operations::Invocations_Operations_Range( loader, objectInfo );
+            return new Concrete::Concrete_Function( loader, objectInfo );
         case 98:
-            return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+            return new Concrete::Concrete_Object( loader, objectInfo );
         case 99:
-            return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+            return new Concrete::Concrete_Link( loader, objectInfo );
         case 100:
-            return new Operations::Operations_Element( loader, objectInfo );
+            return new Concrete::Concrete_Table( loader, objectInfo );
         case 101:
-            return new Operations::Operations_ElementVector( loader, objectInfo );
+            return new Concrete::Concrete_Root( loader, objectInfo );
+        case 119:
+            return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
+        case 120:
+            return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 121:
+            return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 122:
+            return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 55:
+            return new Operations::Invocations_Variables_Variable( loader, objectInfo );
+        case 56:
+            return new Operations::Invocations_Variables_Instance( loader, objectInfo );
+        case 57:
+            return new Operations::Invocations_Variables_Reference( loader, objectInfo );
+        case 58:
+            return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
+        case 59:
+            return new Operations::Invocations_Variables_Context( loader, objectInfo );
+        case 60:
+            return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
+        case 61:
+            return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
+        case 62:
+            return new Operations::Invocations_Instructions_Root( loader, objectInfo );
+        case 63:
+            return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
+        case 64:
+            return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
+        case 65:
+            return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
+        case 66:
+            return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
+        case 67:
+            return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
+        case 68:
+            return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
+        case 69:
+            return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
+        case 70:
+            return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
+        case 71:
+            return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
+        case 72:
+            return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
+        case 73:
+            return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
+        case 74:
+            return new Operations::Invocations_Operations_Operation( loader, objectInfo );
+        case 75:
+            return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
+        case 76:
+            return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
+        case 77:
+            return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 78:
+            return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 79:
+            return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 80:
+            return new Operations::Invocations_Operations_Pause( loader, objectInfo );
+        case 81:
+            return new Operations::Invocations_Operations_Resume( loader, objectInfo );
+        case 82:
+            return new Operations::Invocations_Operations_Done( loader, objectInfo );
+        case 83:
+            return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
+        case 84:
+            return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
+        case 85:
+            return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 86:
+            return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 87:
+            return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 88:
+            return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 89:
+            return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 90:
+            return new Operations::Invocations_Operations_Range( loader, objectInfo );
         case 102:
-            return new Operations::Operations_Context( loader, objectInfo );
+            return new Operations::Operations_InterfaceVariant( loader, objectInfo );
         case 103:
-            return new Operations::Operations_TypePath( loader, objectInfo );
+            return new Operations::Operations_ConcreteVariant( loader, objectInfo );
         case 104:
-            return new Operations::Operations_NameRoot( loader, objectInfo );
+            return new Operations::Operations_Element( loader, objectInfo );
         case 105:
-            return new Operations::Operations_Name( loader, objectInfo );
+            return new Operations::Operations_ElementVector( loader, objectInfo );
         case 106:
-            return new Operations::Operations_NameResolution( loader, objectInfo );
+            return new Operations::Operations_Context( loader, objectInfo );
         case 107:
-            return new Operations::Operations_Invocation( loader, objectInfo );
+            return new Operations::Operations_TypePath( loader, objectInfo );
         case 108:
+            return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 109:
+            return new Operations::Operations_Name( loader, objectInfo );
+        case 110:
+            return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 111:
+            return new Operations::Operations_Invocation( loader, objectInfo );
+        case 112:
             return new Operations::Operations_Invocations( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );

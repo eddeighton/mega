@@ -24,6 +24,9 @@ namespace Dependencies
 
 namespace Symbols
 {
+    // symbol id are negative
+    // type id are positive
+
     object Symbol -> SymbolAnalysis::SymbolTable
     {
         // each symbol represents a unique string 

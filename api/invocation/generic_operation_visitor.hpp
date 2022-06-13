@@ -16,10 +16,11 @@ public:
                              OperationsStage::Operations::Invocation* pInvocation );
 
 private:
-    OperationsStage::Concrete::Context* findCommonRoot( OperationsStage::Concrete::Context* pLeft,
-                                                        OperationsStage::Concrete::Context* pRight ) const;
+    OperationsStage::Concrete::ContextGroup* findCommonRoot( OperationsStage::Concrete::ContextGroup* pLeft,
+                                                             OperationsStage::Concrete::ContextGroup* pRight ) const;
 
-    void commonRootDerivation( OperationsStage::Concrete::Context* pFrom, OperationsStage::Concrete::Context* pTo,
+    void commonRootDerivation( OperationsStage::Concrete::ContextGroup*                       pFrom,
+                               OperationsStage::Concrete::ContextGroup*                       pTo,
                                OperationsStage::Invocations::Instructions::InstructionGroup*& pInstruction,
                                OperationsStage::Invocations::Variables::Instance*&            pVariable ) const;
 

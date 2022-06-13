@@ -22,7 +22,6 @@ public:
 
 OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&                  database,
                                                       const OperationsStage::Derivation::Mapping* pMapping,
-                                                      OperationsStage::Symbols::SymbolTable*      pSymbolTable,
                                                       OperationsStage::Operations::Invocation*    pInvocation
 
 );

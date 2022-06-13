@@ -255,8 +255,8 @@ public:
     virtual void PipelineStartTask( const mega::pipeline::TaskDescriptor& task,
                                     boost::asio::yield_context&           yield_ctx ) override
     {
-        getRootResponse( yield_ctx )
-            .PipelineStartTask( getOriginatingWorkerRequest( yield_ctx ).PipelineStartTask( task ) );
+        auto response = getOriginatingWorkerRequest( yield_ctx ).PipelineStartTask( task );
+        getRootResponse( yield_ctx ).PipelineStartTask( response );
     }
 
     virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx ) override
@@ -302,10 +302,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP
     m_workerServer.waitForConnection();
 }
 
-Daemon::~Daemon()
-{
-    SPDLOG_INFO( "Daemon shutdown" );
-}
+Daemon::~Daemon() { SPDLOG_INFO( "Daemon shutdown" ); }
 
 void Daemon::shutdown()
 {
