@@ -70,6 +70,7 @@ namespace Operations
         late< array< ref< Interface::IContext > > > return_types_context;
         late< array< ref< Interface::DimensionTrait > > > return_types_dimension;
         late< value< bool > > homogeneous;
+        late< value< bool > > is_function_call;
     }
 
     object Invocations -> OperationsStage::Operations

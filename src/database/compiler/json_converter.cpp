@@ -940,10 +940,12 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
                             }
                             pIter = pIter->m_base;
                         }
-                        nlohmann::json cast = nlohmann::json::object(
-                            { { "type", pOtherObjects->m_primaryObjectPart->getDataType( "::" ) },
-                              { "truth", bCastOK } } );
-                        interface[ "casts" ].push_back( cast );
+                        if ( bCastOK )
+                        {
+                            nlohmann::json cast = nlohmann::json::object(
+                                { { "type", pOtherObjects->m_primaryObjectPart->getDataType( "::" ) } } );
+                            interface[ "casts" ].push_back( cast );
+                        }
                     }
                     stype[ "interfaces" ].push_back( interface );
                 }

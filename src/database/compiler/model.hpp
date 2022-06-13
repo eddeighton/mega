@@ -380,8 +380,9 @@ public:
 class SuperType : public CountedObject
 {
 public:
-    SuperType( Counter& szCounter )
+    SuperType( Counter& szCounter, const std::string& strTypeName )
         : CountedObject( szCounter )
+        , m_strTypeName( strTypeName )
     {
     }
     using Ptr = std::shared_ptr< SuperType >;
@@ -394,7 +395,10 @@ public:
     using FunctionMultiMap = std::multimap< std::string, Function::Ptr >;
     FunctionMultiMap m_functions;
 
-    std::string getTypeName() const;
+    const std::string& getTypeName() const { return m_strTypeName; }
+
+private:
+    std::string m_strTypeName;
 };
 
 class StageFunction : public CountedObject

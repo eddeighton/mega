@@ -133,19 +133,6 @@ std::string Object::inheritanceGroupVariant() const
     os << " >";
     return os.str();
 }
-
-std::string SuperType::getTypeName() const
-{
-    std::ostringstream os;
-    os << "super";
-    for ( model::Interface::Ptr pInterface : m_interfaces )
-    {
-        // m_stage.lock()->m_strName
-        os << "_" << pInterface->delimitTypeName( "", "_" );
-    }
-    return os.str();
-}
-
 namespace
 {
 
@@ -1106,7 +1093,12 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
                 }
             }
 
-            SuperType::Ptr pSuperType = std::make_shared< SuperType >( mapping.counter );
+            std::ostringstream osSuperTypeName;
+            {
+                osSuperTypeName << "__super_" << mapping.counter;
+            }
+
+            SuperType::Ptr pSuperType = std::make_shared< SuperType >( mapping.counter, osSuperTypeName.str() );
             pSuperType->m_stage       = pStage;
             pSuperType->m_interfaces  = group;
             pStage->m_superTypes.push_back( pSuperType );

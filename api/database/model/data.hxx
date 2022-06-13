@@ -2295,6 +2295,7 @@ namespace Operations
         std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > > return_types_context;
         std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > return_types_dimension;
         std::optional< bool > homogeneous;
+        std::optional< bool > is_function_call;
         std::variant< data::Ptr< data::Operations::Operations_Invocation > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();

@@ -481,7 +481,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
         bool bFirst = true;
         for ( mega::SymbolID symbolID : id.m_type_path )
         {
-            if( bFirst )
+            if ( bFirst )
                 bFirst = false;
             else
                 osTypePathStr << ", ";
@@ -579,24 +579,61 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     // 4. Build the instructions
     build( database, pInvocation );
 
+    std::vector< Interface::IContext* >       contexts   = pInvocation->get_return_types_context();
+    std::vector< Interface::DimensionTrait* > dimensions = pInvocation->get_return_types_dimension();
+
+    std::optional< std::string > strFunctionReturnTypeOpt;
+    {
+        bool bNonFunction = false;
+        for ( Interface::IContext* pReturnContext : contexts )
+        {
+            if ( Interface::Function* pFunctionCall = dynamic_database_cast< Interface::Function >( pReturnContext ) )
+            {
+                if ( strFunctionReturnTypeOpt.has_value() )
+                {
+                    if ( strFunctionReturnTypeOpt.value()
+                         != pFunctionCall->get_return_type_trait()->get_canonical_type() )
+                    {
+                        THROW_RTE( "Incompatible function return types" );
+                    }
+                }
+                else
+                {
+                    strFunctionReturnTypeOpt = pFunctionCall->get_return_type_trait()->get_canonical_type();
+                }
+            }
+            else
+            {
+                bNonFunction = true;
+            }
+        }
+        VERIFY_RTE_MSG( !strFunctionReturnTypeOpt.has_value() || !bNonFunction, "Invalid function return type" );
+    }
+
+    pInvocation->set_is_function_call( strFunctionReturnTypeOpt.has_value() );
+
     std::ostringstream osReturnTypeStr;
     {
-        std::vector< Interface::IContext* >       contexts   = pInvocation->get_return_types_context();
-        std::vector< Interface::DimensionTrait* > dimensions = pInvocation->get_return_types_dimension();
-
-        if( !contexts.empty() )
+        if ( !contexts.empty() )
         {
-            if( contexts.size() == 1 )
+            if ( contexts.size() == 1 )
             {
-                printIContextFullType( contexts.front(), osReturnTypeStr );
+                if ( strFunctionReturnTypeOpt.has_value() )
+                {
+                    osReturnTypeStr << strFunctionReturnTypeOpt.value();
+                }
+                else
+                {
+                    printIContextFullType( contexts.front(), osReturnTypeStr );
+                }
             }
             else
             {
                 osReturnTypeStr << EG_VARIANT_TYPE << "< ";
                 bool bFirst = true;
-                for( Interface::IContext* pContext : contexts )
+                for ( Interface::IContext* pContext : contexts )
                 {
-                    if( bFirst )
+                    if ( bFirst )
                         bFirst = false;
                     else
                         osReturnTypeStr << ", ";
@@ -605,9 +642,9 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 osReturnTypeStr << " >";
             }
         }
-        else if( !dimensions.empty() )
+        else if ( !dimensions.empty() )
         {
-            if( pInvocation->get_homogeneous() )
+            if ( pInvocation->get_homogeneous() )
             {
                 printIContextFullType( dimensions.front()->get_parent(), osReturnTypeStr );
                 osReturnTypeStr << "::" << dimensions.front()->get_id()->get_str();

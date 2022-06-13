@@ -5946,6 +5946,7 @@ namespace Operations
         loader.load( return_types_context );
         loader.load( return_types_dimension );
         loader.load( homogeneous );
+        loader.load( is_function_call );
     }
     void Operations_Invocation::store( mega::io::Storer& storer ) const
     {
@@ -5969,6 +5970,8 @@ namespace Operations
         storer.store( return_types_dimension );
         VERIFY_RTE_MSG( homogeneous.has_value(), "Operations::Operations_Invocation.homogeneous has NOT been set" );
         storer.store( homogeneous );
+        VERIFY_RTE_MSG( is_function_call.has_value(), "Operations::Operations_Invocation.is_function_call has NOT been set" );
+        storer.store( is_function_call );
     }
     void Operations_Invocation::to_json( nlohmann::json& part ) const
     {
@@ -6044,6 +6047,11 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "homogeneous", homogeneous.value() } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "is_function_call", is_function_call.value() } } );
             part[ "properties" ].push_back( property );
         }
     }

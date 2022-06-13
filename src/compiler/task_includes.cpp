@@ -30,7 +30,7 @@ public:
         start( taskProgress, "Task_Include", astFile.path(), includeFilePath.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( astFile ) } );
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ) } );
 
         if ( m_environment.restore( includeFilePath, determinant ) )
         {
@@ -97,7 +97,7 @@ public:
         start( taskProgress, "Task_IncludePCH", includeFilePath.path(), pchPath.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( includeFilePath ) } );
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( includeFilePath ) } );
 
         if ( m_environment.restore( pchPath, determinant ) )
         {

@@ -385,27 +385,28 @@ void {{ stype.name }}::reconstruct( const data::Ptr< data::{{ interface.part }} 
 {% for function in stype.functions %}
 {{ function.returntype }} {{ stype.name }}::{{ function.name }}({{function.params }}) const
 {
-    struct Visitor
-    {
+    {{ function.propertytype }}& data = std::visit( 
+        []( auto& arg ) -> {{ function.propertytype }}&
+        {
+            using T = std::decay_t< decltype( arg ) >;
 {% for variant in function.variants %}
 {% if variant.matched %}
-        inline {{ function.propertytype }}& operator()( const data::Ptr< data::{{ variant.primaryobjectpart }} >& data ) const
-        {
-            data::Ptr< data::{{ variant.dataobjectpart }} > part = 
-                data::convert< data::{{ variant.dataobjectpart }} >( data );
-            VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                "Invalid data reference in: {{ function.name }}" );
-            return part->{{ function.property }};
-        }
-{% else %}
-        inline {{ function.propertytype }}& operator()( const data::Ptr< data::{{ variant.primaryobjectpart }} >& ) const
-        {
-            THROW_RTE( "Invalid call to {{ function.name }}" );
-        }
+            {% if ( not loop.is_first ) %}else {% endif %} if constexpr( std::is_same_v< T, data::Ptr< data::{{ variant.primaryobjectpart }} > >)
+            {
+                data::Ptr< data::{{ variant.dataobjectpart }} > part = 
+                    data::convert< data::{{ variant.dataobjectpart }} >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: {{ function.name }}" );
+                return part->{{ function.property }};
+            }
 {% endif %}
 {% endfor %}{# function.bodies #}
-    } visitor;
-    {{ function.propertytype }}& data = std::visit( visitor, m_data );
+            else
+            {
+                THROW_RTE( "Invalid call to {{ function.name }}" );
+            }
+        }
+        , m_data );
 {% for line in function.body.lines %}
     {{ line }}
 {% endfor %}{# body.impl #}
@@ -418,16 +419,20 @@ bool {{ stype.name }}::isa( const char* pszTypeName ) const
 {% for interface in stype.interfaces %}
     if( strcmp( pszTypeName, "{{ stage.name }}_{{ interface.fullname }}" ) == 0 )
     {
-        struct Visit
+        return std::visit( []( auto& arg ) -> bool
         {
+            using T = std::decay_t< decltype( arg ) >;
 {% for cast in interface.casts %}
-            bool operator()( const data::Ptr< data::{{ cast.type }} >& ) const
+            {% if ( not loop.is_first ) %}else {% endif %} if constexpr( std::is_same_v< T, data::Ptr< data::{{ cast.type }} > >)
             {
-                return {{ cast.truth }};
+                return true;
             }
 {% endfor %}
-        } visitor;
-        return std::visit( visitor, m_data );
+            else
+            {
+                return false;
+            }
+        }, m_data );
     }
 {% endfor %}{# stype.interfaces #}
     return false;

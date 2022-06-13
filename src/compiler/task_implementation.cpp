@@ -85,7 +85,7 @@ public:
             = m_environment.Implementation( m_sourceFilePath );
         start( taskProgress, "Task_Implementation", operationsStage.path(), implementationFile.path() );
 
-        const task::DeterminantHash determinant( { m_toolChain.clangCompilerHash,
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
                                                    m_environment.getBuildHashCode( operationsStage ),
                                                    m_environment.ImplTemplate() } );
 
@@ -169,7 +169,7 @@ public:
         start( taskProgress, "Task_ImplementationObj", implementationFile.path(), implementationObj.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( implementationFile ),
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( implementationFile ),
 
               m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
