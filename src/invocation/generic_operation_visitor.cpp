@@ -107,17 +107,39 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
     {
         Concrete::ContextGroup* pCommon = findCommonRoot( pFrom, pTo );
 
+        if ( Concrete::Root* pRoot = dynamic_database_cast< Concrete::Root >( pCommon ) )
+        {
+            Concrete::Context* pFromContext = dynamic_database_cast< Concrete::Context >( pFrom );
+            Concrete::Context* pToContext   = dynamic_database_cast< Concrete::Context >( pTo );
+            if ( pFromContext && pToContext )
+            {
+                THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root. From: "
+                                            << pFromContext->get_interface()->get_identifier()
+                                            << " To: " << pToContext->get_interface()->get_identifier() );
+            }
+            else if ( pFromContext )
+            {
+                THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root. From: "
+                                            << pFromContext->get_interface()->get_identifier() );
+            }
+            else if ( pToContext )
+            {
+                THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root.  To: "
+                                            << pToContext->get_interface()->get_identifier() );
+            }
+            else
+            {
+                THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root. " );
+            }
+        }
+
         while ( pFrom != pCommon )
         {
             Concrete::Context* pFromContext = dynamic_database_cast< Concrete::Context >( pFrom );
             VERIFY_RTE( pFromContext );
             Concrete::ContextGroup* pParentContextGroup = pFromContext->get_parent();
             VERIFY_RTE( pParentContextGroup );
-            if( Concrete::Root* pRoot = dynamic_database_cast< Concrete::Root >( pParentContextGroup ) )
-            {
-                THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root" );
-            }
-            Concrete::Context* pParent = dynamic_database_cast< Concrete::Context >( pFromContext->get_parent() );
+            Concrete::Context* pParent = dynamic_database_cast< Concrete::Context >( pParentContextGroup );
             VERIFY_RTE( pParent );
             // generate parent derivation instruction
 
@@ -136,7 +158,7 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
         {
             path.push_back( pTo );
             Concrete::Context* p = dynamic_database_cast< Concrete::Context >( pTo );
-            pTo = p->get_parent();
+            pTo                  = p->get_parent();
         }
         std::reverse( path.begin(), path.end() );
 
@@ -283,9 +305,9 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
             case id_Imp_NoParams:
             {
                 using OperationsStage::Invocations::Operations::Read;
-                Read* pRead = m_database.construct< Read >(
-                    Read::Args{ DimensionOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                                          pInterfaceDimension, pConcreteDimension } } );
+                Read* pRead = m_database.construct< Read >( Read::Args{
+                    DimensionOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pInterfaceDimension, pConcreteDimension } } );
                 pInstruction->push_back_children( pRead );
             }
             break;
@@ -415,7 +437,8 @@ void GenericOperationVisitor::buildGenerateName( OperationsStage::Operations::Na
         Concrete::Context* pPrevConcrete    = prev->get_element()->get_concrete()->get_context().value();
         Concrete::Context* pCurrentConcrete = current.get_element()->get_concrete()->get_context().value();
 
-        commonRootDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstructionGroup, pVariable );
+        //commonRootDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstructionGroup, pVariable );
+        commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstructionGroup, pVariable );
 
         if ( names.size() > 1U )
         {
