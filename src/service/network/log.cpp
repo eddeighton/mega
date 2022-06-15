@@ -63,7 +63,7 @@ namespace mega
             auto console_sink = std::make_shared< spdlog::sinks::stdout_color_sink_mt >();
             {
                 console_sink->set_level( consoleLevel );
-                console_sink->set_pattern( "[%^%l%$] %v");
+                console_sink->set_pattern( "%v");
             }
             
             std::ostringstream osLogFileName;
@@ -74,6 +74,7 @@ namespace mega
             auto file_sink = std::make_shared< spdlog::sinks::daily_file_sink_st >( logFilePath.string(), 23, 59 );
             {
                 file_sink->set_level( fileLevel );
+                file_sink->set_pattern( "%v");
             }
             auto threadPool = std::make_shared< spdlog::details::thread_pool >( 8192, 1 );
             auto logger = std::shared_ptr< spdlog::async_logger >( 

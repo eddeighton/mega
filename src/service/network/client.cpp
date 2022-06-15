@@ -42,8 +42,6 @@ Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityMan
 
 void Client::stop()
 {
-    //m_socket.shutdown( boost::asio::ip::tcp::socket::shutdown_both );
-    //m_receiver.stop();
     boost::system::error_code ec;
     m_socket.close( ec );
 }
@@ -51,8 +49,6 @@ void Client::stop()
 void Client::disconnected()
 {
     SPDLOG_INFO( "Client disconnected from: {}", m_connectionID );
-    //boost::system::error_code ec;
-    //m_socket.close( ec );
 }
 
 Client::~Client() {}

@@ -35,6 +35,64 @@ std::shared_ptr< spdlog::details::thread_pool > configureLog( const boost::files
                                                               const std::string&             strLogName,
                                                               LoggingLevel                   consoleLoggingLevel,
                                                               LoggingLevel                   fileLoggingLevel );
+
+inline void logLinesInfo( const std::string strMsg )
+{
+    std::istringstream is( strMsg );
+    while ( is )
+    {
+        std::string strLine;
+        std::getline( is, strLine );
+        if ( !strLine.empty() )
+        {
+            SPDLOG_INFO( "EXCEPTION: {}", strLine );
+        }
+    }
+}
+inline void logLinesWarn( const std::string& strTaskName, const std::string strMsg )
+{
+    std::istringstream is( strMsg );
+    while ( is )
+    {
+        std::string strLine;
+        std::getline( is, strLine );
+        if ( !strLine.empty() )
+        {
+            SPDLOG_WARN( "EXCEPTION: {} {}", strTaskName, strLine );
+        }
+    }
+}
+
+template < typename T >
+inline void logLinesSuccessFail( const std::string strMsg, bool bSuccess, const T& firstLinePostFix )
+{
+    std::istringstream is( strMsg );
+    bool               bPrintedTime = false;
+    while ( is )
+    {
+        std::string strLine;
+        std::getline( is, strLine );
+        if ( !strLine.empty() )
+        {
+            if ( !bPrintedTime )
+            {
+                if ( bSuccess )
+                    SPDLOG_INFO( "{} {}", strLine, firstLinePostFix );
+                else
+                    SPDLOG_WARN( "{} {}", strLine, firstLinePostFix );
+                bPrintedTime = true;
+            }
+            else
+            {
+                if ( bSuccess )
+                    SPDLOG_INFO( "{}", strLine );
+                else
+                    SPDLOG_WARN( "{}", strLine );
+            }
+        }
+    }
+}
+
 } // namespace network
 } // namespace mega
 
@@ -49,15 +107,16 @@ struct formatter< mega::network::LogTime >
     auto format( const mega::network::LogTime& logTime, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         using DurationType = std::chrono::duration< std::int64_t, std::ratio< 1, 1'000'000'000 > >;
-        auto c = std::chrono::duration_cast< DurationType >( logTime ).count();
-        return format_to( ctx.out(), "{}s.{:03}ms.{:03}us", 
-// clang-format off
+        auto c             = std::chrono::duration_cast< DurationType >( logTime ).count();
+        return format_to(
+            ctx.out(), "{}s.{:03}ms.{:03}us",
+            // clang-format off
             ( c % 1'000'000'000'000   ) / 1'000'000'000,
             ( c % 1'000'000'000       ) / 1'000'000,
             ( c % 1'000'000           ) / 1'000
             //( c % 1'000           )
-// clang-format on
-            );
+            // clang-format on
+        );
     }
 };
 

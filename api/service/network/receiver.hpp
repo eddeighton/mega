@@ -35,7 +35,6 @@ public:
 private:
     void receive( boost::asio::yield_context& yield_ctx );
     void onError( const ConnectionID& connectionID, const boost::system::error_code& ec );
-    void updateLastActivityTime();
 
 private:
     bool                                  m_bContinue = true;
@@ -43,7 +42,6 @@ private:
     ActivityFactory&                      m_activityFactory;
     boost::asio::ip::tcp::socket&         m_socket;
     std::function< void() >               m_disconnectHandler;
-    boost::asio::steady_timer::time_point m_lastActivityTime;
 };
 
 } // namespace network

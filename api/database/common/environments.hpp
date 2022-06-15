@@ -53,7 +53,7 @@ protected:
 
     Path tempDir() const
     {
-        Path tempDir = boost::filesystem::temp_directory_path() / common::uuid();
+        Path tempDir = boost::filesystem::temp_directory_path() / "megaenv" / common::uuid();
         boost::filesystem::create_directories( tempDir );
         return tempDir;
     }

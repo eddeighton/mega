@@ -32,9 +32,9 @@ public:
     boost::filesystem::path                       m_tempDir;
     std::unique_ptr< mega::io::BuildEnvironment > m_pEnvironment;
 
-    void SetUp()
+    virtual void SetUp() override
     {
-        m_tempDir = boost::filesystem::temp_directory_path() / common::uuid();
+        m_tempDir = boost::filesystem::temp_directory_path() / "FirstDBTest" / common::uuid();
         boost::filesystem::create_directories( m_tempDir );
 
         m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( m_tempDir, m_tempDir );
@@ -45,11 +45,11 @@ public:
         manifest.save_temp( *m_pEnvironment, projectManifestPath );
         m_pEnvironment->temp_to_real( projectManifestPath );
     }
-    void TearDown()
+    virtual void TearDown() override
     {
         m_pEnvironment.reset();
         namespace bfs = boost::filesystem;
-        bfs::remove_all( m_tempDir );
+        bfs::remove_all( boost::filesystem::temp_directory_path() / "FirstDBTest" );
     }
 };
 

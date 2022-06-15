@@ -56,9 +56,6 @@ using MessageVariant = std::variant
 {%endfor%}
 >;
 
-using MessageChannel
-    = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, MessageVariant ) >;
-
 bool isRequest( const MessageVariant& msg );
 const ConnectionID& getConnectionID( const MessageVariant& msg );
 bool decode( boost::archive::binary_iarchive& archive, const Header& header, const ConnectionID& connectionID, std::shared_ptr< Activity > pActivity );

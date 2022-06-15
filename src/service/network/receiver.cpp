@@ -32,15 +32,12 @@ Receiver::Receiver( ActivityManager& activityManager, ActivityFactory& activityF
     , m_socket( socket )
     , m_disconnectHandler( disconnectHandler )
 {
-    updateLastActivityTime();
 }
 
 Receiver::~Receiver()
 {
     m_bContinue = false;
 }
-
-void Receiver::updateLastActivityTime() { m_lastActivityTime = std::chrono::steady_clock::now(); }
 
 void Receiver::onError( const ConnectionID& connectionID, const boost::system::error_code& ec )
 {
@@ -108,7 +105,7 @@ void Receiver::receive( boost::asio::yield_context& yield_ctx )
             }
 
             // read message
-            while ( m_bContinue && m_socket.is_open() )
+            if ( m_bContinue && m_socket.is_open() )
             {
                 buffer.resize( size );
                 szBytesTransferred
@@ -146,9 +143,6 @@ void Receiver::receive( boost::asio::yield_context& yield_ctx )
                             m_bContinue = false;
                         }
                     }
-
-                    updateLastActivityTime();
-                    break;
                 }
                 else // if( ec.failed() )
                 {

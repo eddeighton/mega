@@ -20,38 +20,43 @@
 class DatabaseTest : public ::testing::Test
 {
 public:
-    boost::filesystem::path    tempDir;
-    mega::io::BuildEnvironment environment;
-    boost::filesystem::path    srcFile;
+    boost::filesystem::path    m_tempDir;
+    std::unique_ptr< mega::io::BuildEnvironment > m_pEnvironment;
+    boost::filesystem::path    m_srcFile;
 
-    DatabaseTest()
-        : tempDir( boost::filesystem::temp_directory_path() )
-        , environment( tempDir, tempDir )
-        , srcFile( tempDir / "test1.mega" )
+    virtual void SetUp() override
     {
-        std::ofstream of( srcFile.native() );
+        m_tempDir = boost::filesystem::temp_directory_path() / "DatabaseTest" / common::uuid();
+        boost::filesystem::create_directories( m_tempDir );
+
+        m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( m_tempDir, m_tempDir );
+        m_srcFile = m_tempDir / "test1.mega";
+        std::ofstream of( m_srcFile.native() );
         of << "Hello world";
-    }
 
-    void SetUp()
-    {
         // create a manifest
         {
             std::vector< boost::filesystem::path > componentInfoPaths;
             {
                 mega::io::ComponentInfo componentInfo(
-                    "test", {}, {}, tempDir, mega::io::ComponentInfo::PathArray{ srcFile }, mega::io::ComponentInfo::PathArray{} );
-                const boost::filesystem::path componentInfoPath = tempDir / "test.txt";
+                    "test", {}, {}, m_tempDir, mega::io::ComponentInfo::PathArray{ m_srcFile }, mega::io::ComponentInfo::PathArray{} );
+                const boost::filesystem::path componentInfoPath = m_tempDir / "test.txt";
                 std::ofstream                 of( componentInfoPath.native() );
                 mega::OutputArchiveType       oa( of );
                 oa << boost::serialization::make_nvp( "componentInfo", componentInfo );
                 componentInfoPaths.push_back( componentInfoPath );
             }
 
-            const mega::io::Manifest         manifest( environment, componentInfoPaths );
-            const mega::io::manifestFilePath projectManifestPath = environment.project_manifest();
-            //manifest.save( environment, projectManifestPath );
+            const mega::io::Manifest         manifest( *m_pEnvironment, componentInfoPaths );
+            const mega::io::manifestFilePath projectManifestPath = m_pEnvironment->project_manifest();
+            //manifest.save( *m_pEnvironment, projectManifestPath );
         }
+    }
+
+    virtual void TearDown() override
+    {
+        namespace bfs = boost::filesystem;
+        bfs::remove_all( boost::filesystem::temp_directory_path() / "DatabaseTest" );
     }
 };
 /*
@@ -59,7 +64,7 @@ TEST_F( DatabaseTest, Basic )
 {
     {
         using namespace InputParse;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         Parser::Context* pContext = database.construct< Parser::Context >( Parser::Context::Args( "test1", "test2" ) );
 
@@ -78,7 +83,7 @@ TEST_F( DatabaseTest, Basic )
     }
     {
         using namespace InterfaceStage;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         Parser::Context* pContext = database.one< Parser::Context >();
         ASSERT_TRUE( pContext );
@@ -96,7 +101,7 @@ TEST_F( DatabaseTest, SpecializeAcrossStages )
 {
     {
         using namespace InputParse;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         Parser::Opaque*    pOpaque = database.construct< Parser::Opaque >( Parser::Opaque::Args( "testopaque" ) );
         Parser::Dimension* pDim
@@ -107,7 +112,7 @@ TEST_F( DatabaseTest, SpecializeAcrossStages )
 
     {
         using namespace InterfaceStage;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         Parser::Dimension* pDim = database.one< Parser::Dimension >();
         ASSERT_TRUE( pDim );
@@ -124,7 +129,7 @@ TEST_F( DatabaseTest, SpecializeAcrossStages )
 
     {
         using namespace Analysis;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         Parser::Dimension* pDim1 = database.one< Parser::Dimension >();
         ASSERT_TRUE( pDim1 );
@@ -143,7 +148,7 @@ TEST_F( DatabaseTest, SecondaryParts )
 {
     {
         using namespace InputParse;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         using namespace InputParse::Parser;
 
@@ -157,7 +162,7 @@ TEST_F( DatabaseTest, SecondaryParts )
 
     {
         using namespace InterfaceStage;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         using namespace Parser;
 
@@ -174,7 +179,7 @@ TEST_F( DatabaseTest, Pointer )
 {
     {
         using namespace InputParse;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         using namespace InputParse::Parser;
 
@@ -187,7 +192,7 @@ TEST_F( DatabaseTest, Pointer )
 
     {
         using namespace InterfaceStage;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         using namespace Parser;
 
@@ -205,7 +210,7 @@ TEST_F( DatabaseTest, ArrayOfPointers )
 {
     {
         using namespace InputParse;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         using namespace InputParse::Parser;
 
@@ -223,7 +228,7 @@ TEST_F( DatabaseTest, ArrayOfPointers )
 
     {
         using namespace InterfaceStage;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         using namespace Parser;
 
@@ -244,7 +249,7 @@ TEST_F( DatabaseTest, MapOfPointers )
 {
     {
         using namespace InputParse;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         using namespace InputParse::Parser;
 
@@ -272,7 +277,7 @@ TEST_F( DatabaseTest, MapOfPointers )
 
     {
         using namespace InterfaceStage;
-        Database database( environment, srcFile );
+        Database database( *m_pEnvironment, m_srcFile );
 
         using namespace Parser;
 
@@ -301,7 +306,7 @@ TEST_F( DatabaseTest, Inserter )
 {
     {
         // using namespace ComponentListing;
-        // Database database( environment );
+        // Database database( *m_pEnvironment );
         //
         // using namespace ComponentListing::Components;
         //

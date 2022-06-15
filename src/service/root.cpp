@@ -17,8 +17,12 @@
 
 #include "pipeline/pipeline.hpp"
 
+#include "spdlog/fmt/chrono.h"
+#include "spdlog/stopwatch.h"
+
 #include <boost/filesystem/operations.hpp>
 #include <boost/system/detail/error_code.hpp>
+
 #include <iostream>
 #include <memory>
 
@@ -91,8 +95,8 @@ public:
     virtual void GetVersion( boost::asio::yield_context& yield_ctx ) override
     {
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        //std::ostringstream os;
-        //os << mega::Version::getVersion();
+        // std::ostringstream os;
+        // os << mega::Version::getVersion();
         daemon.GetVersion( "0.0.0.0" );
     }
 
@@ -124,7 +128,7 @@ public:
         {
             getDaemonRequest( pDeamon, yield_ctx ).ExecuteShutdown();
         }
-        
+
         boost::asio::post( [ &root = m_root ]() { root.shutdown(); } );
     }
 
@@ -181,6 +185,7 @@ class RootPipelineActivity : public RootRequestActivity, public pipeline::Progre
     TaskCompletionChannel m_taskComplete;
 
     static constexpr std::uint32_t CHANNEL_SIZE = 256;
+
 public:
     RootPipelineActivity( Root&                        root,
                           const network::ActivityID&   activityID,
@@ -191,60 +196,36 @@ public:
     {
     }
 
+    // implement pipeline::Stash so that can create schedule - not actually used
     virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath ) override
     {
-        THROW_RTE( "Never used" );
-        //return m_root.m_stash.getBuildHashCode( filePath );
+        THROW_RTE( "Unreachable" );
     }
     virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) override
     {
-        THROW_RTE( "Never used" );
-        //m_root.m_stash.setBuildHashCode( filePath, hashCode );
+        THROW_RTE( "Unreachable" );
     }
     virtual void stash( const boost::filesystem::path& filePath, task::DeterminantHash determinant ) override
     {
-        THROW_RTE( "Never used" );
-        //m_root.m_stash.stash( filePath, determinant );
+        THROW_RTE( "Unreachable" );
     }
     virtual bool restore( const boost::filesystem::path& filePath, task::DeterminantHash determinant ) override
     {
-        THROW_RTE( "Never used" );
-        //return m_root.m_stash.restore( filePath, determinant );
+        THROW_RTE( "Unreachable" );
     }
 
-    virtual void onStarted( const std::string& strMsg ) override
-    {
-        onProgress( strMsg );
-    }
+    virtual void onStarted( const std::string& strMsg ) override { onProgress( strMsg ); }
 
-    virtual void onProgress( const std::string& strMsg ) override
-    {
-        std::istringstream is( strMsg );
-        while ( is )
-        {
-            std::string strLine;
-            std::getline( is, strLine );
-            if ( !strLine.empty() )
-            {
-                SPDLOG_INFO( "{}", strLine );
-            }
-        }
-    }
+    virtual void onProgress( const std::string& strMsg ) override { network::logLinesInfo( strMsg ); }
 
-    virtual void onFailed( const std::string& strMsg ) override
-    {
-        onProgress( strMsg );
-    }
+    virtual void onFailed( const std::string& strMsg ) override { onProgress( strMsg ); }
 
-    virtual void onCompleted( const std::string& strMsg ) override
-    {
-        onProgress( strMsg );
-    }
-
+    virtual void onCompleted( const std::string& strMsg ) override { onProgress( strMsg ); }
 
     virtual void PipelineRun( const pipeline::Configuration& configuration,
                               boost::asio::yield_context&    yield_ctx ) override
     {
+        spdlog::stopwatch             sw;
         mega::pipeline::Pipeline::Ptr pPipeline;
         {
             std::ostringstream osLog;
@@ -312,8 +293,8 @@ public:
                         bScheduleFailed = true;
                         break;
                     }
-                    if( !m_taskComplete.ready() )
-                        break;  
+                    if ( !m_taskComplete.ready() )
+                        break;
                 }
             }
         }
@@ -348,11 +329,15 @@ public:
             auto               daemon = getOriginatingDaemonResponse( yield_ctx );
             if ( bScheduleFailed )
             {
+                SPDLOG_INFO( "FAILURE: Pipeline {} failed in: {}ms", configuration.getPipelineID(),
+                             std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                 os << "Pipeline: " << configuration.getPipelineID() << " failed";
                 daemon.PipelineRun( network::PipelineResult( false, os.str() ) );
             }
             else
             {
+                SPDLOG_INFO( "SUCCESS: Pipeline {} succeeded in: {}", configuration.getPipelineID(),
+                             std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                 os << "Pipeline: " << configuration.getPipelineID() << " succeeded";
                 daemon.PipelineRun( network::PipelineResult( true, os.str() ) );
             }
@@ -377,9 +362,10 @@ public:
         std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
             m_root.m_activityManager.findExistingActivity( rootActivityID ) );
         VERIFY_RTE( pCoordinator );
-        
+
         {
-            auto daemonRequest = getOriginatingDaemonRequest( yield_ctx );
+            auto              daemonRequest = getOriginatingDaemonRequest( yield_ctx );
+            spdlog::stopwatch sw;
             while ( true )
             {
                 const mega::pipeline::TaskDescriptor task = pCoordinator->getTask( yield_ctx );
@@ -392,36 +378,15 @@ public:
                 {
                     try
                     {
+                        sw.reset();
                         network::PipelineResult result = daemonRequest.PipelineStartTask( task );
-                        {
-                            std::istringstream is( result.getMessage() );
-                            while ( is )
-                            {
-                                std::string strLine;
-                                std::getline( is, strLine );
-                                if ( !strLine.empty() )
-                                {
-                                    if ( result.getSuccess() )
-                                        SPDLOG_INFO( "{}", strLine );
-                                    else
-                                        SPDLOG_WARN( "{}", strLine );
-                                }
-                            }
-                        }
+                        network::logLinesSuccessFail( result.getMessage(), result.getSuccess(),
+                                                      std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                         pCoordinator->completeTask( task, result.getSuccess(), yield_ctx );
                     }
                     catch ( std::exception& ex )
                     {
-                        std::istringstream is( ex.what() );
-                        while ( is )
-                        {
-                            std::string strLine;
-                            std::getline( is, strLine );
-                            if ( !strLine.empty() )
-                            {
-                                SPDLOG_WARN( "EXCEPTION: {} {}", task.getName(), strLine );
-                            }
-                        }
+                        network::logLinesWarn( task.getName(), ex.what() );
                         pCoordinator->completeTask( task, false, yield_ctx );
                     }
                 }
@@ -433,16 +398,7 @@ public:
 
     virtual void PipelineWorkProgress( const std::string& strMessage, boost::asio::yield_context& yield_ctx ) override
     {
-        std::istringstream is( strMessage );
-        while ( is )
-        {
-            std::string strLine;
-            std::getline( is, strLine );
-            if ( !strLine.empty() )
-            {
-                SPDLOG_INFO( "{}", strLine );
-            }
-        }
+        network::logLinesInfo( strMessage );
         getOriginatingDaemonResponse( yield_ctx ).PipelineWorkProgress();
     }
 };

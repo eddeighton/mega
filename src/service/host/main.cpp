@@ -23,24 +23,47 @@ int main( int argc, const char* argv[] )
     std::optional< std::string > optionalHostName;
     boost::filesystem::path      logFolder          = boost::filesystem::current_path() / "log";
     std::string                  strConsoleLogLevel = "warn", strLogFileLevel = "warn";
-    {
-        bool bShowHelp = false;
+    bool bLoop = false;
 
-        namespace po = boost::program_options;
-        po::options_description options;
+    namespace po = boost::program_options;
+
+    bool        bShowHelp       = false;
+    bool        bShowVersion    = false;
+    bool        bListHosts      = false;
+    bool        bListActivities = false;
+    std::string strPipeline;
+    bool        bShutdown = false;
+    bool        bQuit     = false;
+
+    po::options_description commands( "Commands" );
+
+    // clang-format off
+    commands.add_options()
+    ( "help,?",         po::bool_switch( &bShowHelp ),              "Show Command Line Help"    )
+    ( "version,v",      po::bool_switch( &bShowVersion ),           "Get Version"               )
+    ( "hosts,h",        po::bool_switch( &bListHosts ),             "List hosts"                )
+    ( "activities,a",   po::bool_switch( &bListActivities ),        "List activiies"            )
+    ( "pipeline,p",     po::value< std::string >( &strPipeline ),   "Run a pipeline"            )
+    ( "shutdown,s",     po::bool_switch( &bShutdown ),              "Shutdown service"          )
+    ( "loop,l",         po::bool_switch( &bLoop ),                  "Run interactively"         )
+    ( "quit,q",         po::bool_switch( &bQuit ),                  "Quit this host"            )
+    ;
+
+    {
+        po::options_description options( "General" );
 
         // clang-format off
         std::string strHostName;
         options.add_options()
-        ( "help",   po::bool_switch( &bShowHelp ),                      "Show Command Line Help" )
-        ( "name",   po::value< std::string >( &strHostName ),           "Host name" )
-        ( "log",    po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
-        ( "console", po::value< std::string >( &strConsoleLogLevel ),   "Console logging level" )
-        ( "level", po::value< std::string >( &strLogFileLevel ),        "Log file logging level" )
+        ( "name",       po::value< std::string >( &strHostName ),               "Host name" )
+        ( "log",        po::value< boost::filesystem::path >( &logFolder ),     "Logging folder" )
+        ( "console",    po::value< std::string >( &strConsoleLogLevel ),        "Console logging level" )
+        ( "level",      po::value< std::string >( &strLogFileLevel ),           "Log file logging level" )
         ;
         // clang-format on
 
-        po::parsed_options parsedOptions = po::command_line_parser( argc, argv ).options( options ).run();
+        po::parsed_options parsedOptions
+            = po::command_line_parser( argc, argv ).options( options ).options( commands ).run();
 
         po::variables_map vm;
         po::store( parsedOptions, vm );
@@ -48,7 +71,7 @@ int main( int argc, const char* argv[] )
 
         if ( bShowHelp )
         {
-            std::cout << options << "\n";
+            std::cout << options << commands << "\n";
             return 0;
         }
         if ( !strHostName.empty() )
@@ -57,6 +80,8 @@ int main( int argc, const char* argv[] )
         }
     }
 
+    const bool bRunLoop = bLoop; // capture bLoop as will be reset
+
     try
     {
         auto logThreads = mega::network::configureLog( logFolder, "host", mega::network::fromStr( strConsoleLogLevel ),
@@ -64,68 +89,12 @@ int main( int argc, const char* argv[] )
 
         mega::service::Host host( optionalHostName );
 
-        bool        bShowHelp       = false;
-        bool        bShowVersion    = false;
-        bool        bListHosts      = false;
-        bool        bListActivities = false;
-        std::string strPipeline;
-        bool        bShutdown = false;
-        bool        bQuit     = false;
-
-        namespace po = boost::program_options;
-        po::options_description options;
-
-        // clang-format off
-        options.add_options()
-        ( "help,?",         po::bool_switch( &bShowHelp ),              "Show Command Line Help"    )
-        ( "version,v",      po::bool_switch( &bShowVersion ),           "Get Version"               )
-        ( "hosts,h",        po::bool_switch( &bListHosts ),             "List hosts"                )
-        ( "activities,a",   po::bool_switch( &bListActivities ),        "List activiies"            )
-        ( "pipeline,p",     po::value< std::string >( &strPipeline ),   "Run a pipeline"            )
-        ( "shutdown,s",     po::bool_switch( &bShutdown ),              "Shutdown service"          )
-        ( "quit,q",         po::bool_switch( &bQuit ),                  "Quit this host"            )
-        ;
         // clang-format on
-        while( host.running() )
+        while ( host.running() )
         {
-            bShowHelp    = false;
-            bShowVersion = false;
-            bListHosts   = false;
-            strPipeline.clear();
-            bShutdown = false;
-            bQuit     = false;
-
-            {
-                std::ostringstream os;
-                {
-                    std::string strLine;
-                    while ( strLine.empty() )
-                    {
-                        std::cout << "megahost:";
-                        std::getline( std::cin, strLine );
-                    }
-                    if ( strLine.front() != '-' )
-                    {
-                        if ( strLine.length() == 1 )
-                            os << '-' << strLine;
-                        else
-                            os << "--" << strLine;
-                    }
-                    else
-                        os << strLine;
-                }
-                {
-                    po::parsed_options parsedOptions
-                        = po::command_line_parser( common::simpleTokenise( os.str(), " " ) ).options( options ).run();
-                    po::variables_map vm;
-                    po::store( parsedOptions, vm );
-                    po::notify( vm );
-                }
-            }
-
             if ( bShowHelp )
             {
-                std::cout << options << std::endl;
+                std::cout << commands << std::endl;
             }
             else if ( bShowVersion )
             {
@@ -165,7 +134,38 @@ int main( int argc, const char* argv[] )
             }
             else
             {
-                std::cout << "Unrecognised cmd" << std::endl;
+                std::cout << commands << std::endl;
+            }
+
+            if( !bRunLoop )
+                break;
+
+            {
+                std::ostringstream os;
+                {
+                    std::string strLine;
+                    while ( strLine.empty() )
+                    {
+                        std::cout << "megahost:";
+                        std::getline( std::cin, strLine );
+                    }
+                    if ( strLine.front() != '-' )
+                    {
+                        if ( strLine.length() == 1 )
+                            os << '-' << strLine;
+                        else
+                            os << "--" << strLine;
+                    }
+                    else
+                        os << strLine;
+                }
+                {
+                    po::parsed_options parsedOptions
+                        = po::command_line_parser( common::simpleTokenise( os.str(), " " ) ).options( commands ).run();
+                    po::variables_map vm;
+                    po::store( parsedOptions, vm );
+                    po::notify( vm );
+                }
             }
         }
     }

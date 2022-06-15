@@ -307,12 +307,12 @@ void command( bool bHelp, const std::vector< std::string >& args )
     po::options_description commandOptions( " Generate graph json data" );
     {
         // clang-format off
-                commandOptions.add_options()
-                    ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),                     "Source directory" )
-                    ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),                      "Build directory" )
-                    ( "type",       po::value< std::string >( &strGraphType )->default_value( "interface" ),    "graph type" )
-                    ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),                    "output file to generate" )
-                    ;
+        commandOptions.add_options()
+            ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),                     "Source directory" )
+            ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),                      "Build directory" )
+            ( "type",       po::value< std::string >( &strGraphType )->default_value( "interface" ),    "graph type" )
+            ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),                    "output file to generate" )
+            ;
         // clang-format on
     }
 

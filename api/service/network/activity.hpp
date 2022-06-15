@@ -3,6 +3,7 @@
 
 #include "service/protocol/common/header.hpp"
 
+#include "service/protocol/model/messages.hxx"
 #include "service/protocol/model/host_daemon.hxx"
 #include "service/protocol/model/daemon_host.hxx"
 
@@ -22,7 +23,10 @@ class ActivityManager;
 
 class Activity : public std::enable_shared_from_this< Activity >
 {
+    using MessageChannel
+        = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, MessageVariant ) >;
 public:
+
     using Ptr = std::shared_ptr< Activity >;
 
     Activity( ActivityManager& activityManager, const ActivityID& activityID,
