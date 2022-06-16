@@ -3,7 +3,7 @@
 msg ReportActivities
 {
     request();
-    response(std::vector< network::ActivityID > activities);
+    response(std::vector< network::ConversationID > activities);
 }
 
 msg ExecuteShutdown

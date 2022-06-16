@@ -2,9 +2,10 @@
 #include "service/protocol/model/{{ filename }}.hxx"
 
 #include "service/network/network.hpp"
-#include "service/network/activity.hpp"
+#include "service/network/conversation.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
+#include "service/network/sender.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -24,11 +25,11 @@ namespace network
 namespace {{ filename }}
 {
 
-Request_Encode::Request_Encode( Activity&            activity,
-                                boost::asio::ip::tcp::socket& socket,
+Request_Encode::Request_Encode( ConversationBase& conversation,
+                                Sender& sender,
                                 boost::asio::yield_context&   yield_ctx )
-    : m_activity( activity )
-    , m_socket( socket )
+    : m_conversation( conversation )
+    , m_sender( sender )
     , m_yield_ctx( yield_ctx )
 {
 }
@@ -43,21 +44,26 @@ Request_Encode::Request_Encode( Activity&            activity,
 {%endfor%} 
 )
 {
-    Activity::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_activity, getConnectionID( m_socket ) );
-    if ( const boost::system::error_code ec = send( m_socket, m_yield_ctx, 
-        [&]( boost::archive::binary_oarchive& oa )
-        {
-            const Header header( {{ filename }}::MSG_{{ request.name }}_Request::ID, m_activity.getActivityID());
-            oa& header;
-{%for p in request.params%}
-            oa& {{p.name}};
-{%endfor%} 
-        }) )
+    Conversation::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_conversation, m_sender.getConnectionID() );
+
     {
-        THROW_RTE( "Error writing: " << ec.what() );
+        const MessageVariant msg
+        {
+            MSG_{{ request.name }}_Request
+            {
+{%for p in request.params%}
+                {{p.name}}{% if not loop.is_last %},{%endif%}
+{%endfor%} 
+            }
+        };
+
+        if ( const boost::system::error_code ec = m_sender.send( m_conversation.getID(), msg, m_yield_ctx ) )
+        {
+            THROW_RTE( "Error writing: " << ec.what() );
+        }
     }
 
-    const MessageVariant msg = m_activity.dispatchRequestsUntilResponse( m_yield_ctx );
+    const MessageVariant msg = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
     VERIFY_RTE_MSG( msg.index() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
         "Unexpected reponse of type: " << getMsgNameFromID( msg.index() ) << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
 {%if request.return_type != "void" %}
@@ -67,11 +73,11 @@ Request_Encode::Request_Encode( Activity&            activity,
 {% endfor %}
 
 
-Response_Encode::Response_Encode( Activity&            activity,
-                                  boost::asio::ip::tcp::socket& socket,
+Response_Encode::Response_Encode( ConversationBase& conversation,
+                                  Sender& sender,
                                   boost::asio::yield_context&   yield_ctx )
-    : m_activity( activity )
-    , m_socket( socket )
+    : m_conversation( conversation )
+    , m_sender( sender )
     , m_yield_ctx( yield_ctx )
 {
 }
@@ -86,21 +92,23 @@ void Response_Encode::{{ response.name }}
 {%endfor%}
 )
 {
-    if ( const boost::system::error_code ec = send( m_socket, m_yield_ctx, 
-        [&]( boost::archive::binary_oarchive& oa )
+    const MessageVariant msg
+    {
+        MSG_{{ response.name }}_Response
         {
-            const Header header( {{ filename }}::MSG_{{ response.name }}_Response::ID, m_activity.getActivityID());
-            oa& header;
 {%for p in response.params%}
-            oa& {{p.name}};
+            {{p.name}}{% if not loop.is_last %},{%endif%}
 {%endfor%} 
-        }) )
+        }
+    };
+
+    if ( const boost::system::error_code ec = m_sender.send( m_conversation.getID(), msg, m_yield_ctx ) )
     {
         THROW_RTE( "Error writing: " << ec.what() );
     }
     else
     {
-        SPDLOG_TRACE( "Sent response: {{ filename }}::MSG_{{ response.name }}_Response activity: {}", m_activity.getActivityID().getID() );
+        SPDLOG_TRACE( "Sent response: {{ filename }}::MSG_{{ response.name }}_Response conversation: {}", m_conversation.getID().getID() );
     }
 }
 {% endfor %}
@@ -109,11 +117,9 @@ namespace
     struct Visitor
     {
         Impl&     m_impl;
-        Activity& m_activity;
         boost::asio::yield_context& yield_ctx;
-        Visitor( Impl& impl, Activity& activity, boost::asio::yield_context& yield_ctx )
-            : m_impl( impl )
-            , m_activity( activity )
+        Visitor( Impl& implemented, boost::asio::yield_context& yield_ctx )
+            : m_impl( implemented )
             , yield_ctx( yield_ctx )
         {
         }
@@ -139,9 +145,9 @@ namespace
 
     } ;
 }
-bool Impl::dispatchRequest( const MessageVariant& msg, Activity& activity, boost::asio::yield_context& yield_ctx )
+bool Impl::dispatchRequest( const MessageVariant& msg, boost::asio::yield_context& yield_ctx )
 {
-    Visitor visitor( *this, activity, yield_ctx );
+    Visitor visitor( *this, yield_ctx );
     return std::visit( visitor, msg );
 }
 

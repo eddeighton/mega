@@ -135,13 +135,13 @@ struct formatter< mega::network::MessageVariant >
 };
 
 template <>
-struct formatter< mega::network::ActivityID >
+struct formatter< mega::network::ConversationID >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::network::ActivityID& activityID, FormatContext& ctx ) -> decltype( ctx.out() )
+    auto format( const mega::network::ConversationID& conversationID, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "{}::{}", activityID.getConnectionID(), activityID.getID() );
+        return format_to( ctx.out(), "{}::{}", conversationID.getConnectionID(), conversationID.getID() );
     }
 };
 
@@ -152,7 +152,7 @@ struct formatter< mega::network::Header >
     template < typename FormatContext >
     auto format( const mega::network::Header& header, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "{}::{}", header.getActivityID(), header.getMessageID() );
+        return format_to( ctx.out(), "{}::{}", header.getConversationID(), header.getMessageID() );
     }
 };
 

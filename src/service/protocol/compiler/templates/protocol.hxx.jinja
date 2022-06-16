@@ -7,7 +7,6 @@
 
 #include "common/assert_verify.hpp"
 
-#include "boost/asio/ip/tcp.hpp"
 #include "boost/asio/spawn.hpp"
 
 #include <array>
@@ -21,14 +20,18 @@ namespace mega
 {
 namespace network
 {
+
+class ConversationBase;
+class Sender;
+
 namespace {{ filename }}
 {
 
 class Request_Encode
 {
 public:
-    Request_Encode( network::Activity&            activity,
-                    boost::asio::ip::tcp::socket& socket,
+    Request_Encode( ConversationBase& conversation,
+                    Sender& sender,
                     boost::asio::yield_context&   yield_ctx );
 
 {% for request in requests %}
@@ -43,16 +46,16 @@ public:
 {% endfor %}
 
 private:
-    Activity&            m_activity;
-    boost::asio::ip::tcp::socket& m_socket;
+    ConversationBase&             m_conversation;
+    Sender&                       m_sender;
     boost::asio::yield_context&   m_yield_ctx;
 };
 
 class Response_Encode
 {
 public:
-    Response_Encode( Activity&            activity,
-                     boost::asio::ip::tcp::socket& socket,
+    Response_Encode( ConversationBase& conversation,
+                     Sender& sender,
                      boost::asio::yield_context&   yield_ctx );
 
 {% for response in responses %}
@@ -67,15 +70,15 @@ public:
 {% endfor %}
 
 private:
-    Activity&                   m_activity;
-    boost::asio::ip::tcp::socket& m_socket;
+    ConversationBase&             m_conversation;
+    Sender&                       m_sender;
     boost::asio::yield_context&   m_yield_ctx;
 };
 
 class Impl
 {
 public:
-    bool dispatchRequest( const MessageVariant& msg, Activity& activity, boost::asio::yield_context& yield_ctx );
+    bool dispatchRequest( const MessageVariant& msg, boost::asio::yield_context& yield_ctx );
 
 {% for request in requests %}
     virtual void {{ request.name }}

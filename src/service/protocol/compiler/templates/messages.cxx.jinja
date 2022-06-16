@@ -1,8 +1,5 @@
 
 #include "service/protocol/model/messages.hxx"
-
-#include "service/network/activity.hpp"
-
 namespace mega
 {
 namespace network
@@ -35,34 +32,58 @@ bool isRequest( const MessageVariant& msg )
     return std::visit( visitor, msg );
 }
 
-const ConnectionID& getConnectionID( const MessageVariant& msg )
-{
-    return std::visit( []( auto&& arg ) -> const ConnectionID& { return arg.connectionID; }, msg );
-}
-
-bool decode( boost::archive::binary_iarchive& archive, const Header& header, const ConnectionID& connectionID, std::shared_ptr< Activity > pActivity )
+MessageVariant decode( boost::archive::binary_iarchive& archive, const Header& header )
 {
     switch ( header.getMessageID() )
     {
 {%for message in messages%}
-
         case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
         {
-{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }} msg;
-            msg.connectionID = connectionID;
+            {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }} msg;
 {%for member in message.members%}
             archive& msg.{{ member.name }}; 
 {%endfor%}
-            pActivity->send( MessageVariant{ msg } );
-            return true;
+            return msg;
         }
         break;
 {%endfor%}
         default:
         {
-            return false;
+            THROW_RTE( "Error decoding message: " << header.getMessageID() );
         }
     }
+}
+
+namespace 
+{
+    struct Encoder
+    {
+        boost::archive::binary_oarchive& archive;
+        Encoder( boost::archive::binary_oarchive& archive )
+            :   archive( archive )
+        {
+
+        }
+
+{%for message in messages%}
+        void operator() ( const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg ) const
+        {
+{%for member in message.members%}
+            archive& msg.{{ member.name }}; 
+{%endfor%}
+        }
+{% endfor %}
+        template< typename TOtherMsgType >
+        const char* operator() ( const TOtherMsgType& ) const
+        {
+            return "Unknown message type";
+        }
+    } ;
+}
+
+void encode( boost::archive::binary_oarchive& archive, const MessageVariant& msg )
+{
+    return std::visit( Encoder{ archive }, msg );
 }
 
 namespace 

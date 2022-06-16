@@ -3,7 +3,7 @@
 // pipelines
 msg PipelineReadyForWork
 {
-    request(network::ActivityID rootActivityID);
+    request(network::ConversationID rootConversationID);
     response();
 }
 

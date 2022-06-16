@@ -34,8 +34,6 @@
 #include "version/version.hpp"
 #include "pipeline/configuration.hpp"
 
-#include "service/host.hpp"
-
 #include "service/network/log.hpp"
 
 #include "pipeline/pipeline.hpp"

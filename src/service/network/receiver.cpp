@@ -1,5 +1,5 @@
 #include "service/network/receiver.hpp"
-#include "service/network/activity_manager.hpp"
+#include "service/network/conversation_manager.hpp"
 #include "service/network/end_point.hpp"
 
 #include "service/protocol/common/header.hpp"
@@ -25,21 +25,17 @@ namespace mega
 namespace network
 {
 
-Receiver::Receiver( ActivityManager& activityManager, ActivityFactory& activityFactory,
-                    boost::asio::ip::tcp::socket& socket, std::function< void() > disconnectHandler )
-    : m_activityManager( activityManager )
-    , m_activityFactory( activityFactory )
+SocketReceiver::SocketReceiver( ConversationManager& conversationManager, boost::asio::ip::tcp::socket& socket,
+                                std::function< void() > disconnectHandler )
+    : m_conversationManager( conversationManager )
     , m_socket( socket )
     , m_disconnectHandler( disconnectHandler )
 {
 }
 
-Receiver::~Receiver()
-{
-    m_bContinue = false;
-}
+SocketReceiver::~SocketReceiver() { m_bContinue = false; }
 
-void Receiver::onError( const ConnectionID& connectionID, const boost::system::error_code& ec )
+void SocketReceiver::onError( const boost::system::error_code& ec )
 {
     if ( ec == boost::asio::error::eof )
     {
@@ -51,20 +47,20 @@ void Receiver::onError( const ConnectionID& connectionID, const boost::system::e
         // SPDLOG_INFO( "Connection: {} closed. Error: {}", connectionID, ec.what() );
         //  This is what happens when close socket normally
     }
-    else if( ec == boost::asio::error::connection_reset )
+    else if ( ec == boost::asio::error::connection_reset )
     {
-
     }
     else
     {
-        SPDLOG_ERROR( "Connection: {} closed. Error: {}", connectionID, ec.what() );
+        SPDLOG_ERROR( "SocketReceiver: Connection: {} closed. Error: {}", m_connectionID, ec.what() );
     }
 }
 
-void Receiver::receive( boost::asio::yield_context& yield_ctx )
+void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
 {
-    static const std::size_t            MessageSizeSize = sizeof( network::MessageSize );
-    std::vector< char >                 buffer( 1024 );
+    static const std::size_t MessageSizeSize = sizeof( network::MessageSize );
+    using ReceiveBuffer                      = std::vector< char >;
+    ReceiveBuffer                       buffer( 1024 );
     boost::system::error_code           ec;
     std::size_t                         szBytesTransferred = 0U;
     std::array< char, MessageSizeSize > buf;
@@ -72,7 +68,6 @@ void Receiver::receive( boost::asio::yield_context& yield_ctx )
 
     if ( m_bContinue && m_socket.is_open() )
     {
-        const ConnectionID connectionID = getConnectionID( m_socket );
         while ( m_bContinue && m_socket.is_open() )
         {
             // read message size
@@ -86,20 +81,19 @@ void Receiver::receive( boost::asio::yield_context& yield_ctx )
                     {
                         if ( szBytesTransferred == MessageSizeSize )
                         {
-                            // size = ntohl( *reinterpret_cast< const network::MessageSize* >( buf.data() ) );
                             size = *reinterpret_cast< const network::MessageSize* >( buf.data() );
                             break;
                         }
                         else
                         {
-                            SPDLOG_ERROR( "Socket: {} error reading message size", connectionID );
+                            SPDLOG_ERROR( "Socket: {} error reading message size", m_connectionID );
                             m_bContinue = false;
                         }
                     }
                     else // if( ec.failed() )
                     {
                         m_bContinue = false;
-                        onError( connectionID, ec );
+                        onError( ec );
                     }
                 }
             }
@@ -114,45 +108,80 @@ void Receiver::receive( boost::asio::yield_context& yield_ctx )
                 {
                     VERIFY_RTE( size == szBytesTransferred );
 
-                    {
-                        boost::interprocess::basic_vectorbuf< SendBuffer > is( buffer );
-                        boost::archive::binary_iarchive ia( is );
+                    boost::interprocess::basic_vectorbuf< ReceiveBuffer > is( buffer );
+                    boost::archive::binary_iarchive                       ia( is );
+                    ia&                                                   header;
 
-                        ia& header;
-
-                        Activity::Ptr pActivity = m_activityManager.findExistingActivity( header.getActivityID() );
-                        if ( !pActivity )
-                        {
-                            pActivity = m_activityFactory.createRequestActivity( header, connectionID );
-                            m_activityManager.activityStarted( pActivity );
-                            SPDLOG_TRACE( "Received msg {}. Started new activity {}.",
-                                          getMsgNameFromID( header.getMessageID() ),
-                                          pActivity->getActivityID().getID() );
-                        }
-                        else
-                        {
-                            SPDLOG_TRACE( "Received msg: {}. Resumed existing activity: {}.",
-                                          getMsgNameFromID( header.getMessageID() ),
-                                          pActivity->getActivityID().getID() );
-                        }
-
-                        if ( !decode( ia, header, connectionID, pActivity ) )
-                        {
-                            SPDLOG_ERROR( "Socket: {} failed to decode message: {}", connectionID,
-                                          getMsgNameFromID( header.getMessageID() ) );
-                            m_bContinue = false;
-                        }
-                    }
+                    const auto        msg = decode( ia, header );
+                    const ReceivedMsg receivedMsg{ m_connectionID, std::move( msg ) };
+                    m_conversationManager.dispatch( header, receivedMsg );
                 }
                 else // if( ec.failed() )
                 {
                     m_bContinue = false;
-                    onError( connectionID, ec );
+                    onError( ec );
                 }
             }
         }
     }
     m_disconnectHandler();
+}
+
+ConcurrentChannelReceiver::ConcurrentChannelReceiver( ConversationManager& conversationManager,
+                                                      ConcurrentChannel&   channel )
+    : m_conversationManager( conversationManager )
+    , m_channel( channel )
+{
+}
+
+ConcurrentChannelReceiver::~ConcurrentChannelReceiver() { m_bContinue = false; }
+
+void ConcurrentChannelReceiver::onError( const boost::system::error_code& ec )
+{
+    if ( ec == boost::asio::error::eof )
+    {
+        // SPDLOG_INFO( "Connection: {} closed due to EOF", m_connectionID );
+        //  This is what happens when close socket normally
+    }
+    else if ( ec == boost::asio::error::operation_aborted )
+    {
+        // SPDLOG_INFO( "Connection: {} closed. Error: {}", m_connectionID, ec.what() );
+        //  This is what happens when close socket normally
+    }
+    else if ( ec == boost::asio::experimental::error::channel_closed )
+    {
+    }
+    else if ( ec == boost::asio::experimental::error::channel_cancelled )
+    {
+    }
+    else
+    {
+        SPDLOG_ERROR( "ConcurrentChannelReceiver: Connection: {} closed. Error: {}", m_connectionID, ec.what() );
+    }
+}
+
+void ConcurrentChannelReceiver::receive( boost::asio::yield_context& yield_ctx )
+{
+    ChannelMsg                msg;
+    ReceivedMsg               receivedMsg;
+    boost::system::error_code ec;
+    if ( m_bContinue && m_channel.is_open() )
+    {
+        while ( m_bContinue && m_channel.is_open() )
+        {
+            msg = m_channel.async_receive( yield_ctx[ ec ] );
+            if ( !ec )
+            {
+                receivedMsg = ReceivedMsg{ m_connectionID, msg.msg };
+                m_conversationManager.dispatch( msg.header, receivedMsg );
+            }
+            else
+            {
+                m_bContinue = false;
+                onError( ec );
+            }
+        }
+    }
 }
 
 } // namespace network

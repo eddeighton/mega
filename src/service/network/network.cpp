@@ -16,9 +16,9 @@ short MegaRootPort() { return 4238; }
 
 const char* MegaRootServiceName() { return "megaroot"; }
 
-short MegaWorkerPort() { return 4239; }
+short MegaExecutorPort() { return 4239; }
 
-const char* MegaWorkerServiceName() { return "megaworker"; }
+const char* MegaExecutorServiceName() { return "megaworker"; }
 
 } // namespace network
 } // namespace mega

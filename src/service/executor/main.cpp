@@ -1,6 +1,6 @@
 
 
-#include "service/worker.hpp"
+#include "service/executor.hpp"
 #include "service/network/log.hpp"
 
 #include "pipeline/pipeline.hpp"
@@ -66,12 +66,12 @@ int main( int argc, const char* argv[] )
     try
     {
         auto logThreads
-            = mega::network::configureLog( logFolder, "worker", mega::network::fromStr( strConsoleLogLevel ),
+            = mega::network::configureLog( logFolder, "executor", mega::network::fromStr( strConsoleLogLevel ),
                                            mega::network::fromStr( strLogFileLevel ) );
 
         boost::asio::io_context ioContext;
 
-        mega::service::Worker worker( ioContext, uiNumThreads );
+        mega::service::Executor executor( ioContext, uiNumThreads );
 
         std::vector< std::thread > threads;
         for ( int i = 0; i < uiNumThreads; ++i )

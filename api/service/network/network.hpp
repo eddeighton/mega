@@ -12,8 +12,8 @@ short       MegaDaemonPort();
 const char* MegaDaemonServiceName();
 short       MegaRootPort();
 const char* MegaRootServiceName();
-short       MegaWorkerPort();
-const char* MegaWorkerServiceName();
+short       MegaExecutorPort();
+const char* MegaExecutorServiceName();
 
 } // namespace network
 } // namespace mega

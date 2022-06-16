@@ -1,5 +1,5 @@
 
-#include "service/host.hpp"
+#include "service/terminal.hpp"
 
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
@@ -25,7 +25,7 @@ int main( int argc, const char* argv[] )
     std::string                  strConsoleLogLevel = "warn", strLogFileLevel = "warn";
     bool bLoop = false;
 
-    namespace po = boost::program_options;
+    /*namespace po = boost::program_options;
 
     bool        bShowHelp       = false;
     bool        bShowVersion    = false;
@@ -78,19 +78,25 @@ int main( int argc, const char* argv[] )
         {
             optionalHostName.emplace( std::move( strHostName ) );
         }
-    }
+    }*/
 
     const bool bRunLoop = bLoop; // capture bLoop as will be reset
 
     try
     {
-        auto logThreads = mega::network::configureLog( logFolder, "host", mega::network::fromStr( strConsoleLogLevel ),
+        auto logThreads = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
                                                        mega::network::fromStr( strLogFileLevel ) );
 
-        mega::service::Host host( optionalHostName );
+        mega::service::Terminal terminal( optionalHostName );
+
+        auto result = terminal.listNetworkNodes();
+        for( const std::string& str : result )
+        {
+            std::cout << str << std::endl;
+        }
 
         // clang-format on
-        while ( host.running() )
+        /*while ( terminal.running() )
         {
             if ( bShowHelp )
             {
@@ -98,34 +104,34 @@ int main( int argc, const char* argv[] )
             }
             else if ( bShowVersion )
             {
-                auto version = host.GetVersion();
+                auto version = terminal.GetVersion();
                 std::cout << "Version is: " << version << std::endl;
             }
             else if ( bListHosts )
             {
-                for ( const std::string& strHost : host.ListHosts() )
+                for ( const std::string& strHost : terminal.ListHosts() )
                 {
                     std::cout << strHost << std::endl;
                 }
             }
             else if ( bListActivities )
             {
-                for ( const mega::network::ActivityID& activityID : host.listActivities() )
+                for ( const mega::network::ConversationID& conversationID : terminal.listActivities() )
                 {
-                    std::cout << "Activity: " << activityID.getID() << " "
-                              << "connectionID: " << activityID.getConnectionID() << std::endl;
+                    std::cout << "Conversation: " << conversationID.getID() << " "
+                              << "connectionID: " << conversationID.getConnectionID() << std::endl;
                 }
             }
             else if ( !strPipeline.empty() )
             {
                 mega::pipeline::Configuration pipelineConfig;
                 boost::filesystem::loadAsciiFile( boost::filesystem::path( strPipeline ), pipelineConfig.data() );
-                const mega::network::PipelineResult result = host.PipelineRun( pipelineConfig );
+                const mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
                 std::cout << "Pipeline result:\n" << result.getSuccess() << " : " << result.getMessage() << std::endl;
             }
             else if ( bShutdown )
             {
-                host.Shutdown();
+                terminal.Shutdown();
                 break;
             }
             else if ( bQuit )
@@ -146,7 +152,7 @@ int main( int argc, const char* argv[] )
                     std::string strLine;
                     while ( strLine.empty() )
                     {
-                        std::cout << "megahost:";
+                        std::cout << "megaterminal:";
                         std::getline( std::cin, strLine );
                     }
                     if ( strLine.front() != '-' )
@@ -167,7 +173,7 @@ int main( int argc, const char* argv[] )
                     po::notify( vm );
                 }
             }
-        }
+        }*/
     }
     catch ( std::exception& ex )
     {

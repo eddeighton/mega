@@ -14,7 +14,7 @@ msg ListHosts
 msg ListActivities
 {
     request();
-    response(std::vector< network::ActivityID > activities);
+    response(std::vector< network::ConversationID > activities);
 }
 
 msg PipelineRun

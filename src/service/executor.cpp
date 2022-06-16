@@ -1,14 +1,17 @@
 
-#include "service/worker.hpp"
+#include "service/executor.hpp"
 
-#include "service/network/activity_manager.hpp"
+#include "service/network/conversation_manager.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/header.hpp"
-#include "service/protocol/model/worker_daemon.hxx"
-#include "service/protocol/model/daemon_worker.hxx"
+
+/*
+#include "service/protocol/model/executor_daemon.hxx"
+#include "service/protocol/model/daemon_executor.hxx"
+*/
 
 #include "pipeline/pipeline.hpp"
 #include "pipeline/stash.hpp"
@@ -28,53 +31,53 @@ namespace mega
 {
 namespace service
 {
-
-class WorkerRequestActivity : public network::Activity, public network::daemon_worker::Impl
+/*
+class ExecutorRequestConversation : public network::Conversation, public network::daemon_executor::Impl
 {
 protected:
-    Worker& m_worker;
+    Executor& m_executor;
 
 public:
-    WorkerRequestActivity( Worker& worker, const network::ActivityID& activityID,
+    ExecutorRequestConversation( Executor& executor, const network::ConversationID& conversationID,
                            const network::ConnectionID& originatingConnectionID )
-        : Activity( worker.m_activityManager, activityID, originatingConnectionID )
-        , m_worker( worker )
+        : Conversation( executor.m_conversationManager, conversationID, originatingConnectionID )
+        , m_executor( executor )
     {
     }
 
     virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
     {
-        return network::daemon_worker::Impl::dispatchRequest( msg, *this, yield_ctx );
+        return network::daemon_executor::Impl::dispatchRequest( msg, *this, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx )
     {
-        if ( network::getConnectionID( m_worker.m_client.getSocket() ) == connectionID )
+        if ( network::getConnectionID( m_executor.m_client.getSocket() ) == connectionID )
         {
-            network::sendErrorResponse( getActivityID(), m_worker.m_client.getSocket(), strErrorMsg, yield_ctx );
+            network::sendErrorResponse( getConversationID(), m_executor.m_client.getSocket(), strErrorMsg, yield_ctx );
         }
         else
         {
             SPDLOG_ERROR( "Cannot resolve connection in error handler" );
-            THROW_RTE( "Worker Critical error in error handler" );
+            THROW_RTE( "Executor Critical error in error handler" );
         }
     }
 
-    network::worker_daemon::Request_Encode getDaemonRequest( boost::asio::yield_context& yield_ctx )
+    network::executor_daemon::Request_Encode getDaemonRequest( boost::asio::yield_context& yield_ctx )
     {
-        return network::worker_daemon::Request_Encode( *this, m_worker.m_client.getSocket(), yield_ctx );
+        return network::executor_daemon::Request_Encode( *this, m_executor.m_client.getSocket(), yield_ctx );
     }
-    network::daemon_worker::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
+    network::daemon_executor::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
     {
-        return network::daemon_worker::Response_Encode( *this, m_worker.m_client.getSocket(), yield_ctx );
+        return network::daemon_executor::Response_Encode( *this, m_executor.m_client.getSocket(), yield_ctx );
     }
 
     virtual void ReportActivities( boost::asio::yield_context& yield_ctx )
     {
-        std::vector< network::ActivityID > activities;
+        std::vector< network::ConversationID > activities;
 
-        for ( const auto& id : m_activityManager.reportActivities() )
+        for ( const auto& id : m_conversationManager.reportActivities() )
         {
             activities.push_back( id );
         }
@@ -84,37 +87,35 @@ public:
 
     virtual void ListThreads( boost::asio::yield_context& yield_ctx )
     {
-        getDaemonResponse( yield_ctx ).ListThreads( m_worker.getNumThreads() );
+        getDaemonResponse( yield_ctx ).ListThreads( m_executor.getNumThreads() );
     }
 
     virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx )
     {
         getDaemonResponse( yield_ctx ).ExecuteShutdown();
 
-        boost::asio::post( [ &worker = m_worker ]() { worker.shutdown(); } );
+        boost::asio::post( [ &executor = m_executor ]() { executor.shutdown(); } );
     }
 
     virtual void PipelineStartJobs( const pipeline::Configuration& configuration,
-                                    const network::ActivityID&     rootActivityID,
+                                    const network::ConversationID&     rootConversationID,
                                     boost::asio::yield_context&    yield_ctx );
 };
 
-class JobActivity : public WorkerRequestActivity,
+class JobConversation : public ExecutorRequestConversation,
                     public pipeline::Progress,
                     public pipeline::Stash,
                     public pipeline::DependencyProvider
 {
-    const network::ActivityID     m_rootActivityID;
+    const network::ConversationID     m_rootConversationID;
     mega::pipeline::Pipeline::Ptr m_pPipeline;
     boost::asio::yield_context*   m_pYieldCtx = nullptr;
 
 public:
-    using Ptr = std::shared_ptr< JobActivity >;
-    JobActivity( Worker& worker, const network::ActivityID& activityID, mega::pipeline::Pipeline::Ptr pPipeline,
-                 const network::ActivityID& rootActivityID )
-        : WorkerRequestActivity( worker, activityID, activityID.getConnectionID() )
-        , m_pPipeline( pPipeline )
-        , m_rootActivityID( rootActivityID )
+    using Ptr = std::shared_ptr< JobConversation >;
+    JobConversation( Executor& executor, const network::ConversationID& conversationID, mega::pipeline::Pipeline::Ptr
+pPipeline, const network::ConversationID& rootConversationID ) : ExecutorRequestConversation( executor, conversationID,
+conversationID.getConnectionID() ) , m_pPipeline( pPipeline ) , m_rootConversationID( rootConversationID )
     {
         VERIFY_RTE( m_pPipeline );
     }
@@ -127,7 +128,7 @@ public:
     }
 
     // pipeline::DependencyProvider
-    virtual EG_PARSER_INTERFACE* getParser() override { return m_worker.m_pParser.get(); }
+    virtual EG_PARSER_INTERFACE* getParser() override { return m_executor.m_pParser.get(); }
 
     // pipeline::Progress
     virtual void onStarted( const std::string& strMsg ) override
@@ -170,12 +171,12 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).PipelineReadyForWork( m_rootActivityID );
+        getDaemonRequest( yield_ctx ).PipelineReadyForWork( m_rootConversationID );
     }
 };
 
-void WorkerRequestActivity::PipelineStartJobs( const pipeline::Configuration& configuration,
-                                               const network::ActivityID&     rootActivityID,
+void ExecutorRequestConversation::PipelineStartJobs( const pipeline::Configuration& configuration,
+                                               const network::ConversationID&     rootConversationID,
                                                boost::asio::yield_context&    yield_ctx )
 {
     mega::pipeline::Pipeline::Ptr pPipeline;
@@ -193,48 +194,52 @@ void WorkerRequestActivity::PipelineStartJobs( const pipeline::Configuration& co
         }
     }
 
-    std::vector< network::ActivityID > jobIDs;
-    std::vector< JobActivity::Ptr >    jobs;
-    for ( int i = 0; i < m_worker.getNumThreads(); ++i )
+    std::vector< network::ConversationID > jobIDs;
+    std::vector< JobConversation::Ptr >    jobs;
+    for ( int i = 0; i < m_executor.getNumThreads(); ++i )
     {
-        JobActivity::Ptr pJob = std::make_shared< JobActivity >(
-            m_worker,
-            m_worker.m_activityManager.createActivityID( network::getConnectionID( m_worker.m_client.getSocket() ) ),
-            pPipeline, rootActivityID );
-        jobIDs.push_back( pJob->getActivityID() );
+        JobConversation::Ptr pJob = std::make_shared< JobConversation >(
+            m_executor,
+            m_executor.m_conversationManager.createConversationID( network::getConnectionID(
+m_executor.m_client.getSocket() ) ), pPipeline, rootConversationID ); jobIDs.push_back( pJob->getConversationID() );
         jobs.push_back( pJob );
     }
     getDaemonResponse( yield_ctx ).PipelineStartJobs( jobIDs );
 
-    for ( JobActivity::Ptr pJob : jobs )
+    for ( JobConversation::Ptr pJob : jobs )
     {
-        m_worker.m_activityManager.activityStarted( pJob );
+        m_executor.m_conversationManager.conversationStarted( pJob );
     }
-}
+}*/
 
-network::Activity::Ptr
-Worker::HostActivityFactory::createRequestActivity( const network::Header&       msgHeader,
-                                                    const network::ConnectionID& originatingConnectionID ) const
-{
-    return network::Activity::Ptr(
-        new WorkerRequestActivity( m_worker, msgHeader.getActivityID(), originatingConnectionID ) );
-}
-
-Worker::Worker( boost::asio::io_context& io_context, int numThreads )
-    : m_activityFactory( *this )
+Executor::Executor( boost::asio::io_context& io_context, int numThreads )
+    : network::ConversationManager( network::Node::toStr( network::Node::Executor ), io_context )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
-    , m_activityManager( "worker", m_io_context )
-    , m_client(
-          m_io_context, m_activityManager, m_activityFactory, "localhost", mega::network::MegaWorkerServiceName() )
+    , m_receiverChannel( m_io_context, *this )
+    , m_leaf( m_receiverChannel.getSender(), network::Node::Executor )
 {
     m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
         "parser", "g_parserSymbol", boost::dll::load_mode::append_decorations );
+
+    std::ostringstream os;
+    os << network::Node::toStr( network::Node::Executor ) << "_" << std::this_thread::get_id();
+    network::ConnectionID connectionID = os.str();
+    m_receiverChannel.run( connectionID );
 }
 
-Worker::~Worker() { SPDLOG_INFO( "Worker shutdown" ); }
+Executor::~Executor() { SPDLOG_INFO( "Executor shutdown" ); }
 
-void Worker::shutdown() { m_client.stop(); }
+void Executor::shutdown() {  }
 
+network::ConversationBase::Ptr Executor::joinConversation( const network::ConnectionID&   originatingConnectionID,
+                                                           const network::Header&         header,
+                                                           const network::MessageVariant& msg )
+{
+    // return network::Conversation::Ptr(
+    //     new ExecutorRequestConversation( m_executor, msgHeader.getConversationID(), originatingConnectionID ) );
+
+    return network::ConversationBase::Ptr();
+}
 } // namespace service
 } // namespace mega

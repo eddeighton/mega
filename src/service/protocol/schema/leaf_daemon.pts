@@ -1,0 +1,13 @@
+
+msg Enrole
+{
+    request(mega::network::Node::Type type);
+    response();
+}
+
+msg TermListNetworkNodes
+{
+    request();
+    response(std::vector< std::string > nodes);
+}
+

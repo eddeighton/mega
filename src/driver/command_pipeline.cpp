@@ -20,7 +20,7 @@
 #include "pipeline/configuration.hpp"
 
 #include "pipeline/stash.hpp"
-#include "service/host.hpp"
+#include "service/terminal.hpp"
 
 #include "pipeline/pipeline.hpp"
 
@@ -162,8 +162,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             try
             {
-                mega::service::Host           host;
-                mega::network::PipelineResult result = host.PipelineRun( pipelineConfig );
+                mega::service::Terminal       terminal;
+                mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
                 if ( !result.getSuccess() )
                 {
                     THROW_RTE( "Pipeline failed: " << result.getMessage() );

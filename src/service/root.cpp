@@ -2,14 +2,15 @@
 #include "service/root.hpp"
 
 #include "pipeline/task.hpp"
-#include "service/network/activity.hpp"
+
+#include "service/network/conversation.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/common/pipeline_result.hpp"
-#include "service/protocol/model/messages.hxx"
+
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
 
@@ -22,6 +23,7 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/system/detail/error_code.hpp>
+#include "boost/asio/experimental/concurrent_channel.hpp"
 
 #include <iostream>
 #include <memory>
@@ -30,17 +32,17 @@ namespace mega
 {
 namespace service
 {
-
-class RootRequestActivity : public network::Activity, public network::daemon_root::Impl
+/*
+class RootRequestConversation : public network::Conversation, public network::daemon_root::Impl
 {
 protected:
     Root& m_root;
 
 public:
-    RootRequestActivity( Root&                        root,
-                         const network::ActivityID&   activityID,
+    RootRequestConversation( Root&                        root,
+                         const network::ConversationID&   conversationID,
                          const network::ConnectionID& originatingConnectionID )
-        : Activity( root.m_activityManager, activityID, originatingConnectionID )
+        : Conversation( root.m_conversationManager, conversationID, originatingConnectionID )
         , m_root( root )
     {
     }
@@ -56,7 +58,7 @@ public:
     {
         if ( network::Server::Connection::Ptr pHostConnection = m_root.m_server.getConnection( connectionID ) )
         {
-            network::sendErrorResponse( getActivityID(), pHostConnection->getSocket(), strErrorMsg, yield_ctx );
+            network::sendErrorResponse( getConversationID(), pHostConnection->getSocket(), strErrorMsg, yield_ctx );
         }
         else
         {
@@ -102,9 +104,9 @@ public:
 
     virtual void ListActivities( boost::asio::yield_context& yield_ctx ) override
     {
-        std::vector< network::ActivityID > activities;
+        std::vector< network::ConversationID > activities;
 
-        for ( const auto& id : m_activityManager.reportActivities() )
+        for ( const auto& id : m_conversationManager.reportActivities() )
         {
             activities.push_back( id );
         }
@@ -166,9 +168,9 @@ public:
     }
 };
 
-class RootPipelineActivity : public RootRequestActivity, public pipeline::Progress, public pipeline::Stash
+class RootPipelineConversation : public RootRequestConversation, public pipeline::Progress, public pipeline::Stash
 {
-    std::set< network::ActivityID > m_jobs;
+    std::set< network::ConversationID > m_jobs;
 
     using TaskChannel = boost::asio::experimental::concurrent_channel< void(
         boost::system::error_code, mega::pipeline::TaskDescriptor ) >;
@@ -176,7 +178,7 @@ class RootPipelineActivity : public RootRequestActivity, public pipeline::Progre
 
     struct TaskCompletion
     {
-        network::ActivityID            jobID;
+        network::ConversationID            jobID;
         mega::pipeline::TaskDescriptor task;
         bool                           bSuccess;
     };
@@ -187,10 +189,10 @@ class RootPipelineActivity : public RootRequestActivity, public pipeline::Progre
     static constexpr std::uint32_t CHANNEL_SIZE = 256;
 
 public:
-    RootPipelineActivity( Root&                        root,
-                          const network::ActivityID&   activityID,
+    RootPipelineConversation( Root&                        root,
+                          const network::ConversationID&   conversationID,
                           const network::ConnectionID& originatingConnectionID )
-        : RootRequestActivity( root, activityID, originatingConnectionID )
+        : RootRequestConversation( root, conversationID, originatingConnectionID )
         , m_taskReady( root.m_io_context, CHANNEL_SIZE )
         , m_taskComplete( root.m_io_context, CHANNEL_SIZE )
     {
@@ -246,9 +248,8 @@ public:
         for ( auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
         {
             auto                                     daemon = getDaemonRequest( pDaemon, yield_ctx );
-            const std::vector< network::ActivityID > jobs = daemon.PipelineStartJobs( configuration, getActivityID() );
-            for ( const network::ActivityID& id : jobs )
-                m_jobs.insert( id );
+            const std::vector< network::ConversationID > jobs = daemon.PipelineStartJobs( configuration,
+getConversationID() ); for ( const network::ConversationID& id : jobs ) m_jobs.insert( id );
         }
         if ( m_jobs.empty() )
         {
@@ -315,11 +316,11 @@ public:
         }
 
         // send termination task to each job
-        for ( const network::ActivityID& jobID : m_jobs )
+        for ( const network::ConversationID& jobID : m_jobs )
         {
             m_taskReady.async_send( boost::system::error_code(), mega::pipeline::TaskDescriptor(), yield_ctx );
         }
-        for ( const network::ActivityID& jobID : m_jobs )
+        for ( const network::ConversationID& jobID : m_jobs )
         {
             m_taskComplete.async_receive( yield_ctx );
         }
@@ -353,15 +354,14 @@ public:
                        boost::asio::yield_context& yield_ctx )
     {
         m_taskComplete.async_send(
-            boost::system::error_code(), TaskCompletion{ getActivityID(), task, bSuccess }, yield_ctx );
+            boost::system::error_code(), TaskCompletion{ getConversationID(), task, bSuccess }, yield_ctx );
     }
 
-    virtual void PipelineReadyForWork( const network::ActivityID&  rootActivityID,
+    virtual void PipelineReadyForWork( const network::ConversationID&  rootConversationID,
                                        boost::asio::yield_context& yield_ctx ) override
     {
-        std::shared_ptr< RootPipelineActivity > pCoordinator = std::dynamic_pointer_cast< RootPipelineActivity >(
-            m_root.m_activityManager.findExistingActivity( rootActivityID ) );
-        VERIFY_RTE( pCoordinator );
+        std::shared_ptr< RootPipelineConversation > pCoordinator = std::dynamic_pointer_cast< RootPipelineConversation
+>( m_root.m_conversationManager.findExistingConversation( rootConversationID ) ); VERIFY_RTE( pCoordinator );
 
         {
             auto              daemonRequest = getOriginatingDaemonRequest( yield_ctx );
@@ -401,29 +401,73 @@ public:
         network::logLinesInfo( strMessage );
         getOriginatingDaemonResponse( yield_ctx ).PipelineWorkProgress();
     }
+};*/
+
+class RootRequestConversation : public network::Conversation, public network::daemon_root::Impl
+{
+protected:
+    Root& m_root;
+
+public:
+    RootRequestConversation( Root&                          root,
+                             const network::ConversationID& conversationID,
+                             const network::ConnectionID&   originatingConnectionID )
+        : Conversation( root, conversationID, originatingConnectionID )
+        , m_root( root )
+    {
+    }
+
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
+    {
+        return network::daemon_root::Impl::dispatchRequest( msg, yield_ctx );
+    }
+
+    virtual void error( const network::ConnectionID& connectionID,
+                        const std::string&           strErrorMsg,
+                        boost::asio::yield_context&  yield_ctx ) override
+    {
+        if ( network::Server::Connection::Ptr pDaemon = m_root.m_server.getConnection( connectionID ) )
+        {
+            pDaemon->getSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+        }
+        else
+        {
+            SPDLOG_ERROR( "Cannot resolve connection in error handler" );
+            THROW_RTE( "Root Critical error in error handler" );
+        }
+    }
+
+    network::daemon_root::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
+    {
+        if ( network::Server::Connection::Ptr pConnection
+             = m_root.m_server.getConnection( getOriginatingEndPointID().value() ) )
+        {
+            return network::daemon_root::Response_Encode( *this, pConnection->getSender(), yield_ctx );
+        }
+        THROW_RTE( "Could not locate originating connection" );
+    }
+
+    // daemon_root
+    virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
+    {
+        std::vector< std::string > nodes;
+        nodes.push_back( getProcessName() );
+        {
+            for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+            {
+                network::root_daemon::Request_Encode rq( *this, pConnection->getSender(), yield_ctx );
+                auto                                 r = rq.RootListNetworkNodes();
+                std::copy( r.begin(), r.end(), std::back_inserter( nodes ) );
+            }
+        }
+        auto daemon = getDaemonResponse( yield_ctx );
+        daemon.TermListNetworkNodes( nodes );
+    }
 };
 
-network::Activity::Ptr
-Root::RootActivityFactory::createRequestActivity( const network::Header&       msgHeader,
-                                                  const network::ConnectionID& originatingConnectionID ) const
-{
-    switch ( msgHeader.getMessageID() )
-    {
-        case network::daemon_root::MSG_PipelineReadyForWork_Request::ID:
-        case network::daemon_root::MSG_PipelineRun_Request::ID:
-            return network::Activity::Ptr(
-                new RootPipelineActivity( m_root, msgHeader.getActivityID(), originatingConnectionID ) );
-        default:
-            return network::Activity::Ptr(
-                new RootRequestActivity( m_root, msgHeader.getActivityID(), originatingConnectionID ) );
-    }
-}
-
 Root::Root( boost::asio::io_context& ioContext )
-    : m_io_context( ioContext )
-    , m_activityFactory( *this )
-    , m_activityManager( "root", ioContext )
-    , m_server( ioContext, m_activityManager, m_activityFactory, network::MegaRootPort() )
+    : network::ConversationManager( network::Node::toStr( network::Node::Root ), ioContext )
+    , m_server( ioContext, *this, network::MegaRootPort() )
     , m_stash( boost::filesystem::current_path() / "stash" )
 {
     m_server.waitForConnection();
@@ -433,6 +477,22 @@ void Root::shutdown()
 {
     m_server.stop();
     SPDLOG_INFO( "Root shutdown" );
+}
+
+network::ConversationBase::Ptr Root::joinConversation( const network::ConnectionID&   originatingConnectionID,
+                                                       const network::Header&         header,
+                                                       const network::MessageVariant& msg )
+{
+    /*switch ( msgHeader.getMessageID() )
+    {
+        case network::daemon_root::MSG_PipelineReadyForWork_Request::ID:
+        case network::daemon_root::MSG_PipelineRun_Request::ID:
+            return network::Conversation::Ptr(
+                new RootPipelineConversation( m_root, msgHeader.getConversationID(), originatingConnectionID ) );
+        default:
+    }*/
+    return network::Conversation::Ptr(
+        new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 
 } // namespace service

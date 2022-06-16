@@ -2,7 +2,7 @@
 #define ROOT_26_MAY_2022
 
 #include "service/network/server.hpp"
-#include "service/network/activity_manager.hpp"
+#include "service/network/conversation_manager.hpp"
 
 #include "boost/asio/io_context.hpp"
 
@@ -13,34 +13,22 @@ namespace mega
 namespace service
 {
 
-class Root
+class Root : public network::ConversationManager
 {
-    class RootActivityFactory : public network::ActivityFactory
-    {
-    public:
-        RootActivityFactory( Root& root )
-            : m_root( root )
-        {
-        }
-        virtual network::Activity::Ptr
-        createRequestActivity( const network::Header&       msgHeader,
-                               const network::ConnectionID& originatingConnectionID ) const;
-
-    private:
-        Root& m_root;
-    };
-    friend class RootRequestActivity;
-    friend class RootPipelineActivity;
+    friend class RootRequestConversation;
 
 public:
     Root( boost::asio::io_context& ioContext );
     void shutdown();
+
+    // network::ConversationManager
+    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID&   originatingConnectionID,
+                                                             const network::Header&         header,
+                                                             const network::MessageVariant& msg );
+
 private:
-    boost::asio::io_context& m_io_context;
-    RootActivityFactory      m_activityFactory;
-    network::ActivityManager m_activityManager;
-    network::Server          m_server;
-    task::Stash              m_stash;
+    network::Server m_server;
+    task::Stash     m_stash;
 };
 
 } // namespace service

@@ -1,0 +1,8 @@
+
+
+
+msg TermListNetworkNodes
+{
+    request();
+    response(std::vector< std::string > nodes);
+}

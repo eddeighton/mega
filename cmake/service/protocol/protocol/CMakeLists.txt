@@ -10,48 +10,72 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
-set( MEGA_PROTOCOL_GENERATED_HEADERS
-    ${MEGA_API_DIR}/service/protocol/model/messages.hxx
-    ${MEGA_API_DIR}/service/protocol/model/daemon_host.hxx
-    ${MEGA_API_DIR}/service/protocol/model/daemon_worker.hxx
-    ${MEGA_API_DIR}/service/protocol/model/daemon_root.hxx
-    ${MEGA_API_DIR}/service/protocol/model/host_daemon.hxx
-    ${MEGA_API_DIR}/service/protocol/model/worker_daemon.hxx
-    ${MEGA_API_DIR}/service/protocol/model/root_daemon.hxx
-)
-
-set( MEGA_PROTOCOL_GENERATED_SOURCES
-    ${MEGA_SRC_DIR}/service/protocol/model/messages.cxx
-    ${MEGA_SRC_DIR}/service/protocol/model/daemon_host.cxx
-    ${MEGA_SRC_DIR}/service/protocol/model/daemon_worker.cxx
-    ${MEGA_SRC_DIR}/service/protocol/model/daemon_root.cxx
-    ${MEGA_SRC_DIR}/service/protocol/model/host_daemon.cxx
-    ${MEGA_SRC_DIR}/service/protocol/model/worker_daemon.cxx
-    ${MEGA_SRC_DIR}/service/protocol/model/root_daemon.cxx
-)
+set( PROTOCOL_SCHEMA_DIR ${MEGA_SRC_DIR}/service/protocol/schema )
 
 set( PROTOCOL_SCHEMAS 
-    ${MEGA_SRC_DIR}/service/protocol/daemon_host.pts
-    ${MEGA_SRC_DIR}/service/protocol/daemon_worker.pts
-    ${MEGA_SRC_DIR}/service/protocol/daemon_root.pts
-    ${MEGA_SRC_DIR}/service/protocol/host_daemon.pts
-    ${MEGA_SRC_DIR}/service/protocol/worker_daemon.pts
-    ${MEGA_SRC_DIR}/service/protocol/root_daemon.pts
+    ${PROTOCOL_SCHEMA_DIR}/daemon_leaf.pts
+    ${PROTOCOL_SCHEMA_DIR}/daemon_root.pts
+    ${PROTOCOL_SCHEMA_DIR}/leaf_daemon.pts
+    ${PROTOCOL_SCHEMA_DIR}/leaf_term.pts
+    ${PROTOCOL_SCHEMA_DIR}/leaf_tool.pts
+    ${PROTOCOL_SCHEMA_DIR}/leaf_worker.pts
+    ${PROTOCOL_SCHEMA_DIR}/root_daemon.pts
+    ${PROTOCOL_SCHEMA_DIR}/term_leaf.pts
+    ${PROTOCOL_SCHEMA_DIR}/tool_leaf.pts
+    ${PROTOCOL_SCHEMA_DIR}/worker_leaf.pts
 )
 
+set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )
+
+set( MEGA_PROTOCOL_GENERATED_HEADERS
+    ${PROTOCOL_HEADER_DIR}/messages.hxx
+
+    ${PROTOCOL_HEADER_DIR}/daemon_leaf.hxx
+    ${PROTOCOL_HEADER_DIR}/daemon_root.hxx
+    ${PROTOCOL_HEADER_DIR}/leaf_daemon.hxx
+    ${PROTOCOL_HEADER_DIR}/leaf_term.hxx
+    ${PROTOCOL_HEADER_DIR}/leaf_tool.hxx
+    ${PROTOCOL_HEADER_DIR}/leaf_worker.hxx
+    ${PROTOCOL_HEADER_DIR}/root_daemon.hxx
+    ${PROTOCOL_HEADER_DIR}/term_leaf.hxx
+    ${PROTOCOL_HEADER_DIR}/tool_leaf.hxx
+    ${PROTOCOL_HEADER_DIR}/worker_leaf.hxx
+)
+
+set( PROTOCOL_SOURCE_DIR ${MEGA_SRC_DIR}/service/protocol/model )
+
+set( MEGA_PROTOCOL_GENERATED_SOURCES
+    ${PROTOCOL_SOURCE_DIR}/messages.cxx
+
+    ${PROTOCOL_SOURCE_DIR}/daemon_leaf.cxx
+    ${PROTOCOL_SOURCE_DIR}/daemon_root.cxx
+    ${PROTOCOL_SOURCE_DIR}/leaf_daemon.cxx
+    ${PROTOCOL_SOURCE_DIR}/leaf_term.cxx
+    ${PROTOCOL_SOURCE_DIR}/leaf_tool.cxx
+    ${PROTOCOL_SOURCE_DIR}/leaf_worker.cxx
+    ${PROTOCOL_SOURCE_DIR}/root_daemon.cxx
+    ${PROTOCOL_SOURCE_DIR}/term_leaf.cxx
+    ${PROTOCOL_SOURCE_DIR}/tool_leaf.cxx
+    ${PROTOCOL_SOURCE_DIR}/worker_leaf.cxx
+)
 set( COMPILER_OUTPUTS 
     ${MEGA_PROTOCOL_GENERATED_HEADERS} 
     ${MEGA_PROTOCOL_GENERATED_SOURCES} )
 
 set( COMPILER_BYPRODUCTS
-    daemon_host.json 
-    daemon_worker.json 
-    daemon_root.json 
-    host_daemon.json 
-    worker_daemon.json 
-    root_daemon.json 
     messages.json 
-    )
+
+    root_daemon.json
+    daemon_root.json
+    daemon_leaf.json
+    leaf_daemon.json
+    tool_leaf.json
+    leaf_tool.json
+    term_leaf.json
+    leaf_term.json
+    worker_leaf.json
+    leaf_worker.json
+)
 
 set( TEMPLATES 
     ${MEGA_SRC_DIR}/service/protocol/compiler/templates/messages.hxx.jinja
@@ -74,13 +98,19 @@ add_custom_command(
     COMMENT "Generating protocol" 
     )
 
-set( MEGA_PROTOCOL_COMMON
+set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/header.hpp
+    ${MEGA_API_DIR}/service/protocol/common/node.hpp
     ${MEGA_API_DIR}/service/protocol/common/pipeline_result.hpp
 	)
 
+set( MEGA_PROTOCOL_COMMON_SOURCE
+    ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
+    )
+
 add_library( protocol
-                    ${MEGA_PROTOCOL_COMMON}
+                    ${MEGA_PROTOCOL_COMMON_HEADERS}
+                    ${MEGA_PROTOCOL_COMMON_SOURCE}
 					${MEGA_PROTOCOL_GENERATED_HEADERS}
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
 				)
@@ -104,7 +134,7 @@ link_boost( protocol atomic )
 link_common( protocol )
 link_spdlog( protocol )
 
-install( FILES ${MEGA_PROTOCOL_COMMON} DESTINATION include/service/protocol/common )
+install( FILES ${MEGA_PROTOCOL_COMMON_HEADERS} DESTINATION include/service/protocol/common )
 install( FILES ${MEGA_TYPES_HEADERS} DESTINATION include/service/protocol/types )
 install( FILES ${MEGA_PROTOCOL_GENERATED_HEADERS} DESTINATION include/service/protocol/model )
 install( TARGETS protocol EXPORT protocol DESTINATION bin)

@@ -15,17 +15,17 @@ namespace network
 using MessageSize  = std::uint32_t;
 using ConnectionID = std::string;
 
-class ActivityID
+class ConversationID
 {
 public:
     using ID = std::uint16_t;
 
-    ActivityID()
+    ConversationID()
         : m_id( 0U )
     {
     }
 
-    ActivityID( ID id, const ConnectionID& connectionID )
+    ConversationID( ID id, const ConnectionID& connectionID )
         : m_id( id )
         , m_connectionID( connectionID )
     {
@@ -46,12 +46,12 @@ private:
     ConnectionID m_connectionID;
 };
 
-inline bool operator==( const ActivityID& left, const ActivityID& right )
+inline bool operator==( const ConversationID& left, const ConversationID& right )
 {
     return ( left.getConnectionID() == right.getConnectionID() ) && ( left.getID() == right.getID() );
 }
 
-inline bool operator<( const ActivityID& left, const ActivityID& right )
+inline bool operator<( const ConversationID& left, const ConversationID& right )
 {
     return ( left.getConnectionID() != right.getConnectionID() ) ? ( left.getConnectionID() < right.getConnectionID() )
                                                                  : left.getID() < right.getID();
@@ -67,9 +67,9 @@ public:
     {
     }
 
-    Header( MessageID messageID, const ActivityID& activityID )
+    Header( MessageID messageID, const ConversationID& conversationID )
         : m_messageID( messageID )
-        , m_activityID( activityID )
+        , m_conversationID( conversationID )
     {
     }
 
@@ -77,15 +77,15 @@ public:
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& m_messageID;
-        archive& m_activityID;
+        archive& m_conversationID;
     }
 
-    MessageID         getMessageID() const { return m_messageID; }
-    const ActivityID& getActivityID() const { return m_activityID; }
+    MessageID             getMessageID() const { return m_messageID; }
+    const ConversationID& getConversationID() const { return m_conversationID; }
 
 private:
-    MessageID  m_messageID;
-    ActivityID m_activityID;
+    MessageID      m_messageID;
+    ConversationID m_conversationID;
 };
 
 } // namespace network

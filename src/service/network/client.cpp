@@ -6,6 +6,7 @@
 
 #include "boost/bind/bind.hpp"
 #include "boost/asio/connect.hpp"
+#include "service/network/sender.hpp"
 
 #include <exception>
 #include <future>
@@ -16,13 +17,13 @@ namespace mega
 namespace network
 {
 
-Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityManager, ActivityFactory& activityFactory,
+Client::Client( boost::asio::io_context& ioContext, ConversationManager& conversationManager,
                 const std::string& strServiceIP, const std::string& strServiceName )
     : m_ioContext( ioContext )
     , m_resolver( ioContext )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( activityManager, activityFactory, m_socket, boost::bind( &Client::disconnected, this ) )
+    , m_receiver( conversationManager, m_socket, boost::bind( &Client::disconnected, this ) )
 {
     boost::asio::ip::tcp::resolver::results_type endpoints = m_resolver.resolve( strServiceIP, strServiceName );
 
@@ -33,11 +34,13 @@ Client::Client( boost::asio::io_context& ioContext, ActivityManager& activityMan
     }
 
     m_endPoint     = boost::asio::connect( m_socket, endpoints );
-    m_connectionID = getConnectionID( m_socket );
+    m_connectionID = makeConnectionID( m_socket );
 
     SPDLOG_INFO( "Client connected to: {}", m_connectionID );
 
-    m_receiver.run( ioContext );
+    m_receiver.run( ioContext, m_connectionID );
+
+    m_pSender = make_socket_sender( m_socket, m_connectionID );
 }
 
 void Client::stop()
@@ -46,12 +49,15 @@ void Client::stop()
     m_socket.close( ec );
 }
 
-void Client::disconnected()
-{
-    SPDLOG_INFO( "Client disconnected from: {}", m_connectionID );
-}
+void Client::disconnected() { SPDLOG_INFO( "Client disconnected from: {}", m_connectionID ); }
 
 Client::~Client() {}
+
+Sender& Client::getSender()
+{
+    VERIFY_RTE( m_pSender );
+    return *m_pSender;
+}
 
 } // namespace network
 } // namespace mega

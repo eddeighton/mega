@@ -5,15 +5,15 @@
 #include "pipeline/pipeline.hpp"
 
 #include "service/protocol/common/header.hpp"
+#include "service/protocol/common/node.hpp"
 #include "service/protocol/common/pipeline_result.hpp"
 
 #include "utilities/serialization_helpers.hpp"
 
 #include "common/stash.hpp"
 
-#include "boost/asio/experimental/concurrent_channel.hpp"
-
 #include "boost/filesystem/path.hpp"
+#include "boost/asio/spawn.hpp"
 
 #include <variant>
 #include <array>
@@ -28,8 +28,7 @@ namespace mega
 {
 namespace network
 {
-class Activity;
-
+class Conversation;
 
 {%for message in messages%}
 {%for namespace in message.namespaces%}
@@ -40,7 +39,6 @@ class Activity;
 struct {{ message.name }}
 {
     static const MessageID ID = {{ message.id }};
-    ConnectionID connectionID;
 {%for member in message.members%}
     {{ member.type }} {{ member.name }}; 
 {%endfor%}
@@ -57,8 +55,8 @@ using MessageVariant = std::variant
 >;
 
 bool isRequest( const MessageVariant& msg );
-const ConnectionID& getConnectionID( const MessageVariant& msg );
-bool decode( boost::archive::binary_iarchive& archive, const Header& header, const ConnectionID& connectionID, std::shared_ptr< Activity > pActivity );
+MessageVariant decode( boost::archive::binary_iarchive& archive, const Header& header );
+void encode( boost::archive::binary_oarchive& archive, const MessageVariant& msg );
 
 const char* getMsgName( const MessageVariant& msg );
 std::ostream& operator<<( std::ostream& os, const MessageVariant& msg );

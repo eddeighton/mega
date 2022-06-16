@@ -1,0 +1,8 @@
+
+
+
+msg RootListNetworkNodes
+{
+    request();
+    response(std::vector< std::string > nodes);
+}

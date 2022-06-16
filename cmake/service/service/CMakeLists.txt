@@ -11,17 +11,21 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_SERVICE_API 
-    ${MEGA_API_DIR}/service/host.hpp
+    ${MEGA_API_DIR}/service/leaf.hpp
+    ${MEGA_API_DIR}/service/tool.hpp
+    ${MEGA_API_DIR}/service/terminal.hpp
+    ${MEGA_API_DIR}/service/executor.hpp
     ${MEGA_API_DIR}/service/daemon.hpp
     ${MEGA_API_DIR}/service/root.hpp
-    ${MEGA_API_DIR}/service/worker.hpp
 )
 
 set( MEGA_SERVICE_SRC 
-    ${MEGA_SRC_DIR}/service/host.cpp
+    ${MEGA_SRC_DIR}/service/leaf.cpp
+    ${MEGA_SRC_DIR}/service/tool.cpp
+    ${MEGA_SRC_DIR}/service/terminal.cpp
     ${MEGA_SRC_DIR}/service/daemon.cpp
     ${MEGA_SRC_DIR}/service/root.cpp
-    ${MEGA_SRC_DIR}/service/worker.cpp
+    ${MEGA_SRC_DIR}/service/executor.cpp
 )
 
 add_library( service
