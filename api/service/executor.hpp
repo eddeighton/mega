@@ -25,6 +25,8 @@ namespace service
 
 class Executor : public network::ConversationManager
 {
+    friend class ExecutorRequestConversation;
+    friend class JobConversation;
 public:
     Executor( boost::asio::io_context& io_context, int numThreads );
     ~Executor();
@@ -37,6 +39,7 @@ public:
                                                              const network::Header&         header,
                                                              const network::MessageVariant& msg );
 
+    network::Sender& getLeafSender() { return m_leaf; }
 private:
     boost::asio::io_context&                 m_io_context;
     int                                      m_numThreads;

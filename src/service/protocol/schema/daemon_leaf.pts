@@ -6,3 +6,15 @@ msg RootListNetworkNodes
     request();
     response(std::vector< std::string > nodes);
 }
+
+msg RootPipelineStartJobs
+{
+    request(mega::pipeline::Configuration configuration, network::ConversationID rootConversationID);
+    response(std::vector< network::ConversationID > jobs);
+}
+
+msg RootPipelineStartTask
+{
+    request(mega::pipeline::TaskDescriptor task);
+    response(network::PipelineResult result);
+}

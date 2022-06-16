@@ -32,24 +32,24 @@ namespace mega
 {
 namespace service
 {
-/*
+
 class RootRequestConversation : public network::Conversation, public network::daemon_root::Impl
 {
 protected:
     Root& m_root;
 
 public:
-    RootRequestConversation( Root&                        root,
-                         const network::ConversationID&   conversationID,
-                         const network::ConnectionID& originatingConnectionID )
-        : Conversation( root.m_conversationManager, conversationID, originatingConnectionID )
+    RootRequestConversation( Root&                          root,
+                             const network::ConversationID& conversationID,
+                             const network::ConnectionID&   originatingConnectionID )
+        : Conversation( root, conversationID, originatingConnectionID )
         , m_root( root )
     {
     }
 
     virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
     {
-        return network::daemon_root::Impl::dispatchRequest( msg, *this, yield_ctx );
+        return network::daemon_root::Impl::dispatchRequest( msg, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connectionID,
@@ -58,7 +58,7 @@ public:
     {
         if ( network::Server::Connection::Ptr pHostConnection = m_root.m_server.getConnection( connectionID ) )
         {
-            network::sendErrorResponse( getConversationID(), pHostConnection->getSocket(), strErrorMsg, yield_ctx );
+            pHostConnection->sendErrorResponse( getID(), strErrorMsg, yield_ctx );
         }
         else
         {
@@ -72,7 +72,7 @@ public:
         if ( network::Server::Connection::Ptr pConnection
              = m_root.m_server.getConnection( getOriginatingEndPointID().value() ) )
         {
-            return network::daemon_root::Response_Encode( *this, pConnection->getSocket(), yield_ctx );
+            return network::daemon_root::Response_Encode( *this, *pConnection, yield_ctx );
         }
         THROW_RTE( "Connection to daemon lost" );
     }
@@ -82,7 +82,7 @@ public:
         if ( network::Server::Connection::Ptr pConnection
              = m_root.m_server.getConnection( getOriginatingEndPointID().value() ) )
         {
-            return network::root_daemon::Request_Encode( *this, pConnection->getSocket(), yield_ctx );
+            return network::root_daemon::Request_Encode( *this, *pConnection, yield_ctx );
         }
         THROW_RTE( "Connection to daemon lost" );
     }
@@ -90,15 +90,31 @@ public:
     network::root_daemon::Request_Encode getDaemonRequest( network::Server::Connection::Ptr pConnection,
                                                            boost::asio::yield_context&      yield_ctx )
     {
-        return network::root_daemon::Request_Encode( *this, pConnection->getSocket(), yield_ctx );
+        return network::root_daemon::Request_Encode( *this, *pConnection, yield_ctx );
     }
 
     // network::daemon_root::Impl
+    virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
+    {
+        std::vector< std::string > nodes;
+        nodes.push_back( getProcessName() );
+        {
+            for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+            {
+                network::root_daemon::Request_Encode rq( *this, *pConnection, yield_ctx );
+                auto                                 r = rq.RootListNetworkNodes();
+                std::copy( r.begin(), r.end(), std::back_inserter( nodes ) );
+            }
+        }
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.TermListNetworkNodes( nodes );
+    }
+
+    // network::daemon_root::Impl
+    /*
     virtual void GetVersion( boost::asio::yield_context& yield_ctx ) override
     {
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        // std::ostringstream os;
-        // os << mega::Version::getVersion();
         daemon.GetVersion( "0.0.0.0" );
     }
 
@@ -132,39 +148,38 @@ public:
         }
 
         boost::asio::post( [ &root = m_root ]() { root.shutdown(); } );
-    }
+    }*/
 
     // pipeline::Stash
-
-    virtual void getBuildHashCode( const boost::filesystem::path& filePath,
-                                   boost::asio::yield_context&    yield_ctx ) override
+    virtual void ExeGetBuildHashCode( const boost::filesystem::path& filePath,
+                                      boost::asio::yield_context&    yield_ctx ) override
     {
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        daemon.getBuildHashCode( m_root.m_stash.getBuildHashCode( filePath ) );
+        daemon.ExeGetBuildHashCode( m_root.m_stash.getBuildHashCode( filePath ) );
     }
 
-    virtual void setBuildHashCode( const boost::filesystem::path& filePath, const task::FileHash& hashCode,
-                                   boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeSetBuildHashCode( const boost::filesystem::path& filePath, const task::FileHash& hashCode,
+                                      boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_stash.setBuildHashCode( filePath, hashCode );
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        daemon.setBuildHashCode();
+        daemon.ExeSetBuildHashCode();
     }
 
-    virtual void stash( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
-                        boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeStash( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
+                           boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_stash.stash( filePath, determinant );
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        daemon.stash();
+        daemon.ExeStash();
     }
 
-    virtual void restore( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
-                          boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeRestore( const boost::filesystem::path& filePath, const task::DeterminantHash& determinant,
+                             boost::asio::yield_context& yield_ctx ) override
     {
         const bool bRestored = m_root.m_stash.restore( filePath, determinant );
         auto       daemon    = getOriginatingDaemonResponse( yield_ctx );
-        daemon.restore( bRestored );
+        daemon.ExeRestore( bRestored );
     }
 };
 
@@ -178,7 +193,7 @@ class RootPipelineConversation : public RootRequestConversation, public pipeline
 
     struct TaskCompletion
     {
-        network::ConversationID            jobID;
+        network::ConversationID        jobID;
         mega::pipeline::TaskDescriptor task;
         bool                           bSuccess;
     };
@@ -189,12 +204,12 @@ class RootPipelineConversation : public RootRequestConversation, public pipeline
     static constexpr std::uint32_t CHANNEL_SIZE = 256;
 
 public:
-    RootPipelineConversation( Root&                        root,
-                          const network::ConversationID&   conversationID,
-                          const network::ConnectionID& originatingConnectionID )
+    RootPipelineConversation( Root&                          root,
+                              const network::ConversationID& conversationID,
+                              const network::ConnectionID&   originatingConnectionID )
         : RootRequestConversation( root, conversationID, originatingConnectionID )
-        , m_taskReady( root.m_io_context, CHANNEL_SIZE )
-        , m_taskComplete( root.m_io_context, CHANNEL_SIZE )
+        , m_taskReady( root.getIOContext(), CHANNEL_SIZE )
+        , m_taskComplete( root.getIOContext(), CHANNEL_SIZE )
     {
     }
 
@@ -224,8 +239,8 @@ public:
 
     virtual void onCompleted( const std::string& strMsg ) override { onProgress( strMsg ); }
 
-    virtual void PipelineRun( const pipeline::Configuration& configuration,
-                              boost::asio::yield_context&    yield_ctx ) override
+    virtual void TermPipelineRun( const pipeline::Configuration& configuration,
+                                  boost::asio::yield_context&    yield_ctx ) override
     {
         spdlog::stopwatch             sw;
         mega::pipeline::Pipeline::Ptr pPipeline;
@@ -247,9 +262,10 @@ public:
 
         for ( auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
         {
-            auto                                     daemon = getDaemonRequest( pDaemon, yield_ctx );
-            const std::vector< network::ConversationID > jobs = daemon.PipelineStartJobs( configuration,
-getConversationID() ); for ( const network::ConversationID& id : jobs ) m_jobs.insert( id );
+            auto                                         daemon = getDaemonRequest( pDaemon, yield_ctx );
+            const std::vector< network::ConversationID > jobs = daemon.RootPipelineStartJobs( configuration, getID() );
+            for ( const network::ConversationID& id : jobs )
+                m_jobs.insert( id );
         }
         if ( m_jobs.empty() )
         {
@@ -333,14 +349,14 @@ getConversationID() ); for ( const network::ConversationID& id : jobs ) m_jobs.i
                 SPDLOG_INFO( "FAILURE: Pipeline {} failed in: {}ms", configuration.getPipelineID(),
                              std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                 os << "Pipeline: " << configuration.getPipelineID() << " failed";
-                daemon.PipelineRun( network::PipelineResult( false, os.str() ) );
+                daemon.TermPipelineRun( network::PipelineResult( false, os.str() ) );
             }
             else
             {
                 SPDLOG_INFO( "SUCCESS: Pipeline {} succeeded in: {}", configuration.getPipelineID(),
                              std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                 os << "Pipeline: " << configuration.getPipelineID() << " succeeded";
-                daemon.PipelineRun( network::PipelineResult( true, os.str() ) );
+                daemon.TermPipelineRun( network::PipelineResult( true, os.str() ) );
             }
         }
     }
@@ -353,15 +369,16 @@ getConversationID() ); for ( const network::ConversationID& id : jobs ) m_jobs.i
     void completeTask( const mega::pipeline::TaskDescriptor& task, bool bSuccess,
                        boost::asio::yield_context& yield_ctx )
     {
-        m_taskComplete.async_send(
-            boost::system::error_code(), TaskCompletion{ getConversationID(), task, bSuccess }, yield_ctx );
+        m_taskComplete.async_send( boost::system::error_code(), TaskCompletion{ getID(), task, bSuccess }, yield_ctx );
     }
 
-    virtual void PipelineReadyForWork( const network::ConversationID&  rootConversationID,
-                                       boost::asio::yield_context& yield_ctx ) override
+    virtual void ExePipelineReadyForWork( const network::ConversationID& rootConversationID,
+                                          boost::asio::yield_context&    yield_ctx ) override
     {
-        std::shared_ptr< RootPipelineConversation > pCoordinator = std::dynamic_pointer_cast< RootPipelineConversation
->( m_root.m_conversationManager.findExistingConversation( rootConversationID ) ); VERIFY_RTE( pCoordinator );
+        std::shared_ptr< RootPipelineConversation > pCoordinator
+            = std::dynamic_pointer_cast< RootPipelineConversation >(
+                m_root.findExistingConversation( rootConversationID ) );
+        VERIFY_RTE( pCoordinator );
 
         {
             auto              daemonRequest = getOriginatingDaemonRequest( yield_ctx );
@@ -379,7 +396,7 @@ getConversationID() ); for ( const network::ConversationID& id : jobs ) m_jobs.i
                     try
                     {
                         sw.reset();
-                        network::PipelineResult result = daemonRequest.PipelineStartTask( task );
+                        network::PipelineResult result = daemonRequest.RootPipelineStartTask( task );
                         network::logLinesSuccessFail( result.getMessage(), result.getSuccess(),
                                                       std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                         pCoordinator->completeTask( task, result.getSuccess(), yield_ctx );
@@ -393,75 +410,14 @@ getConversationID() ); for ( const network::ConversationID& id : jobs ) m_jobs.i
             }
         }
 
-        getOriginatingDaemonResponse( yield_ctx ).PipelineReadyForWork();
+        getOriginatingDaemonResponse( yield_ctx ).ExePipelineReadyForWork();
     }
 
-    virtual void PipelineWorkProgress( const std::string& strMessage, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExePipelineWorkProgress( const std::string&          strMessage,
+                                          boost::asio::yield_context& yield_ctx ) override
     {
         network::logLinesInfo( strMessage );
-        getOriginatingDaemonResponse( yield_ctx ).PipelineWorkProgress();
-    }
-};*/
-
-class RootRequestConversation : public network::Conversation, public network::daemon_root::Impl
-{
-protected:
-    Root& m_root;
-
-public:
-    RootRequestConversation( Root&                          root,
-                             const network::ConversationID& conversationID,
-                             const network::ConnectionID&   originatingConnectionID )
-        : Conversation( root, conversationID, originatingConnectionID )
-        , m_root( root )
-    {
-    }
-
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
-    {
-        return network::daemon_root::Impl::dispatchRequest( msg, yield_ctx );
-    }
-
-    virtual void error( const network::ConnectionID& connectionID,
-                        const std::string&           strErrorMsg,
-                        boost::asio::yield_context&  yield_ctx ) override
-    {
-        if ( network::Server::Connection::Ptr pDaemon = m_root.m_server.getConnection( connectionID ) )
-        {
-            pDaemon->getSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
-        }
-        else
-        {
-            SPDLOG_ERROR( "Cannot resolve connection in error handler" );
-            THROW_RTE( "Root Critical error in error handler" );
-        }
-    }
-
-    network::daemon_root::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
-    {
-        if ( network::Server::Connection::Ptr pConnection
-             = m_root.m_server.getConnection( getOriginatingEndPointID().value() ) )
-        {
-            return network::daemon_root::Response_Encode( *this, pConnection->getSender(), yield_ctx );
-        }
-        THROW_RTE( "Could not locate originating connection" );
-    }
-
-    // daemon_root
-    virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
-    {
-        std::vector< std::string > nodes;
-        nodes.push_back( getProcessName() );
-        {
-            for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
-            {
-                network::root_daemon::Request_Encode rq( *this, pConnection->getSender(), yield_ctx );
-                auto                                 r = rq.RootListNetworkNodes();
-                std::copy( r.begin(), r.end(), std::back_inserter( nodes ) );
-            }
-        }
-        auto daemon = getDaemonResponse( yield_ctx );
-        daemon.TermListNetworkNodes( nodes );
+        getOriginatingDaemonResponse( yield_ctx ).ExePipelineWorkProgress();
     }
 };
 
@@ -483,16 +439,16 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
                                                        const network::Header&         header,
                                                        const network::MessageVariant& msg )
 {
-    /*switch ( msgHeader.getMessageID() )
+    switch ( header.getMessageID() )
     {
-        case network::daemon_root::MSG_PipelineReadyForWork_Request::ID:
-        case network::daemon_root::MSG_PipelineRun_Request::ID:
+        case network::daemon_root::MSG_ExePipelineReadyForWork_Request::ID:
+        case network::daemon_root::MSG_TermPipelineRun_Request::ID:
             return network::Conversation::Ptr(
-                new RootPipelineConversation( m_root, msgHeader.getConversationID(), originatingConnectionID ) );
+                new RootPipelineConversation( *this, header.getConversationID(), originatingConnectionID ) );
         default:
-    }*/
-    return network::Conversation::Ptr(
-        new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+            return network::Conversation::Ptr(
+                new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+    }
 }
 
 } // namespace service

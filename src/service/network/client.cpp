@@ -53,11 +53,5 @@ void Client::disconnected() { SPDLOG_INFO( "Client disconnected from: {}", m_con
 
 Client::~Client() {}
 
-Sender& Client::getSender()
-{
-    VERIFY_RTE( m_pSender );
-    return *m_pSender;
-}
-
 } // namespace network
 } // namespace mega

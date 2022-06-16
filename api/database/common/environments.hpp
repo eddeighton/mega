@@ -99,14 +99,6 @@ public:
         return result;
     }
 
-    Path NamespaceTemplate() const
-    {
-        VERIFY_RTE( m_templatesDir.has_value() );
-        Path result = m_templatesDir.value() / "namespace.jinja";
-        VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
-        return result;
-    }
-
     Path InterfaceTemplate() const
     {
         VERIFY_RTE( m_templatesDir.has_value() );

@@ -36,7 +36,7 @@ public:
                                                              const network::MessageVariant& msg );
 
     network::Node::Type getType() const { return m_nodeType; }
-    network::Sender&    getDaemonSender() { return m_client.getSender(); }
+    network::Sender&    getDaemonSender() { return m_client; }
     network::Sender&    getTerminalSender() { return *m_pSender; }
 
     // network::Sender

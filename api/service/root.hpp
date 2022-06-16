@@ -15,6 +15,7 @@ namespace service
 
 class Root : public network::ConversationManager
 {
+    friend class RootPipelineConversation;
     friend class RootRequestConversation;
 
 public:

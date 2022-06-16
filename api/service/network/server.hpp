@@ -22,7 +22,7 @@ namespace network
 class Server
 {
 public:
-    class Connection : public std::enable_shared_from_this< Connection >
+    class Connection : public std::enable_shared_from_this< Connection >, public Sender
     {
         friend class Server;
 
@@ -36,10 +36,22 @@ public:
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
         void                               setType( Node::Type type ) { m_typeOpt = type; }
         const std::string&                 getName() const { return m_strName; }
-        Sender&                            getSender();
+
+        // Sender
+        virtual ConnectionID getConnectionID() const { return m_pSender->getConnectionID(); }
+        virtual boost::system::error_code send( const ConversationID& conversationID, const MessageVariant& msg,
+                                                boost::asio::yield_context& yield_ctx )
+        {
+            return m_pSender->send( conversationID, msg, yield_ctx );
+        }
+        virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
+                                        boost::asio::yield_context& yield_ctx )
+        {
+            m_pSender->sendErrorResponse( conversationID, strErrorMsg, yield_ctx );
+        }
 
     protected:
-        const ConnectionID&           getConnectionID() const { return m_connectionID.value(); }
+        const ConnectionID&           getSocketConnectionID() const { return m_connectionID.value(); }
         Strand&                       getStrand() { return m_strand; }
         boost::asio::ip::tcp::socket& getSocket() { return m_socket; }
         void                          start();

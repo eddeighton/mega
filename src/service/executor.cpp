@@ -8,10 +8,8 @@
 
 #include "service/protocol/common/header.hpp"
 
-/*
-#include "service/protocol/model/executor_daemon.hxx"
-#include "service/protocol/model/daemon_executor.hxx"
-*/
+#include "service/protocol/model/worker_leaf.hxx"
+#include "service/protocol/model/leaf_worker.hxx"
 
 #include "pipeline/pipeline.hpp"
 #include "pipeline/stash.hpp"
@@ -31,31 +29,31 @@ namespace mega
 {
 namespace service
 {
-/*
-class ExecutorRequestConversation : public network::Conversation, public network::daemon_executor::Impl
+
+class ExecutorRequestConversation : public network::Conversation, public network::leaf_worker::Impl
 {
 protected:
     Executor& m_executor;
 
 public:
     ExecutorRequestConversation( Executor& executor, const network::ConversationID& conversationID,
-                           const network::ConnectionID& originatingConnectionID )
-        : Conversation( executor.m_conversationManager, conversationID, originatingConnectionID )
+                                 const network::ConnectionID& originatingConnectionID )
+        : Conversation( executor, conversationID, originatingConnectionID )
         , m_executor( executor )
     {
     }
 
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
+    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
     {
-        return network::daemon_executor::Impl::dispatchRequest( msg, *this, yield_ctx );
+        return network::leaf_worker::Impl::dispatchRequest( msg, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx )
+                        boost::asio::yield_context& yield_ctx ) override
     {
-        if ( network::getConnectionID( m_executor.m_client.getSocket() ) == connectionID )
+        if ( m_executor.getLeafSender().getConnectionID() == connectionID )
         {
-            network::sendErrorResponse( getConversationID(), m_executor.m_client.getSocket(), strErrorMsg, yield_ctx );
+            m_executor.getLeafSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
         }
         else
         {
@@ -64,64 +62,42 @@ public:
         }
     }
 
-    network::executor_daemon::Request_Encode getDaemonRequest( boost::asio::yield_context& yield_ctx )
+    network::worker_leaf::Request_Encode getLeafRequest( boost::asio::yield_context& yield_ctx )
     {
-        return network::executor_daemon::Request_Encode( *this, m_executor.m_client.getSocket(), yield_ctx );
+        return network::worker_leaf::Request_Encode( *this, m_executor.getLeafSender(), yield_ctx );
     }
-    network::daemon_executor::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
+    network::leaf_worker::Response_Encode getLeafResponse( boost::asio::yield_context& yield_ctx )
     {
-        return network::daemon_executor::Response_Encode( *this, m_executor.m_client.getSocket(), yield_ctx );
-    }
-
-    virtual void ReportActivities( boost::asio::yield_context& yield_ctx )
-    {
-        std::vector< network::ConversationID > activities;
-
-        for ( const auto& id : m_conversationManager.reportActivities() )
-        {
-            activities.push_back( id );
-        }
-
-        getDaemonResponse( yield_ctx ).ReportActivities( activities );
+        return network::leaf_worker::Response_Encode( *this, m_executor.getLeafSender(), yield_ctx );
     }
 
-    virtual void ListThreads( boost::asio::yield_context& yield_ctx )
-    {
-        getDaemonResponse( yield_ctx ).ListThreads( m_executor.getNumThreads() );
-    }
-
-    virtual void ExecuteShutdown( boost::asio::yield_context& yield_ctx )
-    {
-        getDaemonResponse( yield_ctx ).ExecuteShutdown();
-
-        boost::asio::post( [ &executor = m_executor ]() { executor.shutdown(); } );
-    }
-
-    virtual void PipelineStartJobs( const pipeline::Configuration& configuration,
-                                    const network::ConversationID&     rootConversationID,
-                                    boost::asio::yield_context&    yield_ctx );
+    virtual void RootPipelineStartJobs( const mega::pipeline::Configuration& configuration,
+                                        const network::ConversationID&       rootConversationID,
+                                        boost::asio::yield_context&          yield_ctx ) override;
 };
 
 class JobConversation : public ExecutorRequestConversation,
-                    public pipeline::Progress,
-                    public pipeline::Stash,
-                    public pipeline::DependencyProvider
+                        public pipeline::Progress,
+                        public pipeline::Stash,
+                        public pipeline::DependencyProvider
 {
-    const network::ConversationID     m_rootConversationID;
+    const network::ConversationID m_rootConversationID;
     mega::pipeline::Pipeline::Ptr m_pPipeline;
     boost::asio::yield_context*   m_pYieldCtx = nullptr;
 
 public:
     using Ptr = std::shared_ptr< JobConversation >;
-    JobConversation( Executor& executor, const network::ConversationID& conversationID, mega::pipeline::Pipeline::Ptr
-pPipeline, const network::ConversationID& rootConversationID ) : ExecutorRequestConversation( executor, conversationID,
-conversationID.getConnectionID() ) , m_pPipeline( pPipeline ) , m_rootConversationID( rootConversationID )
+    JobConversation( Executor& executor, const network::ConversationID& conversationID,
+                     mega::pipeline::Pipeline::Ptr pPipeline, const network::ConversationID& rootConversationID )
+        : ExecutorRequestConversation( executor, conversationID, conversationID.getConnectionID() )
+        , m_pPipeline( pPipeline )
+        , m_rootConversationID( rootConversationID )
     {
         VERIFY_RTE( m_pPipeline );
     }
 
-    virtual void PipelineStartTask( const mega::pipeline::TaskDescriptor& task,
-                                    boost::asio::yield_context&           yield_ctx ) override
+    virtual void RootPipelineStartTask( const mega::pipeline::TaskDescriptor& task,
+                                        boost::asio::yield_context&           yield_ctx ) override
     {
         m_pYieldCtx = &yield_ctx;
         m_pPipeline->execute( task, *this, *this, *this );
@@ -133,51 +109,51 @@ conversationID.getConnectionID() ) , m_pPipeline( pPipeline ) , m_rootConversati
     // pipeline::Progress
     virtual void onStarted( const std::string& strMsg ) override
     {
-        getDaemonRequest( *m_pYieldCtx ).PipelineWorkProgress( strMsg );
+        getLeafRequest( *m_pYieldCtx ).ExePipelineWorkProgress( strMsg );
     }
 
     virtual void onProgress( const std::string& strMsg ) override
     {
-        getDaemonRequest( *m_pYieldCtx ).PipelineWorkProgress( strMsg );
+        getLeafRequest( *m_pYieldCtx ).ExePipelineWorkProgress( strMsg );
     }
 
     virtual void onFailed( const std::string& strMsg ) override
     {
-        getDaemonResponse( *m_pYieldCtx ).PipelineStartTask( network::PipelineResult( false, strMsg ) );
+        getLeafResponse( *m_pYieldCtx ).RootPipelineStartTask( network::PipelineResult( false, strMsg ) );
     }
 
     virtual void onCompleted( const std::string& strMsg ) override
     {
-        getDaemonResponse( *m_pYieldCtx ).PipelineStartTask( network::PipelineResult( true, strMsg ) );
+        getLeafResponse( *m_pYieldCtx ).RootPipelineStartTask( network::PipelineResult( true, strMsg ) );
     }
 
     // pipeline::Stash
     virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath ) override
     {
-        return getDaemonRequest( *m_pYieldCtx ).getBuildHashCode( filePath );
+        return getLeafRequest( *m_pYieldCtx ).ExeGetBuildHashCode( filePath );
     }
     virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) override
     {
-        getDaemonRequest( *m_pYieldCtx ).setBuildHashCode( filePath, hashCode );
+        getLeafRequest( *m_pYieldCtx ).ExeSetBuildHashCode( filePath, hashCode );
     }
     virtual void stash( const boost::filesystem::path& file, task::DeterminantHash code ) override
     {
-        getDaemonRequest( *m_pYieldCtx ).stash( file, code );
+        getLeafRequest( *m_pYieldCtx ).ExeStash( file, code );
     }
     virtual bool restore( const boost::filesystem::path& file, task::DeterminantHash code ) override
     {
-        return getDaemonRequest( *m_pYieldCtx ).restore( file, code );
+        return getLeafRequest( *m_pYieldCtx ).ExeRestore( file, code );
     }
 
     void run( boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).PipelineReadyForWork( m_rootConversationID );
+        getLeafRequest( yield_ctx ).ExePipelineReadyForWork( m_rootConversationID );
     }
 };
 
-void ExecutorRequestConversation::PipelineStartJobs( const pipeline::Configuration& configuration,
-                                               const network::ConversationID&     rootConversationID,
-                                               boost::asio::yield_context&    yield_ctx )
+void ExecutorRequestConversation::RootPipelineStartJobs( const pipeline::Configuration& configuration,
+                                                         const network::ConversationID& rootConversationID,
+                                                         boost::asio::yield_context&    yield_ctx )
 {
     mega::pipeline::Pipeline::Ptr pPipeline;
     {
@@ -199,18 +175,18 @@ void ExecutorRequestConversation::PipelineStartJobs( const pipeline::Configurati
     for ( int i = 0; i < m_executor.getNumThreads(); ++i )
     {
         JobConversation::Ptr pJob = std::make_shared< JobConversation >(
-            m_executor,
-            m_executor.m_conversationManager.createConversationID( network::getConnectionID(
-m_executor.m_client.getSocket() ) ), pPipeline, rootConversationID ); jobIDs.push_back( pJob->getConversationID() );
+            m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), pPipeline,
+            rootConversationID );
+        jobIDs.push_back( pJob->getID() );
         jobs.push_back( pJob );
     }
-    getDaemonResponse( yield_ctx ).PipelineStartJobs( jobIDs );
+    getLeafResponse( yield_ctx ).RootPipelineStartJobs( jobIDs );
 
     for ( JobConversation::Ptr pJob : jobs )
     {
-        m_executor.m_conversationManager.conversationStarted( pJob );
+        m_executor.conversationStarted( pJob );
     }
-}*/
+}
 
 Executor::Executor( boost::asio::io_context& io_context, int numThreads )
     : network::ConversationManager( network::Node::toStr( network::Node::Executor ), io_context )
@@ -228,18 +204,20 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
     m_receiverChannel.run( connectionID );
 }
 
-Executor::~Executor() { SPDLOG_INFO( "Executor shutdown" ); }
+Executor::~Executor()
+{
+    m_receiverChannel.stop();
+    SPDLOG_INFO( "Executor shutdown" );
+}
 
-void Executor::shutdown() {  }
+void Executor::shutdown() {}
 
 network::ConversationBase::Ptr Executor::joinConversation( const network::ConnectionID&   originatingConnectionID,
                                                            const network::Header&         header,
                                                            const network::MessageVariant& msg )
 {
-    // return network::Conversation::Ptr(
-    //     new ExecutorRequestConversation( m_executor, msgHeader.getConversationID(), originatingConnectionID ) );
-
-    return network::ConversationBase::Ptr();
+    return network::Conversation::Ptr(
+        new ExecutorRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 } // namespace service
 } // namespace mega

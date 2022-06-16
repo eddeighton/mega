@@ -402,7 +402,7 @@ public:
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceTreeFile ),
               m_environment.getBuildHashCode( symbolTableFile ), m_environment.ContextTemplate(),
-              m_environment.NamespaceTemplate(), m_environment.InterfaceTemplate() } );
+              m_environment.InterfaceTemplate() } );
 
         if ( m_environment.restore( interfaceHeader, determinant ) )
         {

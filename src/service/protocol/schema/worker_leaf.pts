@@ -1,0 +1,39 @@
+
+
+
+// pipelines
+msg ExePipelineReadyForWork
+{
+    request(network::ConversationID rootConversationID);
+    response();
+}
+
+msg ExePipelineWorkProgress
+{
+    request(std::string message);
+    response();
+}
+
+msg ExeGetBuildHashCode
+{
+    request( boost::filesystem::path filePath );
+    response( task::FileHash hashCode );
+}
+
+msg ExeSetBuildHashCode
+{
+    request( boost::filesystem::path filePath, task::FileHash hashCode );
+    response();
+}
+
+msg ExeStash
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response();
+}
+
+msg ExeRestore
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response( bool bRestored );
+}

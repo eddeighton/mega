@@ -59,12 +59,6 @@ void Server::Connection::disconnected()
     m_server.onDisconnected( shared_from_this() );
 }
 
-Sender& Server::Connection::getSender()
-{
-    VERIFY_RTE( m_pSender );
-    return *m_pSender;
-}
-
 Server::Server( boost::asio::io_context& ioContext, ConversationManager& conversationManager, short port )
     : m_ioContext( ioContext )
     , m_conversationManager( conversationManager )
@@ -101,13 +95,16 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
     if ( !ec )
     {
         pNewConnection->start();
-        m_connections.insert( std::make_pair( pNewConnection->getConnectionID(), pNewConnection ) );
+        m_connections.insert( std::make_pair( pNewConnection->getSocketConnectionID(), pNewConnection ) );
     }
     if ( m_acceptor.is_open() )
         waitForConnection();
 }
 
-void Server::onDisconnected( Connection::Ptr pConnection ) { m_connections.erase( pConnection->getConnectionID() ); }
+void Server::onDisconnected( Connection::Ptr pConnection )
+{
+    m_connections.erase( pConnection->getSocketConnectionID() );
+}
 
 Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )
 {

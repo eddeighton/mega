@@ -6,3 +6,9 @@ msg TermListNetworkNodes
     request();
     response(std::vector< std::string > nodes);
 }
+
+msg TermPipelineRun
+{
+    request(mega::pipeline::Configuration configuration);
+    response(mega::network::PipelineResult result);
+}
