@@ -25,7 +25,7 @@ namespace mega
 namespace service
 {
 
-class LeafRequestConversation : public network::Conversation,
+class LeafRequestConversation : public network::InThreadConversation,
                                 public network::term_leaf::Impl,
                                 public network::daemon_leaf::Impl,
                                 public network::worker_leaf::Impl,
@@ -37,7 +37,7 @@ protected:
 public:
     LeafRequestConversation( Leaf& leaf, const network::ConversationID& conversationID,
                              const network::ConnectionID& originatingConnectionID )
-        : Conversation( leaf, conversationID, originatingConnectionID )
+        : InThreadConversation( leaf, conversationID, originatingConnectionID )
         , m_leaf( leaf )
     {
     }
@@ -185,7 +185,7 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        Conversation::RequestStack stack( "LeafEnrole", *this, m_leaf.getDaemonSender().getConnectionID() );
+        ConversationBase::RequestStack stack( "LeafEnrole", *this, m_leaf.getDaemonSender().getConnectionID() );
         getDaemonRequest( yield_ctx ).LeafEnrole( m_leaf.getType() );
     }
 };
@@ -235,7 +235,7 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
         case network::Node::Terminal:
         case network::Node::Tool:
         case network::Node::Executor:
-            return network::Conversation::Ptr(
+            return network::ConversationBase::Ptr(
                 new LeafRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
             break;
         case network::Node::Daemon:

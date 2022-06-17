@@ -44,7 +44,7 @@ Request_Encode::Request_Encode( ConversationBase& conversation,
 {%endfor%} 
 )
 {
-    Conversation::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_conversation, m_sender.getConnectionID() );
+    ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_conversation, m_sender.getConnectionID() );
 
     {
         const MessageVariant msg

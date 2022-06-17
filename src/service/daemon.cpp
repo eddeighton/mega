@@ -18,7 +18,7 @@ namespace mega
 namespace service
 {
 
-class DaemonRequestConversation : public network::Conversation,
+class DaemonRequestConversation : public network::InThreadConversation,
                                   public network::leaf_daemon::Impl,
                                   public network::root_daemon::Impl
 {
@@ -29,7 +29,7 @@ public:
     DaemonRequestConversation( Daemon&                        daemon,
                                const network::ConversationID& conversationID,
                                const network::ConnectionID&   originatingConnectionID )
-        : Conversation( daemon, conversationID, originatingConnectionID )
+        : InThreadConversation( daemon, conversationID, originatingConnectionID )
         , m_daemon( daemon )
     {
     }
@@ -220,7 +220,7 @@ network::ConversationBase::Ptr Daemon::joinConversation( const network::Connecti
     {
         default:
     }*/
-    return network::Conversation::Ptr(
+    return network::ConversationBase::Ptr(
         new DaemonRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 } // namespace service

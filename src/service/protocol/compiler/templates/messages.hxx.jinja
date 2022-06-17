@@ -28,8 +28,6 @@ namespace mega
 {
 namespace network
 {
-class Conversation;
-
 {%for message in messages%}
 {%for namespace in message.namespaces%}
 {%if loop.is_first %}namespace {{namespace}}{%else%}::{{namespace}}{%endif%}

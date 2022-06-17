@@ -30,7 +30,7 @@ namespace mega
 namespace service
 {
 
-class ExecutorRequestConversation : public network::Conversation, public network::leaf_worker::Impl
+class ExecutorRequestConversation : public network::ConcurrentConversation, public network::leaf_worker::Impl
 {
 protected:
     Executor& m_executor;
@@ -38,7 +38,7 @@ protected:
 public:
     ExecutorRequestConversation( Executor& executor, const network::ConversationID& conversationID,
                                  const network::ConnectionID& originatingConnectionID )
-        : Conversation( executor, conversationID, originatingConnectionID )
+        : ConcurrentConversation( executor, conversationID, originatingConnectionID )
         , m_executor( executor )
     {
     }
@@ -216,7 +216,7 @@ network::ConversationBase::Ptr Executor::joinConversation( const network::Connec
                                                            const network::Header&         header,
                                                            const network::MessageVariant& msg )
 {
-    return network::Conversation::Ptr(
+    return network::ConversationBase::Ptr(
         new ExecutorRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 } // namespace service

@@ -33,7 +33,7 @@ namespace mega
 namespace service
 {
 
-class RootRequestConversation : public network::Conversation, public network::daemon_root::Impl
+class RootRequestConversation : public network::InThreadConversation, public network::daemon_root::Impl
 {
 protected:
     Root& m_root;
@@ -42,7 +42,7 @@ public:
     RootRequestConversation( Root&                          root,
                              const network::ConversationID& conversationID,
                              const network::ConnectionID&   originatingConnectionID )
-        : Conversation( root, conversationID, originatingConnectionID )
+        : InThreadConversation( root, conversationID, originatingConnectionID )
         , m_root( root )
     {
     }
@@ -443,10 +443,10 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
     {
         case network::daemon_root::MSG_ExePipelineReadyForWork_Request::ID:
         case network::daemon_root::MSG_TermPipelineRun_Request::ID:
-            return network::Conversation::Ptr(
+            return network::ConversationBase::Ptr(
                 new RootPipelineConversation( *this, header.getConversationID(), originatingConnectionID ) );
         default:
-            return network::Conversation::Ptr(
+            return network::ConversationBase::Ptr(
                 new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
     }
 }

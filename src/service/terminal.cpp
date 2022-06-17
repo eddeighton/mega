@@ -30,7 +30,7 @@ namespace mega
 namespace service
 {
 
-class TerminalRequestConversation : public network::Conversation, public network::leaf_term::Impl
+class TerminalRequestConversation : public network::InThreadConversation, public network::leaf_term::Impl
 {
 protected:
     Terminal& m_terminal;
@@ -38,7 +38,7 @@ protected:
 public:
     TerminalRequestConversation( Terminal& terminal, const network::ConversationID& conversationID,
                                  const network::ConnectionID& originatingConnectionID )
-        : Conversation( terminal, conversationID, originatingConnectionID )
+        : InThreadConversation( terminal, conversationID, originatingConnectionID )
         , m_terminal( terminal )
     {
     }
@@ -88,7 +88,7 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        Conversation::RequestStack stack( "GenericConversation", *this, m_terminal.getLeafSender().getConnectionID() );
+        ConversationBase::RequestStack stack( "GenericConversation", *this, m_terminal.getLeafSender().getConnectionID() );
         m_functor( *this, m_terminal.getLeafSender(), yield_ctx );
     }
 };
@@ -142,7 +142,7 @@ network::ConversationBase::Ptr Terminal::joinConversation( const network::Connec
                                                            const network::Header&         header,
                                                            const network::MessageVariant& msg )
 {
-    return network::Conversation::Ptr(
+    return network::ConversationBase::Ptr(
         new TerminalRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 

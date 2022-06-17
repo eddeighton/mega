@@ -42,7 +42,7 @@ network::ConversationBase::Ptr Tool::joinConversation( const network::Connection
                                                        const network::Header&         header,
                                                        const network::MessageVariant& msg )
 {
-    // return network::Conversation::Ptr(
+    // return network::ConversationBase::Ptr(
     //     new ToolRequestConversation( m_terminal, msgHeader.getConversationID(), originatingConnectionID ) );
     return network::ConversationBase::Ptr();
 }

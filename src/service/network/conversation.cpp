@@ -13,15 +13,15 @@ namespace mega
 namespace network
 {
 
-Conversation::RequestStack::RequestStack( const char* pszMsg, ConversationBase& conversation,
-                                          const ConnectionID& connectionID )
+ConversationBase::RequestStack::RequestStack( const char* pszMsg, ConversationBase& conversation,
+                                              const ConnectionID& connectionID )
     : m_pszMsg( pszMsg )
     , m_startTime( std::chrono::steady_clock::now() )
     , conversation( conversation )
 {
     conversation.requestStarted( connectionID );
 }
-Conversation::RequestStack::~RequestStack()
+ConversationBase::RequestStack::~RequestStack()
 {
     const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
     SPDLOG_DEBUG( "{} {} {} {}", conversation.getProcessName(), conversation.getID().getID(), m_pszMsg, timeDelta );
@@ -33,29 +33,10 @@ Conversation::Conversation( ConversationManager& conversationManager, const Conv
     : m_conversationManager( conversationManager )
     , m_conversationID( conversationID )
     , m_originatingEndPoint( originatingConnectionID )
-    , m_channel( conversationManager.getIOContext() )
 {
 }
 
 Conversation::~Conversation() {}
-
-ReceivedMsg Conversation::receive( boost::asio::yield_context& yield_ctx )
-{
-    return m_channel.async_receive( yield_ctx );
-}
-
-void Conversation::send( const ReceivedMsg& msg )
-{
-    m_channel.async_send( boost::system::error_code(), msg,
-                          [ &msg ]( boost::system::error_code ec )
-                          {
-                              if ( ec )
-                              {
-                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
-                                  THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
-                              }
-                          } );
-}
 
 void Conversation::requestStarted( const ConnectionID& connectionID )
 {
@@ -121,7 +102,7 @@ MessageVariant Conversation::dispatchRequestsUntilResponse( boost::asio::yield_c
 
 void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yield_context& yield_ctx )
 {
-    Conversation::RequestStack stack( getMsgName( msg.msg ), *this, msg.connectionID );
+    ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, msg.connectionID );
     try
     {
         ASSERT( isRequest( msg.msg ) );
@@ -138,5 +119,60 @@ void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yie
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+InThreadConversation::InThreadConversation( ConversationManager&          conversationManager,
+                                                const ConversationID&         conversationID,
+                                                std::optional< ConnectionID > originatingConnectionID /*= std::nullopt*/ )
+    : Conversation( conversationManager, conversationID, originatingConnectionID )
+    , m_channel( conversationManager.getIOContext() )
+{
+}
+
+ReceivedMsg InThreadConversation::receive( boost::asio::yield_context& yield_ctx )
+{
+    return m_channel.async_receive( yield_ctx );
+}
+
+void InThreadConversation::send( const ReceivedMsg& msg )
+{
+    m_channel.async_send( boost::system::error_code(), msg,
+                          [ &msg ]( boost::system::error_code ec )
+                          {
+                              if ( ec )
+                              {
+                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
+                                  THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
+                              }
+                          } );
+}
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+ConcurrentConversation::ConcurrentConversation( ConversationManager&          conversationManager,
+                                                const ConversationID&         conversationID,
+                                                std::optional< ConnectionID > originatingConnectionID /*= std::nullopt*/ )
+    : Conversation( conversationManager, conversationID, originatingConnectionID )
+    , m_channel( conversationManager.getIOContext() )
+{
+}
+
+ReceivedMsg ConcurrentConversation::receive( boost::asio::yield_context& yield_ctx )
+{
+    return m_channel.async_receive( yield_ctx );
+}
+
+void ConcurrentConversation::send( const ReceivedMsg& msg )
+{
+    m_channel.async_send( boost::system::error_code(), msg,
+                          [ &msg ]( boost::system::error_code ec )
+                          {
+                              if ( ec )
+                              {
+                                  SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg.msg, ec.what() );
+                                  THROW_RTE( "Failed to send request on channel: " << msg.msg << " : " << ec.what() );
+                              }
+                          } );
+}
 } // namespace network
 } // namespace mega

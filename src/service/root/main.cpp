@@ -32,7 +32,7 @@ int main( int argc, const char* argv[] )
         // clang-format off
         options.add_options()
         ( "help",       po::bool_switch( &bShowHelp ),                      "Show Command Line Help" )
-        ( "threads",    po::value< NumThreadsType >( &uiNumThreads ),       "Max number of threads" )
+        //( "threads",    po::value< NumThreadsType >( &uiNumThreads ),       "Max number of threads" )
         ( "log",        po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
         ( "console", po::value< std::string >( &strConsoleLogLevel ),       "Console logging level" )
         ( "level", po::value< std::string >( &strLogFileLevel ),            "Log file logging level" )
