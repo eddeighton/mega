@@ -19,7 +19,7 @@
 
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
 
 #include "utilities/cmake.hpp"
 
@@ -41,7 +41,7 @@ namespace list
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path    rootSourceDir, rootBuildDir, sourceDir, buildDir;
+    boost::filesystem::path    srcDir, buildDir, componentSrcDir, componentBuildDir;
     std::string                strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories;
     std::vector< std::string > objectSourceFileNames;
 
@@ -50,10 +50,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
-            ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),             "Root source directory" )
-            ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),              "Root build directory" )
-            ( "src_dir",        po::value< boost::filesystem::path >( &sourceDir ),                 "Source directory" )
-            ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),                  "Build Directory" )
+            ( "root_src_dir",   po::value< boost::filesystem::path >( &srcDir ),                    "Root source directory" )
+            ( "root_build_dir", po::value< boost::filesystem::path >( &buildDir ),                  "Root build directory" )
+            ( "src_dir",        po::value< boost::filesystem::path >( &componentSrcDir ),           "Source directory" )
+            ( "build_dir",      po::value< boost::filesystem::path >( &componentBuildDir ),         "Build Directory" )
             ( "name",           po::value< std::string >( &strComponentName ),                      "Component name" )
             ( "cpp_flags",      po::value< std::string >( &strCPPFlags ),                           "C++ Compiler Flags" )
             ( "cpp_defines",    po::value< std::string >( &strCPPDefines ),                         "C++ Compiler Defines" )
@@ -78,19 +78,20 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // tokenize semi colon delimited names into absolute mega source file paths
         const std::vector< boost::filesystem::path > inputSourceFiles
-            = mega::utilities::pathListToFiles( sourceDir, objectSourceFileNames );
+            = mega::utilities::pathListToFiles( componentSrcDir, objectSourceFileNames );
         const std::vector< std::string > cppFlags   = mega::utilities::parseCMakeStringList( strCPPFlags, " " );
         const std::vector< std::string > cppDefines = mega::utilities::parseCMakeStringList( strCPPDefines, " " );
         const std::vector< boost::filesystem::path > includeDirectories
             = mega::utilities::pathListToFolders( mega::utilities::parseCMakeStringList( strIncludeDirectories, ";" ) );
 
-        mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
+        mega::compiler::Directories directories{ srcDir, buildDir, "", "" };
+        mega::io::BuildEnvironment  environment( directories );
 
         const mega::io::ComponentInfo componentInfo(
-            strComponentName, cppFlags, cppDefines, sourceDir, inputSourceFiles, includeDirectories );
+            strComponentName, cppFlags, cppDefines, componentSrcDir, inputSourceFiles, includeDirectories );
 
         const mega::io::ComponentListingFilePath componentListingFilePath
-            = environment.ComponentListingFilePath_fromPath( buildDir );
+            = environment.ComponentListingFilePath_fromPath( componentBuildDir );
         {
             boost::filesystem::path         tempFile;
             std::unique_ptr< std::ostream > pOfstream = environment.write_temp( componentListingFilePath, tempFile );

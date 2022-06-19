@@ -62,7 +62,7 @@ namespace interface
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             projectName, strComponentInfoPaths;
-    boost::filesystem::path rootSourceDir, rootBuildDir, templatesDir, toolchainXML, pipelineXML;
+    boost::filesystem::path srcDir, buildDir, installDir, templatesDir, toolchainXML, pipelineXML;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Compile Mega Project Interface" );
@@ -71,8 +71,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
         commandOptions.add_options()
         ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
         ( "components",     po::value< std::string >( &strComponentInfoPaths ),      "Component info files" )
-        ( "root_src_dir",   po::value< boost::filesystem::path >( &rootSourceDir ),  "Root source directory" )
-        ( "root_build_dir", po::value< boost::filesystem::path >( &rootBuildDir ),   "Root build directory" )
+        ( "src_dir",        po::value< boost::filesystem::path >( &srcDir ),         "Root source directory" )
+        ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),       "Root build directory" )
+        ( "install_dir",    po::value< boost::filesystem::path >( &installDir ),     "Installation directory" )
         ( "templates",      po::value< boost::filesystem::path >( &templatesDir ),   "Inja Templates directory" )
         ( "toolchain_xml",  po::value< boost::filesystem::path >( &toolchainXML ),   "Toolchain XML File" )
         ( "pipeline_xml",   po::value< boost::filesystem::path >( &pipelineXML ),    "Pipeline Configuration XML File to generate" )
@@ -120,8 +121,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
             mega::compiler::Directories
             {
-                rootSourceDir,
-                rootBuildDir,
+                srcDir,
+                buildDir,
+                installDir,
                 templatesDir
             },
 

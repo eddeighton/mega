@@ -12,13 +12,15 @@ fi
 
 rm -rf ./log
 
-./root --level debug --console error &
+./root --level info --console error &
 
 sleep 1
 
-./daemon --level debug --console error &
+./daemon --level info --console error &
 
 sleep 1
 
-./worker --level debug --console error &
+./executor --level info --console error &
+
+tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|error" --color=none
 

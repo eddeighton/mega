@@ -29,6 +29,12 @@ public:
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
         start( taskProgress, "Task_Include", astFile.path(), includeFilePath.path() );
 
+        /*{
+            std::ostringstream os;
+            os << " " << m_environment.getBuildHashCode( astFile ).toHexString();
+            msg( taskProgress, os.str() );
+        }*/
+
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ) } );
 
@@ -112,8 +118,8 @@ public:
 
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
-        const std::string strCmd
-            = mega::Compilation::make_includePCH_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath )();
+        const std::string strCmd = mega::Compilation::make_includePCH_compilation(
+            m_environment, m_toolChain, pComponent, m_sourceFilePath )();
 
         msg( taskProgress, strCmd );
 
@@ -137,5 +143,5 @@ BaseTask::Ptr create_Task_IncludePCH( const TaskArguments& taskArguments, const 
     return std::make_unique< Task_IncludePCH >( taskArguments, sourceFilePath );
 }
 
-} // namespace interface
-} // namespace driver
+} // namespace compiler
+} // namespace mega

@@ -11,7 +11,10 @@
 #include "nlohmann/json.hpp"
 
 #include "mega/common.hpp"
+
+#include "database/types/cardinality.hpp"
 #include "database/types/invocation_id.hpp"
+#include "database/types/ownership.hpp"
 
 #include <string>
 #include <cstddef>

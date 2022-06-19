@@ -8,9 +8,11 @@
 #include "pipeline/stash.hpp"
 #include "pipeline/pipeline.hpp"
 
+#include "database/model/manifest.hxx"
+
 #include "database/common/serialisation.hpp"
+#include "database/common/environment_build.hpp"
 #include "database/types/sources.hpp"
-#include "database/common/environments.hpp"
 
 #include <common/string.hpp>
 #include "common/assert_verify.hpp"
@@ -150,8 +152,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
     Configuration& config = m_configuration.value();
 
-    mega::io::BuildEnvironment environment(
-        config.directories.rootSourceDir, config.directories.rootBuildDir, config.directories.templatesDir );
+    mega::io::BuildEnvironment environment( config.directories );
     mega::io::manifestFilePath manifestFilePath = environment.project_manifest();
 
     // paradox - need a manifest to determine the schedule - the schedule generates the manifest!
@@ -267,8 +268,7 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
 
     const Task task = decode( pipelineTask );
 
-    mega::io::StashEnvironment environment(
-        stash, config.directories.rootSourceDir, config.directories.rootBuildDir, config.directories.templatesDir );
+    mega::io::StashEnvironment environment( stash, config.directories );
 
     mega::compiler::TaskArguments taskArguments( environment, config.toolChain, dependencies.getParser() );
 

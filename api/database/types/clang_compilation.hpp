@@ -3,7 +3,7 @@
 #define BUILDSYSTEM_TOOLS_15_SEPT_2020
 
 #include "database/common/object_info.hpp"
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
 
 #include "database/types/sources.hpp"
 #include "utilities/tool_chain_hash.hpp"
@@ -71,8 +71,8 @@ struct Compilation
         compilation.compiler        = toolChain.clangCompilerPath;
         compilation.compiler_plugin = toolChain.clangPluginPath;
 
-        compilation.srcDir     = environment.rootSourceDir();
-        compilation.buildDir   = environment.rootBuildDir();
+        compilation.srcDir     = environment.srcDir();
+        compilation.buildDir   = environment.buildDir();
         compilation.sourceFile = environment.FilePath( sourceFile );
 
         compilation.flags       = pComponent->get_cpp_flags();
@@ -101,8 +101,8 @@ struct Compilation
         compilation.compiler        = toolChain.clangCompilerPath;
         compilation.compiler_plugin = toolChain.clangPluginPath;
 
-        compilation.srcDir     = environment.rootSourceDir();
-        compilation.buildDir   = environment.rootBuildDir();
+        compilation.srcDir     = environment.srcDir();
+        compilation.buildDir   = environment.buildDir();
         compilation.sourceFile = environment.FilePath( sourceFile );
 
         compilation.flags       = pComponent->get_cpp_flags();
@@ -133,8 +133,8 @@ struct Compilation
         compilation.compiler        = toolChain.clangCompilerPath;
         compilation.compiler_plugin = toolChain.clangPluginPath;
 
-        compilation.srcDir     = environment.rootSourceDir();
-        compilation.buildDir   = environment.rootBuildDir();
+        compilation.srcDir     = environment.srcDir();
+        compilation.buildDir   = environment.buildDir();
         compilation.sourceFile = environment.FilePath( sourceFile );
 
         compilation.flags       = pComponent->get_cpp_flags();
@@ -164,8 +164,8 @@ struct Compilation
         compilation.compiler        = toolChain.clangCompilerPath;
         compilation.compiler_plugin = toolChain.clangPluginPath;
 
-        compilation.srcDir     = environment.rootSourceDir();
-        compilation.buildDir   = environment.rootBuildDir();
+        compilation.srcDir     = environment.srcDir();
+        compilation.buildDir   = environment.buildDir();
         compilation.sourceFile = environment.FilePath( sourceFile );
 
         compilation.flags       = pComponent->get_cpp_flags();

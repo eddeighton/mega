@@ -28,15 +28,21 @@
 #include "database/model/file_info.hxx"
 #include "database/model/manifest.hxx"
 
+#include <utility>
+
 namespace boost
 {
 namespace archive
 {
-MegaIArchive::MegaIArchive( std::istream& os, ::data::ObjectPartLoader& loader )
-    : binary_iarchive( os )
+MegaIArchive::MegaIArchive( std::istream& is, std::set< mega::io::ObjectInfo* >& objectInfos,
+                            ::data::ObjectPartLoader& loader )
+    : binary_iarchive( is )
+    , m_objectInfos( objectInfos )
     , m_loader( loader )
 {
 }
+
+void MegaIArchive::objectInfo( mega::io::ObjectInfo* pObjectInfo ) { m_objectInfos.insert( pObjectInfo ); }
 } // namespace archive
 } // namespace boost
 
@@ -44,34 +50,39 @@ namespace mega
 {
 namespace io
 {
-Loader::Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, std::size_t version,
-                const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader )
+Loader::Loader( const FileSystem& fileSystem, std::size_t version, const CompilationFilePath& filePath,
+                ::data::ObjectPartLoader& loader )
     : m_pFileStream( fileSystem.read( filePath ) )
-    , m_archive( *m_pFileStream, loader )
+    , m_archive( *m_pFileStream, m_objectInfos, loader )
 {
     {
         FileHeader fileHeader;
-        m_archive >> fileHeader;
-        if( fileHeader.getVersion() != version )
+        m_archive& fileHeader;
+        if ( fileHeader.getVersion() != version )
         {
             throw mega::io::DatabaseVersionException();
         }
     }
+}
 
-    Manifest loadedManifest;
-    m_archive >> loadedManifest;
+void Loader::postLoad( const Manifest& runtimeManifest )
+{
+    // load the manifest from the end of the file
+    // m_archive.
+
+    Manifest   loadedManifest;
+    m_archive& loadedManifest;
+
+    std::vector< mega::io::ObjectInfo::FileID > fileIDLoadedToRuntime;
 
     // calculate mapping from the old fileIDs in the file to the new runtime ones in the
     // runtimeManifest
-    std::size_t szHighest = 0U;
+    ObjectInfo::FileID szHighest = 0;
     for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
     {
-        if ( fileInfo.getFileID() + 1 > szHighest )
-        {
-            szHighest = fileInfo.getFileID() + 1;
-        }
+        szHighest = std::max( szHighest, fileInfo.getFileID() );
     }
-    m_archive.m_fileIDLoadedToRuntime.resize( szHighest, ObjectInfo::NO_FILE );
+    fileIDLoadedToRuntime.resize( szHighest + 1, ObjectInfo::NO_FILE );
 
     for ( const FileInfo& fileInfo : loadedManifest.getCompilationFileInfos() )
     {
@@ -82,13 +93,23 @@ Loader::Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, s
             {
                 VERIFY_RTE( fileInfo.getFileID() != ObjectInfo::NO_FILE );
                 VERIFY_RTE( runtimeFileInfo.getFileID() != ObjectInfo::NO_FILE );
-                m_archive.m_fileIDLoadedToRuntime[ fileInfo.getFileID() ] = runtimeFileInfo.getFileID();
-                bFound                                                    = true;
+                fileIDLoadedToRuntime[ fileInfo.getFileID() ] = runtimeFileInfo.getFileID();
+                bFound                                        = true;
                 break;
             }
         }
         VERIFY_RTE_MSG(
             bFound, "Failed to locate: " << fileInfo.getFilePath().path().string() << " in runtime manifest" );
+    }
+
+    for ( mega::io::ObjectInfo* pObjectInfo : m_objectInfos )
+    {
+        const ObjectInfo::FileID storedFileID = pObjectInfo->getFileID();
+        VERIFY_RTE_MSG( storedFileID != ObjectInfo::NO_FILE, "File ID of NO_FILE" );
+        VERIFY_RTE_MSG( storedFileID < fileIDLoadedToRuntime.size(), "Invalid File ID: " << storedFileID );
+        const ObjectInfo::FileID mappedFileID = fileIDLoadedToRuntime[ storedFileID ];
+        VERIFY_RTE_MSG( mappedFileID != ObjectInfo::NO_FILE, "File ID failed to map" );
+        pObjectInfo->setFileID( mappedFileID );
     }
 }
 

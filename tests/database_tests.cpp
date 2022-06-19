@@ -3,7 +3,7 @@
 
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
 
 #include "database/types/sources.hpp"
 
@@ -11,6 +11,8 @@
 #include "database/model/ParserStage.hxx"
 #include "database/model/manifest.hxx"
 #include "database/model/environment.hxx"
+
+#include "common/string.hpp"
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -20,17 +22,20 @@
 class DatabaseTest : public ::testing::Test
 {
 public:
-    boost::filesystem::path    m_tempDir;
-    std::unique_ptr< mega::io::BuildEnvironment > m_pEnvironment;
-    boost::filesystem::path    m_srcFile;
+    boost::filesystem::path                        m_tempDir;
+    std::unique_ptr< mega::compiler::Directories > m_pDirectories;
+    std::unique_ptr< mega::io::BuildEnvironment >  m_pEnvironment;
+    boost::filesystem::path                        m_srcFile;
 
     virtual void SetUp() override
     {
         m_tempDir = boost::filesystem::temp_directory_path() / "DatabaseTest" / common::uuid();
         boost::filesystem::create_directories( m_tempDir );
 
-        m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( m_tempDir, m_tempDir );
-        m_srcFile = m_tempDir / "test1.mega";
+        m_pDirectories = std::make_unique< mega::compiler::Directories >(
+            mega::compiler::Directories{ m_tempDir, m_tempDir, "", "" } );
+        m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( *m_pDirectories );
+        m_srcFile      = m_tempDir / "test1.mega";
         std::ofstream of( m_srcFile.native() );
         of << "Hello world";
 
@@ -38,8 +43,9 @@ public:
         {
             std::vector< boost::filesystem::path > componentInfoPaths;
             {
-                mega::io::ComponentInfo componentInfo(
-                    "test", {}, {}, m_tempDir, mega::io::ComponentInfo::PathArray{ m_srcFile }, mega::io::ComponentInfo::PathArray{} );
+                mega::io::ComponentInfo       componentInfo( "test", {}, {}, m_tempDir,
+                                                             mega::io::ComponentInfo::PathArray{ m_srcFile },
+                                                             mega::io::ComponentInfo::PathArray{} );
                 const boost::filesystem::path componentInfoPath = m_tempDir / "test.txt";
                 std::ofstream                 of( componentInfoPath.native() );
                 mega::OutputArchiveType       oa( of );
@@ -49,7 +55,7 @@ public:
 
             const mega::io::Manifest         manifest( *m_pEnvironment, componentInfoPaths );
             const mega::io::manifestFilePath projectManifestPath = m_pEnvironment->project_manifest();
-            //manifest.save( *m_pEnvironment, projectManifestPath );
+            // manifest.save( *m_pEnvironment, projectManifestPath );
         }
     }
 
@@ -105,7 +111,8 @@ TEST_F( DatabaseTest, SpecializeAcrossStages )
 
         Parser::Opaque*    pOpaque = database.construct< Parser::Opaque >( Parser::Opaque::Args( "testopaque" ) );
         Parser::Dimension* pDim
-            = database.construct< Parser::Dimension >( Parser::Dimension::Args( true, "test", "int", "otherstring", pOpaque, {}, {}, {} ) );
+            = database.construct< Parser::Dimension >( Parser::Dimension::Args( true, "test", "int", "otherstring",
+pOpaque, {}, {}, {} ) );
 
         database.store();
     }
@@ -119,12 +126,9 @@ TEST_F( DatabaseTest, SpecializeAcrossStages )
         ASSERT_EQ( pDim->get_identifier(), "test" );
         ASSERT_EQ( pDim->get_type(), "int" );
 
-        Interface::Dimension* pDimSpecialized = database.construct< Interface::Dimension >( Interface::Dimension::Args( pDim, true ) );
-        ASSERT_TRUE( pDimSpecialized );
-        ASSERT_EQ( pDimSpecialized->get_more(), true );
-        ASSERT_EQ( pDimSpecialized->get_identifier(), "test" );
-        ASSERT_EQ( pDimSpecialized->get_type(), "int" );
-        database.store();
+        Interface::Dimension* pDimSpecialized = database.construct< Interface::Dimension >( Interface::Dimension::Args(
+pDim, true ) ); ASSERT_TRUE( pDimSpecialized ); ASSERT_EQ( pDimSpecialized->get_more(), true ); ASSERT_EQ(
+pDimSpecialized->get_identifier(), "test" ); ASSERT_EQ( pDimSpecialized->get_type(), "int" ); database.store();
     }
 
     {
@@ -185,7 +189,8 @@ TEST_F( DatabaseTest, Pointer )
 
         Opaque* pOpaque = database.construct< Opaque >( Opaque::Args( "testopaque" ) );
 
-        Dimension* pDim = database.construct< Dimension >( Dimension::Args( true, "test", "int", "otherstring", pOpaque, {}, {}, {} ) );
+        Dimension* pDim = database.construct< Dimension >( Dimension::Args( true, "test", "int", "otherstring", pOpaque,
+{}, {}, {} ) );
 
         database.store();
     }
@@ -220,7 +225,8 @@ TEST_F( DatabaseTest, ArrayOfPointers )
         Opaque* pOpaque4 = database.construct< Opaque >( Opaque::Args( "testopaque4" ) );
 
         Dimension* pDim = database.construct< Dimension >(
-            Dimension::Args( true, "test", "int", "otherstring", pOpaque1, std::vector< Opaque* >{ pOpaque3, pOpaque2, pOpaque4 }, {}, {})
+            Dimension::Args( true, "test", "int", "otherstring", pOpaque1, std::vector< Opaque* >{ pOpaque3, pOpaque2,
+pOpaque4 }, {}, {})
 );
 
         database.store();

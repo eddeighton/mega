@@ -3,8 +3,11 @@
 
 #include "pipeline/pipeline.hpp"
 
-#include "database/common/environments.hpp"
+#include "database/common/environment_stash.hpp"
+
 #include "database/types/sources.hpp"
+
+//#include "database/model/file_info.hxx"
 
 #include "utilities/tool_chain_hash.hpp"
 
@@ -162,19 +165,6 @@ public:
         taskProgress.onProgress( os.str() );
     }
 };
-
-inline const mega::io::FileInfo& findFileInfo( const boost::filesystem::path&           filePath,
-                                               const std::vector< mega::io::FileInfo >& fileInfos )
-{
-    for ( const mega::io::FileInfo& fileInfo : fileInfos )
-    {
-        if ( fileInfo.getFilePath().path() == filePath )
-        {
-            return fileInfo;
-        }
-    }
-    THROW_RTE( "Failed to locate file: " << filePath << " in manifest" );
-}
 
 } // namespace compiler
 } // namespace mega

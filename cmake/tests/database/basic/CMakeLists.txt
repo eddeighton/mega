@@ -85,37 +85,56 @@ add_custom_command(
     DEPENDS ${DATABASE_SCHEMAS} ${TEMPLATES} database_compiler_driver
     COMMENT "Generating Database" )
 
+    
 set( MEGA_DATABASE_COMMON
-${MEGA_API_DIR}/database/common/serialisation.hpp
-${MEGA_API_DIR}/database/common/component_info.hpp
-${MEGA_API_DIR}/database/common/data_pointer.hpp
-${MEGA_API_DIR}/database/common/file.hpp
-${MEGA_API_DIR}/database/common/generics.hpp
-${MEGA_API_DIR}/database/common/loader.hpp
-${MEGA_API_DIR}/database/common/object_info.hpp
-${MEGA_API_DIR}/database/common/object_loader.hpp
-${MEGA_API_DIR}/database/common/object.hpp
-${MEGA_API_DIR}/database/common/storer.hpp
+    ${MEGA_API_DIR}/database/common/archive.hpp
+    ${MEGA_API_DIR}/database/common/component_info.hpp
+    ${MEGA_API_DIR}/database/common/data_pointer.hpp
+    ${MEGA_API_DIR}/database/common/environment_archive.hpp
+    ${MEGA_API_DIR}/database/common/environment_build.hpp
+    ${MEGA_API_DIR}/database/common/environment_stash.hpp
+    ${MEGA_API_DIR}/database/common/exception.hpp
+    ${MEGA_API_DIR}/database/common/file_header.hpp
+    ${MEGA_API_DIR}/database/common/file_system.hpp
+    ${MEGA_API_DIR}/database/common/file.hpp
+    ${MEGA_API_DIR}/database/common/generics.hpp
+    ${MEGA_API_DIR}/database/common/loader.hpp
+    ${MEGA_API_DIR}/database/common/object_info.hpp
+    ${MEGA_API_DIR}/database/common/object_loader.hpp
+    ${MEGA_API_DIR}/database/common/object.hpp
+    ${MEGA_API_DIR}/database/common/serialisation.hpp
+    ${MEGA_API_DIR}/database/common/storer.hpp
 )
 
 set( MEGA_DATABASE_SOURCES
-${MEGA_SRC_DIR}/database/common/component_info.cpp
-${MEGA_SRC_DIR}/database/common/file.cpp
-${MEGA_SRC_DIR}/database/common/loader.cpp
-${MEGA_SRC_DIR}/database/common/object.cpp
-${MEGA_SRC_DIR}/database/common/storer.cpp
-)
+    ${MEGA_SRC_DIR}/database/common/archive.cpp
+    ${MEGA_SRC_DIR}/database/common/environment_build.cpp
+    ${MEGA_SRC_DIR}/database/common/environment_stash.cpp
+    ${MEGA_SRC_DIR}/database/common/component_info.cpp
+    ${MEGA_SRC_DIR}/database/common/file.cpp
+    ${MEGA_SRC_DIR}/database/common/loader.cpp
+    ${MEGA_SRC_DIR}/database/common/object.cpp
+    ${MEGA_SRC_DIR}/database/common/storer.cpp
+    )
 
 set( MEGA_TYPES_HEADERS
+    ${MEGA_API_DIR}/database/types/cardinality.hpp
     ${MEGA_API_DIR}/database/types/operation.hpp
+    ${MEGA_API_DIR}/database/types/ownership.hpp
     ${MEGA_API_DIR}/database/types/sources.hpp
     ${MEGA_API_DIR}/database/types/modes.hpp
+    ${MEGA_API_DIR}/database/types/clang_compilation.hpp
+    ${MEGA_API_DIR}/database/types/invocation_id.hpp
 )
 
 set( MEGA_TYPES_SOURCES
+    ${MEGA_SRC_DIR}/database/types/cardinality.cpp
     ${MEGA_SRC_DIR}/database/types/operation.cpp
+    ${MEGA_SRC_DIR}/database/types/ownership.cpp
     ${MEGA_SRC_DIR}/database/types/sources.cpp
     ${MEGA_SRC_DIR}/database/types/modes.cpp
+    ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
+    ${MEGA_SRC_DIR}/database/types/invocation_id.cpp
 )
 
 set( MEGA_UNIT_TESTS

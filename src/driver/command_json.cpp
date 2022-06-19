@@ -26,11 +26,12 @@
 #include "database/model/SymbolAnalysisView.hxx"
 #include "database/model/SymbolRollout.hxx"
 #include "database/model/InterfaceAnalysisStage.hxx"
+#include "database/model/OperationsStage.hxx"
 #include "database/model/FinalStage.hxx"
 
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
 
 #include "utilities/cmake.hpp"
 
@@ -54,6 +55,7 @@
     if ( strStage == #stageName )                                                                   \
     {                                                                                               \
         spdlog::info( "Dumping stage: {} to file: {}", #stageName, outputFilePath.string() );       \
+        bMatched = true;                                                                            \
         using namespace stageName;                                                                  \
         Database database( environment );                                                           \
         {                                                                                           \
@@ -70,7 +72,7 @@ namespace json
 {
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath, sourceFilePath;
+    boost::filesystem::path srcDir, buildDir, outputFilePath, sourceFilePath;
     std::string             strStage = "FinalStage";
 
     namespace po = boost::program_options;
@@ -78,8 +80,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
             commandOptions.add_options()
-                ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),     "Source directory" )
-                ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),      "Build directory" )
+                ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),            "Source directory" )
+                ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),          "Build directory" )
                 ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),    "JSON file to generate" )
                 ( "stage",      po::value< std::string >( &strStage ),                      "Stage to dump" )
                 ;
@@ -96,7 +98,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
+        mega::compiler::Directories directories{ srcDir, buildDir, "", "" };
+        mega::io::BuildEnvironment  environment( directories );
+
+        bool bMatched = false;
 
         STAGE_DUMP( ComponentListing )
         STAGE_DUMP( ParserStage )
@@ -107,7 +112,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
         STAGE_DUMP( SymbolAnalysisView )
         STAGE_DUMP( SymbolRollout )
         STAGE_DUMP( InterfaceAnalysisStage )
+        STAGE_DUMP( OperationsStage )
         STAGE_DUMP( FinalStage )
+
+        VERIFY_RTE_MSG( bMatched, "Failed to match stage: " << strStage );
     }
 }
 } // namespace json

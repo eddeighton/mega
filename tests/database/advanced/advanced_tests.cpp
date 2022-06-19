@@ -1,5 +1,5 @@
 
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
 
 #include "database/types/sources.hpp"
 
@@ -30,6 +30,7 @@ class FirstDBTest : public ::testing::Test
 {
 public:
     boost::filesystem::path                       m_tempDir;
+    std::unique_ptr< mega::compiler::Directories > m_pDirectories;
     std::unique_ptr< mega::io::BuildEnvironment > m_pEnvironment;
 
     virtual void SetUp() override
@@ -37,7 +38,9 @@ public:
         m_tempDir = boost::filesystem::temp_directory_path() / "FirstDBTest" / common::uuid();
         boost::filesystem::create_directories( m_tempDir );
 
-        m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( m_tempDir, m_tempDir );
+        m_pDirectories = std::make_unique< mega::compiler::Directories >(
+            mega::compiler::Directories{ m_tempDir, m_tempDir, "", "" } );
+        m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( *m_pDirectories );
 
         std::vector< boost::filesystem::path > componentInfoPaths;
         const mega::io::Manifest               manifest( *m_pEnvironment, componentInfoPaths );

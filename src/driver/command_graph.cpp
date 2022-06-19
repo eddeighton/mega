@@ -17,12 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "database/common/archive.hpp"
 #include "database/model/FinalStage.hxx"
+
+#include "database/model/manifest.hxx"
 
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
+#include "database/common/environment_archive.hpp"
 
+#include "database/types/sources.hpp"
 #include "utilities/cmake.hpp"
 
 #include "common/scheduler.hpp"
@@ -45,17 +50,14 @@ namespace driver
 namespace graph
 {
 
-const std::string& getIdentifier( FinalStage::Interface::IContext* pContext )
-{
-    return pContext->get_identifier();
-}
+const std::string& getIdentifier( FinalStage::Interface::IContext* pContext ) { return pContext->get_identifier(); }
 /*
 const std::string& getIdentifier( FinalStage::Concrete::Context* pContext )
 {
     return pContext->
 }*/
 
-template< typename TContextType >
+template < typename TContextType >
 std::string getContextFullTypeName( TContextType* pContext )
 {
     using namespace FinalStage;
@@ -104,10 +106,9 @@ void addInheritance( const std::optional< ::FinalStage::Interface::InheritanceTr
     {
         for ( IContext* pInherited : inheritance.value()->get_contexts() )
         {
-            nlohmann::json base
-                = nlohmann::json::object( { { "label", pInherited->get_identifier() },
-                                            { "type_id", pInherited->get_type_id() },
-                                            { "symbol", pInherited->get_symbol() } } );
+            nlohmann::json base = nlohmann::json::object( { { "label", pInherited->get_identifier() },
+                                                            { "type_id", pInherited->get_type_id() },
+                                                            { "symbol", pInherited->get_symbol() } } );
             node[ "bases" ].push_back( base );
         }
     }
@@ -298,18 +299,40 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::IContext* pContext )
     }
 }*/
 
+void generateInterfaceGraphViz( std::ostream& os, mega::io::Environment& environment, mega::io::Manifest& manifest )
+{
+    using namespace FinalStage;
+
+    nlohmann::json data
+        = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+
+    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    {
+        Database database( environment, sourceFilePath );
+        for ( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
+        {
+            for ( Interface::IContext* pChildContext : pRoot->get_children() )
+            {
+                recurse( data, pChildContext );
+            }
+        }
+    }
+    os << data;
+}
+
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             strGraphType;
-    boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath;
+    boost::filesystem::path srcDir, buildDir, databaseArchivePath, outputFilePath;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Generate graph json data" );
     {
         // clang-format off
         commandOptions.add_options()
-            ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),                     "Source directory" )
-            ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),                      "Build directory" )
+            ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),                            "Source directory" )
+            ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),                          "Build directory" )
+            ( "database",   po::value< boost::filesystem::path >( &databaseArchivePath ),               "Path to database archive" )
             ( "type",       po::value< std::string >( &strGraphType )->default_value( "interface" ),    "graph type" )
             ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),                    "output file to generate" )
             ;
@@ -326,64 +349,34 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        try
+        std::ostringstream osOutput;
         {
-            std::ostringstream osOutput;
+            std::unique_ptr< mega::io::Environment > pEnvironment;
+            mega::compiler::Directories directories{ srcDir, buildDir, "", "" };
+
+            if ( !databaseArchivePath.empty() )
             {
-                if ( strGraphType == "interface" )
-                {
-                    mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
-                    mega::io::Manifest         manifest( environment, environment.project_manifest() );
-
-                    using namespace FinalStage;
-
-                    nlohmann::json data = nlohmann::json::object(
-                        { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
-
-                    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
-                    {
-                        Database database( environment, sourceFilePath );
-                        for ( Interface::Root* pRoot : database.many< Interface::Root >( sourceFilePath ) )
-                        {
-                            for ( Interface::IContext* pChildContext : pRoot->get_children() )
-                            {
-                                recurse( data, pChildContext );
-                            }
-                        }
-                    }
-
-                    osOutput << data;
-                }
-                /*else if( strGraphType == "concrete" )
-                {
-                    mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
-                    mega::io::Manifest         manifest( environment, environment.project_manifest() );
-
-                    using namespace FinalStage;
-
-                    nlohmann::json data = nlohmann::json::object(
-                        { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
-
-                    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
-                    {
-                        Database database( environment, sourceFilePath );
-                        for ( Concrete::Root* pRoot : database.many< Concrete::Root >( sourceFilePath ) )
-                        {
-                            for ( Concrete::Context* pChildContext : pRoot->get_children() )
-                            {
-                                recurse( data, pChildContext );
-                            }
-                        }
-                    }
-
-                    osOutput << data;
-                }*/
-                else
-                {
-                    THROW_RTE( "Unknown graph type" );
-                }
+                pEnvironment.reset( new mega::io::ArchiveEnvironment( databaseArchivePath ) );
+            }
+            else
+            {
+                pEnvironment.reset( new mega::io::BuildEnvironment( directories ) );
             }
 
+            mega::io::Manifest manifest( *pEnvironment, pEnvironment->project_manifest() );
+
+            if ( strGraphType == "interface" )
+            {
+                generateInterfaceGraphViz( osOutput, *pEnvironment, manifest );
+            }
+            else
+            {
+                THROW_RTE( "Unknown graph type" );
+            }
+        }
+
+        try
+        {
             boost::filesystem::updateFileIfChanged( outputFilePath, osOutput.str() );
         }
         catch ( std::exception& ex )

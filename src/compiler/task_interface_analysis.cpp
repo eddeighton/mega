@@ -440,8 +440,21 @@ public:
 
         // generate the interface header
         {
+            std::ostringstream osGuard;
+            {
+                bool bFirst = true;
+                for ( auto filePart : m_sourceFilePath.path() )
+                {
+                    if ( bFirst )
+                        bFirst = false;
+                    else
+                        osGuard << "_";
+                    osGuard << filePart.replace_extension( "" ).string();
+                }
+            }
+
             nlohmann::json interfaceData( { { "interface", strInterface },
-                                            { "guard", determinant.toHexString() },
+                                            { "guard", osGuard.str() },
                                             { "structs", structs },
                                             { "forward_decls", nlohmann::json::array() } } );
 

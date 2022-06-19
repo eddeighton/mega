@@ -123,17 +123,21 @@ add_custom_command(
     COMMENT "Generating Database" 
     )
 
+# NOTE these files are duplicated in the database tests cmake
 set( MEGA_DATABASE_COMMON
     ${MEGA_API_DIR}/database/common/archive.hpp
     ${MEGA_API_DIR}/database/common/component_info.hpp
     ${MEGA_API_DIR}/database/common/data_pointer.hpp
-    ${MEGA_API_DIR}/database/common/environments.hpp
+    ${MEGA_API_DIR}/database/common/environment_archive.hpp
+    ${MEGA_API_DIR}/database/common/environment_build.hpp
+    ${MEGA_API_DIR}/database/common/environment_stash.hpp
     ${MEGA_API_DIR}/database/common/exception.hpp
     ${MEGA_API_DIR}/database/common/file_header.hpp
     ${MEGA_API_DIR}/database/common/file_system.hpp
     ${MEGA_API_DIR}/database/common/file.hpp
     ${MEGA_API_DIR}/database/common/generics.hpp
     ${MEGA_API_DIR}/database/common/loader.hpp
+    ${MEGA_API_DIR}/database/common/manifest_data.hpp
     ${MEGA_API_DIR}/database/common/object_info.hpp
     ${MEGA_API_DIR}/database/common/object_loader.hpp
     ${MEGA_API_DIR}/database/common/object.hpp
@@ -143,6 +147,8 @@ set( MEGA_DATABASE_COMMON
 
 set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/common/archive.cpp
+    ${MEGA_SRC_DIR}/database/common/environment_build.cpp
+    ${MEGA_SRC_DIR}/database/common/environment_stash.cpp
     ${MEGA_SRC_DIR}/database/common/component_info.cpp
     ${MEGA_SRC_DIR}/database/common/file.cpp
     ${MEGA_SRC_DIR}/database/common/loader.cpp

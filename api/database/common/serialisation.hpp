@@ -26,62 +26,63 @@
 
 #include "nlohmann/json.hpp"
 
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/path_traits.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/map.hpp>
+#include "boost/filesystem/path.hpp"
+#include "boost/filesystem/path_traits.hpp"
+#include "boost/serialization/vector.hpp"
+#include "boost/serialization/map.hpp"
 
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
+#include "boost/archive/xml_iarchive.hpp"
+#include "boost/archive/xml_oarchive.hpp"
+#include "boost/archive/binary_iarchive.hpp"
+#include "boost/archive/binary_oarchive.hpp"
 
 //#include <boost/archive/text_oarchive.hpp>
 //#include <boost/archive/text_iarchive.hpp>
 
 #include <optional>
 #include <type_traits>
+#include <set>
 
 namespace mega
 {
-    using InputArchiveType  = boost::archive::xml_iarchive;
-    using OutputArchiveType = boost::archive::xml_oarchive;
-    // using InputArchiveType = boost::archive::text_iarchive;
-    // using OutputArchiveType = boost::archive::text_oarchive;
+using InputArchiveType  = boost::archive::xml_iarchive;
+using OutputArchiveType = boost::archive::xml_oarchive;
+// using InputArchiveType = boost::archive::text_iarchive;
+// using OutputArchiveType = boost::archive::text_oarchive;
 } // namespace mega
 
 namespace boost
 {
-    namespace archive
-    {
-        class MegaIArchive : public binary_iarchive
-        {
-        public:
-            MegaIArchive( std::istream& os, ::data::ObjectPartLoader& loader );
-            std::vector< mega::io::ObjectInfo::FileID > m_fileIDLoadedToRuntime;
-            ::data::ObjectPartLoader&                   m_loader;
-        };
-    } // namespace archive
-} // namespace boost
-
-namespace boost
+namespace archive
 {
-    namespace archive
-    {
-        class MegaOArchive : public binary_oarchive
-        {
-        public:
-            MegaOArchive( std::ostream& os );
-        };
-    } // namespace archive
-} // namespace boost
-
-namespace boost
+class MegaIArchive : public binary_iarchive
 {
-    namespace filesystem
-    {
-        inline void to_json( nlohmann::json& j, const boost::filesystem::path& p ) { j = nlohmann::json{ { "path", p.string() } }; }
-    } // namespace filesystem
+    std::set< mega::io::ObjectInfo* >& m_objectInfos;
+
+public:
+    MegaIArchive( std::istream& os, std::set< mega::io::ObjectInfo* >& objectInfos, ::data::ObjectPartLoader& loader );
+    void objectInfo( mega::io::ObjectInfo* pObjectInfo );
+
+    ::data::ObjectPartLoader& m_loader;
+};
+
+class MegaOArchive : public binary_oarchive
+{
+    std::set< const mega::io::ObjectInfo* >& m_objectInfos;
+
+public:
+    MegaOArchive( std::ostream& os, std::set< const mega::io::ObjectInfo* >& objectInfos );
+    void objectInfo( const mega::io::ObjectInfo* pObjectInfo );
+};
+} // namespace archive
+
+namespace filesystem
+{
+inline void to_json( nlohmann::json& j, const boost::filesystem::path& p )
+{
+    j = nlohmann::json{ { "path", p.string() } };
+}
+} // namespace filesystem
 } // namespace boost
 
 #endif // ARCHIVE_18_04_2019

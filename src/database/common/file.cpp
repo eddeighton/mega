@@ -5,6 +5,7 @@
 #include "database/common/storer.hpp"
 
 #include "database/model/data.hxx"
+#include "database/model/manifest.hxx"
 #include <common/hash.hpp>
 
 namespace mega
@@ -40,12 +41,12 @@ void File::preload( Loader& loader )
     }
 }
 
-void File::load( const Manifest& manifest )
+void File::load( const Manifest& )
 {
     VERIFY_RTE( !m_pLoader );
     try
     {
-        m_pLoader = std::make_shared< Loader >( m_fileSystem, manifest, m_version, m_info.getFilePath(), m_objectLoader );
+        m_pLoader = std::make_shared< Loader >( m_fileSystem, m_version, m_info.getFilePath(), m_objectLoader );
         preload( *m_pLoader );
         for ( Object* pObject : m_objects )
         {
@@ -64,6 +65,7 @@ void File::load_post( const Manifest& manifest )
 {
     try
     {
+        m_pLoader->postLoad( manifest );
         VERIFY_RTE( m_pLoader );
         for ( Object* pObject : m_objects )
         {
@@ -85,7 +87,7 @@ task::FileHash File::save_temp( const Manifest& manifest ) const
     {
         try
         {
-            Storer storer( m_fileSystem, m_info.getFilePath(), m_version, manifest, tempFile );
+            Storer storer( m_fileSystem, m_info.getFilePath(), m_version, tempFile );
 
             storer.store( m_objects.size() );
             for ( Object* pObject : m_objects )
@@ -96,6 +98,10 @@ task::FileHash File::save_temp( const Manifest& manifest ) const
             {
                 pObject->store( storer );
             }
+
+            // generate reduced manifest based on used files
+            auto manifestData = manifest.filterToObjects( storer.getObjectInfos() );
+            storer.store( manifestData );
         }
         catch ( boost::archive::archive_exception& ex )
         {

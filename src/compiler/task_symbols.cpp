@@ -4,7 +4,9 @@
 #include "database/model/SymbolAnalysis.hxx"
 #include "database/model/SymbolAnalysisView.hxx"
 #include "database/model/SymbolRollout.hxx"
+#include "database/model/manifest.hxx"
 
+#include "database/common/environment_archive.hpp"
 #include "database/common/exception.hpp"
 
 namespace mega
@@ -58,7 +60,7 @@ public:
     struct ContextDimensionSymbolSet
     {
         SymbolAnalysis::Symbols::SymbolSet*        pSymbolSet = nullptr;
-        SymbolAnalysis::Interface::IContext*        pContext   = nullptr;
+        SymbolAnalysis::Interface::IContext*       pContext   = nullptr;
         SymbolAnalysis::Interface::DimensionTrait* pDimension = nullptr;
     };
     using TypeMap = std::multimap< int32_t, ContextDimensionSymbolSet >;
@@ -97,7 +99,8 @@ public:
                          SymbolMap& symbolMap, TypeMap& typeMap ) const
         {
             using namespace SymbolAnalysis;
-            for ( Interface::IContext* pContext : database.many< Interface::IContext >( pSymbolSet->get_source_file() ) )
+            for ( Interface::IContext* pContext :
+                  database.many< Interface::IContext >( pSymbolSet->get_source_file() ) )
             {
                 Symbols::Symbol* pSymbol
                     = findOrCreateSymbol( database, pSymbolSet, pContext->get_identifier(), symbolMap );
@@ -143,7 +146,7 @@ public:
                 {
                     while ( labelIter != symbolLabels.end() )
                     {
-                        if ( (-*labelIter) > szNextLabel )
+                        if ( ( -*labelIter ) > szNextLabel )
                         {
                             break;
                         }
@@ -257,11 +260,10 @@ public:
 
         InterfaceHashCodeGenerator hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
-        /*bool bReusedOldDatabase = false;
-        try
+        bool bReusedOldDatabase = false;
+        if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
-            // try loading previous one...
-            if ( m_environment.exists( symbolCompilationFile ) )
+            try
             {
                 // attempt to reuse previous symbol analysis
                 namespace Old = SymbolAnalysisView;
@@ -269,7 +271,9 @@ public:
 
                 New::Database newDatabase( m_environment, manifestFilePath );
                 {
-                    Old::Database oldDatabase( m_environment, manifestFilePath );
+                    // load the archived database
+                    io::ArchiveEnvironment archiveEnvironment( m_environment.DatabaseArchive() );
+                    Old::Database          oldDatabase( archiveEnvironment, archiveEnvironment.project_manifest() );
 
                     const Old::Symbols::SymbolTable* pOldAnalysis
                         = oldDatabase.one< Old::Symbols::SymbolTable >( manifestFilePath );
@@ -464,7 +468,8 @@ public:
                     SymbolIDMap symbolIDMap;
                     SymbolCollector().labelNewSymbols( symbolMap );
                     SymbolCollector().labelNewTypes( typeMap );
-                    SymbolCollector().collate( symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap, symbolIDMap );
+                    SymbolCollector().collate(
+                        symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap, symbolIDMap );
                     newDatabase.construct< New::Symbols::SymbolTable >( New::Symbols::SymbolTable::Args(
                         symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap, symbolIDMap ) );
                 }
@@ -477,17 +482,13 @@ public:
                 succeeded( taskProgress );
                 bReusedOldDatabase = true;
             }
-        }
-        catch ( mega::io::DatabaseVersionException& )
-        {
-            bReusedOldDatabase = false;
-        }
-        catch ( std::exception& )
-        {
-            bReusedOldDatabase = false;
+            catch ( mega::io::DatabaseVersionException& )
+            {
+                bReusedOldDatabase = false;
+            }
         }
 
-        if ( !bReusedOldDatabase )*/
+        if ( !bReusedOldDatabase )
         {
             using namespace SymbolAnalysis;
             using namespace SymbolAnalysis::Symbols;
@@ -497,8 +498,8 @@ public:
                 SymbolMap               symbolMap;
                 TypeIDContextMap        typeIDContextMap;
                 TypeIDDimensionTraitMap typeIDDimensionTraitMap;
-                SymbolIDMap symbolIDMap;
-                
+                SymbolIDMap             symbolIDMap;
+
                 TypeMap                                                 typeMap;
                 std::map< mega::io::megaFilePath, Symbols::SymbolSet* > symbolSetMap;
                 {
@@ -513,10 +514,11 @@ public:
                     }
                     SymbolCollector().labelNewSymbols( symbolMap );
                     SymbolCollector().labelNewTypes( typeMap );
-                    SymbolCollector().collate( symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap, symbolIDMap );
+                    SymbolCollector().collate(
+                        symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap, symbolIDMap );
                 }
-                database.construct< SymbolTable >(
-                    SymbolTable::Args( symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap, symbolIDMap ) );
+                database.construct< SymbolTable >( SymbolTable::Args(
+                    symbolSetMap, symbolMap, typeIDContextMap, typeIDDimensionTraitMap, symbolIDMap ) );
             }
 
             const task::FileHash fileHashCode = database.save_SymbolTable_to_temp();

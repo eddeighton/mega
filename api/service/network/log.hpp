@@ -45,7 +45,7 @@ inline void logLinesInfo( const std::string strMsg )
         std::getline( is, strLine );
         if ( !strLine.empty() )
         {
-            SPDLOG_INFO( "EXCEPTION: {}", strLine );
+            SPDLOG_INFO( "{}", strLine );
         }
     }
 }
@@ -58,7 +58,7 @@ inline void logLinesWarn( const std::string& strTaskName, const std::string strM
         std::getline( is, strLine );
         if ( !strLine.empty() )
         {
-            SPDLOG_WARN( "EXCEPTION: {} {}", strTaskName, strLine );
+            SPDLOG_WARN( "{} {}", strTaskName, strLine );
         }
     }
 }

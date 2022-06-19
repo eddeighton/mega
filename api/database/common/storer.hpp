@@ -25,8 +25,6 @@
 #include "data_pointer.hpp"
 #include "file_system.hpp"
 
-#include "database/model/manifest.hxx"
-
 #include "common/assert_verify.hpp"
 
 #include <boost/filesystem/path.hpp>
@@ -45,7 +43,7 @@ namespace io
 class Storer
 {
 public:
-    Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, std::size_t version, const Manifest& manifest,
+    Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, std::size_t version,
             boost::filesystem::path& tempFile );
 
     template < class T >
@@ -54,10 +52,14 @@ public:
         m_archive& value;
     }
 
+    std::set< const mega::io::ObjectInfo* >& getObjectInfos() { return m_objectInfos; }
+
 private:
-    std::unique_ptr< std::ostream > m_pFileStream;
-    boost::archive::MegaOArchive    m_archive;
+    std::set< const mega::io::ObjectInfo* > m_objectInfos;
+    std::unique_ptr< std::ostream >         m_pFileStream;
+    boost::archive::MegaOArchive            m_archive;
 };
+
 } // namespace io
 } // namespace mega
 

@@ -3,7 +3,6 @@
 
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
-#include "database/common/environments.hpp"
 
 #include "database/model/manifest.hxx"
 #include "database/model/environment.hxx"

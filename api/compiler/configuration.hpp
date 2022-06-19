@@ -24,13 +24,14 @@ namespace compiler
 
 struct Directories
 {
-    boost::filesystem::path rootSourceDir, rootBuildDir, templatesDir;
+    boost::filesystem::path srcDir, buildDir, installDir, templatesDir;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& boost::serialization::make_nvp( "rootSourceDir", rootSourceDir );
-        archive& boost::serialization::make_nvp( "rootBuildDir", rootBuildDir );
+        archive& boost::serialization::make_nvp( "srcDir", srcDir );
+        archive& boost::serialization::make_nvp( "buildDir", buildDir );
+        archive& boost::serialization::make_nvp( "installDir", installDir );
         archive& boost::serialization::make_nvp( "templatesDir", templatesDir );
     }
 };
@@ -46,8 +47,8 @@ struct Configuration
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        //NOTE: header serialization handled seperately so can access in pipeline abstraction
-        //archive& boost::serialization::make_nvp( "header", header );
+        // NOTE: header serialization handled seperately so can access in pipeline abstraction
+        // archive& boost::serialization::make_nvp( "header", header );
         archive& boost::serialization::make_nvp( "projectName", projectName );
         archive& boost::serialization::make_nvp( "componentInfoPaths", componentInfoPaths );
         archive& boost::serialization::make_nvp( "directories", directories );

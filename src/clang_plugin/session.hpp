@@ -5,7 +5,7 @@
 #include "database/types/operation.hpp"
 #include "database/types/sources.hpp"
 
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
 
 #include "clang/AST/ASTContext.h"
 #include "clang/Sema/Sema.h"
@@ -35,7 +35,7 @@ public:
     void setContext( ASTContext* _pASTContext, Sema* _pSema )
     {
         pASTContext = _pASTContext;
-        pSema = _pSema;
+        pSema       = _pSema;
     }
 
     ASTContext* getASTContext() const { return pASTContext; }
@@ -61,6 +61,7 @@ class AnalysisSession : public Session
 {
 protected:
     const boost::filesystem::path m_srcDir, m_buildDir;
+    mega::compiler::Directories   m_directories;
     mega::io::BuildEnvironment    m_environment;
     const mega::io::megaFilePath  m_sourceFile;
 
@@ -71,7 +72,8 @@ public:
         : Session( pASTContext, pSema )
         , m_srcDir( strSrcDir )
         , m_buildDir( strBuildDir )
-        , m_environment( m_srcDir, m_buildDir )
+        , m_directories{ m_srcDir, m_buildDir, "", "" }
+        , m_environment( m_directories )
         , m_sourceFile( m_environment.megaFilePath_fromPath( boost::filesystem::path( strSourceFile ) ) )
     {
     }

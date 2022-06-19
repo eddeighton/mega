@@ -1,13 +1,12 @@
 
 #include "base_task.hpp"
 
-#include "database/common/exception.hpp"
-
 #include "database/model/DerivationAnalysis.hxx"
 #include "database/model/DerivationAnalysisView.hxx"
-
 #include "database/model/manifest.hxx"
-#include "utilities/glob.hpp"
+
+#include "database/common/environment_archive.hpp"
+#include "database/common/exception.hpp"
 
 namespace mega
 {
@@ -213,11 +212,10 @@ public:
 
         } hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
-        /*bool bReusedOldDatabase = false;
-        try
+        bool bReusedOldDatabase = false;
+        if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
-            // try loading previous one...
-            if ( m_environment.exists( dependencyCompilationFilePath ) )
+            try
             {
                 // attempt to load previous dependency analysis
                 namespace Old = DerivationAnalysisView;
@@ -225,7 +223,9 @@ public:
 
                 New::Database newDatabase( m_environment, manifestFilePath );
                 {
-                    Old::Database oldDatabase( m_environment, manifestFilePath );
+                    // load the archived database
+                    io::ArchiveEnvironment archiveEnvironment( m_environment.DatabaseArchive() );
+                    Old::Database          oldDatabase( archiveEnvironment, archiveEnvironment.project_manifest() );
 
                     const Old::Derivation::Mapping* pOldAnalysis
                         = oldDatabase.one< Old::Derivation::Mapping >( manifestFilePath );
@@ -335,13 +335,13 @@ public:
                 succeeded( taskProgress );
                 bReusedOldDatabase = true;
             }
-        }
-        catch ( mega::io::DatabaseVersionException& )
-        {
-            bReusedOldDatabase = false;
+            catch ( mega::io::DatabaseVersionException& )
+            {
+                bReusedOldDatabase = false;
+            }
         }
 
-        if ( !bReusedOldDatabase )*/
+        if ( !bReusedOldDatabase )
         {
             using namespace DerivationAnalysis;
             using namespace DerivationAnalysis::Derivation;

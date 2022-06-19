@@ -1,6 +1,6 @@
 
 
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
 
 #include "database/types/sources.hpp"
 
@@ -30,15 +30,18 @@
 class BasicDBTest : public ::testing::Test
 {
 public:
-    boost::filesystem::path                       m_tempDir;
-    std::unique_ptr< mega::io::BuildEnvironment > m_pEnvironment;
+    boost::filesystem::path                        m_tempDir;
+    std::unique_ptr< mega::compiler::Directories > m_pDirectories;
+    std::unique_ptr< mega::io::BuildEnvironment >  m_pEnvironment;
 
     virtual void SetUp() override
     {
         m_tempDir = boost::filesystem::temp_directory_path() / "BasicDBTest" / common::uuid();
         boost::filesystem::create_directories( m_tempDir );
 
-        m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( m_tempDir, m_tempDir );
+        m_pDirectories = std::make_unique< mega::compiler::Directories >(
+            mega::compiler::Directories{ m_tempDir, m_tempDir, "", "" } );
+        m_pEnvironment = std::make_unique< mega::io::BuildEnvironment >( *m_pDirectories );
 
         std::vector< boost::filesystem::path > componentInfoPaths;
         const mega::io::Manifest               manifest( *m_pEnvironment, componentInfoPaths );
@@ -239,12 +242,12 @@ TEST_F( BasicDBTest, DatabaseErrors )
         OtherObject* pTestObject = database.one< OtherObject >( m_pEnvironment->project_manifest() );
         TestInherit* pInherited  = database.one< TestInherit >( m_pEnvironment->project_manifest() );
         ASSERT_EQ( pTestObject, pInherited );
-        TestInherit* pOther      = dynamic_database_cast< TestInherit >( pTestObject );
+        TestInherit* pOther = dynamic_database_cast< TestInherit >( pTestObject );
         ASSERT_TRUE( pOther );
         ASSERT_TRUE( pInherited );
-        ASSERT_EQ( pOther->_get_object_info().getFileID(),  pInherited->_get_object_info().getFileID() );
-        ASSERT_EQ( pOther->_get_object_info().getType(),    pInherited->_get_object_info().getType() );
-        ASSERT_EQ( pOther->_get_object_info().getIndex(),   pInherited->_get_object_info().getIndex() );
+        ASSERT_EQ( pOther->_get_object_info().getFileID(), pInherited->_get_object_info().getFileID() );
+        ASSERT_EQ( pOther->_get_object_info().getType(), pInherited->_get_object_info().getType() );
+        ASSERT_EQ( pOther->_get_object_info().getIndex(), pInherited->_get_object_info().getIndex() );
         ASSERT_EQ( pOther, pInherited );
 
         ASSERT_THROW( pInherited->get_third_stage_inherited_value(), std::runtime_error );

@@ -17,9 +17,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "compiler/configuration.hpp"
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
-#include "database/common/environments.hpp"
+#include "database/common/environment_build.hpp"
 #include "database/common/archive.hpp"
 
 #include "common/scheduler.hpp"
@@ -41,15 +42,15 @@ namespace driver
     {
         void command( bool bHelp, const std::vector< std::string >& args )
         {
-            boost::filesystem::path rootSourceDir, rootBuildDir, outputFilePath;
+            boost::filesystem::path srcDir, buildDir, outputFilePath;
 
             namespace po = boost::program_options;
             po::options_description commandOptions( " Generate retail archive" );
             {
                 // clang-format off
             commandOptions.add_options()
-                ( "src_dir",    po::value< boost::filesystem::path >( &rootSourceDir ),     "Source directory" )
-                ( "build_dir",  po::value< boost::filesystem::path >( &rootBuildDir ),      "Build directory" )
+                ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),     "Source directory" )
+                ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),      "Build directory" )
                 ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),    "Archive file to generate" )
                 ;
                 // clang-format on
@@ -65,9 +66,10 @@ namespace driver
             }
             else
             {
-                mega::io::BuildEnvironment environment( rootSourceDir, rootBuildDir );
+                mega::compiler::Directories directories{ srcDir, buildDir, "", "" };
+                mega::io::BuildEnvironment environment( directories );
                 const mega::io::Manifest manifest( environment, environment.project_manifest() );
-                mega::io::ReadArchive::compile_archive( outputFilePath, manifest, rootSourceDir, rootBuildDir );
+                mega::io::ReadArchive::compile_archive( outputFilePath, manifest, srcDir, buildDir );
             }
         }
     } // namespace archive

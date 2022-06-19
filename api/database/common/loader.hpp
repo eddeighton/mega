@@ -23,7 +23,6 @@
 #include "serialisation.hpp"
 #include "object_info.hpp"
 #include "object.hpp"
-#include "data_pointer.hpp"
 #include "file_system.hpp"
 
 #include "database/types/sources.hpp"
@@ -52,8 +51,8 @@ class Manifest;
 class Loader
 {
 public:
-    Loader( const FileSystem& fileSystem, const Manifest& runtimeManifest, std::size_t version, const CompilationFilePath& filePath,
-            ::data::ObjectPartLoader& loader );
+    Loader( const FileSystem& fileSystem, std::size_t version,
+            const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader );
 
     template < typename T >
     void load( T& value )
@@ -61,9 +60,12 @@ public:
         m_archive& value;
     }
 
+    void postLoad( const Manifest& runtimeManifest );
+
 private:
-    std::unique_ptr< std::istream > m_pFileStream;
-    boost::archive::MegaIArchive    m_archive;
+    std::set< mega::io::ObjectInfo* > m_objectInfos;
+    std::unique_ptr< std::istream >   m_pFileStream;
+    boost::archive::MegaIArchive      m_archive;
 };
 
 } // namespace io

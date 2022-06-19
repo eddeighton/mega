@@ -2,6 +2,7 @@
 #define OBJECT_INFO_30_MAR_2022
 
 #include <cstdint>
+#include <type_traits>
 
 namespace mega
 {
@@ -34,6 +35,8 @@ public:
     inline Type   getType() const { return m_type; }
     inline FileID getFileID() const { return m_fileID; }
     inline Index  getIndex() const { return m_index; }
+
+    void setFileID( FileID fileID ) { m_fileID = fileID; }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )

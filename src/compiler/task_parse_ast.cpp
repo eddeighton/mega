@@ -29,8 +29,9 @@ public:
                                                      std::ostream&                             osError,
                                                      std::ostream&                             osWarn )
     {
+        
         ParserStage::Parser::ContextDef* pContextDef
-            = m_parser->parseEGSourceFile( database, m_environment.rootSourceDir() / sourceFilePath.path(),
+            = m_parser->parseEGSourceFile( database, m_environment.FilePath( sourceFilePath ),
                                                    pComponent->get_includeDirectories(), osError, osWarn );
         return pContextDef;
     }
@@ -113,6 +114,12 @@ public:
             {
                 const task::FileHash astHashCode = database.save_AST_to_temp();
                 m_environment.setBuildHashCode( astFile, astHashCode );
+
+                /*{
+                    std::ostringstream os;
+                    os << "PARSER: " << astHashCode.toHexString();
+                    msg( taskProgress, os.str() );
+                }*/
 
                 const task::DeterminantHash determinant( { m_toolChain.toolChainHash, astHashCode } );
 

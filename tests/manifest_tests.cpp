@@ -3,7 +3,6 @@
 #include "database/model/file_info.hxx"
 #include "database/model/manifest.hxx"
 
-#include "database/common/environments.hpp"
 #include "database/common/serialisation.hpp"
 
 #include <gtest/gtest.h>
@@ -34,22 +33,3 @@ TEST( MegaManifest, Manifest_Empty )
     ASSERT_TRUE( manifestFrom.getCompilationFileInfos().empty() );
     ASSERT_TRUE( manifestFrom.getMegaSourceFiles().empty() );
 }
-/*
-TEST( MegaManifest, Manifest_One )
-{
-    BuildEnvironment environment( "data/test_one", "data/test_one_build" );
-    Manifest    manifestFrom( environment );
-
-    std::stringstream ss;
-    {
-        ss << manifestFrom;
-    }
-
-    Manifest manifestTo;
-    {
-        mega::InputArchiveType ia( ss );
-        ia & manifestTo;
-    }
-
-}
-*/
