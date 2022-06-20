@@ -175,6 +175,7 @@ stage FinalStage
     dependency OperationsStage;
 
     global accessor array< ref< Components::Component > >;
+    global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::Root >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Operations::Invocations >;

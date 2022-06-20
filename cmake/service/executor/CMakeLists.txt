@@ -33,7 +33,7 @@ target_link_libraries( executor network )
 target_link_libraries( executor service )
 target_link_libraries( executor pipeline )
 target_link_libraries( executor database )
-target_link_libraries( parser utilities )
+target_link_libraries( executor runtime )
 
 set_target_properties( executor PROPERTIES FOLDER driver )
 

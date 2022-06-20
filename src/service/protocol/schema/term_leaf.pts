@@ -12,3 +12,15 @@ msg TermPipelineRun
     request(mega::pipeline::Configuration configuration);
     response(mega::network::PipelineResult result);
 }
+
+msg TermGetProject
+{
+    request();
+    response(mega::network::Project project);
+}
+
+msg TermSetProject
+{
+    request(mega::network::Project project);
+    response(bool bSuccess);
+}

@@ -111,6 +111,18 @@ public:
         getOriginatingLeafResponse( yield_ctx ).TermPipelineRun( result );
     }
 
+    virtual void TermGetProject( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).TermGetProject();
+        getOriginatingLeafResponse( yield_ctx ).TermGetProject( result );
+    }
+
+    virtual void TermSetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).TermSetProject( project );
+        getOriginatingLeafResponse( yield_ctx ).TermSetProject( result );
+    }
+
     virtual void ExePipelineReadyForWork( const network::ConversationID& rootConversationID,
                                           boost::asio::yield_context&    yield_ctx ) override
     {
@@ -176,10 +188,10 @@ public:
         std::vector< network::ConversationID > allJobs;
         for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
         {
-            if( pConnection->getTypeOpt().value() == network::Node::Executor )
+            if ( pConnection->getTypeOpt().value() == network::Node::Executor )
             {
                 network::daemon_leaf::Request_Encode rq( *this, *pConnection, yield_ctx );
-                auto                                 jobs = rq.RootPipelineStartJobs( configuration, rootConversationID );
+                auto jobs = rq.RootPipelineStartJobs( configuration, rootConversationID );
                 std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
             }
         }

@@ -118,6 +118,33 @@ bool Terminal::Shutdown()
 */
 void Terminal::shutdown() { m_receiverChannel.stop(); }
 
+network::ConversationBase::Ptr Terminal::joinConversation( const network::ConnectionID&   originatingConnectionID,
+                                                           const network::Header&         header,
+                                                           const network::MessageVariant& msg )
+{
+    return network::ConversationBase::Ptr(
+        new TerminalRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+}
+
+std::vector< std::string > Terminal::listNetworkNodes()
+{
+    std::optional< std::vector< std::string > > result;
+    {
+        auto func = [ &result ](
+                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+        {
+            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
+            result = leaf.TermListNetworkNodes();
+        };
+        conversationStarted( network::ConversationBase::Ptr(
+            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
+                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
+    }
+    while ( !result.has_value() )
+        m_io_context.run_one();
+    return result.value();
+}
+
 network::PipelineResult Terminal::PipelineRun( const mega::pipeline::Configuration& pipelineConfig )
 {
     std::optional< network::PipelineResult > result;
@@ -138,23 +165,34 @@ network::PipelineResult Terminal::PipelineRun( const mega::pipeline::Configurati
     return result.value();
 }
 
-network::ConversationBase::Ptr Terminal::joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                           const network::Header&         header,
-                                                           const network::MessageVariant& msg )
+bool Terminal::SetProject( const mega::network::Project& project )
 {
-    return network::ConversationBase::Ptr(
-        new TerminalRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+    std::optional< bool > result;
+    {
+        auto func = [ &result, &project ](
+                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+        {
+            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
+            result = leaf.TermSetProject( project );
+        };
+        conversationStarted( network::ConversationBase::Ptr(
+            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
+                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
+    }
+    while ( !result.has_value() )
+        m_io_context.run_one();
+    return result.value();
 }
 
-std::vector< std::string > Terminal::listNetworkNodes()
+mega::network::Project Terminal::GetProject()
 {
-    std::optional< std::vector< std::string > > result;
+    std::optional< mega::network::Project > result;
     {
         auto func = [ &result ](
                         network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
         {
             network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            result = leaf.TermListNetworkNodes();
+            result = leaf.TermGetProject();
         };
         conversationStarted( network::ConversationBase::Ptr(
             new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),

@@ -20,7 +20,7 @@ public:
     };
 
     static const char* toStr( Type type );
-    static Type               fromStr( const char* pszStr );
+    static Type        fromStr( const char* pszStr );
 };
 
 } // namespace network

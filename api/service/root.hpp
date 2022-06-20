@@ -7,6 +7,7 @@
 #include "boost/asio/io_context.hpp"
 
 #include "common/stash.hpp"
+#include "service/protocol/common/root_config.hpp"
 
 namespace mega
 {
@@ -27,9 +28,17 @@ public:
                                                              const network::Header&         header,
                                                              const network::MessageVariant& msg );
 
+    const network::Project& getProject() const { return m_config.getProject(); }
+    void                    setProject( const network::Project& project ) { m_config.setProject( project ); }
+
 private:
-    network::Server m_server;
-    task::Stash     m_stash;
+    void loadConfig();
+    void saveConfig();
+
+private:
+    network::Server           m_server;
+    task::Stash               m_stash;
+    mega::network::RootConfig m_config;
 };
 
 } // namespace service

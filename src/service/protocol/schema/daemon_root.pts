@@ -13,6 +13,18 @@ msg TermPipelineRun
     response(mega::network::PipelineResult result);
 }
 
+msg TermGetProject
+{
+    request();
+    response(mega::network::Project project);
+}
+
+msg TermSetProject
+{
+    request(mega::network::Project project);
+    response(bool bSuccess);
+}
+
 msg ExePipelineReadyForWork
 {
     request(network::ConversationID rootConversationID);
@@ -47,4 +59,10 @@ msg ExeRestore
 {
     request( boost::filesystem::path filePath, task::DeterminantHash determinant );
     response( bool bRestored );
+}
+
+msg ExeGetProject
+{
+    request();
+    response(mega::network::Project project);
 }

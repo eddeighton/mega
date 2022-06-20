@@ -11,16 +11,20 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/runtime/runtime.hpp
+    ${MEGA_API_DIR}/runtime/component_manager.hpp
 )
 
 set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/runtime.cpp
+    ${MEGA_SRC_DIR}/runtime/component_manager.cpp
 )
 
 add_library( runtime
     ${RUNTIME_HEADERS} 
     ${RUNTIME_SOURCE}
 )
+
+target_link_libraries( runtime database )
 
 set_property(TARGET runtime PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories( runtime PUBLIC ${MEGA_API_DIR} )

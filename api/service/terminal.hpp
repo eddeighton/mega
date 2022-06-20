@@ -33,22 +33,20 @@ class Terminal : public network::ConversationManager
 public:
     Terminal( std::optional< const std::string > optName = std::nullopt );
     ~Terminal();
-    void shutdown();
-    bool running() { return !m_io_context.stopped(); }
-    /*
-        std::string                        GetVersion();
-        std::vector< std::string >         ListTerminals();
-        std::vector< network::ConversationID > listActivities();
-        bool                               Shutdown();
-    */
-    network::PipelineResult PipelineRun( const pipeline::Configuration& pipelineConfig );
 
+    void shutdown();
+
+    bool running() { return !m_io_context.stopped(); }
+    
     // network::ConversationManager
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID&   originatingConnectionID,
                                                              const network::Header&         header,
                                                              const network::MessageVariant& msg );
 
     std::vector< std::string > listNetworkNodes();
+    network::PipelineResult PipelineRun( const pipeline::Configuration& pipelineConfig );
+    bool SetProject( const mega::network::Project& project );
+    mega::network::Project GetProject();
 
     network::Sender& getLeafSender() { return m_leaf; }
 

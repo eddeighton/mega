@@ -107,12 +107,51 @@ public:
         getTermResponse( yield_ctx ).TermPipelineRun( result );
     }
 
+    virtual void TermGetProject( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermGetProject();
+        getTermResponse( yield_ctx ).TermGetProject( result );
+    }
+
+    virtual void TermSetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermSetProject( project );
+        getTermResponse( yield_ctx ).TermSetProject( result );
+    }
+
     // daemon_leaf
     virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getTermRequest( yield_ctx ).RootListNetworkNodes();
-        result.push_back( getProcessName() );
-        getDaemonResponse( yield_ctx ).RootListNetworkNodes( result );
+        switch ( m_leaf.m_nodeType )
+        {
+            case network::Node::Terminal:
+            {
+                auto result = getTermRequest( yield_ctx ).RootListNetworkNodes();
+                result.push_back( getProcessName() );
+                getDaemonResponse( yield_ctx ).RootListNetworkNodes( result );
+            }
+            break;
+            case network::Node::Tool:
+            {
+                // auto result = getToolRequest( yield_ctx ).RootListNetworkNodes();
+                std::vector< std::string > result;
+                result.push_back( getProcessName() );
+                getDaemonResponse( yield_ctx ).RootListNetworkNodes( result );
+            }
+            break;
+            case network::Node::Executor:
+            {
+                auto result = getExeRequest( yield_ctx ).RootListNetworkNodes();
+                result.push_back( getProcessName() );
+                getDaemonResponse( yield_ctx ).RootListNetworkNodes( result );
+            }
+            break;
+            case network::Node::Daemon:
+            case network::Node::Root:
+            case network::Node::TOTAL_NODE_TYPES:
+            default:
+                THROW_RTE( "Invalid leaf type" );
+        }
     }
 
     virtual void RootPipelineStartJobs( const mega::pipeline::Configuration& configuration,
@@ -144,7 +183,8 @@ public:
         getExeResponse( yield_ctx ).ExePipelineWorkProgress();
     }
 
-    virtual void ExeGetBuildHashCode( const boost::filesystem::path& filePath, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeGetBuildHashCode( const boost::filesystem::path& filePath,
+                                      boost::asio::yield_context&    yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ExeGetBuildHashCode( filePath );
         getExeResponse( yield_ctx ).ExeGetBuildHashCode( result );

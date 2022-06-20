@@ -23,30 +23,28 @@ int main( int argc, const char* argv[] )
     std::optional< std::string > optionalHostName;
     boost::filesystem::path      logFolder          = boost::filesystem::current_path() / "log";
     std::string                  strConsoleLogLevel = "warn", strLogFileLevel = "warn";
-    bool bLoop = false;
 
-    /*namespace po = boost::program_options;
+    namespace po = boost::program_options;
 
-    bool        bShowHelp       = false;
-    bool        bShowVersion    = false;
-    bool        bListHosts      = false;
-    bool        bListActivities = false;
-    std::string strPipeline;
-    bool        bShutdown = false;
-    bool        bQuit     = false;
+    bool                    bShowHelp  = false;
+    bool                    bListNodes = false;
+    boost::filesystem::path pipelinePath;
+    boost::filesystem::path projectPath;
+    bool                    bGetProject = false;
+    bool                    bLoop       = false;
+    bool                    bQuit       = false;
 
     po::options_description commands( "Commands" );
 
     // clang-format off
     commands.add_options()
-    ( "help,?",         po::bool_switch( &bShowHelp ),              "Show Command Line Help"    )
-    ( "version,v",      po::bool_switch( &bShowVersion ),           "Get Version"               )
-    ( "hosts,h",        po::bool_switch( &bListHosts ),             "List hosts"                )
-    ( "activities,a",   po::bool_switch( &bListActivities ),        "List activiies"            )
-    ( "pipeline,p",     po::value< std::string >( &strPipeline ),   "Run a pipeline"            )
-    ( "shutdown,s",     po::bool_switch( &bShutdown ),              "Shutdown service"          )
-    ( "loop,l",         po::bool_switch( &bLoop ),                  "Run interactively"         )
-    ( "quit,q",         po::bool_switch( &bQuit ),                  "Quit this host"            )
+    ( "help,?",         po::bool_switch( &bShowHelp ),                          "Show Command Line Help" )
+    ( "nodes,n",        po::bool_switch( &bListNodes ),                         "List network nodes"     )
+    ( "pipeline,p",     po::value< boost::filesystem::path >( &pipelinePath ),  "Run a pipeline"         )
+    ( "setProject,s",   po::value< boost::filesystem::path >( &projectPath ),   "Select a project"       )
+    ( "getProject,g",   po::bool_switch( &bGetProject ),                        "Get current project"    )
+    ( "loop,l",         po::bool_switch( &bLoop ),                              "Run interactively"      )
+    ( "quit,q",         po::bool_switch( &bQuit ),                              "Quit this host"         )
     ;
 
     {
@@ -78,61 +76,55 @@ int main( int argc, const char* argv[] )
         {
             optionalHostName.emplace( std::move( strHostName ) );
         }
-    }*/
+    }
 
-    const bool bRunLoop = bLoop; // capture bLoop as will be reset
+    bool bRunLoop = bLoop; // capture bLoop as will be reset
 
     try
     {
-        auto logThreads = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
-                                                       mega::network::fromStr( strLogFileLevel ) );
+        auto logThreads
+            = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
+                                           mega::network::fromStr( strLogFileLevel ) );
 
         mega::service::Terminal terminal( optionalHostName );
 
-        auto result = terminal.listNetworkNodes();
-        for( const std::string& str : result )
-        {
-            std::cout << str << std::endl;
-        }
-
         // clang-format on
-        /*while ( terminal.running() )
+        while ( terminal.running() )
         {
             if ( bShowHelp )
             {
                 std::cout << commands << std::endl;
             }
-            else if ( bShowVersion )
+            else if ( bListNodes )
             {
-                auto version = terminal.GetVersion();
-                std::cout << "Version is: " << version << std::endl;
-            }
-            else if ( bListHosts )
-            {
-                for ( const std::string& strHost : terminal.ListHosts() )
+                auto result = terminal.listNetworkNodes();
+                for ( const std::string& str : result )
                 {
-                    std::cout << strHost << std::endl;
+                    std::cout << str << std::endl;
                 }
             }
-            else if ( bListActivities )
-            {
-                for ( const mega::network::ConversationID& conversationID : terminal.listActivities() )
-                {
-                    std::cout << "Conversation: " << conversationID.getID() << " "
-                              << "connectionID: " << conversationID.getConnectionID() << std::endl;
-                }
-            }
-            else if ( !strPipeline.empty() )
+            else if ( !pipelinePath.empty() )
             {
                 mega::pipeline::Configuration pipelineConfig;
-                boost::filesystem::loadAsciiFile( boost::filesystem::path( strPipeline ), pipelineConfig.data() );
+                boost::filesystem::loadAsciiFile( pipelinePath, pipelineConfig.data() );
                 const mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
                 std::cout << "Pipeline result:\n" << result.getSuccess() << " : " << result.getMessage() << std::endl;
             }
-            else if ( bShutdown )
+            else if ( bGetProject )
             {
-                terminal.Shutdown();
-                break;
+                mega::network::Project project = terminal.GetProject();
+                if ( project.getProjectInstallPath().empty() )
+                    std::cout << "No active project" << std::endl;
+                else
+                    std::cout << "Active project: " << project.getProjectInstallPath() << std::endl;
+            }
+            else if ( !projectPath.empty() )
+            {
+                mega::network::Project project( projectPath );
+                if ( terminal.SetProject( project ) )
+                    std::cout << "Project set to: " << project.getProjectInstallPath() << std::endl;
+                else
+                    std::cout << "Set project failed";
             }
             else if ( bQuit )
             {
@@ -141,11 +133,15 @@ int main( int argc, const char* argv[] )
             else
             {
                 std::cout << commands << std::endl;
+                bRunLoop = true;
             }
 
-            if( !bRunLoop )
+            if ( !bRunLoop )
                 break;
 
+            projectPath.clear();
+            pipelinePath.clear();
+            
             {
                 std::ostringstream os;
                 {
@@ -173,7 +169,7 @@ int main( int argc, const char* argv[] )
                     po::notify( vm );
                 }
             }
-        }*/
+        }
     }
     catch ( std::exception& ex )
     {

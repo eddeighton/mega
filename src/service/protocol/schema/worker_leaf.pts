@@ -37,3 +37,11 @@ msg ExeRestore
     request( boost::filesystem::path filePath, task::DeterminantHash determinant );
     response( bool bRestored );
 }
+
+// project
+
+msg ExeGetProject
+{
+    request();
+    response(mega::network::Project project);
+}

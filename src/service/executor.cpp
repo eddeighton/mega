@@ -11,6 +11,8 @@
 #include "service/protocol/model/worker_leaf.hxx"
 #include "service/protocol/model/leaf_worker.hxx"
 
+#include "runtime/runtime.hpp"
+
 #include "pipeline/pipeline.hpp"
 #include "pipeline/stash.hpp"
 
@@ -69,6 +71,12 @@ public:
     network::leaf_worker::Response_Encode getLeafResponse( boost::asio::yield_context& yield_ctx )
     {
         return network::leaf_worker::Response_Encode( *this, m_executor.getLeafSender(), yield_ctx );
+    }
+
+    virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
+    {
+        std::vector< std::string > result = { m_executor.getProcessName() };
+        getLeafResponse( yield_ctx ).RootListNetworkNodes( result );
     }
 
     virtual void RootPipelineStartJobs( const mega::pipeline::Configuration& configuration,

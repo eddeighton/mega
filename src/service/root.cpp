@@ -21,10 +21,12 @@
 #include "spdlog/fmt/chrono.h"
 #include "spdlog/stopwatch.h"
 
+#include <boost/archive/xml_iarchive.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/system/detail/error_code.hpp>
 #include "boost/asio/experimental/concurrent_channel.hpp"
 
+#include <common/file.hpp>
 #include <iostream>
 #include <memory>
 
@@ -110,34 +112,21 @@ public:
         daemon.TermListNetworkNodes( nodes );
     }
 
-    // network::daemon_root::Impl
+    virtual void TermGetProject( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.TermGetProject( m_root.getProject() );
+    }
+
+    virtual void TermSetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        m_root.setProject( project );
+        m_root.saveConfig();
+        daemon.TermSetProject( true );
+    }
+
     /*
-    virtual void GetVersion( boost::asio::yield_context& yield_ctx ) override
-    {
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        daemon.GetVersion( "0.0.0.0" );
-    }
-
-    virtual void ListActivities( boost::asio::yield_context& yield_ctx ) override
-    {
-        std::vector< network::ConversationID > activities;
-
-        for ( const auto& id : m_conversationManager.reportActivities() )
-        {
-            activities.push_back( id );
-        }
-
-        for ( const auto& [ id, pDeamon ] : m_root.m_server.getConnections() )
-        {
-            auto daemon           = getDaemonRequest( pDeamon, yield_ctx );
-            auto daemonActivities = daemon.ReportActivities();
-            std::copy( daemonActivities.begin(), daemonActivities.end(), std::back_inserter( activities ) );
-        }
-
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        daemon.ListActivities( activities );
-    }
-
     virtual void Shutdown( boost::asio::yield_context& yield_ctx ) override
     {
         // response straight away - then execute shutdown
@@ -426,7 +415,27 @@ Root::Root( boost::asio::io_context& ioContext )
     , m_server( ioContext, *this, network::MegaRootPort() )
     , m_stash( boost::filesystem::current_path() / "stash" )
 {
+    loadConfig();
     m_server.waitForConnection();
+}
+
+void Root::loadConfig()
+{
+    const auto configFile = boost::filesystem::current_path() / "config.xml";
+    if ( boost::filesystem::exists( configFile ) )
+    {
+        auto                         pFileStream = boost::filesystem::createBinaryInputFileStream( configFile );
+        boost::archive::xml_iarchive xml( *pFileStream );
+        xml&                         boost::serialization::make_nvp( "config", m_config );
+    }
+}
+
+void Root::saveConfig()
+{
+    const auto                   configFile  = boost::filesystem::current_path() / "config.xml";
+    auto                         pFileStream = boost::filesystem::createNewFileStream( configFile );
+    boost::archive::xml_oarchive xml( *pFileStream );
+    xml&                         boost::serialization::make_nvp( "config", m_config );
 }
 
 void Root::shutdown()
