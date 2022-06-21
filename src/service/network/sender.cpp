@@ -85,7 +85,7 @@ public:
         }
         else
         {
-            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID.getID(), strErrorMsg );
+            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID, strErrorMsg );
         }
     }
 };
@@ -114,7 +114,7 @@ public:
     virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
                                             boost::asio::yield_context& yield_ctx )
     {
-        const ChannelMsg          channelMsg{ Header{ static_cast< MessageID >( getMsgID( msg ) ), conversationID }, msg };
+        const ChannelMsg channelMsg{ Header{ static_cast< MessageID >( getMsgID( msg ) ), conversationID }, msg };
         boost::system::error_code ec;
         m_channel.async_send( ec, channelMsg,
                               [ &msg ]( boost::system::error_code ec )
@@ -138,7 +138,7 @@ public:
         }
         else
         {
-            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID.getID(), strErrorMsg );
+            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID, strErrorMsg );
         }
     }
 };
@@ -167,7 +167,7 @@ public:
     virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
                                             boost::asio::yield_context& yield_ctx )
     {
-        const ChannelMsg          channelMsg{ Header{ static_cast< MessageID >( getMsgID( msg ) ), conversationID }, msg };
+        const ChannelMsg channelMsg{ Header{ static_cast< MessageID >( getMsgID( msg ) ), conversationID }, msg };
         boost::system::error_code ec;
         m_channel.async_send( ec, channelMsg,
                               [ &msg ]( boost::system::error_code ec )
@@ -191,7 +191,7 @@ public:
         }
         else
         {
-            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID.getID(), strErrorMsg );
+            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID, strErrorMsg );
         }
     }
 };

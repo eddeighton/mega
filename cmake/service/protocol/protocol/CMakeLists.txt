@@ -18,11 +18,12 @@ set( PROTOCOL_SCHEMAS
     ${PROTOCOL_SCHEMA_DIR}/leaf_daemon.pts
     ${PROTOCOL_SCHEMA_DIR}/leaf_term.pts
     ${PROTOCOL_SCHEMA_DIR}/leaf_tool.pts
-    ${PROTOCOL_SCHEMA_DIR}/leaf_worker.pts
+    ${PROTOCOL_SCHEMA_DIR}/leaf_exe.pts
     ${PROTOCOL_SCHEMA_DIR}/root_daemon.pts
     ${PROTOCOL_SCHEMA_DIR}/term_leaf.pts
     ${PROTOCOL_SCHEMA_DIR}/tool_leaf.pts
-    ${PROTOCOL_SCHEMA_DIR}/worker_leaf.pts
+    ${PROTOCOL_SCHEMA_DIR}/exe_leaf.pts
+    ${PROTOCOL_SCHEMA_DIR}/exe_sim.pts
 )
 
 set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )
@@ -35,11 +36,12 @@ set( MEGA_PROTOCOL_GENERATED_HEADERS
     ${PROTOCOL_HEADER_DIR}/leaf_daemon.hxx
     ${PROTOCOL_HEADER_DIR}/leaf_term.hxx
     ${PROTOCOL_HEADER_DIR}/leaf_tool.hxx
-    ${PROTOCOL_HEADER_DIR}/leaf_worker.hxx
+    ${PROTOCOL_HEADER_DIR}/leaf_exe.hxx
     ${PROTOCOL_HEADER_DIR}/root_daemon.hxx
     ${PROTOCOL_HEADER_DIR}/term_leaf.hxx
     ${PROTOCOL_HEADER_DIR}/tool_leaf.hxx
-    ${PROTOCOL_HEADER_DIR}/worker_leaf.hxx
+    ${PROTOCOL_HEADER_DIR}/exe_leaf.hxx
+    ${PROTOCOL_HEADER_DIR}/exe_sim.hxx
 )
 
 set( PROTOCOL_SOURCE_DIR ${MEGA_SRC_DIR}/service/protocol/model )
@@ -52,11 +54,12 @@ set( MEGA_PROTOCOL_GENERATED_SOURCES
     ${PROTOCOL_SOURCE_DIR}/leaf_daemon.cxx
     ${PROTOCOL_SOURCE_DIR}/leaf_term.cxx
     ${PROTOCOL_SOURCE_DIR}/leaf_tool.cxx
-    ${PROTOCOL_SOURCE_DIR}/leaf_worker.cxx
+    ${PROTOCOL_SOURCE_DIR}/leaf_exe.cxx
     ${PROTOCOL_SOURCE_DIR}/root_daemon.cxx
     ${PROTOCOL_SOURCE_DIR}/term_leaf.cxx
     ${PROTOCOL_SOURCE_DIR}/tool_leaf.cxx
-    ${PROTOCOL_SOURCE_DIR}/worker_leaf.cxx
+    ${PROTOCOL_SOURCE_DIR}/exe_leaf.cxx
+    ${PROTOCOL_SOURCE_DIR}/exe_sim.cxx
 )
 set( COMPILER_OUTPUTS 
     ${MEGA_PROTOCOL_GENERATED_HEADERS} 
@@ -73,8 +76,9 @@ set( COMPILER_BYPRODUCTS
     leaf_tool.json
     term_leaf.json
     leaf_term.json
-    worker_leaf.json
-    leaf_worker.json
+    exe_leaf.json
+    leaf_exe.json
+    leaf_sim.json
 )
 
 set( TEMPLATES 

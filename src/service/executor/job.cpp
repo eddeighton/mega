@@ -11,7 +11,7 @@ namespace service
 JobConversation::JobConversation( Executor& executor, const network::ConversationID& conversationID,
                                   mega::pipeline::Pipeline::Ptr  pPipeline,
                                   const network::ConversationID& rootConversationID )
-    : ExecutorRequestConversation( executor, conversationID, conversationID.getConnectionID() )
+    : ExecutorRequestConversation( executor, conversationID, std::nullopt )
     , m_pPipeline( pPipeline )
     , m_rootConversationID( rootConversationID )
 {

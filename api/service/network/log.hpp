@@ -141,7 +141,9 @@ struct formatter< mega::network::ConversationID >
     template < typename FormatContext >
     auto format( const mega::network::ConversationID& conversationID, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "{}::{}", conversationID.getConnectionID(), conversationID.getID() );
+        std::ostringstream os;
+        os << conversationID;
+        return format_to( ctx.out(), "{}", os.str() );
     }
 };
 

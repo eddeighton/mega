@@ -44,17 +44,14 @@ public:
 };
 
 Executor::Executor( boost::asio::io_context& io_context, int numThreads )
-    : network::ConversationManager( network::Node::toStr( network::Node::Executor ), io_context )
+    : network::ConversationManager( network::makeProcessName( network::Node::Executor ), io_context )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
           [ &m_receiverChannel = m_receiverChannel ]()
           {
-              std::ostringstream os;
-              os << network::Node::toStr( network::Node::Executor ) << "_" << std::this_thread::get_id();
-              network::ConnectionID connectionID = os.str();
-              m_receiverChannel.run( connectionID );
+              m_receiverChannel.run( network::makeProcessName( network::Node::Executor ) );
               return m_receiverChannel.getSender();
           }(),
           network::Node::Executor )
@@ -64,7 +61,7 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
 
     auto func = []( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
     {
-        network::worker_leaf::Request_Encode leaf( con, sender, yield_ctx );
+        network::exe_leaf::Request_Encode leaf( con, sender, yield_ctx );
         mega::runtime::initialiseRuntime( leaf.ExeGetProject() );
     };
     conversationStarted( network::ConversationBase::Ptr(

@@ -12,8 +12,8 @@ namespace mega
 namespace network
 {
 
-ConversationManager::ConversationManager( const char* pszProcessName, boost::asio::io_context& ioContext )
-    : m_pszProcessName( pszProcessName )
+ConversationManager::ConversationManager( const std::string& strProcessName, boost::asio::io_context& ioContext )
+    : m_strProcessName( strProcessName )
     , m_ioContext( ioContext )
 {
 }
@@ -48,8 +48,7 @@ void ConversationManager::conversationStarted( ConversationBase::Ptr pConversati
     }
     boost::asio::spawn(
         m_ioContext, [ pConversation ]( boost::asio::yield_context yield_ctx ) { pConversation->run( yield_ctx ); } );
-    SPDLOG_TRACE( "ConversationBase Started id: {} end point: {}", pConversation->getID().getID(),
-                  pConversation->getID().getConnectionID() );
+    SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
 }
 
 void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversation )
@@ -60,8 +59,7 @@ void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversa
         VERIFY_RTE( iFind != m_conversations.end() );
         m_conversations.erase( iFind );
     }
-    SPDLOG_DEBUG( "ConversationBase Completed id: {} end point: {}", pConversation->getID().getID(),
-                  pConversation->getID().getConnectionID() );
+    SPDLOG_DEBUG( "ConversationBase Completed id: {}", pConversation->getID() );
 }
 
 ConversationBase::Ptr ConversationManager::findExistingConversation( const ConversationID& conversationID ) const
@@ -87,13 +85,13 @@ void ConversationManager::dispatch( const Header& header, const ReceivedMsg& msg
         conversationStarted( pConversation );
         SPDLOG_TRACE( "Received msg {}. Started new conversation {}.",
                       getMsgNameFromID( header.getMessageID() ),
-                      pConversation->getID().getID() );
+                      pConversation->getID() );
     }
     else
     {
         SPDLOG_TRACE( "Received msg: {}. Resumed existing conversation: {}.",
                       getMsgNameFromID( header.getMessageID() ),
-                      pConversation->getID().getID() );
+                      pConversation->getID() );
     }
 
     pConversation->send( msg );

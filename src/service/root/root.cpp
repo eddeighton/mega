@@ -380,8 +380,8 @@ public:
         }
         if ( m_jobs.empty() )
         {
-            SPDLOG_WARN( "Failed to find workers for pipeline: {}", configuration.getPipelineID() );
-            THROW_RTE( "Root: Failed to find workers for pipeline" );
+            SPDLOG_WARN( "Failed to find executors for pipeline: {}", configuration.getPipelineID() );
+            THROW_RTE( "Root: Failed to find executors for pipeline" );
         }
         SPDLOG_INFO( "Found {} jobs for pipeline {}", m_jobs.size(), configuration.getPipelineID() );
 
@@ -533,7 +533,7 @@ public:
 };
 
 Root::Root( boost::asio::io_context& ioContext )
-    : network::ConversationManager( network::Node::toStr( network::Node::Root ), ioContext )
+    : network::ConversationManager( network::makeProcessName( network::Node::Root ), ioContext )
     , m_server( ioContext, *this, network::MegaRootPort() )
     , m_stash( boost::filesystem::current_path() / "stash" )
 {

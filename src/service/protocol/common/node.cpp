@@ -1,9 +1,12 @@
 
 #include "service/protocol/common/node.hpp"
 
+#include "common/processID.hpp"
+
 #include <string>
 #include <array>
 #include <algorithm>
+#include <sstream>
 
 namespace mega
 {
@@ -15,6 +18,7 @@ using NodeStringArray = std::array< std::string, Node::TOTAL_NODE_TYPES >;
 // clang-format off
 static const NodeStringArray g_nodeTypeStrings = 
 { 
+    std::string{ "Leaf" }, 
     std::string{ "Terminal" }, 
     std::string{ "Tool" }, 
     std::string{ "Executor" }, 
@@ -33,6 +37,13 @@ Node::Type Node::fromStr( const char* pszStr )
         return TOTAL_NODE_TYPES;
     else
         return static_cast< Node::Type >( std::distance( g_nodeTypeStrings.begin(), iFind ) );
+}
+
+std::string makeProcessName( Node::Type type )
+{
+    std::ostringstream os;
+    os << Node::toStr( type ) << "_" << Common::getProcessID();
+    return os.str();
 }
 
 } // namespace network

@@ -52,6 +52,8 @@ public:
     network::ConversationID                SimNew();
     std::vector< network::ConversationID > SimList();
 
+    mega::TimeStamp testReadLock( const network::ConversationID& simID );
+
     network::Sender& getLeafSender() { return m_leaf; }
 
 private:

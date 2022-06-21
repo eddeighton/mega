@@ -51,14 +51,15 @@ public:
     virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx )
     {
-        if ( m_terminal.getLeafSender().getConnectionID() == connection )
+        if ( ( m_terminal.getLeafSender().getConnectionID() == connection )
+             || ( m_terminal.m_receiverChannel.getSender()->getConnectionID() == connection ) )
         {
             m_terminal.getLeafSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
         }
         else
         {
             // This can happen when initiating request has received exception - in which case
-            SPDLOG_ERROR( "{} {}", connection, strErrorMsg );
+            SPDLOG_ERROR( "Terminal: {} {}", connection, strErrorMsg );
             THROW_RTE( "Terminal: Critical error in error handler" );
         }
     }
@@ -96,16 +97,13 @@ public:
 };
 
 Terminal::Terminal( std::optional< const std::string > optName /* = std::nullopt*/ )
-    : network::ConversationManager( network::Node::toStr( network::Node::Terminal ), m_io_context )
+    : network::ConversationManager( network::makeProcessName( network::Node::Terminal ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
           // NOTE: must ensure the receiver connectionID is initialised before calling getSender
           [ &m_receiverChannel = m_receiverChannel ]()
           {
-              std::ostringstream os;
-              os << network::Node::toStr( network::Node::Terminal ) << "_" << std::this_thread::get_id();
-              network::ConnectionID connectionID = os.str();
-              m_receiverChannel.run( connectionID );
+              m_receiverChannel.run( network::makeProcessName( network::Node::Terminal ) );
               return m_receiverChannel.getSender();
           }(),
           network::Node::Terminal )
@@ -134,149 +132,112 @@ network::ConversationBase::Ptr Terminal::joinConversation( const network::Connec
         new TerminalRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 
+#define GENERIC_MSG( result_type, msg_name )                                                               \
+    {                                                                                                      \
+        std::optional< std::variant< result_type, std::exception_ptr > > result;                           \
+        {                                                                                                  \
+            auto func = [ &result ]( network::ConversationBase& con, network::Sender& sender,              \
+                                     boost::asio::yield_context& yield_ctx )                               \
+            {                                                                                              \
+                network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );                         \
+                try                                                                                        \
+                {                                                                                          \
+                    result = leaf.msg_name();                                                              \
+                }                                                                                          \
+                catch ( std::exception & ex )                                                              \
+                {                                                                                          \
+                    result = std::current_exception();                                                     \
+                }                                                                                          \
+            };                                                                                             \
+            conversationStarted( network::ConversationBase::Ptr(                                           \
+                new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ), \
+                                         getLeafSender().getConnectionID(), std::move( func ) ) ) );       \
+        }                                                                                                  \
+        while ( !result.has_value() )                                                                      \
+            m_io_context.run_one();                                                                        \
+                                                                                                           \
+        if ( result->index() == 1 )                                                                        \
+            std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );                    \
+        else                                                                                               \
+            return std::get< result_type >( result.value() );                                              \
+    }
+
+#define GENERIC_MSG_ARG1( result_type, msg_name, arg1 )                                                    \
+    {                                                                                                      \
+        std::optional< std::variant< result_type, std::exception_ptr > > result;                           \
+        {                                                                                                  \
+            auto func = [ &result, &arg1 ]( network::ConversationBase& con, network::Sender& sender,       \
+                                            boost::asio::yield_context& yield_ctx )                        \
+            {                                                                                              \
+                network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );                         \
+                try                                                                                        \
+                {                                                                                          \
+                    result = leaf.msg_name( arg1 );                                                        \
+                }                                                                                          \
+                catch ( std::exception & ex )                                                              \
+                {                                                                                          \
+                    result = std::current_exception();                                                     \
+                }                                                                                          \
+            };                                                                                             \
+            conversationStarted( network::ConversationBase::Ptr(                                           \
+                new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ), \
+                                         getLeafSender().getConnectionID(), std::move( func ) ) ) );       \
+        }                                                                                                  \
+        while ( !result.has_value() )                                                                      \
+            m_io_context.run_one();                                                                        \
+                                                                                                           \
+        if ( result->index() == 1 )                                                                        \
+            std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );                    \
+        else                                                                                               \
+            return std::get< result_type >( result.value() );                                              \
+    }
+
 std::vector< std::string > Terminal::ListNetworkNodes()
 {
-    std::optional< std::vector< std::string > > result;
-    {
-        auto func = [ &result ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            result = leaf.TermListNetworkNodes();
-        };
-        conversationStarted( network::ConversationBase::Ptr(
-            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
-    }
-    while ( !result.has_value() )
-        m_io_context.run_one();
-    return result.value();
+    //
+    GENERIC_MSG( std::vector< std::string >, TermListNetworkNodes );
 }
 
 network::PipelineResult Terminal::PipelineRun( const mega::pipeline::Configuration& pipelineConfig )
 {
-    std::optional< network::PipelineResult > result;
-
-    {
-        auto func = [ &result, &pipelineConfig ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            result = leaf.TermPipelineRun( pipelineConfig );
-        };
-        conversationStarted( network::ConversationBase::Ptr(
-            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
-    }
-    while ( !result.has_value() )
-        m_io_context.run_one();
-    return result.value();
+    //
+    GENERIC_MSG_ARG1( network::PipelineResult, TermPipelineRun, pipelineConfig );
 }
 
 bool Terminal::SetProject( const mega::network::Project& project )
 {
-    std::optional< bool > result;
-    {
-        auto func = [ &result, &project ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            result = leaf.TermSetProject( project );
-        };
-        conversationStarted( network::ConversationBase::Ptr(
-            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
-    }
-    while ( !result.has_value() )
-        m_io_context.run_one();
-    return result.value();
+    //
+    GENERIC_MSG_ARG1( bool, TermSetProject, project );
 }
 
 mega::network::Project Terminal::GetProject()
 {
-    std::optional< mega::network::Project > result;
-    {
-        auto func = [ &result ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            result = leaf.TermGetProject();
-        };
-        conversationStarted( network::ConversationBase::Ptr(
-            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
-    }
-    while ( !result.has_value() )
-        m_io_context.run_one();
-    return result.value();
+    //
+    GENERIC_MSG( mega::network::Project, TermGetProject );
 }
 
 bool Terminal::NewInstallation( const mega::network::Project& project )
 {
-    std::optional< bool > result;
-    {
-        auto func = [ &project, &result ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            result = leaf.TermNewInstallation( project );
-        };
-        conversationStarted( network::ConversationBase::Ptr(
-            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
-    }
-    while ( !result.has_value() )
-        m_io_context.run_one();
-    return result.value();
+    //
+    GENERIC_MSG_ARG1( bool, TermNewInstallation, project );
 }
 
 network::ConversationID Terminal::SimNew()
 {
-    std::optional< std::variant< network::ConversationID, std::exception_ptr > > result;
-    {
-        auto func = [ &result ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            try
-            {
-                result = leaf.TermSimNew();
-            }
-            catch ( std::exception& ex )
-            {
-                result = std::current_exception();
-            }
-        };
-        conversationStarted( network::ConversationBase::Ptr(
-            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
-    }
-    while ( !result.has_value() )
-        m_io_context.run_one();
-
-    if ( result->index() == 1 )
-        std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );
-    else
-        return std::get< network::ConversationID >( result.value() );
+    //
+    GENERIC_MSG( network::ConversationID, TermSimNew );
 }
 
 std::vector< network::ConversationID > Terminal::SimList()
 {
-    std::optional< std::vector< network::ConversationID > > result;
-    {
-        auto func = [ &result ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            result = leaf.TermSimList();
-        };
-        conversationStarted( network::ConversationBase::Ptr(
-            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                     getLeafSender().getConnectionID(), std::move( func ) ) ) );
-    }
-    while ( !result.has_value() )
-        m_io_context.run_one();
-    return result.value();
+    //
+    GENERIC_MSG( std::vector< network::ConversationID >, TermSimList );
+}
+
+mega::TimeStamp Terminal::testReadLock( const network::ConversationID& simID )
+{
+    //
+    GENERIC_MSG_ARG1( mega::TimeStamp, TermSimReadLock, simID );
 }
 
 } // namespace service

@@ -1,4 +1,5 @@
 
+#include "mega/common.hpp"
 #include "service/terminal.hpp"
 
 #include "service/network/network.hpp"
@@ -33,22 +34,24 @@ int main( int argc, const char* argv[] )
     bool                    bGetProject      = false;
     bool                    bNewSimulation   = false;
     bool                    bListSimulations = false;
-    bool                    bLoop            = false;
-    bool                    bQuit            = false;
+    std::string             strSimulationID;
+    bool                    bLoop = false;
+    bool                    bQuit = false;
 
     po::options_description commands( "Commands" );
 
     // clang-format off
     commands.add_options()
-    ( "help,?",         po::bool_switch( &bShowHelp ),                          "Show Command Line Help" )
-    ( "nodes,d",        po::bool_switch( &bListNodes ),                         "List network nodes"     )
-    ( "pipeline,p",     po::value< boost::filesystem::path >( &pipelinePath ),  "Run a pipeline"         )
-    ( "setProject,s",   po::value< boost::filesystem::path >( &projectPath ),   "Select a project"       )
-    ( "getProject,g",   po::bool_switch( &bGetProject ),                        "Get current project"    )
-    ( "new,n",          po::bool_switch( &bNewSimulation ),                     "Start a new simulation" )
-    ( "list,l",         po::bool_switch( &bListSimulations ),                   "List simulations"       )
-    ( "loop,p",         po::bool_switch( &bLoop ),                              "Run interactively"      )
-    ( "quit,q",         po::bool_switch( &bQuit ),                              "Quit this host"         )
+    ( "help,?",         po::bool_switch( &bShowHelp ),                          "Show Command Line Help"    )
+    ( "nodes,d",        po::bool_switch( &bListNodes ),                         "List network nodes"        )
+    ( "pipeline,p",     po::value< boost::filesystem::path >( &pipelinePath ),  "Run a pipeline"            )
+    ( "setProject,s",   po::value< boost::filesystem::path >( &projectPath ),   "Select a project"          )
+    ( "getProject,g",   po::bool_switch( &bGetProject ),                        "Get current project"       )
+    ( "new,n",          po::bool_switch( &bNewSimulation ),                     "Start a new simulation"    )
+    ( "list,l",         po::bool_switch( &bListSimulations ),                   "List simulations"          )
+    ( "test,t",         po::value< std::string >( &strSimulationID ),           "Test simulation read lock" )
+    ( "loop,p",         po::bool_switch( &bLoop ),                              "Run interactively"         )
+    ( "quit,q",         po::bool_switch( &bQuit ),                              "Quit this host"            )
     ;
 
     {
@@ -84,9 +87,8 @@ int main( int argc, const char* argv[] )
 
     bool bRunLoop = bLoop; // capture bLoop as will be reset
 
-    auto logThreads
-        = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
-                                        mega::network::fromStr( strLogFileLevel ) );
+    auto logThreads = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
+                                                   mega::network::fromStr( strLogFileLevel ) );
 
     try
     {
@@ -143,6 +145,17 @@ int main( int argc, const char* argv[] )
                     SPDLOG_INFO( "{}", simID );
                 }
             }
+            else if ( !strSimulationID.empty() )
+            {
+                mega::network::ConversationID simID;
+                {
+                    std::istringstream is( strSimulationID );
+                    is >> simID;
+                }
+                SPDLOG_INFO( "Attempting to read lock on {}", simID );
+                mega::TimeStamp timeStamp = terminal.testReadLock( simID );
+                SPDLOG_INFO( "{}", timeStamp );
+            }
             else if ( bQuit )
             {
                 break;
@@ -158,6 +171,7 @@ int main( int argc, const char* argv[] )
 
             projectPath.clear();
             pipelinePath.clear();
+            strSimulationID.clear();
 
             {
                 std::ostringstream os;

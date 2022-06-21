@@ -1,0 +1,11 @@
+
+msg RootSimReadLock
+{
+    request(mega::network::ConversationID simulationID);
+    response(mega::TimeStamp timestamp);
+}
+msg RootSimWriteLock
+{
+    request(mega::network::ConversationID simulationID);
+    response(mega::TimeStamp timestamp);
+}

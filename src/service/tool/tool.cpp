@@ -21,16 +21,13 @@ namespace service
 {
 
 Tool::Tool()
-    : network::ConversationManager( network::Node::toStr( network::Node::Tool ), m_io_context )
+    : network::ConversationManager( network::makeProcessName( network::Node::Tool ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_work_guard( m_io_context.get_executor() )
     , m_leaf(
           [ &m_receiverChannel = m_receiverChannel ]()
           {
-              std::ostringstream os;
-              os << network::Node::toStr( network::Node::Tool ) << "_" << std::this_thread::get_id();
-              network::ConnectionID connectionID = os.str();
-              m_receiverChannel.run( connectionID );
+              m_receiverChannel.run( network::makeProcessName( network::Node::Tool ) );
               return m_receiverChannel.getSender();
           }(),
           network::Node::Tool )

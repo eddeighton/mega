@@ -24,7 +24,7 @@ ConversationBase::RequestStack::RequestStack( const char* pszMsg, ConversationBa
 ConversationBase::RequestStack::~RequestStack()
 {
     const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
-    SPDLOG_DEBUG( "{} {} {} {}", conversation.getProcessName(), conversation.getID().getID(), m_pszMsg, timeDelta );
+    SPDLOG_DEBUG( "{} {} {} {}", conversation.getProcessName(), conversation.getID(), m_pszMsg, timeDelta );
     conversation.requestCompleted();
 }
 
@@ -53,7 +53,7 @@ void Conversation::requestCompleted()
         m_conversationManager.conversationCompleted( shared_from_this() );
     }
 }
-const char* Conversation::getProcessName() const { return m_conversationManager.getProcessName(); }
+const std::string& Conversation::getProcessName() const { return m_conversationManager.getProcessName(); }
 
 // run is ALWAYS call for each conversation after it is created
 void Conversation::run( boost::asio::yield_context& yield_ctx )
@@ -67,7 +67,7 @@ void Conversation::run( boost::asio::yield_context& yield_ctx )
     }
     catch ( std::exception& ex )
     {
-        SPDLOG_WARN( "Conversation: {} exception: {}", getID().getID(), ex.what() );
+        SPDLOG_WARN( "Conversation: {} exception: {}", getID(), ex.what() );
         m_conversationManager.conversationCompleted( shared_from_this() );
     }
 }
@@ -108,7 +108,7 @@ void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yie
         ASSERT( isRequest( msg.msg ) );
         if ( !dispatchRequest( msg.msg, yield_ctx ) )
         {
-            SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID().getID() );
+            SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
             THROW_RTE( "Failed to dispatch request message: " << msg.msg );
         }
     }

@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 #include <ostream>
+#include <istream>
 
 namespace mega
 {
@@ -15,8 +16,15 @@ namespace network
 using MessageSize  = std::uint32_t;
 using ConnectionID = std::string;
 
+/// ConversationID
+/// This is a value type representing an OPAQUE value to identify a converation network-wide.
+/// The internal values MUST NOT be interpreted to mean anything i.e. the connectionID will NOT
+/// reliably mean anything to a given process.
 class ConversationID
 {
+    friend bool operator==( const ConversationID& left, const ConversationID& right );
+    friend bool operator<( const ConversationID& left, const ConversationID& right );
+    friend std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID );
 public:
     using ID = std::uint16_t;
 
@@ -38,10 +46,10 @@ public:
         archive& m_connectionID;
     }
 
+private:
     ID           getID() const { return m_id; }
     ConnectionID getConnectionID() const { return m_connectionID; }
 
-private:
     ID           m_id;
     ConnectionID m_connectionID;
 };
@@ -58,6 +66,7 @@ inline bool operator<( const ConversationID& left, const ConversationID& right )
 }
 
 std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID );
+std::istream& operator>>( std::istream& is, ConversationID& conversationID );
 
 using MessageID = std::uint32_t;
 

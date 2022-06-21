@@ -18,10 +18,10 @@ class ConversationManager
     using ConversationPtrMap = std::map< ConversationID, ConversationBase::Ptr >;
 
 public:
-    ConversationManager( const char* pszProcessName, boost::asio::io_context& ioContext );
+    ConversationManager( const std::string& strProcessName, boost::asio::io_context& ioContext );
     virtual ~ConversationManager() = 0;
 
-    const char*              getProcessName() const { return m_pszProcessName; }
+    const std::string&       getProcessName() const { return m_strProcessName; }
     boost::asio::io_context& getIOContext() const;
 
     std::vector< ConversationID > reportActivities() const;
@@ -40,7 +40,7 @@ protected:
     boost::asio::io_context& m_ioContext;
 
 private:
-    const char*               m_pszProcessName;
+    std::string               m_strProcessName;
     ConversationPtrMap        m_conversations;
     mutable std::shared_mutex m_mutex;
     using WriteLock = std::unique_lock< std::shared_mutex >;

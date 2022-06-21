@@ -2,8 +2,11 @@
 #include "service/executor/request.hpp"
 
 #include "service/executor.hpp"
+
 #include "job.hpp"
 #include "simulation.hpp"
+
+#include "service/protocol/model/exe_sim.hxx"
 
 namespace mega
 {
@@ -12,7 +15,8 @@ namespace service
 
 ExecutorRequestConversation::ExecutorRequestConversation( Executor&                      executor,
                                                           const network::ConversationID& conversationID,
-                                                          const network::ConnectionID&   originatingConnectionID )
+                                                          std::optional< network::ConnectionID >
+                                                              originatingConnectionID )
     : ConcurrentConversation( executor, conversationID, originatingConnectionID )
     , m_executor( executor )
 {
@@ -20,32 +24,33 @@ ExecutorRequestConversation::ExecutorRequestConversation( Executor&             
 
 bool ExecutorRequestConversation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
-    return network::leaf_worker::Impl::dispatchRequest( msg, yield_ctx );
+    return network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx );
 }
 
 void ExecutorRequestConversation::error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
                                          boost::asio::yield_context& yield_ctx )
 {
-    if ( m_executor.getLeafSender().getConnectionID() == connectionID )
+    if ( ( m_executor.getLeafSender().getConnectionID() == connectionID )
+         || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == connectionID ) )
     {
         m_executor.getLeafSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
     }
     else
     {
-        SPDLOG_ERROR( "Executor: Cannot resolve connection in error handler" );
-        THROW_RTE( "Executor: Executor Critical error in error handler" );
+        SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection in error handler: {} for error: {}",
+                      connectionID, strErrorMsg );
+        THROW_RTE( "ExecutorRequestConversation: Executor Critical error in error handler: " << connectionID << " : "
+                                                                                             << strErrorMsg );
     }
 }
 
-network::worker_leaf::Request_Encode
-ExecutorRequestConversation::getLeafRequest( boost::asio::yield_context& yield_ctx )
+network::exe_leaf::Request_Encode ExecutorRequestConversation::getLeafRequest( boost::asio::yield_context& yield_ctx )
 {
-    return network::worker_leaf::Request_Encode( *this, m_executor.getLeafSender(), yield_ctx );
+    return network::exe_leaf::Request_Encode( *this, m_executor.getLeafSender(), yield_ctx );
 }
-network::leaf_worker::Response_Encode
-ExecutorRequestConversation::getLeafResponse( boost::asio::yield_context& yield_ctx )
+network::leaf_exe::Response_Encode ExecutorRequestConversation::getLeafResponse( boost::asio::yield_context& yield_ctx )
 {
-    return network::leaf_worker::Response_Encode( *this, m_executor.getLeafSender(), yield_ctx );
+    return network::leaf_exe::Response_Encode( *this, m_executor.getLeafSender(), yield_ctx );
 }
 
 void ExecutorRequestConversation::RootListNetworkNodes( boost::asio::yield_context& yield_ctx )
@@ -124,13 +129,18 @@ void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yie
 void ExecutorRequestConversation::RootSimReadLock( const mega::network::ConversationID& simulationID,
                                                    boost::asio::yield_context&          yield_ctx )
 {
+    SPDLOG_INFO( "ExecutorRequestConversation::RootSimReadLock: {}", simulationID );
+
     Executor::SimulationMap::const_iterator iFind = m_executor.m_simulations.find( simulationID );
     VERIFY_RTE_MSG( iFind != m_executor.m_simulations.end(), "Failed to find simulation: " << simulationID );
     Simulation::Ptr pSimulation = iFind->second;
 
-    // pSimulation->send(const ReceivedMsg &msg)
+    mega::TimeStamp timeStamp = 0;
+    
+    network::exe_sim::Request_Encode rq( *this, pSimulation->getRequestSender(), yield_ctx );
+    timeStamp = rq.RootSimReadLock( getID() );
 
-    getLeafResponse( yield_ctx ).RootSimReadLock( 0 );
+    getLeafResponse( yield_ctx ).RootSimReadLock( timeStamp );
 }
 
 void ExecutorRequestConversation::RootSimWriteLock( const mega::network::ConversationID& simulationID,

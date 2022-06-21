@@ -11,8 +11,8 @@
 #include "service/protocol/model/leaf_term.hxx"
 #include "service/protocol/model/daemon_leaf.hxx"
 #include "service/protocol/model/leaf_daemon.hxx"
-#include "service/protocol/model/worker_leaf.hxx"
-#include "service/protocol/model/leaf_worker.hxx"
+#include "service/protocol/model/exe_leaf.hxx"
+#include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/leaf_tool.hxx"
 
@@ -28,7 +28,7 @@ namespace service
 class LeafRequestConversation : public network::InThreadConversation,
                                 public network::term_leaf::Impl,
                                 public network::daemon_leaf::Impl,
-                                public network::worker_leaf::Impl,
+                                public network::exe_leaf::Impl,
                                 public network::tool_leaf::Impl
 {
 protected:
@@ -46,14 +46,15 @@ public:
     {
         return network::term_leaf::Impl::dispatchRequest( msg, yield_ctx )
                || network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx )
-               || network::worker_leaf::Impl::dispatchRequest( msg, yield_ctx )
+               || network::exe_leaf::Impl::dispatchRequest( msg, yield_ctx )
                || network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx );
     }
 
     virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx ) override
     {
-        if ( m_leaf.getTerminalSender().getConnectionID() == connection )
+        if ( ( m_leaf.getTerminalSender().getConnectionID() == connection )
+             || ( m_leaf.m_pSelfSender->getConnectionID() == connection ) )
         {
             m_leaf.getTerminalSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
         }
@@ -85,13 +86,13 @@ public:
     {
         return network::leaf_term::Request_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
     }
-    network::worker_leaf::Response_Encode getExeResponse( boost::asio::yield_context& yield_ctx )
+    network::exe_leaf::Response_Encode getExeResponse( boost::asio::yield_context& yield_ctx )
     {
-        return network::worker_leaf::Response_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
+        return network::exe_leaf::Response_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
     }
-    network::leaf_worker::Request_Encode getExeRequest( boost::asio::yield_context& yield_ctx )
+    network::leaf_exe::Request_Encode getExeRequest( boost::asio::yield_context& yield_ctx )
     {
-        return network::leaf_worker::Request_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
+        return network::leaf_exe::Request_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
     }
 
     // term_leaf
@@ -235,7 +236,7 @@ public:
         getDaemonResponse( yield_ctx ).RootSimWriteLock( result );
     }
 
-    // network::worker_leaf::Impl
+    // network::exe_leaf::Impl
     virtual void ExePipelineReadyForWork( const network::ConversationID& rootConversationID,
                                           boost::asio::yield_context&    yield_ctx ) override
     {
@@ -303,7 +304,7 @@ public:
 };
 
 Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType )
-    : network::ConversationManager( "leaf", m_io_context )
+    : network::ConversationManager( network::makeProcessName( network::Node::Leaf ), m_io_context )
     , m_pSender( std::move( pSender ) )
     , m_nodeType( nodeType )
     , m_receiverChannel( m_io_context, *this )
@@ -311,12 +312,7 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType )
     , m_work_guard( m_io_context.get_executor() )
     , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
 {
-    {
-        std::ostringstream os;
-        os << "leaf_" << std::this_thread::get_id();
-        network::ConnectionID connectionID = os.str();
-        m_receiverChannel.run( connectionID );
-    }
+    m_receiverChannel.run( network::makeProcessName( network::Node::Leaf ) );
 
     m_pSelfSender = m_receiverChannel.getSender();
 
@@ -346,6 +342,7 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
 {
     switch ( m_nodeType )
     {
+        case network::Node::Leaf:
         case network::Node::Terminal:
         case network::Node::Tool:
         case network::Node::Executor:
