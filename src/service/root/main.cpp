@@ -22,7 +22,7 @@ int main( int argc, const char* argv[] )
     using NumThreadsType                 = decltype( std::thread::hardware_concurrency() );
     NumThreadsType          uiNumThreads = 1U;
     boost::filesystem::path logFolder    = boost::filesystem::current_path() / "log";
-    std::string             strConsoleLogLevel = "warn", strLogFileLevel = "warn";
+    std::string             strConsoleLogLevel = "info", strLogFileLevel = "warn";
     {
         bool bShowHelp = false;
 

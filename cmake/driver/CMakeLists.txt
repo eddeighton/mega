@@ -38,6 +38,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_interface.cpp
 		${DRIVER_SOURCE_DIR}/command_pipeline.cpp
 		${DRIVER_SOURCE_DIR}/command_tool_chain_hash.cpp
+		${DRIVER_SOURCE_DIR}/command_new_install.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 

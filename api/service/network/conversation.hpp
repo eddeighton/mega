@@ -24,8 +24,8 @@ class ConversationManager;
 
 struct ReceivedMsg
 {
-    ConnectionID   connectionID;
-    MessageVariant msg;
+    ConnectionID connectionID;
+    Message      msg;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -38,13 +38,13 @@ public:
     using Ptr = std::shared_ptr< ConversationBase >;
     using ID  = ConversationID;
 
-    virtual const ID&      getID() const                                                          = 0;
-    virtual void           send( const ReceivedMsg& msg )                                         = 0;
-    virtual MessageVariant dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
-    virtual void           run( boost::asio::yield_context& yield_ctx )                           = 0;
-    virtual void           requestStarted( const ConnectionID& connectionID )                     = 0;
-    virtual void           requestCompleted()                                                     = 0;
-    virtual const char*    getProcessName() const                                                 = 0;
+    virtual const ID&   getID() const                                                          = 0;
+    virtual void        send( const ReceivedMsg& msg )                                         = 0;
+    virtual Message     dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
+    virtual void        run( boost::asio::yield_context& yield_ctx )                           = 0;
+    virtual void        requestStarted( const ConnectionID& connectionID )                     = 0;
+    virtual void        requestCompleted()                                                     = 0;
+    virtual const char* getProcessName() const                                                 = 0;
 
 public:
     class RequestStack
@@ -92,14 +92,14 @@ protected:
     friend class ConversationManager;
     // this is called by ConversationManager but can be overridden in initiating activities
     virtual void run( boost::asio::yield_context& yield_ctx );
-    virtual bool dispatchRequest( const MessageVariant& msg, boost::asio::yield_context& yield_ctx ) = 0;
+    virtual bool dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
     virtual void error( const ConnectionID& connectionID, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx )
         = 0;
 
 public:
     // this is used by the Request_Encode generated classes
-    virtual MessageVariant dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx );
+    virtual Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx );
 
 protected:
     void dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yield_context& yield_ctx );

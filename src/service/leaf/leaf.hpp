@@ -33,7 +33,7 @@ public:
     // network::ConversationManager
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID&   originatingConnectionID,
                                                              const network::Header&         header,
-                                                             const network::MessageVariant& msg );
+                                                             const network::Message& msg );
 
     network::Node::Type getType() const { return m_nodeType; }
     network::Sender&    getDaemonSender() { return m_client; }
@@ -42,7 +42,7 @@ public:
     // network::Sender
     virtual network::ConnectionID     getConnectionID() const { return m_pSelfSender->getConnectionID(); }
     virtual boost::system::error_code send( const network::ConversationID& conversationID,
-                                            const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx )
+                                            const network::Message& msg, boost::asio::yield_context& yield_ctx )
     {
         return m_pSelfSender->send( conversationID, msg, yield_ctx );
     }

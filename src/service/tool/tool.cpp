@@ -24,12 +24,17 @@ Tool::Tool()
     : network::ConversationManager( network::Node::toStr( network::Node::Tool ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_work_guard( m_io_context.get_executor() )
-    , m_leaf( m_receiverChannel.getSender(), network::Node::Tool )
+    , m_leaf(
+          [ &m_receiverChannel = m_receiverChannel ]()
+          {
+              std::ostringstream os;
+              os << network::Node::toStr( network::Node::Tool ) << "_" << std::this_thread::get_id();
+              network::ConnectionID connectionID = os.str();
+              m_receiverChannel.run( connectionID );
+              return m_receiverChannel.getSender();
+          }(),
+          network::Node::Tool )
 {
-    std::ostringstream os;
-    os << network::Node::toStr( network::Node::Tool ) << "_" << std::this_thread::get_id();
-    network::ConnectionID connectionID = os.str();
-    m_receiverChannel.run( connectionID );
 }
 
 Tool::~Tool()
@@ -38,9 +43,9 @@ Tool::~Tool()
     m_work_guard.reset();
 }
 
-network::ConversationBase::Ptr Tool::joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                       const network::Header&         header,
-                                                       const network::MessageVariant& msg )
+network::ConversationBase::Ptr Tool::joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                       const network::Header&       header,
+                                                       const network::Message&      msg )
 {
     // return network::ConversationBase::Ptr(
     //     new ToolRequestConversation( m_terminal, msgHeader.getConversationID(), originatingConnectionID ) );

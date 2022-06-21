@@ -1,7 +1,7 @@
 #ifndef TOOL_16_JUNE_2022
 #define TOOL_16_JUNE_2022
 
-#include "leaf.hpp"
+#include "service/leaf/leaf.hpp"
 
 #include "service/network/client.hpp"
 #include "service/network/conversation_manager.hpp"
@@ -29,9 +29,9 @@ public:
     bool running() { return !m_io_context.stopped(); }
 
     // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                             const network::Header&         header,
-                                                             const network::MessageVariant& msg );
+    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                             const network::Header&       header,
+                                                             const network::Message&      msg );
 
 private:
     boost::asio::io_context  m_io_context;

@@ -22,7 +22,7 @@ int main( int argc, const char* argv[] )
 {
     std::optional< std::string > optionalHostName;
     boost::filesystem::path      logFolder          = boost::filesystem::current_path() / "log";
-    std::string                  strConsoleLogLevel = "warn", strLogFileLevel = "warn";
+    std::string                  strConsoleLogLevel = "info", strLogFileLevel = "debug";
 
     namespace po = boost::program_options;
 
@@ -30,20 +30,24 @@ int main( int argc, const char* argv[] )
     bool                    bListNodes = false;
     boost::filesystem::path pipelinePath;
     boost::filesystem::path projectPath;
-    bool                    bGetProject = false;
-    bool                    bLoop       = false;
-    bool                    bQuit       = false;
+    bool                    bGetProject      = false;
+    bool                    bNewSimulation   = false;
+    bool                    bListSimulations = false;
+    bool                    bLoop            = false;
+    bool                    bQuit            = false;
 
     po::options_description commands( "Commands" );
 
     // clang-format off
     commands.add_options()
     ( "help,?",         po::bool_switch( &bShowHelp ),                          "Show Command Line Help" )
-    ( "nodes,n",        po::bool_switch( &bListNodes ),                         "List network nodes"     )
+    ( "nodes,d",        po::bool_switch( &bListNodes ),                         "List network nodes"     )
     ( "pipeline,p",     po::value< boost::filesystem::path >( &pipelinePath ),  "Run a pipeline"         )
     ( "setProject,s",   po::value< boost::filesystem::path >( &projectPath ),   "Select a project"       )
     ( "getProject,g",   po::bool_switch( &bGetProject ),                        "Get current project"    )
-    ( "loop,l",         po::bool_switch( &bLoop ),                              "Run interactively"      )
+    ( "new,n",          po::bool_switch( &bNewSimulation ),                     "Start a new simulation" )
+    ( "list,l",         po::bool_switch( &bListSimulations ),                   "List simulations"       )
+    ( "loop,p",         po::bool_switch( &bLoop ),                              "Run interactively"      )
     ( "quit,q",         po::bool_switch( &bQuit ),                              "Quit this host"         )
     ;
 
@@ -61,7 +65,7 @@ int main( int argc, const char* argv[] )
         // clang-format on
 
         po::parsed_options parsedOptions
-            = po::command_line_parser( argc, argv ).options( options ).options( commands ).run();
+            = po::command_line_parser( argc, argv ).options( options.add( commands ) ).run();
 
         po::variables_map vm;
         po::store( parsedOptions, vm );
@@ -69,7 +73,7 @@ int main( int argc, const char* argv[] )
 
         if ( bShowHelp )
         {
-            std::cout << options << commands << "\n";
+            std::cout << options << "\n";
             return 0;
         }
         if ( !strHostName.empty() )
@@ -80,12 +84,12 @@ int main( int argc, const char* argv[] )
 
     bool bRunLoop = bLoop; // capture bLoop as will be reset
 
+    auto logThreads
+        = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
+                                        mega::network::fromStr( strLogFileLevel ) );
+
     try
     {
-        auto logThreads
-            = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
-                                           mega::network::fromStr( strLogFileLevel ) );
-
         mega::service::Terminal terminal( optionalHostName );
 
         // clang-format on
@@ -97,10 +101,10 @@ int main( int argc, const char* argv[] )
             }
             else if ( bListNodes )
             {
-                auto result = terminal.listNetworkNodes();
+                auto result = terminal.ListNetworkNodes();
                 for ( const std::string& str : result )
                 {
-                    std::cout << str << std::endl;
+                    SPDLOG_INFO( "{}", str );
                 }
             }
             else if ( !pipelinePath.empty() )
@@ -108,23 +112,36 @@ int main( int argc, const char* argv[] )
                 mega::pipeline::Configuration pipelineConfig;
                 boost::filesystem::loadAsciiFile( pipelinePath, pipelineConfig.data() );
                 const mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
-                std::cout << "Pipeline result:\n" << result.getSuccess() << " : " << result.getMessage() << std::endl;
+                SPDLOG_INFO( "Pipeline result:\n {} \n {}", result.getSuccess(), result.getMessage() );
             }
             else if ( bGetProject )
             {
                 mega::network::Project project = terminal.GetProject();
                 if ( project.getProjectInstallPath().empty() )
-                    std::cout << "No active project" << std::endl;
+                    SPDLOG_INFO( "No active project" );
                 else
-                    std::cout << "Active project: " << project.getProjectInstallPath() << std::endl;
+                    SPDLOG_INFO( "Active project: {}", project.getProjectInstallPath().string() );
             }
             else if ( !projectPath.empty() )
             {
                 mega::network::Project project( projectPath );
                 if ( terminal.SetProject( project ) )
-                    std::cout << "Project set to: " << project.getProjectInstallPath() << std::endl;
+                    SPDLOG_INFO( "Project set to: {}", project.getProjectInstallPath().string() );
                 else
-                    std::cout << "Set project failed";
+                    SPDLOG_INFO( "Set project failed" );
+            }
+            else if ( bNewSimulation )
+            {
+                const mega::network::ConversationID simulationID = terminal.SimNew();
+                SPDLOG_INFO( "New simulation: {}", simulationID );
+            }
+            else if ( bListSimulations )
+            {
+                const std::vector< mega::network::ConversationID > simulationIds = terminal.SimList();
+                for ( const mega::network::ConversationID& simID : simulationIds )
+                {
+                    SPDLOG_INFO( "{}", simID );
+                }
             }
             else if ( bQuit )
             {
@@ -141,14 +158,13 @@ int main( int argc, const char* argv[] )
 
             projectPath.clear();
             pipelinePath.clear();
-            
+
             {
                 std::ostringstream os;
                 {
                     std::string strLine;
                     while ( strLine.empty() )
                     {
-                        std::cout << "megaterminal:";
                         std::getline( std::cin, strLine );
                     }
                     if ( strLine.front() != '-' )
@@ -173,7 +189,12 @@ int main( int argc, const char* argv[] )
     }
     catch ( std::exception& ex )
     {
-        std::cerr << "Exception: " << ex.what() << std::endl;
+        SPDLOG_ERROR( "Exception: {}", ex.what() );
+        return -1;
+    }
+    catch ( ... )
+    {
+        SPDLOG_ERROR( "Unknown exception" );
         return -1;
     }
 

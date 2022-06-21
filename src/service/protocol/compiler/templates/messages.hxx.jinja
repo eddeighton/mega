@@ -13,22 +13,29 @@
 
 #include "common/stash.hpp"
 
-#include "boost/filesystem/path.hpp"
-#include "boost/asio/spawn.hpp"
+#include "mega/common.hpp"
 
-#include <variant>
-#include <array>
+#include "boost/filesystem/path.hpp"
+
 #include <vector>
 #include <map>
 #include <set>
 #include <string>
 #include <optional>
-#include <tuple>
+#include <memory>
+#include <any>
 
 namespace mega
 {
 namespace network
 {
+
+struct Message
+{
+    MessageID index;
+    std::any msg;
+};
+
 {%for message in messages%}
 {%for namespace in message.namespaces%}
 {%if loop.is_first %}namespace {{namespace}}{%else%}::{{namespace}}{%endif%}
@@ -41,24 +48,23 @@ struct {{ message.name }}
 {%for member in message.members%}
     {{ member.type }} {{ member.name }}; 
 {%endfor%}
+    static Message make( const {{ message.name }}& msg );
+    static const {{ message.name }}& get( const Message& msg );
 };
 
 {%if message.has_namespace%} } {%endif%} 
 {%endfor%}
 
-using MessageVariant = std::variant 
-<
-{%for message in messages%}
-{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}{%if not loop.is_last %},{%endif%}
-{%endfor%}
->;
 
-bool isRequest( const MessageVariant& msg );
-MessageVariant decode( boost::archive::binary_iarchive& archive, const Header& header );
-void encode( boost::archive::binary_oarchive& archive, const MessageVariant& msg );
+Message make_error_msg( const std::string& strErrorMsg );
 
-const char* getMsgName( const MessageVariant& msg );
-std::ostream& operator<<( std::ostream& os, const MessageVariant& msg );
+bool isRequest( const Message& msg );
+Message decode( boost::archive::binary_iarchive& archive, const Header& header );
+void encode( boost::archive::binary_oarchive& archive, const Message& msg );
+
+const char* getMsgName( const Message& msg );
+std::ostream& operator<<( std::ostream& os, const Message& msg );
+MessageID getMsgID( const Message& msg );
 const char* getMsgNameFromID( MessageID id );
 
 } // namespace network

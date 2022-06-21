@@ -5,6 +5,8 @@
 #include "receiver.hpp"
 #include "sender.hpp"
 
+#include <optional>
+
 namespace mega
 {
 namespace network
@@ -22,19 +24,28 @@ public:
 
     void run( const ConnectionID& connectionID )
     {
-        m_connectionID = connectionID;
-        m_receiver.run( m_ioContext, m_connectionID );
+        m_connectionIDOpt = connectionID;
+        m_receiver.run( m_ioContext, m_connectionIDOpt.value() );
     }
 
-    void stop() { m_receiver.stop(); m_channel.cancel(); m_channel.close(); }
+    void stop()
+    {
+        m_receiver.stop();
+        m_channel.cancel();
+        m_channel.close();
+    }
 
-    Sender::Ptr getSender() { return make_current_channel_sender( m_channel, m_connectionID ); }
+    Sender::Ptr getSender()
+    {
+        VERIFY_RTE( m_connectionIDOpt.has_value() );
+        return make_current_channel_sender( m_channel, m_connectionIDOpt.value() );
+    }
 
 private:
-    boost::asio::io_context&  m_ioContext;
-    ConcurrentChannel         m_channel;
-    ConcurrentChannelReceiver m_receiver;
-    ConnectionID              m_connectionID;
+    boost::asio::io_context&      m_ioContext;
+    ConcurrentChannel             m_channel;
+    ConcurrentChannelReceiver     m_receiver;
+    std::optional< ConnectionID > m_connectionIDOpt;
 };
 
 } // namespace network

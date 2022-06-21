@@ -25,6 +25,33 @@ msg TermSetProject
     response(bool bSuccess);
 }
 
+msg TermNewInstallation
+{
+    request(mega::network::Project project);
+    response(bool bSuccess);
+}
+
+msg TermSimNew
+{
+    request();
+    response(mega::network::ConversationID simulationID);
+}
+msg TermSimList
+{
+    request();
+    response(std::vector< mega::network::ConversationID > simulationID);
+}
+msg TermSimReadLock
+{
+    request(mega::network::ConversationID simulationID);
+    response(mega::TimeStamp timestamp);
+}
+msg TermSimWriteLock
+{
+    request(mega::network::ConversationID simulationID);
+    response(mega::TimeStamp timestamp);
+}
+
 msg ExePipelineReadyForWork
 {
     request(network::ConversationID rootConversationID);

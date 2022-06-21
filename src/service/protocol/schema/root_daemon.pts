@@ -18,3 +18,32 @@ msg RootPipelineStartTask
     request(mega::pipeline::TaskDescriptor task);
     response(network::PipelineResult result);
 }
+
+msg RootProjectUpdated
+{
+    request(mega::network::Project project);
+    response();
+}
+
+msg RootSimList
+{
+    request();
+    response( std::vector< mega::network::ConversationID > simulationIDs );
+}
+
+msg RootSimCreate
+{
+    request();
+    response( mega::network::ConversationID newSimulationID );
+}
+
+msg RootSimReadLock
+{
+    request(mega::network::ConversationID simulationID);
+    response(mega::TimeStamp timestamp);
+}
+msg RootSimWriteLock
+{
+    request(mega::network::ConversationID simulationID);
+    response(mega::TimeStamp timestamp);
+}

@@ -9,15 +9,6 @@
 
 #include "common/assert_verify.hpp"
 
-#include <boost/interprocess/interprocess_fwd.hpp>
-#include <boost/interprocess/streams/vectorstream.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/asio/detached.hpp>
-
-#include <sstream>
-#include <string_view>
-#include <iostream>
-
 namespace mega
 {
 namespace network
@@ -47,15 +38,15 @@ Request_Encode::Request_Encode( ConversationBase& conversation,
     ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_conversation, m_sender.getConnectionID() );
 
     {
-        const MessageVariant msg
-        {
+        const Message msg = MSG_{{ request.name }}_Request::make
+        (
             MSG_{{ request.name }}_Request
             {
 {%for p in request.params%}
                 {{p.name}}{% if not loop.is_last %},{%endif%}
 {%endfor%} 
             }
-        };
+        );
 
         if ( const boost::system::error_code ec = m_sender.send( m_conversation.getID(), msg, m_yield_ctx ) )
         {
@@ -63,11 +54,11 @@ Request_Encode::Request_Encode( ConversationBase& conversation,
         }
     }
 
-    const MessageVariant msg = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
-    VERIFY_RTE_MSG( msg.index() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
-        "Unexpected reponse of type: " << getMsgNameFromID( msg.index() ) << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+    const Message msg = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
+    VERIFY_RTE_MSG( getMsgID( msg ) == {{ filename }}::MSG_{{ request.name }}_Response::ID,
+        "Unexpected reponse of type: " << getMsgNameFromID( getMsgID( msg ) ) << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
 {%if request.return_type != "void" %}
-    return std::get< {{ filename }}::MSG_{{ request.name }}_Response >( msg ).{{ request.return_msg_member }};
+    return {{ filename }}::MSG_{{ request.name }}_Response::get( msg ).{{ request.return_msg_member }};
 {% endif %}
 }
 {% endfor %}
@@ -92,15 +83,15 @@ void Response_Encode::{{ response.name }}
 {%endfor%}
 )
 {
-    const MessageVariant msg
-    {
+    const Message msg = MSG_{{ response.name }}_Response::make
+    (
         MSG_{{ response.name }}_Response
         {
 {%for p in response.params%}
             {{p.name}}{% if not loop.is_last %},{%endif%}
 {%endfor%} 
         }
-    };
+    );
 
     if ( const boost::system::error_code ec = m_sender.send( m_conversation.getID(), msg, m_yield_ctx ) )
     {
@@ -112,22 +103,17 @@ void Response_Encode::{{ response.name }}
     }
 }
 {% endfor %}
-namespace 
-{
-    struct Visitor
-    {
-        Impl&     m_impl;
-        boost::asio::yield_context& yield_ctx;
-        Visitor( Impl& implemented, boost::asio::yield_context& yield_ctx )
-            : m_impl( implemented )
-            , yield_ctx( yield_ctx )
-        {
-        }
 
+bool Impl::dispatchRequest( const Message& message, boost::asio::yield_context& yield_ctx )
+{
+    switch( getMsgID( message ) )
+    {
+       
 {% for request in requests %}
-        bool operator() ( const {{ filename }}::MSG_{{ request.name }}_Request& msg ) const
+        case {{ filename }}::MSG_{{ request.name }}_Request::ID:
         {
-            m_impl.{{ request.name }}
+            auto& msg = {{ filename }}::MSG_{{ request.name }}_Request::get( message );
+            {{ request.name }}
             ( 
 {%for p in request.params%}
                 msg.{{p.name}},
@@ -136,19 +122,11 @@ namespace
             );
             return true;
         }
+        break;
 {% endfor %}
-        template< typename TOtherMsgType >
-        bool operator() ( const TOtherMsgType& ) const
-        {
+        default:
             return false;
-        }
-
-    } ;
-}
-bool Impl::dispatchRequest( const MessageVariant& msg, boost::asio::yield_context& yield_ctx )
-{
-    Visitor visitor( *this, yield_ctx );
-    return std::visit( visitor, msg );
+    }
 }
 
 } // namespace {{ filename }}

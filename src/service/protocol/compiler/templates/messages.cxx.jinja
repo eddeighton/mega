@@ -1,38 +1,58 @@
 
 #include "service/protocol/model/messages.hxx"
+
+#include <variant>
+
 namespace mega
 {
 namespace network
 {
 
-namespace 
+{%for message in messages%}
+{%for namespace in message.namespaces%}
+{%if loop.is_first %}namespace {{namespace}}{%else%}::{{namespace}}{%endif%}
+{%endfor%}{# for namespace in message.namespaces #}
+{%if message.has_namespace%} { {%endif%}
+
+Message {{ message.name }}::make( const {{ message.name }}& msg )
 {
-    struct Visitor
+    return Message{ ID, msg };
+}
+
+const {{ message.name }}& {{ message.name }}::get( const Message& msg )
+{
+    VERIFY_RTE_MSG( getMsgID( msg ) == ID, "Expected message type: " << getMsgNameFromID( ID ) << " but got: " << getMsgNameFromID( getMsgID( msg ) ) );
+    return *std::any_cast< {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }} >( &msg.msg );
+}
+
+{%if message.has_namespace%} } {%endif%} 
+{%endfor%}
+
+Message make_error_msg( const std::string& strErrorMsg )
+{
+    return Message{ MSG_Error_Response::ID, MSG_Error_Response{ strErrorMsg } };
+}
+
+bool isRequest( const Message& message )
+{
+    switch( message.index )
     {
 {%for message in messages%}
-        bool operator() ( const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg ) const
-        {
+        case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID: 
 {%if message.is_request %}
             return true;
 {% else %}
             return false;
 {% endif %}
-        }
-{% endfor %}
-        template< typename TOtherMsgType >
-        bool operator() ( const TOtherMsgType& ) const
+{% endfor %} 
+        default:
         {
-            return false;
+            THROW_RTE( "Unknown message: " << message.index );
         }
-    } ;
-}
-bool isRequest( const MessageVariant& msg )
-{
-    Visitor visitor;
-    return std::visit( visitor, msg );
+    }
 }
 
-MessageVariant decode( boost::archive::binary_iarchive& archive, const Header& header )
+Message decode( boost::archive::binary_iarchive& archive, const Header& header )
 {
     switch ( header.getMessageID() )
     {
@@ -43,7 +63,7 @@ MessageVariant decode( boost::archive::binary_iarchive& archive, const Header& h
 {%for member in message.members%}
             archive& msg.{{ member.name }}; 
 {%endfor%}
-            return msg;
+            return {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::make( msg );
         }
         break;
 {%endfor%}
@@ -54,64 +74,36 @@ MessageVariant decode( boost::archive::binary_iarchive& archive, const Header& h
     }
 }
 
-namespace 
+void encode( boost::archive::binary_oarchive& archive, const Message& message )
 {
-    struct Encoder
+    switch( message.index )
     {
-        boost::archive::binary_oarchive& archive;
-        Encoder( boost::archive::binary_oarchive& archive )
-            :   archive( archive )
-        {
-
-        }
-
 {%for message in messages%}
-        void operator() ( const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg ) const
+        case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
         {
+            const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg = 
+                {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::get( message );
 {%for member in message.members%}
             archive& msg.{{ member.name }}; 
 {%endfor%}
         }
+        break;
 {% endfor %}
-        template< typename TOtherMsgType >
-        const char* operator() ( const TOtherMsgType& ) const
+        default:
         {
-            return "Unknown message type";
+            THROW_RTE( "Error decoding message: " << message.index );
         }
-    } ;
+    }
 }
 
-void encode( boost::archive::binary_oarchive& archive, const MessageVariant& msg )
-{
-    return std::visit( Encoder{ archive }, msg );
-}
-
-namespace 
-{
-    struct Printer
-    {
-{%for message in messages%}
-        const char* operator() ( const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg ) const
-        {
-            return "{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}";
-        }
-{% endfor %}
-        template< typename TOtherMsgType >
-        const char* operator() ( const TOtherMsgType& ) const
-        {
-            return "Unknown message type";
-        }
-    } ;
-}
-
-const char* getMsgName( const MessageVariant& msg )
-{
-    return std::visit( Printer{}, msg );
-}
-
-std::ostream& operator<<( std::ostream& os, const MessageVariant& msg )
+std::ostream& operator<<( std::ostream& os, const Message& msg )
 {
     return os << getMsgName( msg );
+}
+
+MessageID getMsgID( const Message& msg )
+{
+    return msg.index;
 }
 
 const char* getMsgNameFromID( MessageID id )
@@ -121,8 +113,17 @@ const char* getMsgNameFromID( MessageID id )
 {%for message in messages%}
         case {{ message.id }}: return "{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}";
 {% endfor %}
-        default: THROW_RTE( "Unknown message type" );
+        default: 
+        {
+            THROW_RTE( "Unknown message type: " << id );
+        }
     }
 }
+
+const char* getMsgName( const Message& msg )
+{
+    return getMsgNameFromID( getMsgID( msg ) );
+}
+
 }
 }

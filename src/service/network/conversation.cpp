@@ -78,7 +78,7 @@ void Conversation::run_one( boost::asio::yield_context& yield_ctx )
     dispatchRequestImpl( msg, yield_ctx );
 }
 
-MessageVariant Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
     ReceivedMsg msg;
     while ( true )
@@ -93,9 +93,9 @@ MessageVariant Conversation::dispatchRequestsUntilResponse( boost::asio::yield_c
             break;
         }
     }
-    if ( msg.msg.index() == MSG_Error_Response::ID )
+    if ( getMsgID( msg.msg ) == MSG_Error_Response::ID )
     {
-        throw std::runtime_error( std::get< MSG_Error_Response >( msg.msg ).what );
+        throw std::runtime_error( MSG_Error_Response::get( msg.msg ).what );
     }
     return msg.msg;
 }
@@ -114,16 +114,16 @@ void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yie
     }
     catch ( std::exception& ex )
     {
-        SPDLOG_WARN( "Conversation: {} exception: {}", getID().getID(), ex.what() );
         error( m_stack.back(), ex.what(), yield_ctx );
     }
 }
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-InThreadConversation::InThreadConversation( ConversationManager&          conversationManager,
-                                                const ConversationID&         conversationID,
-                                                std::optional< ConnectionID > originatingConnectionID /*= std::nullopt*/ )
+InThreadConversation::InThreadConversation( ConversationManager&  conversationManager,
+                                            const ConversationID& conversationID,
+                                            std::optional< ConnectionID >
+                                                originatingConnectionID /*= std::nullopt*/ )
     : Conversation( conversationManager, conversationID, originatingConnectionID )
     , m_channel( conversationManager.getIOContext() )
 {
@@ -149,9 +149,10 @@ void InThreadConversation::send( const ReceivedMsg& msg )
 
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
-ConcurrentConversation::ConcurrentConversation( ConversationManager&          conversationManager,
-                                                const ConversationID&         conversationID,
-                                                std::optional< ConnectionID > originatingConnectionID /*= std::nullopt*/ )
+ConcurrentConversation::ConcurrentConversation( ConversationManager&  conversationManager,
+                                                const ConversationID& conversationID,
+                                                std::optional< ConnectionID >
+                                                    originatingConnectionID /*= std::nullopt*/ )
     : Conversation( conversationManager, conversationID, originatingConnectionID )
     , m_channel( conversationManager.getIOContext() )
 {
@@ -174,5 +175,6 @@ void ConcurrentConversation::send( const ReceivedMsg& msg )
                               }
                           } );
 }
+
 } // namespace network
 } // namespace mega

@@ -32,7 +32,7 @@ public:
     ConversationBase::Ptr findExistingConversation( const network::ConversationID& conversationID ) const;
 
     virtual ConversationBase::Ptr joinConversation( const ConnectionID& originatingConnectionID, const Header& header,
-                                                    const MessageVariant& msg )
+                                                    const Message& msg )
         = 0;
     virtual void dispatch( const Header& header, const ReceivedMsg& msg );
 

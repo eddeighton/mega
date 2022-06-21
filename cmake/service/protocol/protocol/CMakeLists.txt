@@ -107,6 +107,7 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
 	)
 
 set( MEGA_PROTOCOL_COMMON_SOURCE
+    ${MEGA_SRC_DIR}/service/protocol/common/header.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/project.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp

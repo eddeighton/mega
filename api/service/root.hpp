@@ -24,9 +24,9 @@ public:
     void shutdown();
 
     // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                             const network::Header&         header,
-                                                             const network::MessageVariant& msg );
+    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                             const network::Header&       header,
+                                                             const network::Message&      msg );
 
     const network::Project& getProject() const { return m_config.getProject(); }
     void                    setProject( const network::Project& project ) { m_config.setProject( project ); }

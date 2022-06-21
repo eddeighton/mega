@@ -28,6 +28,7 @@
 
 #include <common/file.hpp>
 #include <iostream>
+#include <limits>
 #include <memory>
 
 namespace mega
@@ -49,7 +50,7 @@ public:
     {
     }
 
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
+    virtual bool dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx ) override
     {
         return network::daemon_root::Impl::dispatchRequest( msg, yield_ctx );
     }
@@ -65,7 +66,7 @@ public:
         else
         {
             SPDLOG_ERROR( "Cannot resolve connection in error handler" );
-            THROW_RTE( "Root Critical error in error handler" );
+            THROW_RTE( "Root: Critical error in error handler" );
         }
     }
 
@@ -76,7 +77,7 @@ public:
         {
             return network::daemon_root::Response_Encode( *this, *pConnection, yield_ctx );
         }
-        THROW_RTE( "Connection to daemon lost" );
+        THROW_RTE( "Root: Connection to daemon lost" );
     }
 
     network::root_daemon::Request_Encode getOriginatingDaemonRequest( boost::asio::yield_context& yield_ctx )
@@ -86,7 +87,7 @@ public:
         {
             return network::root_daemon::Request_Encode( *this, *pConnection, yield_ctx );
         }
-        THROW_RTE( "Connection to daemon lost" );
+        THROW_RTE( "Root: Connection to daemon lost" );
     }
 
     network::root_daemon::Request_Encode getDaemonRequest( network::Server::Connection::Ptr pConnection,
@@ -121,11 +122,126 @@ public:
     virtual void TermSetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override
     {
         auto daemon = getOriginatingDaemonResponse( yield_ctx );
-        m_root.setProject( project );
-        m_root.saveConfig();
-        daemon.TermSetProject( true );
+
+        if ( project.getProjectInstallPath() != m_root.getProject().getProjectInstallPath() )
+        {
+            m_root.setProject( project );
+            m_root.saveConfig();
+
+            // notify all executors of the project change
+            for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+            {
+                network::root_daemon::Request_Encode rq( *this, *pConnection, yield_ctx );
+                rq.RootProjectUpdated( project );
+            }
+
+            daemon.TermSetProject( true );
+        }
+        else
+        {
+            daemon.TermSetProject( false );
+        }
     }
 
+    virtual void TermNewInstallation( const mega::network::Project& project,
+                                      boost::asio::yield_context&   yield_ctx ) override
+    {
+        bool bSuccess = true;
+        try
+        {
+            // notify all executors of the project change
+            for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+            {
+                network::root_daemon::Request_Encode rq( *this, *pConnection, yield_ctx );
+                rq.RootProjectUpdated( project );
+            }
+        }
+        catch ( std::exception& ex )
+        {
+            SPDLOG_ERROR( "Exception attempting to roll out project installation: {} : {}",
+                          project.getProjectInstallPath().string(), ex.what() );
+            bSuccess = false;
+        }
+
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.TermNewInstallation( bSuccess );
+    }
+
+    virtual void TermSimNew( boost::asio::yield_context& yield_ctx ) override
+    {
+        network::ConversationID simID;
+        {
+            network::Server::Connection::Ptr pLowestDaemon;
+            {
+                std::size_t szLowest = std::numeric_limits< std::size_t >::max();
+                for ( const auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
+                {
+                    auto simIDs = getDaemonRequest( pDaemon, yield_ctx ).RootSimList();
+                    if ( simIDs.size() < szLowest )
+                    {
+                        szLowest      = simIDs.size();
+                        pLowestDaemon = pDaemon;
+                    }
+                }
+            }
+            if ( pLowestDaemon )
+            {
+                simID = getDaemonRequest( pLowestDaemon, yield_ctx ).RootSimCreate();
+                pLowestDaemon->addSimulation( simID );
+            }
+            else
+            {
+                THROW_RTE( "Root: Failed to locate daemon to run simulation on" );
+            }
+        }
+
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.TermSimNew( simID );
+    }
+
+    virtual void TermSimList( boost::asio::yield_context& yield_ctx ) override
+    {
+        std::vector< network::ConversationID > simulationIDs;
+
+        for ( const auto& [ id, pDeamon ] : m_root.m_server.getConnections() )
+        {
+            auto simIDs = getDaemonRequest( pDeamon, yield_ctx ).RootSimList();
+            std::copy( simIDs.begin(), simIDs.end(), std::back_inserter( simulationIDs ) );
+        }
+
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.TermSimList( simulationIDs );
+    }
+
+    virtual void TermSimReadLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx )
+    {
+        std::optional< mega::TimeStamp > result;
+        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+        {
+            if ( pConnection->getSimulations().count( simulationID ) )
+            {
+                result = getDaemonRequest( pConnection, yield_ctx ).RootSimReadLock( simulationID );
+                break;
+            }
+        }
+        getOriginatingDaemonResponse( yield_ctx ).TermSimReadLock( result.value() );
+    }
+
+    virtual void TermSimWriteLock( const mega::network::ConversationID& simulationID,
+                                   boost::asio::yield_context&          yield_ctx )
+    {
+        std::optional< mega::TimeStamp > result;
+        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+        {
+            if ( pConnection->getSimulations().count( simulationID ) )
+            {
+                result = getDaemonRequest( pConnection, yield_ctx ).RootSimWriteLock( simulationID );
+                break;
+            }
+        }
+        getOriginatingDaemonResponse( yield_ctx ).TermSimWriteLock( result.value() );
+    }
     /*
     virtual void Shutdown( boost::asio::yield_context& yield_ctx ) override
     {
@@ -170,6 +286,12 @@ public:
         auto       daemon    = getOriginatingDaemonResponse( yield_ctx );
         daemon.ExeRestore( bRestored );
     }
+
+    virtual void ExeGetProject( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        daemon.ExeGetProject( m_root.getProject() );
+    }
 };
 
 class RootPipelineConversation : public RootRequestConversation, public pipeline::Progress, public pipeline::Stash
@@ -205,19 +327,19 @@ public:
     // implement pipeline::Stash so that can create schedule - not actually used
     virtual task::FileHash getBuildHashCode( const boost::filesystem::path& filePath ) override
     {
-        THROW_RTE( "Unreachable" );
+        THROW_RTE( "Root: Unreachable" );
     }
     virtual void setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode ) override
     {
-        THROW_RTE( "Unreachable" );
+        THROW_RTE( "Root: Unreachable" );
     }
     virtual void stash( const boost::filesystem::path& filePath, task::DeterminantHash determinant ) override
     {
-        THROW_RTE( "Unreachable" );
+        THROW_RTE( "Root: Unreachable" );
     }
     virtual bool restore( const boost::filesystem::path& filePath, task::DeterminantHash determinant ) override
     {
-        THROW_RTE( "Unreachable" );
+        THROW_RTE( "Root: Unreachable" );
     }
 
     virtual void onStarted( const std::string& strMsg ) override { onProgress( strMsg ); }
@@ -239,7 +361,7 @@ public:
             if ( !pPipeline )
             {
                 SPDLOG_ERROR( "Failed to load pipeline: {}", configuration.getPipelineID() );
-                THROW_RTE( "Failed to load pipeline: " << configuration.get() );
+                THROW_RTE( "Root: Failed to load pipeline: " << configuration.get() );
             }
             else
             {
@@ -259,7 +381,7 @@ public:
         if ( m_jobs.empty() )
         {
             SPDLOG_WARN( "Failed to find workers for pipeline: {}", configuration.getPipelineID() );
-            THROW_RTE( "Failed to find workers for pipeline" );
+            THROW_RTE( "Root: Failed to find workers for pipeline" );
         }
         SPDLOG_INFO( "Found {} jobs for pipeline {}", m_jobs.size(), configuration.getPipelineID() );
 
@@ -444,9 +566,9 @@ void Root::shutdown()
     SPDLOG_INFO( "Root shutdown" );
 }
 
-network::ConversationBase::Ptr Root::joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                       const network::Header&         header,
-                                                       const network::MessageVariant& msg )
+network::ConversationBase::Ptr Root::joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                       const network::Header&       header,
+                                                       const network::Message&      msg )
 {
     switch ( header.getMessageID() )
     {

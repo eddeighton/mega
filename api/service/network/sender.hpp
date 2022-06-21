@@ -27,7 +27,7 @@ public:
 
     virtual ConnectionID getConnectionID() const = 0;
 
-    virtual boost::system::error_code send( const ConversationID& conversationID, const MessageVariant& msg,
+    virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
                                             boost::asio::yield_context& yield_ctx )
         = 0;
     virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,

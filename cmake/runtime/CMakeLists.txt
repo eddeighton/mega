@@ -6,6 +6,9 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
+#get spdlog
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
+
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
@@ -33,6 +36,7 @@ link_boost( runtime system )
 link_boost( runtime filesystem )
 link_boost( runtime serialization )
 link_json( runtime )
+link_spdlog( runtime )
 link_common( runtime )
 
 install( FILES ${RUNTIME_HEADERS} DESTINATION include/runtime )

@@ -14,6 +14,7 @@ namespace service
 class Daemon : public network::ConversationManager
 {
     friend class DaemonRequestConversation;
+
 public:
     Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP );
     ~Daemon();
@@ -21,9 +22,9 @@ public:
     void shutdown();
 
     // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                             const network::Header&         header,
-                                                             const network::MessageVariant& msg );
+    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                             const network::Header&       header,
+                                                             const network::Message&      msg );
 
 private:
     network::Client m_rootClient;

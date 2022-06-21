@@ -4,30 +4,28 @@
 
 namespace
 {
-    mega::runtime::ComponentManager::Ptr g_componentManager;
+mega::runtime::ComponentManager::Ptr g_componentManager;
 
 }
 
-void initialiseRuntime( const boost::filesystem::path& archiveDatabase )
+namespace mega
 {
-    if( !g_componentManager )
+namespace runtime
+{
+void initialiseRuntime( const mega::network::Project& project )
+{
+    if ( !g_componentManager )
     {
-        g_componentManager = std::make_unique< mega::runtime::ComponentManager >( archiveDatabase );
+        g_componentManager = std::make_unique< mega::runtime::ComponentManager >( project );
     }
     else
     {
-        g_componentManager->reinitialise( archiveDatabase );
+        g_componentManager->reinitialise( project );
     }
 }
+} // namespace runtime
+} // namespace mega
 
-void* resolveOperation( int typeID )
-{
+void* resolveOperation( int typeID ) { return nullptr; }
 
-    return nullptr;
-}
-
-void* resolveInvocation( int typeID, int* typePath, int typePathSize, int OperationID )
-{
-
-    return nullptr;
-}
+void* resolveInvocation( int typeID, int* typePath, int typePathSize, int OperationID ) { return nullptr; }

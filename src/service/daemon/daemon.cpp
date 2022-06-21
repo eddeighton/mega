@@ -1,6 +1,7 @@
 
 #include "service/daemon.hpp"
 
+#include "mega/common.hpp"
 #include "service/network/conversation.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
@@ -34,7 +35,7 @@ public:
     {
     }
 
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
+    virtual bool dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx ) override
     {
         return network::leaf_daemon::Impl::dispatchRequest( msg, yield_ctx )
                || network::root_daemon::Impl::dispatchRequest( msg, yield_ctx );
@@ -56,7 +57,7 @@ public:
         else
         {
             SPDLOG_ERROR( "Cannot resolve connection in error handler" );
-            THROW_RTE( "Daemon Critical error in error handler" );
+            THROW_RTE( "Daemon: Critical error in error handler" );
         }
     }
 
@@ -76,7 +77,7 @@ public:
         {
             return network::leaf_daemon::Response_Encode( *this, *pConnection, yield_ctx );
         }
-        THROW_RTE( "Could not locate originating connection" );
+        THROW_RTE( "Daemon: Could not locate originating connection" );
     }
     network::daemon_leaf::Request_Encode getOriginatingLeafRequest( boost::asio::yield_context& yield_ctx )
     {
@@ -85,7 +86,7 @@ public:
         {
             return network::daemon_leaf::Request_Encode( *this, *pConnection, yield_ctx );
         }
-        THROW_RTE( "Could not locate originating connection" );
+        THROW_RTE( "Daemon: Could not locate originating connection" );
     }
 
     // leaf_daemon
@@ -98,6 +99,7 @@ public:
         SPDLOG_INFO( "Leaf {} enroled as {}", pConnection->getName(), network::Node::toStr( type ) );
         getOriginatingLeafResponse( yield_ctx ).LeafEnrole();
     }
+
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getRootRequest( yield_ctx ).TermListNetworkNodes();
@@ -121,6 +123,65 @@ public:
     {
         auto result = getRootRequest( yield_ctx ).TermSetProject( project );
         getOriginatingLeafResponse( yield_ctx ).TermSetProject( result );
+    }
+
+    virtual void TermNewInstallation( const mega::network::Project& project,
+                                      boost::asio::yield_context&   yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).TermNewInstallation( project );
+        getOriginatingLeafResponse( yield_ctx ).TermNewInstallation( result );
+    }
+
+    virtual void TermSimNew( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).TermSimNew();
+        getOriginatingLeafResponse( yield_ctx ).TermSimNew( result );
+    }
+
+    virtual void TermSimList( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).TermSimList();
+        getOriginatingLeafResponse( yield_ctx ).TermSimList( result );
+    }
+
+    virtual void TermSimReadLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        std::optional< mega::TimeStamp > result;
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            if ( pConnection->getSimulations().count( simulationID ) )
+            {
+                network::daemon_leaf::Request_Encode rq( *this, *pConnection, yield_ctx );
+                result = rq.RootSimReadLock( simulationID );
+                break;
+            }
+        }
+        if ( !result.has_value() )
+        {
+            result = getRootRequest( yield_ctx ).TermSimReadLock( simulationID );
+        }
+        getOriginatingLeafResponse( yield_ctx ).TermSimReadLock( result.value() );
+    }
+
+    virtual void TermSimWriteLock( const mega::network::ConversationID& simulationID,
+                                   boost::asio::yield_context&          yield_ctx ) override
+    {
+        std::optional< mega::TimeStamp > result;
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            if ( pConnection->getSimulations().count( simulationID ) )
+            {
+                network::daemon_leaf::Request_Encode rq( *this, *pConnection, yield_ctx );
+                result = rq.RootSimWriteLock( simulationID );
+                break;
+            }
+        }
+        if ( !result.has_value() )
+        {
+            result = getRootRequest( yield_ctx ).TermSimWriteLock( simulationID );
+        }
+        getOriginatingLeafResponse( yield_ctx ).TermSimWriteLock( result.value() );
     }
 
     virtual void ExePipelineReadyForWork( const network::ConversationID& rootConversationID,
@@ -167,6 +228,12 @@ public:
         getOriginatingLeafResponse( yield_ctx ).ExeRestore( result );
     }
 
+    virtual void ExeGetProject( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ExeGetProject();
+        getOriginatingLeafResponse( yield_ctx ).ExeGetProject( result );
+    }
+
     // root_daemon
     virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
@@ -204,6 +271,113 @@ public:
         auto response = getOriginatingLeafRequest( yield_ctx ).RootPipelineStartTask( task );
         getRootResponse( yield_ctx ).RootPipelineStartTask( response );
     }
+
+    virtual void RootProjectUpdated( const mega::network::Project& project,
+                                     boost::asio::yield_context&   yield_ctx ) override
+    {
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            if ( pConnection->getTypeOpt().value() == network::Node::Executor )
+            {
+                network::daemon_leaf::Request_Encode rq( *this, *pConnection, yield_ctx );
+                rq.RootProjectUpdated( project );
+            }
+        }
+        getRootResponse( yield_ctx ).RootProjectUpdated();
+    }
+
+    virtual void RootSimList( boost::asio::yield_context& yield_ctx ) override
+    {
+        std::vector< network::ConversationID > simulationIDs;
+
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            if ( pConnection->getTypeOpt().value() == network::Node::Executor )
+            {
+                network::daemon_leaf::Request_Encode rq( *this, *pConnection, yield_ctx );
+                auto                                 simIDs = rq.RootSimList();
+                std::copy( simIDs.begin(), simIDs.end(), std::back_inserter( simulationIDs ) );
+            }
+        }
+
+        getRootResponse( yield_ctx ).RootSimList( simulationIDs );
+    }
+
+    virtual void RootSimCreate( boost::asio::yield_context& yield_ctx ) override
+    {
+        network::ConversationID simID;
+        {
+            network::Server::Connection::Ptr pLowestLeaf;
+            {
+                std::size_t szLowest = std::numeric_limits< std::size_t >::max();
+                for ( const auto& [ id, pLeaf ] : m_daemon.m_leafServer.getConnections() )
+                {
+                    if ( pLeaf->getTypeOpt().value() == network::Node::Executor )
+                    {
+                        network::daemon_leaf::Request_Encode rq( *this, *pLeaf, yield_ctx );
+                        auto                                 simIDs = rq.RootSimList();
+                        if ( simIDs.size() < szLowest )
+                        {
+                            szLowest    = simIDs.size();
+                            pLowestLeaf = pLeaf;
+                        }
+                    }
+                }
+            }
+            if ( pLowestLeaf )
+            {
+                network::daemon_leaf::Request_Encode rq( *this, *pLowestLeaf, yield_ctx );
+                simID = rq.RootSimCreate();
+                pLowestLeaf->addSimulation( simID );
+            }
+            else
+            {
+                THROW_RTE( "Daemon: Failed to locate executor to run simulation on" );
+            }
+        }
+
+        getRootResponse( yield_ctx ).RootSimCreate( simID );
+    }
+
+    virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        std::optional< mega::TimeStamp > result;
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            if ( pConnection->getTypeOpt().value() == network::Node::Executor )
+            {
+                if ( pConnection->getSimulations().count( simulationID ) )
+                {
+                    network::daemon_leaf::Request_Encode rq( *this, *pConnection, yield_ctx );
+                    result = rq.RootSimReadLock( simulationID );
+                    break;
+                }
+            }
+        }
+        VERIFY_RTE_MSG( result, "Failed to locate simulation: " << simulationID );
+        getRootResponse( yield_ctx ).RootSimReadLock( result.value() );
+    }
+
+    virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
+                                   boost::asio::yield_context&          yield_ctx ) override
+    {
+        std::optional< mega::TimeStamp > result;
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            if ( pConnection->getTypeOpt().value() == network::Node::Executor )
+            {
+                if ( pConnection->getSimulations().count( simulationID ) )
+                {
+                    network::daemon_leaf::Request_Encode rq( *this, *pConnection, yield_ctx );
+                    result = rq.RootSimWriteLock( simulationID );
+                    break;
+                }
+            }
+        }
+        VERIFY_RTE_MSG( result, "Failed to locate simulation: " << simulationID );
+        getRootResponse( yield_ctx ).RootSimWriteLock( result.value() );
+    }
 };
 
 ////////////////////////////////////////////////////////////////
@@ -224,9 +398,9 @@ void Daemon::shutdown()
     m_leafServer.stop();
 }
 
-network::ConversationBase::Ptr Daemon::joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                         const network::Header&         header,
-                                                         const network::MessageVariant& msg )
+network::ConversationBase::Ptr Daemon::joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                         const network::Header&       header,
+                                                         const network::Message&      msg )
 {
     /*switch ( msgHeader.getMessageID() )
     {

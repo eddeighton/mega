@@ -11,21 +11,19 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_SERVICE_API 
-    ${MEGA_API_DIR}/service/leaf.hpp
     ${MEGA_API_DIR}/service/tool.hpp
     ${MEGA_API_DIR}/service/terminal.hpp
-    ${MEGA_API_DIR}/service/executor.hpp
     ${MEGA_API_DIR}/service/daemon.hpp
     ${MEGA_API_DIR}/service/root.hpp
 )
 
 set( MEGA_SERVICE_SRC 
-    ${MEGA_SRC_DIR}/service/leaf.cpp
-    ${MEGA_SRC_DIR}/service/tool.cpp
-    ${MEGA_SRC_DIR}/service/terminal.cpp
-    ${MEGA_SRC_DIR}/service/daemon.cpp
-    ${MEGA_SRC_DIR}/service/root.cpp
-    ${MEGA_SRC_DIR}/service/executor.cpp
+    ${MEGA_SRC_DIR}/service/leaf/leaf.hpp
+    ${MEGA_SRC_DIR}/service/leaf/leaf.cpp
+    ${MEGA_SRC_DIR}/service/tool/tool.cpp
+    ${MEGA_SRC_DIR}/service/terminal/terminal.cpp
+    ${MEGA_SRC_DIR}/service/daemon/daemon.cpp
+    ${MEGA_SRC_DIR}/service/root/root.cpp
 )
 
 add_library( service
@@ -39,6 +37,7 @@ target_link_libraries( service protocol )
 target_link_libraries( service network )
 
 target_include_directories( service PUBLIC ${MEGA_API_DIR} )
+target_include_directories( service PUBLIC ${MEGA_SRC_DIR} )
 
 set_target_properties( service PROPERTIES FOLDER service )
 

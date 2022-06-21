@@ -2,7 +2,7 @@
 #ifndef SERVICE_24_MAY_2022
 #define SERVICE_24_MAY_2022
 
-#include "leaf.hpp"
+#include "service/leaf/leaf.hpp"
 
 #include "pipeline/configuration.hpp"
 #include "pipeline/pipeline.hpp"
@@ -11,6 +11,7 @@
 #include "service/network/conversation_manager.hpp"
 #include "service/network/sender.hpp"
 #include "service/network/channel.hpp"
+#include "service/protocol/common/header.hpp"
 
 #include <boost/asio/io_service.hpp>
 
@@ -37,16 +38,19 @@ public:
     void shutdown();
 
     bool running() { return !m_io_context.stopped(); }
-    
-    // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                             const network::Header&         header,
-                                                             const network::MessageVariant& msg );
 
-    std::vector< std::string > listNetworkNodes();
-    network::PipelineResult PipelineRun( const pipeline::Configuration& pipelineConfig );
-    bool SetProject( const mega::network::Project& project );
-    mega::network::Project GetProject();
+    // network::ConversationManager
+    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                             const network::Header&       header,
+                                                             const network::Message&      msg );
+
+    std::vector< std::string >             ListNetworkNodes();
+    network::PipelineResult                PipelineRun( const pipeline::Configuration& pipelineConfig );
+    bool                                   SetProject( const mega::network::Project& project );
+    mega::network::Project                 GetProject();
+    bool                                   NewInstallation( const mega::network::Project& project );
+    network::ConversationID                SimNew();
+    std::vector< network::ConversationID > SimList();
 
     network::Sender& getLeafSender() { return m_leaf; }
 

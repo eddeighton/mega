@@ -2,6 +2,9 @@
 #ifndef COMPONENT_MANAGER_20_JUNE_2022
 #define COMPONENT_MANAGER_20_JUNE_2022
 
+
+#include "service/protocol/common/project.hpp"
+
 #include "database/common/environment_archive.hpp"
 
 #include "boost/filesystem/path.hpp"
@@ -57,10 +60,10 @@ class ComponentManager
 public:
     using Ptr = std::unique_ptr< ComponentManager >;
 
-    ComponentManager( const boost::filesystem::path& archiveDatabase );
+    ComponentManager( const mega::network::Project& project );
     ~ComponentManager();
 
-    void reinitialise( const boost::filesystem::path& archiveDatabase );
+    void reinitialise( const mega::network::Project& project );
 
 private:
     std::unique_ptr< mega::io::ArchiveEnvironment > m_pArchive;

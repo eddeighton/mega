@@ -37,8 +37,8 @@ public:
     void disconnected();
 
     // Sender
-    virtual ConnectionID getConnectionID() const { return m_pSender->getConnectionID(); }
-    virtual boost::system::error_code send( const ConversationID& conversationID, const MessageVariant& msg,
+    virtual ConnectionID              getConnectionID() const { return m_pSender->getConnectionID(); }
+    virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
                                             boost::asio::yield_context& yield_ctx )
     {
         return m_pSender->send( conversationID, msg, yield_ctx );
@@ -48,6 +48,7 @@ public:
     {
         m_pSender->sendErrorResponse( conversationID, strErrorMsg, yield_ctx );
     }
+
 private:
     boost::asio::io_context&       m_ioContext;
     boost::asio::ip::tcp::resolver m_resolver;

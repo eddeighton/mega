@@ -1,5 +1,5 @@
 
-#include "service/leaf.hpp"
+#include "service/leaf/leaf.hpp"
 
 #include "service/network/conversation_manager.hpp"
 #include "service/network/network.hpp"
@@ -42,7 +42,7 @@ public:
     {
     }
 
-    virtual bool dispatchRequest( const network::MessageVariant& msg, boost::asio::yield_context& yield_ctx ) override
+    virtual bool dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx ) override
     {
         return network::term_leaf::Impl::dispatchRequest( msg, yield_ctx )
                || network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx )
@@ -63,8 +63,9 @@ public:
         }
         else
         {
-            SPDLOG_ERROR( "Cannot resolve connection in error handler" );
-            THROW_RTE( "Leaf Critical error in error handler" );
+            SPDLOG_ERROR(
+                "Leaf: Cannot resolve connection: {} in error handler for error: {}", connection, strErrorMsg );
+            THROW_RTE( "Leaf: Critical error in error handler" );
         }
     }
     network::daemon_leaf::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
@@ -119,6 +120,39 @@ public:
         getTermResponse( yield_ctx ).TermSetProject( result );
     }
 
+    virtual void TermNewInstallation( const mega::network::Project& project,
+                                      boost::asio::yield_context&   yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermNewInstallation( project );
+        getTermResponse( yield_ctx ).TermNewInstallation( result );
+    }
+
+    virtual void TermSimNew( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermSimNew();
+        getTermResponse( yield_ctx ).TermSimNew( result );
+    }
+
+    virtual void TermSimList( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermSimList();
+        getTermResponse( yield_ctx ).TermSimList( result );
+    }
+
+    virtual void TermSimReadLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermSimReadLock( simulationID );
+        getTermResponse( yield_ctx ).TermSimReadLock( result );
+    }
+
+    virtual void TermSimWriteLock( const mega::network::ConversationID& simulationID,
+                                   boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermSimWriteLock( simulationID );
+        getTermResponse( yield_ctx ).TermSimWriteLock( result );
+    }
+
     // daemon_leaf
     virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
@@ -150,7 +184,7 @@ public:
             case network::Node::Root:
             case network::Node::TOTAL_NODE_TYPES:
             default:
-                THROW_RTE( "Invalid leaf type" );
+                THROW_RTE( "Leaf: Invalid leaf type" );
         }
     }
 
@@ -167,6 +201,38 @@ public:
     {
         auto result = getExeRequest( yield_ctx ).RootPipelineStartTask( task );
         getDaemonResponse( yield_ctx ).RootPipelineStartTask( result );
+    }
+
+    virtual void RootProjectUpdated( const mega::network::Project& project,
+                                     boost::asio::yield_context&   yield_ctx ) override
+    {
+        getExeRequest( yield_ctx ).RootProjectUpdated( project );
+        getDaemonResponse( yield_ctx ).RootProjectUpdated();
+    }
+    virtual void RootSimList( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getExeRequest( yield_ctx ).RootSimList();
+        getDaemonResponse( yield_ctx ).RootSimList( result );
+    }
+
+    virtual void RootSimCreate( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getExeRequest( yield_ctx ).RootSimCreate();
+        getDaemonResponse( yield_ctx ).RootSimCreate( result );
+    }
+
+    virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto result = getExeRequest( yield_ctx ).RootSimReadLock( simulationID );
+        getDaemonResponse( yield_ctx ).RootSimReadLock( result );
+    }
+
+    virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
+                                   boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto result = getExeRequest( yield_ctx ).RootSimWriteLock( simulationID );
+        getDaemonResponse( yield_ctx ).RootSimWriteLock( result );
     }
 
     // network::worker_leaf::Impl
@@ -213,6 +279,12 @@ public:
         auto result = getDaemonRequest( yield_ctx ).ExeRestore( filePath, determinant );
         getExeResponse( yield_ctx ).ExeRestore( result );
     }
+
+    virtual void ExeGetProject( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ExeGetProject();
+        getExeResponse( yield_ctx ).ExeGetProject( result );
+    }
 };
 
 class LeafEnrole : public LeafRequestConversation
@@ -239,10 +311,12 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType )
     , m_work_guard( m_io_context.get_executor() )
     , m_io_thread( [ &io_context = m_io_context ]() { io_context.run(); } )
 {
-    std::ostringstream os;
-    os << "leaf_" << std::this_thread::get_id();
-    network::ConnectionID connectionID = os.str();
-    m_receiverChannel.run( connectionID );
+    {
+        std::ostringstream os;
+        os << "leaf_" << std::this_thread::get_id();
+        network::ConnectionID connectionID = os.str();
+        m_receiverChannel.run( connectionID );
+    }
 
     m_pSelfSender = m_receiverChannel.getSender();
 
@@ -266,9 +340,9 @@ void Leaf::shutdown()
 }
 */
 // network::ConversationManager
-network::ConversationBase::Ptr Leaf::joinConversation( const network::ConnectionID&   originatingConnectionID,
-                                                       const network::Header&         header,
-                                                       const network::MessageVariant& msg )
+network::ConversationBase::Ptr Leaf::joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                       const network::Header&       header,
+                                                       const network::Message&      msg )
 {
     switch ( m_nodeType )
     {
@@ -282,7 +356,7 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
         case network::Node::Root:
         case network::Node::TOTAL_NODE_TYPES:
         default:
-            THROW_RTE( "Unknown leaf type" );
+            THROW_RTE( "Leaf: Unknown leaf type" );
             break;
     }
 }

@@ -57,6 +57,8 @@ inline bool operator<( const ConversationID& left, const ConversationID& right )
                                                                  : left.getID() < right.getID();
 }
 
+std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID );
+
 using MessageID = std::uint32_t;
 
 class Header

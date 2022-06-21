@@ -34,12 +34,15 @@ public:
         ~Connection();
 
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
-        void                               setType( Node::Type type ) { m_typeOpt = type; }
         const std::string&                 getName() const { return m_strName; }
+        const std::set< ConversationID >&  getSimulations() const { return m_simulations; }
+
+        void setType( Node::Type type ) { m_typeOpt = type; }
+        void addSimulation( const ConversationID& simID ) { m_simulations.insert( simID ); }
 
         // Sender
-        virtual ConnectionID getConnectionID() const { return m_pSender->getConnectionID(); }
-        virtual boost::system::error_code send( const ConversationID& conversationID, const MessageVariant& msg,
+        virtual ConnectionID              getConnectionID() const { return m_pSender->getConnectionID(); }
+        virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
                                                 boost::asio::yield_context& yield_ctx )
         {
             return m_pSender->send( conversationID, msg, yield_ctx );
@@ -67,6 +70,7 @@ public:
         std::string                   m_strName;
         Sender::Ptr                   m_pSender;
         std::optional< Node::Type >   m_typeOpt;
+        std::set< ConversationID >    m_simulations;
     };
 
     using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
