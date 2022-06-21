@@ -1,6 +1,5 @@
 
 
-
 // pipelines
 msg ExePipelineReadyForWork
 {
@@ -44,4 +43,16 @@ msg ExeGetProject
 {
     request();
     response(mega::network::Project project);
+}
+
+// Simulations
+msg ExeSimReadLockReady
+{
+    request( mega::TimeStamp timeStamp );
+    response();
+}
+msg ExeSimWriteLockReady
+{
+    request( mega::TimeStamp timeStamp );
+    response();
 }

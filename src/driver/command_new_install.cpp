@@ -77,7 +77,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             const mega::network::Project project( projectInstallDir );
             mega::service::Terminal terminal;
-            terminal.NewInstallation( project );
+            if( !terminal.NewInstallation( project ) )
+            {
+                THROW_RTE( "Installation failed" );
+            }
         }
         catch ( std::exception& ex )
         {

@@ -6,3 +6,14 @@ msg RootListNetworkNodes
     request();
     response(std::vector< std::string > nodes);
 }
+
+msg RootSimReadLockReady
+{
+    request( mega::TimeStamp timeStamp );
+    response();
+}
+msg RootSimWriteLockReady
+{
+    request( mega::TimeStamp timeStamp );
+    response();
+}

@@ -39,11 +39,14 @@ public:
         return *m_pRequestChannelSender;
     }
 
-    virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
+    virtual void ExeSimReadLockAcquire( const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override;
-
-    virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
-                                   boost::asio::yield_context&          yield_ctx ) override;
+    virtual void ExeSimReadLockRelease( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override;
+    virtual void ExeSimWriteLockAcquire( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override;
+    virtual void ExeSimWriteLockRelease( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override;
 
 private:
     network::ConcurrentChannel m_requestChannel;

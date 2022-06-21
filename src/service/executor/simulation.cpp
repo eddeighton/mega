@@ -48,22 +48,36 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     {
         do
         {
+            // m_requestChannel.ready()
+
             const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
 
             std::optional< mega::network::ConversationID > requestingConversationID;
 
             switch ( network::getMsgID( msg.msg ) )
             {
-                case network::exe_sim::MSG_RootSimReadLock_Request::ID:
+                case network::exe_sim::MSG_ExeSimReadLockAcquire_Request::ID:
                 {
                     requestingConversationID
-                        = network::exe_sim::MSG_RootSimReadLock_Request::get( msg.msg ).simulationID;
+                        = network::exe_sim::MSG_ExeSimReadLockAcquire_Request::get( msg.msg ).simulationID;
                 }
                 break;
-                case network::exe_sim::MSG_RootSimWriteLock_Request::ID:
+                case network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::ID:
                 {
                     requestingConversationID
-                        = network::exe_sim::MSG_RootSimWriteLock_Request::get( msg.msg ).simulationID;
+                        = network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::get( msg.msg ).simulationID;
+                }
+                break;
+                case network::exe_sim::MSG_ExeSimReadLockRelease_Request::ID:
+                {
+                    requestingConversationID
+                        = network::exe_sim::MSG_ExeSimReadLockRelease_Request::get( msg.msg ).simulationID;
+                }
+                break;
+                case network::exe_sim::MSG_ExeSimWriteLockRelease_Request::ID:
+                {
+                    requestingConversationID
+                        = network::exe_sim::MSG_ExeSimWriteLockRelease_Request::get( msg.msg ).simulationID;
                 }
                 break;
                 default:
@@ -103,25 +117,62 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     }
 }
 
-void Simulation::RootSimReadLock( const mega::network::ConversationID& requestingConID,
-                                  boost::asio::yield_context&          yield_ctx )
+void Simulation::ExeSimReadLockAcquire( const mega::network::ConversationID& requestingConID,
+                                        boost::asio::yield_context&          yield_ctx )
 {
     SPDLOG_INFO( "Simulation::RootSimReadLock: {}", requestingConID );
 
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );
 
-    //THROW_RTE( "Test exception from Simulation::RootSimReadLock" );
+    // THROW_RTE( "Test exception from Simulation::RootSimReadLock" );
 
     network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
 
     mega::TimeStamp timeStamp = 123;
-    response.RootSimReadLock( timeStamp );
+    response.ExeSimReadLockAcquire( timeStamp );
 }
 
-void Simulation::RootSimWriteLock( const mega::network::ConversationID& simulationID,
-                                   boost::asio::yield_context&          yield_ctx )
+void Simulation::ExeSimReadLockRelease( const mega::network::ConversationID& requestingConID,
+                                        boost::asio::yield_context&          yield_ctx )
 {
+    SPDLOG_INFO( "Simulation::RootSimReadLock: {}", requestingConID );
+
+    Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
+    VERIFY_RTE( pRequestCon );
+
+    network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
+
+    response.ExeSimReadLockRelease();
+}
+
+void Simulation::ExeSimWriteLockAcquire( const mega::network::ConversationID& requestingConID,
+                                         boost::asio::yield_context&          yield_ctx )
+{
+    SPDLOG_INFO( "Simulation::RootSimReadLock: {}", requestingConID );
+
+    Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
+    VERIFY_RTE( pRequestCon );
+
+    // THROW_RTE( "Test exception from Simulation::RootSimReadLock" );
+
+    network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
+
+    mega::TimeStamp timeStamp = 123;
+    response.ExeSimWriteLockAcquire( timeStamp );
+}
+
+void Simulation::ExeSimWriteLockRelease( const mega::network::ConversationID& requestingConID,
+                                         boost::asio::yield_context&          yield_ctx )
+{
+    SPDLOG_INFO( "Simulation::RootSimReadLock: {}", requestingConID );
+
+    Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
+    VERIFY_RTE( pRequestCon );
+
+    network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
+
+    response.ExeSimWriteLockRelease();
 }
 
 } // namespace service

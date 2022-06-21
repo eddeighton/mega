@@ -143,15 +143,15 @@ public:
     virtual void TermSimReadLock( const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSimReadLock( simulationID );
-        getTermResponse( yield_ctx ).TermSimReadLock( result );
+        getDaemonRequest( yield_ctx ).TermSimReadLock( simulationID );
+        getTermResponse( yield_ctx ).TermSimReadLock();
     }
 
     virtual void TermSimWriteLock( const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSimWriteLock( simulationID );
-        getTermResponse( yield_ctx ).TermSimWriteLock( result );
+        getDaemonRequest( yield_ctx ).TermSimWriteLock( simulationID );
+        getTermResponse( yield_ctx ).TermSimWriteLock();
     }
 
     // daemon_leaf
@@ -225,15 +225,75 @@ public:
     virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getExeRequest( yield_ctx ).RootSimReadLock( simulationID );
-        getDaemonResponse( yield_ctx ).RootSimReadLock( result );
+        getExeRequest( yield_ctx ).RootSimReadLock( simulationID );
+        getDaemonResponse( yield_ctx ).RootSimReadLock();
     }
 
     virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getExeRequest( yield_ctx ).RootSimWriteLock( simulationID );
-        getDaemonResponse( yield_ctx ).RootSimWriteLock( result );
+        getExeRequest( yield_ctx ).RootSimWriteLock( simulationID );
+        getDaemonResponse( yield_ctx ).RootSimWriteLock();
+    }
+
+    virtual void RootSimReadLockReady( const mega::TimeStamp&      timeStamp,
+                                       boost::asio::yield_context& yield_ctx ) override
+    {
+        switch ( m_leaf.m_nodeType )
+        {
+            case network::Node::Terminal:
+            {
+                getTermRequest( yield_ctx ).RootSimReadLockReady( timeStamp );
+                getDaemonResponse( yield_ctx ).RootSimReadLockReady();
+            }
+            break;
+            case network::Node::Tool:
+            {
+                THROW_RTE( "Not implemented" );
+            }
+            break;
+            case network::Node::Executor:
+            {
+                getExeRequest( yield_ctx ).RootSimReadLockReady( timeStamp );
+                getDaemonResponse( yield_ctx ).RootSimReadLockReady();
+            }
+            break;
+            case network::Node::Daemon:
+            case network::Node::Root:
+            case network::Node::TOTAL_NODE_TYPES:
+            default:
+                THROW_RTE( "Leaf: Invalid leaf type" );
+        }
+    }
+
+    virtual void RootSimWriteLockReady( const mega::TimeStamp&      timeStamp,
+                                        boost::asio::yield_context& yield_ctx ) override
+    {
+        switch ( m_leaf.m_nodeType )
+        {
+            case network::Node::Terminal:
+            {
+                getTermRequest( yield_ctx ).RootSimWriteLockReady( timeStamp );
+                getDaemonResponse( yield_ctx ).RootSimWriteLockReady();
+            }
+            break;
+            case network::Node::Tool:
+            {
+                THROW_RTE( "Not implemented" );
+            }
+            break;
+            case network::Node::Executor:
+            {
+                getExeRequest( yield_ctx ).RootSimWriteLockReady( timeStamp );
+                getDaemonResponse( yield_ctx ).RootSimWriteLockReady();
+            }
+            break;
+            case network::Node::Daemon:
+            case network::Node::Root:
+            case network::Node::TOTAL_NODE_TYPES:
+            default:
+                THROW_RTE( "Leaf: Invalid leaf type" );
+        }
     }
 
     // network::exe_leaf::Impl
@@ -286,6 +346,28 @@ public:
         auto result = getDaemonRequest( yield_ctx ).ExeGetProject();
         getExeResponse( yield_ctx ).ExeGetProject( result );
     }
+
+    virtual void ExeSimReadLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) override
+    {
+        // is request initiated on this leaf?
+        if ( m_leaf.m_conversationIDs.count( getID() ) )
+        {
+            // getExeRequest( yield_ctx ).ExeSimReadLockReady( timeStamp );
+            THROW_RTE( "Not implemented" );
+        }
+        else
+        {
+            getDaemonRequest( yield_ctx ).ExeSimReadLockReady( timeStamp );
+            getExeResponse( yield_ctx ).ExeSimReadLockReady();
+        }
+    }
+
+    virtual void ExeSimWriteLockReady( const mega::TimeStamp&      timeStamp,
+                                       boost::asio::yield_context& yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ExeSimWriteLockReady( timeStamp );
+        getExeResponse( yield_ctx ).ExeSimWriteLockReady();
+    }
 };
 
 class LeafEnrole : public LeafRequestConversation
@@ -317,8 +399,9 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType )
     m_pSelfSender = m_receiverChannel.getSender();
 
     // immediately enrole with node type
-    conversationStarted(
-        network::ConversationBase::Ptr( new LeafEnrole( *this, getDaemonSender().getConnectionID() ) ) );
+    conversationInitiated(
+        network::ConversationBase::Ptr( new LeafEnrole( *this, getDaemonSender().getConnectionID() ) ),
+        getDaemonSender() );
 }
 
 Leaf::~Leaf()
@@ -356,6 +439,22 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
             THROW_RTE( "Leaf: Unknown leaf type" );
             break;
     }
+}
+
+void Leaf::conversationNew( const network::Header& header, const network::ReceivedMsg& msg )
+{
+    m_conversationIDs.insert( header.getConversationID() );
+    boost::asio::spawn( m_ioContext,
+                        [ &m_client = m_client, header, message = msg.msg ]( boost::asio::yield_context yield_ctx )
+                        { m_client.send( header.getConversationID(), message, yield_ctx ); } );
+}
+
+void Leaf::conversationEnd( const network::Header& header, const network::ReceivedMsg& msg )
+{
+    m_conversationIDs.erase( header.getConversationID() );
+    boost::asio::spawn( m_ioContext,
+                        [ &m_client = m_client, header, message = msg.msg ]( boost::asio::yield_context yield_ctx )
+                        { m_client.send( header.getConversationID(), message, yield_ctx ); } );
 }
 
 } // namespace service

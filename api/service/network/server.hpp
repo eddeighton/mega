@@ -35,10 +35,11 @@ public:
 
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
         const std::string&                 getName() const { return m_strName; }
-        const std::set< ConversationID >&  getSimulations() const { return m_simulations; }
+        const std::set< ConversationID >&  getConversations() const { return m_conversations; }
 
         void setType( Node::Type type ) { m_typeOpt = type; }
-        void addSimulation( const ConversationID& simID ) { m_simulations.insert( simID ); }
+        void conversationNew( const ConversationID& id ) { m_conversations.insert( id ); }
+        void conversationEnd( const ConversationID& id ) { m_conversations.erase( id ); }
 
         // Sender
         virtual ConnectionID              getConnectionID() const { return m_pSender->getConnectionID(); }
@@ -70,7 +71,7 @@ public:
         std::string                   m_strName;
         Sender::Ptr                   m_pSender;
         std::optional< Node::Type >   m_typeOpt;
-        std::set< ConversationID >    m_simulations;
+        std::set< ConversationID >    m_conversations;
     };
 
     using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;

@@ -40,10 +40,21 @@ msg RootSimCreate
 msg RootSimReadLock
 {
     request(mega::network::ConversationID simulationID);
-    response(mega::TimeStamp timestamp);
+    response();
 }
 msg RootSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
-    response(mega::TimeStamp timestamp);
+    response();
 }
+msg RootSimReadLockReady
+{
+    request( mega::TimeStamp timeStamp );
+    response();
+}
+msg RootSimWriteLockReady
+{
+    request( mega::TimeStamp timeStamp );
+    response();
+}
+

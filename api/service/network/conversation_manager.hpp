@@ -24,9 +24,10 @@ public:
     const std::string&       getProcessName() const { return m_strProcessName; }
     boost::asio::io_context& getIOContext() const;
 
-    std::vector< ConversationID > reportActivities() const;
+    std::vector< ConversationID > reportConversations() const;
     ConversationID                createConversationID( const ConnectionID& connectionID ) const;
-    void                          conversationStarted( ConversationBase::Ptr pConversation );
+    void                          conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender );
+    void                          conversationJoined( ConversationBase::Ptr pConversation );
     void                          conversationCompleted( ConversationBase::Ptr pConversation );
 
     ConversationBase::Ptr findExistingConversation( const network::ConversationID& conversationID ) const;
@@ -34,6 +35,9 @@ public:
     virtual ConversationBase::Ptr joinConversation( const ConnectionID& originatingConnectionID, const Header& header,
                                                     const Message& msg )
         = 0;
+    virtual void conversationNew( const Header& header, const ReceivedMsg& msg );
+    virtual void conversationEnd( const Header& header, const ReceivedMsg& msg );
+
     virtual void dispatch( const Header& header, const ReceivedMsg& msg );
 
 protected:

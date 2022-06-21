@@ -1,11 +1,22 @@
 
-msg RootSimReadLock
+msg ExeSimReadLockAcquire
 {
     request(mega::network::ConversationID simulationID);
     response(mega::TimeStamp timestamp);
 }
-msg RootSimWriteLock
+msg ExeSimReadLockRelease
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ExeSimWriteLockAcquire
 {
     request(mega::network::ConversationID simulationID);
     response(mega::TimeStamp timestamp);
 }
+msg ExeSimWriteLockRelease
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+

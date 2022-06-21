@@ -48,12 +48,12 @@ msg TermSimList
 msg TermSimReadLock
 {
     request(mega::network::ConversationID simulationID);
-    response(mega::TimeStamp timestamp);
+    response();
 }
 msg TermSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
-    response(mega::TimeStamp timestamp);
+    response();
 }
 
 // pipelines
@@ -97,4 +97,16 @@ msg ExeGetProject
 {
     request();
     response(mega::network::Project project);
+}
+
+// Simulations
+msg ExeSimReadLockReady
+{
+    request( mega::TimeStamp timeStamp );
+    response();
+}
+msg ExeSimWriteLockReady
+{
+    request( mega::TimeStamp timeStamp );
+    response();
 }

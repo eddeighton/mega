@@ -70,24 +70,28 @@ public:
         }
     }
 
-    network::daemon_root::Response_Encode getOriginatingDaemonResponse( boost::asio::yield_context& yield_ctx )
+    network::daemon_root::Response_Encode getStackTopDaemonResponse( boost::asio::yield_context& yield_ctx )
     {
+        VERIFY_RTE( getStackConnectionID().has_value() );
         if ( network::Server::Connection::Ptr pConnection
-             = m_root.m_server.getConnection( getOriginatingEndPointID().value() ) )
+             = m_root.m_server.getConnection( getStackConnectionID().value() ) )
         {
             return network::daemon_root::Response_Encode( *this, *pConnection, yield_ctx );
         }
         THROW_RTE( "Root: Connection to daemon lost" );
     }
 
-    network::root_daemon::Request_Encode getOriginatingDaemonRequest( boost::asio::yield_context& yield_ctx )
+    std::optional< network::root_daemon::Request_Encode >
+    getDaemonRequestByCon( const mega::network::ConversationID& conversationID, boost::asio::yield_context& yield_ctx )
     {
-        if ( network::Server::Connection::Ptr pConnection
-             = m_root.m_server.getConnection( getOriginatingEndPointID().value() ) )
+        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
         {
-            return network::root_daemon::Request_Encode( *this, *pConnection, yield_ctx );
+            if ( pConnection->getConversations().count( conversationID ) )
+            {
+                return network::root_daemon::Request_Encode( *this, *pConnection, yield_ctx );
+            }
         }
-        THROW_RTE( "Root: Connection to daemon lost" );
+        return std::optional< network::root_daemon::Request_Encode >();
     }
 
     network::root_daemon::Request_Encode getDaemonRequest( network::Server::Connection::Ptr pConnection,
@@ -109,19 +113,19 @@ public:
                 std::copy( r.begin(), r.end(), std::back_inserter( nodes ) );
             }
         }
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.TermListNetworkNodes( nodes );
     }
 
     virtual void TermGetProject( boost::asio::yield_context& yield_ctx ) override
     {
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.TermGetProject( m_root.getProject() );
     }
 
     virtual void TermSetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override
     {
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
 
         if ( project.getProjectInstallPath() != m_root.getProject().getProjectInstallPath() )
         {
@@ -163,7 +167,7 @@ public:
             bSuccess = false;
         }
 
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.TermNewInstallation( bSuccess );
     }
 
@@ -187,7 +191,6 @@ public:
             if ( pLowestDaemon )
             {
                 simID = getDaemonRequest( pLowestDaemon, yield_ctx ).RootSimCreate();
-                pLowestDaemon->addSimulation( simID );
             }
             else
             {
@@ -195,7 +198,7 @@ public:
             }
         }
 
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.TermSimNew( simID );
     }
 
@@ -209,44 +212,32 @@ public:
             std::copy( simIDs.begin(), simIDs.end(), std::back_inserter( simulationIDs ) );
         }
 
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.TermSimList( simulationIDs );
     }
 
     virtual void TermSimReadLock( const mega::network::ConversationID& simulationID,
-                                  boost::asio::yield_context&          yield_ctx )
+                                  boost::asio::yield_context&          yield_ctx ) override
     {
-        std::optional< mega::TimeStamp > result;
-        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
-        {
-            if ( pConnection->getSimulations().count( simulationID ) )
-            {
-                result = getDaemonRequest( pConnection, yield_ctx ).RootSimReadLock( simulationID );
-                break;
-            }
-        }
-        getOriginatingDaemonResponse( yield_ctx ).TermSimReadLock( result.value() );
+        auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimReadLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).TermSimReadLock();
     }
 
     virtual void TermSimWriteLock( const mega::network::ConversationID& simulationID,
-                                   boost::asio::yield_context&          yield_ctx )
+                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        std::optional< mega::TimeStamp > result;
-        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
-        {
-            if ( pConnection->getSimulations().count( simulationID ) )
-            {
-                result = getDaemonRequest( pConnection, yield_ctx ).RootSimWriteLock( simulationID );
-                break;
-            }
-        }
-        getOriginatingDaemonResponse( yield_ctx ).TermSimWriteLock( result.value() );
+        auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimWriteLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).TermSimWriteLock();
     }
     /*
     virtual void Shutdown( boost::asio::yield_context& yield_ctx ) override
     {
         // response straight away - then execute shutdown
-        getOriginatingDaemonResponse( yield_ctx ).Shutdown();
+        getStackTopDaemonResponse( yield_ctx ).Shutdown();
         for ( const auto& [ id, pDeamon ] : m_root.m_server.getConnections() )
         {
             getDaemonRequest( pDeamon, yield_ctx ).ExecuteShutdown();
@@ -259,7 +250,7 @@ public:
     virtual void ExeGetBuildHashCode( const boost::filesystem::path& filePath,
                                       boost::asio::yield_context&    yield_ctx ) override
     {
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ExeGetBuildHashCode( m_root.m_stash.getBuildHashCode( filePath ) );
     }
 
@@ -267,7 +258,7 @@ public:
                                       boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_stash.setBuildHashCode( filePath, hashCode );
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ExeSetBuildHashCode();
     }
 
@@ -275,7 +266,7 @@ public:
                            boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_stash.stash( filePath, determinant );
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ExeStash();
     }
 
@@ -283,14 +274,31 @@ public:
                              boost::asio::yield_context& yield_ctx ) override
     {
         const bool bRestored = m_root.m_stash.restore( filePath, determinant );
-        auto       daemon    = getOriginatingDaemonResponse( yield_ctx );
+        auto       daemon    = getStackTopDaemonResponse( yield_ctx );
         daemon.ExeRestore( bRestored );
     }
 
     virtual void ExeGetProject( boost::asio::yield_context& yield_ctx ) override
     {
-        auto daemon = getOriginatingDaemonResponse( yield_ctx );
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ExeGetProject( m_root.getProject() );
+    }
+
+    virtual void ExeSimReadLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto pDaemon = getDaemonRequestByCon( getID(), yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimReadLockReady( timeStamp );
+        getStackTopDaemonResponse( yield_ctx ).ExeSimReadLockReady();
+    }
+
+    virtual void ExeSimWriteLockReady( const mega::TimeStamp&      timeStamp,
+                                       boost::asio::yield_context& yield_ctx ) override
+    {
+        auto pDaemon = getDaemonRequestByCon( getID(), yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimWriteLockReady( timeStamp );
+        getStackTopDaemonResponse( yield_ctx ).ExeSimWriteLockReady();
     }
 };
 
@@ -454,7 +462,7 @@ public:
 
         {
             std::ostringstream os;
-            auto               daemon = getOriginatingDaemonResponse( yield_ctx );
+            auto               daemon = getStackTopDaemonResponse( yield_ctx );
             if ( bScheduleFailed )
             {
                 SPDLOG_INFO( "FAILURE: Pipeline {} failed in: {}ms", configuration.getPipelineID(),
@@ -492,7 +500,8 @@ public:
         VERIFY_RTE( pCoordinator );
 
         {
-            auto              daemonRequest = getOriginatingDaemonRequest( yield_ctx );
+            auto daemonRequest = getDaemonRequestByCon( getID(), yield_ctx );
+            VERIFY_RTE( daemonRequest.has_value() );
             spdlog::stopwatch sw;
             while ( true )
             {
@@ -507,7 +516,7 @@ public:
                     try
                     {
                         sw.reset();
-                        network::PipelineResult result = daemonRequest.RootPipelineStartTask( task );
+                        network::PipelineResult result = daemonRequest->RootPipelineStartTask( task );
                         network::logLinesSuccessFail( result.getMessage(), result.getSuccess(),
                                                       std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                         pCoordinator->completeTask( task, result.getSuccess(), yield_ctx );
@@ -521,14 +530,14 @@ public:
             }
         }
 
-        getOriginatingDaemonResponse( yield_ctx ).ExePipelineReadyForWork();
+        getStackTopDaemonResponse( yield_ctx ).ExePipelineReadyForWork();
     }
 
     virtual void ExePipelineWorkProgress( const std::string&          strMessage,
                                           boost::asio::yield_context& yield_ctx ) override
     {
         network::logLinesInfo( strMessage );
-        getOriginatingDaemonResponse( yield_ctx ).ExePipelineWorkProgress();
+        getStackTopDaemonResponse( yield_ctx ).ExePipelineWorkProgress();
     }
 };
 
@@ -580,6 +589,21 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
             return network::ConversationBase::Ptr(
                 new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
     }
+}
+void Root::conversationNew( const network::Header& header, const network::ReceivedMsg& msg )
+{
+    auto pCon = m_server.getConnection( msg.connectionID );
+    VERIFY_RTE( pCon );
+    pCon->conversationNew( header.getConversationID() );
+    SPDLOG_TRACE( "Root::conversationNew: {} {}", header.getConversationID(), msg.msg );
+}
+
+void Root::conversationEnd( const network::Header& header, const network::ReceivedMsg& msg )
+{
+    auto pCon = m_server.getConnection( msg.connectionID );
+    VERIFY_RTE( pCon );
+    pCon->conversationEnd( header.getConversationID() );
+    SPDLOG_TRACE( "Root::conversationEnd: {} {}", header.getConversationID(), msg.msg );
 }
 
 } // namespace service

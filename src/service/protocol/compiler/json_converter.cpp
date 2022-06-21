@@ -68,9 +68,9 @@ void toJSON( const boost::filesystem::path& dataDir, const std::string& strFileN
                                       { "params", nlohmann::json::array() },
                                       { "return_msg_member", "" } } );
 
-        if( returnParam.has_value() )
+        if ( returnParam.has_value() )
         {
-            requestData[ "return_type" ] = typeToString( returnParam.value().m_type );
+            requestData[ "return_type" ]       = typeToString( returnParam.value().m_type );
             requestData[ "return_msg_member" ] = returnParam.value().m_name;
         }
 
@@ -105,8 +105,27 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
 
         nlohmann::json parameter( { { "name", "what" }, { "type", "std::string" } } );
         errorResponse[ "members" ].push_back( parameter );
-
         data[ "messages" ].push_back( errorResponse );
+    }
+
+    {
+        nlohmann::json newConversation( { { "has_namespace", false },
+                                          { "name", "MSG_Conversation_New" },
+                                          { "is_request", true },
+                                          { "id", idCounter++ },
+                                          { "namespaces", nlohmann::json::array() },
+                                          { "members", nlohmann::json::array() } } );
+        data[ "messages" ].push_back( newConversation );
+    }
+
+    {
+        nlohmann::json endConversation( { { "has_namespace", false },
+                                          { "name", "MSG_Conversation_End" },
+                                          { "is_request", true },
+                                          { "id", idCounter++ },
+                                          { "namespaces", nlohmann::json::array() },
+                                          { "members", nlohmann::json::array() } } );
+        data[ "messages" ].push_back( endConversation );
     }
 
     for ( const auto& [ strName, schema ] : schemas )

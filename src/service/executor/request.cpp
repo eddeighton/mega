@@ -92,7 +92,7 @@ void ExecutorRequestConversation::RootPipelineStartJobs( const pipeline::Configu
 
     for ( JobConversation::Ptr pJob : jobs )
     {
-        m_executor.conversationStarted( pJob );
+        m_executor.conversationInitiated( pJob, m_executor.getLeafSender() );
     }
 }
 
@@ -121,7 +121,7 @@ void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yie
         m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ) );
 
     m_executor.m_simulations.insert( { pSim->getID(), pSim } );
-    m_executor.conversationStarted( pSim );
+    m_executor.conversationInitiated( pSim, m_executor.getLeafSender() );
 
     getLeafResponse( yield_ctx ).RootSimCreate( pSim->getID() );
 }
@@ -135,12 +135,18 @@ void ExecutorRequestConversation::RootSimReadLock( const mega::network::Conversa
     VERIFY_RTE_MSG( iFind != m_executor.m_simulations.end(), "Failed to find simulation: " << simulationID );
     Simulation::Ptr pSimulation = iFind->second;
 
-    mega::TimeStamp timeStamp = 0;
-    
     network::exe_sim::Request_Encode rq( *this, pSimulation->getRequestSender(), yield_ctx );
-    timeStamp = rq.RootSimReadLock( getID() );
+    const mega::TimeStamp            timeStamp = rq.ExeSimReadLockAcquire( getID() );
 
-    getLeafResponse( yield_ctx ).RootSimReadLock( timeStamp );
+    // NOTE: could potentially call RootSimReadLockReady directly here if conversation in same executor
+
+    getLeafRequest( yield_ctx ).ExeSimReadLockReady( timeStamp );
+
+    SPDLOG_INFO( "ExecutorRequestConversation::RootSimReadLock got ExeSimReadLockReady response" );
+
+    rq.ExeSimReadLockRelease( getID() );
+
+    getLeafResponse( yield_ctx ).RootSimReadLock();
 }
 
 void ExecutorRequestConversation::RootSimWriteLock( const mega::network::ConversationID& simulationID,
@@ -150,7 +156,28 @@ void ExecutorRequestConversation::RootSimWriteLock( const mega::network::Convers
     VERIFY_RTE_MSG( iFind != m_executor.m_simulations.end(), "Failed to find simulation: " << simulationID );
     Simulation::Ptr pSimulation = iFind->second;
 
-    getLeafResponse( yield_ctx ).RootSimReadLock( 0 );
+    network::exe_sim::Request_Encode rq( *this, pSimulation->getRequestSender(), yield_ctx );
+    const mega::TimeStamp            timeStamp = rq.ExeSimWriteLockAcquire( getID() );
+
+    // NOTE: could potentially call RootSimReadLockReady directly here if conversation in same executor
+    getLeafRequest( yield_ctx ).ExeSimWriteLockReady( timeStamp );
+
+    rq.ExeSimWriteLockRelease( getID() );
+
+    getLeafResponse( yield_ctx ).RootSimWriteLock();
 }
+
+void ExecutorRequestConversation::RootSimReadLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) 
+{
+
+    getLeafResponse( yield_ctx ).RootSimReadLockReady();
+}
+
+void ExecutorRequestConversation::RootSimWriteLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) 
+{
+
+    getLeafResponse( yield_ctx ).RootSimWriteLockReady();
+}
+
 } // namespace service
 } // namespace mega

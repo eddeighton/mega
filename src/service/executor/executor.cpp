@@ -64,9 +64,9 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
         network::exe_leaf::Request_Encode leaf( con, sender, yield_ctx );
         mega::runtime::initialiseRuntime( leaf.ExeGetProject() );
     };
-    conversationStarted( network::ConversationBase::Ptr(
+    conversationInitiated( network::ConversationBase::Ptr(
         new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                 getLeafSender().getConnectionID(), std::move( func ) ) ) );
+                                 getLeafSender().getConnectionID(), std::move( func ) ) ), m_leaf );
 }
 
 Executor::~Executor()
@@ -84,5 +84,6 @@ network::ConversationBase::Ptr Executor::joinConversation( const network::Connec
     return network::ConversationBase::Ptr(
         new ExecutorRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
+
 } // namespace service
 } // namespace mega

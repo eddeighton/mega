@@ -49,6 +49,20 @@ public:
                                   boost::asio::yield_context&          yield_ctx ) override;
     virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override;
+
+    virtual void RootSimReadLockReady
+    (
+        const mega::TimeStamp& 
+        timeStamp,
+        boost::asio::yield_context& yield_ctx
+    ) override;
+
+    virtual void RootSimWriteLockReady
+    (
+        const mega::TimeStamp& 
+        timeStamp,
+        boost::asio::yield_context& yield_ctx
+    ) override;
 };
 
 } // namespace service

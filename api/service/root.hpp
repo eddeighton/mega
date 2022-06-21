@@ -27,6 +27,8 @@ public:
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
                                                              const network::Header&       header,
                                                              const network::Message&      msg );
+    virtual void conversationNew( const network::Header& header, const network::ReceivedMsg& msg );
+    virtual void conversationEnd( const network::Header& header, const network::ReceivedMsg& msg );
 
     const network::Project& getProject() const { return m_config.getProject(); }
     void                    setProject( const network::Project& project ) { m_config.setProject( project ); }

@@ -153,8 +153,8 @@ int main( int argc, const char* argv[] )
                     is >> simID;
                 }
                 SPDLOG_INFO( "Attempting to read lock on {}", simID );
-                mega::TimeStamp timeStamp = terminal.testReadLock( simID );
-                SPDLOG_INFO( "{}", timeStamp );
+                terminal.testReadLock( simID );
+                //SPDLOG_INFO( "{}", timeStamp );
             }
             else if ( bQuit )
             {

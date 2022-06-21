@@ -1,6 +1,5 @@
 
 
-
 msg TermListNetworkNodes
 {
     request();
@@ -44,10 +43,10 @@ msg TermSimList
 msg TermSimReadLock
 {
     request(mega::network::ConversationID simulationID);
-    response(mega::TimeStamp timestamp);
+    response();
 }
 msg TermSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
-    response(mega::TimeStamp timestamp);
+    response();
 }
