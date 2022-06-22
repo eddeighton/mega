@@ -5,6 +5,7 @@
 #include "database/common/serialisation.hpp"
 #include "database/common/environment_build.hpp"
 
+#include "database/types/component_type.hpp"
 #include "database/types/sources.hpp"
 
 #include "database/model/ComponentListing.hxx"
@@ -43,7 +44,7 @@ public:
         {
             std::vector< boost::filesystem::path > componentInfoPaths;
             {
-                mega::io::ComponentInfo       componentInfo( "test", {}, {}, m_tempDir,
+                mega::io::ComponentInfo       componentInfo( mega::ComponentType{ mega::ComponentType::eInterface }, "test", {}, {}, {}, m_tempDir,
                                                              mega::io::ComponentInfo::PathArray{ m_srcFile },
                                                              mega::io::ComponentInfo::PathArray{} );
                 const boost::filesystem::path componentInfoPath = m_tempDir / "test.txt";
@@ -319,10 +320,10 @@ TEST_F( DatabaseTest, Inserter )
         // Component::Args args( "test", "somepath", {}, {});
         // Component* pComponent = database.construct< Component >( args );
         //
-        // ASSERT_TRUE( pComponent->get_includeDirectories().empty() );
+        // ASSERT_TRUE( pComponent->get_include_directories().empty() );
         //
         // pComponent->push_back_includeDirectories("testpath");
         //
-        // ASSERT_EQ( pComponent->get_includeDirectories().front(), "testpath" );
+        // ASSERT_EQ( pComponent->get_include_directories().front(), "testpath" );
     }
 }

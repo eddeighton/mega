@@ -6,12 +6,15 @@ namespace Components
 {
     object Component -> ComponentListing::Components
     {
+        value< mega::ComponentType > type;
         value< std::string > name;
-        value< boost::filesystem::path > directory;
+        value< boost::filesystem::path > src_dir;
+        value< boost::filesystem::path > build_dir;
         array< value< std::string > > cpp_flags;
         array< value< std::string > > cpp_defines;
-        array< value< boost::filesystem::path > > includeDirectories;
-        array< value< boost::filesystem::path > > sourceFiles;
+        array< value< boost::filesystem::path > > include_directories;
+        array< value< mega::io::megaFilePath > > mega_source_files;
+        array< value< mega::io::cppFilePath > > cpp_source_files;
     }
 }
 

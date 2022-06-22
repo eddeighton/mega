@@ -40,13 +40,21 @@ std::string Compilation::operator()() const
     }
 
     // eg
-    if( compilationMode.has_value() )
+    if ( compilationMode.has_value() )
     {
-        osCmd << "-Xclang -egdll=" <<       compiler_plugin.value().native() << " ";
-        osCmd << "-Xclang -egmode=" <<      compilationMode.value() << " ";
-        osCmd << "-Xclang -egsrddir=" <<    srcDir.value().native() << " ";
-        osCmd << "-Xclang -egbuilddir=" <<  buildDir.value().native() << " ";
-        osCmd << "-Xclang -egsource=" <<    sourceFile.value().native() << " ";
+        VERIFY_RTE( compiler_plugin.has_value() );
+        VERIFY_RTE( srcDir.has_value() );
+        VERIFY_RTE( buildDir.has_value() );
+
+        osCmd << "-Xclang -egdll=" << compiler_plugin.value().native() << " ";
+        osCmd << "-Xclang -egmode=" << compilationMode.value() << " ";
+        osCmd << "-Xclang -egsrddir=" << srcDir.value().native() << " ";
+        osCmd << "-Xclang -egbuilddir=" << buildDir.value().native() << " ";
+
+        if ( sourceFile.has_value() )
+        {
+            osCmd << "-Xclang -egsource=" << sourceFile.value().native() << " ";
+        }
     }
     else
     {

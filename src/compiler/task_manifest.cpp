@@ -93,6 +93,8 @@ public:
             return;
         }*/
 
+        std::set< std::string > componentNames;
+
         using namespace ComponentListing;
         Database database( m_environment, projectManifestPath );
 
@@ -112,13 +114,33 @@ public:
                 ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
             };
 
-            Components::Component* pComponent = database.construct< Components::Component >(
-                Components::Component::Args( componentInfo.getName(),
-                                             componentInfo.getDirectory(),
-                                             componentInfo.getCPPFlags(),
-                                             componentInfo.getCPPDefines(),
-                                             componentInfo.getIncludeDirectories(),
-                                             componentInfo.getSourceFiles() ) );
+            VERIFY_RTE_MSG( componentNames.count( componentInfo.getName() ) == 0,
+                            "Duplicate component name: " << componentInfo.getName() );
+            componentNames.insert( componentInfo.getName() );
+
+            std::vector< mega::io::megaFilePath > megaSourceFiles;
+            std::vector< mega::io::cppFilePath >  cppSourceFiles;
+            for ( const boost::filesystem::path& filePath : componentInfo.getSourceFiles() )
+            {
+                if ( filePath.extension() == mega::io::megaFilePath::extension() )
+                {
+                    megaSourceFiles.push_back( m_environment.megaFilePath_fromPath( filePath ) );
+                }
+                else if ( filePath.extension() == mega::io::cppFilePath::extension() )
+                {
+                    cppSourceFiles.push_back( m_environment.cppFilePath_fromPath( filePath ) );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown file type: " << filePath.string() );
+                }
+            }
+
+            Components::Component* pComponent
+                = database.construct< Components::Component >( Components::Component::Args(
+                    componentInfo.getComponentType(), componentInfo.getName(), componentInfo.getSrcDir(),
+                    componentInfo.getBuildDir(), componentInfo.getCPPFlags(), componentInfo.getCPPDefines(),
+                    componentInfo.getIncludeDirectories(), megaSourceFiles, cppSourceFiles ) );
 
             VERIFY_RTE( pComponent->get_name() == componentInfo.getName() );
         }

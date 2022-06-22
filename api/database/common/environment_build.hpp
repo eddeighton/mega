@@ -6,6 +6,7 @@
 #include "compiler/configuration.hpp"
 
 #include "common/file.hpp"
+#include "database/types/sources.hpp"
 
 #include <boost/filesystem/operations.hpp>
 
@@ -41,6 +42,7 @@ public:
     Path FilePath( const PrecompiledHeaderFile& filePath ) const { return toPath( filePath ); }
     Path FilePath( const ObjectFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const megaFilePath& filePath ) const { return toPath( filePath ); }
+    Path FilePath( const cppFilePath& filePath ) const { return toPath( filePath ); }
 
     template < typename TFrom, typename TTo >
     void matchFileTime( const TFrom& from, const TTo& to ) const
@@ -62,12 +64,14 @@ public:
     PrecompiledHeaderFile      OperationsPCH( const megaFilePath& source ) const;
     GeneratedHPPSourceFilePath Generics( const megaFilePath& source ) const;
     PrecompiledHeaderFile      GenericsPCH( const megaFilePath& source ) const;
-    GeneratedCPPSourceFilePath Implementation( const megaFilePath& source ) const;
-    ObjectFilePath             ImplementationObj( const megaFilePath& source ) const;
+    ObjectFilePath             Obj( const cppFilePath& source ) const;
+    GeneratedCPPSourceFilePath Implementation( const boost::filesystem::path& componentBuildDir, const std::string& strComponentName ) const;
+    ObjectFilePath             ImplementationObj( const boost::filesystem::path& componentBuildDir, const std::string& strComponentName ) const;
 
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;
     manifestFilePath         manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     megaFilePath             megaFilePath_fromPath( const boost::filesystem::path& filePath ) const;
+    cppFilePath              cppFilePath_fromPath( const boost::filesystem::path& filePath ) const;
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////

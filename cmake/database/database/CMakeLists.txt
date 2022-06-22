@@ -16,8 +16,9 @@ set( MEGA_DATABASE_GENERATED_HEADERS
     ${MEGA_API_DIR}/database/model/environment.hxx
     ${MEGA_API_DIR}/database/model/manifest.hxx
     ${MEGA_API_DIR}/database/model/file_info.hxx
-
+    
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
+    ${MEGA_API_DIR}/database/model/ComponentListingView.hxx
     ${MEGA_API_DIR}/database/model/ConcreteStage.hxx
     ${MEGA_API_DIR}/database/model/DependencyAnalysis.hxx
     ${MEGA_API_DIR}/database/model/DependencyAnalysisView.hxx
@@ -43,6 +44,7 @@ set( MEGA_DATABASE_GENERATED_SOURCES
     ${MEGA_SRC_DIR}/database/model/file_info.cxx
 
     ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
+    ${MEGA_SRC_DIR}/database/model/ComponentListingView.cxx
     ${MEGA_SRC_DIR}/database/model/ConcreteStage.cxx
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysis.cxx
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysisView.cxx
@@ -78,6 +80,7 @@ set( COMPILER_BYPRODUCTS
     data.json 
     stages.json
     ComponentListing.json
+    ComponentListingView.json
     ConcreteStage.json
     DependencyAnalysis.json
     DependencyAnalysisView.json
@@ -162,6 +165,7 @@ set( MEGA_TYPES_HEADERS
     ${MEGA_API_DIR}/database/types/ownership.hpp
     ${MEGA_API_DIR}/database/types/sources.hpp
     ${MEGA_API_DIR}/database/types/modes.hpp
+    ${MEGA_API_DIR}/database/types/component_type.hpp
     ${MEGA_API_DIR}/database/types/clang_compilation.hpp
     ${MEGA_API_DIR}/database/types/invocation_id.hpp
 )
@@ -172,6 +176,7 @@ set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/ownership.cpp
     ${MEGA_SRC_DIR}/database/types/sources.cpp
     ${MEGA_SRC_DIR}/database/types/modes.cpp
+    ${MEGA_SRC_DIR}/database/types/component_type.cpp
     ${MEGA_SRC_DIR}/database/types/clang_compilation.cpp
     ${MEGA_SRC_DIR}/database/types/invocation_id.cpp
 )

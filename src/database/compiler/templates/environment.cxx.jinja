@@ -16,7 +16,8 @@ namespace io
 {
 {% for stage in stages %}
 {% for file in stage.files %}
-    CompilationFilePath Environment::{{ stage.name }}_{{ file.name }}( const {{ stage.source }}FilePath& source) const
+{% for source in stage.sources %}
+    CompilationFilePath Environment::{{ stage.name }}_{{ file.name }}( const {{ source }}FilePath& source) const
     {
         std::ostringstream os;                                                                
         os << source.path().filename().string() << ".{{ stage.name }}.{{ file.name }}" << CompilationFilePath::extension().string();
@@ -24,6 +25,7 @@ namespace io
         dirPath.remove_filename();
         return CompilationFilePath( dirPath / os.str() );      
     }
+{% endfor %}
 {% endfor %}
 {% endfor %}
 

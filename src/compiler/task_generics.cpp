@@ -257,7 +257,7 @@ public:
         if ( iResult )
         {
             std::ostringstream os;
-            os << "Error compiling operations pch file for source file: " << m_sourceFilePath.path();
+            os << "Error compiling generics pch file for source file: " << m_sourceFilePath.path();
             throw std::runtime_error( os.str() );
         }
 

@@ -203,6 +203,7 @@ BOOST_FUSION_ADAPT_STRUCT( db::schema::Dependency,
 
 BOOST_FUSION_ADAPT_STRUCT( db::schema::Stage,
     ( db::schema::Identifier, m_name )
+    
     ( std::vector< db::schema::StageElementVariant >, m_elements )  )
 
 // clang-format on

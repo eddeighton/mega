@@ -41,13 +41,16 @@ namespace Components
     Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) )    {
     }
-    Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& name, const boost::filesystem::path& directory, const std::vector< std::string >& cpp_flags, const std::vector< std::string >& cpp_defines, const std::vector< boost::filesystem::path >& includeDirectories, const std::vector< boost::filesystem::path >& sourceFiles)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) )          , name( name )
-          , directory( directory )
+    Components_Component::Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::ComponentType& type, const std::string& name, const boost::filesystem::path& src_dir, const boost::filesystem::path& build_dir, const std::vector< std::string >& cpp_flags, const std::vector< std::string >& cpp_defines, const std::vector< boost::filesystem::path >& include_directories, const std::vector< mega::io::megaFilePath >& mega_source_files, const std::vector< mega::io::cppFilePath >& cpp_source_files)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Components::Components_Component >( loader, this ) )          , type( type )
+          , name( name )
+          , src_dir( src_dir )
+          , build_dir( build_dir )
           , cpp_flags( cpp_flags )
           , cpp_defines( cpp_defines )
-          , includeDirectories( includeDirectories )
-          , sourceFiles( sourceFiles )
+          , include_directories( include_directories )
+          , mega_source_files( mega_source_files )
+          , cpp_source_files( cpp_source_files )
     {
     }
     bool Components_Component::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -59,21 +62,27 @@ namespace Components
     }
     void Components_Component::load( mega::io::Loader& loader )
     {
+        loader.load( type );
         loader.load( name );
-        loader.load( directory );
+        loader.load( src_dir );
+        loader.load( build_dir );
         loader.load( cpp_flags );
         loader.load( cpp_defines );
-        loader.load( includeDirectories );
-        loader.load( sourceFiles );
+        loader.load( include_directories );
+        loader.load( mega_source_files );
+        loader.load( cpp_source_files );
     }
     void Components_Component::store( mega::io::Storer& storer ) const
     {
+        storer.store( type );
         storer.store( name );
-        storer.store( directory );
+        storer.store( src_dir );
+        storer.store( build_dir );
         storer.store( cpp_flags );
         storer.store( cpp_defines );
-        storer.store( includeDirectories );
-        storer.store( sourceFiles );
+        storer.store( include_directories );
+        storer.store( mega_source_files );
+        storer.store( cpp_source_files );
     }
     void Components_Component::to_json( nlohmann::json& part ) const
     {
@@ -88,12 +97,22 @@ namespace Components
             });
         {
             nlohmann::json property = nlohmann::json::object({
+                { "type", type } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
                 { "name", name } } );
             part[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "directory", directory } } );
+                { "src_dir", src_dir } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "build_dir", build_dir } } );
             part[ "properties" ].push_back( property );
         }
         {
@@ -108,12 +127,17 @@ namespace Components
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "includeDirectories", includeDirectories } } );
+                { "include_directories", include_directories } } );
             part[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "sourceFiles", sourceFiles } } );
+                { "mega_source_files", mega_source_files } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "cpp_source_files", cpp_source_files } } );
             part[ "properties" ].push_back( property );
         }
     }

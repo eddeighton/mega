@@ -14,11 +14,13 @@ namespace io
 struct ManifestData
 {
     using MegaSourceFileVector = std::vector< megaFilePath >;
+    using CppSourceFileVector  = std::vector< cppFilePath >;
     using FileInfoVector       = std::vector< FileInfo >;
 
-    const manifestFilePath& getManifestFilePath() const { return m_manifestFilePath; }
+    const manifestFilePath&     getManifestFilePath() const { return m_manifestFilePath; }
     const MegaSourceFileVector& getMegaSourceFiles() const { return m_megaSourceFiles; }
-    const FileInfoVector& getCompilationFileInfos() const { return m_compilationFileInfos; }
+    const CppSourceFileVector&  getCppSourceFiles() const { return m_cppSourceFiles; }
+    const FileInfoVector&       getCompilationFileInfos() const { return m_compilationFileInfos; }
 
     ManifestData filterToObjects( const std::set< const mega::io::ObjectInfo* >& objectInfos ) const
     {
@@ -44,12 +46,14 @@ struct ManifestData
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& boost::serialization::make_nvp( "manifestFilePath", m_manifestFilePath );
-        archive& boost::serialization::make_nvp( "sourceFiles", m_megaSourceFiles );
+        archive& boost::serialization::make_nvp( "megaSourceFiles", m_megaSourceFiles );
+        archive& boost::serialization::make_nvp( "cppSourceFiles", m_cppSourceFiles );
         archive& boost::serialization::make_nvp( "compilationFileInfos", m_compilationFileInfos );
     }
 
     manifestFilePath     m_manifestFilePath;
     MegaSourceFileVector m_megaSourceFiles;
+    CppSourceFileVector  m_cppSourceFiles;
     FileInfoVector       m_compilationFileInfos;
 };
 

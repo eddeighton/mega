@@ -108,6 +108,30 @@ namespace mega
             static const boost::filesystem::path& extension() { return EXTENSION; }
         };
 
+        class cppFilePath : public SourceFilePath
+        {
+            static boost::filesystem::path EXTENSION;
+            friend class BuildEnvironment;
+            
+            cppFilePath( const boost::filesystem::path& filePath )
+                : SourceFilePath( filePath )
+            {
+            }
+
+        public:
+            cppFilePath() {}
+
+            bool operator==( const cppFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
+            bool operator<( const cppFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "cpp_file_path", m_filePath );
+            }
+            static const boost::filesystem::path& extension() { return EXTENSION; }
+        };
+
         class BuildFilePath : public FilePath
         {
             friend class Environment;
@@ -274,8 +298,31 @@ namespace mega
             }
             static const boost::filesystem::path& extension() { return EXTENSION; }
         };
-        
+/*
+        class ComponentFilePath : public BuildFilePath
+        {
+            static boost::filesystem::path EXTENSION;
+            friend class BuildEnvironment;
+            
+            ComponentFilePath( const boost::filesystem::path& filePath )
+                : BuildFilePath( filePath )
+            {
+            }
 
+        public:
+            ComponentFilePath() {}
+
+            bool operator==( const ComponentFilePath& cmp ) const { return m_filePath == cmp.m_filePath; }
+            bool operator<( const ComponentFilePath& cmp ) const { return m_filePath < cmp.m_filePath; }
+
+            template < class Archive >
+            inline void serialize( Archive& archive, const unsigned int version )
+            {
+                archive& boost::serialization::make_nvp( "component_file", m_filePath );
+            }
+            //static const boost::filesystem::path& extension() { return EXTENSION; }
+        };
+*/
 
     } // namespace io
 } // namespace mega
@@ -288,6 +335,14 @@ namespace mega
         {
             j = nlohmann::json{ { "megaFilePath", p.path().string() } };
         }
+        inline void to_json( nlohmann::json& j, const cppFilePath& p )
+        {
+            j = nlohmann::json{ { "cppFilePath", p.path().string() } };
+        }
+        /*inline void to_json( nlohmann::json& j, const ComponentFilePath& p )
+        {
+            j = nlohmann::json{ { "componentFilePath", p.path().string() } };
+        }*/
     }
 }
 

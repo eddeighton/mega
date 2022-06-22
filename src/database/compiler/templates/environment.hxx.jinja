@@ -33,7 +33,9 @@ namespace io
         
 {% for stage in stages %}
 {% for file in stage.files %}
-        CompilationFilePath {{ stage.name }}_{{ file.name }}( const {{ stage.source }}FilePath& source) const;
+{% for source in stage.sources %}
+        CompilationFilePath {{ stage.name }}_{{ file.name }}( const {{ source }}FilePath& source) const;
+{% endfor %}
 {% endfor %}
 {% endfor %}
 

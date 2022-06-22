@@ -81,11 +81,11 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eOperations:
+                case mega::CompilationMode::eCPP:
                     g_pSession = clang::make_operations_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eImplementation:
-                case mega::CompilationMode::eCPP:
                 case mega::CompilationMode::TOTAL_COMPILATION_MODES:
                 default:
                     g_pSession = std::make_unique< clang::Session >( g_pASTContext, g_pSema );

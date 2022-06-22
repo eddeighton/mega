@@ -166,6 +166,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
                 if ( !result.getSuccess() )
                 {
+                    SPDLOG_INFO( "Pipeline failed: {}", result.getMessage() );
                     THROW_RTE( "Pipeline failed: " << result.getMessage() );
                 }
                 // spdlog::drop("interface_build");

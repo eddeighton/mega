@@ -49,6 +49,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/base_task.hpp  
     ${MEGA_SRC_DIR}/compiler/task_complete.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
+    ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
     ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp 
     ${MEGA_SRC_DIR}/compiler/task_derivation.cpp
     ${MEGA_SRC_DIR}/compiler/task_generics.cpp

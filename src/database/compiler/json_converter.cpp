@@ -46,10 +46,15 @@ void writeStageData( const boost::filesystem::path& dataDir, model::Schema::Ptr 
     }
     for ( model::Stage::Ptr pStage : pSchema->m_stages )
     {
-        VERIFY_RTE( pStage->m_source );
+        VERIFY_RTE( !pStage->m_sources.empty() );
         nlohmann::json stage = nlohmann::json::object( { { "name", pStage->m_strName },
-                                                         { "source", pStage->m_source->m_strName },
+                                                         { "sources", nlohmann::json::array() },
                                                          { "files", nlohmann::json::array() } } );
+
+        for( model::Source::Ptr pSource : pStage->m_sources )
+        {
+            stage[ "sources" ].push_back( pSource->m_strName );
+        }
 
         for ( model::File::Ptr pFile : pStage->m_files )
         {

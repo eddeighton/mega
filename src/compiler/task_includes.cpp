@@ -128,7 +128,8 @@ public:
         {
             std::ostringstream os;
             os << "Error compiling include files to pch for source file: " << m_sourceFilePath.path();
-            throw std::runtime_error( os.str() );
+            msg( taskProgress, os.str() );
+            failed( taskProgress );
         }
 
         m_environment.setBuildHashCode( pchPath );

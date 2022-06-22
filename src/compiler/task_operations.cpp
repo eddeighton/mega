@@ -264,8 +264,7 @@ public:
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( operationsHeaderFile ),
               m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.GenericsPCH( m_sourceFilePath ) ) 
-              } );
+              m_environment.getBuildHashCode( m_environment.GenericsPCH( m_sourceFilePath ) ) } );
 
         if ( m_environment.restore( operationsPCH, determinant )
              && m_environment.restore( compilationFile, determinant ) )
@@ -292,22 +291,25 @@ public:
         {
             std::ostringstream os;
             os << "Error compiling operations pch file for source file: " << m_sourceFilePath.path();
-            throw std::runtime_error( os.str() );
-        }
-
-        if ( m_environment.exists( compilationFile ) && m_environment.exists( operationsPCH ) )
-        {
-            m_environment.setBuildHashCode( compilationFile );
-            m_environment.stash( compilationFile, determinant );
-
-            m_environment.setBuildHashCode( operationsPCH );
-            m_environment.stash( operationsPCH, determinant );
-
-            succeeded( taskProgress );
+            msg( taskProgress, os.str() );
+            failed( taskProgress );
         }
         else
         {
-            failed( taskProgress );
+            if ( m_environment.exists( compilationFile ) && m_environment.exists( operationsPCH ) )
+            {
+                m_environment.setBuildHashCode( compilationFile );
+                m_environment.stash( compilationFile, determinant );
+
+                m_environment.setBuildHashCode( operationsPCH );
+                m_environment.stash( operationsPCH, determinant );
+
+                succeeded( taskProgress );
+            }
+            else
+            {
+                failed( taskProgress );
+            }
         }
     }
 };

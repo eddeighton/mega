@@ -32,7 +32,7 @@ public:
         
         ParserStage::Parser::ContextDef* pContextDef
             = m_parser->parseEGSourceFile( database, m_environment.FilePath( sourceFilePath ),
-                                                   pComponent->get_includeDirectories(), osError, osWarn );
+                                                   pComponent->get_include_directories(), osError, osWarn );
         return pContextDef;
     }
 

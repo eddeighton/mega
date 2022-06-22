@@ -464,9 +464,9 @@ public:
     std::vector< std::string > m_dependencyNames;
     std::vector< WeakPtr >     m_dependencies;
 
-    std::string              m_strName;
-    Source::Ptr              m_source;
-    std::vector< File::Ptr > m_files;
+    std::string                m_strName;
+    std::vector< Source::Ptr > m_sources;
+    std::vector< File::Ptr >   m_files;
 
     std::vector< Accessor::Ptr >    m_accessors;
     std::vector< Constructor::Ptr > m_constructors;

@@ -48,7 +48,7 @@ struct Compilation
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_includeDirectories();
+        compilation.includeDirs = pComponent->get_include_directories();
 
         compilation.inputFile = environment.FilePath( environment.Include( sourceFile ) );
         compilation.outputPCH = environment.FilePath( environment.IncludePCH( sourceFile ) );
@@ -77,7 +77,7 @@ struct Compilation
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_includeDirectories();
+        compilation.includeDirs = pComponent->get_include_directories();
 
         compilation.inputPCH  = { environment.FilePath( environment.IncludePCH( sourceFile ) ) };
         compilation.inputFile = environment.FilePath( environment.Interface( sourceFile ) );
@@ -107,7 +107,7 @@ struct Compilation
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_includeDirectories();
+        compilation.includeDirs = pComponent->get_include_directories();
 
         compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
                                  environment.FilePath( environment.InterfacePCH( sourceFile ) ) };
@@ -139,7 +139,7 @@ struct Compilation
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_includeDirectories();
+        compilation.includeDirs = pComponent->get_include_directories();
 
         compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
                                  environment.FilePath( environment.InterfacePCH( sourceFile ) ),
@@ -150,16 +150,50 @@ struct Compilation
 
         return compilation;
     }
+    /*
+        template < typename TComponentType >
+        static inline Compilation make_implementationObj_compilation( const io::BuildEnvironment& environment,
+                                                                      const utilities::ToolChain& toolChain,
+                                                                      TComponentType*             pComponent,
+                                                                      const io::megaFilePath&     sourceFile )
+        {
+            Compilation compilation;
+
+            compilation.compilationMode = CompilationMode::eImplementation;
+
+            compilation.compiler        = toolChain.clangCompilerPath;
+            compilation.compiler_plugin = toolChain.clangPluginPath;
+
+            compilation.srcDir     = environment.srcDir();
+            compilation.buildDir   = environment.buildDir();
+            compilation.sourceFile = environment.FilePath( sourceFile );
+
+            compilation.flags       = pComponent->get_cpp_flags();
+            compilation.defines     = pComponent->get_cpp_defines();
+            compilation.includeDirs = pComponent->get_include_directories();
+
+            compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
+                                     environment.FilePath( environment.InterfacePCH( sourceFile ) ),
+                                     environment.FilePath( environment.GenericsPCH( sourceFile ) ),
+                                     environment.FilePath( environment.OperationsPCH( sourceFile ) ) };
+
+            compilation.inputFile    = environment.FilePath( environment.Implementation( sourceFile ) );
+            compilation.outputObject = environment.FilePath( environment.ImplementationObj( sourceFile ) );
+
+            return compilation;
+        }*/
 
     template < typename TComponentType >
-    static inline Compilation make_implementationObj_compilation( const io::BuildEnvironment& environment,
-                                                                  const utilities::ToolChain& toolChain,
-                                                                  TComponentType*             pComponent,
-                                                                  const io::megaFilePath&     sourceFile )
+    static inline Compilation make_cpp_compilation( const io::BuildEnvironment& environment,
+                                                    const utilities::ToolChain& toolChain,
+                                                    TComponentType*             pComponent,
+                                                    const io::cppFilePath&      sourceFile
+
+    )
     {
         Compilation compilation;
 
-        compilation.compilationMode = CompilationMode::eImplementation;
+        compilation.compilationMode = CompilationMode::eCPP;
 
         compilation.compiler        = toolChain.clangCompilerPath;
         compilation.compiler_plugin = toolChain.clangPluginPath;
@@ -170,15 +204,41 @@ struct Compilation
 
         compilation.flags       = pComponent->get_cpp_flags();
         compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_includeDirectories();
+        compilation.includeDirs = pComponent->get_include_directories();
 
-        compilation.inputPCH = { environment.FilePath( environment.IncludePCH( sourceFile ) ),
-                                 environment.FilePath( environment.InterfacePCH( sourceFile ) ),
-                                 environment.FilePath( environment.GenericsPCH( sourceFile ) ),
-                                 environment.FilePath( environment.OperationsPCH( sourceFile ) ) };
+        compilation.inputPCH = {};
 
-        compilation.inputFile    = environment.FilePath( environment.Implementation( sourceFile ) );
-        compilation.outputObject = environment.FilePath( environment.ImplementationObj( sourceFile ) );
+        compilation.inputFile    = environment.FilePath( sourceFile );
+        compilation.outputObject = environment.FilePath( environment.Obj( sourceFile ) );
+
+        return compilation;
+    }
+
+    template < typename TComponentType >
+    static inline Compilation make_implementationObj_compilation( const io::BuildEnvironment&    environment,
+                                                                  const utilities::ToolChain&    toolChain,
+                                                                  TComponentType*                pComponent,
+                                                                  const boost::filesystem::path& buildDir,
+                                                                  const std::string&             strComponentName
+
+    )
+    {
+        Compilation compilation;
+
+        compilation.compilationMode = CompilationMode::eImplementation;
+
+        compilation.compiler        = toolChain.clangCompilerPath;
+        compilation.compiler_plugin = toolChain.clangPluginPath;
+
+        compilation.srcDir   = environment.srcDir();
+        compilation.buildDir = environment.buildDir();
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_include_directories();
+
+        compilation.inputFile    = environment.FilePath( environment.Implementation( buildDir, strComponentName ) );
+        compilation.outputObject = environment.FilePath( environment.ImplementationObj( buildDir, strComponentName ) );
 
         return compilation;
     }

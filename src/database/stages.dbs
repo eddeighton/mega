@@ -8,6 +8,13 @@ stage ComponentListing
     file Components;
 }
 
+stage ComponentListingView
+{
+    source .manifest;
+    dependency ComponentListing;
+    global accessor array< ref< Components::Component > >;
+}
+
 stage ParserStage
 {
     source .mega;
@@ -161,6 +168,7 @@ stage DerivationAnalysisView
 stage OperationsStage
 {
     source .mega;
+    source .cpp;
     dependency DerivationAnalysis;
 
     file Operations;

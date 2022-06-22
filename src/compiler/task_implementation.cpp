@@ -21,7 +21,7 @@ namespace compiler
 
 class Task_Implementation : public BaseTask
 {
-    const mega::io::megaFilePath& m_sourceFilePath;
+    const std::string& m_strComponentName;
 
     class TemplateEngine
     {
@@ -44,34 +44,10 @@ class Task_Implementation : public BaseTask
     };
 
 public:
-    Task_Implementation( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+    Task_Implementation( const TaskArguments& taskArguments, const std::string& strComponentName )
         : BaseTask( taskArguments )
-        , m_sourceFilePath( sourceFilePath )
+        , m_strComponentName( strComponentName )
     {
-    }
-
-    void recurse( TemplateEngine& templateEngine, FinalStage::Interface::IContext* pContext, nlohmann::json& implData,
-                  std::vector< std::string >& typeNameStack )
-    {
-        using namespace FinalStage;
-        using namespace FinalStage::Interface;
-
-        std::ostringstream os;
-        {
-            common::delimit( typeNameStack.begin(), typeNameStack.end(), "::", os );
-            if ( !typeNameStack.empty() )
-                os << "::";
-            os << pContext->get_identifier();
-        }
-
-        implData[ "interfaces" ].push_back( os.str() );
-
-        for ( IContext* pNestedContext : pContext->get_children() )
-        {
-            typeNameStack.push_back( pContext->get_identifier() );
-            recurse( templateEngine, pNestedContext, implData, typeNameStack );
-            typeNameStack.pop_back();
-        }
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
@@ -79,15 +55,36 @@ public:
         using namespace FinalStage;
         using namespace FinalStage::Interface;
 
-        const mega::io::CompilationFilePath operationsStage
-            = m_environment.OperationsStage_Operations( m_sourceFilePath );
-        const mega::io::GeneratedCPPSourceFilePath implementationFile
-            = m_environment.Implementation( m_sourceFilePath );
-        start( taskProgress, "Task_Implementation", operationsStage.path(), implementationFile.path() );
+        Database database( m_environment, m_environment.project_manifest() );
 
-        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
-                                                   m_environment.getBuildHashCode( operationsStage ),
-                                                   m_environment.ImplTemplate() } );
+        Components::Component* pComponent = nullptr;
+        {
+            for ( Components::Component* pIter :
+                  database.template many< Components::Component >( m_environment.project_manifest() ) )
+            {
+                if ( pIter->get_name() == m_strComponentName )
+                {
+                    pComponent = pIter;
+                    break;
+                }
+            }
+        }
+        VERIFY_RTE( pComponent );
+
+        const mega::io::GeneratedCPPSourceFilePath implementationFile
+            = m_environment.Implementation( pComponent->get_build_dir(), pComponent->get_name() );
+
+        start( taskProgress, "Task_Implementation", pComponent->get_name(), implementationFile.path() );
+
+        task::DeterminantHash determinant( { m_toolChain.toolChainHash, m_environment.ImplTemplate() } );
+        for ( const auto& srcFile : pComponent->get_mega_source_files() )
+        {
+            determinant ^= m_environment.getBuildHashCode( m_environment.OperationsStage_Operations( srcFile ) );
+        }
+        for ( const auto& srcFile : pComponent->get_cpp_source_files() )
+        {
+            determinant ^= m_environment.getBuildHashCode( m_environment.OperationsStage_Operations( srcFile ) );
+        }
 
         if ( m_environment.restore( implementationFile, determinant ) )
         {
@@ -97,8 +94,6 @@ public:
         }
 
         {
-            Database database( m_environment, m_sourceFilePath );
-
             ::inja::Environment injaEnvironment;
             {
                 injaEnvironment.set_trim_blocks( true );
@@ -109,25 +104,73 @@ public:
             nlohmann::json implData(
                 { { "invocations", nlohmann::json::array() }, { "interfaces", nlohmann::json::array() } } );
 
+            std::vector< Operations::Invocations* > invocations;
+            {
+                for ( const auto& srcFile : pComponent->get_mega_source_files() )
+                {
+                    invocations.push_back( database.one< Operations::Invocations >( srcFile ) );
+                }
+                for ( const auto& srcFile : pComponent->get_cpp_source_files() )
+                {
+                    invocations.push_back( database.one< Operations::Invocations >( srcFile ) );
+                }
+            }
+            std::vector< Interface::IContext* > contexts;
+            {
+                std::set< Interface::IContext* > uniqueContexts;
+                for ( Operations::Invocations* pInvocations : invocations )
+                {
+                    for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                    {
+                        for ( auto pElementVector : pInvocation->get_context()->get_vectors() )
+                        {
+                            for ( auto pElement : pElementVector->get_elements() )
+                            {
+                                if ( pElement->get_interface()->get_context().has_value() )
+                                {
+                                    Interface::IContext* pContext = pElement->get_interface()->get_context().value();
+                                    if ( uniqueContexts.count( pContext ) == 0 )
+                                    {
+                                        uniqueContexts.insert( pContext );
+                                        contexts.push_back( pContext );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             {
                 std::vector< std::string > typeNameStack;
-                Interface::Root*           pRoot = database.one< Interface::Root >( m_sourceFilePath );
-                for ( Interface::IContext* pContext : pRoot->get_children() )
+                for ( Interface::IContext* pContext : contexts )
                 {
-                    recurse( templateEngine, pContext, implData, typeNameStack );
+                    Interface::IContext*       pIter = pContext;
+                    std::vector< std::string > typeNamePath;
+                    while ( pIter )
+                    {
+                        typeNamePath.push_back( pIter->get_identifier() );
+                        pIter = dynamic_database_cast< Interface::IContext >( pIter->get_parent() );
+                    }
+                    std::reverse( typeNamePath.begin(), typeNamePath.end() );
+                    std::ostringstream os;
+                    common::delimit( typeNamePath.begin(), typeNamePath.end(), "::", os );
+                    implData[ "interfaces" ].push_back( os.str() );
                 }
 
-                Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
-                for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                for ( Operations::Invocations* pInvocations : invocations )
                 {
-                    nlohmann::json invocation(
-                        { { "return_type", pInvocation->get_return_type_str() },
-                          { "context", pInvocation->get_context_str() },
-                          { "type_path", pInvocation->get_type_path_str() },
-                          { "operation", mega::getOperationString( pInvocation->get_operation() ) },
-                          { "impl", "" } } );
+                    for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                    {
+                        nlohmann::json invocation(
+                            { { "return_type", pInvocation->get_return_type_str() },
+                              { "context", pInvocation->get_context_str() },
+                              { "type_path", pInvocation->get_type_path_str() },
+                              { "operation", mega::getOperationString( pInvocation->get_operation() ) },
+                              { "impl", "" } } );
 
-                    implData[ "invocations" ].push_back( invocation );
+                        implData[ "invocations" ].push_back( invocation );
+                    }
                 }
             }
 
@@ -144,37 +187,53 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_Implementation( const TaskArguments&          taskArguments,
-                                          const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_Implementation( const TaskArguments& taskArguments, const std::string& strComponentName )
 {
-    return std::make_unique< Task_Implementation >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_Implementation >( taskArguments, strComponentName );
 }
 
 class Task_ImplementationObj : public BaseTask
 {
-    const mega::io::megaFilePath& m_sourceFilePath;
+    const std::string& m_strComponentName;
 
 public:
-    Task_ImplementationObj( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+    Task_ImplementationObj( const TaskArguments& taskArguments, const std::string& strComponentName )
         : BaseTask( taskArguments )
-        , m_sourceFilePath( sourceFilePath )
+        , m_strComponentName( strComponentName )
     {
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
+        using namespace FinalStage;
+        using namespace FinalStage::Interface;
+
+        Database database( m_environment, m_environment.project_manifest() );
+
+        Components::Component* pComponent = nullptr;
+        {
+            for ( Components::Component* pIter :
+                  database.template many< Components::Component >( m_environment.project_manifest() ) )
+            {
+                if ( pIter->get_name() == m_strComponentName )
+                {
+                    pComponent = pIter;
+                    break;
+                }
+            }
+        }
+        VERIFY_RTE( pComponent );
+
         const mega::io::GeneratedCPPSourceFilePath implementationFile
-            = m_environment.Implementation( m_sourceFilePath );
-        const mega::io::ObjectFilePath implementationObj = m_environment.ImplementationObj( m_sourceFilePath );
+            = m_environment.Implementation( pComponent->get_build_dir(), pComponent->get_name() );
+
+        const mega::io::ObjectFilePath implementationObj
+            = m_environment.ImplementationObj( pComponent->get_build_dir(), pComponent->get_name() );
+
         start( taskProgress, "Task_ImplementationObj", implementationFile.path(), implementationObj.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( implementationFile ),
-
-              m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.GenericsPCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.OperationsPCH( m_sourceFilePath ) ) } );
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( implementationFile ) } );
 
         if ( m_environment.restore( implementationObj, determinant ) )
         {
@@ -183,14 +242,8 @@ public:
             return;
         }
 
-        using namespace FinalStage;
-
-        Database database( m_environment, m_sourceFilePath );
-
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
-
         const std::string strCmd = mega::Compilation::make_implementationObj_compilation(
-            m_environment, m_toolChain, pComponent, m_sourceFilePath )();
+            m_environment, m_toolChain, pComponent, pComponent->get_build_dir(), pComponent->get_name() )();
 
         msg( taskProgress, strCmd );
 
@@ -214,10 +267,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_ImplementationObj( const TaskArguments&          taskArguments,
-                                             const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_ImplementationObj( const TaskArguments& taskArguments, const std::string& strComponentName )
 {
-    return std::make_unique< Task_ImplementationObj >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_ImplementationObj >( taskArguments, strComponentName );
 }
 
 } // namespace compiler

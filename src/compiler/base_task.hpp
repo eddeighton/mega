@@ -89,16 +89,25 @@ public:
     virtual ~BaseTask() {}
 
     const std::string& getTaskName() const { return m_strTaskName; }
+    bool isCompleted() const { return m_bCompleted; }
 
     template < typename TComponentType, typename TDatabase >
-    TComponentType* getComponent( TDatabase& database, const mega::io::megaFilePath& sourceFilePath ) const
+    TComponentType* getComponent( TDatabase& database, const mega::io::SourceFilePath& sourceFilePath ) const
     {
         TComponentType* pComponent = nullptr;
         for ( TComponentType* pIter : database.template many< TComponentType >( m_environment.project_manifest() ) )
         {
-            for ( const boost::filesystem::path& sourceFile : pIter->get_sourceFiles() )
+            for( const mega::io::megaFilePath& megaSourceFile : pIter->get_mega_source_files() )
             {
-                if ( m_environment.megaFilePath_fromPath( sourceFile ) == sourceFilePath )
+                if( sourceFilePath == megaSourceFile )
+                {
+                    pComponent = pIter;
+                    break;
+                }
+            }
+            for( const mega::io::cppFilePath& cppSourceFile : pIter->get_cpp_source_files() )
+            {
+                if( sourceFilePath == cppSourceFile )
                 {
                     pComponent = pIter;
                     break;
@@ -123,7 +132,7 @@ public:
 
         {
             std::ostringstream os;
-             os << "STARTED: " <<  common::COLOUR_YELLOW_BEGIN <<  m_strTaskName << common::COLOUR_END;
+            os << "STARTED: " << common::COLOUR_YELLOW_BEGIN << m_strTaskName << common::COLOUR_END;
             taskProgress.onStarted( os.str() );
         }
     }
@@ -161,7 +170,7 @@ public:
     void msg( mega::pipeline::Progress& taskProgress, const std::string& strMsg )
     {
         std::ostringstream os;
-        os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << strMsg << common::COLOUR_END;
+        os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nMSG    : " << strMsg << common::COLOUR_END;
         taskProgress.onProgress( os.str() );
     }
 };

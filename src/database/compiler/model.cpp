@@ -340,8 +340,6 @@ struct StageElementVariantVisitor : boost::static_visitor< void >
     }
     void operator()( const schema::Source& source ) const
     {
-        VERIFY_RTE( !pStage->m_source );
-
         Source::Ptr pSource;
         {
             SourceMap::iterator iFind = mapping.sourceMap.find( source.m_id );
@@ -360,7 +358,7 @@ struct StageElementVariantVisitor : boost::static_visitor< void >
         pSource->m_strName = source.m_id;
         pSource->m_stages.push_back( pStage );
 
-        pStage->m_source = pSource;
+        pStage->m_sources.push_back( pSource );
     }
     void operator()( const schema::Dependency& dependency ) const
     {
@@ -554,7 +552,7 @@ struct SchemaVariantVisitor : boost::static_visitor< void >
         {
             boost::apply_visitor( visitor, file );
         }
-        VERIFY_RTE_MSG( pStage->m_source, "Stage: " << pStage->m_strName << " is missing a source" );
+        VERIFY_RTE_MSG( !pStage->m_sources.empty(), "Stage: " << pStage->m_strName << " is missing a source" );
 
         pSchema->m_stages.push_back( pStage );
     }

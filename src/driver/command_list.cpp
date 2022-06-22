@@ -21,6 +21,8 @@
 #include "database/common/serialisation.hpp"
 #include "database/common/environment_build.hpp"
 
+#include "database/types/component_type.hpp"
+#include "database/types/sources.hpp"
 #include "utilities/cmake.hpp"
 
 #include "common/assert_verify.hpp"
@@ -42,7 +44,7 @@ namespace list
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path    srcDir, buildDir, componentSrcDir, componentBuildDir;
-    std::string                strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories;
+    std::string                strType, strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories;
     std::vector< std::string > objectSourceFileNames;
 
     namespace po = boost::program_options;
@@ -50,6 +52,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
+            ( "type",           po::value< std::string >( &strType ),                               "Component type: Interface | Component" )
             ( "root_src_dir",   po::value< boost::filesystem::path >( &srcDir ),                    "Root source directory" )
             ( "root_build_dir", po::value< boost::filesystem::path >( &buildDir ),                  "Root build directory" )
             ( "src_dir",        po::value< boost::filesystem::path >( &componentSrcDir ),           "Source directory" )
@@ -87,8 +90,35 @@ void command( bool bHelp, const std::vector< std::string >& args )
         mega::compiler::Directories directories{ srcDir, buildDir, "", "" };
         mega::io::BuildEnvironment  environment( directories );
 
-        const mega::io::ComponentInfo componentInfo(
-            strComponentName, cppFlags, cppDefines, componentSrcDir, inputSourceFiles, includeDirectories );
+        const mega::ComponentType componentType = mega::ComponentType::fromStr( strType.c_str() );
+
+        const mega::io::ComponentInfo componentInfo( componentType, strComponentName, cppFlags, cppDefines,
+                                                     componentSrcDir, componentBuildDir, inputSourceFiles, includeDirectories );
+
+        switch ( componentType.get() )
+        {
+            case mega::ComponentType::eInterface:
+            {
+                for ( const boost::filesystem::path& srcFile : inputSourceFiles )
+                {
+                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::megaFilePath::extension(),
+                                    "Source file is NOT a mega source file: " << srcFile.string() );
+                }
+            }
+            break;
+            case mega::ComponentType::eLibrary:
+            {
+                for ( const boost::filesystem::path& srcFile : inputSourceFiles )
+                {
+                    VERIFY_RTE_MSG( srcFile.extension() == mega::io::cppFilePath::extension(),
+                                    "Source file is NOT a C++ source file: " << srcFile.string() );
+                }
+            }
+            break;
+            case mega::ComponentType::TOTAL_COMPONENT_TYPES:
+            default:
+                THROW_RTE( "Unknown component type" );
+        }
 
         const mega::io::ComponentListingFilePath componentListingFilePath
             = environment.ComponentListingFilePath_fromPath( componentBuildDir );

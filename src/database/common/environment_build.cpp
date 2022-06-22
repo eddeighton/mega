@@ -151,19 +151,26 @@ PrecompiledHeaderFile BuildEnvironment::GenericsPCH( const megaFilePath& source 
     return PrecompiledHeaderFile( dirPath / os.str() );
 }
 
-GeneratedCPPSourceFilePath BuildEnvironment::Implementation( const megaFilePath& source ) const
+GeneratedCPPSourceFilePath BuildEnvironment::Implementation( const boost::filesystem::path& componentBuildDir,
+                                                             const std::string&             strComponentName ) const
 {
     std::ostringstream os;
-    os << source.path().filename().string() << ".impl" << GeneratedCPPSourceFilePath::extension().string();
-    auto dirPath = source.path();
-    dirPath.remove_filename();
-    return GeneratedCPPSourceFilePath( dirPath / os.str() );
+    os << strComponentName << ".impl" << GeneratedCPPSourceFilePath::extension().string();
+    return GeneratedCPPSourceFilePath( boost::filesystem::relative( componentBuildDir, m_directories.buildDir ) / os.str() );
 }
 
-ObjectFilePath BuildEnvironment::ImplementationObj( const megaFilePath& source ) const
+ObjectFilePath BuildEnvironment::ImplementationObj( const boost::filesystem::path& componentBuildDir,
+                                                    const std::string&             strComponentName ) const
 {
     std::ostringstream os;
-    os << source.path().filename().string() << ".impl" << ObjectFilePath::extension().string();
+    os << strComponentName << ".impl" << ObjectFilePath::extension().string();
+    return ObjectFilePath( boost::filesystem::relative( componentBuildDir, m_directories.buildDir ) / os.str() );
+}
+
+ObjectFilePath BuildEnvironment::Obj( const cppFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ObjectFilePath::extension().string();
     auto dirPath = source.path();
     dirPath.remove_filename();
     return ObjectFilePath( dirPath / os.str() );
@@ -173,7 +180,8 @@ ComponentListingFilePath BuildEnvironment::ComponentListingFilePath_fromPath( co
 {
     VERIFY_RTE_MSG( boost::filesystem::is_directory( buildDirectory ),
                     "Source List path is not a directory: " << buildDirectory.string() );
-    return ComponentListingFilePath( boost::filesystem::relative( buildDirectory / "component.listing", m_directories.buildDir ) );
+    return ComponentListingFilePath(
+        boost::filesystem::relative( buildDirectory / "component.listing", m_directories.buildDir ) );
 }
 manifestFilePath BuildEnvironment::manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const
 {
@@ -182,6 +190,10 @@ manifestFilePath BuildEnvironment::manifestFilePath_fromPath( const boost::files
 megaFilePath BuildEnvironment::megaFilePath_fromPath( const boost::filesystem::path& filePath ) const
 {
     return megaFilePath( boost::filesystem::relative( filePath, m_directories.srcDir ) );
+}
+cppFilePath BuildEnvironment::cppFilePath_fromPath( const boost::filesystem::path& filePath ) const
+{
+    return cppFilePath( boost::filesystem::relative( filePath, m_directories.srcDir ) );
 }
 
 std::unique_ptr< std::istream > BuildEnvironment::read( const BuildFilePath& filePath ) const

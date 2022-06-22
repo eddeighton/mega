@@ -77,6 +77,9 @@ namespace io
 {% if source.type == "mega" %}
                     m_megaSourceFiles.push_back( sourceFilePath );
 {% endif %}
+{% if source.type == "cpp" %}
+                    m_cppSourceFiles.push_back( sourceFilePath );
+{% endif %}
 {% for file in source.files %}
                     {
                         FileInfo compilationFileInfo( FileInfo::{{ file.stage }}_{{ file.name }}, 

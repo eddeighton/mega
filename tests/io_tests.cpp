@@ -1,6 +1,7 @@
 
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
+#include "database/types/component_type.hpp"
 
 #include <gtest/gtest.h>
 
@@ -26,7 +27,8 @@ TEST( MegaIO, SourceListing_Empty )
     }
 
     ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );
-    ASSERT_EQ( componentInfoFrom.getDirectory(), componentInfoTo.getDirectory() );
+    ASSERT_EQ( componentInfoFrom.getSrcDir(), componentInfoTo.getSrcDir() );
+    ASSERT_EQ( componentInfoFrom.getBuildDir(), componentInfoTo.getBuildDir() );
     ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
     ASSERT_EQ( componentInfoFrom.getIncludeDirectories(), componentInfoTo.getIncludeDirectories() );
 }
@@ -34,7 +36,7 @@ TEST( MegaIO, SourceListing_Empty )
 TEST( MegaIO, SourceListing_Single )
 {
     ComponentInfo::PathArray paths = { "/a/b/c/test.txt" };
-    ComponentInfo            componentInfoFrom( "test", {}, {}, "some/where", paths, ComponentInfo::PathArray{} );
+    ComponentInfo            componentInfoFrom( mega::ComponentType{}, "test", {}, {}, {}, "some/where", paths, ComponentInfo::PathArray{} );
     ComponentInfo            componentInfoTo;
 
     std::stringstream ss;
@@ -48,7 +50,8 @@ TEST( MegaIO, SourceListing_Single )
     }
 
     ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );
-    ASSERT_EQ( componentInfoFrom.getDirectory(), componentInfoTo.getDirectory() );
+    ASSERT_EQ( componentInfoFrom.getSrcDir(), componentInfoTo.getSrcDir() );
+    ASSERT_EQ( componentInfoFrom.getBuildDir(), componentInfoTo.getBuildDir() );
     ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
     ASSERT_EQ( componentInfoFrom.getIncludeDirectories(), componentInfoTo.getIncludeDirectories() );
 }
@@ -57,7 +60,7 @@ TEST( MegaIO, SourceListing_Multi )
 {
     ComponentInfo::PathArray paths = { "/a/b/c/test.txt", "/d/f/g/test.txt", "/c/foobar.txt" };
     ComponentInfo::PathArray includes = { "somewhere/place", "/other/place" };
-    ComponentInfo            componentInfoFrom( "test", {}, {}, "some/where", paths, ComponentInfo::PathArray{} );
+    ComponentInfo            componentInfoFrom( mega::ComponentType{}, "test", {}, {}, {}, "some/where", paths, ComponentInfo::PathArray{} );
     ComponentInfo            componentInfoTo;
 
     std::stringstream ss;
@@ -71,7 +74,8 @@ TEST( MegaIO, SourceListing_Multi )
     }
 
     ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );
-    ASSERT_EQ( componentInfoFrom.getDirectory(), componentInfoTo.getDirectory() );
+    ASSERT_EQ( componentInfoFrom.getSrcDir(), componentInfoTo.getSrcDir() );
+    ASSERT_EQ( componentInfoFrom.getBuildDir(), componentInfoTo.getBuildDir() );
     ASSERT_EQ( componentInfoFrom.getSourceFiles(), componentInfoTo.getSourceFiles() );
     ASSERT_EQ( componentInfoFrom.getIncludeDirectories(), componentInfoTo.getIncludeDirectories() );
 }
