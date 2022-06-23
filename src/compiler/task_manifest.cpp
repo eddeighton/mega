@@ -8,6 +8,8 @@
 #include "database/model/environment.hxx"
 #include "database/model/ComponentListing.hxx"
 
+#include "utilities/glob.hpp"
+
 #include <common/stash.hpp>
 
 namespace mega
@@ -136,11 +138,25 @@ public:
                 }
             }
 
+            std::vector< mega::io::megaFilePath > dependencies;
+            {
+                for ( const boost::filesystem::path& dependency : componentInfo.getDependencyFiles() )
+                {
+                    mega::utilities::Glob glob{ dependency.parent_path(), dependency.filename().string() };
+                    mega::utilities::FilePathVector matchedFilePaths;
+                    mega::utilities::resolveGlob( glob, m_environment.srcDir(), matchedFilePaths );
+                    for ( const boost::filesystem::path& matchedFilePath : matchedFilePaths )
+                    {
+                        dependencies.push_back( m_environment.megaFilePath_fromPath( matchedFilePath ) );
+                    }
+                }
+            }
+
             Components::Component* pComponent
                 = database.construct< Components::Component >( Components::Component::Args(
                     componentInfo.getComponentType(), componentInfo.getName(), componentInfo.getSrcDir(),
                     componentInfo.getBuildDir(), componentInfo.getCPPFlags(), componentInfo.getCPPDefines(),
-                    componentInfo.getIncludeDirectories(), megaSourceFiles, cppSourceFiles ) );
+                    componentInfo.getIncludeDirectories(), dependencies, megaSourceFiles, cppSourceFiles ) );
 
             VERIFY_RTE( pComponent->get_name() == componentInfo.getName() );
         }

@@ -196,7 +196,7 @@ namespace Components
     struct Components_Component : public mega::io::Object
     {
         Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::ComponentType& type, const std::string& name, const boost::filesystem::path& src_dir, const boost::filesystem::path& build_dir, const std::vector< std::string >& cpp_flags, const std::vector< std::string >& cpp_defines, const std::vector< boost::filesystem::path >& include_directories, const std::vector< mega::io::megaFilePath >& mega_source_files, const std::vector< mega::io::cppFilePath >& cpp_source_files);
+        Components_Component( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::ComponentType& type, const std::string& name, const boost::filesystem::path& src_dir, const boost::filesystem::path& build_dir, const std::vector< std::string >& cpp_flags, const std::vector< std::string >& cpp_defines, const std::vector< boost::filesystem::path >& include_directories, const std::vector< mega::io::megaFilePath >& dependencies, const std::vector< mega::io::megaFilePath >& mega_source_files, const std::vector< mega::io::cppFilePath >& cpp_source_files);
         enum 
         {
             Object_Part_Type_ID = 0
@@ -208,6 +208,7 @@ namespace Components
         std::vector< std::string > cpp_flags;
         std::vector< std::string > cpp_defines;
         std::vector< boost::filesystem::path > include_directories;
+        std::vector< mega::io::megaFilePath > dependencies;
         std::vector< mega::io::megaFilePath > mega_source_files;
         std::vector< mega::io::cppFilePath > cpp_source_files;
         std::variant< data::Ptr< data::Components::Components_Component > > m_inheritance;

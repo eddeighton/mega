@@ -241,9 +241,9 @@ public:
             cached( taskProgress );
             return;
         }
-
+        
         const std::string strCmd = mega::Compilation::make_implementationObj_compilation(
-            m_environment, m_toolChain, pComponent, pComponent->get_build_dir(), pComponent->get_name() )();
+            m_environment, m_toolChain, pComponent )();
 
         msg( taskProgress, strCmd );
 

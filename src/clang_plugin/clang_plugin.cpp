@@ -27,12 +27,23 @@
 
 #include "clang_utils.hpp"
 
+#include "clang/Lex/Pragma.h"
+#include "clang/Lex/Preprocessor.h"
 #include "clang/Sema/Lookup.h"
 #include "clang/Basic/DiagnosticParse.h"
 
 #include <sstream>
 #include <cstdlib>
 #include <memory>
+
+namespace
+{
+clang::Session::Ptr g_pSession;
+clang::ASTContext*  g_pASTContext = nullptr;
+clang::Sema*        g_pSema       = nullptr;
+std::string         g_error;
+bool                g_bMegaEnabled = false;
+} // namespace
 
 namespace clang
 {
@@ -41,18 +52,28 @@ extern Session::Ptr make_interface_session( clang::ASTContext* pASTContext, clan
 
 extern Session::Ptr make_operations_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,
                                              const char* strBuildDir, const char* strSourceFile );
-} // namespace clang
 
-namespace
+class TestPragmaHandler : public clang::PragmaHandler
 {
-clang::Session::Ptr g_pSession;
-clang::ASTContext*  g_pASTContext = nullptr;
-clang::Sema*        g_pSema       = nullptr;
-std::string         g_error;
-} // namespace
+public:
+    TestPragmaHandler()
+        : PragmaHandler( "mega" )
+    {
+    }
+    void HandlePragma( Preprocessor& PP, PragmaIntroducer Introducer, Token& PragmaTok )
+    {
+        std::cout << "GOT PRAGMA!!!" << std::endl;
+        g_bMegaEnabled = !g_bMegaEnabled;
+    }
+};
+
+static PragmaHandlerRegistry::Add< TestPragmaHandler > Y( "mega", "mega pragma description" );
+
+} // namespace clang
 
 namespace mega
 {
+
 struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 {
     virtual void initialise( clang::ASTContext* pASTContext, clang::Sema* pSema )
@@ -62,7 +83,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
         g_pSema       = pSema;
         VERIFY_RTE( g_pASTContext );
         VERIFY_RTE( g_pSema );
-        if( g_pSession )
+        if ( g_pSession )
         {
             g_pSession->setContext( g_pASTContext, g_pSema );
         }
@@ -77,17 +98,24 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             switch ( compilationMode.get() )
             {
                 case mega::CompilationMode::eInterface:
+                    g_bMegaEnabled = true;
                     g_pSession = clang::make_interface_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eOperations:
+                    g_bMegaEnabled = true;
+                    g_pSession = clang::make_operations_session(
+                        g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                    break;
                 case mega::CompilationMode::eCPP:
+                    g_bMegaEnabled = false;
                     g_pSession = clang::make_operations_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
                 case mega::CompilationMode::eImplementation:
                 case mega::CompilationMode::TOTAL_COMPILATION_MODES:
                 default:
+                    g_bMegaEnabled = false;
                     g_pSession = std::make_unique< clang::Session >( g_pASTContext, g_pSema );
                     return;
             }
@@ -124,7 +152,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
 
     virtual void runFinalAnalysis()
     {
-        if( !g_error.empty() )
+        if ( !g_error.empty() )
         {
             std::ostringstream os;
             os << "Error in final analysis: " << g_error;
@@ -149,7 +177,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
     {
         if ( g_pSession )
         {
-            return g_pSession->isAnalysis();
+            return g_bMegaEnabled;
         }
         else
         {

@@ -45,7 +45,7 @@ public:
             std::vector< boost::filesystem::path > componentInfoPaths;
             {
                 mega::io::ComponentInfo       componentInfo( mega::ComponentType{ mega::ComponentType::eInterface }, "test", {}, {}, {}, m_tempDir,
-                                                             mega::io::ComponentInfo::PathArray{ m_srcFile },
+                                                             mega::io::ComponentInfo::PathArray{ m_srcFile }, {},
                                                              mega::io::ComponentInfo::PathArray{} );
                 const boost::filesystem::path componentInfoPath = m_tempDir / "test.txt";
                 std::ofstream                 of( componentInfoPath.native() );

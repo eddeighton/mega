@@ -17,7 +17,8 @@ ComponentInfo::ComponentInfo() {}
 ComponentInfo::ComponentInfo( ComponentType componentType, const std::string& strName,
                               const std::vector< std::string >& cppFlags, const std::vector< std::string >& cppDefines,
                               const boost::filesystem::path& srcDir, const boost::filesystem::path& buildDir,
-                              const ComponentInfo::PathArray& sourceFiles, const PathArray& includeDirectories )
+                              const ComponentInfo::PathArray& sourceFiles,
+                              const ComponentInfo::PathArray& dependencyFiles, const PathArray& includeDirectories )
     : m_componentType( componentType )
     , m_strName( strName )
     , m_cppFlags( cppFlags )
@@ -25,6 +26,7 @@ ComponentInfo::ComponentInfo( ComponentType componentType, const std::string& st
     , m_srcDir( srcDir )
     , m_buildDir( buildDir )
     , m_sourceFiles( sourceFiles )
+    , m_dependencyFiles( dependencyFiles )
     , m_includeDirectories( includeDirectories )
 {
 }

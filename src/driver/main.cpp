@@ -66,8 +66,10 @@ int main( int argc, const char* argv[] )
 {
     boost::timer::cpu_timer timer;
 
-    boost::filesystem::path logDir = boost::filesystem::current_path();
-    bool                    bWait  = false;
+    boost::filesystem::path logDir             = boost::filesystem::current_path();
+    std::string             strConsoleLogLevel = "info";
+    std::string             strLogFileLevel    = "debug";
+    bool                    bWait              = false;
 
     std::bitset< TOTAL_MAIN_COMMANDS > cmds;
     MainCommand                        mainCmd = TOTAL_MAIN_COMMANDS;
@@ -80,7 +82,7 @@ int main( int argc, const char* argv[] )
 
         namespace po = boost::program_options;
         po::variables_map vm;
-        bool bGeneralWait = false;
+        bool              bGeneralWait = false;
 
 #define COMMAND( cmd, desc ) bool bCmd_##cmd = false;
 #include "commands.hxx"
@@ -92,6 +94,8 @@ int main( int argc, const char* argv[] )
             genericOptions.add_options()
             ( "help",                                                           "Produce general or command help message" )
             ( "log_dir",    po::value< boost::filesystem::path >( &logDir ),    "Build log directory" )
+            ( "console",    po::value< std::string >( &strConsoleLogLevel ),    "Console logging level" )
+            ( "level",      po::value< std::string >( &strLogFileLevel ),       "Log file logging level" )
             ( "wait",       po::bool_switch( &bGeneralWait ),                   "Wait at startup for attaching a debugger" );
             // clang-format on
         }
@@ -102,14 +106,14 @@ int main( int argc, const char* argv[] )
 #define COMMAND( cmd, desc ) ( #cmd, po::bool_switch( &bCmd_##cmd ), desc )
 #include "commands.hxx"
 #undef COMMAND
-                    ;
-            }
+                ;
+        }
 
-            if ( cmds.count() > 1 )
-            {
-                spdlog::info( "Invalid command combination. Type '--help' for options" );
-                return 1;
-            }
+        if ( cmds.count() > 1 )
+        {
+            spdlog::info( "Invalid command combination. Type '--help' for options" );
+            return 1;
+        }
 
         po::options_description commandHiddenOptions( "" );
         {
@@ -125,16 +129,13 @@ int main( int argc, const char* argv[] )
         po::positional_options_description p;
         p.add( "args", -1 );
 
-        po::parsed_options parsedOptions = po::command_line_parser( argc, argv )
-                                                .options( allOptions )
-                                                .positional( p )
-                                                .allow_unregistered()
-                                                .run();
+        po::parsed_options parsedOptions
+            = po::command_line_parser( argc, argv ).options( allOptions ).positional( p ).allow_unregistered().run();
         po::store( parsedOptions, vm );
         po::notify( vm );
 
         auto logThreads = mega::network::configureLog(
-            logDir, "driver", mega::network::fromStr( "warn" ), mega::network::fromStr( "info" ) );
+            logDir, "driver", mega::network::fromStr( strConsoleLogLevel ), mega::network::fromStr( strLogFileLevel ) );
 
         try
         {

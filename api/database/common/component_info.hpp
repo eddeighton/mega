@@ -26,6 +26,7 @@ public:
                    const boost::filesystem::path&    srcDir,
                    const boost::filesystem::path&    buildDir,
                    const PathArray&                  sourceFiles,
+                   const PathArray&                  dependencyFiles,
                    const PathArray&                  includeDirectories );
 
     ComponentType                     getComponentType() const { return m_componentType; }
@@ -35,6 +36,7 @@ public:
     const boost::filesystem::path&    getSrcDir() const { return m_srcDir; }
     const boost::filesystem::path&    getBuildDir() const { return m_buildDir; }
     const PathArray&                  getSourceFiles() const { return m_sourceFiles; }
+    const PathArray&                  getDependencyFiles() const { return m_dependencyFiles; }
     const PathArray&                  getIncludeDirectories() const { return m_includeDirectories; }
 
     template < class Archive >
@@ -47,6 +49,7 @@ public:
         archive& boost::serialization::make_nvp( "srcDir", m_srcDir );
         archive& boost::serialization::make_nvp( "buildDir", m_buildDir );
         archive& boost::serialization::make_nvp( "sourceFiles", m_sourceFiles );
+        archive& boost::serialization::make_nvp( "dependencyFiles", m_dependencyFiles );
         archive& boost::serialization::make_nvp( "includeDirectories", m_includeDirectories );
     }
 
@@ -58,6 +61,7 @@ private:
     boost::filesystem::path    m_srcDir;
     boost::filesystem::path    m_buildDir;
     PathArray                  m_sourceFiles;
+    PathArray                  m_dependencyFiles;
     PathArray                  m_includeDirectories;
 };
 

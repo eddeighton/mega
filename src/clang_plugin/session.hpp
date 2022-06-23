@@ -41,8 +41,6 @@ public:
     ASTContext* getASTContext() const { return pASTContext; }
     Sema*       getSema() const { return pSema; }
 
-    virtual bool isAnalysis() const { return false; }
-
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const { return false; }
 
     virtual void runFinalAnalysis()
@@ -77,8 +75,6 @@ public:
         , m_sourceFile( m_environment.megaFilePath_fromPath( boost::filesystem::path( strSourceFile ) ) )
     {
     }
-
-    virtual bool isAnalysis() const { return true; }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
     {

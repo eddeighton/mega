@@ -43,8 +43,8 @@ namespace list
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path    srcDir, buildDir, componentSrcDir, componentBuildDir;
-    std::string                strType, strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories;
+    boost::filesystem::path srcDir, buildDir, componentSrcDir, componentBuildDir;
+    std::string strType, strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories, strDependencyFilePaths;
     std::vector< std::string > objectSourceFileNames;
 
     namespace po = boost::program_options;
@@ -61,6 +61,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             ( "cpp_flags",      po::value< std::string >( &strCPPFlags ),                           "C++ Compiler Flags" )
             ( "cpp_defines",    po::value< std::string >( &strCPPDefines ),                         "C++ Compiler Defines" )
             ( "include_dirs",   po::value< std::string >( &strIncludeDirectories ),                 "Include directories ( semicolon delimited )" )
+            ( "dependencies",   po::value< std::string >( &strDependencyFilePaths ),                "Mega source file dependencies" )
             ( "src",            po::value< std::vector< std::string > >( &objectSourceFileNames ),  "Mega source file names" )
             ;
         // clang-format on
@@ -82,6 +83,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
         // tokenize semi colon delimited names into absolute mega source file paths
         const std::vector< boost::filesystem::path > inputSourceFiles
             = mega::utilities::pathListToFiles( componentSrcDir, objectSourceFileNames );
+
+        const std::vector< boost::filesystem::path > dependencySourceFiles = mega::utilities::pathListToFiles(
+            componentSrcDir, mega::utilities::parseCMakeStringList( strDependencyFilePaths, " " ) );
+
         const std::vector< std::string > cppFlags   = mega::utilities::parseCMakeStringList( strCPPFlags, " " );
         const std::vector< std::string > cppDefines = mega::utilities::parseCMakeStringList( strCPPDefines, " " );
         const std::vector< boost::filesystem::path > includeDirectories
@@ -91,9 +96,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
         mega::io::BuildEnvironment  environment( directories );
 
         const mega::ComponentType componentType = mega::ComponentType::fromStr( strType.c_str() );
-
-        const mega::io::ComponentInfo componentInfo( componentType, strComponentName, cppFlags, cppDefines,
-                                                     componentSrcDir, componentBuildDir, inputSourceFiles, includeDirectories );
 
         switch ( componentType.get() )
         {
@@ -119,6 +121,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
             default:
                 THROW_RTE( "Unknown component type" );
         }
+
+        const mega::io::ComponentInfo componentInfo( componentType, strComponentName, cppFlags, cppDefines,
+                                                     componentSrcDir, componentBuildDir, inputSourceFiles,
+                                                     dependencySourceFiles, includeDirectories );
 
         const mega::io::ComponentListingFilePath componentListingFilePath
             = environment.ComponentListingFilePath_fromPath( componentBuildDir );

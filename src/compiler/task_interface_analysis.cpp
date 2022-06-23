@@ -463,7 +463,20 @@ public:
             for ( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbols() )
             {
                 nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id() }, { "name", symbolName } } );
-                interfaceData[ "forward_decls" ].push_back( forwardDecl );
+
+                bool bIsGlobal = false;
+                for ( auto pContext : pSymbol->get_contexts() )
+                {
+                    if ( dynamic_database_cast< Interface::Root >( pContext->get_parent() ) )
+                    {
+                        bIsGlobal = true;
+                    }
+                }
+
+                if ( !bIsGlobal )
+                {
+                    interfaceData[ "forward_decls" ].push_back( forwardDecl );
+                }
             }
 
             std::unique_ptr< boost::filesystem::ofstream > pOStream = m_environment.write( interfaceHeader );

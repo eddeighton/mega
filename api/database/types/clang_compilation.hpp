@@ -206,7 +206,12 @@ struct Compilation
         compilation.defines     = pComponent->get_cpp_defines();
         compilation.includeDirs = pComponent->get_include_directories();
 
-        compilation.inputPCH = {};
+        for ( const mega::io::megaFilePath& megaSourceFile : pComponent->get_dependencies() )
+        {
+            compilation.inputPCH.push_back( environment.FilePath( environment.IncludePCH( megaSourceFile ) ) );
+            compilation.inputPCH.push_back( environment.FilePath( environment.InterfacePCH( megaSourceFile ) ) );
+           // compilation.inputPCH.push_back( environment.FilePath( environment.GenericsPCH( megaSourceFile ) ) );
+        }
 
         compilation.inputFile    = environment.FilePath( sourceFile );
         compilation.outputObject = environment.FilePath( environment.Obj( sourceFile ) );
@@ -215,13 +220,9 @@ struct Compilation
     }
 
     template < typename TComponentType >
-    static inline Compilation make_implementationObj_compilation( const io::BuildEnvironment&    environment,
-                                                                  const utilities::ToolChain&    toolChain,
-                                                                  TComponentType*                pComponent,
-                                                                  const boost::filesystem::path& buildDir,
-                                                                  const std::string&             strComponentName
-
-    )
+    static inline Compilation make_implementationObj_compilation( const io::BuildEnvironment& environment,
+                                                                  const utilities::ToolChain& toolChain,
+                                                                  TComponentType*             pComponent )
     {
         Compilation compilation;
 
@@ -237,8 +238,24 @@ struct Compilation
         compilation.defines     = pComponent->get_cpp_defines();
         compilation.includeDirs = pComponent->get_include_directories();
 
-        compilation.inputFile    = environment.FilePath( environment.Implementation( buildDir, strComponentName ) );
-        compilation.outputObject = environment.FilePath( environment.ImplementationObj( buildDir, strComponentName ) );
+        for ( const mega::io::megaFilePath& megaSourceFile : pComponent->get_dependencies() )
+        {
+            compilation.inputPCH.push_back( environment.FilePath( environment.IncludePCH( megaSourceFile ) ) );
+            compilation.inputPCH.push_back( environment.FilePath( environment.InterfacePCH( megaSourceFile ) ) );
+        }
+
+        for ( const mega::io::megaFilePath& megaSourceFile : pComponent->get_mega_source_files() )
+        {
+            compilation.inputPCH.push_back( environment.FilePath( environment.IncludePCH( megaSourceFile ) ) );
+            compilation.inputPCH.push_back( environment.FilePath( environment.InterfacePCH( megaSourceFile ) ) );
+            compilation.inputPCH.push_back( environment.FilePath( environment.GenericsPCH( megaSourceFile ) ) );
+            compilation.inputPCH.push_back( environment.FilePath( environment.OperationsPCH( megaSourceFile ) ) );
+        }
+        
+        compilation.inputFile
+            = environment.FilePath( environment.Implementation( pComponent->get_build_dir(), pComponent->get_name() ) );
+        compilation.outputObject = environment.FilePath(
+            environment.ImplementationObj( pComponent->get_build_dir(), pComponent->get_name() ) );
 
         return compilation;
     }

@@ -13,6 +13,7 @@ namespace Components
         array< value< std::string > > cpp_flags;
         array< value< std::string > > cpp_defines;
         array< value< boost::filesystem::path > > include_directories;
+        array< value< mega::io::megaFilePath > > dependencies;
         array< value< mega::io::megaFilePath > > mega_source_files;
         array< value< mega::io::cppFilePath > > cpp_source_files;
     }

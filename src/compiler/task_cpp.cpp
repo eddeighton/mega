@@ -44,8 +44,22 @@ public:
         const mega::io::ObjectFilePath cppObjectFile = m_environment.Obj( m_sourceFilePath );
         start( taskProgress, "Task_CPP", m_sourceFilePath.path(), compilationFile.path() );
 
+        using namespace FinalStage;
+        Database database( m_environment, m_sourceFilePath );
+        Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
+
+        task::DeterminantHash inputPCHFilesDeterminant;
+        {
+            for ( const mega::io::megaFilePath& megaSourceFile : pComponent->get_dependencies() )
+            {
+                inputPCHFilesDeterminant ^= m_environment.getBuildHashCode( m_environment.IncludePCH( megaSourceFile ) );
+                inputPCHFilesDeterminant ^= m_environment.getBuildHashCode( m_environment.InterfacePCH( megaSourceFile ) );
+                //inputPCHFilesDeterminant ^= m_environment.getBuildHashCode( m_environment.GenericsPCH( megaSourceFile ) );
+            }
+        }
+
         const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.FilePath( m_sourceFilePath ) } );
+            { m_toolChain.toolChainHash, inputPCHFilesDeterminant, m_environment.FilePath( m_sourceFilePath ) } );
 
         if ( m_environment.restore( cppObjectFile, determinant )
              && m_environment.restore( compilationFile, determinant ) )
@@ -55,12 +69,6 @@ public:
             cached( taskProgress );
             return;
         }
-
-        using namespace FinalStage;
-
-        Database database( m_environment, m_sourceFilePath );
-
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
         const std::string strCmd
             = mega::Compilation::make_cpp_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath )();
