@@ -13,8 +13,8 @@ public:
     enum Value
     {
         eInterface,
+        eLibrary,
         eOperations,
-        eImplementation,
         eCPP,
         TOTAL_COMPILATION_MODES
     };

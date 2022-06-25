@@ -2422,43 +2422,43 @@ namespace DPGraph
         }
     }
         
-    // struct Dependencies_ObjectDependencies : public mega::io::Object
-    Dependencies_ObjectDependencies::Dependencies_ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_ObjectDependencies >( loader, this ) )    {
+    // struct Dependencies_SourceFileDependencies : public mega::io::Object
+    Dependencies_SourceFileDependencies::Dependencies_SourceFileDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies >( loader, this ) )    {
     }
-    Dependencies_ObjectDependencies::Dependencies_ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& globs, const std::vector< boost::filesystem::path >& resolution)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_ObjectDependencies >( loader, this ) )          , source_file( source_file )
+    Dependencies_SourceFileDependencies::Dependencies_SourceFileDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& globs, const std::vector< boost::filesystem::path >& resolution)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
           , globs( globs )
           , resolution( resolution )
     {
     }
-    bool Dependencies_ObjectDependencies::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Dependencies_SourceFileDependencies::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > >{ data::Ptr< data::DPGraph::Dependencies_ObjectDependencies >( loader, const_cast< Dependencies_ObjectDependencies* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >{ data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies >( loader, const_cast< Dependencies_SourceFileDependencies* >( this ) ) };
     }
-    void Dependencies_ObjectDependencies::set_inheritance_pointer()
+    void Dependencies_SourceFileDependencies::set_inheritance_pointer()
     {
     }
-    void Dependencies_ObjectDependencies::load( mega::io::Loader& loader )
+    void Dependencies_SourceFileDependencies::load( mega::io::Loader& loader )
     {
         loader.load( source_file );
         loader.load( hash_code );
         loader.load( globs );
         loader.load( resolution );
     }
-    void Dependencies_ObjectDependencies::store( mega::io::Storer& storer ) const
+    void Dependencies_SourceFileDependencies::store( mega::io::Storer& storer ) const
     {
         storer.store( source_file );
         storer.store( hash_code );
         storer.store( globs );
         storer.store( resolution );
     }
-    void Dependencies_ObjectDependencies::to_json( nlohmann::json& part ) const
+    void Dependencies_SourceFileDependencies::to_json( nlohmann::json& part ) const
     {
         part = nlohmann::json::object(
             { 
-                { "partname", "Dependencies_ObjectDependencies" },
+                { "partname", "Dependencies_SourceFileDependencies" },
                 { "filetype" , "DPGraph" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -2487,12 +2487,55 @@ namespace DPGraph
         }
     }
         
+    // struct Dependencies_TransitiveDependencies : public mega::io::Object
+    Dependencies_TransitiveDependencies::Dependencies_TransitiveDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies >( loader, this ) )    {
+    }
+    Dependencies_TransitiveDependencies::Dependencies_TransitiveDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< mega::io::megaFilePath >& mega_source_files)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies >( loader, this ) )          , mega_source_files( mega_source_files )
+    {
+    }
+    bool Dependencies_TransitiveDependencies::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >{ data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies >( loader, const_cast< Dependencies_TransitiveDependencies* >( this ) ) };
+    }
+    void Dependencies_TransitiveDependencies::set_inheritance_pointer()
+    {
+    }
+    void Dependencies_TransitiveDependencies::load( mega::io::Loader& loader )
+    {
+        loader.load( mega_source_files );
+    }
+    void Dependencies_TransitiveDependencies::store( mega::io::Storer& storer ) const
+    {
+        storer.store( mega_source_files );
+    }
+    void Dependencies_TransitiveDependencies::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Dependencies_TransitiveDependencies" },
+                { "filetype" , "DPGraph" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "mega_source_files", mega_source_files } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Dependencies_Analysis : public mega::io::Object
     Dependencies_Analysis::Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_Analysis >( loader, this ) )    {
     }
-    Dependencies_Analysis::Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > >& objects)
+    Dependencies_Analysis::Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& objects, const std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& mega_dependencies, const std::map< mega::io::cppFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& cpp_dependencies)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_Analysis >( loader, this ) )          , objects( objects )
+          , mega_dependencies( mega_dependencies )
+          , cpp_dependencies( cpp_dependencies )
     {
     }
     bool Dependencies_Analysis::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -2505,10 +2548,14 @@ namespace DPGraph
     void Dependencies_Analysis::load( mega::io::Loader& loader )
     {
         loader.load( objects );
+        loader.load( mega_dependencies );
+        loader.load( cpp_dependencies );
     }
     void Dependencies_Analysis::store( mega::io::Storer& storer ) const
     {
         storer.store( objects );
+        storer.store( mega_dependencies );
+        storer.store( cpp_dependencies );
     }
     void Dependencies_Analysis::to_json( nlohmann::json& part ) const
     {
@@ -2524,6 +2571,16 @@ namespace DPGraph
         {
             nlohmann::json property = nlohmann::json::object({
                 { "objects", objects } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "mega_dependencies", mega_dependencies } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "cpp_dependencies", cpp_dependencies } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -6183,11 +6240,12 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 53: return new Tree::Interface_Link( loader, objectInfo );
         case 54: return new Tree::Interface_Table( loader, objectInfo );
         case 113: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 114: return new DPGraph::Dependencies_ObjectDependencies( loader, objectInfo );
-        case 115: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 116: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
-        case 117: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
-        case 118: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 114: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 115: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 116: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 117: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
+        case 118: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
+        case 119: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 30: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 45: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 32: return new Clang::Interface_DimensionTrait( loader, objectInfo );
@@ -6208,10 +6266,10 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 99: return new Concrete::Concrete_Link( loader, objectInfo );
         case 100: return new Concrete::Concrete_Table( loader, objectInfo );
         case 101: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 119: return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
-        case 120: return new Model::HyperGraph_Graph( loader, objectInfo );
-        case 121: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 122: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 120: return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
+        case 121: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 122: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 123: return new Derivations::Derivation_Mapping( loader, objectInfo );
         case 55: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
         case 56: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
         case 57: return new Operations::Invocations_Variables_Reference( loader, objectInfo );

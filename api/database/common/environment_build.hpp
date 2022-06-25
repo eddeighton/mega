@@ -60,13 +60,17 @@ public:
     PrecompiledHeaderFile      IncludePCH( const megaFilePath& source ) const;
     GeneratedHPPSourceFilePath Interface( const megaFilePath& source ) const;
     PrecompiledHeaderFile      InterfacePCH( const megaFilePath& source ) const;
-    GeneratedHPPSourceFilePath Operations( const megaFilePath& source ) const;
-    PrecompiledHeaderFile      OperationsPCH( const megaFilePath& source ) const;
-    GeneratedHPPSourceFilePath Generics( const megaFilePath& source ) const;
-    PrecompiledHeaderFile      GenericsPCH( const megaFilePath& source ) const;
+    GeneratedHPPSourceFilePath Include( const boost::filesystem::path& componentBuildDir,
+                                        const std::string&             strComponentName ) const;
+    PrecompiledHeaderFile      IncludePCH( const boost::filesystem::path& componentBuildDir,
+                                           const std::string&             strComponentName ) const;
+    GeneratedHPPSourceFilePath Interface( const boost::filesystem::path& componentBuildDir,
+                                          const std::string&             strComponentName ) const;
+    PrecompiledHeaderFile      InterfacePCH( const boost::filesystem::path& componentBuildDir,
+                                             const std::string&             strComponentName ) const;
+    GeneratedCPPSourceFilePath Operations( const megaFilePath& source ) const;
+    ObjectFilePath             OperationsObj( const megaFilePath& source ) const;
     ObjectFilePath             Obj( const cppFilePath& source ) const;
-    GeneratedCPPSourceFilePath Implementation( const boost::filesystem::path& componentBuildDir, const std::string& strComponentName ) const;
-    ObjectFilePath             ImplementationObj( const boost::filesystem::path& componentBuildDir, const std::string& strComponentName ) const;
 
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;
     manifestFilePath         manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const;

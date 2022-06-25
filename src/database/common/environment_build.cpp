@@ -115,56 +115,53 @@ PrecompiledHeaderFile BuildEnvironment::InterfacePCH( const megaFilePath& source
     return PrecompiledHeaderFile( dirPath / os.str() );
 }
 
-GeneratedHPPSourceFilePath BuildEnvironment::Operations( const megaFilePath& source ) const
+GeneratedHPPSourceFilePath BuildEnvironment::Include( const boost::filesystem::path& componentBuildDir,
+                                                      const std::string&             strComponentName ) const
 {
     std::ostringstream os;
-    os << source.path().filename().string() << ".operations" << GeneratedHPPSourceFilePath::extension().string();
-    auto dirPath = source.path();
-    dirPath.remove_filename();
-    return GeneratedHPPSourceFilePath( dirPath / os.str() );
+    os << strComponentName << ".include" << GeneratedHPPSourceFilePath::extension().string();
+    return GeneratedHPPSourceFilePath( boost::filesystem::relative( componentBuildDir, m_directories.buildDir )
+                                       / os.str() );
 }
-
-PrecompiledHeaderFile BuildEnvironment::OperationsPCH( const megaFilePath& source ) const
-{
-    std::ostringstream os;
-    os << source.path().filename().string() << ".operations" << PrecompiledHeaderFile::extension().string();
-    auto dirPath = source.path();
-    dirPath.remove_filename();
-    return PrecompiledHeaderFile( dirPath / os.str() );
-}
-
-GeneratedHPPSourceFilePath BuildEnvironment::Generics( const megaFilePath& source ) const
-{
-    std::ostringstream os;
-    os << source.path().filename().string() << ".generics" << GeneratedHPPSourceFilePath::extension().string();
-    auto dirPath = source.path();
-    dirPath.remove_filename();
-    return GeneratedHPPSourceFilePath( dirPath / os.str() );
-}
-
-PrecompiledHeaderFile BuildEnvironment::GenericsPCH( const megaFilePath& source ) const
-{
-    std::ostringstream os;
-    os << source.path().filename().string() << ".generics" << PrecompiledHeaderFile::extension().string();
-    auto dirPath = source.path();
-    dirPath.remove_filename();
-    return PrecompiledHeaderFile( dirPath / os.str() );
-}
-
-GeneratedCPPSourceFilePath BuildEnvironment::Implementation( const boost::filesystem::path& componentBuildDir,
-                                                             const std::string&             strComponentName ) const
-{
-    std::ostringstream os;
-    os << strComponentName << ".impl" << GeneratedCPPSourceFilePath::extension().string();
-    return GeneratedCPPSourceFilePath( boost::filesystem::relative( componentBuildDir, m_directories.buildDir ) / os.str() );
-}
-
-ObjectFilePath BuildEnvironment::ImplementationObj( const boost::filesystem::path& componentBuildDir,
+PrecompiledHeaderFile BuildEnvironment::IncludePCH( const boost::filesystem::path& componentBuildDir,
                                                     const std::string&             strComponentName ) const
 {
     std::ostringstream os;
-    os << strComponentName << ".impl" << ObjectFilePath::extension().string();
-    return ObjectFilePath( boost::filesystem::relative( componentBuildDir, m_directories.buildDir ) / os.str() );
+    os << strComponentName << ".include" << PrecompiledHeaderFile::extension().string();
+    return PrecompiledHeaderFile( boost::filesystem::relative( componentBuildDir, m_directories.buildDir ) / os.str() );
+}
+GeneratedHPPSourceFilePath BuildEnvironment::Interface( const boost::filesystem::path& componentBuildDir,
+                                                        const std::string&             strComponentName ) const
+{
+    std::ostringstream os;
+    os << strComponentName << ".interface" << GeneratedHPPSourceFilePath::extension().string();
+    return GeneratedHPPSourceFilePath( boost::filesystem::relative( componentBuildDir, m_directories.buildDir )
+                                       / os.str() );
+}
+PrecompiledHeaderFile BuildEnvironment::InterfacePCH( const boost::filesystem::path& componentBuildDir,
+                                                      const std::string&             strComponentName ) const
+{
+    std::ostringstream os;
+    os << strComponentName << ".interface" << PrecompiledHeaderFile::extension().string();
+    return PrecompiledHeaderFile( boost::filesystem::relative( componentBuildDir, m_directories.buildDir ) / os.str() );
+}
+
+GeneratedCPPSourceFilePath BuildEnvironment::Operations( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".operations" << GeneratedCPPSourceFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return GeneratedCPPSourceFilePath( dirPath / os.str() );
+}
+
+ObjectFilePath BuildEnvironment::OperationsObj( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".operations" << ObjectFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return ObjectFilePath( dirPath / os.str() );
 }
 
 ObjectFilePath BuildEnvironment::Obj( const cppFilePath& source ) const

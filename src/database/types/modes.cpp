@@ -8,7 +8,7 @@
 namespace
 {
 std::array< std::string, mega::CompilationMode::TOTAL_COMPILATION_MODES > g_pszModes
-    = { "Interface", "Operations", "Implementation", "CPP" };
+    = { "Interface", "Library", "Operations", "CPP" };
 }
 
 namespace mega
@@ -18,8 +18,8 @@ const char* CompilationMode::str() const
     switch ( m_value )
     {
         case eInterface:
+        case eLibrary:
         case eOperations:
-        case eImplementation:
         case eCPP:
             return g_pszModes[ m_value ].c_str();
         case TOTAL_COMPILATION_MODES:

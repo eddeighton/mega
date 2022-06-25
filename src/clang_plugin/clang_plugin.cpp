@@ -53,6 +53,12 @@ extern Session::Ptr make_interface_session( clang::ASTContext* pASTContext, clan
 extern Session::Ptr make_operations_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,
                                              const char* strBuildDir, const char* strSourceFile );
 
+Session::Ptr make_library_session( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir,
+                                     const char* strBuildDir, const char* strSourceFile )
+{
+    return std::make_unique< AnalysisSession >( pASTContext, pSema, strSrcDir, strBuildDir, strSourceFile );
+}
+
 class TestPragmaHandler : public clang::PragmaHandler
 {
 public:
@@ -102,6 +108,11 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
                     g_pSession = clang::make_interface_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
+                case mega::CompilationMode::eLibrary:
+                    g_bMegaEnabled = true;
+                    g_pSession = clang::make_library_session(
+                        g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
+                    break;
                 case mega::CompilationMode::eOperations:
                     g_bMegaEnabled = true;
                     g_pSession = clang::make_operations_session(
@@ -112,7 +123,6 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
                     g_pSession = clang::make_operations_session(
                         g_pASTContext, g_pSema, strSrcDir, strBuildDir, strSourceFile );
                     break;
-                case mega::CompilationMode::eImplementation:
                 case mega::CompilationMode::TOTAL_COMPILATION_MODES:
                 default:
                     g_bMegaEnabled = false;

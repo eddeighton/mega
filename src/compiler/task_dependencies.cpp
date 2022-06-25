@@ -8,6 +8,7 @@
 #include "database/common/environment_archive.hpp"
 #include "database/common/exception.hpp"
 
+#include "database/types/sources.hpp"
 #include "utilities/glob.hpp"
 
 namespace mega
@@ -58,10 +59,11 @@ public:
             }
         }
 
-        DependencyAnalysis::Dependencies::ObjectDependencies* operator()( DependencyAnalysis::Database& database,
-                                                                          const mega::io::megaFilePath& sourceFilePath,
-                                                                          const task::DeterminantHash   interfaceHash,
-                                                                          const PathSet& sourceFiles ) const
+        DependencyAnalysis::Dependencies::SourceFileDependencies*
+        operator()( DependencyAnalysis::Database& database,
+                    const mega::io::megaFilePath& sourceFilePath,
+                    const task::DeterminantHash   interfaceHash,
+                    const PathSet&                sourceFiles ) const
         {
             using namespace DependencyAnalysis;
             using namespace DependencyAnalysis::Dependencies;
@@ -98,16 +100,16 @@ public:
                     resolution.push_back( filePath );
             }
 
-            ObjectDependencies* pDependencies = database.construct< ObjectDependencies >(
-                ObjectDependencies::Args{ sourceFilePath, interfaceHash.get(), globs, resolution } );
+            SourceFileDependencies* pDependencies = database.construct< SourceFileDependencies >(
+                SourceFileDependencies::Args{ sourceFilePath, interfaceHash.get(), globs, resolution } );
 
             return pDependencies;
         }
 
-        DependencyAnalysis::Dependencies::ObjectDependencies*
-        operator()( DependencyAnalysis::Database&                                   database,
-                    const DependencyAnalysisView::Dependencies::ObjectDependencies* pOldDependencies,
-                    const PathSet&                                                  sourceFiles ) const
+        DependencyAnalysis::Dependencies::SourceFileDependencies*
+        operator()( DependencyAnalysis::Database&                                       database,
+                    const DependencyAnalysisView::Dependencies::SourceFileDependencies* pOldDependencies,
+                    const PathSet&                                                      sourceFiles ) const
         {
             using namespace DependencyAnalysis;
             using namespace DependencyAnalysis::Dependencies;
@@ -142,8 +144,9 @@ public:
                     resolution.push_back( filePath );
             }
 
-            ObjectDependencies* pDependencies = database.construct< ObjectDependencies >( ObjectDependencies::Args{
-                pOldDependencies->get_source_file(), pOldDependencies->get_hash_code(), globs, resolution } );
+            SourceFileDependencies* pDependencies
+                = database.construct< SourceFileDependencies >( SourceFileDependencies::Args{
+                    pOldDependencies->get_source_file(), pOldDependencies->get_hash_code(), globs, resolution } );
 
             return pDependencies;
         }
@@ -157,6 +160,140 @@ public:
             sourceFiles.insert( sourceFilePath );
         }
         return sourceFiles;
+    }
+
+    struct MegaFileDependencies
+    {
+        using Vector    = std::vector< mega::io::megaFilePath >;
+        using Ptr       = std::shared_ptr< MegaFileDependencies >;
+        using VectorPtr = std::vector< Ptr >;
+        using SetPtr    = std::set< Ptr >;
+        mega::io::megaFilePath m_file;
+        Vector                 m_initial;
+        VectorPtr              m_transitive;
+        SetPtr                 m_set;
+    };
+    using MegaFileDependencyMap = std::map< mega::io::megaFilePath, MegaFileDependencies::Ptr >;
+
+    void solveTransitive( MegaFileDependencies::Ptr                                 pDependencies,
+                          std::set< mega::io::megaFilePath >&                       unique,
+                          DependencyAnalysis::Dependencies::TransitiveDependencies* pTransitive )
+    {
+        for ( MegaFileDependencies::Ptr pDep : pDependencies->m_transitive )
+        {
+            solveTransitive( pDep, unique, pTransitive );
+        }
+        if ( !pDependencies->m_file.path().empty() )
+        {
+            if ( unique.count( pDependencies->m_file ) == 0 )
+            {
+                pTransitive->push_back_mega_source_files( pDependencies->m_file );
+                unique.insert( pDependencies->m_file );
+            }
+        }
+    }
+
+    void calculateTransitiveDependencies(
+        DependencyAnalysis::Database&                                                   database,
+        const std::vector< DependencyAnalysis::Dependencies::SourceFileDependencies* >& dependencies )
+    {
+        using namespace DependencyAnalysis;
+        using namespace DependencyAnalysis::Dependencies;
+
+        MegaFileDependencyMap megaFileDependencies;
+
+        using CPPFileDependencyMap = std::map< mega::io::cppFilePath, MegaFileDependencies::Ptr >;
+        CPPFileDependencyMap cppFileDependencies;
+
+        // collect all initial component wide dependencies first
+        std::vector< Components::Component* > components
+            = database.many< Components::Component >( m_environment.project_manifest() );
+        for ( Components::Component* pComponent : components )
+        {
+            const MegaFileDependencies::Vector dependencies = pComponent->get_dependencies();
+            {
+                std::set< mega::io::megaFilePath > depSet;
+                for ( const mega::io::megaFilePath& megaFile : dependencies )
+                {
+                    depSet.insert( megaFile );
+                }
+                VERIFY_RTE( depSet.size() == dependencies.size() );
+            }
+
+            for ( const mega::io::megaFilePath& megaFile : pComponent->get_mega_source_files() )
+            {
+                MegaFileDependencies::Ptr pDep( new MegaFileDependencies );
+                pDep->m_file    = megaFile;
+                pDep->m_initial = dependencies;
+                megaFileDependencies.insert( std::make_pair( megaFile, pDep ) );
+            }
+            for ( const mega::io::cppFilePath cppFile : pComponent->get_cpp_source_files() )
+            {
+                MegaFileDependencies::Ptr pDep( new MegaFileDependencies );
+                pDep->m_initial = dependencies;
+                cppFileDependencies.insert( std::make_pair( cppFile, pDep ) );
+            }
+        }
+
+        // collect all initial source level dependencies
+        for ( SourceFileDependencies* pSourceFile : dependencies )
+        {
+            MegaFileDependencyMap::iterator iFind = megaFileDependencies.find( pSourceFile->get_source_file() );
+            VERIFY_RTE( iFind != megaFileDependencies.end() );
+            for ( const boost::filesystem::path& megaFile : pSourceFile->get_resolution() )
+            {
+                iFind->second->m_initial.push_back( m_environment.megaFilePath_fromPath( megaFile ) );
+            }
+        }
+
+        for ( auto& [ filePath, pDependencies ] : megaFileDependencies )
+        {
+            for ( const mega::io::megaFilePath& megaFile : pDependencies->m_initial )
+            {
+                MegaFileDependencyMap::iterator iFind = megaFileDependencies.find( megaFile );
+                if ( pDependencies->m_set.count( iFind->second ) == 0 )
+                {
+                    pDependencies->m_transitive.push_back( iFind->second );
+                    pDependencies->m_set.insert( iFind->second );
+                }
+            }
+        }
+
+        for ( auto& [ filePath, pDependencies ] : cppFileDependencies )
+        {
+            for ( const mega::io::megaFilePath& megaFile : pDependencies->m_initial )
+            {
+                MegaFileDependencyMap::iterator iFind = megaFileDependencies.find( megaFile );
+                if ( pDependencies->m_set.count( iFind->second ) == 0 )
+                {
+                    pDependencies->m_transitive.push_back( iFind->second );
+                    pDependencies->m_set.insert( iFind->second );
+                }
+            }
+        }
+
+        std::map< mega::io::megaFilePath, TransitiveDependencies* > megaFileTransitiveMap;
+        std::map< mega::io::cppFilePath, TransitiveDependencies* >  cppFileTransitiveMap;
+
+        for ( auto& [ filePath, pDependencies ] : megaFileDependencies )
+        {
+            TransitiveDependencies* pTransitive
+                = database.construct< TransitiveDependencies >( TransitiveDependencies::Args{ {} } );
+            std::set< mega::io::megaFilePath > unique{ filePath };
+            solveTransitive( pDependencies, unique, pTransitive );
+            megaFileTransitiveMap.insert( std::make_pair( filePath, pTransitive ) );
+        }
+
+        for ( auto& [ filePath, pDependencies ] : cppFileDependencies )
+        {
+            TransitiveDependencies* pTransitive
+                = database.construct< TransitiveDependencies >( TransitiveDependencies::Args{ {} } );
+            std::set< mega::io::megaFilePath > unique;
+            solveTransitive( pDependencies, unique, pTransitive );
+            cppFileTransitiveMap.insert( std::make_pair( filePath, pTransitive ) );
+        }
+
+        database.construct< Analysis >( Analysis::Args{ dependencies, megaFileTransitiveMap, cppFileTransitiveMap } );
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
@@ -215,7 +352,7 @@ public:
                     const Old::Dependencies::Analysis* pOldAnalysis
                         = oldDatabase.one< Old::Dependencies::Analysis >( manifestFilePath );
                     VERIFY_RTE( pOldAnalysis );
-                    using OldDependenciesVector                = std::vector< Old::Dependencies::ObjectDependencies* >;
+                    using OldDependenciesVector = std::vector< Old::Dependencies::SourceFileDependencies* >;
                     const OldDependenciesVector dependencies   = pOldAnalysis->get_objects();
                     const PathSet               newSourceFiles = getNewSortedSourceFiles();
 
@@ -228,17 +365,17 @@ public:
                         }
                         bool operator()( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) const
                         {
-                            const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                            const Old::Dependencies::SourceFileDependencies* pDependencies = *i;
                             return pDependencies->get_source_file() < *j;
                         }
                         bool opposite( OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) const
                         {
-                            const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                            const Old::Dependencies::SourceFileDependencies* pDependencies = *i;
                             return *j < pDependencies->get_source_file();
                         }
                     } comparator( m_environment );
 
-                    using NewDependenciesVector = std::vector< New::Dependencies::ObjectDependencies* >;
+                    using NewDependenciesVector = std::vector< New::Dependencies::SourceFileDependencies* >;
                     NewDependenciesVector newDependencies;
                     {
                         generics::matchGetUpdates(
@@ -251,8 +388,8 @@ public:
                               &taskProgress ](
                                 OldDependenciesVector::const_iterator i, PathSet::const_iterator j ) -> bool
                             {
-                                const Old::Dependencies::ObjectDependencies* pDependencies = *i;
-                                const task::DeterminantHash                  interfaceHash = hashCodeGenerator( *j );
+                                const Old::Dependencies::SourceFileDependencies* pDependencies = *i;
+                                const task::DeterminantHash interfaceHash = hashCodeGenerator( *j );
                                 if ( interfaceHash == pDependencies->get_hash_code() )
                                 {
                                     // since the code is NOT modified - can re use the globs from previous result
@@ -266,9 +403,9 @@ public:
                                 }
                                 else
                                 {
-                                    //std::ostringstream os;
-                                    //os << "SUCCESS Dependencies recalculated : " << j->path().string();
-                                    //taskProgress.onProgress( os.str() );
+                                    // std::ostringstream os;
+                                    // os << "SUCCESS Dependencies recalculated : " << j->path().string();
+                                    // taskProgress.onProgress( os.str() );
                                     return true;
                                 }
                             },
@@ -291,9 +428,9 @@ public:
                                 newDependencies.push_back( CalculateDependencies( env )(
                                     newDatabase, megaFilePath, interfaceHash, newSourceFiles ) );
 
-                                //std::ostringstream os;
-                                //os << "SUCCESS Dependencies added: " << megaFilePath.path().string();
-                                //taskProgress.onProgress( os.str() );
+                                // std::ostringstream os;
+                                // os << "SUCCESS Dependencies added: " << megaFilePath.path().string();
+                                // taskProgress.onProgress( os.str() );
                             },
 
                             // const Updated& updatesNeeded
@@ -301,7 +438,7 @@ public:
                               &newSourceFiles ]( OldDependenciesVector::const_iterator i )
                             {
                                 // since the code is modified - must re analyse ALL dependencies from the ground up
-                                const Old::Dependencies::ObjectDependencies* pDependencies = *i;
+                                const Old::Dependencies::SourceFileDependencies* pDependencies = *i;
                                 const mega::io::megaFilePath megaFilePath  = pDependencies->get_source_file();
                                 const task::DeterminantHash  interfaceHash = hashCodeGenerator( megaFilePath );
                                 newDependencies.push_back( CalculateDependencies( env )(
@@ -309,8 +446,7 @@ public:
                             } );
                     }
 
-                    newDatabase.construct< New::Dependencies::Analysis >(
-                        New::Dependencies::Analysis::Args{ newDependencies } );
+                    calculateTransitiveDependencies( newDatabase, newDependencies );
                 }
 
                 const task::FileHash fileHashCode = newDatabase.save_DPGraph_to_temp();
@@ -334,7 +470,7 @@ public:
 
             Database database( m_environment, manifestFilePath );
             {
-                std::vector< ObjectDependencies* > dependencies;
+                std::vector< SourceFileDependencies* > dependencies;
                 {
                     const PathSet newSourceFiles = getNewSortedSourceFiles();
                     for ( const mega::io::megaFilePath& sourceFilePath : newSourceFiles )
@@ -344,7 +480,7 @@ public:
                             database, sourceFilePath, interfaceHash, newSourceFiles ) );
                     }
                 }
-                database.construct< Analysis >( Analysis::Args{ dependencies } );
+                calculateTransitiveDependencies( database, dependencies );
             }
 
             const task::FileHash fileHashCode = database.save_DPGraph_to_temp();

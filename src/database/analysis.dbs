@@ -8,7 +8,7 @@ namespace Dependencies
         value< std::string > glob;
     }
 
-    object ObjectDependencies -> DependencyAnalysis::DPGraph
+    object SourceFileDependencies -> DependencyAnalysis::DPGraph
     {
         value< mega::io::megaFilePath > source_file;
         value< std::size_t > hash_code;
@@ -16,9 +16,17 @@ namespace Dependencies
         array< value< boost::filesystem::path > > resolution;
     }
 
+    object TransitiveDependencies -> DependencyAnalysis::DPGraph
+    {
+        array< value< mega::io::megaFilePath > > mega_source_files;
+    }
+
     object Analysis -> DependencyAnalysis::DPGraph
     {
-        array< ref< ObjectDependencies > > objects;
+        array< ref< SourceFileDependencies > > objects;
+
+        map< value< mega::io::megaFilePath >, ref< TransitiveDependencies > > mega_dependencies;
+        map< value< mega::io::cppFilePath >, ref< TransitiveDependencies > > cpp_dependencies;
     }
 }
 

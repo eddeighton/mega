@@ -56,6 +56,7 @@ stage DependencyAnalysis
 
     file DPGraph;
 
+    global accessor array< ref< Components::Component > >;
     global accessor ref< Dependencies::Analysis >;
     persource accessor ref< Interface::Root >;
 }
@@ -111,8 +112,12 @@ stage InterfaceAnalysisStage
     file Clang;
 
     global accessor array< ref< Components::Component > >;
+    global accessor ref< Dependencies::Analysis >;
     global accessor ref< Symbols::SymbolTable >;
+    
     persource accessor ref< Interface::Root >;
+    persource accessor array< ref< Parser::SystemInclude > >;
+    persource accessor array< ref< Parser::CPPInclude > >;
 }
 
 stage ConcreteStage
@@ -173,6 +178,7 @@ stage OperationsStage
 
     file Operations;
 
+    global accessor array< ref< Components::Component > >;
     global accessor ref< Symbols::SymbolTable >;
     global accessor ref< Derivation::Mapping >;
 }
@@ -184,7 +190,11 @@ stage FinalStage
 
     global accessor array< ref< Components::Component > >;
     global accessor ref< Symbols::SymbolTable >;
+    global accessor ref< Dependencies::Analysis >;
+    
     persource accessor ref< Interface::Root >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Operations::Invocations >;
+    persource accessor array< ref< Parser::SystemInclude > >;
+    persource accessor array< ref< Parser::CPPInclude > >;
 }

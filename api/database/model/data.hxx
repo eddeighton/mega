@@ -91,7 +91,8 @@ namespace Tree
 namespace DPGraph
 {
     struct Dependencies_Glob;
-    struct Dependencies_ObjectDependencies;
+    struct Dependencies_SourceFileDependencies;
+    struct Dependencies_TransitiveDependencies;
     struct Dependencies_Analysis;
 }
 namespace SymbolTable
@@ -1023,10 +1024,10 @@ namespace DPGraph
         virtual void store( mega::io::Storer& storer ) const;
         virtual void to_json( nlohmann::json& data ) const;
     };
-    struct Dependencies_ObjectDependencies : public mega::io::Object
+    struct Dependencies_SourceFileDependencies : public mega::io::Object
     {
-        Dependencies_ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Dependencies_ObjectDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& globs, const std::vector< boost::filesystem::path >& resolution);
+        Dependencies_SourceFileDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Dependencies_SourceFileDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& globs, const std::vector< boost::filesystem::path >& resolution);
         enum 
         {
             Object_Part_Type_ID = 114
@@ -1035,7 +1036,23 @@ namespace DPGraph
         std::size_t hash_code;
         std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > > globs;
         std::vector< boost::filesystem::path > resolution;
-        std::variant< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > > m_inheritance;
+        std::variant< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Dependencies_TransitiveDependencies : public mega::io::Object
+    {
+        Dependencies_TransitiveDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Dependencies_TransitiveDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< mega::io::megaFilePath >& mega_source_files);
+        enum 
+        {
+            Object_Part_Type_ID = 115
+        };
+        std::vector< mega::io::megaFilePath > mega_source_files;
+        std::variant< data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1045,12 +1062,14 @@ namespace DPGraph
     struct Dependencies_Analysis : public mega::io::Object
     {
         Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > >& objects);
+        Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& objects, const std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& mega_dependencies, const std::map< mega::io::cppFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& cpp_dependencies);
         enum 
         {
-            Object_Part_Type_ID = 115
+            Object_Part_Type_ID = 116
         };
-        std::vector< data::Ptr< data::DPGraph::Dependencies_ObjectDependencies > > objects;
+        std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > > objects;
+        std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > > mega_dependencies;
+        std::map< mega::io::cppFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > > cpp_dependencies;
         std::variant< data::Ptr< data::DPGraph::Dependencies_Analysis > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
@@ -1067,7 +1086,7 @@ namespace SymbolTable
         Symbols_Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& symbol, const std::int32_t& id, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& contexts, const std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 116
+            Object_Part_Type_ID = 117
         };
         std::string symbol;
         std::int32_t id;
@@ -1086,7 +1105,7 @@ namespace SymbolTable
         Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& context_symbols, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& dimension_symbols, const std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >& context_type_ids, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >& dimension_type_ids);
         enum 
         {
-            Object_Part_Type_ID = 117
+            Object_Part_Type_ID = 118
         };
         std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > > symbols;
         mega::io::megaFilePath source_file;
@@ -1108,7 +1127,7 @@ namespace SymbolTable
         Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const std::map< int32_t, data::Ptr< data::Tree::Interface_IContext > >& context_type_ids, const std::map< int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& dimension_type_ids, const std::map< int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbol_id_map);
         enum 
         {
-            Object_Part_Type_ID = 118
+            Object_Part_Type_ID = 119
         };
         std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > > symbol_sets;
         std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > > symbols;
@@ -1481,7 +1500,7 @@ namespace Model
         HyperGraph_ObjectGraph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code);
         enum 
         {
-            Object_Part_Type_ID = 119
+            Object_Part_Type_ID = 120
         };
         mega::io::megaFilePath source_file;
         std::size_t hash_code;
@@ -1498,7 +1517,7 @@ namespace Model
         HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Model::HyperGraph_ObjectGraph > >& objects);
         enum 
         {
-            Object_Part_Type_ID = 120
+            Object_Part_Type_ID = 121
         };
         std::vector< data::Ptr< data::Model::HyperGraph_ObjectGraph > > objects;
         std::variant< data::Ptr< data::Model::HyperGraph_Graph > > m_inheritance;
@@ -1517,7 +1536,7 @@ namespace Derivations
         Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >& inheritance);
         enum 
         {
-            Object_Part_Type_ID = 121
+            Object_Part_Type_ID = 122
         };
         mega::io::megaFilePath source_file;
         std::size_t hash_code;
@@ -1535,7 +1554,7 @@ namespace Derivations
         Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& mappings);
         enum 
         {
-            Object_Part_Type_ID = 122
+            Object_Part_Type_ID = 123
         };
         std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > > mappings;
         std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > > inheritance;
@@ -3700,7 +3719,12 @@ inline Ptr< DPGraph::Dependencies_Glob > convert( const Ptr< DPGraph::Dependenci
     return from;
 }
 template <>
-inline Ptr< DPGraph::Dependencies_ObjectDependencies > convert( const Ptr< DPGraph::Dependencies_ObjectDependencies >& from )
+inline Ptr< DPGraph::Dependencies_SourceFileDependencies > convert( const Ptr< DPGraph::Dependencies_SourceFileDependencies >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< DPGraph::Dependencies_TransitiveDependencies > convert( const Ptr< DPGraph::Dependencies_TransitiveDependencies >& from )
 {
     return from;
 }
@@ -4160,7 +4184,11 @@ inline Ptr< DPGraph::Dependencies_Glob > to_base( const Ptr< DPGraph::Dependenci
 {
     return from;
 }
-inline Ptr< DPGraph::Dependencies_ObjectDependencies > to_base( const Ptr< DPGraph::Dependencies_ObjectDependencies >& from )
+inline Ptr< DPGraph::Dependencies_SourceFileDependencies > to_base( const Ptr< DPGraph::Dependencies_SourceFileDependencies >& from )
+{
+    return from;
+}
+inline Ptr< DPGraph::Dependencies_TransitiveDependencies > to_base( const Ptr< DPGraph::Dependencies_TransitiveDependencies >& from )
 {
     return from;
 }

@@ -187,8 +187,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     }
     mega::io::Manifest manifest( environment, manifestFilePath );
 
-    TskDescVec                                  interfaceGenTasks;
-    std::map< mega::io::megaFilePath, TskDesc > includePCHTasks;
+    TskDescVec interfaceGenTasks;
 
     pipeline::Dependencies dependencies;
 
@@ -201,16 +200,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc parseAst           = encode( Task{ eTask_ParseAST, sourceFilePath } );
-            const TskDesc includes           = encode( Task{ eTask_Include, sourceFilePath } );
-            const TskDesc includePCH         = encode( Task{ eTask_IncludePCH, sourceFilePath } );
             const TskDesc objectInterfaceGen = encode( Task{ eTask_ObjectInterfaceGen, sourceFilePath } );
 
             dependencies.add( parseAst, TskDescVec{} );
-            dependencies.add( includes, TskDescVec{ parseAst } );
-            dependencies.add( includePCH, TskDescVec{ includes } );
             dependencies.add( objectInterfaceGen, TskDescVec{ parseAst } );
 
-            includePCHTasks.insert( { sourceFilePath, includePCH } );
             interfaceGenTasks.push_back( objectInterfaceGen );
         }
     }
@@ -236,13 +230,16 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc objectInterfaceGeneration = encode( Task{ eTask_ObjectInterfaceGeneration, sourceFilePath } );
-            const TskDesc objectInterfaceAnalysis   = encode( Task{ eTask_ObjectInterfaceAnalysis, sourceFilePath } );
+            const TskDesc includes                  = encode( Task{ eTask_Include, sourceFilePath } );
+            const TskDesc includePCH                = encode( Task{ eTask_IncludePCH, sourceFilePath } );
+            const TskDesc objectInterfaceGeneration = encode( Task{ eTask_InterfaceGeneration, sourceFilePath } );
+            const TskDesc objectInterfaceAnalysis   = encode( Task{ eTask_InterfaceAnalysis, sourceFilePath } );
             const TskDesc concreteTree              = encode( Task{ eTask_ConcreteTree, sourceFilePath } );
 
-            dependencies.add( objectInterfaceGeneration, symbolRolloutTasks );
-            dependencies.add(
-                objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration, includePCHTasks[ sourceFilePath ] } );
+            dependencies.add( includes, symbolRolloutTasks );
+            dependencies.add( includePCH, TskDescVec{ includes } );
+            dependencies.add( objectInterfaceGeneration, TskDescVec{ includePCH } );
+            dependencies.add( objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration } );
             dependencies.add( concreteTree, TskDescVec{ objectInterfaceAnalysis } );
 
             concreteTreeTasks.push_back( concreteTree );
@@ -255,81 +252,52 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     dependencies.add( hyperGraph, concreteTreeTasks );
     dependencies.add( derivation, TskDescVec{ hyperGraph } );
 
-    std::map< mega::io::megaFilePath, TskDesc > megaSourceTasks;
-    std::map< mega::io::cppFilePath, TskDesc >  cppSourceTasks;
-
+    TskDescVec binaryTasks;
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc generics      = encode( Task{ eTask_Generics, sourceFilePath } );
-            const TskDesc genericsPCH   = encode( Task{ eTask_GenericsPCH, sourceFilePath } );
             const TskDesc operations    = encode( Task{ eTask_Operations, sourceFilePath } );
-            const TskDesc operationsPCH = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
+            const TskDesc operationsObj = encode( Task{ eTask_OperationsObj, sourceFilePath } );
 
-            dependencies.add( generics, TskDescVec{ derivation } );
-            dependencies.add( genericsPCH, TskDescVec{ generics } );
-            dependencies.add( operations, TskDescVec{ genericsPCH } );
-            dependencies.add( operationsPCH, TskDescVec{ operations } );
+            dependencies.add( operations, TskDescVec{ derivation } );
+            dependencies.add( operationsObj, TskDescVec{ operations } );
 
-            megaSourceTasks.insert( { sourceFilePath, operationsPCH } );
+            binaryTasks.push_back( operationsObj );
         }
 
-        for ( const mega::io::cppFilePath& sourceFilePath : manifest.getCppSourceFiles() )
+        for ( ComponentListingView::Components::Component* pComponent : components )
         {
-            const TskDesc cpp = encode( Task{ eTask_CPP, sourceFilePath } );
-
-            dependencies.add( cpp, TskDescVec{ derivation } );
-
-            cppSourceTasks.insert( { sourceFilePath, cpp } );
-        }
-    }
-
-    TskDescVec binaryTasks;
-    for ( ComponentListingView::Components::Component* pComponent : components )
-    {
-        switch ( pComponent->get_type().get() )
-        {
-            case mega::ComponentType::eInterface:
+            switch ( pComponent->get_type().get() )
             {
-                const TskDesc implementation    = encode( Task{ eTask_Implementation, pComponent->get_name() } );
-                const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, pComponent->get_name() } );
-
-                TskDescVec dp;
-                for ( const mega::io::megaFilePath& sourceFile : pComponent->get_mega_source_files() )
+                case mega::ComponentType::eInterface:
+                    break;
+                case mega::ComponentType::eLibrary:
                 {
-                    auto iFind = megaSourceTasks.find( sourceFile );
-                    VERIFY_RTE( iFind != megaSourceTasks.end() );
-                    dp.push_back( iFind->second );
+                    const TskDesc includes   = encode( Task{ eTask_CPPInclude, pComponent->get_name() } );
+                    const TskDesc includePCH = encode( Task{ eTask_CPPIncludePCH, pComponent->get_name() } );
+                    const TskDesc objectInterfaceGeneration
+                        = encode( Task{ eTask_CPPInterfaceGeneration, pComponent->get_name() } );
+                    const TskDesc objectInterfaceAnalysis
+                        = encode( Task{ eTask_CPPInterfaceAnalysis, pComponent->get_name() } );
+
+                    dependencies.add( includes, TskDescVec{ derivation } );
+                    dependencies.add( includePCH, TskDescVec{ includes } );
+                    dependencies.add( objectInterfaceGeneration, TskDescVec{ includePCH } );
+                    dependencies.add( objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration } );
+
+                    for ( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
+                    {
+                        const TskDesc cppObj = encode( Task{ eTask_CPP, sourceFile } );
+
+                        dependencies.add( cppObj, TskDescVec{ objectInterfaceAnalysis } );
+                        binaryTasks.push_back( cppObj );
+                    }
                 }
-
-                dependencies.add( implementation, dp );
-                dependencies.add( implementationObj, TskDescVec{ implementation } );
-
-                binaryTasks.push_back( implementationObj );
-            }
-            break;
-            case mega::ComponentType::eLibrary:
-            {
-                const TskDesc implementation    = encode( Task{ eTask_Implementation, pComponent->get_name() } );
-                const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, pComponent->get_name() } );
-
-                TskDescVec dp;
-                for ( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
-                {
-                    auto iFind = cppSourceTasks.find( sourceFile );
-                    VERIFY_RTE( iFind != cppSourceTasks.end() );
-                    dp.push_back( iFind->second );
-                }
-
-                dependencies.add( implementation, dp );
-                dependencies.add( implementationObj, TskDescVec{ implementation } );
-
-                binaryTasks.push_back( implementationObj );
-            }
-            break;
-            default:
-                THROW_RTE( "Unknown component type" );
                 break;
+                default:
+                    THROW_RTE( "Unknown component type" );
+                    break;
+            }
         }
     }
 
@@ -367,7 +335,7 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
     try
     {
         pTask->run( progress );
-        if( !pTask->isCompleted() )
+        if ( !pTask->isCompleted() )
         {
             std::ostringstream os;
             os << "FAILED : " << pTask->getTaskName() << " Task did NOT complete";

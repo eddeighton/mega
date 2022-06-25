@@ -5,6 +5,7 @@
 
 #include "database/types/clang_compilation.hpp"
 
+#include "database/types/sources.hpp"
 #include "utilities/clang_format.hpp"
 
 #include "common/file.hpp"
@@ -184,7 +185,7 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath concreteFile = m_environment.ConcreteStage_Concrete( m_sourceFilePath );
-        const mega::io::GeneratedHPPSourceFilePath operationsFile = m_environment.Operations( m_sourceFilePath );
+        const mega::io::GeneratedCPPSourceFilePath operationsFile = m_environment.Operations( m_sourceFilePath );
         start( taskProgress, "Task_Operations", concreteFile.path(), operationsFile.path() );
 
         task::DeterminantHash determinant(
@@ -241,12 +242,12 @@ BaseTask::Ptr create_Task_Operations( const TaskArguments& taskArguments, const 
     return std::make_unique< Task_Operations >( taskArguments, sourceFilePath );
 }
 
-class Task_OperationsPCH : public BaseTask
+class Task_OperationsObj : public BaseTask
 {
     const mega::io::megaFilePath& m_sourceFilePath;
 
 public:
-    Task_OperationsPCH( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+    Task_OperationsObj( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
@@ -256,20 +257,19 @@ public:
     {
         const mega::io::CompilationFilePath compilationFile
             = m_environment.OperationsStage_Operations( m_sourceFilePath );
-        const mega::io::GeneratedHPPSourceFilePath operationsHeaderFile = m_environment.Operations( m_sourceFilePath );
-        const mega::io::PrecompiledHeaderFile      operationsPCH = m_environment.OperationsPCH( m_sourceFilePath );
-        start( taskProgress, "Task_OperationsPCH", operationsHeaderFile.path(), operationsPCH.path() );
+        const mega::io::GeneratedCPPSourceFilePath operationsCPPFile = m_environment.Operations( m_sourceFilePath );
+        const mega::io::ObjectFilePath             operationsObj = m_environment.OperationsObj( m_sourceFilePath );
+        start( taskProgress, "Task_OperationsObj", operationsCPPFile.path(), operationsObj.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( operationsHeaderFile ),
+            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( operationsCPPFile ),
               m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.GenericsPCH( m_sourceFilePath ) ) } );
+              m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ) } );
 
-        if ( m_environment.restore( operationsPCH, determinant )
+        if ( m_environment.restore( operationsObj, determinant )
              && m_environment.restore( compilationFile, determinant ) )
         {
-            m_environment.setBuildHashCode( operationsPCH );
+            m_environment.setBuildHashCode( operationsObj );
             m_environment.setBuildHashCode( compilationFile );
             cached( taskProgress );
             return;
@@ -281,7 +281,7 @@ public:
 
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
-        const std::string strCmd = mega::Compilation::make_operationsPCH_compilation(
+        const std::string strCmd = mega::Compilation::make_operationsObj_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath )();
 
         msg( taskProgress, strCmd );
@@ -296,13 +296,13 @@ public:
         }
         else
         {
-            if ( m_environment.exists( compilationFile ) && m_environment.exists( operationsPCH ) )
+            if ( m_environment.exists( compilationFile ) && m_environment.exists( operationsObj ) )
             {
                 m_environment.setBuildHashCode( compilationFile );
                 m_environment.stash( compilationFile, determinant );
 
-                m_environment.setBuildHashCode( operationsPCH );
-                m_environment.stash( operationsPCH, determinant );
+                m_environment.setBuildHashCode( operationsObj );
+                m_environment.stash( operationsObj, determinant );
 
                 succeeded( taskProgress );
             }
@@ -314,10 +314,10 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_OperationsPCH( const TaskArguments&          taskArguments,
+BaseTask::Ptr create_Task_OperationsObj( const TaskArguments&          taskArguments,
                                          const mega::io::megaFilePath& sourceFilePath )
 {
-    return std::make_unique< Task_OperationsPCH >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_OperationsObj >( taskArguments, sourceFilePath );
 }
 
 } // namespace compiler
