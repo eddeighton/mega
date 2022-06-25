@@ -1,29 +1,25 @@
 
 #include <iostream>
 
+extern void* get_function_magic();
+
 class Test
 {
 public:
+    template < typename T, typename... Args >
+    void invoke( T param, Args... args )
+    {
+        using FPtr            = void ( * )( T, Args... );
+        static FPtr pFunction = ( FPtr )get_function_magic();
 
-    template< typename T, typename... Args >
-    void invoke( T param, Args... args );
+        pFunction( param, args... );
+    }
 
-    //template< typename TypePath, typename Operation, typename... Args >
-    //void invoke( Args... args ) const;
+    void foobar();
 };
 
-
-
-template< typename T, typename... Args >
-void Test::invoke( T param, Args... args )
+void testFunction()
 {
-    std::cout << param << std::endl;
+    Test t;
+    t.foobar();
 }
-
-/*
-template void Test::invoke< int >( int param );
-template void Test::invoke< float >( float param );
-
-template void Test::invoke< int, bool >( int param, bool );
-template void Test::invoke< int, bool >( int, bool, bool );
-*/
