@@ -63,22 +63,6 @@ BuildEnvironment::Path BuildEnvironment::OperationsTemplate() const
     return result;
 }
 
-BuildEnvironment::Path BuildEnvironment::GenericsTemplate() const
-{
-    VERIFY_RTE( !m_directories.templatesDir.empty() );
-    Path result = m_directories.templatesDir / "generics.jinja";
-    VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
-    return result;
-}
-
-BuildEnvironment::Path BuildEnvironment::ImplTemplate() const
-{
-    VERIFY_RTE( !m_directories.templatesDir.empty() );
-    Path result = m_directories.templatesDir / "impl.jinja";
-    VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
-    return result;
-}
-
 GeneratedHPPSourceFilePath BuildEnvironment::Include( const megaFilePath& source ) const
 {
     std::ostringstream os;

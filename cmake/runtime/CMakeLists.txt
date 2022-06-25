@@ -14,6 +14,7 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/runtime/runtime.hpp
+    ${MEGA_API_DIR}/runtime/runtime_api.hpp
     ${MEGA_API_DIR}/runtime/component_manager.hpp
 )
 

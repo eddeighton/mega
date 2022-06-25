@@ -21,16 +21,92 @@
 #ifndef EG_OPERATION_TYPES
 #define EG_OPERATION_TYPES
 
-struct [[clang::eg_type( mega::id_Imp_NoParams    )]] __eg_ImpNoParams;   //id_Imp_NoParams (-2147483648)
-struct [[clang::eg_type( mega::id_Imp_Params      )]] __eg_ImpParams;     //id_Imp_Params   (-2147483647)
-struct [[clang::eg_type( mega::id_Start           )]] Start;              //id_Start        (-2147483646)
-struct [[clang::eg_type( mega::id_Stop            )]] Stop;               //id_Stop         (-2147483645)
-struct [[clang::eg_type( mega::id_Pause           )]] Pause;              //id_Pause        (-2147483644)
-struct [[clang::eg_type( mega::id_Resume          )]] Resume;             //id_Resume       (-2147483643)
-struct [[clang::eg_type( mega::id_Wait            )]] Wait;               //id_Wait         (-2147483642)
-struct [[clang::eg_type( mega::id_Get             )]] Get;                //id_Get          (-2147483641)
-struct [[clang::eg_type( mega::id_Done            )]] Done;               //id_Done         (-2147483640)
-struct [[clang::eg_type( mega::id_Range           )]] Range;              //id_Range        (-2147483639)
-struct [[clang::eg_type( mega::id_Raw             )]] Raw;                //id_Raw          (-2147483638)
+#include "common.hpp"
+
+struct [[clang::eg_type( mega::id_Imp_NoParams    )]] __eg_ImpNoParams
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Imp_NoParams
+    };
+};   //id_Imp_NoParams (-2147483648)
+struct [[clang::eg_type( mega::id_Imp_Params      )]] __eg_ImpParams
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Imp_Params
+    };
+};     //id_Imp_Params   (-2147483647)
+struct [[clang::eg_type( mega::id_Start           )]] Start
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Start
+    };
+};              //id_Start        (-2147483646)
+
+struct [[clang::eg_type( mega::id_Stop            )]] Stop
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Stop
+    };
+};               //id_Stop         (-2147483645)
+
+struct [[clang::eg_type( mega::id_Pause           )]] Pause
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Pause
+    };
+};              //id_Pause        (-2147483644)
+
+struct [[clang::eg_type( mega::id_Resume          )]] Resume
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Resume
+    };
+};             //id_Resume       (-2147483643)
+
+struct [[clang::eg_type( mega::id_Wait            )]] Wait
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Wait
+    };
+};               //id_Wait         (-2147483642)
+
+struct [[clang::eg_type( mega::id_Get             )]] Get
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Get
+    };
+};                //id_Get          (-2147483641)
+
+struct [[clang::eg_type( mega::id_Done            )]] Done
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Done
+    };
+};               //id_Done         (-2147483640)
+
+struct [[clang::eg_type( mega::id_Range           )]] Range
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Range
+    };
+};              //id_Range        (-2147483639)
+
+struct [[clang::eg_type( mega::id_Raw             )]] Raw
+{
+    enum : mega::TypeID
+    {
+        ID = mega::id_Raw
+    };
+};                //id_Raw          (-2147483638)
 
 #endif //EG_OPERATION_TYPES

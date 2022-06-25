@@ -53,8 +53,6 @@ public:
     Path ContextTemplate() const;
     Path InterfaceTemplate() const;
     Path OperationsTemplate() const;
-    Path GenericsTemplate() const;
-    Path ImplTemplate() const;
 
     GeneratedHPPSourceFilePath Include( const megaFilePath& source ) const;
     PrecompiledHeaderFile      IncludePCH( const megaFilePath& source ) const;

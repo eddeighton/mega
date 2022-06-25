@@ -1,14 +1,9 @@
 #ifndef RUNTIME_18_JUNE_2022
 #define RUNTIME_18_JUNE_2022
 
+#include "mega/common.hpp"
 
 #include "service/protocol/common/project.hpp"
-
-extern "C"
-{
-    void* resolveOperation( int typeID );
-    void* resolveInvocation( int typeID, int* typePath, int typePathSize, int OperationID );
-}
 
 namespace mega
 {

@@ -82,6 +82,7 @@ public:
                 // mega library includes
                 os << "#include \"mega/include.hpp\"\n";
                 os << "#include \"mega/default_traits.hpp\"\n";
+                os << "#include \"runtime/runtime_api.hpp\"\n";
 
                 {
                     std::set< mega::io::megaFilePath > uniqueFiles;
@@ -264,6 +265,7 @@ public:
                 // mega library includes
                 os << "#include \"mega/include.hpp\"\n";
                 os << "#include \"mega/default_traits.hpp\"\n";
+                os << "#include \"runtime/runtime_api.hpp\"\n";
 
                 {
                     std::set< mega::io::megaFilePath > uniqueFiles;

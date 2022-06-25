@@ -28,4 +28,8 @@ void initialiseRuntime( const mega::network::Project& project )
 
 void* resolveOperation( int typeID ) { return nullptr; }
 
-void* resolveInvocation( int typeID, int* typePath, int typePathSize, int OperationID ) { return nullptr; }
+void resolveInvocation( mega::TypeID typeID, const mega::TypeID* typePath, mega::TypeID typePathSize, mega::TypeID OperationID, void* ppFunction )
+{
+    
+
+}

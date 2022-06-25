@@ -41,12 +41,11 @@ set( JINJA_TEMPLATES
     ${MEGA_SRC_DIR}/compiler/templates/context.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/generics.jinja 
-	${MEGA_SRC_DIR}/compiler/templates/impl.jinja 
 	)
 
 set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/base_task.hpp  
+    ${MEGA_SRC_DIR}/compiler/interface.hpp  
     ${MEGA_SRC_DIR}/compiler/task_complete.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     ${MEGA_SRC_DIR}/compiler/task_cpp.cpp

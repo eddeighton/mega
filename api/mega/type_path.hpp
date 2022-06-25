@@ -23,6 +23,8 @@
 
 #include "common.hpp"
 
+#include <array>
+
 template< typename... Ts >
 struct [[clang::eg_type( mega::id_TypePath )]] __eg_type_path{};
 
@@ -57,18 +59,21 @@ namespace mega
     struct CanonicaliseTypePath_impl< __eg_type_path<Ts...>, __eg_type_path<> > 
     {
         using Type = __eg_type_path<Ts...>;
+        static constexpr const auto ID = std::array< mega::TypeID, std::size( Ts::ID... ) >{ Ts::ID... };
     };
 
     template< typename T >
     struct CanonicaliseTypePath
     {
         using Type = __eg_type_path< T >;
+        static constexpr const auto ID = std::array< mega::TypeID, 1U >{ T::ID };
     };
 
     template< typename... Ts >
     struct CanonicaliseTypePath< __eg_type_path< Ts... > >
     {
         using Type = typename CanonicaliseTypePath_impl< __eg_type_path<>, __eg_type_path< Ts... > >::Type;
+        static constexpr const auto ID = std::array< mega::TypeID, std::size( Ts::ID... ) >{ Ts::ID... };
     };
 
 }
