@@ -37,14 +37,16 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
         using ResultType = typename mega::result_type< {{ name }}, TypePath, Operation >::Type;
         using FPtr = ResultType(*)( mega::reference, Args... );
         static FPtr pRuntimeFunction = nullptr;
+        static void* pFuntimeVoidStart = nullptr;
         
-        if( !pRuntimeFunction )
+        if( !pFuntimeVoidStart )
         {
             resolveInvocation( ID, 
                 mega::CanonicaliseTypePath< TypePath >::ID.data(), 
                 mega::CanonicaliseTypePath< TypePath >::ID.size(), 
                 Operation::ID, 
-                (void*)&pRuntimeFunction );
+                &pFuntimeVoidStart );
+            pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
         }
 
         return pRuntimeFunction( data, args... );
