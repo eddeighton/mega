@@ -1,8 +1,11 @@
 
+/*
+#include "vulkan/compiler/json_converter.hpp"
+#include "vulkan/compiler/generator.hpp"
+#include "vulkan/compiler/grammar.hpp"
+*/
 
-#include "database/compiler/json_converter.hpp"
-#include "database/compiler/generator.hpp"
-#include "database/compiler/grammar.hpp"
+#include "vulkan/xml/compiler/parser.hpp"
 
 #include "common/file.hpp"
 #include "common/hash.hpp"
@@ -42,36 +45,36 @@ int main( int argc, const char* argv[] )
         bool bGenerateJSON = false;
         bool bExecuteTemplates = false;
 
-        std::vector< std::string > sourceFiles;
-        std::string                outputAPIDir, outputSrcDir, dataDir, injaDir;
+        std::string                outputAPIDir, outputSrcDir, dataDir, injaDir, vulkanXML;
 
         po::options_description commandOptions( " Commands" );
         {
             commandOptions.add_options()
                 // clang-format off
-            ( "help",   po::bool_switch( &bHelp ), "Print command line help info." )
-            ( "wait",   po::bool_switch( &bGeneralWait ), "Wait at startup for attaching a debugger" )
+            ( "help",       po::bool_switch( &bHelp ), "Print command line help info." )
+            ( "wait",       po::bool_switch( &bGeneralWait ), "Wait at startup for attaching a debugger" )
 
-            ( "api", po::value< std::string >( &outputAPIDir ), "Output folder to generate API" )
-            ( "src", po::value< std::string >( &outputSrcDir ), "Output folder to generate source" )
+            ( "api",        po::value< std::string >( &outputAPIDir ), "Output folder to generate API" )
+            ( "src",        po::value< std::string >( &outputSrcDir ), "Output folder to generate source" )
 
-            ( "data_dir", po::value< std::string >( &dataDir ), "Directory for inja templates and data sub directories" )
-            ( "inja_dir", po::value< std::string >( &injaDir ), "Directory for inja templates and data sub directories" )
+            ( "data_dir",   po::value< std::string >( &dataDir ), "Directory for inja templates and data sub directories" )
+            ( "inja_dir",   po::value< std::string >( &injaDir ), "Directory for inja templates and data sub directories" )
 
-            ( "json",   po::bool_switch( &bGenerateJSON ), "Generate JSON data from input schema." )
+            ( "json",       po::bool_switch( &bGenerateJSON ), "Generate JSON data from input schema." )
             ( "template",   po::bool_switch( &bExecuteTemplates ), "Execute output templates on JSON data." )
 
-            ( "input",  po::value< std::vector< std::string > >( &sourceFiles ), "Input source file" )
+            ( "vkxml",      po::value< std::string >( &vulkanXML ),     "Input vulkan xml registry file path" )
+
             ;
             // clang-format on
         }
 
-        po::positional_options_description p;
-        p.add( "input", -1 );
+        //po::positional_options_description p;
+        //p.add( "input", -1 );
 
         po::variables_map vm;
         po::store(
-            po::command_line_parser( argc, argv ).options( commandOptions ).positional( p ).run(),
+            po::command_line_parser( argc, argv ).options( commandOptions )/*.positional( p )*/.run(),
             vm );
         po::notify( vm );
 
@@ -92,13 +95,12 @@ int main( int argc, const char* argv[] )
 
             if ( bGenerateJSON )
             {
-                PathVector inputSourceFiles;
-                for ( const std::string& strFile : sourceFiles )
-                {
-                    inputSourceFiles.push_back( inputStringToPath( strFile ) );
-                }
+                const boost::filesystem::path vulkanXMLFilePath = inputStringToPath( vulkanXML );
+                
+                //std::cout << "Vulkan schema file path: " << vulkanSchemaFilePath.string() << std::endl;
+                //std::cout << "Vulkan XML file path: " << vulkanXMLFilePath.string() << std::endl;
 
-                db::schema::Schema schema;
+                /*db::schema::Schema schema;
                 for ( const Path& sourceFilePath : inputSourceFiles )
                 {
                     std::string strFileContents;
@@ -144,15 +146,15 @@ int main( int argc, const char* argv[] )
                 db::model::Schema::Ptr pSchema = db::model::from_ast( schema );
 
                 // write schema to json data
-                db::jsonconv::toJSON( dataFolderPath, pSchema );
+                db::jsonconv::toJSON( dataFolderPath, pSchema );*/
             }
 
-            if ( bExecuteTemplates )
+            /*if ( bExecuteTemplates )
             {
                 const db::gen::Environment env{
                     outputAPIFolderPath, outputSrcFolderPath, dataFolderPath, injaFolderPath };
                 db::gen::generate( env );
-            }
+            }*/
         }
     }
     catch ( boost::program_options::error& e )
