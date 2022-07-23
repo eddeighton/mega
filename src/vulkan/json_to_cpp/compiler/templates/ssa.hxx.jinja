@@ -1,0 +1,12 @@
+
+// C++ SSA Header
+
+{% for feature in features %}
+// Feature: {{feature.name}}
+{% for struct in feature.structs %}
+// Struct: {{struct.name}}
+{% endfor %}
+{% for command in feature.commands %}
+// Command: {{command.name}}
+{% endfor %}
+{% endfor %}
