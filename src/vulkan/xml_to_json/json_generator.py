@@ -381,6 +381,24 @@ class SSAJSONGenerator(OutputGenerator):
         If alias is not None, then this struct aliases another; just
         generate a typedef of that alias."""
 
+        for i, (key, attr) in enumerate(typeinfo.elem.attrib.items()):
+            if key == "category":
+                pass
+            elif key == "name":
+                pass
+            elif key == "alias":
+                pass
+            elif key == "allowduplicate":
+                pass
+            elif key == "structextends":
+                pass
+            elif key == "returnedonly":
+                pass
+            elif key == "comment":
+                pass
+            else:
+                raise Exception("Unknown struct attribute: " + key)
+
         members = {}
 
         for member in typeinfo.elem.findall(".//member"):
@@ -425,7 +443,7 @@ class SSAJSONGenerator(OutputGenerator):
                 elif key == "objecttype":
                     pass
                 else:
-                    raise Exception("Unknown attrib: " + key)
+                    raise Exception("Unknown struct member attrib: " + key)
 
             for elem in member:
                 if elem.tag == "type":
@@ -522,21 +540,38 @@ class SSAJSONGenerator(OutputGenerator):
         proto = cmdinfo.elem.find("proto")
         params = cmdinfo.elem.findall("param")
 
-        pdecl = ""  # self.genOpts.apicall
-        # tdecl = "typedef "
-        pdecl += noneStr(proto.text)
-        # tdecl += noneStr(proto.text)
-        for elem in proto:
-            text = noneStr(elem.text)
-            tail = noneStr(elem.tail)
-            # if elem.tag == "name":
-            #    pdecl += self.makeProtoName(text, tail)
-            #    #tdecl += self.makeTypedefName(text, tail)
-            # else:
-            pdecl += text + tail
-            # tdecl += text + tail
+        command_name = ""
+        command_return = ""
 
-        parameters = {}
+        for i, (key, attr) in enumerate(cmdinfo.elem.attrib.items()):
+            if key == "queues":
+                pass
+            elif key == "renderpass":
+                pass
+            elif key == "cmdbufferlevel":
+                pass
+            elif key == "successcodes":
+                pass
+            elif key == "errorcodes":
+                pass
+            elif key == "name":
+                pass
+            elif key == "alias":
+                pass
+            elif key == "comment":
+                pass
+            else:
+                raise Exception("Unknown command attribute: " + key)
+
+        for elem in proto:
+            if elem.tag == "name":
+                command_name = elem.text
+            elif elem.tag == "type":
+                command_return = elem.text
+            else:
+                raise Excetion( "Unknown command proto element: " + elem.tag )
+
+        command_parameters = {}
         for param in params:
             param_type = ""
             param_name = ""
@@ -569,7 +604,7 @@ class SSAJSONGenerator(OutputGenerator):
                 elif key == "validstructs":
                     pass
                 else:
-                    raise Exception("Unknown attrib: " + key)
+                    raise Exception("Unknown command param attrib: " + key)
 
             for elem in param:
                 if elem.tag == "type":
@@ -585,7 +620,7 @@ class SSAJSONGenerator(OutputGenerator):
                 elif elem.tag == "name":
                     param_name = elem.text
 
-            parameters[param_name] = {
+            command_parameters[param_name] = {
                 "type": param_type,
                 "name": param_name,
                 "const": param_const,
@@ -593,7 +628,13 @@ class SSAJSONGenerator(OutputGenerator):
                 "opt": param_optional,
             }
 
-        self.commands.append({"name": pdecl, "parameters": parameters})
+        self.commands.append(
+            {
+                "name": command_name,
+                "return": command_return,
+                "parameters": command_parameters,
+            }
+        )
 
     def misracstyle(self):
         return self.genOpts.misracstyle
