@@ -141,77 +141,24 @@ class SSAJSONGenerator(OutputGenerator):
     commands = []
     structs = []
 
-    # This is an ordered list of sections in the header file.
-    # TYPE_SECTIONS = [
-    #    "include",
-    #    "define",
-    #    "basetype",
-    #    "handle",
-    #    "enum",
-    #    "group",
-    #    "bitmask",
-    #    "funcpointer",
-    #    "struct",
-    # ]
-    # ALL_SECTIONS = TYPE_SECTIONS + ["commandPointer", "command"]
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Internal state - accumulators for different inner block text
-        # self.sections = {section: [] for section in self.ALL_SECTIONS}
-        # self.feature_not_empty = False
         self.may_alias = None
         self.json_data["features"] = []
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
-        ## C-specific
-        ##
-        ## Multiple inclusion protection & C++ wrappers.
-        # if genOpts.protectFile and self.genOpts.filename:
-        #    headerSym = re.sub(r'\.h', '_h_',
-        #                       os.path.basename(self.genOpts.filename)).upper()
-        #    write('#ifndef', headerSym, file=self.outFile)
-        #    write('#define', headerSym, '1', file=self.outFile)
-        #    self.newline()
-
-        ## User-supplied prefix text, if any (list of strings)
-        # if genOpts.prefixText:
-        #    for s in genOpts.prefixText:
-        #        write(s, file=self.outFile)
-
-        ## C++ extern wrapper - after prefix lines so they can add includes.
-        # self.newline()
-        # write('#ifdef __cplusplus', file=self.outFile)
-        # write('extern "C" {', file=self.outFile)
-        # write('#endif', file=self.outFile)
-        # self.newline()
 
     def endFile(self):
         # C-specific
         # Finish C++ wrapper and multiple inclusion protection
         self.newline()
-        # write('#ifdef __cplusplus', file=self.outFile)
-        # write('}', file=self.outFile)
-        # write('#endif', file=self.outFile)
-        # if self.genOpts.protectFile and self.genOpts.filename:
-        #    self.newline()
-        #    write('#endif', file=self.outFile)
-        # Finish processing in superclass
-
         write(json.dumps(self.json_data), file=self.outFile)
-
         OutputGenerator.endFile(self)
 
     def beginFeature(self, interface, emit):
         # Start processing in superclass
         OutputGenerator.beginFeature(self, interface, emit)
-        # C-specific
-        # Accumulate includes, defines, types, enums, function pointer typedefs,
-        # end function prototypes separately for this feature. They are only
-        # printed in endFeature().
-        # self.sections = {section: [] for section in self.ALL_SECTIONS}
-        # self.feature_not_empty = False
         self.commands = []
         self.structs = []
 
@@ -225,128 +172,24 @@ class SSAJSONGenerator(OutputGenerator):
                 "structs": self.structs,
             }
         )
-
-        # if self.emit:
-        #    if self.feature_not_empty:
-        #        for section in self.ALL_SECTIONS:
-        #            contents = self.sections[section]
-        #            if contents:
-        #                self.json_data[ self.featureName ][ section ] = contents
-
-        # C-specific
-        # if self.emit:
-        #    if self.feature_not_empty:
-        #        if self.genOpts.conventions.writeFeature(self.featureExtraProtect, self.genOpts.filename):
-        #            self.newline()
-        #            if self.genOpts.protectFeature:
-        #                write('#ifndef', self.featureName, file=self.outFile)
-        #            # If type declarations are needed by other features based on
-        #            # this one, it may be necessary to suppress the ExtraProtect,
-        #            # or move it below the 'for section...' loop.
-        #            if self.featureExtraProtect is not None:
-        #                write('#ifdef', self.featureExtraProtect, file=self.outFile)
-        #            self.newline()
-        #            write('#define', self.featureName, '1', file=self.outFile)
-        #            for section in self.TYPE_SECTIONS:
-        #                contents = self.sections[section]
-        #                if contents:
-        #                    write('\n'.join(contents), file=self.outFile)
-        #            if self.genOpts.genFuncPointers and self.sections['commandPointer']:
-        #                write('\n'.join(self.sections['commandPointer']), file=self.outFile)
-        #                self.newline()
-        #            if self.sections['command']:
-        #                if self.genOpts.protectProto:
-        #                    write(self.genOpts.protectProto,
-        #                          self.genOpts.protectProtoStr, file=self.outFile)
-        #                write('\n'.join(self.sections['command']), end='', file=self.outFile)
-        #                if self.genOpts.protectProto:
-        #                    write('#endif', file=self.outFile)
-        #                else:
-        #                    self.newline()
-        #            if self.featureExtraProtect is not None:
-        #                write('#endif /*', self.featureExtraProtect, '*/', file=self.outFile)
-        #            if self.genOpts.protectFeature:
-        #                write('#endif /*', self.featureName, '*/', file=self.outFile)
-        # Finish processing in superclass
         OutputGenerator.endFeature(self)
-
-    # def appendSection(self, section, text):
-    #    "Append a definition to the specified section"
-    #    if section is None:
-    #        self.logMsg(
-    #            "error",
-    #            "Missing section in appendSection (probably a <type> element missing its 'category' attribute. Text:",
-    #            text,
-    #        )
-    #        exit(1)
-    #    self.sections[section].append(text)
-    #    self.feature_not_empty = True
 
     def genType(self, typeinfo, name, alias):
         "Generate type."
         OutputGenerator.genType(self, typeinfo, name, alias)
         typeElem = typeinfo.elem
-
-        # Vulkan:
-        # Determine the category of the type, and the type section to add
-        # its definition to.
-        # 'funcpointer' is added to the 'struct' section as a workaround for
-        # internal issue #877, since structures and function pointer types
-        # can have cross-dependencies.
         category = typeElem.get("category")
         if category == "funcpointer":
             section = "struct"
         else:
             section = category
-
         if category in ("struct", "union"):
             # If the type is a struct type, generate it using the
             # special-purpose generator.
             self.genStruct(typeinfo, name, alias)
-        # else:
-        #    # OpenXR: this section was not under 'else:' previously, just fell through
-        #    if alias:
-        #        # If the type is an alias, just emit a typedef declaration
-        #        body = "typedef " + alias + " " + name + ";\n"
-        #    else:
-        #        # Replace <apientry /> tags with an APIENTRY-style string
-        #        # (from self.genOpts). Copy other text through unchanged.
-        #        # If the resulting text is an empty string, do not emit it.
-        #        body = noneStr(typeElem.text)
-        #        for elem in typeElem:
-        #            if elem.tag == "apientry":
-        #                body += self.genOpts.apientry + noneStr(elem.tail)
-        #            else:
-        #                body += noneStr(elem.text) + noneStr(elem.tail)
-        #    if body:
-        #        # Add extra newline after multi-line entries.
-        #        if "\n" in body[0:-1]:
-        #            body += "\n"
-        #        self.appendSection(section, body)
 
     def genProtectString(self, protect_str):
-        """Generate protection string.
-
-        Protection strings are the strings defining the OS/Platform/Graphics
-        requirements for a given OpenXR command.  When generating the
-        language header files, we need to make sure the items specific to a
-        graphics API or OS platform are properly wrapped in #ifs."""
         pass
-        # protect_if_str = ""
-        # protect_end_str = ""
-        # if not protect_str:
-        #    return (protect_if_str, protect_end_str)
-        # if "," in protect_str:
-        #    protect_list = protect_str.split(",")
-        #    protect_defs = ("defined(%s)" % d for d in protect_list)
-        #    protect_def_str = " && ".join(protect_defs)
-        #    protect_if_str = "#if %s\n" % protect_def_str
-        #    protect_end_str = "#endif // %s\n" % protect_def_str
-        # else:
-        #    protect_if_str = "#ifdef %s\n" % protect_str
-        #    protect_end_str = "#endif // %s\n" % protect_str
-
-        # return (protect_if_str, protect_end_str)
 
     def typeMayAlias(self, typeName):
         if not self.may_alias:
@@ -369,17 +212,6 @@ class SSAJSONGenerator(OutputGenerator):
         return typeName in self.may_alias
 
     def genStruct(self, typeinfo, typeName, alias):
-        """Generate struct (e.g. C "struct" type).
-
-        This is a special case of the <type> tag where the contents are
-        interpreted as a set of <member> tags instead of freeform C
-        C type declarations. The <member> tags are just like <param>
-        tags - they are a declaration of a struct or union member.
-        Only simple member declarations are supported (no nested
-        structs etc.)
-
-        If alias is not None, then this struct aliases another; just
-        generate a typedef of that alias."""
 
         for i, (key, attr) in enumerate(typeinfo.elem.attrib.items()):
             if key == "category":
@@ -470,69 +302,11 @@ class SSAJSONGenerator(OutputGenerator):
 
         self.structs.append({"name": typeName, "members": members})
 
-        # OutputGenerator.genStruct(self, typeinfo, typeName, alias)
-        # typeElem = typeinfo.elem
-        # if alias:
-        #    body = "typedef " + alias + " " + typeName + ";\n"
-        # else:
-        #    body = ""
-        #    (protect_begin, protect_end) = self.genProtectString(
-        #        typeElem.get("protect")
-        #    )
-        #    if protect_begin:
-        #        body += protect_begin
-        #    body += "typedef " + typeElem.get("category")
-        #    # This is an OpenXR-specific alternative where aliasing refers
-        #    # to an inheritance hierarchy of types rather than C-level type
-        #    # aliases.
-        #    if self.genOpts.genAliasMacro and self.typeMayAlias(typeName):
-        #        body += " " + self.genOpts.aliasMacro
-        #    body += " " + typeName + " {\n"
-        #    targetLen = self.getMaxCParamTypeLength(typeinfo)
-        #    for member in typeElem.findall(".//member"):
-        #        body += self.makeCParamDecl(member, targetLen + 4)
-        #        body += ";\n"
-        #    body += "} " + typeName + ";\n"
-        #    if protect_end:
-        #        body += protect_end
-        # self.appendSection("struct", body)
-
     def genGroup(self, groupinfo, groupName, alias=None):
-        """Generate groups (e.g. C "enum" type).
-
-        These are concatenated together with other types.
-
-        If alias is not None, it is the name of another group type
-        which aliases this type; just generate that alias."""
         pass
-        # OutputGenerator.genGroup(self, groupinfo, groupName, alias)
-        # groupElem = groupinfo.elem
-
-        ## After either enumerated type or alias paths, add the declaration
-        ## to the appropriate section for the group being defined.
-        # if groupElem.get("type") == "bitmask":
-        #    section = "bitmask"
-        # else:
-        #    section = "group"
-
-        # if alias:
-        #    # If the group name is aliased, just emit a typedef declaration
-        #    # for the alias.
-        #    body = "typedef " + alias + " " + groupName + ";\n"
-        #    self.appendSection(section, body)
-        # else:
-        #    (section, body) = self.buildEnumCDecl(
-        #        self.genOpts.genEnumBeginEndRange, groupinfo, groupName
-        #    )
-        #    self.appendSection(section, "\n" + body)
 
     def genEnum(self, enuminfo, name, alias):
-        """Generate the C declaration for a constant (a single <enum> value)."""
         pass
-        # OutputGenerator.genEnum(self, enuminfo, name, alias)
-
-        # body = self.buildConstantCDecl(enuminfo, name, alias)
-        # self.appendSection("enum", body)
 
     def genCmd(self, cmdinfo, name, alias):
         "Command generation"
