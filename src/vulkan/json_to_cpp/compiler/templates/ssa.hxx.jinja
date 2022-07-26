@@ -1,12 +1,168 @@
 
 // C++ SSA Header
 
-{% for feature in features %}
-// Feature: {{feature.name}}
-{% for struct in feature.structs %}
-// Struct: {{struct.name}}
+
+#ifndef SSA_GEN_25_JULY_2022
+#define SSA_GEN_25_JULY_2022
+
+#include "ssa.hpp"
+
+#include <vulkan/vulkan.hpp>
+
+namespace ssa
+{
+
+template < typename T >
+struct structureChainTraits
+{
+    static_assert( false && typeid( T ).name(), "Invalid structure chain: " );
+};
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+// chain struct traits
+{% for chainTrait in chainTraits %}
+template <>
+struct structureChainTraits< Chain< {% for type in chainTrait.types %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} > >
+{
+    static constexpr uint32_t ID = {{ chainTrait.id }};
+};
 {% endfor %}
-{% for command in feature.commands %}
-// Command: {{command.name}}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+// commands
+{% for command in commands %}
+{% if command.param_count > 0 %}
+template
+<
+{% for param in command.params %}
+    template< typename T{{param.index}} > class W{{param.index}}{% if not loop.is_last %}, {%endif%}
+
 {% endfor %}
+>
+{% endif %}
+inline {{ command.type }}
+{{ command.name }}
+(
+{% for param in command.params %}
+    const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
+
 {% endfor %}
+)
+{
+    //static_assert(  std::is_same< W0< vk::FramebufferCreateFlags >, Null< vk::FramebufferCreateFlags > >::value ||
+    //                std::is_same< W0< vk::FramebufferCreateFlags >, Lazy< vk::FramebufferCreateFlags > >::value ||
+    //                std::is_same< W0< vk::FramebufferCreateFlags >, NonLazy< vk::FramebufferCreateFlags > >::value, "Invalid flags param" );
+{% if command.has_result %}
+    {{ command.type }} result;
+    return result;
+{% endif %}
+}
+{% endfor %}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+// non chain constructors
+{% for nonChainCtor in nonChainCtors %}
+{% if nonChainCtor.param_count > 0 %}
+template
+<
+{% for param in nonChainCtor.params %}
+    template< typename T{{param.index}} > class W{{param.index}}{% if not loop.is_last %}, {%endif%}
+
+{% endfor %}
+>
+{% endif %}
+inline Lazy< {{ nonChainCtor.type }} >
+{{ nonChainCtor.name }}
+(
+{% for param in nonChainCtor.params %}
+    const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
+
+{% endfor %}
+)
+{
+    //static_assert(  std::is_same< W0< vk::FramebufferCreateFlags >, Null< vk::FramebufferCreateFlags > >::value ||
+    //                std::is_same< W0< vk::FramebufferCreateFlags >, Lazy< vk::FramebufferCreateFlags > >::value ||
+    //                std::is_same< W0< vk::FramebufferCreateFlags >, NonLazy< vk::FramebufferCreateFlags > >::value, "Invalid flags param" );
+    Lazy< {{ nonChainCtor.type }} > result;
+    return result;
+}
+{% endfor %}
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+// chaining structure constructors
+{% for chainCtor in chainCtors %}
+
+// no chain tail overload
+{% if chainCtor.param_count > 1 %}
+template
+<
+{% for param in chainCtor.params %}
+{% if not param.chain %}
+    template< typename T{{param.index}} > class W{{param.index}}{% if not loop.is_last %}, {%endif%}
+
+{% endif %}
+{% endfor %}
+>
+{% endif %}
+inline Lazy< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >
+{{ chainCtor.name }}
+(
+{% for param in chainCtor.params %}
+{% if not param.chain %}
+    const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
+
+{% endif %}
+{% endfor %}
+)
+{
+    //static_assert(  std::is_same< W0< vk::FramebufferCreateFlags >, Null< vk::FramebufferCreateFlags > >::value ||
+    //                std::is_same< W0< vk::FramebufferCreateFlags >, Lazy< vk::FramebufferCreateFlags > >::value ||
+    //                std::is_same< W0< vk::FramebufferCreateFlags >, NonLazy< vk::FramebufferCreateFlags > >::value, "Invalid flags param" );
+    
+    using TChain                 = typename make_chain< Chain< {{ chainCtor.type }} > >::Type;
+    static constexpr uint32_t id = structureChainTraits< TChain >::ID;
+
+    Lazy< TChain > result;
+    return result;
+}
+
+// chain tail overload
+template
+<
+{% for param in chainCtor.params %}
+    template< typename T{{param.index}} > class W{{param.index}}{% if param.chain %}, typename TChainTail{% endif%}{% if not loop.is_last %}, {%endif%}
+
+{% endfor %}
+>
+inline Lazy< typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::Type >
+{{ chainCtor.name }}
+(
+{% for param in chainCtor.params %}
+    const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
+
+{% endfor %}
+)
+{
+    //static_assert(  std::is_same< Wrapper0< vk::FramebufferCreateFlags >, Null< vk::FramebufferCreateFlags > >::value ||
+    //                std::is_same< Wrapper0< vk::FramebufferCreateFlags >, Lazy< vk::FramebufferCreateFlags > >::value ||
+    //                std::is_same< Wrapper0< vk::FramebufferCreateFlags >, NonLazy< vk::FramebufferCreateFlags > >::value, "Invalid flags param" );
+
+    using TChain                 = typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::Type;
+    static constexpr uint32_t id = structureChainTraits< TChain >::ID;
+
+    Lazy< TChain > result;
+    return result;
+}
+
+{% endfor %}
+
+
+}
+
+#endif //SSA_GEN_25_JULY_2022
+
+

@@ -137,14 +137,47 @@ class SSAJSONGeneratorOptions(GeneratorOptions):
 class SSAJSONGenerator(OutputGenerator):
     """Generates C-language API interfaces."""
 
-    json_data = {}
+    features = {}
     commands = []
     structs = []
+    structExtends = {}
+
+    def calculateTypeName(self, isConst, refType, typeName):
+        name = ""
+        if isConst:
+            name = "const "
+
+        keywords = []
+        # keywords = ["Device", "Instance"]
+
+        if typeName.startswith("Vk"):
+            typeName = typeName.removeprefix("Vk")
+            #for keyword in keywords:
+            #    if typeName.startswith(keyword):
+            #        typeName = typeName.removeprefix(keyword)
+            name = "vk::" + typeName
+
+        else:
+            name += typeName
+
+        if refType == 1:
+            name += "*"
+        elif refType == 2:
+            name += "**"
+        return name
+
+    def enumStructExtensionChains(self, structName):
+        result = [[self.calculateTypeName(False, 0, structName)]]
+        if structName in self.structExtends:
+            for next in self.structExtends[structName]:
+                for tail in self.enumStructExtensionChains(next):
+                    result.append([self.calculateTypeName(False, 0, structName)] + tail)
+        return result
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.may_alias = None
-        self.json_data["features"] = []
+        self.features["features"] = []
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
@@ -153,7 +186,141 @@ class SSAJSONGenerator(OutputGenerator):
         # C-specific
         # Finish C++ wrapper and multiple inclusion protection
         self.newline()
-        write(json.dumps(self.json_data), file=self.outFile)
+
+        json_data = {}
+        json_data["chainTraits"] = []
+
+        typeID = 1
+        for i, (struct, attr) in enumerate(self.structExtends.items()):
+            for chain in self.enumStructExtensionChains(struct):
+                json_data["chainTraits"].append({"id": typeID, "types": chain})
+                typeID = typeID + 1
+
+        json_data["chainCtors"] = []
+        json_data["nonChainCtors"] = []
+        json_data["commands"] = []
+
+        basic = self.features["VK_VERSION_1_0"]
+        for struct in basic["structs"]:
+
+            if struct["has_pnext"]:
+
+                params = []
+                param_index = 0
+                for member in struct["members"]:
+
+                    if member["is_len"]:
+                        continue
+                    if member["name"] == "sType":
+                        continue
+
+                    isChainType = False
+                    memberType = ""
+                    if member["name"] == "pNext":
+                        isChainType = True
+                        memberType = "TChainTail"
+                    else:
+                        memberType = self.calculateTypeName(
+                            member["const"], member["ref"], member["type"]
+                        )
+
+                    params.append(
+                        {
+                            "chain": isChainType,
+                            "index": param_index,
+                            "type": memberType,
+                            "name": member["name"],
+                        }
+                    )
+                    param_index = param_index + 1
+
+                json_data["chainCtors"].append(
+                    {
+                        "type": self.calculateTypeName(False, 0, struct["name"]),
+                        "name": "make_" + struct["name"],
+                        "params": params,
+                        "param_count" : len( params )
+                    }
+                )
+            else:
+
+                params = []
+                param_index = 0
+                for member in struct["members"]:
+
+                    if member["is_len"]:
+                        continue
+                    if member["name"] == "sType":
+                        continue
+
+                    isChainType = False
+                    memberType = self.calculateTypeName(
+                        member["const"], member["ref"], member["type"]
+                    )
+
+                    params.append(
+                        {
+                            "index": param_index,
+                            "type": memberType,
+                            "name": member["name"],
+                        }
+                    )
+                    param_index = param_index + 1
+
+                json_data["nonChainCtors"].append(
+                    {
+                        "type": self.calculateTypeName(False, 0, struct["name"]),
+                        "name": "make_" + struct["name"],
+                        "params": params,
+                        "param_count" : len( params )
+                    }
+                )
+
+        for command in basic["commands"]:
+            params = []
+            param_index = 0
+            for parameter in command["parameters"]:
+
+                if parameter["is_len"]:
+                    continue
+
+                isChainType = False
+
+                parameterType = self.calculateTypeName(
+                    parameter["const"], parameter["ref"], parameter["type"]
+                )
+
+                params.append(
+                    {
+                        "index": param_index,
+                        "type": parameterType,
+                        "name": parameter["name"],
+                    }
+                )
+                param_index = param_index + 1
+
+            commandResult = "void"
+            hasResult = False
+
+            if command["return"] != "void":
+                commandResult = (
+                    "Lazy< "
+                    + self.calculateTypeName(False, 0, command["return"])
+                    + " >"
+                )
+                hasResult = True
+
+            json_data["commands"].append(
+                {
+                    "type": commandResult,
+                    "has_result": hasResult,
+                    "name": command["name"],
+                    "params": params,
+                    "param_count" : len( params )
+                }
+            )
+
+        write(json.dumps(json_data), file=self.outFile)
         OutputGenerator.endFile(self)
 
     def beginFeature(self, interface, emit):
@@ -164,14 +331,12 @@ class SSAJSONGenerator(OutputGenerator):
 
     def endFeature(self):
         "Actually write the interface to the output file."
-
-        self.json_data["features"].append(
-            {
-                "name": self.featureName,
-                "commands": self.commands,
-                "structs": self.structs,
-            }
-        )
+        
+        self.features[self.featureName] = {
+            "name": self.featureName,
+            "commands": self.commands,
+            "structs": self.structs,
+        }
         OutputGenerator.endFeature(self)
 
     def genType(self, typeinfo, name, alias):
@@ -212,6 +377,10 @@ class SSAJSONGenerator(OutputGenerator):
         return typeName in self.may_alias
 
     def genStruct(self, typeinfo, typeName, alias):
+        
+        ignoredStructs = [ "VkBaseInStructure", "VkPipelineRobustnessCreateInfoEXT" ]
+        if typeName in ignoredStructs:
+            return
 
         for i, (key, attr) in enumerate(typeinfo.elem.attrib.items()):
             if key == "category":
@@ -223,7 +392,12 @@ class SSAJSONGenerator(OutputGenerator):
             elif key == "allowduplicate":
                 pass
             elif key == "structextends":
-                pass
+                # attr is comma delimited list
+                #if "VK_VERSION_1_0" == self.featureName:
+                for base in attr.split(","):
+                    if base not in self.structExtends:
+                        self.structExtends[base] = []
+                    self.structExtends[base].append(typeName)
             elif key == "returnedonly":
                 pass
             elif key == "comment":
@@ -231,7 +405,9 @@ class SSAJSONGenerator(OutputGenerator):
             else:
                 raise Exception("Unknown struct attribute: " + key)
 
-        members = {}
+        members = []
+        has_pnext = False
+        length_names = []
 
         for member in typeinfo.elem.findall(".//member"):
             param_type = ""
@@ -239,6 +415,7 @@ class SSAJSONGenerator(OutputGenerator):
             param_const = False
             param_ref = 0
             param_optional = 0
+            param_len = []
 
             if member.text == "*":
                 param_ref = True
@@ -261,7 +438,9 @@ class SSAJSONGenerator(OutputGenerator):
                 elif key == "noautovalidity":
                     pass
                 elif key == "len":
-                    pass
+                    param_len = attr.split(",")
+                    for length_name in param_len:
+                        length_names.append(length_name)
                 elif key == "altlen":
                     pass
                 elif key == "externsync":
@@ -284,23 +463,35 @@ class SSAJSONGenerator(OutputGenerator):
                         if elem.tail.strip() == "*":
                             param_ref = 1
                         elif elem.tail.strip() == "* const*":
-                            param_ref = 1
+                            param_ref = 2
                         elif elem.tail.strip() == "* const *":
-                            param_ref = 1
+                            param_ref = 2
                         elif elem.tail.strip() != "":
                             raise Exception("Unknown member element tail: " + elem.tail)
                 elif elem.tag == "name":
                     param_name = elem.text
+                    if param_name == "pNext":
+                        has_pnext = True
 
-            members[param_name] = {
-                "type": param_type,
-                "name": param_name,
-                "const": param_const,
-                "ref": param_ref,
-                "opt": param_optional,
-            }
+            members.append(
+                {
+                    "type": param_type,
+                    "name": param_name,
+                    "const": param_const,
+                    "ref": param_ref,
+                    "opt": param_optional,
+                    "len": param_len,
+                    "is_len": False,
+                }
+            )
 
-        self.structs.append({"name": typeName, "members": members})
+        for member in members:
+            if member["name"] in length_names:
+                member["is_len"] = True
+
+        self.structs.append(
+            {"name": typeName, "members": members, "has_pnext": has_pnext}
+        )
 
     def genGroup(self, groupinfo, groupName, alias=None):
         pass
@@ -343,15 +534,17 @@ class SSAJSONGenerator(OutputGenerator):
             elif elem.tag == "type":
                 command_return = elem.text
             else:
-                raise Excetion( "Unknown command proto element: " + elem.tag )
+                raise Exception("Unknown command proto element: " + elem.tag)
 
-        command_parameters = {}
+        command_parameters = []
+        length_names = []
         for param in params:
             param_type = ""
             param_name = ""
             param_const = False
             param_ref = 0
             param_optional = 0
+            param_len = []
 
             if param.text == "*":
                 param_ref = True
@@ -370,6 +563,9 @@ class SSAJSONGenerator(OutputGenerator):
                 elif key == "externsync":
                     pass
                 elif key == "len":
+                    param_len = attr.split(",")
+                    for length_name in param_len:
+                        length_names.append(length_name)
                     pass
                 elif key == "noautovalidity":
                     pass
@@ -394,13 +590,21 @@ class SSAJSONGenerator(OutputGenerator):
                 elif elem.tag == "name":
                     param_name = elem.text
 
-            command_parameters[param_name] = {
-                "type": param_type,
-                "name": param_name,
-                "const": param_const,
-                "ref": param_ref,
-                "opt": param_optional,
-            }
+            command_parameters.append(
+                {
+                    "type": param_type,
+                    "name": param_name,
+                    "const": param_const,
+                    "ref": param_ref,
+                    "opt": param_optional,
+                    "len": param_len,
+                    "is_len": False,
+                }
+            )
+
+        for parameter in command_parameters:
+            if parameter["name"] in length_names:
+                parameter["is_len"] = True
 
         self.commands.append(
             {
