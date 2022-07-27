@@ -14,8 +14,8 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/khronosgroup/vulkan_include.cmake )
 
 set( VULKAN_PYTHON_SCRIPTS ${VULKAN_DOC}/scripts )
-set( VULKAN_SCHEMA ${VULKAN_DOC}/xml/registry.rnc )
-set( VULKAN_XML ${VULKAN_DOC}/xml/vk.xml )
+#set( VULKAN_SCHEMA ${VULKAN_DOC}/xml/registry.rnc )
+set( VULKAN_XML ${VULKAN_REG}/vk.xml )
 #set( VULKAN_XML ${VULKAN_INSTALLATION}/share/vulkan/registry/vk.xml )
 
 # /workspace/root/thirdparty/khronosgroup/Vulkan-Docs/xml/registry.rnc

@@ -152,7 +152,7 @@ class SSAJSONGenerator(OutputGenerator):
 
         if typeName.startswith("Vk"):
             typeName = typeName.removeprefix("Vk")
-            #for keyword in keywords:
+            # for keyword in keywords:
             #    if typeName.startswith(keyword):
             #        typeName = typeName.removeprefix(keyword)
             name = "vk::" + typeName
@@ -187,8 +187,18 @@ class SSAJSONGenerator(OutputGenerator):
         # Finish C++ wrapper and multiple inclusion protection
         self.newline()
 
+        basic = self.features["VK_VERSION_1_0"]
+
         json_data = {}
         json_data["chainTraits"] = []
+
+        # ensure ALL chainable structs in in the mapping even if they
+        # have no actual extensions
+        for struct in basic["structs"]:
+            if struct["has_pnext"]:
+                structName = struct["name"]
+                if structName not in self.structExtends:
+                    self.structExtends[structName] = []
 
         typeID = 1
         for i, (struct, attr) in enumerate(self.structExtends.items()):
@@ -200,7 +210,6 @@ class SSAJSONGenerator(OutputGenerator):
         json_data["nonChainCtors"] = []
         json_data["commands"] = []
 
-        basic = self.features["VK_VERSION_1_0"]
         for struct in basic["structs"]:
 
             if struct["has_pnext"]:
@@ -230,6 +239,7 @@ class SSAJSONGenerator(OutputGenerator):
                             "index": param_index,
                             "type": memberType,
                             "name": member["name"],
+                            "optional": member["opt"] > 0,
                         }
                     )
                     param_index = param_index + 1
@@ -239,7 +249,7 @@ class SSAJSONGenerator(OutputGenerator):
                         "type": self.calculateTypeName(False, 0, struct["name"]),
                         "name": "make_" + struct["name"],
                         "params": params,
-                        "param_count" : len( params )
+                        "param_count": len(params),
                     }
                 )
             else:
@@ -263,6 +273,7 @@ class SSAJSONGenerator(OutputGenerator):
                             "index": param_index,
                             "type": memberType,
                             "name": member["name"],
+                            "optional": member["opt"] > 0,
                         }
                     )
                     param_index = param_index + 1
@@ -272,53 +283,85 @@ class SSAJSONGenerator(OutputGenerator):
                         "type": self.calculateTypeName(False, 0, struct["name"]),
                         "name": "make_" + struct["name"],
                         "params": params,
-                        "param_count" : len( params )
+                        "param_count": len(params),
+                        "typeid": typeID
                     }
                 )
+                typeID = typeID + 1
 
         for command in basic["commands"]:
             params = []
+            results = []
             param_index = 0
+            result_index = 0
+            interpExpressions = []
             for parameter in command["parameters"]:
 
                 if parameter["is_len"]:
                     continue
 
-                isChainType = False
-
                 parameterType = self.calculateTypeName(
                     parameter["const"], parameter["ref"], parameter["type"]
                 )
 
-                params.append(
-                    {
-                        "index": param_index,
-                        "type": parameterType,
-                        "name": parameter["name"],
-                    }
-                )
-                param_index = param_index + 1
+                is_result = False
 
-            commandResult = "void"
-            hasResult = False
+                if parameter[ "ref" ] == 1:
+                    if not parameter[ "const" ]:
+                        is_result = True
+
+                if is_result:
+                    results.append(
+                        {
+                            "index": result_index,
+                            "type": parameterType,
+                            "name": parameter["name"],
+                            "optional": parameter["opt"] > 0,
+                        }
+                    )
+                    interpExpressions.append( "results[ " + str(result_index) + "]" )
+                    result_index = result_index + 1
+                else:
+                    params.append(
+                        {
+                            "index": param_index,
+                            "type": parameterType,
+                            "name": parameter["name"],
+                            "optional": parameter["opt"] > 0,
+                        }
+                    )
+                    interpExpressions.append( "parameters[ " + str(param_index) + "]" )
+                    param_index = param_index + 1
+
+            mainResultType = "Lazy< Void >"
 
             if command["return"] != "void":
-                commandResult = (
+                mainResultType = (
                     "Lazy< "
                     + self.calculateTypeName(False, 0, command["return"])
                     + " >"
                 )
-                hasResult = True
+
+            commandResultType = "std::tuple< " + mainResultType
+            if len( results ) > 0:
+                for result in results:
+                    commandResultType = commandResultType + ", Lazy< " + result[ "type" ] + " >"
+            commandResultType = commandResultType + " >"
 
             json_data["commands"].append(
                 {
-                    "type": commandResult,
-                    "has_result": hasResult,
+                    "result_type": commandResultType,
+                    "main_result": mainResultType,
                     "name": command["name"],
                     "params": params,
-                    "param_count" : len( params )
+                    "param_count": len(params),
+                    "results": results,
+                    "result_count": len(results),
+                    "typeid": typeID,
+                    "interp": interpExpressions
                 }
             )
+            typeID = typeID + 1
 
         write(json.dumps(json_data), file=self.outFile)
         OutputGenerator.endFile(self)
@@ -331,7 +374,7 @@ class SSAJSONGenerator(OutputGenerator):
 
     def endFeature(self):
         "Actually write the interface to the output file."
-        
+
         self.features[self.featureName] = {
             "name": self.featureName,
             "commands": self.commands,
@@ -377,8 +420,80 @@ class SSAJSONGenerator(OutputGenerator):
         return typeName in self.may_alias
 
     def genStruct(self, typeinfo, typeName, alias):
-        
-        ignoredStructs = [ "VkBaseInStructure", "VkPipelineRobustnessCreateInfoEXT" ]
+
+        ignoredStructs = [
+            "VkPipelineRobustnessCreateInfoEXT",
+            "VkPipelineShaderStageModuleIdentifierCreateInfoEXT",
+            "VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR",
+            "VkPhysicalDevicePipelineRobustnessPropertiesEXT",
+            "VkPhysicalDeviceGraphicsPipelineLibraryPropertiesEXT",
+            "VkPhysicalDeviceShaderModuleIdentifierPropertiesEXT",
+            "VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR",
+            "VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR",
+            "VkPhysicalDevicePipelineRobustnessFeaturesEXT",
+            "VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT",
+            "VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD",
+            "VkPhysicalDeviceImageCompressionControlFeaturesEXT",
+            "VkPhysicalDevicePipelinePropertiesFeaturesEXT",
+            "VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT",
+            "VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT",
+            "VkPhysicalDeviceImage2DViewOf3DFeaturesEXT",
+            "VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE",
+            "VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT",
+            "VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT",
+            "VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT",
+            "VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT",
+            "VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR",
+            "VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR",
+            "VkPhysicalDevicePipelineRobustnessFeaturesEXT",
+            "VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT",
+            "VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD",
+            "VkPhysicalDeviceImageCompressionControlFeaturesEXT",
+            "VkPhysicalDevicePipelinePropertiesFeaturesEXT",
+            "VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT",
+            "VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT",
+            "VkPhysicalDeviceImage2DViewOf3DFeaturesEXT",
+            "VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE",
+            "VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT",
+            "VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT",
+            "VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT",
+            "VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT",
+            "VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR",
+            "VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR",
+            "VkPhysicalDevicePipelineRobustnessFeaturesEXT",
+            "VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT",
+            "VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD",
+            "VkPhysicalDeviceImageCompressionControlFeaturesEXT",
+            "VkPhysicalDevicePipelinePropertiesFeaturesEXT",
+            "VkPhysicalDeviceMultisampledRenderToSingleSampledFeaturesEXT",
+            "VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT",
+            "VkPhysicalDeviceImage2DViewOf3DFeaturesEXT",
+            "VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE",
+            "VkPhysicalDeviceNonSeamlessCubeMapFeaturesEXT",
+            "VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT",
+            "VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT",
+            "VkPhysicalDeviceShaderModuleIdentifierFeaturesEXT",
+            "VkMultisampledRenderToSingleSampledInfoEXT",
+            "VkImageCompressionPropertiesEXT",
+            "VkImageCompressionControlEXT",
+            "VkImageCompressionControlEXT",
+            "VkImageCompressionControlEXT",
+            "VkMultisampledRenderToSingleSampledInfoEXT",
+            "VkRenderPassCreationControlEXT",
+            "VkRenderPassSubpassFeedbackCreateInfoEXT",
+            "VkPipelineRobustnessCreateInfoEXT",
+            "VkGraphicsPipelineLibraryCreateInfoEXT",
+            "VkPipelineRobustnessCreateInfoEXT",
+            "VkPipelineRobustnessCreateInfoEXT",
+            "VkSubpassResolvePerformanceQueryEXT",
+            "VkRenderPassCreationControlEXT",
+            "VkRenderPassCreationFeedbackCreateInfoEXT",
+            "VkImageCompressionPropertiesEXT",
+            "VkSubresourceLayout2EXT",
+            "VkSubresourceLayout2EXT",
+            "VkImageCompressionPropertiesEXT",
+        ]
+
         if typeName in ignoredStructs:
             return
 
@@ -393,7 +508,7 @@ class SSAJSONGenerator(OutputGenerator):
                 pass
             elif key == "structextends":
                 # attr is comma delimited list
-                #if "VK_VERSION_1_0" == self.featureName:
+                # if "VK_VERSION_1_0" == self.featureName:
                 for base in attr.split(","):
                     if base not in self.structExtends:
                         self.structExtends[base] = []
@@ -413,14 +528,22 @@ class SSAJSONGenerator(OutputGenerator):
             param_type = ""
             param_name = ""
             param_const = False
+            param_struct = False
             param_ref = 0
             param_optional = 0
             param_len = []
 
-            if member.text == "*":
-                param_ref = True
-            elif member.text == "const ":
-                param_const = True
+            if member.text:
+                if member.text == "const ":
+                    param_const = True
+                elif member.text == "struct ":
+                    param_struct = True
+                elif member.text == "const struct ":
+                    param_const = True
+                    param_struct = True
+                else:
+                    raise Exception( "Unrecognised member text: " + member.text )
+
             for i, (key, attr) in enumerate(member.attrib.items()):
                 if key == "optional":
                     if attr == "false":
@@ -478,6 +601,7 @@ class SSAJSONGenerator(OutputGenerator):
                     "type": param_type,
                     "name": param_name,
                     "const": param_const,
+                    "struct": param_struct,
                     "ref": param_ref,
                     "opt": param_optional,
                     "len": param_len,
@@ -542,14 +666,22 @@ class SSAJSONGenerator(OutputGenerator):
             param_type = ""
             param_name = ""
             param_const = False
+            param_struct = False
             param_ref = 0
             param_optional = 0
             param_len = []
 
-            if param.text == "*":
-                param_ref = True
-            elif param.text == "const ":
-                param_const = True
+            if param.text:
+                if param.text == "const ":
+                    param_const = True
+                elif param.text == "struct ":
+                    param_struct = True
+                elif param.text == "const struct ":
+                    param_struct = True
+                    param_const = True
+                else:
+                    raise Exception( "Unrecognised param text: " + param.text )
+
             for i, (key, attr) in enumerate(param.attrib.items()):
                 if key == "optional":
                     if attr == "false":
@@ -595,6 +727,7 @@ class SSAJSONGenerator(OutputGenerator):
                     "type": param_type,
                     "name": param_name,
                     "const": param_const,
+                    "struct" : param_struct,
                     "ref": param_ref,
                     "opt": param_optional,
                     "len": param_len,

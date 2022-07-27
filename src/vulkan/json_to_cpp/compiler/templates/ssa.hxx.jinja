@@ -7,7 +7,14 @@
 
 #include "ssa.hpp"
 
-#include <vulkan/vulkan.hpp>
+//#include <vulkan/vulkan.hpp>
+//#include <vulkan/vulkan_handles.hpp>
+//#include <vulkan/vulkan_structs.hpp>
+//#include <vulkan/vulkan_format_traits.hpp>
+
+#include "/workspace/root/thirdparty/vulkansdk/1.3.204.0/x86_64/include/vulkan/vulkan.hpp"
+#include "/workspace/root/thirdparty/vulkansdk/1.3.204.0/x86_64/include/vulkan/vulkan_handles.hpp"
+#include "/workspace/root/thirdparty/vulkansdk/1.3.204.0/x86_64/include/vulkan/vulkan_structs.hpp"
 
 namespace ssa
 {
@@ -42,7 +49,7 @@ template
 {% endfor %}
 >
 {% endif %}
-inline {{ command.type }}
+inline {{ command.result_type }}
 {{ command.name }}
 (
 {% for param in command.params %}
@@ -51,13 +58,22 @@ inline {{ command.type }}
 {% endfor %}
 )
 {
-    //static_assert(  std::is_same< W0< vk::FramebufferCreateFlags >, Null< vk::FramebufferCreateFlags > >::value ||
-    //                std::is_same< W0< vk::FramebufferCreateFlags >, Lazy< vk::FramebufferCreateFlags > >::value ||
-    //                std::is_same< W0< vk::FramebufferCreateFlags >, NonLazy< vk::FramebufferCreateFlags > >::value, "Invalid flags param" );
-{% if command.has_result %}
-    {{ command.type }} result;
-    return result;
+    typename Command::Ptr pCommand = Allocator::get().make_command();
+    pCommand->id = {{ command.typeid }};
+{% for param in command.params %}
+{% if param.optional %}
+    pCommand->parameters.push_back( get_param_optional( {{ param.name }} ) );
+{% else %}
+    pCommand->parameters.push_back( get_param( {{ param.name }} ) );
 {% endif %}
+{% endfor %}
+{% for result in command.results %}
+    Lazy< {{ result.type }} > {{ result.name }}{ Allocator::get().make_value< {{ result.type }} >() };
+{% endfor %}
+{% for result in command.results %}
+    pCommand->results.push_back( get_param( {{ result.name }} ) );
+{% endfor %}
+    return std::make_tuple( {{ command.main_result }}{ pCommand }{% for result in command.results %}, {{ result.name }}{% endfor %} );
 }
 {% endfor %}
 
@@ -83,11 +99,16 @@ inline Lazy< {{ nonChainCtor.type }} >
 {% endfor %}
 )
 {
-    //static_assert(  std::is_same< W0< vk::FramebufferCreateFlags >, Null< vk::FramebufferCreateFlags > >::value ||
-    //                std::is_same< W0< vk::FramebufferCreateFlags >, Lazy< vk::FramebufferCreateFlags > >::value ||
-    //                std::is_same< W0< vk::FramebufferCreateFlags >, NonLazy< vk::FramebufferCreateFlags > >::value, "Invalid flags param" );
-    Lazy< {{ nonChainCtor.type }} > result;
-    return result;
+    typename Value< {{ nonChainCtor.type }} >::Ptr pValue = Allocator::get().make_value< {{ nonChainCtor.type }} >();
+    pValue->id = {{ nonChainCtor.typeid }};
+{% for param in nonChainCtor.params %}
+{% if param.optional %}
+    pValue->parameters.push_back( get_param_optional( {{ param.name }} ) );
+{% else %}
+    pValue->parameters.push_back( get_param( {{ param.name }} ) );
+{% endif %}
+{% endfor %}
+    return Lazy< {{ nonChainCtor.type }} >{ pValue };
 }
 {% endfor %}
 
@@ -119,15 +140,19 @@ inline Lazy< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >
 {% endfor %}
 )
 {
-    //static_assert(  std::is_same< W0< vk::FramebufferCreateFlags >, Null< vk::FramebufferCreateFlags > >::value ||
-    //                std::is_same< W0< vk::FramebufferCreateFlags >, Lazy< vk::FramebufferCreateFlags > >::value ||
-    //                std::is_same< W0< vk::FramebufferCreateFlags >, NonLazy< vk::FramebufferCreateFlags > >::value, "Invalid flags param" );
-    
-    using TChain                 = typename make_chain< Chain< {{ chainCtor.type }} > >::Type;
-    static constexpr uint32_t id = structureChainTraits< TChain >::ID;
-
-    Lazy< TChain > result;
-    return result;
+    using TChain = typename make_chain< Chain< {{ chainCtor.type }} > >::Type;
+    typename Value< TChain >::Ptr pValue = Allocator::get().make_value< TChain >();
+    pValue->id = structureChainTraits< TChain >::ID;
+{% for param in chainCtor.params %}
+{% if not param.chain %}
+{% if param.optional %}
+    pValue->parameters.push_back( get_param_optional( {{ param.name }} ) );
+{% else %}
+    pValue->parameters.push_back( get_param( {{ param.name }} ) );
+{% endif %}
+{% endif %}
+{% endfor %}
+    return Lazy< TChain >{ pValue };
 }
 
 // chain tail overload
@@ -147,15 +172,17 @@ inline Lazy< typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::T
 {% endfor %}
 )
 {
-    //static_assert(  std::is_same< Wrapper0< vk::FramebufferCreateFlags >, Null< vk::FramebufferCreateFlags > >::value ||
-    //                std::is_same< Wrapper0< vk::FramebufferCreateFlags >, Lazy< vk::FramebufferCreateFlags > >::value ||
-    //                std::is_same< Wrapper0< vk::FramebufferCreateFlags >, NonLazy< vk::FramebufferCreateFlags > >::value, "Invalid flags param" );
-
-    using TChain                 = typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::Type;
-    static constexpr uint32_t id = structureChainTraits< TChain >::ID;
-
-    Lazy< TChain > result;
-    return result;
+    using TChain = typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::Type;
+    typename Value< TChain >::Ptr pValue = Allocator::get().make_value< TChain >();
+    pValue->id = structureChainTraits< TChain >::ID;
+{% for param in chainCtor.params %}
+{% if param.optional %}
+    pValue->parameters.push_back( get_param_optional( {{ param.name }} ) );
+{% else %}
+    pValue->parameters.push_back( get_param( {{ param.name }} ) );
+{% endif %}
+{% endfor %}
+    return Lazy< TChain >{ pValue };
 }
 
 {% endfor %}
