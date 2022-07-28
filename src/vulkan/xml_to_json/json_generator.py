@@ -137,7 +137,7 @@ class SSAJSONGeneratorOptions(GeneratorOptions):
 class SSAJSONGenerator(OutputGenerator):
     """Generates C-language API interfaces."""
 
-    features = {}
+    # features = {}
     commands = []
     structs = []
     structExtends = {}
@@ -147,16 +147,26 @@ class SSAJSONGenerator(OutputGenerator):
         if isConst:
             name = "const "
 
-        keywords = []
-        # keywords = ["Device", "Instance"]
+        removedRefTypes = [
+            "VkDescriptorSetAllocateInfo",
+            "VkCommandBufferAllocateInfo",
+            "VkClearColorValue",
+            "VkClearDepthStencilValue",
+            "VkImageSparseMemoryRequirementsInfo2",
+            "VkPhysicalDeviceSparseImageFormatInfo2",
+            "VkDeviceImageMemoryRequirements",
+            "VkPhysicalDeviceSurfaceInfo2KHR",
+            "VkPipelineInfoKHR",
+            "VkPipelineExecutableInfoKHR",
+            "VkPipelineExecutableInfoKHR",
+        ]
+        if typeName in removedRefTypes:
+            if refType == 1:
+                refType = 0
 
         if typeName.startswith("Vk"):
             typeName = typeName.removeprefix("Vk")
-            # for keyword in keywords:
-            #    if typeName.startswith(keyword):
-            #        typeName = typeName.removeprefix(keyword)
             name = "vk::" + typeName
-
         else:
             name += typeName
 
@@ -164,6 +174,41 @@ class SSAJSONGenerator(OutputGenerator):
             name += "*"
         elif refType == 2:
             name += "**"
+        return name
+
+    def calculateCmdName(self, cmdName, asMemberAccess, memberRemoval):
+        name = ""
+        keywords = []
+        # keywords = ["Device", "Instance"]
+
+        if cmdName.startswith("vk"):
+            cmdName = cmdName.removeprefix("vk")
+            for keyword in keywords:
+                if cmdName.startswith(keyword):
+                    cmdName = cmdName.removeprefix(keyword)
+            if asMemberAccess:
+                name = cmdName
+                for removal in memberRemoval:
+                    name = name.replace(removal, "")
+                name = name[0].lower() + name[1:]
+
+                specialTemplates = {
+                    "getQueryPoolResults": "getQueryPoolResults< uint8_t >",
+                    "updateBuffer": "updateBuffer< uint8_t >",
+                    "pushConstants": "pushConstants< uint8_t >",
+                    "getRayTracingShaderGroupHandlesKHR": "getRayTracingShaderGroupHandlesKHR< uint8_t >",
+                    "getRayTracingShaderGroupHandlesNV": "getRayTracingShaderGroupHandlesNV< uint8_t >",
+                    "getAccelerationStructureHandleNV": "getAccelerationStructureHandleNV< uint8_t >",
+                }
+                if name in specialTemplates:
+                    name = specialTemplates[name]
+
+            else:
+                cmdName = cmdName[0].lower() + cmdName[1:]
+                name = "vk::" + cmdName
+
+        else:
+            name += cmdName
         return name
 
     def enumStructExtensionChains(self, structName):
@@ -177,7 +222,7 @@ class SSAJSONGenerator(OutputGenerator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.may_alias = None
-        self.features["features"] = []
+        # self.features["features"] = []
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
@@ -187,21 +232,29 @@ class SSAJSONGenerator(OutputGenerator):
         # Finish C++ wrapper and multiple inclusion protection
         self.newline()
 
-        basic = self.features["VK_VERSION_1_0"]
+        # basic = self.features["VK_VERSION_1_0"]
 
         json_data = {}
         json_data["chainTraits"] = []
 
         # ensure ALL chainable structs in in the mapping even if they
         # have no actual extensions
-        for struct in basic["structs"]:
+        for struct in self.structs:
             if struct["has_pnext"]:
                 structName = struct["name"]
                 if structName not in self.structExtends:
                     self.structExtends[structName] = []
 
+        ignoreStructDupes = [
+            "VkImageMemoryBarrier2KHR",
+            "VkBufferImageCopy2KHR",
+            "VkImageBlit2KHR",
+        ]
+
         typeID = 1
         for i, (struct, attr) in enumerate(self.structExtends.items()):
+            if struct in ignoreStructDupes:
+                continue
             for chain in self.enumStructExtensionChains(struct):
                 json_data["chainTraits"].append({"id": typeID, "types": chain})
                 typeID = typeID + 1
@@ -210,7 +263,7 @@ class SSAJSONGenerator(OutputGenerator):
         json_data["nonChainCtors"] = []
         json_data["commands"] = []
 
-        for struct in basic["structs"]:
+        for struct in self.structs:
 
             if struct["has_pnext"]:
 
@@ -228,6 +281,13 @@ class SSAJSONGenerator(OutputGenerator):
                     if member["name"] == "pNext":
                         isChainType = True
                         memberType = "TChainTail"
+                    elif member["is_array"]:
+                        if member["type"] == "void":
+                            memberType = "std::vector< char >"
+                        elif member["type"] == "char":
+                            memberType = "const std::string"
+                        else:
+                            memberType = "std::vector< " + member["type"] + " >"
                     else:
                         memberType = self.calculateTypeName(
                             member["const"], member["ref"], member["type"]
@@ -264,9 +324,15 @@ class SSAJSONGenerator(OutputGenerator):
                         continue
 
                     isChainType = False
-                    memberType = self.calculateTypeName(
-                        member["const"], member["ref"], member["type"]
-                    )
+                    if member["is_array"]:
+                        if member["type"] == "void":
+                            memberType = "std::vector< char >"
+                        else:
+                            memberType = "std::vector< " + member["type"] + " >"
+                    else:
+                        memberType = self.calculateTypeName(
+                            member["const"], member["ref"], member["type"]
+                        )
 
                     params.append(
                         {
@@ -284,42 +350,124 @@ class SSAJSONGenerator(OutputGenerator):
                         "name": "make_" + struct["name"],
                         "params": params,
                         "param_count": len(params),
-                        "typeid": typeID
+                        "typeid": typeID,
                     }
                 )
                 typeID = typeID + 1
 
-        for command in basic["commands"]:
+        for command in self.commands:
             params = []
             results = []
             param_index = 0
             result_index = 0
-            interpExpressions = []
+            interp = []
+            isMemberCall = False
+            memberType = ""
+            memberAccess = ""
+            memberRemoval = []
+            isFirstParam = True
+            lastResultIsArray = False
+            lastResultIndex = 0
             for parameter in command["parameters"]:
 
-                if parameter["is_len"]:
-                    continue
+                if isFirstParam:
+                    isFirstParam = False
 
-                parameterType = self.calculateTypeName(
-                    parameter["const"], parameter["ref"], parameter["type"]
-                )
+                    if parameter["type"] == "VkInstance":
+                        isMemberCall = True
+                        memberAccess = "parameters[ " + str(param_index) + "]"
+                        memberType = "vk::Instance"
+                        memberRemoval = ["Instance"]
+                        param_index = param_index + 1
+                        continue
+
+                    if parameter["type"] == "VkPhysicalDevice":
+                        isMemberCall = True
+                        memberAccess = "parameters[ " + str(param_index) + "]"
+                        memberType = "vk::PhysicalDevice"
+                        memberRemoval = ["PhysicalDevice"]
+                        param_index = param_index + 1
+                        continue
+
+                    if parameter["type"] == "VkDevice":
+                        isMemberCall = True
+                        memberAccess = "parameters[ " + str(param_index) + "]"
+                        memberType = "vk::Device"
+                        memberRemoval = ["Device"]
+                        param_index = param_index + 1
+                        continue
+
+                    if parameter["type"] == "VkQueue":
+                        isMemberCall = True
+                        memberAccess = "parameters[ " + str(param_index) + "]"
+                        memberType = "vk::Queue"
+                        memberRemoval = ["Queue"]
+                        param_index = param_index + 1
+                        continue
+
+                    if parameter["type"] == "VkCommandBuffer":
+                        isMemberCall = True
+                        memberAccess = "parameters[ " + str(param_index) + "]"
+                        memberType = "vk::CommandBuffer"
+                        memberRemoval = ["CommandBuffer", "Cmd"]
+                        param_index = param_index + 1
+                        continue
+
+                dataSizeExemptions = [
+                    "vkGetQueryPoolResults",
+                    "vkGetRayTracingShaderGroupHandlesKHR",
+                    "vkGetRayTracingShaderGroupHandlesNV",
+                    "vkGetAccelerationStructureHandleNV",
+                ]
+
+                if parameter["is_len"]:
+                    if command["name"] not in dataSizeExemptions:
+                        continue
+
+                if parameter["is_array"]:
+                    if parameter["type"] == "void":
+                        parameterType = "std::vector< uint8_t >"
+                    elif parameter["type"] == "char":
+                        parameterType = "const std::string"
+                    else:
+                        parameterType = (
+                            "std::vector< "
+                            + self.calculateTypeName(False, 0, parameter["type"])
+                            + " >"
+                        )
+                else:
+                    parameterType = self.calculateTypeName(
+                        parameter["const"], parameter["ref"], parameter["type"]
+                    )
 
                 is_result = False
 
-                if parameter[ "ref" ] == 1:
-                    if not parameter[ "const" ]:
+                if parameter["ref"] == 1:
+                    if not parameter["const"]:
                         is_result = True
 
                 if is_result:
+                    if parameter["is_array"]:
+                        lastResultIsArray = True
+                        lastResultIndex = len(interp)
+                    else:
+                        lastResultIsArray = False
                     results.append(
                         {
                             "index": result_index,
                             "type": parameterType,
                             "name": parameter["name"],
-                            "optional": parameter["opt"] > 0,
+                            "optional": False,  # parameter["opt"] > 0,
                         }
                     )
-                    interpExpressions.append( "results[ " + str(result_index) + "]" )
+                    interp.append(
+                        {
+                            "type": parameterType,
+                            "optional": False,  # parameter["opt"] > 0,
+                            "access": "results[ " + str(result_index) + "]",
+                            "is_c_array": parameter["is_c_array"],
+                        }
+                    )
                     result_index = result_index + 1
                 else:
                     params.append(
@@ -327,38 +475,103 @@ class SSAJSONGenerator(OutputGenerator):
                             "index": param_index,
                             "type": parameterType,
                             "name": parameter["name"],
-                            "optional": parameter["opt"] > 0,
+                            "optional": False,  # parameter["opt"] > 0,
                         }
                     )
-                    interpExpressions.append( "parameters[ " + str(param_index) + "]" )
+                    interp.append(
+                        {
+                            "type": parameterType,
+                            "optional": False,  # parameter["opt"] > 0,
+                            "access": "parameters[ " + str(param_index) + "]",
+                            "is_c_array": parameter["is_c_array"],
+                        }
+                    )
                     param_index = param_index + 1
 
-            mainResultType = "Lazy< Void >"
+            lastResult = {}
+            if lastResultIsArray:
+                lastResult = interp[lastResultIndex]
+                results = results[:-1]
+                interp = interp[:lastResultIndex] + interp[lastResultIndex + 1 :]
 
-            if command["return"] != "void":
+            mainResultType = "Lazy< Void >"
+            hasMainResult = False
+
+            stuffThatVulkanHPPTurnsToVoidReturnType = [
+                "vkQueueSubmit",
+                "vkQueueWaitIdle",
+                "vkFlushMappedMemoryRanges",
+                "vkInvalidateMappedMemoryRanges",
+                "vkBindBufferMemory",
+                "vkBindImageMemory",
+                "vkQueueBindSparse",
+                "vkResetFences",
+                "vkSetEvent",
+                "vkResetEvent",
+                "vkDeviceWaitIdle",
+                "vkMergePipelineCaches",
+                "vkResetDescriptorPool",
+                "vkAllocateDescriptorSets",
+                "vkFreeDescriptorSets",
+                "vkResetCommandPool",
+                "vkEndCommandBuffer",
+                "vkResetCommandBuffer",
+                "vkBindBufferMemory2",
+                "vkBindImageMemory2",
+                "vkSetPrivateData",
+                "vkQueueSubmit2",
+                "vkBindBufferMemory2KHR",
+                "vkBindImageMemory2KHR",
+                "vkQueueSubmit2KHR",
+                "vkReleaseDisplayEXT",
+                "vkMergeValidationCachesEXT",
+                "vkBindAccelerationStructureMemoryNV",
+                "vkCompileDeferredNV",
+                "vkReleasePerformanceConfigurationINTEL",
+                "vkQueueSetPerformanceConfigurationINTEL",
+                "vkAcquireDrmDisplayEXT",
+                "vkSetPrivateDataEXT",
+                "vkAcquireWinrtDisplayNV"
+            ]
+
+            if command["name"] in stuffThatVulkanHPPTurnsToVoidReturnType:
+                pass
+            elif command["return"] != "void":
                 mainResultType = (
                     "Lazy< "
                     + self.calculateTypeName(False, 0, command["return"])
                     + " >"
                 )
+                hasMainResult = True
 
             commandResultType = "std::tuple< " + mainResultType
-            if len( results ) > 0:
+            if len(results) > 0:
                 for result in results:
-                    commandResultType = commandResultType + ", Lazy< " + result[ "type" ] + " >"
+                    commandResultType = (
+                        commandResultType + ", Lazy< " + result["type"] + " >"
+                    )
             commandResultType = commandResultType + " >"
 
             json_data["commands"].append(
                 {
                     "result_type": commandResultType,
                     "main_result": mainResultType,
+                    "has_main_result": hasMainResult,
                     "name": command["name"],
+                    "is_member_call": isMemberCall,
+                    "member_type": memberType,
+                    "member_access": memberAccess,
+                    "vkhpp_name": self.calculateCmdName(
+                        command["name"], isMemberCall, memberRemoval
+                    ),
                     "params": params,
                     "param_count": len(params),
+                    "last_result_is_array": lastResultIsArray,
+                    "last_result": lastResult,
                     "results": results,
                     "result_count": len(results),
                     "typeid": typeID,
-                    "interp": interpExpressions
+                    "interp": interp,
                 }
             )
             typeID = typeID + 1
@@ -369,17 +582,17 @@ class SSAJSONGenerator(OutputGenerator):
     def beginFeature(self, interface, emit):
         # Start processing in superclass
         OutputGenerator.beginFeature(self, interface, emit)
-        self.commands = []
-        self.structs = []
+        # self.commands = []
+        # self.structs = []
 
     def endFeature(self):
         "Actually write the interface to the output file."
 
-        self.features[self.featureName] = {
-            "name": self.featureName,
-            "commands": self.commands,
-            "structs": self.structs,
-        }
+        # self.features[self.featureName] = {
+        #    "name": self.featureName,
+        #    "commands": self.commands,
+        #    "structs": self.structs,
+        # }
         OutputGenerator.endFeature(self)
 
     def genType(self, typeinfo, name, alias):
@@ -492,6 +705,19 @@ class SSAJSONGenerator(OutputGenerator):
             "VkSubresourceLayout2EXT",
             "VkSubresourceLayout2EXT",
             "VkImageCompressionPropertiesEXT",
+            # following are after adding other features
+            "VkImageSubresource2EXT",
+            "VkPipelinePropertiesIdentifierEXT",
+            "VkDescriptorSetBindingReferenceVALVE",
+            "VkDescriptorSetLayoutHostMappingInfoVALVE",
+            "VkShaderModuleIdentifierEXT",
+            "VkSubresourceLayout2EXT",
+            "VkPipelineInfoEXT",
+            "VkTraceRaysIndirectCommand2KHR",
+            "VkTraceRaysIndirectCommandKHR",
+            "VkRenderPassCreationFeedbackInfoEXT",
+            "VkRenderPassSubpassFeedbackInfoEXT",
+            "VkSubpassMergeStatusEXT",
         ]
 
         if typeName in ignoredStructs:
@@ -532,6 +758,7 @@ class SSAJSONGenerator(OutputGenerator):
             param_ref = 0
             param_optional = 0
             param_len = []
+            param_is_array = False
 
             if member.text:
                 if member.text == "const ":
@@ -542,7 +769,7 @@ class SSAJSONGenerator(OutputGenerator):
                     param_const = True
                     param_struct = True
                 else:
-                    raise Exception( "Unrecognised member text: " + member.text )
+                    raise Exception("Unrecognised member text: " + member.text)
 
             for i, (key, attr) in enumerate(member.attrib.items()):
                 if key == "optional":
@@ -564,6 +791,7 @@ class SSAJSONGenerator(OutputGenerator):
                     param_len = attr.split(",")
                     for length_name in param_len:
                         length_names.append(length_name)
+                    param_is_array = True
                 elif key == "altlen":
                     pass
                 elif key == "externsync":
@@ -604,8 +832,8 @@ class SSAJSONGenerator(OutputGenerator):
                     "struct": param_struct,
                     "ref": param_ref,
                     "opt": param_optional,
-                    "len": param_len,
                     "is_len": False,
+                    "is_array": param_is_array,
                 }
             )
 
@@ -631,6 +859,35 @@ class SSAJSONGenerator(OutputGenerator):
 
         command_name = ""
         command_return = ""
+
+        commandIgnorList = [
+            "vkGetImageSubresourceLayout2EXT",
+            "vkGetPipelinePropertiesEXT",
+            "vkGetDescriptorSetLayoutHostMappingInfoVALVE",
+            "vkGetShaderModuleIdentifierEXT",
+            "vkGetShaderModuleCreateInfoIdentifierEXT",
+            # fix later...
+            "vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR",
+            "vkAcquireWinrtDisplayNV",
+            "vkGetWinrtDisplayNV",
+
+            "vkCmdBuildAccelerationStructuresKHR",
+            "vkCmdBuildAccelerationStructuresIndirectKHR",
+            "vkBuildAccelerationStructuresKHR",
+            "vkWriteAccelerationStructuresPropertiesKHR",
+            "vkGetAccelerationStructureBuildSizesKHR",
+            "vkGetRayTracingCaptureReplayShaderGroupHandlesKHR",
+            "vkGetDeviceImageMemoryRequirements",
+            "vkGetPhysicalDeviceSurfaceCapabilities2KHR",
+            "vkGetDeviceImageMemoryRequirementsKHR",
+            "vkGetCalibratedTimestampsEXT"
+        ]
+
+        if name in commandIgnorList:
+            return
+
+        if "Destroy" in name:
+            return
 
         for i, (key, attr) in enumerate(cmdinfo.elem.attrib.items()):
             if key == "queues":
@@ -670,6 +927,8 @@ class SSAJSONGenerator(OutputGenerator):
             param_ref = 0
             param_optional = 0
             param_len = []
+            param_is_array = False
+            param_is_carray = False
 
             if param.text:
                 if param.text == "const ":
@@ -680,7 +939,7 @@ class SSAJSONGenerator(OutputGenerator):
                     param_struct = True
                     param_const = True
                 else:
-                    raise Exception( "Unrecognised param text: " + param.text )
+                    raise Exception("Unrecognised param text: " + param.text)
 
             for i, (key, attr) in enumerate(param.attrib.items()):
                 if key == "optional":
@@ -698,6 +957,7 @@ class SSAJSONGenerator(OutputGenerator):
                     param_len = attr.split(",")
                     for length_name in param_len:
                         length_names.append(length_name)
+                    param_is_array = True
                     pass
                 elif key == "noautovalidity":
                     pass
@@ -721,16 +981,28 @@ class SSAJSONGenerator(OutputGenerator):
                         raise Exception("Unknown param element tail: " + elem.tail)
                 elif elem.tag == "name":
                     param_name = elem.text
+                    if elem.tail:
+                        if elem.tail.strip() == "[2]":
+                            param_type = "std::array< " + self.calculateTypeName(False, 0, param_type) + ", 2 >"
+                            param_is_carray = True
+                        elif elem.tail.strip() == "[4]":
+                            param_type = "std::array< " + self.calculateTypeName(False, 0, param_type) + ", 4 >"
+                            param_is_carray = True
+                        else:
+                            raise Exception( "Unrecognised param elem tail" )
+                else:
+                    raise Exception("Unrecognised param element")
 
             command_parameters.append(
                 {
                     "type": param_type,
                     "name": param_name,
                     "const": param_const,
-                    "struct" : param_struct,
+                    "struct": param_struct,
                     "ref": param_ref,
                     "opt": param_optional,
-                    "len": param_len,
+                    "is_array": param_is_array,
+                    "is_c_array": param_is_carray,
                     "is_len": False,
                 }
             )

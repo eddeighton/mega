@@ -84,14 +84,11 @@ add_custom_command(
 
 # NOTE these files are duplicated in the ssa tests cmake
 set( MEGA_VULKAN_COMMON
+    ${MEGA_API_DIR}/vulkan/model/ssa.hpp
 	)
-
-set( MEGA_VULKAN_SOURCES
-    )
 
 add_library( ssa SHARED
                     ${MEGA_VULKAN_COMMON}
-					${MEGA_VULKAN_SOURCES}
 					${MEGA_VULKAN_GENERATED_HEADERS}
 					${MEGA_VULKAN_GENERATED_SOURCES}
 				)
@@ -111,7 +108,7 @@ link_boost( ssa atomic )
 link_json( ssa )
 link_common( ssa )
 
-install( FILES ${MEGA_VULKAN_COMMON} DESTINATION include/vulkan/common )
-install( FILES ${MEGA_VULKAN_GENERATED_HEADERS} DESTINATION include/vulkan/model )
+install( FILES ${MEGA_VULKAN_COMMON} DESTINATION include/vulkan )
+install( FILES ${MEGA_VULKAN_GENERATED_HEADERS} DESTINATION include/vulkan )
 install( TARGETS ssa EXPORT ssa DESTINATION bin)
 install( EXPORT ssa NAMESPACE MEGA:: FILE ssa-config.cmake DESTINATION share )

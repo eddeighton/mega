@@ -1,2 +1,51 @@
 
 // C++ SSA Source
+
+#include "/workspace/root/src/mega/src/api/vulkan/model/ssa.hxx"
+
+namespace
+{
+    template< typename T >
+    const T& getValue( const T& value ) { return value; }
+
+    template< typename T >
+    const T& getValue( const vk::ResultValue< T >& result ) { return result.value; }
+}
+
+namespace ssa
+{
+void evaluate( Command* pCommand )
+{
+    switch( pCommand->id )
+    {
+{% for command in commands %}
+        case {{ command.typeid }}: //{{ command.name }}
+        {
+{% if command.last_result_is_array %}
+            static_cast< Value< {{ command.last_result.type }} >* >( pCommand->{{ command.last_result.access }} )->value = getValue(
+{% else if command.has_main_result %}
+            auto result =
+{% endif %}
+{% if command.is_member_call %}
+                static_cast< Value< {{ command.member_type }} >* >( pCommand->{{ command.member_access }} )->value.value().{{ command.vkhpp_name }}(
+{% else %}
+                {{ command.vkhpp_name }}(
+{% endif %}
+{% for interp in command.interp %}
+{% if interp.is_c_array %}
+                    static_cast< Value< {{ interp.type }} >* >( pCommand->{{ interp.access }} )->value.value().data(){% if not loop.is_last %}, {%endif%}
+{% else %}
+                    static_cast< Value< {{ interp.type }} >* >( pCommand->{{ interp.access }} )->value.value(){% if not loop.is_last %}, {%endif%}
+{% endif %}
+
+{% endfor %}
+{% if command.last_result_is_array %} 
+                ) 
+{% endif %} 
+            );
+        }
+        break;
+{% endfor %}
+    }
+}
+}
