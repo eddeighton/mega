@@ -142,38 +142,19 @@ class SSAJSONGenerator(OutputGenerator):
     structs = []
     structExtends = {}
 
-    def calculateTypeName(self, isConst, refType, typeName):
+    def calculateTypeName(self, isConst, typeName):
         name = ""
         if isConst:
             name = "const "
 
-        removedRefTypes = [
-            "VkDescriptorSetAllocateInfo",
-            "VkCommandBufferAllocateInfo",
-            "VkClearColorValue",
-            "VkClearDepthStencilValue",
-            "VkImageSparseMemoryRequirementsInfo2",
-            "VkPhysicalDeviceSparseImageFormatInfo2",
-            "VkDeviceImageMemoryRequirements",
-            "VkPhysicalDeviceSurfaceInfo2KHR",
-            "VkPipelineInfoKHR",
-            "VkPipelineExecutableInfoKHR",
-            "VkPipelineExecutableInfoKHR",
-        ]
-        if typeName in removedRefTypes:
-            if refType == 1:
-                refType = 0
-
         if typeName.startswith("Vk"):
             typeName = typeName.removeprefix("Vk")
             name = "vk::" + typeName
+        elif typeName == "void":
+            name += "void*"
         else:
             name += typeName
 
-        if refType == 1:
-            name += "*"
-        elif refType == 2:
-            name += "**"
         return name
 
     def calculateCmdName(self, cmdName, asMemberAccess, memberRemoval):
@@ -212,11 +193,11 @@ class SSAJSONGenerator(OutputGenerator):
         return name
 
     def enumStructExtensionChains(self, structName):
-        result = [[self.calculateTypeName(False, 0, structName)]]
+        result = [[self.calculateTypeName(False, structName)]]
         if structName in self.structExtends:
             for next in self.structExtends[structName]:
                 for tail in self.enumStructExtensionChains(next):
-                    result.append([self.calculateTypeName(False, 0, structName)] + tail)
+                    result.append([self.calculateTypeName(False, structName)] + tail)
         return result
 
     def __init__(self, *args, **kwargs):
@@ -256,7 +237,14 @@ class SSAJSONGenerator(OutputGenerator):
             if struct in ignoreStructDupes:
                 continue
             for chain in self.enumStructExtensionChains(struct):
-                json_data["chainTraits"].append({"id": typeID, "types": chain})
+                json_data["chainTraits"].append(
+                    {
+                        "id": typeID,
+                        "types": chain,
+                        "base_type": self.calculateTypeName(False, struct),
+                        "tail_type": chain[1:],
+                    }
+                )
                 typeID = typeID + 1
 
         json_data["chainCtors"] = []
@@ -264,6 +252,9 @@ class SSAJSONGenerator(OutputGenerator):
         json_data["commands"] = []
 
         for struct in self.structs:
+
+            if struct["returned_only"]:
+                continue
 
             if struct["has_pnext"]:
 
@@ -284,13 +275,26 @@ class SSAJSONGenerator(OutputGenerator):
                     elif member["is_array"]:
                         if member["type"] == "void":
                             memberType = "std::vector< char >"
+                        elif member["type"] == "VkSampleMask":
+                            memberType = "const vk::SampleMask*"
                         elif member["type"] == "char":
-                            memberType = "const std::string"
+                            if member["ref"] == 1:
+                                #memberType = "const std::string"
+                                memberType = "const char*"
+                            elif member["ref"] == 2:
+                                #memberType = "std::vector< std::string >"
+                                memberType = "std::vector< const char* >"
+                            else:
+                                raise Exception("Unrecognised string array type")
                         else:
-                            memberType = "std::vector< " + member["type"] + " >"
+                            memberType = (
+                                "std::vector< "
+                                + self.calculateTypeName(False, member["type"])
+                                + " >"
+                            )
                     else:
                         memberType = self.calculateTypeName(
-                            member["const"], member["ref"], member["type"]
+                            member["const"], member["type"]
                         )
 
                     params.append(
@@ -300,13 +304,16 @@ class SSAJSONGenerator(OutputGenerator):
                             "type": memberType,
                             "name": member["name"],
                             "optional": member["opt"] > 0,
+                            "take_address": member["ref"] == 1
+                            and not member["is_array"]
+                            and not member["type"] == "void",
                         }
                     )
                     param_index = param_index + 1
 
                 json_data["chainCtors"].append(
                     {
-                        "type": self.calculateTypeName(False, 0, struct["name"]),
+                        "type": self.calculateTypeName(False, struct["name"]),
                         "name": "make_" + struct["name"],
                         "params": params,
                         "param_count": len(params),
@@ -328,11 +335,19 @@ class SSAJSONGenerator(OutputGenerator):
                         if member["type"] == "void":
                             memberType = "std::vector< char >"
                         else:
-                            memberType = "std::vector< " + member["type"] + " >"
+                            memberType = (
+                                "std::vector< "
+                                + self.calculateTypeName(False, member["type"])
+                                + " >"
+                            )
                     else:
                         memberType = self.calculateTypeName(
-                            member["const"], member["ref"], member["type"]
+                            member["const"], member["type"]
                         )
+
+                    if param_index > 0:
+                        if struct["union"]:
+                            continue
 
                     params.append(
                         {
@@ -340,13 +355,16 @@ class SSAJSONGenerator(OutputGenerator):
                             "type": memberType,
                             "name": member["name"],
                             "optional": member["opt"] > 0,
+                            "take_address": member["ref"] == 1
+                            and not member["is_array"]
+                            and not member["type"] == "void",
                         }
                     )
                     param_index = param_index + 1
 
                 json_data["nonChainCtors"].append(
                     {
-                        "type": self.calculateTypeName(False, 0, struct["name"]),
+                        "type": self.calculateTypeName(False, struct["name"]),
                         "name": "make_" + struct["name"],
                         "params": params,
                         "param_count": len(params),
@@ -424,21 +442,51 @@ class SSAJSONGenerator(OutputGenerator):
                     if command["name"] not in dataSizeExemptions:
                         continue
 
+                parameterType = ""
+                interpTakeAddress = False
+
                 if parameter["is_array"]:
                     if parameter["type"] == "void":
                         parameterType = "std::vector< uint8_t >"
                     elif parameter["type"] == "char":
-                        parameterType = "const std::string"
+                        if parameter["ref"] == 1:
+                            parameterType = "const std::string"
+                        elif parameter["ref"] == 2:
+                            parameterType = "std::vector< std::string >"
+                        else:
+                            raise Exception("Unrecognised string array type")
                     else:
                         parameterType = (
                             "std::vector< "
-                            + self.calculateTypeName(False, 0, parameter["type"])
+                            + self.calculateTypeName(False, parameter["type"])
                             + " >"
                         )
                 else:
                     parameterType = self.calculateTypeName(
-                        parameter["const"], parameter["ref"], parameter["type"]
+                        parameter["const"], parameter["type"]
                     )
+
+                    if parameter["ref"] == 1:
+                        removedRefTypes = [
+                            "VkDescriptorSetAllocateInfo",
+                            "VkCommandBufferAllocateInfo",
+                            "VkClearColorValue",
+                            "VkClearDepthStencilValue",
+                            "VkImageSparseMemoryRequirementsInfo2",
+                            "VkPhysicalDeviceSparseImageFormatInfo2",
+                            "VkDeviceImageMemoryRequirements",
+                            "VkPhysicalDeviceSurfaceInfo2KHR",
+                            "VkPipelineInfoKHR",
+                            "VkPipelineExecutableInfoKHR",
+                            "VkPipelineExecutableInfoKHR",
+                        ]
+                        if parameter["type"] not in removedRefTypes:
+                            interpTakeAddress = True
+
+                    if parameter["ref"] == 2:
+                        starStartParams = ["ppData", "pBuffer", "ppData"]
+                        if parameter["name"] in starStartParams:
+                            interpTakeAddress = True
 
                 is_result = False
 
@@ -466,6 +514,7 @@ class SSAJSONGenerator(OutputGenerator):
                             "optional": False,  # parameter["opt"] > 0,
                             "access": "results[ " + str(result_index) + "]",
                             "is_c_array": parameter["is_c_array"],
+                            "take_address": interpTakeAddress,
                         }
                     )
                     result_index = result_index + 1
@@ -484,6 +533,7 @@ class SSAJSONGenerator(OutputGenerator):
                             "optional": False,  # parameter["opt"] > 0,
                             "access": "parameters[ " + str(param_index) + "]",
                             "is_c_array": parameter["is_c_array"],
+                            "take_address": interpTakeAddress,
                         }
                     )
                     param_index = param_index + 1
@@ -531,16 +581,14 @@ class SSAJSONGenerator(OutputGenerator):
                 "vkQueueSetPerformanceConfigurationINTEL",
                 "vkAcquireDrmDisplayEXT",
                 "vkSetPrivateDataEXT",
-                "vkAcquireWinrtDisplayNV"
+                "vkAcquireWinrtDisplayNV",
             ]
 
             if command["name"] in stuffThatVulkanHPPTurnsToVoidReturnType:
                 pass
             elif command["return"] != "void":
                 mainResultType = (
-                    "Lazy< "
-                    + self.calculateTypeName(False, 0, command["return"])
-                    + " >"
+                    "Lazy< " + self.calculateTypeName(False, command["return"]) + " >"
                 )
                 hasMainResult = True
 
@@ -718,18 +766,34 @@ class SSAJSONGenerator(OutputGenerator):
             "VkRenderPassCreationFeedbackInfoEXT",
             "VkRenderPassSubpassFeedbackInfoEXT",
             "VkSubpassMergeStatusEXT",
+            # because of wierd constructor issues
+            "VkSpecializationInfo",
+            "VkPipelineCacheCreateInfo",
+            "VkWriteDescriptorSetInlineUniformBlock",
+            "VkDebugMarkerObjectTagInfoEXT",
+            "VkValidationCacheCreateInfoEXT",
+            "VkAccelerationStructureBuildGeometryInfoKHR",
+            "VkCuModuleCreateInfoNVX",
+            "VkCuLaunchInfoNVX",
+            "VkDebugUtilsObjectTagInfoEXT",
+            "VkAccelerationStructureVersionInfoKHR"
         ]
 
         if typeName in ignoredStructs:
             return
 
+        returned_only = False
+        is_union = False
+
         for i, (key, attr) in enumerate(typeinfo.elem.attrib.items()):
             if key == "category":
+                if attr == "union":
+                    is_union = True
                 pass
             elif key == "name":
                 pass
             elif key == "alias":
-                pass
+                return
             elif key == "allowduplicate":
                 pass
             elif key == "structextends":
@@ -740,7 +804,7 @@ class SSAJSONGenerator(OutputGenerator):
                         self.structExtends[base] = []
                     self.structExtends[base].append(typeName)
             elif key == "returnedonly":
-                pass
+                returned_only = True
             elif key == "comment":
                 pass
             else:
@@ -807,6 +871,8 @@ class SSAJSONGenerator(OutputGenerator):
                 else:
                     raise Exception("Unknown struct member attrib: " + key)
 
+            param_is_c_array = False
+            param_c_array_size = ""
             for elem in member:
                 if elem.tag == "type":
                     param_type = elem.text
@@ -823,6 +889,31 @@ class SSAJSONGenerator(OutputGenerator):
                     param_name = elem.text
                     if param_name == "pNext":
                         has_pnext = True
+                    elif elem.tail:
+                        if elem.tail.strip() == "[":
+                            param_is_c_array = True
+                        elif elem.tail.strip()[0] == "[":
+                            param_is_c_array = True
+                            param_c_array_size = elem.tail.strip()[1]
+                        elif elem.tail.strip()[0] == ":":
+                            pass
+                        else:
+                            raise Exception("Unknown array format")
+
+                elif elem.tag == "enum":
+                    param_c_array_size = elem.text
+
+            if param_is_c_array:
+                if param_name == "matrix":
+                    param_type = "std::array<std::array<float, 4>, 3>"
+                else:
+                    param_type = (
+                        "std::array< "
+                        + self.calculateTypeName(False, param_type)
+                        + ", "
+                        + param_c_array_size
+                        + " >"
+                    )
 
             members.append(
                 {
@@ -838,11 +929,19 @@ class SSAJSONGenerator(OutputGenerator):
             )
 
         for member in members:
+            if member["name"] == "codeSize":
+                member["is_len"] = True
             if member["name"] in length_names:
                 member["is_len"] = True
 
         self.structs.append(
-            {"name": typeName, "members": members, "has_pnext": has_pnext}
+            {
+                "name": typeName,
+                "members": members,
+                "has_pnext": has_pnext,
+                "returned_only": returned_only,
+                "union": is_union,
+            }
         )
 
     def genGroup(self, groupinfo, groupName, alias=None):
@@ -870,7 +969,6 @@ class SSAJSONGenerator(OutputGenerator):
             "vkEnumeratePhysicalDeviceQueueFamilyPerformanceQueryCountersKHR",
             "vkAcquireWinrtDisplayNV",
             "vkGetWinrtDisplayNV",
-
             "vkCmdBuildAccelerationStructuresKHR",
             "vkCmdBuildAccelerationStructuresIndirectKHR",
             "vkBuildAccelerationStructuresKHR",
@@ -880,7 +978,7 @@ class SSAJSONGenerator(OutputGenerator):
             "vkGetDeviceImageMemoryRequirements",
             "vkGetPhysicalDeviceSurfaceCapabilities2KHR",
             "vkGetDeviceImageMemoryRequirementsKHR",
-            "vkGetCalibratedTimestampsEXT"
+            "vkGetCalibratedTimestampsEXT",
         ]
 
         if name in commandIgnorList:
@@ -983,13 +1081,21 @@ class SSAJSONGenerator(OutputGenerator):
                     param_name = elem.text
                     if elem.tail:
                         if elem.tail.strip() == "[2]":
-                            param_type = "std::array< " + self.calculateTypeName(False, 0, param_type) + ", 2 >"
+                            param_type = (
+                                "std::array< "
+                                + self.calculateTypeName(False, param_type)
+                                + ", 2 >"
+                            )
                             param_is_carray = True
                         elif elem.tail.strip() == "[4]":
-                            param_type = "std::array< " + self.calculateTypeName(False, 0, param_type) + ", 4 >"
+                            param_type = (
+                                "std::array< "
+                                + self.calculateTypeName(False, param_type)
+                                + ", 4 >"
+                            )
                             param_is_carray = True
                         else:
-                            raise Exception( "Unrecognised param elem tail" )
+                            raise Exception("Unrecognised param elem tail")
                 else:
                     raise Exception("Unrecognised param element")
 

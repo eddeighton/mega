@@ -99,13 +99,15 @@ target_include_directories( ssa PUBLIC ${MEGA_API_DIR} )
 
 set_target_properties( ssa PROPERTIES FOLDER ssa )
 set_property(TARGET ssa PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_compile_definitions( ssa PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
+#target_compile_definitions( ssa PUBLIC VULKAN_HPP_STORAGE_SHARED=1)
+#target_compile_definitions( ssa PUBLIC VULKAN_HPP_STORAGE_SHARED_EXPORT=1)
 
 link_boost( ssa filesystem )
 link_boost( ssa iostreams )
 link_boost( ssa serialization )
 link_boost( ssa system )
 link_boost( ssa atomic )
-link_json( ssa )
 link_common( ssa )
 
 install( FILES ${MEGA_VULKAN_COMMON} DESTINATION include/vulkan )

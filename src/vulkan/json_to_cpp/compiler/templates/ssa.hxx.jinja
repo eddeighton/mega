@@ -141,7 +141,7 @@ inline Lazy< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >
 )
 {
     using TChain = typename make_chain< Chain< {{ chainCtor.type }} > >::Type;
-    typename Value< TChain >::Ptr pValue = Allocator::get().make_value< TChain >();
+    typename TChain::Ptr pValue = Allocator::get().make_chain< TChain >();
     pValue->id = structureChainTraits< TChain >::ID;
 {% for param in chainCtor.params %}
 {% if not param.chain %}
@@ -173,7 +173,7 @@ inline Lazy< typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::T
 )
 {
     using TChain = typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::Type;
-    typename Value< TChain >::Ptr pValue = Allocator::get().make_value< TChain >();
+    typename TChain::Ptr pValue = Allocator::get().make_chain< TChain >();
     pValue->id = structureChainTraits< TChain >::ID;
 {% for param in chainCtor.params %}
 {% if param.optional %}

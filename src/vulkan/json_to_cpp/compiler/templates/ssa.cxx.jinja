@@ -14,35 +14,110 @@ namespace
 
 namespace ssa
 {
-void evaluate( Command* pCommand )
+void evaluate( Variable* pVariable )
 {
-    switch( pCommand->id )
+    switch( pVariable->id )
     {
+{% for chainTrait in chainTraits %}
+        case {{ chainTrait.id }}: // Chain< {% for type in chainTrait.types %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} >
+        {
+{% for chainCtor in chainCtors %}
+{% if chainCtor.type == chainTrait.base_type %}
+            using TChainType = Chain< {% for type in chainTrait.types %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} >;
+            TChainType* pValue = static_cast< TChainType* >( pVariable );
+{% if length( chainTrait.types ) > 1 %}
+{% for param in chainCtor.params %}
+{% if param.chain %}
+            const auto& tail = static_cast< Chain< {% for type in chainTrait.tail_type %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} >* >( pValue->parameters[ {{param.index}} ] )->getChain();
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if length( chainTrait.types ) == 1 %}
+            pValue->setChain( vk::StructureChain< {% for type in chainTrait.types %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} >{ {{chainTrait.base_type}}
+            {
+{% for param in chainCtor.params %}
+{% if not param.chain %}
+{% if param.take_address %}
+                &static_cast< Value< {{ param.type }} >* >( pValue->parameters[ {{param.index - 1}} ] )->get(){% if not loop.is_last %}, {%endif%}
+{% else %}
+                static_cast< Value< {{ param.type }} >* >( pValue->parameters[ {{param.index - 1}} ] )->get(){% if not loop.is_last %}, {%endif%}
+{% endif %}
+
+{% endif %}
+{% endfor %} 
+            }});
+{% else %} {# if length( chainTrait.types ) == 1 #}
+            pValue->setChain( vk::StructureChain< {% for type in chainTrait.types %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} >{ 
+            {{chainTrait.base_type}}
+            {
+{% for param in chainCtor.params %}
+{% if not param.chain %}
+{% if param.take_address %}
+                &static_cast< Value< {{ param.type }} >* >( pValue->parameters[ {{param.index}} ] )->get(),
+{% else %}
+                static_cast< Value< {{ param.type }} >* >( pValue->parameters[ {{param.index}} ] )->get(),
+{% endif %}
+{% endif %}
+{% endfor %} 
+            }, //vk::StructureChain< {% for type in chainTrait.tail_type %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} >
+{% for type in chainTrait.tail_type %}
+                std::get< {{ type }} >( tail ){% if not loop.is_last %}, {%endif%}
+
+{% endfor %}
+            });
+{% endif %} {# if length( chainTrait.types ) == 1 #}
+{% endif %} {# {% if chainCtor.type == chainTrait.base_type %} #}
+{% endfor %} {# for chainCtor in chainCtors #}
+        }
+        break;
+{% endfor %} {# for chainTrait in chainTraits #}
+{% for nonChainCtor in nonChainCtors %}
+        case {{ nonChainCtor.typeid }}: // {{ nonChainCtor.type }}
+        {
+            ValueInstance< {{ nonChainCtor.type }} >* pValue = static_cast< ValueInstance< {{ nonChainCtor.type }} >* >( pVariable );
+            pValue->set( {{ nonChainCtor.type }}
+            {
+{% for param in nonChainCtor.params %}
+{% if param.take_address %}
+                &static_cast< Value< {{ param.type }} >* >( pValue->parameters[ {{param.index}} ] )->get(){% if not loop.is_last %}, {%endif%}
+{% else %}
+                static_cast< Value< {{ param.type }} >* >( pValue->parameters[ {{param.index}} ] )->get(){% if not loop.is_last %}, {%endif%}
+{% endif %}
+
+{% endfor %}
+            });
+        }
+        break;
+{% endfor %}
 {% for command in commands %}
         case {{ command.typeid }}: //{{ command.name }}
         {
+            Command* pCommand = static_cast< Command* >( pVariable );
 {% if command.last_result_is_array %}
-            static_cast< Value< {{ command.last_result.type }} >* >( pCommand->{{ command.last_result.access }} )->value = getValue(
+            static_cast< ValueInstance< {{ command.last_result.type }} >* >( pCommand->{{ command.last_result.access }} )->set( getValue(
 {% else if command.has_main_result %}
             auto result =
 {% endif %}
 {% if command.is_member_call %}
-                static_cast< Value< {{ command.member_type }} >* >( pCommand->{{ command.member_access }} )->value.value().{{ command.vkhpp_name }}(
+                static_cast< Value< {{ command.member_type }} >* >( pCommand->{{ command.member_access }} )->get().{{ command.vkhpp_name }}(
 {% else %}
                 {{ command.vkhpp_name }}(
 {% endif %}
 {% for interp in command.interp %}
 {% if interp.is_c_array %}
-                    static_cast< Value< {{ interp.type }} >* >( pCommand->{{ interp.access }} )->value.value().data(){% if not loop.is_last %}, {%endif%}
+                    static_cast< Value< {{ interp.type }} >* >( pCommand->{{ interp.access }} )->get().data(){% if not loop.is_last %}, {%endif%}
+{% else if interp.take_address %}
+                    &static_cast< Value< {{ interp.type }} >* >( pCommand->{{ interp.access }} )->get(){% if not loop.is_last %}, {%endif%}
 {% else %}
-                    static_cast< Value< {{ interp.type }} >* >( pCommand->{{ interp.access }} )->value.value(){% if not loop.is_last %}, {%endif%}
+                    static_cast< Value< {{ interp.type }} >* >( pCommand->{{ interp.access }} )->get(){% if not loop.is_last %}, {%endif%}
 {% endif %}
 
 {% endfor %}
 {% if command.last_result_is_array %} 
-                ) 
+                )) 
 {% endif %} 
             );
+            pCommand->evaluated = true;
         }
         break;
 {% endfor %}

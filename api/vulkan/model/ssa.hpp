@@ -12,6 +12,7 @@
 #include <optional>
 #include <vector>
 #include <list>
+#include <memory>
 
 namespace ssa
 {
@@ -27,22 +28,59 @@ public:
     PtrArray      parameters;
 };
 
-template < typename T >
-struct Value : public Variable
-{
-    ~Value() {}
-    using Ptr = Value< T >*;
-    std::optional< T > value;
-};
-
 struct Command : public Variable
 {
     using Ptr = Command*;
     Variable::PtrArray results;
+    bool               evaluated = false;
+};
+
+// template < typename... T >
+// using Chain = vk::StructureChain< T... >;
+
+template < typename T >
+struct Value : public Variable
+{
+    using Ptr = Value< T >*;
+
+    virtual T&   get() const = 0;
+    virtual bool is() const  = 0;
+};
+
+template < typename T >
+struct ValueInstance : public Value< T >
+{
+    virtual T&   get() const { return *m_value; }
+    virtual bool is() const { return m_value.get(); }
+
+    inline void set( const T& value ) { m_value = std::make_unique< T >( value ); }
+
+private:
+    std::unique_ptr< T > m_value;
+};
+
+template < typename THead, typename... T >
+struct chain_head
+{
+    using Type = THead;
 };
 
 template < typename... T >
-using Chain = vk::StructureChain< T... >;
+struct Chain : public Value< typename chain_head< T... >::Type >
+{
+    using BaseType  = typename chain_head< T... >::Type;
+    using Base      = Value< BaseType >;
+    using ChainType = vk::StructureChain< T... >;
+
+    virtual BaseType& get() const { return std::get< 0 >( *m_value.get() ); }
+    virtual bool      is() const { return m_value.get(); }
+
+    inline ChainType& getChain() const { return *m_value.get(); }
+    inline void       setChain( const ChainType& value ) { m_value = std::make_unique< ChainType >( value ); }
+
+private:
+    std::unique_ptr< ChainType > m_value;
+};
 
 template < typename T >
 struct Lazy
@@ -63,19 +101,19 @@ struct Null
 
 using Void = char; // for Lazy<Void>
 
-template< template< typename T0 > class Wrapper, typename T >
+template < template < typename T0 > class Wrapper, typename T >
 inline Variable::Ptr get_param_optional( const Wrapper< T >& param )
 {
     return param.pVariable;
 }
 
-template< typename T >
+template < typename T >
 inline Variable::Ptr get_param_optional( const Null< T >& param )
 {
     return nullptr;
 }
 
-template< template< typename T0 > class Wrapper, typename T >
+template < template < typename T0 > class Wrapper, typename T >
 inline Variable::Ptr get_param( const Wrapper< T >& param )
 {
     return param.pVariable;
@@ -100,7 +138,15 @@ public:
     template < typename T >
     typename Value< T >::Ptr make_value()
     {
-        typename Value< T >::Ptr p = new Value< T >;
+        typename Value< T >::Ptr p = new ValueInstance< T >;
+        m_values.push_back( p );
+        return p;
+    }
+
+    template < typename T >
+    typename T::Ptr make_chain()
+    {
+        typename T::Ptr p = new T;
         m_values.push_back( p );
         return p;
     }
