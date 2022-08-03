@@ -99,21 +99,27 @@ inline {{ command.result_type }}
 template
 <
 {% for param in nonChainCtor.params %}
-    template< typename T{{param.index}} > class W{{param.index}}{% if not loop.is_last %}, {%endif%}
-
+    template< typename T{{param.index}} > class W{{param.index}},
 {% endfor %}
+{% for param in nonChainCtor.params %}
+{% if param.is_type_chain %}
+    typename T{{param.index}},
+    std::enable_if_t< check_param< {{param.type}}, typename chain_head< T{{param.index}} >::Type >::value, bool > = true,
+{% endif %}
+{% endfor %}
+    typename Dummy = void
 >
 {% endif %}
 inline Lazy< {{ nonChainCtor.type }} >
 {{ nonChainCtor.name }}
 (
 {% for param in nonChainCtor.params %}
-    const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
+    const W{{param.index}}<{% if param.is_type_chain %}T{{param.index}}{% else %}{{param.type}}{% endif %} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
 
 {% endfor %}
 )
 {
-    typename Value< {{ nonChainCtor.type }} >::Ptr pValue = Allocator::get().make_value< {{ nonChainCtor.type }} >();
+    typename Value< {{ nonChainCtor.type }} >::Ptr pValue = Allocator::get().make< {{ nonChainCtor.type }} >();
     pValue->id = {{ nonChainCtor.typeid }};
 {% for param in nonChainCtor.params %}
 {% if param.optional %}
@@ -137,26 +143,31 @@ template
 <
 {% for param in chainCtor.params %}
 {% if not param.is_chain_tail %}
-    template< typename T{{param.index}} > class W{{param.index}}{% if not loop.is_last %}, {%endif%}
-
+    template< typename T{{param.index}} > class W{{param.index}},
 {% endif %}
 {% endfor %}
+{% for param in chainCtor.params %}
+{% if param.is_type_chain %}
+    typename T{{param.index}},
+    std::enable_if_t< check_param< {{param.type}}, typename chain_head< T{{param.index}} >::Type >::value, bool > = true,
+{% endif %}
+{% endfor %}
+    typename Dummy = void
 >
 {% endif %}
-inline Lazy< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >
+inline Lazy< {{ chainCtor.type }} >
 {{ chainCtor.name }}
 (
 {% for param in chainCtor.params %}
 {% if not param.is_chain_tail %}
-    const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
+    const W{{param.index}}<{% if param.is_type_chain %}T{{param.index}}{% else %}{{param.type}}{% endif %} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
 
 {% endif %}
 {% endfor %}
 )
 {
-    using TChain = typename make_chain< Chain< {{ chainCtor.type }} > >::Type;
-    typename TChain::Ptr pValue = Allocator::get().make_chain< TChain >();
-    pValue->id = structureChainTraits< TChain >::ID;
+    typename Value< {{ chainCtor.type }} >::Ptr pValue = Allocator::get().make< {{ chainCtor.type }} >();
+    pValue->id = structureChainTraits< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >::ID;
 {% for param in chainCtor.params %}
 {% if not param.is_chain_tail %}
 {% if param.optional %}
@@ -166,28 +177,37 @@ inline Lazy< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >
 {% endif %}
 {% endif %}
 {% endfor %}
-    return Lazy< TChain >{ pValue };
+    return Lazy< {{ chainCtor.type }} >{ pValue };
 }
 
 // chain tail overload
 template
 <
 {% for param in chainCtor.params %}
-    template< typename T{{param.index}} > class W{{param.index}}{% if param.is_chain_tail %}, typename TChainTail{% endif%}{% if not loop.is_last %}, {%endif%}
-
+    template< typename T{{param.index}} > class W{{param.index}},
+{% if param.is_chain_tail %}
+    typename TChainTail,
+{% endif%}
 {% endfor %}
+{% for param in chainCtor.params %}
+{% if param.is_type_chain %}
+    typename T{{param.index}},
+    std::enable_if_t< check_param< {{param.type}}, typename chain_head< T{{param.index}} >::Type >::value, bool > = true,
+{% endif %}
+{% endfor %}
+    typename Dummy = void
 >
 inline Lazy< typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::Type >
 {{ chainCtor.name }}
 (
 {% for param in chainCtor.params %}
-    const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
+    const W{{param.index}}<{% if param.is_type_chain %}T{{param.index}}{% else %}{{param.type}}{% endif %} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
 
 {% endfor %}
 )
 {
     using TChain = typename make_chain< Chain< {{ chainCtor.type }}, TChainTail > >::Type;
-    typename TChain::Ptr pValue = Allocator::get().make_chain< TChain >();
+    typename TChain::Ptr pValue = Allocator::get().make< TChain >();
     pValue->id = structureChainTraits< TChain >::ID;
 {% for param in chainCtor.params %}
 {% if param.optional %}

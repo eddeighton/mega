@@ -792,6 +792,7 @@ class SSAJSONGenerator(OutputGenerator):
             "VkRenderPassBeginInfo",
             "VkSubpassBeginInfo",
             "vkCmdBeginRenderPass",
+            "VkVertexInputBindingDescription"
         ]
 
         if typeName not in includedStructs:
