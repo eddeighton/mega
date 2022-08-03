@@ -27,7 +27,7 @@ void evaluate( Variable* pVariable )
             TChainType* pValue = static_cast< TChainType* >( pVariable );
 {% if length( chainTrait.types ) > 1 %}
 {% for param in chainCtor.params %}
-{% if param.chain %}
+{% if param.is_chain_tail %}
             const auto& tail = static_cast< Chain< {% for type in chainTrait.tail_type %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} >* >( pValue->parameters[ {{param.index}} ] )->getChain();
 {% endif %}
 {% endfor %}
@@ -36,7 +36,7 @@ void evaluate( Variable* pVariable )
             pValue->setChain( vk::StructureChain< {% for type in chainTrait.types %}{{type}}{% if not loop.is_last %}, {%endif%}{% endfor %} >{ {{chainTrait.base_type}}
             {
 {% for param in chainCtor.params %}
-{% if not param.chain %}
+{% if not param.is_chain_tail %}
 {% if param.take_address %}
                 &static_cast< Value< {{ param.type }} >* >( pValue->parameters[ {{param.index - 1}} ] )->get(){% if not loop.is_last %}, {%endif%}
 {% else %}
@@ -51,7 +51,7 @@ void evaluate( Variable* pVariable )
             {{chainTrait.base_type}}
             {
 {% for param in chainCtor.params %}
-{% if not param.chain %}
+{% if not param.is_chain_tail %}
 {% if param.take_address %}
                 &static_cast< Value< {{ param.type }} >* >( pValue->parameters[ {{param.index}} ] )->get(),
 {% else %}

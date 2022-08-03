@@ -99,7 +99,12 @@ target_include_directories( ssa PUBLIC ${MEGA_API_DIR} )
 
 set_target_properties( ssa PROPERTIES FOLDER ssa )
 set_property(TARGET ssa PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_compile_definitions( ssa PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
+
+# add VULKAN_HPP_STORAGE_SHARED and VULKAN_HPP_STORAGE_SHARED_EXPORT 
+# if in shared object see https://github.com/KhronosGroup/Vulkan-Hpp
+# see where the VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE is defined
 #target_compile_definitions( ssa PUBLIC VULKAN_HPP_STORAGE_SHARED=1)
 #target_compile_definitions( ssa PUBLIC VULKAN_HPP_STORAGE_SHARED_EXPORT=1)
 

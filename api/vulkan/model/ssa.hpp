@@ -50,6 +50,8 @@ struct Value : public Variable
 template < typename T >
 struct ValueInstance : public Value< T >
 {
+    using Ptr = ValueInstance< T >*;
+
     virtual T&   get() const { return *m_value; }
     virtual bool is() const { return m_value.get(); }
 
@@ -60,15 +62,16 @@ private:
 };
 
 template < typename THead, typename... T >
-struct chain_head
+struct typelist_head
 {
     using Type = THead;
 };
 
 template < typename... T >
-struct Chain : public Value< typename chain_head< T... >::Type >
+struct Chain : public Value< typename typelist_head< T... >::Type >
 {
-    using BaseType  = typename chain_head< T... >::Type;
+    using Ptr       = Chain< T... >*;
+    using BaseType  = typename typelist_head< T... >::Type;
     using Base      = Value< BaseType >;
     using ChainType = vk::StructureChain< T... >;
 
@@ -83,14 +86,54 @@ private:
 };
 
 template < typename T >
+struct make_variable_impl
+{
+    using Type = ValueInstance< T >;
+};
+
+template < typename... Ts >
+struct make_variable_impl< Chain< Ts... > >
+{
+    using Type = Chain< Ts... >;
+};
+
+template < typename TValueType >
+struct make_variable
+{
+    using Type = typename make_variable_impl< TValueType >::Type;
+};
+
+template < typename T >
+struct get_pointer_type
+{
+    using Type = typename T::Ptr;
+};
+
+template < typename T >
 struct Lazy
 {
+    /*Lazy( Command* pCommand )
+        : pVariable( pCommand )
+    {
+    }
+    Lazy( typename make_variable< T >::Type* pValue )
+        : pVariable( pValue )
+    {
+    }*/
     typename Variable::Ptr pVariable;
 };
 
 template < typename T >
 struct NonLazy
 {
+    /*NonLazy( Command* pCommand )
+        : pVariable( pCommand )
+    {
+    }
+    NonLazy( typename make_variable< T >::Type* pValue )
+        : pVariable( pValue )
+    {
+    }*/
     typename Variable::Ptr pVariable;
 };
 
@@ -119,6 +162,25 @@ inline Variable::Ptr get_param( const Wrapper< T >& param )
     return param.pVariable;
 }
 
+template < typename TExpected, typename TActual >
+struct check_param
+{
+    static_assert( false && typeid( TExpected ).name(), "Invalid type used in ssa function" );
+    static constexpr bool value = false;
+};
+
+template < typename TExpected >
+struct check_param< TExpected, TExpected >
+{
+    static constexpr bool value = true;
+};
+
+template < typename TExpected >
+struct check_param< Chain< TExpected >, TExpected >
+{
+    static constexpr bool value = true;
+};
+
 class Allocator
 {
 public:
@@ -133,6 +195,15 @@ public:
     {
         static Allocator allocator;
         return allocator;
+    }
+
+    template < typename T >
+    typename get_pointer_type< typename make_variable< T >::Type >::Type make()
+    {
+        using VariableType           = typename make_variable< T >::Type;
+        typename VariableType::Ptr p = new VariableType;
+        m_values.push_back( p );
+        return p;
     }
 
     template < typename T >
@@ -205,6 +276,24 @@ struct make_chain< Chain< Ts... > >
 {
     using Type = typename make_chain_impl< Chain<>, Chain< Ts... > >::Type;
     // static constexpr const auto ID = std::array< mega::TypeID, std::size( Ts::ID... ) >{ Ts::ID... };
+};
+
+template < typename T >
+struct chain_head_impl
+{
+    using Type = T;
+};
+
+template < typename... Ts >
+struct chain_head_impl< Chain< Ts... > >
+{
+    using Type = typename typelist_head< Ts... >::Type;
+};
+
+template < typename TChain >
+struct chain_head
+{
+    using Type = typename chain_head_impl< TChain >::Type;
 };
 
 } // namespace ssa

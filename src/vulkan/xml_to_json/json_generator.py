@@ -233,9 +233,11 @@ class SSAJSONGenerator(OutputGenerator):
         ]
 
         typeID = 1
+        chainTypes = []
         for i, (struct, attr) in enumerate(self.structExtends.items()):
             if struct in ignoreStructDupes:
                 continue
+            chainTypes.append( struct )
             for chain in self.enumStructExtensionChains(struct):
                 json_data["chainTraits"].append(
                     {
@@ -267,10 +269,10 @@ class SSAJSONGenerator(OutputGenerator):
                     if member["name"] == "sType":
                         continue
 
-                    isChainType = False
+                    is_chain_tail = False
                     memberType = ""
                     if member["name"] == "pNext":
-                        isChainType = True
+                        is_chain_tail = True
                         memberType = "TChainTail"
                     elif member["is_array"]:
                         if member["type"] == "void":
@@ -279,10 +281,10 @@ class SSAJSONGenerator(OutputGenerator):
                             memberType = "const vk::SampleMask*"
                         elif member["type"] == "char":
                             if member["ref"] == 1:
-                                #memberType = "const std::string"
+                                # memberType = "const std::string"
                                 memberType = "const char*"
                             elif member["ref"] == 2:
-                                #memberType = "std::vector< std::string >"
+                                # memberType = "std::vector< std::string >"
                                 memberType = "std::vector< const char* >"
                             else:
                                 raise Exception("Unrecognised string array type")
@@ -299,9 +301,10 @@ class SSAJSONGenerator(OutputGenerator):
 
                     params.append(
                         {
-                            "chain": isChainType,
+                            "is_chain_tail": is_chain_tail,
                             "index": param_index,
                             "type": memberType,
+                            "is_type_chain": member["type"] in chainTypes,
                             "name": member["name"],
                             "optional": member["opt"] > 0,
                             "take_address": member["ref"] == 1
@@ -330,7 +333,6 @@ class SSAJSONGenerator(OutputGenerator):
                     if member["name"] == "sType":
                         continue
 
-                    isChainType = False
                     if member["is_array"]:
                         if member["type"] == "void":
                             memberType = "std::vector< char >"
@@ -353,6 +355,7 @@ class SSAJSONGenerator(OutputGenerator):
                         {
                             "index": param_index,
                             "type": memberType,
+                            "is_type_chain": member["type"] in chainTypes,
                             "name": member["name"],
                             "optional": member["opt"] > 0,
                             "take_address": member["ref"] == 1
@@ -489,7 +492,6 @@ class SSAJSONGenerator(OutputGenerator):
                             interpTakeAddress = True
 
                 is_result = False
-
                 if parameter["ref"] == 1:
                     if not parameter["const"]:
                         is_result = True
@@ -504,6 +506,7 @@ class SSAJSONGenerator(OutputGenerator):
                         {
                             "index": result_index,
                             "type": parameterType,
+                            "is_type_chain": parameter["type"] in chainTypes,
                             "name": parameter["name"],
                             "optional": False,  # parameter["opt"] > 0,
                         }
@@ -515,6 +518,7 @@ class SSAJSONGenerator(OutputGenerator):
                             "access": "results[ " + str(result_index) + "]",
                             "is_c_array": parameter["is_c_array"],
                             "take_address": interpTakeAddress,
+                            "name": parameter["name"],
                         }
                     )
                     result_index = result_index + 1
@@ -523,6 +527,7 @@ class SSAJSONGenerator(OutputGenerator):
                         {
                             "index": param_index,
                             "type": parameterType,
+                            "is_type_chain": parameter["type"] in chainTypes,
                             "name": parameter["name"],
                             "optional": False,  # parameter["opt"] > 0,
                         }
@@ -534,6 +539,7 @@ class SSAJSONGenerator(OutputGenerator):
                             "access": "parameters[ " + str(param_index) + "]",
                             "is_c_array": parameter["is_c_array"],
                             "take_address": interpTakeAddress,
+                            "name": parameter["name"],
                         }
                     )
                     param_index = param_index + 1
@@ -541,7 +547,7 @@ class SSAJSONGenerator(OutputGenerator):
             lastResult = {}
             if lastResultIsArray:
                 lastResult = interp[lastResultIndex]
-                results = results[:-1]
+                #results = results[:-1]
                 interp = interp[:lastResultIndex] + interp[lastResultIndex + 1 :]
 
             mainResultType = "Lazy< Void >"
@@ -596,7 +602,7 @@ class SSAJSONGenerator(OutputGenerator):
             if len(results) > 0:
                 for result in results:
                     commandResultType = (
-                        commandResultType + ", Lazy< " + result["type"] + " >"
+                        commandResultType + ", Lazy< TResult" + str(result["index"]) + " >"
                     )
             commandResultType = commandResultType + " >"
 
@@ -776,10 +782,19 @@ class SSAJSONGenerator(OutputGenerator):
             "VkCuModuleCreateInfoNVX",
             "VkCuLaunchInfoNVX",
             "VkDebugUtilsObjectTagInfoEXT",
-            "VkAccelerationStructureVersionInfoKHR"
+            "VkAccelerationStructureVersionInfoKHR",
         ]
 
         if typeName in ignoredStructs:
+            return
+
+        includedStructs = [
+            "VkRenderPassBeginInfo",
+            "VkSubpassBeginInfo",
+            "vkCmdBeginRenderPass",
+        ]
+
+        if typeName not in includedStructs:
             return
 
         returned_only = False
@@ -982,6 +997,24 @@ class SSAJSONGenerator(OutputGenerator):
         ]
 
         if name in commandIgnorList:
+            return
+
+        includedCommands = [
+            "vkCmdBeginRenderPass",
+            #"vkCmdNextSubpass",
+            #"vkCmdEndRenderPass",
+            #"vkCmdExecuteCommands",
+            #"vkCmdDebugMarkerBeginEXT",
+            #"vkCmdDebugMarkerEndEXT",
+            #"vkCmdDebugMarkerInsertEXT",
+            #"vkCmdExecuteGeneratedCommandsNV",
+            #"vkCmdPreprocessGeneratedCommandsNV",
+            #"vkCmdBindPipelineShaderGroupNV",
+            #"vkCmdPushDescriptorSetKHR",
+            "vkEnumerateInstanceExtensionProperties"
+        ]
+
+        if name not in includedCommands:
             return
 
         if "Destroy" in name:

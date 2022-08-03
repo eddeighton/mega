@@ -43,17 +43,32 @@ struct structureChainTraits< Chain< {% for type in chainTrait.types %}{{type}}{%
 {% if command.param_count > 0 %}
 template
 <
-{% for param in command.params %}
-    template< typename T{{param.index}} > class W{{param.index}}{% if not loop.is_last %}, {%endif%}
-
+{% for result in command.results %}
+    typename TResult{{result.index}} = {{result.type}},
 {% endfor %}
+{% for param in command.params %}
+    template< typename T{{param.index}} > class W{{param.index}},
+{% endfor %}
+{% for param in command.params %}
+{% if param.is_type_chain %}
+    typename T{{param.index}},
+    std::enable_if_t< check_param< {{param.type}}, typename chain_head< T{{param.index}} >::Type >::value, bool > = true,
+{% endif %}
+{% endfor %}
+{% for result in command.results %}
+{% if result.is_type_chain %}
+    typename T{{result.index}},
+    std::enable_if_t< check_param< {{result.type}}, typename chain_head< T{{result.index}} >::Type >::value, bool > = true,
+{% endif %}
+{% endfor %}
+    typename TDummy = void
 >
 {% endif %}
 inline {{ command.result_type }}
 {{ command.name }}
 (
 {% for param in command.params %}
-    const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
+    const W{{param.index}}<{% if param.is_type_chain %}T{{param.index}}{% else %}{{param.type}}{% endif %} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
 
 {% endfor %}
 )
@@ -68,13 +83,12 @@ inline {{ command.result_type }}
 {% endif %}
 {% endfor %}
 {% for result in command.results %}
-    Lazy< {{ result.type }} > {{ result.name }}{ Allocator::get().make_value< {{ result.type }} >() };
-{% endfor %}
-{% for result in command.results %}
+    Lazy< TResult{{result.index}} > {{ result.name }}{ Allocator::get().make< TResult{{result.index}} >() };
     pCommand->results.push_back( get_param( {{ result.name }} ) );
 {% endfor %}
     return std::make_tuple( {{ command.main_result }}{ pCommand }{% for result in command.results %}, {{ result.name }}{% endfor %} );
 }
+
 {% endfor %}
 
 /////////////////////////////////////////////////////////////
@@ -122,7 +136,7 @@ inline Lazy< {{ nonChainCtor.type }} >
 template
 <
 {% for param in chainCtor.params %}
-{% if not param.chain %}
+{% if not param.is_chain_tail %}
     template< typename T{{param.index}} > class W{{param.index}}{% if not loop.is_last %}, {%endif%}
 
 {% endif %}
@@ -133,7 +147,7 @@ inline Lazy< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >
 {{ chainCtor.name }}
 (
 {% for param in chainCtor.params %}
-{% if not param.chain %}
+{% if not param.is_chain_tail %}
     const W{{param.index}}< {{ param.type }} >& {{ param.name }}{% if not loop.is_last %}, {%endif%}
 
 {% endif %}
@@ -144,7 +158,7 @@ inline Lazy< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >
     typename TChain::Ptr pValue = Allocator::get().make_chain< TChain >();
     pValue->id = structureChainTraits< TChain >::ID;
 {% for param in chainCtor.params %}
-{% if not param.chain %}
+{% if not param.is_chain_tail %}
 {% if param.optional %}
     pValue->parameters.push_back( get_param_optional( {{ param.name }} ) );
 {% else %}
@@ -159,7 +173,7 @@ inline Lazy< typename make_chain< Chain< {{ chainCtor.type }} > >::Type >
 template
 <
 {% for param in chainCtor.params %}
-    template< typename T{{param.index}} > class W{{param.index}}{% if param.chain %}, typename TChainTail{% endif%}{% if not loop.is_last %}, {%endif%}
+    template< typename T{{param.index}} > class W{{param.index}}{% if param.is_chain_tail %}, typename TChainTail{% endif%}{% if not loop.is_last %}, {%endif%}
 
 {% endfor %}
 >
