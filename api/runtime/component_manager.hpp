@@ -3,10 +3,6 @@
 #define COMPONENT_MANAGER_20_JUNE_2022
 
 
-#include "service/protocol/common/project.hpp"
-
-#include "database/common/environment_archive.hpp"
-
 #include "boost/filesystem/path.hpp"
 #include "boost/dll/import.hpp"
 #include "boost/dll/alias.hpp"
@@ -24,11 +20,11 @@ class ComponentManager
 {
     using ComponentPath = boost::dll::fs::path;
 
-    struct FrontEndComponent
+    struct InterfaceComponent
     {
-        using Ptr = std::shared_ptr< FrontEndComponent >;
+        using Ptr = std::shared_ptr< InterfaceComponent >;
 
-        FrontEndComponent( const ComponentPath& path )
+        InterfaceComponent( const ComponentPath& path )
             : m_path( path )
             , m_library( path )
         {
@@ -41,7 +37,7 @@ class ComponentManager
 
     struct LinkComponent
     {
-        using Ptr = std::shared_ptr< FrontEndComponent >;
+        using Ptr = std::shared_ptr< LinkComponent >;
 
         LinkComponent( const ComponentPath& path )
             : m_path( path )
@@ -54,20 +50,17 @@ class ComponentManager
         boost::dll::shared_library m_library;
     };
 
-    using FrontEndComponentMap = std::map< ComponentPath, FrontEndComponent::Ptr >;
-    using LinkComponentMap     = std::map< ComponentPath, LinkComponent::Ptr >;
+    using InterfaceComponentMap = std::map< ComponentPath, InterfaceComponent::Ptr >;
+    using LinkComponentMap      = std::map< ComponentPath, LinkComponent::Ptr >;
 
 public:
     using Ptr = std::unique_ptr< ComponentManager >;
 
-    ComponentManager( const mega::network::Project& project );
+    ComponentManager();
     ~ComponentManager();
 
-    void reinitialise( const mega::network::Project& project );
-
 private:
-    std::unique_ptr< mega::io::ArchiveEnvironment > m_pArchive;
-    FrontEndComponentMap                            m_frontEndComponents;
+    InterfaceComponentMap                           m_interfaceComponents;
     LinkComponentMap                                m_linkComponents;
 };
 

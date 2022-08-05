@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include <boost/filesystem.hpp>
 
 #include <map>
@@ -31,136 +30,126 @@
 
 namespace
 {
-    using namespace std::chrono_literals;
+using namespace std::chrono_literals;
 
-    class ResourceManager
+class ResourceManager
+{
+    struct ResourceTimeStamp
     {
-        struct ResourceTimeStamp
+        std::time_t                timestamp;
+        mega::Resource::Ptr        resource;
+        mega::ResourceHandler::Ptr handler;
+    };
+
+    using ResourceMap                = std::map< mega::ResourcePath, ResourceTimeStamp >;
+    static constexpr auto DELAY_TIME = 500ms;
+
+    ResourceMap         m_resources;
+    std::thread         m_thread;
+    std::mutex          m_mutex;
+    std::atomic< bool > m_bContinue = true;
+
+public:
+    ResourceManager()
+        : m_thread( std::bind( &ResourceManager::thread_function, this ) )
+    {
+    }
+
+    ~ResourceManager()
+    {
+        m_bContinue = false;
+        m_thread.join();
+    }
+
+    const mega::Resource::Ptr get_resource( const mega::ResourcePath& resourcePath )
+    {
+        std::lock_guard             lock( m_mutex );
+        ResourceMap::const_iterator iFind = m_resources.find( resourcePath );
+        if ( iFind == m_resources.end() )
         {
-            std::time_t                 timestamp;
-            mega::Resource::Ptr           resource;
-            mega::ResourceHandler::Ptr    handler;
-        };
-        
-        using ResourceMap = std::map< mega::ResourcePath, ResourceTimeStamp >;
-        static constexpr auto DELAY_TIME = 500ms;
-        
-        ResourceMap         m_resources;
-        std::thread         m_thread;
-        std::mutex          m_mutex;
-        std::atomic< bool > m_bContinue = true;
-        
-    public:
-        ResourceManager()
-            :   m_thread( std::bind( &ResourceManager::thread_function, this ) )
-        {
-            
+            throw std::runtime_error( "Failed to locate resource: " + resourcePath );
         }
-        
-        ~ResourceManager()
+        return iFind->second.resource;
+    }
+
+    void set_resource_handler( const mega::ResourcePath& resourcePath, mega::ResourceHandler::Ptr pHandler )
+    {
+        std::lock_guard lock( m_mutex );
+
+        ResourceMap::const_iterator iFind = m_resources.find( resourcePath );
+        if ( iFind != m_resources.end() )
         {
-            m_bContinue = false;
-            m_thread.join();
+            throw std::runtime_error( "Resource manager already has handler for: " + resourcePath );
         }
-        
-        const mega::Resource::Ptr get_resource( const mega::ResourcePath& resourcePath )
+
+        const std::time_t   resource_timestamp = boost::filesystem::last_write_time( resourcePath );
+        mega::Resource::Ptr pResource          = pHandler->reload( resourcePath );
+
+        m_resources[ resourcePath ] = ResourceTimeStamp{ resource_timestamp, pResource, pHandler };
+        LOG( "Loaded resource: " << resourcePath );
+    }
+
+private:
+    void thread_function()
+    {
+        // VERY BAD NEWS - without the following pointless statement - some how this thread function is ELIMINATED by
+        // the compiler??
+        std::this_thread::sleep_for( DELAY_TIME );
+
+        while ( m_bContinue )
         {
-            std::lock_guard lock( m_mutex );
-            ResourceMap::const_iterator iFind = m_resources.find( resourcePath );
-            if( iFind == m_resources.end() )
             {
-                throw std::runtime_error( "Failed to locate resource: " + resourcePath );
-            }
-            return iFind->second.resource;
-        }
-        
-        void set_resource_handler( const mega::ResourcePath& resourcePath, mega::ResourceHandler::Ptr pHandler )
-        {
-            std::lock_guard lock( m_mutex );
-            
-            ResourceMap::const_iterator iFind = m_resources.find( resourcePath );
-            if( iFind != m_resources.end() )
-            {
-                throw std::runtime_error( "Resource manager already has handler for: " + resourcePath );
-            }
-            
-            const std::time_t resource_timestamp = boost::filesystem::last_write_time( resourcePath );
-            mega::Resource::Ptr pResource = pHandler->reload( resourcePath );
-            
-            m_resources[ resourcePath ] = ResourceTimeStamp{ resource_timestamp, pResource, pHandler };
-            LOG( "Loaded resource: " << resourcePath );
-        }
-        
-    private:
-        void thread_function()
-        {
-            //VERY BAD NEWS - without the following pointless statement - some how this thread function is ELIMINATED by the compiler??
-            std::this_thread::sleep_for( DELAY_TIME );
-            
-            while( m_bContinue )
-            {
+                std::lock_guard lock( m_mutex );
+
+                for ( ResourceMap::iterator i = m_resources.begin(), iEnd = m_resources.end(); i != iEnd; ++i )
                 {
-                    std::lock_guard lock( m_mutex );
-                
-                    for( ResourceMap::iterator 
-                        i = m_resources.begin(),
-                        iEnd = m_resources.end(); i!=iEnd; ++i )
+                    const mega::ResourcePath& resourcePath       = i->first;
+                    ResourceTimeStamp&        res                = i->second;
+                    const std::time_t         resource_timestamp = boost::filesystem::last_write_time( resourcePath );
+
+                    if ( res.timestamp != resource_timestamp )
                     {
-                        const mega::ResourcePath& resourcePath    = i->first;
-                        ResourceTimeStamp& res                  = i->second;
-                        const std::time_t resource_timestamp = 
-                            boost::filesystem::last_write_time( resourcePath );
-                        
-                        if( res.timestamp != resource_timestamp )
-                        {
-                            //found a resource to reload...
-                            res.timestamp = resource_timestamp;
-                            res.resource  = res.handler->reload( resourcePath );
-                            LOG( "Reloaded resource: " << resourcePath );
-                            break;
-                        }
+                        // found a resource to reload...
+                        res.timestamp = resource_timestamp;
+                        res.resource  = res.handler->reload( resourcePath );
+                        LOG( "Reloaded resource: " << resourcePath );
+                        break;
                     }
                 }
-                std::this_thread::sleep_for( DELAY_TIME );
             }
+            std::this_thread::sleep_for( DELAY_TIME );
         }
-        
-        
-    };
-    
-    ResourceManager g_resource_manager;
-    
-    
-}
+    }
+};
+
+ResourceManager g_resource_manager;
+
+} // namespace
 
 namespace mega
 {
-    Resource::~Resource()
-    {
-    }
-    
-    ResourceHandler::~ResourceHandler()
-    {
-    }
+Resource::~Resource() {}
 
-    mega::Resource::Ptr TextResourceHandler::reload( const mega::ResourcePath& path )
-    {
-        const boost::filesystem::path filePath = path;
-        std::ifstream inputFileStream( filePath.native().c_str(), std::ios::in );
-        if( !inputFileStream.good() )
-        {
-            ERR( "Failed to open file: " << filePath.string() );
-            throw std::runtime_error( "Failed to open fileL " + filePath.string() );
-        }
-        std::string fileContents( (std::istreambuf_iterator<char>( inputFileStream )),
-                                   std::istreambuf_iterator<char>() );
-                                   
-        std::shared_ptr< TextResource > pResource = std::make_shared< TextResource >();
-        pResource->m_str.swap( fileContents );
-        return pResource;
-    }
+ResourceHandler::~ResourceHandler() {}
 
+mega::Resource::Ptr TextResourceHandler::reload( const mega::ResourcePath& path )
+{
+    const boost::filesystem::path filePath = path;
+    std::ifstream                 inputFileStream( filePath.native().c_str(), std::ios::in );
+    if ( !inputFileStream.good() )
+    {
+        ERR( "Failed to open file: " << filePath.string() );
+        throw std::runtime_error( "Failed to open fileL " + filePath.string() );
+    }
+    std::string fileContents(
+        ( std::istreambuf_iterator< char >( inputFileStream ) ), std::istreambuf_iterator< char >() );
+
+    std::shared_ptr< TextResource > pResource = std::make_shared< TextResource >();
+    pResource->m_str.swap( fileContents );
+    return pResource;
 }
+
+} // namespace mega
 
 const mega::Resource::Ptr resource::get_resource( const mega::ResourcePath& resourcePath )
 {

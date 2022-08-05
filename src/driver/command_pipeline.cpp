@@ -47,8 +47,9 @@ namespace driver
 namespace pipeline
 {
 
-void runPipeline( const boost::filesystem::path& stashDir, const mega::utilities::ToolChain& toolChain,
-                  const mega::pipeline::Configuration& pipelineConfig )
+mega::network::PipelineResult runPipeline( const boost::filesystem::path&       stashDir,
+                                           const mega::utilities::ToolChain&    toolChain,
+                                           const mega::pipeline::Configuration& pipelineConfig )
 {
     VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
     task::Stash stash( stashDir );
@@ -57,12 +58,13 @@ void runPipeline( const boost::filesystem::path& stashDir, const mega::utilities
     mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( pipelineConfig, osLog );
     SPDLOG_INFO( "{}", osLog.str() );
 
-    bool bContinue = true;
+    mega::network::PipelineResult pipelineResult( true, "" );
+
     struct ProgressReport : public mega::pipeline::Progress
     {
-        bool& m_bContinue;
-        ProgressReport( bool& bContinue )
-            : m_bContinue( bContinue )
+        mega::network::PipelineResult& m_pipelineResult;
+        ProgressReport( mega::network::PipelineResult& pipelineResult )
+            : m_pipelineResult( pipelineResult )
         {
         }
         virtual void onStarted( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
@@ -70,10 +72,10 @@ void runPipeline( const boost::filesystem::path& stashDir, const mega::utilities
         virtual void onFailed( const std::string& strMsg )
         {
             SPDLOG_INFO( strMsg );
-            m_bContinue = false;
+            m_pipelineResult = mega::network::PipelineResult( false, strMsg );
         }
         virtual void onCompleted( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
-    } progressReporter( bContinue );
+    } progressReporter( pipelineResult );
 
     struct StashImpl : public mega::pipeline::Stash
     {
@@ -120,19 +122,21 @@ void runPipeline( const boost::filesystem::path& stashDir, const mega::utilities
     } dependencies( toolChain );
 
     mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
-    while ( !schedule.isComplete() && bContinue )
+    while ( !schedule.isComplete() && pipelineResult.getSuccess() )
     {
         bool bProgress = false;
         for ( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
         {
             pPipeline->execute( task, progressReporter, stashImpl, dependencies );
-            if ( !bContinue )
+            if ( !pipelineResult.getSuccess() )
                 break;
             schedule.complete( task );
             bProgress = true;
         }
         VERIFY_RTE_MSG( bProgress, "Failed to make progress executing pipeline" );
     }
+
+    return pipelineResult;
 }
 
 void command( bool bHelp, const std::vector< std::string >& args )
@@ -178,37 +182,42 @@ void command( bool bHelp, const std::vector< std::string >& args )
         mega::pipeline::Configuration pipelineConfig;
         boost::filesystem::loadAsciiFile( pipelineXML, pipelineConfig.data() );
 
-        if ( bRunLocally )
+        std::optional< mega::network::PipelineResult > pipelineResult;
         {
-            runPipeline( stashDir, toolchain, pipelineConfig );
-        }
-        else
-        {
-            try
+            if ( bRunLocally )
             {
-                mega::service::Terminal terminal;
-
-                SPDLOG_INFO( "Running pipeline using Megastructure service" );
+                pipelineResult = runPipeline( stashDir, toolchain, pipelineConfig );
+            }
+            else
+            {
                 try
                 {
-                    mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
-                    if ( !result.getSuccess() )
+                    mega::service::Terminal terminal;
+
+                    SPDLOG_INFO( "Running pipeline using Megastructure service" );
+                    try
                     {
-                        SPDLOG_INFO( "Pipeline failed: {}", result.getMessage() );
-                        THROW_RTE( "Pipeline failed: " << result.getMessage() );
+                        pipelineResult = terminal.PipelineRun( pipelineConfig );
+                    }
+                    catch ( std::exception& ex )
+                    {
+                        SPDLOG_INFO( "Megastructure service unavailable so running pipeline locally" );
+                        THROW_RTE( "Exception executing pipeline: " << ex.what() );
                     }
                 }
                 catch ( std::exception& ex )
                 {
                     SPDLOG_INFO( "Megastructure service unavailable so running pipeline locally" );
-                    THROW_RTE( "Exception executing pipeline: " << ex.what() );
+                    pipelineResult = runPipeline( stashDir, toolchain, pipelineConfig );
                 }
             }
-            catch ( std::exception& ex )
-            {
-                SPDLOG_INFO( "Megastructure service unavailable so running pipeline locally" );
-                runPipeline( stashDir, toolchain, pipelineConfig );
-            }
+        }
+
+        VERIFY_RTE_MSG( pipelineResult.has_value(), "Failed to get pipeline result" );
+        if ( !pipelineResult.value().getSuccess() )
+        {
+            SPDLOG_INFO( "Pipeline failed: {}", pipelineResult.value().getMessage() );
+            THROW_RTE( "Pipeline failed: " << pipelineResult.value().getMessage() );
         }
     }
 }

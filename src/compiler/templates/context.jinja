@@ -9,7 +9,7 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
     {
         data.instance = 0;
         data.type = 0;
-        data.timestamp = mega::INVALID_TIMESTAMP;
+        data.address = mega::INVALID_ADDRESS;
     };
     inline {{ name }}( const mega::reference& reference )
         :   data( reference )
@@ -35,21 +35,107 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
     {
         using TypePathCanonical = typename mega::CanonicaliseTypePath< TypePath >::Type;
         using ResultType = typename mega::result_type< {{ name }}, TypePath, Operation >::Type;
-        using FPtr = ResultType(*)( mega::reference, Args... );
-        static FPtr pRuntimeFunction = nullptr;
-        static void* pFuntimeVoidStart = nullptr;
-        
-        if( !pFuntimeVoidStart )
-        {
-            resolveInvocation( ID, 
-                mega::CanonicaliseTypePath< TypePath >::ID.data(), 
-                mega::CanonicaliseTypePath< TypePath >::ID.size(), 
-                Operation::ID, 
-                &pFuntimeVoidStart );
-            pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
-        }
 
-        return pRuntimeFunction( data, args... );
+        if constexpr ( std::is_same< Operation, __eg_ImpNoParams >::value )
+        {
+            using FPtr = ResultType(*)( mega::reference, Args... );
+            static FPtr pRuntimeFunction = nullptr;
+            static void* pFuntimeVoidStart = nullptr;
+            
+            if( !pFuntimeVoidStart )
+            {
+                resolveInvocation( ID, 
+                    mega::CanonicaliseTypePath< TypePath >::ID.data(), 
+                    mega::CanonicaliseTypePath< TypePath >::ID.size(), 
+                    Operation::ID, 
+                    &pFuntimeVoidStart );
+                pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
+            }
+
+            return pRuntimeFunction( data, args... );
+        }
+        if constexpr ( std::is_same< Operation, __eg_ImpParams >::value )
+        {
+            using FPtr = ResultType(*)( mega::reference, Args... );
+            static FPtr pRuntimeFunction = nullptr;
+            static void* pFuntimeVoidStart = nullptr;
+            
+            if( !pFuntimeVoidStart )
+            {
+                resolveInvocation( ID, 
+                    mega::CanonicaliseTypePath< TypePath >::ID.data(), 
+                    mega::CanonicaliseTypePath< TypePath >::ID.size(), 
+                    Operation::ID, 
+                    &pFuntimeVoidStart );
+                pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
+            }
+
+            return pRuntimeFunction( data, args... );
+        }
+        if constexpr ( std::is_same< Operation, Start >::value )
+        {
+            using FPtr = ResultType(*)( mega::reference, Args... );
+            static FPtr pRuntimeFunction = nullptr;
+            static void* pFuntimeVoidStart = nullptr;
+            
+            if( !pFuntimeVoidStart )
+            {
+                resolveInvocation( ID, 
+                    mega::CanonicaliseTypePath< TypePath >::ID.data(), 
+                    mega::CanonicaliseTypePath< TypePath >::ID.size(), 
+                    Operation::ID, 
+                    &pFuntimeVoidStart );
+                pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
+            }
+
+            return pRuntimeFunction( data, args... );
+        }
+        if constexpr ( std::is_same< Operation, Stop >::value )
+        {
+
+        }
+        if constexpr ( std::is_same< Operation, Pause >::value )
+        {
+
+        }
+        if constexpr ( std::is_same< Operation, Resume >::value )
+        {
+
+        }
+        if constexpr ( std::is_same< Operation, Wait >::value )
+        {
+
+        }
+        if constexpr ( std::is_same< Operation, Get >::value )
+        {
+            using FPtr = ResultType(*)( mega::reference, Args... );
+            static FPtr pRuntimeFunction = nullptr;
+            static void* pFuntimeVoidStart = nullptr;
+            
+            if( !pFuntimeVoidStart )
+            {
+                resolveInvocation( ID, 
+                    mega::CanonicaliseTypePath< TypePath >::ID.data(), 
+                    mega::CanonicaliseTypePath< TypePath >::ID.size(), 
+                    Operation::ID, 
+                    &pFuntimeVoidStart );
+                pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
+            }
+
+            return pRuntimeFunction( data, args... );
+        }
+        if constexpr ( std::is_same< Operation, Done >::value )
+        {
+
+        }
+        if constexpr ( std::is_same< Operation, Range >::value )
+        {
+
+        }
+        if constexpr ( std::is_same< Operation, Raw >::value )
+        {
+
+        }
     }
 {% for trait_struct in trait_structs %}
     struct [[clang::eg_type( {{ trait_struct.typeid }} )]]{{ trait_struct.name }};

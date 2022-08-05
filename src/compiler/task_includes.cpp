@@ -31,8 +31,8 @@ public:
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
         start( taskProgress, "Task_Include", astFile.path(), includeFilePath.path() );
 
-        //const task::DeterminantHash determinant(
-        //    { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ) } );
+        // const task::DeterminantHash determinant(
+        //     { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ) } );
 
         /*if ( m_environment.restore( includeFilePath, determinant ) )
         {
@@ -40,7 +40,7 @@ public:
             cached( taskProgress );
             return;
         }*/
-        
+
         {
             using namespace InterfaceAnalysisStage;
             using namespace InterfaceAnalysisStage::Interface;
@@ -56,9 +56,9 @@ public:
 
                 auto iter = megaDependencies.find( m_sourceFilePath );
                 VERIFY_RTE( iter != megaDependencies.end() );
-                auto        megaDep    = iter->second;
+                auto                                         megaDep      = iter->second;
                 const std::vector< mega::io::megaFilePath >& dependencies = megaDep->get_mega_source_files();
-            
+
                 {
                     std::set< mega::io::megaFilePath >  uniqueFiles;
                     std::set< boost::filesystem::path > uniqueIncludes;
@@ -112,7 +112,7 @@ public:
         }
 
         m_environment.setBuildHashCode( includeFilePath );
-        //m_environment.stash( includeFilePath, determinant );
+        // m_environment.stash( includeFilePath, determinant );
 
         succeeded( taskProgress );
     }
@@ -143,22 +143,34 @@ public:
         const task::DeterminantHash determinant(
             { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( includeFilePath ) } );
 
+        using namespace ParserStage;
+        Database               database( m_environment, m_sourceFilePath );
+        Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
+
         if ( m_environment.restore( pchPath, determinant ) )
         {
-            m_environment.setBuildHashCode( pchPath );
-            cached( taskProgress );
-            return;
+            // test if PCH is still valid
+            /*const std::string strCmd = mega::PCHVerification::make_includePCH_verification(
+                m_environment, m_toolChain, pComponent, pchPath )();
+            msg( taskProgress, strCmd );
+
+            const int iResult = boost::process::system( strCmd );
+            if ( iResult )
+            {
+                std::ostringstream os;
+                os << "PCH file: " << pchPath.path() << " out of date";
+                msg( taskProgress, os.str() );
+            }
+            else*/
+            {
+                m_environment.setBuildHashCode( pchPath );
+                cached( taskProgress );
+                return;
+            }
         }
-
-        using namespace ParserStage;
-
-        Database database( m_environment, m_sourceFilePath );
-
-        Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
         const std::string strCmd = mega::Compilation::make_includePCH_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath )();
-
         msg( taskProgress, strCmd );
 
         const int iResult = boost::process::system( strCmd );
@@ -295,7 +307,7 @@ public:
         }
 
         m_environment.setBuildHashCode( includeFilePath );
-        //m_environment.stash( includeFilePath, determinant );
+        // m_environment.stash( includeFilePath, determinant );
 
         succeeded( taskProgress );
     }
@@ -335,8 +347,10 @@ public:
         }
         VERIFY_RTE( pComponent );
 
-        const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( pComponent->get_build_dir(), pComponent->get_name() );
-        const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() );
+        const mega::io::GeneratedHPPSourceFilePath includeFilePath
+            = m_environment.Include( pComponent->get_build_dir(), pComponent->get_name() );
+        const mega::io::PrecompiledHeaderFile pchPath
+            = m_environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() );
         start( taskProgress, "Task_CPPIncludePCH", includeFilePath.path(), pchPath.path() );
 
         const task::DeterminantHash determinant(
@@ -349,8 +363,8 @@ public:
             return;
         }
 
-        const std::string strCmd = mega::Compilation::make_includePCH_compilation(
-            m_environment, m_toolChain, pComponent )();
+        const std::string strCmd
+            = mega::Compilation::make_includePCH_compilation( m_environment, m_toolChain, pComponent )();
 
         msg( taskProgress, strCmd );
 

@@ -409,7 +409,7 @@ namespace
             else
             {
                 //TODO - need to analyse how stopperStopped is called...
-                //ERR( "Scheduler::stopperStopped with no active action for type: " << ref.type << " instance: " << ref.instance << " timestamp: " << ref.timestamp );
+                //ERR( "Scheduler::stopperStopped with no active action for type: " << ref.type << " instance: " << ref.instance << " address: " << ref.address );
             }
         }
         
@@ -438,11 +438,11 @@ namespace
             if( insertResult.second )
             {
                 active_insert( insertResult.first );
-                //LOG( "Scheduler::call type: " << ref.type << " instance: " << ref.instance << " timestamp: " << ref.timestamp );
+                //LOG( "Scheduler::call type: " << ref.type << " instance: " << ref.instance << " address: " << ref.address );
             }
             else
             {
-                ERR( "Scheduler::call failed type: " << ref.type << " instance: " << ref.instance << " timestamp: " << ref.timestamp );
+                ERR( "Scheduler::call failed type: " << ref.type << " instance: " << ref.instance << " address: " << ref.address );
                 delete pAction;
             }
         }
@@ -624,8 +624,8 @@ namespace
                 mega::reference ref = i->first;
                 ActiveAction* pAction = i->second->second;
                 //error
-                ERR( "Never got event: " << ref.instance << " " << ref.type << " " << ref.timestamp << " for action: " 
-                     << pAction->ref.instance << " " << pAction->ref.type << " " << pAction->ref.timestamp );
+                ERR( "Never got event: " << ref.instance << " " << ref.type << " " << ref.address << " for action: " 
+                     << pAction->ref.instance << " " << pAction->ref.type << " " << pAction->ref.address );
                 stop( pAction->ref );
             }
             

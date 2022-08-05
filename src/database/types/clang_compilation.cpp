@@ -8,6 +8,42 @@
 
 namespace mega
 {
+/*
+std::string PCHVerification::operator()() const
+{
+    std::ostringstream osCmd;
+
+    // the compiler itself
+    osCmd << compiler.native() << " ";
+
+    // flags
+    for ( const std::string& flag : flags )
+    {
+        VERIFY_RTE( !flag.empty() );
+        osCmd << "-" << flag << " ";
+    }
+
+    // defines
+    for ( const std::string& strDefine : defines )
+    {
+        VERIFY_RTE( !strDefine.empty() );
+        osCmd << "-D" << strDefine << " ";
+    }
+
+    // include directories
+    for ( const boost::filesystem::path& includeDir : includeDirs )
+    {
+        osCmd << "-I " << includeDir.native() << " ";
+    }
+
+    // ensure no round trip debug cmd line handling in clang
+    osCmd << "-Xclang -no-round-trip-args ";
+
+    osCmd << " -verify-pch " << inputPCHFilePath.native();
+
+    return osCmd.str();
+}
+*/
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////

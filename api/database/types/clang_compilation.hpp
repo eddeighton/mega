@@ -20,7 +20,45 @@
 
 namespace mega
 {
-struct Compilation
+
+/*
+
+TODO: This does not work - clang just crashes when use -verify-pch
+
+class PCHVerification
+{
+    boost::filesystem::path compiler;
+    std::vector< std::string >               flags;
+    std::vector< std::string >               defines;
+    std::vector< boost::filesystem::path >   includeDirs;
+
+    boost::filesystem::path inputPCHFilePath;
+
+    PCHVerification() {}
+public:
+    std::string operator()() const;
+
+    template < typename TComponentType >
+    static inline PCHVerification
+    make_includePCH_verification( const io::BuildEnvironment& environment, const utilities::ToolChain& toolChain,
+                                 TComponentType* pComponent, const io::PrecompiledHeaderFile& pchFile )
+    {
+        PCHVerification verification;
+
+        verification.compiler = toolChain.clangCompilerPath;
+
+        verification.flags       = pComponent->get_cpp_flags();
+        verification.defines     = pComponent->get_cpp_defines();
+        verification.includeDirs = pComponent->get_include_directories();
+
+        verification.inputPCHFilePath = environment.FilePath( pchFile );
+
+        return verification;
+    }
+};
+*/
+
+class Compilation
 {
     boost::filesystem::path                  compiler;
     std::optional< boost::filesystem::path > compiler_plugin;
@@ -36,6 +74,11 @@ struct Compilation
 
     std::optional< mega::CompilationMode >   compilationMode;
     std::optional< boost::filesystem::path > srcDir, buildDir, sourceFile;
+
+    Compilation() {}
+public:
+
+    std::string operator()() const;
 
     template < typename TComponentType >
     static inline Compilation
@@ -55,6 +98,7 @@ struct Compilation
 
         return compilation;
     }
+
 
     template < typename TComponentType >
     static inline Compilation make_includePCH_compilation( const io::BuildEnvironment& environment,
@@ -201,11 +245,6 @@ struct Compilation
 
         return compilation;
     }
-
-    std::string operator()() const;
-
-private:
-    Compilation() {}
 };
 
 } // namespace mega

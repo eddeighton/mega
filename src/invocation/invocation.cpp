@@ -445,6 +445,8 @@ void printIContextFullType( OperationsStage::Interface::IContext* pContext, std:
 OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::invocation::ID& id,
                                                     Database& database, const mega::io::megaFilePath& sourceFile )
 {
+    //std::cout << "Found invocation: " << id << std::endl;
+    
     const mega::io::manifestFilePath manifestFile = environment.project_manifest();
     Symbols::SymbolTable*            pSymbolTable = database.one< Symbols::SymbolTable >( manifestFile );
 

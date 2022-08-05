@@ -84,15 +84,15 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
 {
     inline __eg_variant()
     {
-        data.timestamp = mega::INVALID_TIMESTAMP;
+        data.address = mega::INVALID_ADDRESS;
     }
     
     inline __eg_variant( const Event& from )
     {
         //when convert from event need to check runtime type against all __eg_variant types
-        if( ( from.data.timestamp == mega::INVALID_TIMESTAMP ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
+        if( ( from.data.address == mega::INVALID_ADDRESS ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
         {
-            data.timestamp = mega::INVALID_TIMESTAMP;
+            data.address = mega::INVALID_ADDRESS;
         }
         else 
         {
@@ -110,9 +110,9 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
     inline __eg_variant& operator=( const Event& from )
     {
         //when convert from event need to check runtime type against all __eg_variant types
-        if( ( from.data.timestamp == mega::INVALID_TIMESTAMP ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
+        if( ( from.data.address == mega::INVALID_ADDRESS ) || !mega::variant_runtime_type_check< Ts... >::test( from ) )
         {
-            data.timestamp = mega::INVALID_TIMESTAMP;
+            data.address = mega::INVALID_ADDRESS;
         }
         else 
         {
@@ -149,7 +149,7 @@ struct [[clang::eg_type( mega::id_Variant )]] __eg_variant
     
     inline operator const void*() const
     {
-        if( data.timestamp != mega::INVALID_TIMESTAMP )
+        if( data.address != mega::INVALID_ADDRESS )
         {
             return reinterpret_cast< const void* >( &data );
         }
