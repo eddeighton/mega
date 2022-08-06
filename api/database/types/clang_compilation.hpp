@@ -21,9 +21,9 @@
 namespace mega
 {
 
-/*
 
-TODO: This does not work - clang just crashes when use -verify-pch
+
+//TODO: This does not work - clang just crashes when use -verify-pch
 
 class PCHVerification
 {
@@ -56,7 +56,7 @@ public:
         return verification;
     }
 };
-*/
+
 
 class Compilation
 {

@@ -8,13 +8,13 @@
 
 namespace mega
 {
-/*
+
 std::string PCHVerification::operator()() const
 {
     std::ostringstream osCmd;
 
     // the compiler itself
-    osCmd << compiler.native() << " ";
+    osCmd << compiler.native() << " -x c++ ";
 
     // flags
     for ( const std::string& flag : flags )
@@ -43,7 +43,7 @@ std::string PCHVerification::operator()() const
 
     return osCmd.str();
 }
-*/
+
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////

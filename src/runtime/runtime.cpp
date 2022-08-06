@@ -69,28 +69,32 @@ class Runtime
             using namespace FinalStage;
             using InvocationMap = std::map< mega::invocation::ID, Operations::Invocation* >;
 
-            for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
             {
-                const Operations::Invocations* pInvocations
-                    = m_database.one< Operations::Invocations >( sourceFilePath );
-                const InvocationMap invocations = pInvocations->get_invocations();
-                InvocationMap::const_iterator iFind = invocations.find( invocation );
-                if ( iFind != invocations.end() )
+                for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
                 {
-                    const Operations::Invocation* pInvocation = iFind->second;
-                    return pInvocation;
+                    const Operations::Invocations* pInvocations
+                        = m_database.one< Operations::Invocations >( sourceFilePath );
+                    const InvocationMap           invocations = pInvocations->get_invocations();
+                    InvocationMap::const_iterator iFind       = invocations.find( invocation );
+                    if ( iFind != invocations.end() )
+                    {
+                        const Operations::Invocation* pInvocation = iFind->second;
+                        return pInvocation;
+                    }
                 }
             }
-            for ( const mega::io::cppFilePath& sourceFilePath : m_manifest.getCppSourceFiles() )
             {
-                const Operations::Invocations* pInvocations
-                    = m_database.one< Operations::Invocations >( sourceFilePath );
-                const InvocationMap invocations = pInvocations->get_invocations();
-                InvocationMap::const_iterator iFind = invocations.find( invocation );
-                if ( iFind != invocations.end() )
+                for ( const mega::io::cppFilePath& sourceFilePath : m_manifest.getCppSourceFiles() )
                 {
-                    const Operations::Invocation* pInvocation = iFind->second;
-                    return pInvocation;
+                    const Operations::Invocations* pInvocations
+                        = m_database.one< Operations::Invocations >( sourceFilePath );
+                    const InvocationMap           invocations = pInvocations->get_invocations();
+                    InvocationMap::const_iterator iFind       = invocations.find( invocation );
+                    if ( iFind != invocations.end() )
+                    {
+                        const Operations::Invocation* pInvocation = iFind->second;
+                        return pInvocation;
+                    }
                 }
             }
             THROW_RTE( "Failed to resolve invocation: " << invocation );

@@ -150,7 +150,7 @@ public:
         if ( m_environment.restore( pchPath, determinant ) )
         {
             // test if PCH is still valid
-            /*const std::string strCmd = mega::PCHVerification::make_includePCH_verification(
+            const std::string strCmd = mega::PCHVerification::make_includePCH_verification(
                 m_environment, m_toolChain, pComponent, pchPath )();
             msg( taskProgress, strCmd );
 
@@ -161,7 +161,7 @@ public:
                 os << "PCH file: " << pchPath.path() << " out of date";
                 msg( taskProgress, os.str() );
             }
-            else*/
+            else
             {
                 m_environment.setBuildHashCode( pchPath );
                 cached( taskProgress );
