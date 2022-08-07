@@ -6028,6 +6028,7 @@ namespace Operations
         loader.load( name );
         loader.load( context_str );
         loader.load( type_path_str );
+        loader.load( explicit_operation );
         loader.load( return_type_str );
         loader.load( name_resolution );
         loader.load( root_variable );
@@ -6045,6 +6046,8 @@ namespace Operations
         storer.store( name );
         storer.store( context_str );
         storer.store( type_path_str );
+        VERIFY_RTE_MSG( explicit_operation.has_value(), "Operations::Operations_Invocation.explicit_operation has NOT been set" );
+        storer.store( explicit_operation );
         VERIFY_RTE_MSG( return_type_str.has_value(), "Operations::Operations_Invocation.return_type_str has NOT been set" );
         storer.store( return_type_str );
         VERIFY_RTE_MSG( name_resolution.has_value(), "Operations::Operations_Invocation.name_resolution has NOT been set" );
@@ -6101,6 +6104,11 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "type_path_str", type_path_str } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "explicit_operation", explicit_operation.value() } } );
             part[ "properties" ].push_back( property );
         }
         {

@@ -2315,6 +2315,7 @@ namespace Operations
         std::string name;
         std::string context_str;
         std::string type_path_str;
+        std::optional< mega::ExplicitOperationID > explicit_operation;
         std::optional< std::string > return_type_str;
         std::optional< data::Ptr< data::Operations::Operations_NameResolution > > name_resolution;
         std::optional< data::Ptr< data::Operations::Invocations_Variables_Context > > root_variable;

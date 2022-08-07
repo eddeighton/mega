@@ -121,23 +121,27 @@ public:
         {
             m_componentManager = std::make_unique< mega::runtime::ComponentManager >();
         }
+        
+        m_database.reset();
 
         try
         {
-            m_database.reset();
-            m_database.reset( new DatabaseInstance( project.getProjectDatabase() ) );
-
-            SPDLOG_INFO( "ComponentManager initialised with project: {}", project.getProjectInstallPath().string() );
-
-            m_bInitialised = true;
+            if( boost::filesystem::exists( project.getProjectDatabase() ) )
+            {
+                m_database.reset( new DatabaseInstance( project.getProjectDatabase() ) );
+                SPDLOG_INFO( "ComponentManager initialised with project: {}", project.getProjectInstallPath().string() );
+                m_bInitialised = true;
+            }
         }
         catch ( mega::io::DatabaseVersionException& ex )
         {
+            m_bInitialised = false;
             SPDLOG_ERROR( "ComponentManager failed to initialise project: {} database version exception: {}",
                           project.getProjectInstallPath().string(), ex.what() );
         }
         catch ( std::exception& ex )
         {
+            m_bInitialised = false;
             SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
                           project.getProjectInstallPath().string(), ex.what() );
         }

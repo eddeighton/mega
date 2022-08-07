@@ -7,6 +7,7 @@
 
 #include "database/types/clang_compilation.hpp"
 
+#include "database/types/operation.hpp"
 #include "database/types/sources.hpp"
 
 #include "utilities/clang_format.hpp"
@@ -306,11 +307,10 @@ public:
                                                    m_environment.FilePath( m_sourceFilePath ) } );
 
         const bool bRestoredHPP = m_environment.restore( tempHPPFile, determinant );
-        if( bRestoredHPP )
+        if ( bRestoredHPP )
             m_environment.setBuildHashCode( tempHPPFile );
 
-        if ( m_environment.restore( cppPCHFile, determinant )
-             && m_environment.restore( compilationFile, determinant ) )
+        if ( m_environment.restore( cppPCHFile, determinant ) && m_environment.restore( compilationFile, determinant ) )
         {
             m_environment.setBuildHashCode( cppPCHFile );
             m_environment.setBuildHashCode( compilationFile );
@@ -318,9 +318,18 @@ public:
             return;
         }
 
-        if( ! bRestoredHPP )
+        if ( !bRestoredHPP )
         {
-            boost::filesystem::copy( m_environment.FilePath( m_sourceFilePath ), m_environment.FilePath( tempHPPFile ) );
+            const auto tempHppFilePath = m_environment.FilePath( tempHPPFile );
+            const auto srcCppFilePath  = m_environment.FilePath( m_sourceFilePath );
+            if ( boost::filesystem::exists( tempHppFilePath ) )
+            {
+                if ( common::Hash( tempHppFilePath ) != common::Hash( srcCppFilePath ) )
+                {
+                    boost::filesystem::remove( tempHppFilePath );
+                    boost::filesystem::copy( srcCppFilePath, tempHppFilePath );
+                }
+            }
             m_environment.setBuildHashCode( tempHPPFile );
             m_environment.stash( tempHPPFile, determinant );
         }
@@ -471,6 +480,8 @@ public:
                           { "context", pInvocation->get_context_str() },
                           { "type_path", pInvocation->get_type_path_str() },
                           { "operation", mega::getOperationString( pInvocation->get_operation() ) },
+                          { "explicit_operation",
+                            mega::getExplicitOperationString( pInvocation->get_explicit_operation() ) },
                           { "impl", "" } } );
 
                     implData[ "invocations" ].push_back( invocation );

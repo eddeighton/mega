@@ -23,6 +23,36 @@ struct __invoke_impl
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
     {
+{% if invocation.explicit_operation == "Read" %}
+        // Read
+{% else if invocation.explicit_operation == "Write" %}
+        // Write
+{% else if invocation.explicit_operation == "Call" %}
+        // Call
+{% else if invocation.explicit_operation == "Start" %}
+        // Start
+{% else if invocation.explicit_operation == "Stop" %}
+        // Stop
+{% else if invocation.explicit_operation == "Pause" %}
+        // Pause
+{% else if invocation.explicit_operation == "Resume" %}
+        // Resume
+{% else if invocation.explicit_operation == "WaitAction" %}
+        // WaitAction
+{% else if invocation.explicit_operation == "WaitDimension" %}
+        // WaitDimension
+{% else if invocation.explicit_operation == "GetAction" %}
+        // GetAction
+{% else if invocation.explicit_operation == "GetDimension" %}
+        // GetDimension
+{% else if invocation.explicit_operation == "Done" %}
+        // Done
+{% else if invocation.explicit_operation == "Range" %}
+        // Range
+{% else if invocation.explicit_operation == "Raw" %}
+        // Raw
+{% endif %}
+
         {{ invocation.impl }}
     }
 };

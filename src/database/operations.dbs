@@ -60,12 +60,18 @@ namespace Operations
         value< std::string > name;
         value< std::string > context_str;
         value< std::string > type_path_str;
+
+        late< value< mega::ExplicitOperationID > > explicit_operation;
         late< value< std::string > > return_type_str;
 
         late< ref< NameResolution > > name_resolution;
 
         late< ref< Invocations::Variables::Context > > root_variable;
         late< ref< Invocations::Instructions::Root > > root_instruction;
+
+        //late< array< ref< Invocations::Operations::Operation > > > operations;
+        //late< array< ref< Invocations::Variables::Variable > > > variables;
+        //late< array< ref< Invocations::Instructions::Instruction > > > instructions;
 
         late< array< ref< Interface::IContext > > > return_types_context;
         late< array< ref< Interface::DimensionTrait > > > return_types_dimension;

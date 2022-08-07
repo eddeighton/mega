@@ -442,11 +442,147 @@ void printIContextFullType( OperationsStage::Interface::IContext* pContext, std:
     }
 }
 
+void setOrCheck( std::optional< ExplicitOperationID >& resultOpt, ExplicitOperationID value )
+{
+    if ( !resultOpt.has_value() )
+        resultOpt = value;
+    else
+        VERIFY_RTE_MSG( resultOpt.value() == value, "Conflicting explicit operation type found" );
+}
+ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
+{
+    std::optional< ExplicitOperationID > resultOpt;
+
+    using namespace OperationsStage::Invocations::Operations;
+    std::vector< Operation* > operations;
+    getOperations( pInvocation->get_root_instruction(), operations );
+    for ( auto pOperation : operations )
+    {
+        bool bFound = false;
+        if ( !bFound )
+        {
+            if ( Call* pOp = dynamic_database_cast< Call >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Call );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( Start* pOp = dynamic_database_cast< Start >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Start );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( Stop* pOp = dynamic_database_cast< Stop >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Stop );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( Pause* pOp = dynamic_database_cast< Pause >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Pause );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( Resume* pOp = dynamic_database_cast< Resume >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Resume );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( Done* pOp = dynamic_database_cast< Done >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Done );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( WaitAction* pOp = dynamic_database_cast< WaitAction >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_WaitAction );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( WaitDimension* pOp = dynamic_database_cast< WaitDimension >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_WaitDimension );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( GetAction* pOp = dynamic_database_cast< GetAction >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_GetAction );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( GetDimension* pOp = dynamic_database_cast< GetDimension >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_GetDimension );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( Read* pOp = dynamic_database_cast< Read >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Read );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( Write* pOp = dynamic_database_cast< Write >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Write );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( WriteLink* pOp = dynamic_database_cast< WriteLink >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Write );
+                bFound = true;
+            }
+        }
+        if ( !bFound )
+        {
+            if ( Range* pOp = dynamic_database_cast< Range >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Range );
+                bFound = true;
+            }
+        }
+    }
+
+    VERIFY_RTE_MSG( resultOpt.has_value(),
+                    "Failed to determine explicit operation type for invocation: " << pInvocation->get_name() );
+    return resultOpt.value();
+}
+
 OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::invocation::ID& id,
                                                     Database& database, const mega::io::megaFilePath& sourceFile )
 {
-    //std::cout << "Found invocation: " << id << std::endl;
-    
+    // std::cout << "Found invocation: " << id << std::endl;
+
     const mega::io::manifestFilePath manifestFile = environment.project_manifest();
     Symbols::SymbolTable*            pSymbolTable = database.one< Symbols::SymbolTable >( manifestFile );
 
@@ -580,6 +716,9 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
 
     // 4. Build the instructions
     build( database, pInvocation );
+
+    // 5. Analyse result
+    pInvocation->set_explicit_operation( determineExplicitOperationType( pInvocation ) );
 
     std::vector< Interface::IContext* >       contexts   = pInvocation->get_return_types_context();
     std::vector< Interface::DimensionTrait* > dimensions = pInvocation->get_return_types_dimension();
