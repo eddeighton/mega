@@ -1,0 +1,46 @@
+
+#include <typeinfo>
+
+template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType >
+struct __invoke_impl{
+    template< typename... Args >
+    inline ResultType operator()( ContextType, Args... )
+    {
+        static_assert( 0 && typeid( ResultType ).name() && typeid( ContextType ).name() && typeid( TypePathType ).name(), "Critical error: Invocation system failed to match implementation" );
+    }
+};
+
+{% for invocation in invocations %}
+template<>
+struct __invoke_impl
+<
+    {{ invocation.return_type }},
+    {{ invocation.context }},
+    {{ invocation.type_path }},
+    {{ invocation.operation }}
+>
+{
+    template< typename... Args >
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
+    {
+        {{ invocation.impl }}
+    }
+};
+{% endfor %}
+
+//mega::CanonicaliseTypePath< TypePath >::ID.data(), 
+//mega::CanonicaliseTypePath< TypePath >::ID.size(), 
+
+template< typename Context, typename TypePath, typename Operation, typename... Args >
+static void invoke_impl_void( Context context, Args... args )
+{
+    using TypePathCanonical = typename mega::CanonicaliseTypePath< TypePath >::Type;
+    __invoke_impl< void, Context, TypePathCanonical, Operation >()( context, args... );
+}
+
+template< typename ResultType, typename Context, typename TypePath, typename Operation, typename... Args >
+static ResultType invoke_impl( Context context, Args... args )
+{
+    using TypePathCanonical = typename mega::CanonicaliseTypePath< TypePath >::Type;
+    return __invoke_impl< ResultType, Context, TypePathCanonical, Operation >()( context, args... );
+}

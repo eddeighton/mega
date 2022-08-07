@@ -22,6 +22,7 @@ sleep 1
 
 ./executor --level info --console error &
 
-tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|warn|error" --color=none
+#tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|warn|error" --color=none
 #tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|MSG|warn|error" --color=none
 
+tail -f ./log/root*

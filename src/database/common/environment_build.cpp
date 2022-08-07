@@ -63,6 +63,14 @@ BuildEnvironment::Path BuildEnvironment::OperationsTemplate() const
     return result;
 }
 
+BuildEnvironment::Path BuildEnvironment::ImplementationTemplate() const
+{
+    VERIFY_RTE( !m_directories.templatesDir.empty() );
+    Path result = m_directories.templatesDir / "impl.jinja";
+    VERIFY_RTE_MSG( boost::filesystem::exists( result ), "Cannot locate inja template: " << result.string() );
+    return result;
+}
+
 GeneratedHPPSourceFilePath BuildEnvironment::Include( const megaFilePath& source ) const
 {
     std::ostringstream os;
@@ -99,6 +107,42 @@ PrecompiledHeaderFile BuildEnvironment::InterfacePCH( const megaFilePath& source
     return PrecompiledHeaderFile( dirPath / os.str() );
 }
 
+GeneratedHPPSourceFilePath BuildEnvironment::Operations( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".operations" << GeneratedHPPSourceFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return GeneratedHPPSourceFilePath( dirPath / os.str() );
+}
+
+PrecompiledHeaderFile BuildEnvironment::OperationsPCH( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".operations" << PrecompiledHeaderFile::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return PrecompiledHeaderFile( dirPath / os.str() );
+}
+
+GeneratedCPPSourceFilePath BuildEnvironment::Implementation( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".impl" << GeneratedCPPSourceFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return GeneratedCPPSourceFilePath( dirPath / os.str() );
+}
+
+ObjectFilePath BuildEnvironment::ImplementationObj( const megaFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << ".impl" << ObjectFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return ObjectFilePath( dirPath / os.str() );
+}
+
 GeneratedHPPSourceFilePath BuildEnvironment::Include( const boost::filesystem::path& componentBuildDir,
                                                       const std::string&             strComponentName ) const
 {
@@ -130,25 +174,34 @@ PrecompiledHeaderFile BuildEnvironment::InterfacePCH( const boost::filesystem::p
     return PrecompiledHeaderFile( boost::filesystem::relative( componentBuildDir, m_directories.buildDir ) / os.str() );
 }
 
-GeneratedCPPSourceFilePath BuildEnvironment::Operations( const megaFilePath& source ) const
+GeneratedHPPSourceFilePath BuildEnvironment::CPPTempHpp( const cppFilePath& source ) const
 {
     std::ostringstream os;
-    os << source.path().filename().string() << ".operations" << GeneratedCPPSourceFilePath::extension().string();
+    os << source.path().filename().string() << GeneratedHPPSourceFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return GeneratedHPPSourceFilePath( dirPath / os.str() );
+}
+
+PrecompiledHeaderFile BuildEnvironment::CPPPCH( const cppFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << PrecompiledHeaderFile::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return PrecompiledHeaderFile( dirPath / os.str() );
+}
+
+GeneratedCPPSourceFilePath BuildEnvironment::CPPImplementation( const cppFilePath& source ) const
+{
+    std::ostringstream os;
+    os << source.path().filename().string() << GeneratedCPPSourceFilePath::extension().string();
     auto dirPath = source.path();
     dirPath.remove_filename();
     return GeneratedCPPSourceFilePath( dirPath / os.str() );
 }
 
-ObjectFilePath BuildEnvironment::OperationsObj( const megaFilePath& source ) const
-{
-    std::ostringstream os;
-    os << source.path().filename().string() << ".operations" << ObjectFilePath::extension().string();
-    auto dirPath = source.path();
-    dirPath.remove_filename();
-    return ObjectFilePath( dirPath / os.str() );
-}
-
-ObjectFilePath BuildEnvironment::Obj( const cppFilePath& source ) const
+ObjectFilePath BuildEnvironment::CPPObj( const cppFilePath& source ) const
 {
     std::ostringstream os;
     os << source.path().filename().string() << ObjectFilePath::extension().string();

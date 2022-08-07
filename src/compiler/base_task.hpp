@@ -89,7 +89,7 @@ public:
     virtual ~BaseTask() {}
 
     const std::string& getTaskName() const { return m_strTaskName; }
-    bool isCompleted() const { return m_bCompleted; }
+    bool               isCompleted() const { return m_bCompleted; }
 
     template < typename TComponentType, typename TDatabase >
     TComponentType* getComponent( TDatabase& database, const mega::io::SourceFilePath& sourceFilePath ) const
@@ -97,17 +97,17 @@ public:
         TComponentType* pComponent = nullptr;
         for ( TComponentType* pIter : database.template many< TComponentType >( m_environment.project_manifest() ) )
         {
-            for( const mega::io::megaFilePath& megaSourceFile : pIter->get_mega_source_files() )
+            for ( const mega::io::megaFilePath& megaSourceFile : pIter->get_mega_source_files() )
             {
-                if( sourceFilePath == megaSourceFile )
+                if ( sourceFilePath == megaSourceFile )
                 {
                     pComponent = pIter;
                     break;
                 }
             }
-            for( const mega::io::cppFilePath& cppSourceFile : pIter->get_cpp_source_files() )
+            for ( const mega::io::cppFilePath& cppSourceFile : pIter->get_cpp_source_files() )
             {
-                if( sourceFilePath == cppSourceFile )
+                if ( sourceFilePath == cppSourceFile )
                 {
                     pComponent = pIter;
                     break;
@@ -119,6 +119,47 @@ public:
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress ) = 0;
+
+    int run_cmd( mega::pipeline::Progress& taskProgress, const std::string& strCmd )
+    {
+        std::ostringstream os;
+        os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nCMD    : " << strCmd;
+
+        namespace bp = boost::process;
+
+        bp::ipstream errStream, outStream; // reading pipe-stream
+        bp::child    c( strCmd, bp::std_out > outStream, bp::std_err > errStream );
+
+        std::string strOutputLine;
+        while ( c.running() && std::getline( outStream, strOutputLine ) )
+        {
+            if ( !strOutputLine.empty() )
+            {
+                os << "\nOUT    : " << strOutputLine;
+            }
+        }
+
+        c.wait();
+
+        os << common::COLOUR_END;
+        taskProgress.onProgress( os.str() );
+
+        if ( c.exit_code() )
+        {
+            std::ostringstream osError;
+            osError << common::COLOUR_RED_BEGIN << "FAILED : " << m_strTaskName;
+            while ( errStream && std::getline( errStream, strOutputLine ) )
+            {
+                if ( !strOutputLine.empty() )
+                {
+                    osError << "\nERROR  : " << strOutputLine;
+                }
+            }
+            osError << common::COLOUR_END;
+            taskProgress.onProgress( osError.str() );
+        }
+        return c.exit_code();
+    }
 
     void start( mega::pipeline::Progress& taskProgress, const char* pszName, const boost::filesystem::path& fromPath,
                 const boost::filesystem::path& toPath )
@@ -170,7 +211,8 @@ public:
     void msg( mega::pipeline::Progress& taskProgress, const std::string& strMsg )
     {
         std::ostringstream os;
-        os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nMSG    : " << strMsg << common::COLOUR_END;
+        os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nMSG    : " << strMsg
+           << common::COLOUR_END;
         taskProgress.onProgress( os.str() );
     }
 };

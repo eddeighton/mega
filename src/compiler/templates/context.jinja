@@ -33,108 +33,14 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
     template< typename TypePath, typename Operation, typename... Args >
     inline typename mega::result_type< {{ name }}, TypePath, Operation >::Type invoke( Args... args ) const
     {
-        using TypePathCanonical = typename mega::CanonicaliseTypePath< TypePath >::Type;
         using ResultType = typename mega::result_type< {{ name }}, TypePath, Operation >::Type;
-
-        if constexpr ( std::is_same< Operation, __eg_ImpNoParams >::value )
+        if constexpr ( std::is_same< ResultType, void >::value )
         {
-            using FPtr = ResultType(*)( mega::reference, Args... );
-            static FPtr pRuntimeFunction = nullptr;
-            static void* pFuntimeVoidStart = nullptr;
-            
-            if( !pFuntimeVoidStart )
-            {
-                resolveInvocation( ID, 
-                    mega::CanonicaliseTypePath< TypePath >::ID.data(), 
-                    mega::CanonicaliseTypePath< TypePath >::ID.size(), 
-                    Operation::ID, 
-                    &pFuntimeVoidStart );
-                pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
-            }
-
-            return pRuntimeFunction( data, args... );
+            invoke_impl_void< {{ name }}, TypePath, Operation, Args... >( *this, args... );
         }
-        if constexpr ( std::is_same< Operation, __eg_ImpParams >::value )
+        if constexpr ( !std::is_same< ResultType, void >::value )
         {
-            using FPtr = ResultType(*)( mega::reference, Args... );
-            static FPtr pRuntimeFunction = nullptr;
-            static void* pFuntimeVoidStart = nullptr;
-            
-            if( !pFuntimeVoidStart )
-            {
-                resolveInvocation( ID, 
-                    mega::CanonicaliseTypePath< TypePath >::ID.data(), 
-                    mega::CanonicaliseTypePath< TypePath >::ID.size(), 
-                    Operation::ID, 
-                    &pFuntimeVoidStart );
-                pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
-            }
-
-            return pRuntimeFunction( data, args... );
-        }
-        if constexpr ( std::is_same< Operation, Start >::value )
-        {
-            using FPtr = ResultType(*)( mega::reference, Args... );
-            static FPtr pRuntimeFunction = nullptr;
-            static void* pFuntimeVoidStart = nullptr;
-            
-            if( !pFuntimeVoidStart )
-            {
-                resolveInvocation( ID, 
-                    mega::CanonicaliseTypePath< TypePath >::ID.data(), 
-                    mega::CanonicaliseTypePath< TypePath >::ID.size(), 
-                    Operation::ID, 
-                    &pFuntimeVoidStart );
-                pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
-            }
-
-            return pRuntimeFunction( data, args... );
-        }
-        if constexpr ( std::is_same< Operation, Stop >::value )
-        {
-
-        }
-        if constexpr ( std::is_same< Operation, Pause >::value )
-        {
-
-        }
-        if constexpr ( std::is_same< Operation, Resume >::value )
-        {
-
-        }
-        if constexpr ( std::is_same< Operation, Wait >::value )
-        {
-
-        }
-        if constexpr ( std::is_same< Operation, Get >::value )
-        {
-            using FPtr = ResultType(*)( mega::reference, Args... );
-            static FPtr pRuntimeFunction = nullptr;
-            static void* pFuntimeVoidStart = nullptr;
-            
-            if( !pFuntimeVoidStart )
-            {
-                resolveInvocation( ID, 
-                    mega::CanonicaliseTypePath< TypePath >::ID.data(), 
-                    mega::CanonicaliseTypePath< TypePath >::ID.size(), 
-                    Operation::ID, 
-                    &pFuntimeVoidStart );
-                pRuntimeFunction = reinterpret_cast< FPtr >( pFuntimeVoidStart );
-            }
-
-            return pRuntimeFunction( data, args... );
-        }
-        if constexpr ( std::is_same< Operation, Done >::value )
-        {
-
-        }
-        if constexpr ( std::is_same< Operation, Range >::value )
-        {
-
-        }
-        if constexpr ( std::is_same< Operation, Raw >::value )
-        {
-
+            return invoke_impl< ResultType, {{ name }}, TypePath, Operation, Args... >( *this, args... );
         }
     }
 {% for trait_struct in trait_structs %}

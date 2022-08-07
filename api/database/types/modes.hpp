@@ -12,6 +12,7 @@ class CompilationMode
 public:
     enum Value
     {
+        eNormal,
         eInterface,
         eLibrary,
         eOperations,

@@ -152,10 +152,8 @@ public:
             // test if PCH is still valid
             const std::string strCmd = mega::PCHVerification::make_includePCH_verification(
                 m_environment, m_toolChain, pComponent, pchPath )();
-            msg( taskProgress, strCmd );
 
-            const int iResult = boost::process::system( strCmd );
-            if ( iResult )
+            if ( run_cmd( taskProgress, strCmd ) )
             {
                 std::ostringstream os;
                 os << "PCH file: " << pchPath.path() << " out of date";
@@ -171,10 +169,8 @@ public:
 
         const std::string strCmd = mega::Compilation::make_includePCH_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath )();
-        msg( taskProgress, strCmd );
 
-        const int iResult = boost::process::system( strCmd );
-        if ( iResult )
+        if ( run_cmd( taskProgress, strCmd ) )
         {
             std::ostringstream os;
             os << "Error compiling include files to pch for source file: " << m_sourceFilePath.path();
@@ -366,10 +362,7 @@ public:
         const std::string strCmd
             = mega::Compilation::make_includePCH_compilation( m_environment, m_toolChain, pComponent )();
 
-        msg( taskProgress, strCmd );
-
-        const int iResult = boost::process::system( strCmd );
-        if ( iResult )
+        if ( run_cmd( taskProgress, strCmd ) )
         {
             std::ostringstream os;
             os << "Error compiling include files to pch for component: " << pComponent->get_name();

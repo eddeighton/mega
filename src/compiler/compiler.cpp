@@ -256,13 +256,17 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc operations    = encode( Task{ eTask_Operations, sourceFilePath } );
-            const TskDesc operationsObj = encode( Task{ eTask_OperationsObj, sourceFilePath } );
+            const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
+            const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
+            const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
+            const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
 
             dependencies.add( operations, TskDescVec{ derivation } );
-            dependencies.add( operationsObj, TskDescVec{ operations } );
+            dependencies.add( operationsPCH, TskDescVec{ operations } );
+            dependencies.add( implementation, TskDescVec{ operationsPCH } );
+            dependencies.add( implementationObj, TskDescVec{ implementation } );
 
-            binaryTasks.push_back( operationsObj );
+            binaryTasks.push_back( implementationObj );
         }
 
         for ( ComponentListingView::Components::Component* pComponent : components )
@@ -287,9 +291,13 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
                     for ( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
                     {
-                        const TskDesc cppObj = encode( Task{ eTask_CPP, sourceFile } );
+                        const TskDesc cppPCH               = encode( Task{ eTask_CPPPCH, sourceFile } );
+                        const TskDesc cppCPPImplementation = encode( Task{ eTask_CPPImplementation, sourceFile } );
+                        const TskDesc cppObj               = encode( Task{ eTask_CPPObj, sourceFile } );
 
-                        dependencies.add( cppObj, TskDescVec{ objectInterfaceAnalysis } );
+                        dependencies.add( cppPCH, TskDescVec{ objectInterfaceAnalysis } );
+                        dependencies.add( cppCPPImplementation, TskDescVec{ cppPCH } );
+                        dependencies.add( cppObj, TskDescVec{ cppCPPImplementation } );
                         binaryTasks.push_back( cppObj );
                     }
                 }

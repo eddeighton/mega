@@ -211,10 +211,7 @@ public:
         const std::string strCmd = mega::Compilation::make_interfacePCH_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath )();
 
-        msg( taskProgress, strCmd );
-
-        const int iResult = boost::process::system( strCmd );
-        if ( iResult )
+        if ( run_cmd( taskProgress, strCmd ) )
         {
             failed( taskProgress );
             return;

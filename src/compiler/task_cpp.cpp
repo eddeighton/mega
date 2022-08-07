@@ -1,6 +1,5 @@
 
 
-
 #include "base_task.hpp"
 
 #include "database/model/OperationsStage.hxx"
@@ -28,18 +27,16 @@
 #include <vector>
 #include <string>
 
-
 namespace FinalStage
 {
-    using namespace FinalStage::Interface;
-    #include "interface.hpp"
-}
+using namespace FinalStage::Interface;
+#include "interface.hpp"
+} // namespace FinalStage
 
 namespace mega
 {
 namespace compiler
 {
-    
 
 class Task_CPPInterfaceGeneration : public BaseTask
 {
@@ -51,7 +48,6 @@ public:
         , m_strComponentName( strComponentName )
     {
     }
-
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
@@ -98,10 +94,9 @@ public:
             injaEnvironment.set_trim_blocks( true );
         }
 
-
         InterfaceGen::TemplateEngine templateEngine( m_environment, injaEnvironment );
-        nlohmann::json structs   = nlohmann::json::array();
-        nlohmann::json typenames = nlohmann::json::array();
+        nlohmann::json               structs   = nlohmann::json::array();
+        nlohmann::json               typenames = nlohmann::json::array();
 
         Dependencies::Analysis* pDependencyAnalysis
             = database.one< Dependencies::Analysis >( m_environment.project_manifest() );
@@ -152,7 +147,7 @@ public:
                     else
                         osGuard << "_";
                     std::string str = filePart.replace_extension( "" ).string();
-                    if( str != "/" )
+                    if ( str != "/" )
                         osGuard << str;
                 }
                 osGuard << "_" << pComponent->get_name();
@@ -230,11 +225,14 @@ public:
         }
         VERIFY_RTE( pComponent );
 
-        //const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
-        const mega::io::GeneratedHPPSourceFilePath interfaceHeader = m_environment.Interface( pComponent->get_build_dir(), pComponent->get_name() );
-        const mega::io::PrecompiledHeaderFile interfacePCHFilePath = m_environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() );
-        //const mega::io::CompilationFilePath   interfaceAnalysisFile
-        //    = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
+        // const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath
+        // );
+        const mega::io::GeneratedHPPSourceFilePath interfaceHeader
+            = m_environment.Interface( pComponent->get_build_dir(), pComponent->get_name() );
+        const mega::io::PrecompiledHeaderFile interfacePCHFilePath
+            = m_environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() );
+        // const mega::io::CompilationFilePath   interfaceAnalysisFile
+        //     = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
 
         start( taskProgress, "Task_CPPInterfaceAnalysis", interfaceHeader.path(), interfacePCHFilePath.path() );
 
@@ -248,13 +246,10 @@ public:
             return;
         }
 
-        const std::string strCmd = mega::Compilation::make_interfacePCH_compilation(
-            m_environment, m_toolChain, pComponent )();
+        const std::string strCmd
+            = mega::Compilation::make_cpp_interfacePCH_compilation( m_environment, m_toolChain, pComponent )();
 
-        msg( taskProgress, strCmd );
-
-        const int iResult = boost::process::system( strCmd );
-        if ( iResult )
+        if ( run_cmd( taskProgress, strCmd ) )
         {
             failed( taskProgress );
             return;
@@ -280,12 +275,12 @@ BaseTask::Ptr create_Task_CPPInterfaceAnalysis( const TaskArguments& taskArgumen
     return std::make_unique< Task_CPPInterfaceAnalysis >( taskArguments, strComponentName );
 }
 
-class Task_CPP : public BaseTask
+class Task_CPPPCH : public BaseTask
 {
     const mega::io::cppFilePath& m_sourceFilePath;
 
 public:
-    Task_CPP( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+    Task_CPPPCH( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
@@ -293,10 +288,11 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        const mega::io::CompilationFilePath compilationFile
+        const mega::io::GeneratedHPPSourceFilePath tempHPPFile = m_environment.CPPTempHpp( m_sourceFilePath );
+        const mega::io::CompilationFilePath        compilationFile
             = m_environment.OperationsStage_Operations( m_sourceFilePath );
-        const mega::io::ObjectFilePath cppObjectFile = m_environment.Obj( m_sourceFilePath );
-        start( taskProgress, "Task_CPP", m_sourceFilePath.path(), compilationFile.path() );
+        const mega::io::PrecompiledHeaderFile cppPCHFile = m_environment.CPPPCH( m_sourceFilePath );
+        start( taskProgress, "Task_CPPPCH", m_sourceFilePath.path(), cppPCHFile.path() );
 
         using namespace OperationsStage;
         Database               database( m_environment, m_sourceFilePath );
@@ -309,33 +305,246 @@ public:
                                                        pComponent->get_build_dir(), pComponent->get_name() ) ),
                                                    m_environment.FilePath( m_sourceFilePath ) } );
 
-        if ( m_environment.restore( cppObjectFile, determinant )
+        const bool bRestoredHPP = m_environment.restore( tempHPPFile, determinant );
+        if( bRestoredHPP )
+            m_environment.setBuildHashCode( tempHPPFile );
+
+        if ( m_environment.restore( cppPCHFile, determinant )
              && m_environment.restore( compilationFile, determinant ) )
         {
-            m_environment.setBuildHashCode( cppObjectFile );
+            m_environment.setBuildHashCode( cppPCHFile );
             m_environment.setBuildHashCode( compilationFile );
             cached( taskProgress );
             return;
         }
 
+        if( ! bRestoredHPP )
+        {
+            boost::filesystem::copy( m_environment.FilePath( m_sourceFilePath ), m_environment.FilePath( tempHPPFile ) );
+            m_environment.setBuildHashCode( tempHPPFile );
+            m_environment.stash( tempHPPFile, determinant );
+        }
+
         const std::string strCmd
-            = mega::Compilation::make_cpp_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath )();
+            = mega::Compilation::make_cpp_pch_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath )();
 
-        msg( taskProgress, strCmd );
-
-        const int iResult = boost::process::system( strCmd );
-        if ( iResult )
+        if ( run_cmd( taskProgress, strCmd ) )
         {
             std::ostringstream os;
             os << "Error compiling C++ source file: " << m_sourceFilePath.path();
             throw std::runtime_error( os.str() );
         }
 
-        if ( m_environment.exists( compilationFile ) && m_environment.exists( cppObjectFile ) )
+        if ( m_environment.exists( compilationFile ) && m_environment.exists( cppPCHFile ) )
         {
             m_environment.setBuildHashCode( compilationFile );
             m_environment.stash( compilationFile, determinant );
 
+            m_environment.setBuildHashCode( cppPCHFile );
+            m_environment.stash( cppPCHFile, determinant );
+
+            succeeded( taskProgress );
+        }
+        else
+        {
+            failed( taskProgress );
+        }
+    }
+};
+
+BaseTask::Ptr create_Task_CPPPCH( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_CPPPCH >( taskArguments, sourceFilePath );
+}
+
+class Task_CPPImplementation : public BaseTask
+{
+    const mega::io::cppFilePath& m_sourceFilePath;
+
+    class TemplateEngine
+    {
+        const mega::io::StashEnvironment& m_environment;
+        ::inja::Environment&              m_injaEnvironment;
+        ::inja::Template                  m_implTemplate;
+
+    public:
+        TemplateEngine( const mega::io::StashEnvironment& buildEnvironment, ::inja::Environment& injaEnv )
+            : m_environment( buildEnvironment )
+            , m_injaEnvironment( injaEnv )
+            , m_implTemplate( m_injaEnvironment.parse_template( m_environment.ImplementationTemplate().native() ) )
+        {
+        }
+
+        void renderImpl( const nlohmann::json& data, std::ostream& os ) const
+        {
+            m_injaEnvironment.render_to( os, m_implTemplate, data );
+        }
+    };
+
+public:
+    Task_CPPImplementation( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+        : BaseTask( taskArguments )
+        , m_sourceFilePath( sourceFilePath )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        using namespace FinalStage;
+        using namespace FinalStage::Interface;
+
+        const mega::io::GeneratedCPPSourceFilePath implementationFile
+            = m_environment.CPPImplementation( m_sourceFilePath );
+
+        start( taskProgress, "Task_CPPImplementation", m_sourceFilePath.path(), implementationFile.path() );
+
+        task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash, m_environment.ImplementationTemplate(),
+              m_environment.getBuildHashCode( m_environment.OperationsStage_Operations( m_sourceFilePath ) ) } );
+
+        if ( m_environment.restore( implementationFile, determinant ) )
+        {
+            m_environment.setBuildHashCode( implementationFile );
+            cached( taskProgress );
+            return;
+        }
+
+        Database database( m_environment, m_environment.project_manifest() );
+
+        {
+            ::inja::Environment injaEnvironment;
+            {
+                injaEnvironment.set_trim_blocks( true );
+            }
+
+            TemplateEngine templateEngine( m_environment, injaEnvironment );
+
+            nlohmann::json implData(
+                { { "invocations", nlohmann::json::array() }, { "interfaces", nlohmann::json::array() } } );
+
+            Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
+
+            std::vector< Interface::IContext* > contexts;
+            {
+                std::set< Interface::IContext* > uniqueContexts;
+                for ( const auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                {
+                    for ( auto pElementVector : pInvocation->get_context()->get_vectors() )
+                    {
+                        for ( auto pElement : pElementVector->get_elements() )
+                        {
+                            if ( pElement->get_interface()->get_context().has_value() )
+                            {
+                                Interface::IContext* pContext = pElement->get_interface()->get_context().value();
+                                if ( uniqueContexts.count( pContext ) == 0 )
+                                {
+                                    uniqueContexts.insert( pContext );
+                                    contexts.push_back( pContext );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            {
+                std::vector< std::string > typeNameStack;
+                for ( Interface::IContext* pContext : contexts )
+                {
+                    Interface::IContext*       pIter = pContext;
+                    std::vector< std::string > typeNamePath;
+                    while ( pIter )
+                    {
+                        typeNamePath.push_back( pIter->get_identifier() );
+                        pIter = dynamic_database_cast< Interface::IContext >( pIter->get_parent() );
+                    }
+                    std::reverse( typeNamePath.begin(), typeNamePath.end() );
+                    std::ostringstream os;
+                    common::delimit( typeNamePath.begin(), typeNamePath.end(), "::", os );
+                    implData[ "interfaces" ].push_back( os.str() );
+                }
+
+                for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
+                {
+                    nlohmann::json invocation(
+                        { { "return_type", pInvocation->get_return_type_str() },
+                          { "context", pInvocation->get_context_str() },
+                          { "type_path", pInvocation->get_type_path_str() },
+                          { "operation", mega::getOperationString( pInvocation->get_operation() ) },
+                          { "impl", "" } } );
+
+                    implData[ "invocations" ].push_back( invocation );
+                }
+            }
+
+            std::ostringstream os;
+            templateEngine.renderImpl( implData, os );
+
+            boost::filesystem::updateFileIfChanged( m_environment.FilePath( implementationFile ), os.str() );
+        }
+
+        m_environment.setBuildHashCode( implementationFile );
+        m_environment.stash( implementationFile, determinant );
+
+        succeeded( taskProgress );
+    }
+};
+
+BaseTask::Ptr create_Task_CPPImplementation( const TaskArguments&         taskArguments,
+                                             const mega::io::cppFilePath& sourceFilePath )
+{
+    return std::make_unique< Task_CPPImplementation >( taskArguments, sourceFilePath );
+}
+
+class Task_CPPObj : public BaseTask
+{
+    const mega::io::cppFilePath& m_sourceFilePath;
+
+public:
+    Task_CPPObj( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+        : BaseTask( taskArguments )
+        , m_sourceFilePath( sourceFilePath )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        const mega::io::ObjectFilePath cppObjectFile = m_environment.CPPObj( m_sourceFilePath );
+        start( taskProgress, "Task_CPPObj", m_sourceFilePath.path(), cppObjectFile.path() );
+
+        using namespace OperationsStage;
+        Database               database( m_environment, m_sourceFilePath );
+        Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
+
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash,
+              m_environment.getBuildHashCode(
+                  m_environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
+              m_environment.getBuildHashCode(
+                  m_environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() ) ),
+              m_environment.getBuildHashCode( m_environment.CPPPCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.CPPImplementation( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.OperationsStage_Operations( m_sourceFilePath ) ) } );
+
+        if ( m_environment.restore( cppObjectFile, determinant ) )
+        {
+            m_environment.setBuildHashCode( cppObjectFile );
+            cached( taskProgress );
+            return;
+        }
+
+        const std::string strCmd
+            = mega::Compilation::make_cpp_obj_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath )();
+
+        if ( run_cmd( taskProgress, strCmd ) )
+        {
+            std::ostringstream os;
+            os << "Error compiling C++ source file: " << m_sourceFilePath.path();
+            throw std::runtime_error( os.str() );
+        }
+
+        if ( m_environment.exists( cppObjectFile ) )
+        {
             m_environment.setBuildHashCode( cppObjectFile );
             m_environment.stash( cppObjectFile, determinant );
 
@@ -348,10 +557,9 @@ public:
     }
 };
 
-BaseTask::Ptr create_Task_CPP( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_CPPObj( const TaskArguments& taskArguments, const mega::io::cppFilePath& sourceFilePath )
 {
-    return std::make_unique< Task_CPP >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_CPPObj >( taskArguments, sourceFilePath );
 }
-
 } // namespace compiler
 } // namespace mega

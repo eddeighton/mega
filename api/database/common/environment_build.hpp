@@ -53,11 +53,19 @@ public:
     Path ContextTemplate() const;
     Path InterfaceTemplate() const;
     Path OperationsTemplate() const;
+    Path ImplementationTemplate() const;
 
+    // interface file paths
     GeneratedHPPSourceFilePath Include( const megaFilePath& source ) const;
     PrecompiledHeaderFile      IncludePCH( const megaFilePath& source ) const;
     GeneratedHPPSourceFilePath Interface( const megaFilePath& source ) const;
     PrecompiledHeaderFile      InterfacePCH( const megaFilePath& source ) const;
+    GeneratedHPPSourceFilePath Operations( const megaFilePath& source ) const;
+    PrecompiledHeaderFile      OperationsPCH( const megaFilePath& source ) const;
+    GeneratedCPPSourceFilePath Implementation( const megaFilePath& source ) const;
+    ObjectFilePath             ImplementationObj( const megaFilePath& source ) const;
+
+    // library cpp file paths
     GeneratedHPPSourceFilePath Include( const boost::filesystem::path& componentBuildDir,
                                         const std::string&             strComponentName ) const;
     PrecompiledHeaderFile      IncludePCH( const boost::filesystem::path& componentBuildDir,
@@ -66,9 +74,10 @@ public:
                                           const std::string&             strComponentName ) const;
     PrecompiledHeaderFile      InterfacePCH( const boost::filesystem::path& componentBuildDir,
                                              const std::string&             strComponentName ) const;
-    GeneratedCPPSourceFilePath Operations( const megaFilePath& source ) const;
-    ObjectFilePath             OperationsObj( const megaFilePath& source ) const;
-    ObjectFilePath             Obj( const cppFilePath& source ) const;
+    GeneratedHPPSourceFilePath CPPTempHpp( const cppFilePath& source ) const;
+    PrecompiledHeaderFile      CPPPCH( const cppFilePath& source ) const;
+    GeneratedCPPSourceFilePath CPPImplementation( const cppFilePath& source ) const;
+    ObjectFilePath             CPPObj( const cppFilePath& source ) const;
 
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;
     manifestFilePath         manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const;

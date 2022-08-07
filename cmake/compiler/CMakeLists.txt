@@ -41,6 +41,7 @@ set( JINJA_TEMPLATES
     ${MEGA_SRC_DIR}/compiler/templates/context.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/interface.jinja 
 	${MEGA_SRC_DIR}/compiler/templates/operations.jinja 
+	${MEGA_SRC_DIR}/compiler/templates/impl.jinja 
 	)
 
 set( COMPILER_TASKS
@@ -52,6 +53,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp 
     ${MEGA_SRC_DIR}/compiler/task_derivation.cpp
     ${MEGA_SRC_DIR}/compiler/task_hyper_graph.cpp
+    ${MEGA_SRC_DIR}/compiler/task_implementation.cpp
     ${MEGA_SRC_DIR}/compiler/task_includes.cpp  
     ${MEGA_SRC_DIR}/compiler/task_interface_analysis.cpp  
     ${MEGA_SRC_DIR}/compiler/task_interface.cpp  
