@@ -11,7 +11,7 @@ namespace Operations
     object ConcreteVariant -> OperationsStage::Operations
     {
         opt< ref< Concrete::Context > > context;
-        opt< ref< Concrete::Dimension > > dimension;
+        opt< ref< Concrete::Dimensions::User > > dimension;
     }
 
     object Element -> OperationsStage::Operations
@@ -63,6 +63,7 @@ namespace Operations
 
         late< value< mega::ExplicitOperationID > > explicit_operation;
         late< value< std::string > > return_type_str;
+        late< value< std::string > > runtime_return_type_str;
 
         late< ref< NameResolution > > name_resolution;
 
@@ -70,7 +71,7 @@ namespace Operations
         late< ref< Invocations::Instructions::Root > > root_instruction;
 
         //late< array< ref< Invocations::Operations::Operation > > > operations;
-        //late< array< ref< Invocations::Variables::Variable > > > variables;
+        late< array< ref< Invocations::Variables::Variable > > > variables;
         //late< array< ref< Invocations::Instructions::Instruction > > > instructions;
 
         late< array< ref< Interface::IContext > > > return_types_context;

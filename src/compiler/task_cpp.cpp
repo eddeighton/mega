@@ -226,14 +226,10 @@ public:
         }
         VERIFY_RTE( pComponent );
 
-        // const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath
-        // );
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader
             = m_environment.Interface( pComponent->get_build_dir(), pComponent->get_name() );
         const mega::io::PrecompiledHeaderFile interfacePCHFilePath
             = m_environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() );
-        // const mega::io::CompilationFilePath   interfaceAnalysisFile
-        //     = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
 
         start( taskProgress, "Task_CPPInterfaceAnalysis", interfaceHeader.path(), interfacePCHFilePath.path() );
 
@@ -329,6 +325,10 @@ public:
                     boost::filesystem::remove( tempHppFilePath );
                     boost::filesystem::copy( srcCppFilePath, tempHppFilePath );
                 }
+            }
+            else
+            {
+                boost::filesystem::copy( srcCppFilePath, tempHppFilePath );
             }
             m_environment.setBuildHashCode( tempHPPFile );
             m_environment.stash( tempHPPFile, determinant );
@@ -428,8 +428,9 @@ public:
 
             TemplateEngine templateEngine( m_environment, injaEnvironment );
 
-            nlohmann::json implData(
-                { { "invocations", nlohmann::json::array() }, { "interfaces", nlohmann::json::array() } } );
+            nlohmann::json implData( { { "unitname", m_sourceFilePath.path().string() },
+                                       { "invocations", nlohmann::json::array() },
+                                       { "interfaces", nlohmann::json::array() } } );
 
             Operations::Invocations* pInvocations = database.one< Operations::Invocations >( m_sourceFilePath );
 
@@ -475,13 +476,19 @@ public:
 
                 for ( auto& [ id, pInvocation ] : pInvocations->get_invocations() )
                 {
+                    std::ostringstream osTypePathIDs;
+                    common::delimit( id.m_type_path.begin(), id.m_type_path.end(), ",", osTypePathIDs );
+
                     nlohmann::json invocation(
                         { { "return_type", pInvocation->get_return_type_str() },
+                          { "runtime_return_type", pInvocation->get_runtime_return_type_str() },
                           { "context", pInvocation->get_context_str() },
                           { "type_path", pInvocation->get_type_path_str() },
                           { "operation", mega::getOperationString( pInvocation->get_operation() ) },
                           { "explicit_operation",
                             mega::getExplicitOperationString( pInvocation->get_explicit_operation() ) },
+                          { "type_path_type_id_list", osTypePathIDs.str() },
+                          { "type_path_size", id.m_type_path.size() },
                           { "impl", "" } } );
 
                     implData[ "invocations" ].push_back( invocation );

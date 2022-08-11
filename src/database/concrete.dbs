@@ -1,10 +1,42 @@
 
 namespace Concrete
 {
-    object Dimension -> ConcreteStage::Concrete
+    namespace Dimensions
     {
-        ref< Context > parent;
-        ref< Interface::DimensionTrait > interface_dimension;
+        object User -> ConcreteStage::Concrete
+        {
+            ref< Concrete::Context > parent;
+            ref< Interface::DimensionTrait > interface_dimension;
+            value< std::size_t > offset -> MemoryStage::MemoryLayout;
+        }
+
+        object Generated -> MemoryStage::MemoryLayout
+        {
+            ref< Concrete::Context > parent;
+            late< value< std::size_t > > offset;
+        }
+
+        object StopCycle : Generated -> MemoryStage::MemoryLayout
+        {
+        }
+
+        object Reference : Generated -> MemoryStage::MemoryLayout
+        {
+        }
+
+        object State : Generated -> MemoryStage::MemoryLayout
+        {
+        }
+
+        object Allocator : Generated -> MemoryStage::MemoryLayout
+        {
+            ref< Allocators::Allocator > allocator;
+        }
+
+        object LinkReference : Generated -> MemoryStage::MemoryLayout
+        {
+            ref< Link > link;
+        }
     }
 
     object ContextGroup -> ConcreteStage::Concrete
@@ -17,24 +49,37 @@ namespace Concrete
         ref< ContextGroup > parent;
         ref< Interface::IContext > interface;
         array< ref< Interface::IContext > > inheritance;
+        
+        // MemoryStage::MemoryLayout
+        ref< Allocators::Allocator > allocator -> MemoryStage::MemoryLayout;
+
+        // MemoryStage::MemoryLayout
+        array< ref< Dimensions::Generated > > generated_dimensions -> MemoryStage::MemoryLayout;
+        //array< ref< Dimensions::Dimension > > memory_layout -> MemoryStage::MemoryLayout;
     }
 
     object Namespace : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Namespace > interface_namespace;
-        array< ref< Dimension > > dimensions;
+        array< ref< Dimensions::User > > dimensions;
     }
 
     object Action : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Action > interface_action;
-        array< ref< Dimension > > dimensions;
+        array< ref< Dimensions::User > > dimensions;
+
+        value< std::size_t > local_size -> MemoryStage::MemoryLayout;
+        value< std::size_t > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Event : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Event > interface_event;
-        array< ref< Dimension > > dimensions;
+        array< ref< Dimensions::User > > dimensions;
+
+        value< std::size_t > local_size -> MemoryStage::MemoryLayout;
+        value< std::size_t > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Function : Context -> ConcreteStage::Concrete
@@ -45,17 +90,27 @@ namespace Concrete
     object Object : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Object > interface_object;
-        array< ref< Dimension > > dimensions;
+        array< ref< Dimensions::User > > dimensions;
     }
 
     object Link : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Link > interface_link;
+
+        value< std::size_t > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Table : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Table > interface_table;
+    }
+
+    object Buffer : Context -> ConcreteStage::Concrete
+    {
+        ref< Interface::Buffer > interface_buffer;
+        array< ref< Dimensions::User > > dimensions;
+
+        value< std::size_t > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Root : ContextGroup -> ConcreteStage::Concrete

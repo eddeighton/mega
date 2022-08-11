@@ -60,6 +60,7 @@ namespace AST
     struct Parser_ObjectDef;
     struct Parser_LinkDef;
     struct Parser_TableDef;
+    struct Parser_BufferDef;
     struct Parser_SourceRoot;
     struct Parser_IncludeRoot;
     struct Parser_ObjectSourceRoot;
@@ -87,6 +88,7 @@ namespace Tree
     struct Interface_Object;
     struct Interface_Link;
     struct Interface_Table;
+    struct Interface_Buffer;
 }
 namespace DPGraph
 {
@@ -118,7 +120,7 @@ namespace Concrete
 {
     struct Interface_DimensionTrait;
     struct Interface_IContext;
-    struct Concrete_Dimension;
+    struct Concrete_Dimensions_User;
     struct Concrete_ContextGroup;
     struct Concrete_Context;
     struct Concrete_Namespace;
@@ -128,6 +130,7 @@ namespace Concrete
     struct Concrete_Object;
     struct Concrete_Link;
     struct Concrete_Table;
+    struct Concrete_Buffer;
     struct Concrete_Root;
 }
 namespace Model
@@ -139,6 +142,32 @@ namespace Derivations
 {
     struct Derivation_ObjectMapping;
     struct Derivation_Mapping;
+}
+namespace MemoryLayout
+{
+    struct Concrete_Dimensions_User;
+    struct Concrete_Dimensions_Generated;
+    struct Concrete_Dimensions_StopCycle;
+    struct Concrete_Dimensions_Reference;
+    struct Concrete_Dimensions_State;
+    struct Concrete_Dimensions_Allocator;
+    struct Concrete_Dimensions_LinkReference;
+    struct Concrete_Context;
+    struct Concrete_Action;
+    struct Concrete_Event;
+    struct Concrete_Link;
+    struct Concrete_Buffer;
+    struct Allocators_Allocator;
+    struct Allocators_Nothing;
+    struct Allocators_Singleton;
+    struct Allocators_Range;
+    struct Allocators_Range32;
+    struct Allocators_Range64;
+    struct Allocators_RangeAny;
+    struct MemoryLayout_Buffer;
+    struct MemoryLayout_GPUBuffer;
+    struct MemoryLayout_SharedBuffer;
+    struct MemoryLayout_SimpleBuffer;
 }
 namespace Operations
 {
@@ -486,7 +515,7 @@ namespace AST
         std::vector< data::Ptr< data::AST::Parser_Include > > includes;
         std::vector< data::Ptr< data::AST::Parser_Dependency > > dependencies;
         Ptr< Body::Parser_ContextDef > p_Body_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -501,7 +530,7 @@ namespace AST
             Object_Part_Type_ID = 18
         };
         Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -518,7 +547,7 @@ namespace AST
         };
         data::Ptr< data::AST::Parser_Inheritance > inheritance;
         Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -536,7 +565,7 @@ namespace AST
         data::Ptr< data::AST::Parser_Size > size;
         data::Ptr< data::AST::Parser_Inheritance > inheritance;
         Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -554,7 +583,7 @@ namespace AST
         data::Ptr< data::AST::Parser_Size > size;
         data::Ptr< data::AST::Parser_Inheritance > inheritance;
         Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -572,7 +601,7 @@ namespace AST
         data::Ptr< data::AST::Parser_ArgumentList > argumentList;
         data::Ptr< data::AST::Parser_ReturnType > returnType;
         Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -589,7 +618,7 @@ namespace AST
         };
         data::Ptr< data::AST::Parser_Inheritance > inheritance;
         Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -607,7 +636,7 @@ namespace AST
         data::Ptr< data::AST::Parser_Link > link;
         data::Ptr< data::AST::Parser_Inheritance > target;
         Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -624,7 +653,22 @@ namespace AST
         };
         data::Ptr< data::AST::Parser_Inheritance > inheritance;
         Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
-        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > > m_inheritance;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Parser_BufferDef : public mega::io::Object
+    {
+        Parser_BufferDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 26
+        };
+        Ptr< AST::Parser_ContextDef > p_AST_Parser_ContextDef;
+        std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -637,7 +681,7 @@ namespace AST
         Parser_SourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& sourceFile, const data::Ptr< data::Components::Components_Component >& component, const data::Ptr< data::AST::Parser_ContextDef >& ast);
         enum 
         {
-            Object_Part_Type_ID = 26
+            Object_Part_Type_ID = 27
         };
         boost::filesystem::path sourceFile;
         data::Ptr< data::Components::Components_Component > component;
@@ -654,7 +698,7 @@ namespace AST
         Parser_IncludeRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 27
+            Object_Part_Type_ID = 28
         };
         Ptr< AST::Parser_SourceRoot > p_AST_Parser_SourceRoot;
         std::variant< data::Ptr< data::AST::Parser_SourceRoot >, data::Ptr< data::AST::Parser_IncludeRoot >, data::Ptr< data::AST::Parser_ObjectSourceRoot > > m_inheritance;
@@ -669,7 +713,7 @@ namespace AST
         Parser_ObjectSourceRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 28
+            Object_Part_Type_ID = 29
         };
         Ptr< AST::Parser_SourceRoot > p_AST_Parser_SourceRoot;
         std::variant< data::Ptr< data::AST::Parser_SourceRoot >, data::Ptr< data::AST::Parser_IncludeRoot >, data::Ptr< data::AST::Parser_ObjectSourceRoot > > m_inheritance;
@@ -706,7 +750,7 @@ namespace Tree
         Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_IContext >& parent);
         enum 
         {
-            Object_Part_Type_ID = 29
+            Object_Part_Type_ID = 30
         };
         data::Ptr< data::Tree::Interface_IContext > parent;
         Ptr< AST::Parser_Dimension > p_AST_Parser_Dimension;
@@ -725,7 +769,7 @@ namespace Tree
         Interface_InheritanceTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 33
+            Object_Part_Type_ID = 34
         };
         Ptr< AST::Parser_Inheritance > p_AST_Parser_Inheritance;
         Ptr< Clang::Interface_InheritanceTrait > p_Clang_Interface_InheritanceTrait;
@@ -741,7 +785,7 @@ namespace Tree
         Interface_LinkTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 35
+            Object_Part_Type_ID = 36
         };
         Ptr< AST::Parser_Link > p_AST_Parser_Link;
         std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > > m_inheritance;
@@ -756,7 +800,7 @@ namespace Tree
         Interface_ReturnTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 36
+            Object_Part_Type_ID = 37
         };
         Ptr< AST::Parser_ReturnType > p_AST_Parser_ReturnType;
         Ptr< Clang::Interface_ReturnTypeTrait > p_Clang_Interface_ReturnTypeTrait;
@@ -772,7 +816,7 @@ namespace Tree
         Interface_ArgumentListTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 38
+            Object_Part_Type_ID = 39
         };
         Ptr< AST::Parser_ArgumentList > p_AST_Parser_ArgumentList;
         Ptr< Clang::Interface_ArgumentListTrait > p_Clang_Interface_ArgumentListTrait;
@@ -788,7 +832,7 @@ namespace Tree
         Interface_SizeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 40
+            Object_Part_Type_ID = 41
         };
         Ptr< AST::Parser_Size > p_AST_Parser_Size;
         Ptr< Clang::Interface_SizeTrait > p_Clang_Interface_SizeTrait;
@@ -805,10 +849,10 @@ namespace Tree
         Interface_ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& children);
         enum 
         {
-            Object_Part_Type_ID = 42
+            Object_Part_Type_ID = 43
         };
         std::vector< data::Ptr< data::Tree::Interface_IContext > > children;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -821,11 +865,11 @@ namespace Tree
         Interface_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::AST::Parser_ObjectSourceRoot >& root);
         enum 
         {
-            Object_Part_Type_ID = 43
+            Object_Part_Type_ID = 44
         };
         data::Ptr< data::AST::Parser_ObjectSourceRoot > root;
         Ptr< Tree::Interface_ContextGroup > p_Tree_Interface_ContextGroup;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -838,14 +882,14 @@ namespace Tree
         Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const data::Ptr< data::Tree::Interface_ContextGroup >& parent);
         enum 
         {
-            Object_Part_Type_ID = 44
+            Object_Part_Type_ID = 45
         };
         std::string identifier;
         data::Ptr< data::Tree::Interface_ContextGroup > parent;
         Ptr< Tree::Interface_ContextGroup > p_Tree_Interface_ContextGroup;
         Ptr< PerSourceSymbols::Interface_IContext > p_PerSourceSymbols_Interface_IContext;
         Ptr< Concrete::Interface_IContext > p_Concrete_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -858,13 +902,13 @@ namespace Tree
         Interface_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const bool& is_global, const std::vector< data::Ptr< data::AST::Parser_ContextDef > >& namespace_defs);
         enum 
         {
-            Object_Part_Type_ID = 47
+            Object_Part_Type_ID = 48
         };
         bool is_global;
         std::vector< data::Ptr< data::AST::Parser_ContextDef > > namespace_defs;
         std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > dimension_traits;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -877,13 +921,13 @@ namespace Tree
         Interface_Abstract( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& abstract_defs);
         enum 
         {
-            Object_Part_Type_ID = 48
+            Object_Part_Type_ID = 49
         };
         std::vector< data::Ptr< data::AST::Parser_AbstractDef > > abstract_defs;
         std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > dimension_traits;
         std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > > inheritance_trait;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -896,14 +940,14 @@ namespace Tree
         Interface_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_ActionDef > >& action_defs);
         enum 
         {
-            Object_Part_Type_ID = 49
+            Object_Part_Type_ID = 50
         };
         std::vector< data::Ptr< data::AST::Parser_ActionDef > > action_defs;
         std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > dimension_traits;
         std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > > inheritance_trait;
         std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > > size_trait;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -916,14 +960,14 @@ namespace Tree
         Interface_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_EventDef > >& event_defs);
         enum 
         {
-            Object_Part_Type_ID = 50
+            Object_Part_Type_ID = 51
         };
         std::vector< data::Ptr< data::AST::Parser_EventDef > > event_defs;
         std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > dimension_traits;
         std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > > inheritance_trait;
         std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > > size_trait;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -936,13 +980,13 @@ namespace Tree
         Interface_Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_FunctionDef > >& function_defs);
         enum 
         {
-            Object_Part_Type_ID = 51
+            Object_Part_Type_ID = 52
         };
         std::vector< data::Ptr< data::AST::Parser_FunctionDef > > function_defs;
         std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > > return_type_trait;
         std::optional< data::Ptr< data::Tree::Interface_ArgumentListTrait > > arguments_trait;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -955,13 +999,13 @@ namespace Tree
         Interface_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& object_defs);
         enum 
         {
-            Object_Part_Type_ID = 52
+            Object_Part_Type_ID = 53
         };
         std::vector< data::Ptr< data::AST::Parser_ObjectDef > > object_defs;
         std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > dimension_traits;
         std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > > inheritance_trait;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -974,13 +1018,13 @@ namespace Tree
         Interface_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_LinkDef > >& link_defs);
         enum 
         {
-            Object_Part_Type_ID = 53
+            Object_Part_Type_ID = 54
         };
         std::vector< data::Ptr< data::AST::Parser_LinkDef > > link_defs;
         std::optional< data::Ptr< data::Tree::Interface_LinkTrait > > link_trait;
         std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > link_target;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -993,11 +1037,29 @@ namespace Tree
         Interface_Table( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_TableDef > >& table_defs);
         enum 
         {
-            Object_Part_Type_ID = 54
+            Object_Part_Type_ID = 55
         };
         std::vector< data::Ptr< data::AST::Parser_TableDef > > table_defs;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
-        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > > m_inheritance;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Interface_Buffer : public mega::io::Object
+    {
+        Interface_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Interface_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_BufferDef > >& buffer_defs);
+        enum 
+        {
+            Object_Part_Type_ID = 56
+        };
+        std::vector< data::Ptr< data::AST::Parser_BufferDef > > buffer_defs;
+        std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > dimension_traits;
+        Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
+        std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1013,7 +1075,7 @@ namespace DPGraph
         Dependencies_Glob( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const boost::filesystem::path& location, const std::string& glob);
         enum 
         {
-            Object_Part_Type_ID = 113
+            Object_Part_Type_ID = 128
         };
         boost::filesystem::path location;
         std::string glob;
@@ -1030,7 +1092,7 @@ namespace DPGraph
         Dependencies_SourceFileDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& globs, const std::vector< boost::filesystem::path >& resolution);
         enum 
         {
-            Object_Part_Type_ID = 114
+            Object_Part_Type_ID = 129
         };
         mega::io::megaFilePath source_file;
         std::size_t hash_code;
@@ -1049,7 +1111,7 @@ namespace DPGraph
         Dependencies_TransitiveDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< mega::io::megaFilePath >& mega_source_files);
         enum 
         {
-            Object_Part_Type_ID = 115
+            Object_Part_Type_ID = 130
         };
         std::vector< mega::io::megaFilePath > mega_source_files;
         std::variant< data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > > m_inheritance;
@@ -1065,7 +1127,7 @@ namespace DPGraph
         Dependencies_Analysis( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& objects, const std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& mega_dependencies, const std::map< mega::io::cppFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > >& cpp_dependencies);
         enum 
         {
-            Object_Part_Type_ID = 116
+            Object_Part_Type_ID = 131
         };
         std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > > objects;
         std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_TransitiveDependencies > > mega_dependencies;
@@ -1086,7 +1148,7 @@ namespace SymbolTable
         Symbols_Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& symbol, const std::int32_t& id, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& contexts, const std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 117
+            Object_Part_Type_ID = 132
         };
         std::string symbol;
         std::int32_t id;
@@ -1105,7 +1167,7 @@ namespace SymbolTable
         Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& context_symbols, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& dimension_symbols, const std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >& context_type_ids, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >& dimension_type_ids);
         enum 
         {
-            Object_Part_Type_ID = 118
+            Object_Part_Type_ID = 133
         };
         std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > > symbols;
         mega::io::megaFilePath source_file;
@@ -1127,7 +1189,7 @@ namespace SymbolTable
         Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const std::map< int32_t, data::Ptr< data::Tree::Interface_IContext > >& context_type_ids, const std::map< int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& dimension_type_ids, const std::map< int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbol_id_map);
         enum 
         {
-            Object_Part_Type_ID = 119
+            Object_Part_Type_ID = 134
         };
         std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > > symbol_sets;
         std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > > symbols;
@@ -1150,7 +1212,7 @@ namespace PerSourceSymbols
         Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::int32_t& symbol);
         enum 
         {
-            Object_Part_Type_ID = 30
+            Object_Part_Type_ID = 31
         };
         std::int32_t symbol;
         std::optional< std::int32_t > type_id;
@@ -1167,7 +1229,7 @@ namespace PerSourceSymbols
         Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const std::int32_t& symbol);
         enum 
         {
-            Object_Part_Type_ID = 45
+            Object_Part_Type_ID = 46
         };
         std::int32_t symbol;
         std::optional< std::int32_t > type_id;
@@ -1187,7 +1249,7 @@ namespace Clang
         Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::string& canonical_type, const std::size_t& size, const bool& simple, const std::vector< data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols);
         enum 
         {
-            Object_Part_Type_ID = 32
+            Object_Part_Type_ID = 33
         };
         std::string canonical_type;
         std::size_t size;
@@ -1206,7 +1268,7 @@ namespace Clang
         Interface_InheritanceTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_InheritanceTrait > p_Tree_Interface_InheritanceTrait, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& contexts);
         enum 
         {
-            Object_Part_Type_ID = 34
+            Object_Part_Type_ID = 35
         };
         std::vector< data::Ptr< data::Tree::Interface_IContext > > contexts;
         Ptr< Tree::Interface_InheritanceTrait > p_Tree_Interface_InheritanceTrait;
@@ -1222,7 +1284,7 @@ namespace Clang
         Interface_ReturnTypeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_ReturnTypeTrait > p_Tree_Interface_ReturnTypeTrait, const std::string& canonical_type);
         enum 
         {
-            Object_Part_Type_ID = 37
+            Object_Part_Type_ID = 38
         };
         std::string canonical_type;
         Ptr< Tree::Interface_ReturnTypeTrait > p_Tree_Interface_ReturnTypeTrait;
@@ -1238,7 +1300,7 @@ namespace Clang
         Interface_ArgumentListTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_ArgumentListTrait > p_Tree_Interface_ArgumentListTrait, const std::vector< std::string >& canonical_types);
         enum 
         {
-            Object_Part_Type_ID = 39
+            Object_Part_Type_ID = 40
         };
         std::vector< std::string > canonical_types;
         Ptr< Tree::Interface_ArgumentListTrait > p_Tree_Interface_ArgumentListTrait;
@@ -1254,7 +1316,7 @@ namespace Clang
         Interface_SizeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_SizeTrait > p_Tree_Interface_SizeTrait, const std::size_t& size);
         enum 
         {
-            Object_Part_Type_ID = 41
+            Object_Part_Type_ID = 42
         };
         std::size_t size;
         Ptr< Tree::Interface_SizeTrait > p_Tree_Interface_SizeTrait;
@@ -1270,12 +1332,12 @@ namespace Concrete
     struct Interface_DimensionTrait : public mega::io::Object
     {
         Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::optional< data::Ptr< data::Concrete::Concrete_Dimension > >& concrete);
+        Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& concrete);
         enum 
         {
-            Object_Part_Type_ID = 31
+            Object_Part_Type_ID = 32
         };
-        std::optional< data::Ptr< data::Concrete::Concrete_Dimension > > concrete;
+        std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > > concrete;
         Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
@@ -1289,7 +1351,7 @@ namespace Concrete
         Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& concrete);
         enum 
         {
-            Object_Part_Type_ID = 46
+            Object_Part_Type_ID = 47
         };
         std::optional< data::Ptr< data::Concrete::Concrete_Context > > concrete;
         Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext;
@@ -1299,17 +1361,18 @@ namespace Concrete
         virtual void store( mega::io::Storer& storer ) const;
         virtual void to_json( nlohmann::json& data ) const;
     };
-    struct Concrete_Dimension : public mega::io::Object
+    struct Concrete_Dimensions_User : public mega::io::Object
     {
-        Concrete_Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Concrete_Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension);
+        Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension);
         enum 
         {
-            Object_Part_Type_ID = 91
+            Object_Part_Type_ID = 93
         };
         data::Ptr< data::Concrete::Concrete_Context > parent;
         data::Ptr< data::Tree::Interface_DimensionTrait > interface_dimension;
-        std::variant< data::Ptr< data::Concrete::Concrete_Dimension > > m_inheritance;
+        Ptr< MemoryLayout::Concrete_Dimensions_User > p_MemoryLayout_Concrete_Dimensions_User;
+        std::variant< data::Ptr< data::Concrete::Concrete_Dimensions_User > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1322,10 +1385,10 @@ namespace Concrete
         Concrete_ContextGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Concrete::Concrete_Context > >& children);
         enum 
         {
-            Object_Part_Type_ID = 92
+            Object_Part_Type_ID = 101
         };
         std::vector< data::Ptr< data::Concrete::Concrete_Context > > children;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1338,13 +1401,14 @@ namespace Concrete
         Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_ContextGroup >& parent, const data::Ptr< data::Tree::Interface_IContext >& interface, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& inheritance);
         enum 
         {
-            Object_Part_Type_ID = 93
+            Object_Part_Type_ID = 102
         };
         data::Ptr< data::Concrete::Concrete_ContextGroup > parent;
         data::Ptr< data::Tree::Interface_IContext > interface;
         std::vector< data::Ptr< data::Tree::Interface_IContext > > inheritance;
         Ptr< Concrete::Concrete_ContextGroup > p_Concrete_Concrete_ContextGroup;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        Ptr< MemoryLayout::Concrete_Context > p_MemoryLayout_Concrete_Context;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1354,15 +1418,15 @@ namespace Concrete
     struct Concrete_Namespace : public mega::io::Object
     {
         Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Namespace >& interface_namespace, const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > >& dimensions);
+        Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Namespace >& interface_namespace, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 94
+            Object_Part_Type_ID = 104
         };
         data::Ptr< data::Tree::Interface_Namespace > interface_namespace;
-        std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > dimensions;
+        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > dimensions;
         Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1372,15 +1436,16 @@ namespace Concrete
     struct Concrete_Action : public mega::io::Object
     {
         Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Action >& interface_action, const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > >& dimensions);
+        Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Action >& interface_action, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 95
+            Object_Part_Type_ID = 105
         };
         data::Ptr< data::Tree::Interface_Action > interface_action;
-        std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > dimensions;
+        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > dimensions;
         Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        Ptr< MemoryLayout::Concrete_Action > p_MemoryLayout_Concrete_Action;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1390,15 +1455,16 @@ namespace Concrete
     struct Concrete_Event : public mega::io::Object
     {
         Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Event >& interface_event, const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > >& dimensions);
+        Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Event >& interface_event, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 96
+            Object_Part_Type_ID = 107
         };
         data::Ptr< data::Tree::Interface_Event > interface_event;
-        std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > dimensions;
+        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > dimensions;
         Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        Ptr< MemoryLayout::Concrete_Event > p_MemoryLayout_Concrete_Event;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1411,11 +1477,11 @@ namespace Concrete
         Concrete_Function( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Function >& interface_function);
         enum 
         {
-            Object_Part_Type_ID = 97
+            Object_Part_Type_ID = 109
         };
         data::Ptr< data::Tree::Interface_Function > interface_function;
         Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1425,15 +1491,15 @@ namespace Concrete
     struct Concrete_Object : public mega::io::Object
     {
         Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object, const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > >& dimensions);
+        Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions);
         enum 
         {
-            Object_Part_Type_ID = 98
+            Object_Part_Type_ID = 110
         };
         data::Ptr< data::Tree::Interface_Object > interface_object;
-        std::vector< data::Ptr< data::Concrete::Concrete_Dimension > > dimensions;
+        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > dimensions;
         Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1446,11 +1512,12 @@ namespace Concrete
         Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& interface_link);
         enum 
         {
-            Object_Part_Type_ID = 99
+            Object_Part_Type_ID = 111
         };
         data::Ptr< data::Tree::Interface_Link > interface_link;
         Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        Ptr< MemoryLayout::Concrete_Link > p_MemoryLayout_Concrete_Link;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1463,11 +1530,30 @@ namespace Concrete
         Concrete_Table( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Table >& interface_table);
         enum 
         {
-            Object_Part_Type_ID = 100
+            Object_Part_Type_ID = 113
         };
         data::Ptr< data::Tree::Interface_Table > interface_table;
         Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Buffer : public mega::io::Object
+    {
+        Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Buffer >& interface_buffer, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions);
+        enum 
+        {
+            Object_Part_Type_ID = 114
+        };
+        data::Ptr< data::Tree::Interface_Buffer > interface_buffer;
+        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > dimensions;
+        Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
+        Ptr< MemoryLayout::Concrete_Buffer > p_MemoryLayout_Concrete_Buffer;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1480,11 +1566,11 @@ namespace Concrete
         Concrete_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Root >& interface_root);
         enum 
         {
-            Object_Part_Type_ID = 101
+            Object_Part_Type_ID = 116
         };
         data::Ptr< data::Tree::Interface_Root > interface_root;
         Ptr< Concrete::Concrete_ContextGroup > p_Concrete_Concrete_ContextGroup;
-        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
+        std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1500,7 +1586,7 @@ namespace Model
         HyperGraph_ObjectGraph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code);
         enum 
         {
-            Object_Part_Type_ID = 120
+            Object_Part_Type_ID = 135
         };
         mega::io::megaFilePath source_file;
         std::size_t hash_code;
@@ -1517,7 +1603,7 @@ namespace Model
         HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Model::HyperGraph_ObjectGraph > >& objects);
         enum 
         {
-            Object_Part_Type_ID = 121
+            Object_Part_Type_ID = 136
         };
         std::vector< data::Ptr< data::Model::HyperGraph_ObjectGraph > > objects;
         std::variant< data::Ptr< data::Model::HyperGraph_Graph > > m_inheritance;
@@ -1536,7 +1622,7 @@ namespace Derivations
         Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >& inheritance);
         enum 
         {
-            Object_Part_Type_ID = 122
+            Object_Part_Type_ID = 137
         };
         mega::io::megaFilePath source_file;
         std::size_t hash_code;
@@ -1554,11 +1640,380 @@ namespace Derivations
         Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& mappings);
         enum 
         {
-            Object_Part_Type_ID = 123
+            Object_Part_Type_ID = 138
         };
         std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > > mappings;
         std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > > inheritance;
         std::variant< data::Ptr< data::Derivations::Derivation_Mapping > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+}
+namespace MemoryLayout
+{
+    struct Concrete_Dimensions_User : public mega::io::Object
+    {
+        Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const std::size_t& offset);
+        enum 
+        {
+            Object_Part_Type_ID = 94
+        };
+        std::size_t offset;
+        Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Dimensions_Generated : public mega::io::Object
+    {
+        Concrete_Dimensions_Generated( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Dimensions_Generated( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent);
+        enum 
+        {
+            Object_Part_Type_ID = 95
+        };
+        data::Ptr< data::Concrete::Concrete_Context > parent;
+        std::optional< std::size_t > offset;
+        std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Dimensions_StopCycle : public mega::io::Object
+    {
+        Concrete_Dimensions_StopCycle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 96
+        };
+        Ptr< MemoryLayout::Concrete_Dimensions_Generated > p_MemoryLayout_Concrete_Dimensions_Generated;
+        std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Dimensions_Reference : public mega::io::Object
+    {
+        Concrete_Dimensions_Reference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 97
+        };
+        Ptr< MemoryLayout::Concrete_Dimensions_Generated > p_MemoryLayout_Concrete_Dimensions_Generated;
+        std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Dimensions_State : public mega::io::Object
+    {
+        Concrete_Dimensions_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 98
+        };
+        Ptr< MemoryLayout::Concrete_Dimensions_Generated > p_MemoryLayout_Concrete_Dimensions_Generated;
+        std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Dimensions_Allocator : public mega::io::Object
+    {
+        Concrete_Dimensions_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Dimensions_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator);
+        enum 
+        {
+            Object_Part_Type_ID = 99
+        };
+        data::Ptr< data::MemoryLayout::Allocators_Allocator > allocator;
+        Ptr< MemoryLayout::Concrete_Dimensions_Generated > p_MemoryLayout_Concrete_Dimensions_Generated;
+        std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Dimensions_LinkReference : public mega::io::Object
+    {
+        Concrete_Dimensions_LinkReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Dimensions_LinkReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Link >& link);
+        enum 
+        {
+            Object_Part_Type_ID = 100
+        };
+        data::Ptr< data::Concrete::Concrete_Link > link;
+        Ptr< MemoryLayout::Concrete_Dimensions_Generated > p_MemoryLayout_Concrete_Dimensions_Generated;
+        std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Context : public mega::io::Object
+    {
+        Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions);
+        enum 
+        {
+            Object_Part_Type_ID = 103
+        };
+        data::Ptr< data::MemoryLayout::Allocators_Allocator > allocator;
+        std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > > generated_dimensions;
+        Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Action : public mega::io::Object
+    {
+        Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Action > p_Concrete_Concrete_Action, const std::size_t& local_size, const std::size_t& total_size);
+        enum 
+        {
+            Object_Part_Type_ID = 106
+        };
+        std::size_t local_size;
+        std::size_t total_size;
+        Ptr< Concrete::Concrete_Action > p_Concrete_Concrete_Action;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Event : public mega::io::Object
+    {
+        Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Event > p_Concrete_Concrete_Event, const std::size_t& local_size, const std::size_t& total_size);
+        enum 
+        {
+            Object_Part_Type_ID = 108
+        };
+        std::size_t local_size;
+        std::size_t total_size;
+        Ptr< Concrete::Concrete_Event > p_Concrete_Concrete_Event;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Link : public mega::io::Object
+    {
+        Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Link > p_Concrete_Concrete_Link, const std::size_t& total_size);
+        enum 
+        {
+            Object_Part_Type_ID = 112
+        };
+        std::size_t total_size;
+        Ptr< Concrete::Concrete_Link > p_Concrete_Concrete_Link;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Concrete_Buffer : public mega::io::Object
+    {
+        Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Buffer > p_Concrete_Concrete_Buffer, const std::size_t& total_size);
+        enum 
+        {
+            Object_Part_Type_ID = 115
+        };
+        std::size_t total_size;
+        Ptr< Concrete::Concrete_Buffer > p_Concrete_Concrete_Buffer;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Allocators_Allocator : public mega::io::Object
+    {
+        Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context, const data::Ptr< data::Concrete::Concrete_Context >& allocated_context);
+        enum 
+        {
+            Object_Part_Type_ID = 139
+        };
+        data::Ptr< data::Concrete::Concrete_Context > parent_context;
+        data::Ptr< data::Concrete::Concrete_Context > allocated_context;
+        std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Allocators_Nothing : public mega::io::Object
+    {
+        Allocators_Nothing( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 140
+        };
+        Ptr< MemoryLayout::Allocators_Allocator > p_MemoryLayout_Allocators_Allocator;
+        std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Allocators_Singleton : public mega::io::Object
+    {
+        Allocators_Singleton( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 141
+        };
+        Ptr< MemoryLayout::Allocators_Allocator > p_MemoryLayout_Allocators_Allocator;
+        std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Allocators_Range : public mega::io::Object
+    {
+        Allocators_Range( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 142
+        };
+        Ptr< MemoryLayout::Allocators_Allocator > p_MemoryLayout_Allocators_Allocator;
+        std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Allocators_Range32 : public mega::io::Object
+    {
+        Allocators_Range32( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 143
+        };
+        Ptr< MemoryLayout::Allocators_Range > p_MemoryLayout_Allocators_Range;
+        std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Allocators_Range64 : public mega::io::Object
+    {
+        Allocators_Range64( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 144
+        };
+        Ptr< MemoryLayout::Allocators_Range > p_MemoryLayout_Allocators_Range;
+        std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct Allocators_RangeAny : public mega::io::Object
+    {
+        Allocators_RangeAny( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 145
+        };
+        Ptr< MemoryLayout::Allocators_Range > p_MemoryLayout_Allocators_Range;
+        std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct MemoryLayout_Buffer : public mega::io::Object
+    {
+        MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::size_t& stride, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions);
+        enum 
+        {
+            Object_Part_Type_ID = 146
+        };
+        data::Ptr< data::Concrete::Concrete_Context > context;
+        std::size_t stride;
+        std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > > generated_dimensions;
+        std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > > user_dimensions;
+        std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct MemoryLayout_GPUBuffer : public mega::io::Object
+    {
+        MemoryLayout_GPUBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 147
+        };
+        Ptr< MemoryLayout::MemoryLayout_Buffer > p_MemoryLayout_MemoryLayout_Buffer;
+        std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct MemoryLayout_SharedBuffer : public mega::io::Object
+    {
+        MemoryLayout_SharedBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 148
+        };
+        Ptr< MemoryLayout::MemoryLayout_Buffer > p_MemoryLayout_MemoryLayout_Buffer;
+        std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > > m_inheritance;
+        virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
+        virtual void set_inheritance_pointer();
+        virtual void load( mega::io::Loader& loader );
+        virtual void store( mega::io::Storer& storer ) const;
+        virtual void to_json( nlohmann::json& data ) const;
+    };
+    struct MemoryLayout_SimpleBuffer : public mega::io::Object
+    {
+        MemoryLayout_SimpleBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
+        enum 
+        {
+            Object_Part_Type_ID = 149
+        };
+        Ptr< MemoryLayout::MemoryLayout_Buffer > p_MemoryLayout_MemoryLayout_Buffer;
+        std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
         virtual void load( mega::io::Loader& loader );
@@ -1574,7 +2029,7 @@ namespace Operations
         Invocations_Variables_Variable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > >& parent);
         enum 
         {
-            Object_Part_Type_ID = 55
+            Object_Part_Type_ID = 57
         };
         std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > > parent;
         std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >, data::Ptr< data::Operations::Invocations_Variables_Reference >, data::Ptr< data::Operations::Invocations_Variables_Dimension >, data::Ptr< data::Operations::Invocations_Variables_Context > > m_inheritance;
@@ -1590,7 +2045,7 @@ namespace Operations
         Invocations_Variables_Instance( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& concrete);
         enum 
         {
-            Object_Part_Type_ID = 56
+            Object_Part_Type_ID = 58
         };
         data::Ptr< data::Concrete::Concrete_Context > concrete;
         Ptr< Operations::Invocations_Variables_Variable > p_Operations_Invocations_Variables_Variable;
@@ -1607,7 +2062,7 @@ namespace Operations
         Invocations_Variables_Reference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Concrete::Concrete_Context > >& types);
         enum 
         {
-            Object_Part_Type_ID = 57
+            Object_Part_Type_ID = 59
         };
         std::vector< data::Ptr< data::Concrete::Concrete_Context > > types;
         Ptr< Operations::Invocations_Variables_Variable > p_Operations_Invocations_Variables_Variable;
@@ -1623,7 +2078,7 @@ namespace Operations
         Invocations_Variables_Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 58
+            Object_Part_Type_ID = 60
         };
         Ptr< Operations::Invocations_Variables_Reference > p_Operations_Invocations_Variables_Reference;
         std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >, data::Ptr< data::Operations::Invocations_Variables_Reference >, data::Ptr< data::Operations::Invocations_Variables_Dimension >, data::Ptr< data::Operations::Invocations_Variables_Context > > m_inheritance;
@@ -1638,7 +2093,7 @@ namespace Operations
         Invocations_Variables_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 59
+            Object_Part_Type_ID = 61
         };
         Ptr< Operations::Invocations_Variables_Reference > p_Operations_Invocations_Variables_Reference;
         std::variant< data::Ptr< data::Operations::Invocations_Variables_Variable >, data::Ptr< data::Operations::Invocations_Variables_Instance >, data::Ptr< data::Operations::Invocations_Variables_Reference >, data::Ptr< data::Operations::Invocations_Variables_Dimension >, data::Ptr< data::Operations::Invocations_Variables_Context > > m_inheritance;
@@ -1653,7 +2108,7 @@ namespace Operations
         Invocations_Instructions_Instruction( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 60
+            Object_Part_Type_ID = 62
         };
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
@@ -1668,7 +2123,7 @@ namespace Operations
         Invocations_Instructions_InstructionGroup( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > >& children);
         enum 
         {
-            Object_Part_Type_ID = 61
+            Object_Part_Type_ID = 63
         };
         std::vector< data::Ptr< data::Operations::Invocations_Instructions_Instruction > > children;
         Ptr< Operations::Invocations_Instructions_Instruction > p_Operations_Invocations_Instructions_Instruction;
@@ -1685,7 +2140,7 @@ namespace Operations
         Invocations_Instructions_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Context >& context);
         enum 
         {
-            Object_Part_Type_ID = 62
+            Object_Part_Type_ID = 64
         };
         data::Ptr< data::Operations::Invocations_Variables_Context > context;
         Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
@@ -1702,7 +2157,7 @@ namespace Operations
         Invocations_Instructions_ParentDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& from, const data::Ptr< data::Operations::Invocations_Variables_Instance >& to);
         enum 
         {
-            Object_Part_Type_ID = 63
+            Object_Part_Type_ID = 65
         };
         data::Ptr< data::Operations::Invocations_Variables_Instance > from;
         data::Ptr< data::Operations::Invocations_Variables_Instance > to;
@@ -1720,7 +2175,7 @@ namespace Operations
         Invocations_Instructions_ChildDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& from, const data::Ptr< data::Operations::Invocations_Variables_Instance >& to);
         enum 
         {
-            Object_Part_Type_ID = 64
+            Object_Part_Type_ID = 66
         };
         data::Ptr< data::Operations::Invocations_Variables_Instance > from;
         data::Ptr< data::Operations::Invocations_Variables_Instance > to;
@@ -1738,7 +2193,7 @@ namespace Operations
         Invocations_Instructions_EnumDerivation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& from, const data::Ptr< data::Operations::Invocations_Variables_Instance >& to);
         enum 
         {
-            Object_Part_Type_ID = 65
+            Object_Part_Type_ID = 67
         };
         data::Ptr< data::Operations::Invocations_Variables_Instance > from;
         data::Ptr< data::Operations::Invocations_Variables_Instance > to;
@@ -1756,7 +2211,7 @@ namespace Operations
         Invocations_Instructions_Enumeration( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance);
         enum 
         {
-            Object_Part_Type_ID = 66
+            Object_Part_Type_ID = 68
         };
         data::Ptr< data::Operations::Invocations_Variables_Instance > instance;
         Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
@@ -1770,14 +2225,14 @@ namespace Operations
     struct Invocations_Instructions_DimensionReferenceRead : public mega::io::Object
     {
         Invocations_Instructions_DimensionReferenceRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Invocations_Instructions_DimensionReferenceRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance, const data::Ptr< data::Operations::Invocations_Variables_Dimension >& dimension_reference, const data::Ptr< data::Concrete::Concrete_Dimension >& concrete);
+        Invocations_Instructions_DimensionReferenceRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance, const data::Ptr< data::Operations::Invocations_Variables_Dimension >& dimension_reference, const data::Ptr< data::Concrete::Concrete_Dimensions_User >& concrete);
         enum 
         {
-            Object_Part_Type_ID = 67
+            Object_Part_Type_ID = 69
         };
         data::Ptr< data::Operations::Invocations_Variables_Instance > instance;
         data::Ptr< data::Operations::Invocations_Variables_Dimension > dimension_reference;
-        data::Ptr< data::Concrete::Concrete_Dimension > concrete;
+        data::Ptr< data::Concrete::Concrete_Dimensions_User > concrete;
         Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
@@ -1792,7 +2247,7 @@ namespace Operations
         Invocations_Instructions_MonoReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference >& reference, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance);
         enum 
         {
-            Object_Part_Type_ID = 68
+            Object_Part_Type_ID = 70
         };
         data::Ptr< data::Operations::Invocations_Variables_Reference > reference;
         data::Ptr< data::Operations::Invocations_Variables_Instance > instance;
@@ -1810,7 +2265,7 @@ namespace Operations
         Invocations_Instructions_PolyReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference >& from_reference);
         enum 
         {
-            Object_Part_Type_ID = 69
+            Object_Part_Type_ID = 71
         };
         data::Ptr< data::Operations::Invocations_Variables_Reference > from_reference;
         Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
@@ -1827,7 +2282,7 @@ namespace Operations
         Invocations_Instructions_PolyCase( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Reference >& reference, const data::Ptr< data::Operations::Invocations_Variables_Instance >& to);
         enum 
         {
-            Object_Part_Type_ID = 70
+            Object_Part_Type_ID = 72
         };
         data::Ptr< data::Operations::Invocations_Variables_Reference > reference;
         data::Ptr< data::Operations::Invocations_Variables_Instance > to;
@@ -1844,7 +2299,7 @@ namespace Operations
         Invocations_Instructions_Failure( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 71
+            Object_Part_Type_ID = 73
         };
         Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -1859,7 +2314,7 @@ namespace Operations
         Invocations_Instructions_Elimination( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 72
+            Object_Part_Type_ID = 74
         };
         Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -1874,7 +2329,7 @@ namespace Operations
         Invocations_Instructions_Prune( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 73
+            Object_Part_Type_ID = 75
         };
         Ptr< Operations::Invocations_Instructions_InstructionGroup > p_Operations_Invocations_Instructions_InstructionGroup;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -1890,7 +2345,7 @@ namespace Operations
         Invocations_Operations_Operation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance, const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& return_types, const std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > >& parameter_types);
         enum 
         {
-            Object_Part_Type_ID = 74
+            Object_Part_Type_ID = 76
         };
         data::Ptr< data::Operations::Invocations_Variables_Instance > instance;
         std::vector< data::Ptr< data::Operations::Operations_InterfaceVariant > > return_types;
@@ -1909,7 +2364,7 @@ namespace Operations
         Invocations_Operations_BasicOperation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_IContext >& interface, const data::Ptr< data::Concrete::Concrete_Context >& concrete_target);
         enum 
         {
-            Object_Part_Type_ID = 75
+            Object_Part_Type_ID = 77
         };
         data::Ptr< data::Tree::Interface_IContext > interface;
         data::Ptr< data::Concrete::Concrete_Context > concrete_target;
@@ -1924,13 +2379,13 @@ namespace Operations
     struct Invocations_Operations_DimensionOperation : public mega::io::Object
     {
         Invocations_Operations_DimensionOperation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Invocations_Operations_DimensionOperation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension, const data::Ptr< data::Concrete::Concrete_Dimension >& concrete_dimension);
+        Invocations_Operations_DimensionOperation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension, const data::Ptr< data::Concrete::Concrete_Dimensions_User >& concrete_dimension);
         enum 
         {
-            Object_Part_Type_ID = 76
+            Object_Part_Type_ID = 78
         };
         data::Ptr< data::Tree::Interface_DimensionTrait > interface_dimension;
-        data::Ptr< data::Concrete::Concrete_Dimension > concrete_dimension;
+        data::Ptr< data::Concrete::Concrete_Dimensions_User > concrete_dimension;
         Ptr< Operations::Invocations_Operations_Operation > p_Operations_Invocations_Operations_Operation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
@@ -1944,7 +2399,7 @@ namespace Operations
         Invocations_Operations_Call( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 77
+            Object_Part_Type_ID = 79
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -1959,7 +2414,7 @@ namespace Operations
         Invocations_Operations_Start( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 78
+            Object_Part_Type_ID = 80
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -1974,7 +2429,7 @@ namespace Operations
         Invocations_Operations_Stop( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 79
+            Object_Part_Type_ID = 81
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -1989,7 +2444,7 @@ namespace Operations
         Invocations_Operations_Pause( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 80
+            Object_Part_Type_ID = 82
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2004,7 +2459,7 @@ namespace Operations
         Invocations_Operations_Resume( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 81
+            Object_Part_Type_ID = 83
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2019,7 +2474,7 @@ namespace Operations
         Invocations_Operations_Done( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 82
+            Object_Part_Type_ID = 84
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2034,7 +2489,7 @@ namespace Operations
         Invocations_Operations_WaitAction( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 83
+            Object_Part_Type_ID = 85
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2049,7 +2504,7 @@ namespace Operations
         Invocations_Operations_WaitDimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 84
+            Object_Part_Type_ID = 86
         };
         Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2064,7 +2519,7 @@ namespace Operations
         Invocations_Operations_GetAction( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 85
+            Object_Part_Type_ID = 87
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2079,7 +2534,7 @@ namespace Operations
         Invocations_Operations_GetDimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 86
+            Object_Part_Type_ID = 88
         };
         Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2094,7 +2549,7 @@ namespace Operations
         Invocations_Operations_Read( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 87
+            Object_Part_Type_ID = 89
         };
         Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2109,7 +2564,7 @@ namespace Operations
         Invocations_Operations_Write( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 88
+            Object_Part_Type_ID = 90
         };
         Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2125,7 +2580,7 @@ namespace Operations
         Invocations_Operations_WriteLink( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Dimension >& dimension_reference);
         enum 
         {
-            Object_Part_Type_ID = 89
+            Object_Part_Type_ID = 91
         };
         data::Ptr< data::Operations::Invocations_Variables_Dimension > dimension_reference;
         Ptr< Operations::Invocations_Operations_DimensionOperation > p_Operations_Invocations_Operations_DimensionOperation;
@@ -2141,7 +2596,7 @@ namespace Operations
         Invocations_Operations_Range( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
         enum 
         {
-            Object_Part_Type_ID = 90
+            Object_Part_Type_ID = 92
         };
         Ptr< Operations::Invocations_Operations_BasicOperation > p_Operations_Invocations_Operations_BasicOperation;
         std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > > m_inheritance;
@@ -2157,7 +2612,7 @@ namespace Operations
         Operations_InterfaceVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Tree::Interface_IContext > >& context, const std::optional< data::Ptr< data::Tree::Interface_DimensionTrait > >& dimension);
         enum 
         {
-            Object_Part_Type_ID = 102
+            Object_Part_Type_ID = 117
         };
         std::optional< data::Ptr< data::Tree::Interface_IContext > > context;
         std::optional< data::Ptr< data::Tree::Interface_DimensionTrait > > dimension;
@@ -2171,13 +2626,13 @@ namespace Operations
     struct Operations_ConcreteVariant : public mega::io::Object
     {
         Operations_ConcreteVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Operations_ConcreteVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& context, const std::optional< data::Ptr< data::Concrete::Concrete_Dimension > >& dimension);
+        Operations_ConcreteVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& context, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimension);
         enum 
         {
-            Object_Part_Type_ID = 103
+            Object_Part_Type_ID = 118
         };
         std::optional< data::Ptr< data::Concrete::Concrete_Context > > context;
-        std::optional< data::Ptr< data::Concrete::Concrete_Dimension > > dimension;
+        std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > > dimension;
         std::variant< data::Ptr< data::Operations::Operations_ConcreteVariant > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();
@@ -2191,7 +2646,7 @@ namespace Operations
         Operations_Element( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Operations_InterfaceVariant >& interface, const data::Ptr< data::Operations::Operations_ConcreteVariant >& concrete);
         enum 
         {
-            Object_Part_Type_ID = 104
+            Object_Part_Type_ID = 119
         };
         data::Ptr< data::Operations::Operations_InterfaceVariant > interface;
         data::Ptr< data::Operations::Operations_ConcreteVariant > concrete;
@@ -2208,7 +2663,7 @@ namespace Operations
         Operations_ElementVector( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Operations::Operations_Element > >& elements);
         enum 
         {
-            Object_Part_Type_ID = 105
+            Object_Part_Type_ID = 120
         };
         std::vector< data::Ptr< data::Operations::Operations_Element > > elements;
         std::variant< data::Ptr< data::Operations::Operations_ElementVector > > m_inheritance;
@@ -2224,7 +2679,7 @@ namespace Operations
         Operations_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Operations::Operations_ElementVector > >& vectors);
         enum 
         {
-            Object_Part_Type_ID = 106
+            Object_Part_Type_ID = 121
         };
         std::vector< data::Ptr< data::Operations::Operations_ElementVector > > vectors;
         std::variant< data::Ptr< data::Operations::Operations_Context > > m_inheritance;
@@ -2240,7 +2695,7 @@ namespace Operations
         Operations_TypePath( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Operations::Operations_ElementVector > >& vectors);
         enum 
         {
-            Object_Part_Type_ID = 107
+            Object_Part_Type_ID = 122
         };
         std::vector< data::Ptr< data::Operations::Operations_ElementVector > > vectors;
         std::variant< data::Ptr< data::Operations::Operations_TypePath > > m_inheritance;
@@ -2256,7 +2711,7 @@ namespace Operations
         Operations_NameRoot( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Operations::Operations_Name > >& children);
         enum 
         {
-            Object_Part_Type_ID = 108
+            Object_Part_Type_ID = 123
         };
         std::vector< data::Ptr< data::Operations::Operations_Name > > children;
         std::variant< data::Ptr< data::Operations::Operations_NameRoot >, data::Ptr< data::Operations::Operations_Name > > m_inheritance;
@@ -2272,7 +2727,7 @@ namespace Operations
         Operations_Name( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Operations_Element >& element, const bool& is_member, const bool& is_reference);
         enum 
         {
-            Object_Part_Type_ID = 109
+            Object_Part_Type_ID = 124
         };
         data::Ptr< data::Operations::Operations_Element > element;
         bool is_member;
@@ -2291,7 +2746,7 @@ namespace Operations
         Operations_NameResolution( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Operations_NameRoot >& root_name);
         enum 
         {
-            Object_Part_Type_ID = 110
+            Object_Part_Type_ID = 125
         };
         data::Ptr< data::Operations::Operations_NameRoot > root_name;
         std::variant< data::Ptr< data::Operations::Operations_NameResolution > > m_inheritance;
@@ -2307,7 +2762,7 @@ namespace Operations
         Operations_Invocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Operations_Context >& context, const data::Ptr< data::Operations::Operations_TypePath >& type_path, const mega::OperationID& operation, const std::string& name, const std::string& context_str, const std::string& type_path_str);
         enum 
         {
-            Object_Part_Type_ID = 111
+            Object_Part_Type_ID = 126
         };
         data::Ptr< data::Operations::Operations_Context > context;
         data::Ptr< data::Operations::Operations_TypePath > type_path;
@@ -2317,9 +2772,11 @@ namespace Operations
         std::string type_path_str;
         std::optional< mega::ExplicitOperationID > explicit_operation;
         std::optional< std::string > return_type_str;
+        std::optional< std::string > runtime_return_type_str;
         std::optional< data::Ptr< data::Operations::Operations_NameResolution > > name_resolution;
         std::optional< data::Ptr< data::Operations::Invocations_Variables_Context > > root_variable;
         std::optional< data::Ptr< data::Operations::Invocations_Instructions_Root > > root_instruction;
+        std::optional< std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > > > variables;
         std::optional< std::vector< data::Ptr< data::Tree::Interface_IContext > > > return_types_context;
         std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > > return_types_dimension;
         std::optional< bool > homogeneous;
@@ -2337,7 +2794,7 @@ namespace Operations
         Operations_Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::invocation::ID, data::Ptr< data::Operations::Operations_Invocation > >& invocations);
         enum 
         {
-            Object_Part_Type_ID = 112
+            Object_Part_Type_ID = 127
         };
         std::map< mega::invocation::ID, data::Ptr< data::Operations::Operations_Invocation > > invocations;
         std::variant< data::Ptr< data::Operations::Operations_Invocations > > m_inheritance;
@@ -2591,6 +3048,21 @@ inline Ptr< Body::Parser_ContextDef > convert( const Ptr< AST::Parser_TableDef >
 }
 template <>
 inline Ptr< AST::Parser_TableDef > convert( const Ptr< AST::Parser_TableDef >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< AST::Parser_ContextDef > convert( const Ptr< AST::Parser_BufferDef >& from )
+{
+    return from->p_AST_Parser_ContextDef;
+}
+template <>
+inline Ptr< Body::Parser_ContextDef > convert( const Ptr< AST::Parser_BufferDef >& from )
+{
+    return from->p_AST_Parser_ContextDef->p_Body_Parser_ContextDef;
+}
+template <>
+inline Ptr< AST::Parser_BufferDef > convert( const Ptr< AST::Parser_BufferDef >& from )
 {
     return from;
 }
@@ -2946,6 +3418,31 @@ inline Ptr< Concrete::Interface_IContext > convert( const Ptr< Tree::Interface_T
 }
 template <>
 inline Ptr< Tree::Interface_Table > convert( const Ptr< Tree::Interface_Table >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< Tree::Interface_ContextGroup > convert( const Ptr< Tree::Interface_Buffer >& from )
+{
+    return from->p_Tree_Interface_IContext->p_Tree_Interface_ContextGroup;
+}
+template <>
+inline Ptr< Tree::Interface_IContext > convert( const Ptr< Tree::Interface_Buffer >& from )
+{
+    return from->p_Tree_Interface_IContext;
+}
+template <>
+inline Ptr< PerSourceSymbols::Interface_IContext > convert( const Ptr< Tree::Interface_Buffer >& from )
+{
+    return from->p_Tree_Interface_IContext->p_PerSourceSymbols_Interface_IContext;
+}
+template <>
+inline Ptr< Concrete::Interface_IContext > convert( const Ptr< Tree::Interface_Buffer >& from )
+{
+    return from->p_Tree_Interface_IContext->p_Concrete_Interface_IContext;
+}
+template <>
+inline Ptr< Tree::Interface_Buffer > convert( const Ptr< Tree::Interface_Buffer >& from )
 {
     return from;
 }
@@ -3520,7 +4017,67 @@ inline Ptr< Operations::Invocations_Operations_Range > convert( const Ptr< Opera
     return from;
 }
 template <>
-inline Ptr< Concrete::Concrete_Dimension > convert( const Ptr< Concrete::Concrete_Dimension >& from )
+inline Ptr< Concrete::Concrete_Dimensions_User > convert( const Ptr< Concrete::Concrete_Dimensions_User >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_User > convert( const Ptr< Concrete::Concrete_Dimensions_User >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_User;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > convert( const Ptr< MemoryLayout::Concrete_Dimensions_Generated >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > convert( const Ptr< MemoryLayout::Concrete_Dimensions_StopCycle >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_StopCycle > convert( const Ptr< MemoryLayout::Concrete_Dimensions_StopCycle >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > convert( const Ptr< MemoryLayout::Concrete_Dimensions_Reference >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_Reference > convert( const Ptr< MemoryLayout::Concrete_Dimensions_Reference >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > convert( const Ptr< MemoryLayout::Concrete_Dimensions_State >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_State > convert( const Ptr< MemoryLayout::Concrete_Dimensions_State >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > convert( const Ptr< MemoryLayout::Concrete_Dimensions_Allocator >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_Allocator > convert( const Ptr< MemoryLayout::Concrete_Dimensions_Allocator >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > convert( const Ptr< MemoryLayout::Concrete_Dimensions_LinkReference >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Dimensions_LinkReference > convert( const Ptr< MemoryLayout::Concrete_Dimensions_LinkReference >& from )
 {
     return from;
 }
@@ -3540,6 +4097,11 @@ inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_
     return from;
 }
 template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Context >& from )
+{
+    return from->p_MemoryLayout_Concrete_Context;
+}
+template <>
 inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Namespace >& from )
 {
     return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
@@ -3548,6 +4110,11 @@ template <>
 inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Namespace >& from )
 {
     return from->p_Concrete_Concrete_Context;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Namespace >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context;
 }
 template <>
 inline Ptr< Concrete::Concrete_Namespace > convert( const Ptr< Concrete::Concrete_Namespace >& from )
@@ -3565,9 +4132,19 @@ inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_
     return from->p_Concrete_Concrete_Context;
 }
 template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Action >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context;
+}
+template <>
 inline Ptr< Concrete::Concrete_Action > convert( const Ptr< Concrete::Concrete_Action >& from )
 {
     return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Action > convert( const Ptr< Concrete::Concrete_Action >& from )
+{
+    return from->p_MemoryLayout_Concrete_Action;
 }
 template <>
 inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Event >& from )
@@ -3580,9 +4157,19 @@ inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_
     return from->p_Concrete_Concrete_Context;
 }
 template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Event >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context;
+}
+template <>
 inline Ptr< Concrete::Concrete_Event > convert( const Ptr< Concrete::Concrete_Event >& from )
 {
     return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Event > convert( const Ptr< Concrete::Concrete_Event >& from )
+{
+    return from->p_MemoryLayout_Concrete_Event;
 }
 template <>
 inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Function >& from )
@@ -3593,6 +4180,11 @@ template <>
 inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Function >& from )
 {
     return from->p_Concrete_Concrete_Context;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Function >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context;
 }
 template <>
 inline Ptr< Concrete::Concrete_Function > convert( const Ptr< Concrete::Concrete_Function >& from )
@@ -3610,6 +4202,11 @@ inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_
     return from->p_Concrete_Concrete_Context;
 }
 template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Object >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context;
+}
+template <>
 inline Ptr< Concrete::Concrete_Object > convert( const Ptr< Concrete::Concrete_Object >& from )
 {
     return from;
@@ -3625,9 +4222,19 @@ inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_
     return from->p_Concrete_Concrete_Context;
 }
 template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Link >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context;
+}
+template <>
 inline Ptr< Concrete::Concrete_Link > convert( const Ptr< Concrete::Concrete_Link >& from )
 {
     return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Link > convert( const Ptr< Concrete::Concrete_Link >& from )
+{
+    return from->p_MemoryLayout_Concrete_Link;
 }
 template <>
 inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Table >& from )
@@ -3640,9 +4247,39 @@ inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_
     return from->p_Concrete_Concrete_Context;
 }
 template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Table >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context;
+}
+template <>
 inline Ptr< Concrete::Concrete_Table > convert( const Ptr< Concrete::Concrete_Table >& from )
 {
     return from;
+}
+template <>
+inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Buffer >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+}
+template <>
+inline Ptr< Concrete::Concrete_Context > convert( const Ptr< Concrete::Concrete_Buffer >& from )
+{
+    return from->p_Concrete_Concrete_Context;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Context > convert( const Ptr< Concrete::Concrete_Buffer >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context;
+}
+template <>
+inline Ptr< Concrete::Concrete_Buffer > convert( const Ptr< Concrete::Concrete_Buffer >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Concrete_Buffer > convert( const Ptr< Concrete::Concrete_Buffer >& from )
+{
+    return from->p_MemoryLayout_Concrete_Buffer;
 }
 template <>
 inline Ptr< Concrete::Concrete_ContextGroup > convert( const Ptr< Concrete::Concrete_Root >& from )
@@ -3769,6 +4406,121 @@ inline Ptr< Derivations::Derivation_Mapping > convert( const Ptr< Derivations::D
 {
     return from;
 }
+template <>
+inline Ptr< MemoryLayout::Allocators_Allocator > convert( const Ptr< MemoryLayout::Allocators_Allocator >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Allocator > convert( const Ptr< MemoryLayout::Allocators_Nothing >& from )
+{
+    return from->p_MemoryLayout_Allocators_Allocator;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Nothing > convert( const Ptr< MemoryLayout::Allocators_Nothing >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Allocator > convert( const Ptr< MemoryLayout::Allocators_Singleton >& from )
+{
+    return from->p_MemoryLayout_Allocators_Allocator;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Singleton > convert( const Ptr< MemoryLayout::Allocators_Singleton >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Allocator > convert( const Ptr< MemoryLayout::Allocators_Range >& from )
+{
+    return from->p_MemoryLayout_Allocators_Allocator;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Range > convert( const Ptr< MemoryLayout::Allocators_Range >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Allocator > convert( const Ptr< MemoryLayout::Allocators_Range32 >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range->p_MemoryLayout_Allocators_Allocator;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Range > convert( const Ptr< MemoryLayout::Allocators_Range32 >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Range32 > convert( const Ptr< MemoryLayout::Allocators_Range32 >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Allocator > convert( const Ptr< MemoryLayout::Allocators_Range64 >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range->p_MemoryLayout_Allocators_Allocator;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Range > convert( const Ptr< MemoryLayout::Allocators_Range64 >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Range64 > convert( const Ptr< MemoryLayout::Allocators_Range64 >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Allocator > convert( const Ptr< MemoryLayout::Allocators_RangeAny >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range->p_MemoryLayout_Allocators_Allocator;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_Range > convert( const Ptr< MemoryLayout::Allocators_RangeAny >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range;
+}
+template <>
+inline Ptr< MemoryLayout::Allocators_RangeAny > convert( const Ptr< MemoryLayout::Allocators_RangeAny >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::MemoryLayout_Buffer > convert( const Ptr< MemoryLayout::MemoryLayout_Buffer >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::MemoryLayout_Buffer > convert( const Ptr< MemoryLayout::MemoryLayout_GPUBuffer >& from )
+{
+    return from->p_MemoryLayout_MemoryLayout_Buffer;
+}
+template <>
+inline Ptr< MemoryLayout::MemoryLayout_GPUBuffer > convert( const Ptr< MemoryLayout::MemoryLayout_GPUBuffer >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::MemoryLayout_Buffer > convert( const Ptr< MemoryLayout::MemoryLayout_SharedBuffer >& from )
+{
+    return from->p_MemoryLayout_MemoryLayout_Buffer;
+}
+template <>
+inline Ptr< MemoryLayout::MemoryLayout_SharedBuffer > convert( const Ptr< MemoryLayout::MemoryLayout_SharedBuffer >& from )
+{
+    return from;
+}
+template <>
+inline Ptr< MemoryLayout::MemoryLayout_Buffer > convert( const Ptr< MemoryLayout::MemoryLayout_SimpleBuffer >& from )
+{
+    return from->p_MemoryLayout_MemoryLayout_Buffer;
+}
+template <>
+inline Ptr< MemoryLayout::MemoryLayout_SimpleBuffer > convert( const Ptr< MemoryLayout::MemoryLayout_SimpleBuffer >& from )
+{
+    return from;
+}
 inline Ptr< Components::Components_Component > to_base( const Ptr< Components::Components_Component >& from )
 {
     return from;
@@ -3869,6 +4621,10 @@ inline Ptr< AST::Parser_ContextDef > to_base( const Ptr< AST::Parser_TableDef >&
 {
     return from->p_AST_Parser_ContextDef;
 }
+inline Ptr< AST::Parser_ContextDef > to_base( const Ptr< AST::Parser_BufferDef >& from )
+{
+    return from->p_AST_Parser_ContextDef;
+}
 inline Ptr< AST::Parser_SourceRoot > to_base( const Ptr< AST::Parser_SourceRoot >& from )
 {
     return from;
@@ -3946,6 +4702,10 @@ inline Ptr< Tree::Interface_ContextGroup > to_base( const Ptr< Tree::Interface_L
     return from->p_Tree_Interface_IContext->p_Tree_Interface_ContextGroup;
 }
 inline Ptr< Tree::Interface_ContextGroup > to_base( const Ptr< Tree::Interface_Table >& from )
+{
+    return from->p_Tree_Interface_IContext->p_Tree_Interface_ContextGroup;
+}
+inline Ptr< Tree::Interface_ContextGroup > to_base( const Ptr< Tree::Interface_Buffer >& from )
 {
     return from->p_Tree_Interface_IContext->p_Tree_Interface_ContextGroup;
 }
@@ -4093,9 +4853,33 @@ inline Ptr< Operations::Invocations_Instructions_Instruction > to_base( const Pt
 {
     return from->p_Operations_Invocations_Operations_BasicOperation->p_Operations_Invocations_Operations_Operation->p_Operations_Invocations_Instructions_Instruction;
 }
-inline Ptr< Concrete::Concrete_Dimension > to_base( const Ptr< Concrete::Concrete_Dimension >& from )
+inline Ptr< Concrete::Concrete_Dimensions_User > to_base( const Ptr< Concrete::Concrete_Dimensions_User >& from )
 {
     return from;
+}
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > to_base( const Ptr< MemoryLayout::Concrete_Dimensions_Generated >& from )
+{
+    return from;
+}
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > to_base( const Ptr< MemoryLayout::Concrete_Dimensions_StopCycle >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > to_base( const Ptr< MemoryLayout::Concrete_Dimensions_Reference >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > to_base( const Ptr< MemoryLayout::Concrete_Dimensions_State >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > to_base( const Ptr< MemoryLayout::Concrete_Dimensions_Allocator >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
+}
+inline Ptr< MemoryLayout::Concrete_Dimensions_Generated > to_base( const Ptr< MemoryLayout::Concrete_Dimensions_LinkReference >& from )
+{
+    return from->p_MemoryLayout_Concrete_Dimensions_Generated;
 }
 inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_ContextGroup >& from )
 {
@@ -4130,6 +4914,10 @@ inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Conc
     return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
 }
 inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Table >& from )
+{
+    return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
+}
+inline Ptr< Concrete::Concrete_ContextGroup > to_base( const Ptr< Concrete::Concrete_Buffer >& from )
 {
     return from->p_Concrete_Concrete_Context->p_Concrete_Concrete_ContextGroup;
 }
@@ -4224,6 +5012,50 @@ inline Ptr< Derivations::Derivation_ObjectMapping > to_base( const Ptr< Derivati
 inline Ptr< Derivations::Derivation_Mapping > to_base( const Ptr< Derivations::Derivation_Mapping >& from )
 {
     return from;
+}
+inline Ptr< MemoryLayout::Allocators_Allocator > to_base( const Ptr< MemoryLayout::Allocators_Allocator >& from )
+{
+    return from;
+}
+inline Ptr< MemoryLayout::Allocators_Allocator > to_base( const Ptr< MemoryLayout::Allocators_Nothing >& from )
+{
+    return from->p_MemoryLayout_Allocators_Allocator;
+}
+inline Ptr< MemoryLayout::Allocators_Allocator > to_base( const Ptr< MemoryLayout::Allocators_Singleton >& from )
+{
+    return from->p_MemoryLayout_Allocators_Allocator;
+}
+inline Ptr< MemoryLayout::Allocators_Allocator > to_base( const Ptr< MemoryLayout::Allocators_Range >& from )
+{
+    return from->p_MemoryLayout_Allocators_Allocator;
+}
+inline Ptr< MemoryLayout::Allocators_Allocator > to_base( const Ptr< MemoryLayout::Allocators_Range32 >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range->p_MemoryLayout_Allocators_Allocator;
+}
+inline Ptr< MemoryLayout::Allocators_Allocator > to_base( const Ptr< MemoryLayout::Allocators_Range64 >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range->p_MemoryLayout_Allocators_Allocator;
+}
+inline Ptr< MemoryLayout::Allocators_Allocator > to_base( const Ptr< MemoryLayout::Allocators_RangeAny >& from )
+{
+    return from->p_MemoryLayout_Allocators_Range->p_MemoryLayout_Allocators_Allocator;
+}
+inline Ptr< MemoryLayout::MemoryLayout_Buffer > to_base( const Ptr< MemoryLayout::MemoryLayout_Buffer >& from )
+{
+    return from;
+}
+inline Ptr< MemoryLayout::MemoryLayout_Buffer > to_base( const Ptr< MemoryLayout::MemoryLayout_GPUBuffer >& from )
+{
+    return from->p_MemoryLayout_MemoryLayout_Buffer;
+}
+inline Ptr< MemoryLayout::MemoryLayout_Buffer > to_base( const Ptr< MemoryLayout::MemoryLayout_SharedBuffer >& from )
+{
+    return from->p_MemoryLayout_MemoryLayout_Buffer;
+}
+inline Ptr< MemoryLayout::MemoryLayout_Buffer > to_base( const Ptr< MemoryLayout::MemoryLayout_SimpleBuffer >& from )
+{
+    return from->p_MemoryLayout_MemoryLayout_Buffer;
 }
 
 template < typename TVariant > 

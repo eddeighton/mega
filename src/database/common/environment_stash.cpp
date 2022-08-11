@@ -28,7 +28,7 @@ bool StashEnvironment::restore( const CompilationFilePath& filePath, task::Deter
 
         mega::io::FileHeader fileHeader;
         archive >> fileHeader;
-        if ( fileHeader.getVersion() == VERSION )
+        if ( fileHeader.getVersion() == getVersion() )
         {
             return true;
         }

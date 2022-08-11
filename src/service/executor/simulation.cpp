@@ -5,6 +5,8 @@
 #include "service/network/conversation.hpp"
 #include "service/protocol/model/exe_sim.hxx"
 #include "service/protocol/model/messages.hxx"
+#include <boost/asio/execution_context.hpp>
+#include <boost/asio/this_coro.hpp>
 
 namespace mega
 {
@@ -43,6 +45,8 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     ConversationBase::RequestStack stack( "Simulation testing", *this, getConnectionID() );
 
     SPDLOG_INFO( "Simulation Started: {}", getID() );
+
+    
 
     try
     {

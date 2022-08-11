@@ -19,10 +19,7 @@ namespace io
     class Environment : public FileSystem
     {
     public:
-        enum : std::size_t
-        {
-            VERSION = {{ version }}
-        };
+        std::size_t getVersion() const;
 
         manifestFilePath project_manifest() const
         { 

@@ -16,21 +16,40 @@ namespace invocation
 class ID
 {
 public:
-    std::vector< mega::SymbolID > m_context;
-    std::vector< mega::SymbolID > m_type_path;
-    mega::OperationID             m_operation;
+    using SymbolIDVector = std::vector< mega::SymbolID >;
 
-    bool operator==( const ID& cmp ) const
+    SymbolIDVector    m_context;
+    SymbolIDVector    m_type_path;
+    mega::OperationID m_operation;
+
+    inline bool operator==( const ID& cmp ) const
     {
         return ( m_context == cmp.m_context ) && ( m_type_path == cmp.m_type_path )
                && ( m_operation == cmp.m_operation );
     }
 
-    bool operator<( const ID& cmp ) const
+    inline bool operator<( const ID& cmp ) const
     {
         return ( m_context != cmp.m_context )       ? ( m_context < cmp.m_context )
                : ( m_type_path != cmp.m_type_path ) ? ( m_type_path < cmp.m_type_path )
                                                     : ( m_operation < cmp.m_operation );
+    }
+
+    ID() {}
+
+    ID( const SymbolIDVector& context, const SymbolIDVector& typePath, mega::OperationID operationID )
+        : m_context( context )
+        , m_type_path( typePath )
+        , m_operation( operationID )
+    {
+    }
+
+    template < std::size_t Size >
+    ID( mega::TypeID context, const std::array< mega::TypeID, Size >& typePath, mega::OperationID operation )
+        : m_context{ context }
+        , m_type_path( typePath.begin(), typePath.end() )
+        , m_operation( operation )
+    {
     }
 
     template < class Archive >

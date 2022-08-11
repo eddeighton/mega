@@ -72,7 +72,7 @@ namespace Invocations
         {
             ref< Variables::Instance > instance;
             ref< Variables::Dimension > dimension_reference;
-            ref< Concrete::Dimension > concrete;
+            ref< Concrete::Dimensions::User > concrete;
         }
 
         object MonoReference : InstructionGroup -> OperationsStage::Operations
@@ -123,7 +123,7 @@ namespace Invocations
         object DimensionOperation : Operation -> OperationsStage::Operations
         {
             ref< Interface::DimensionTrait > interface_dimension;
-            ref< Concrete::Dimension > concrete_dimension;
+            ref< Concrete::Dimensions::User > concrete_dimension;
         }
 
         object Call : BasicOperation -> OperationsStage::Operations

@@ -106,6 +106,7 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
     if ( pFrom && pFrom != pTo )
     {
         Concrete::ContextGroup* pCommon = findCommonRoot( pFrom, pTo );
+        VERIFY_RTE_MSG( pCommon, "Common root derivation failed" );
 
         if ( Concrete::Root* pRoot = dynamic_database_cast< Concrete::Root >( pCommon ) )
         {
@@ -290,7 +291,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
     else if ( currentConcrete->get_dimension().has_value() )
     {
         OperationsStage::Operations::InterfaceVariant* pInterfaceVar      = current.get_element()->get_interface();
-        Concrete::Dimension*                           pConcreteDimension = currentConcrete->get_dimension().value();
+        Concrete::Dimensions::User*                    pConcreteDimension = currentConcrete->get_dimension().value();
         Concrete::Context*                             pParent            = pConcreteDimension->get_parent();
         Interface::DimensionTrait* pInterfaceDimension = pConcreteDimension->get_interface_dimension();
 
@@ -379,7 +380,7 @@ void GenericOperationVisitor::buildDimensionReference( OperationsStage::Operatio
     auto names = current.get_children();
 
     VERIFY_RTE( current.get_element()->get_concrete()->get_dimension().has_value() );
-    Concrete::Dimension* pDimension = current.get_element()->get_concrete()->get_dimension().value();
+    Concrete::Dimensions::User* pDimension = current.get_element()->get_concrete()->get_dimension().value();
 
     using OperationsStage::Invocations::Variables::Dimension;
     using OperationsStage::Invocations::Variables::Reference;
@@ -437,7 +438,7 @@ void GenericOperationVisitor::buildGenerateName( OperationsStage::Operations::Na
         Concrete::Context* pPrevConcrete    = prev->get_element()->get_concrete()->get_context().value();
         Concrete::Context* pCurrentConcrete = current.get_element()->get_concrete()->get_context().value();
 
-        //commonRootDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstructionGroup, pVariable );
+        // commonRootDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstructionGroup, pVariable );
         commonRootDerivation( pPrevConcrete, pCurrentConcrete, pInstructionGroup, pVariable );
 
         if ( names.size() > 1U )

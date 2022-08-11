@@ -139,7 +139,7 @@ ElementVector* toElementVector( Database& database, const InheritanceMapping& in
         InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
             InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
         ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
-            ConcreteVariant::Args{ pConcrete, std::optional< Concrete::Dimension* >() } );
+            ConcreteVariant::Args{ pConcrete, std::optional< Concrete::Dimensions::User* >() } );
 
         Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
         elements.push_back( pElement );
@@ -164,7 +164,7 @@ ElementVector* toElementVector( Database& database, const InheritanceMapping& in
         {
             Interface::DimensionTrait* pDimension = pInterfaceVariant->get_dimension().value();
             VERIFY_RTE( pDimension->get_concrete().has_value() );
-            Concrete::Dimension* pConcreteDimension = pDimension->get_concrete().value();
+            Concrete::Dimensions::User* pConcreteDimension = pDimension->get_concrete().value();
 
             InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
                 InterfaceVariant::Args{ std::optional< Interface::IContext* >(), pDimension } );
@@ -204,9 +204,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
         using OperationsStage::Invocations::Operations::BasicOperation;
         using OperationsStage::Invocations::Operations::DimensionOperation;
         using OperationsStage::Invocations::Operations::Operation;
-        std::vector< Operation* > operations;
-        getOperations( pInvocation->get_root_instruction(), operations );
-        for ( Operation* pOperation : operations )
+        for ( Operation* pOperation : getOperations( pInvocation->get_root_instruction() ) )
         {
             for ( auto pReturnType : pOperation->get_return_types() )
             {
@@ -304,11 +302,10 @@ void build( Database& database, Invocation* pInvocation )
             using OperationsStage::Invocations::Operations::Operation;
 
             // get the operations
-            std::vector< Operation* > operations;
-            getOperations( pInvocation->get_root_instruction(), operations );
+            const std::vector< Operation* > operations = getOperations( pInvocation->get_root_instruction() );
 
-            std::vector< Concrete::Context* >   contexts;
-            std::vector< Concrete::Dimension* > dimensions;
+            std::vector< Concrete::Context* >          contexts;
+            std::vector< Concrete::Dimensions::User* > dimensions;
             for ( Operation* pOperation : operations )
             {
                 if ( BasicOperation* pBasicOp = dynamic_database_cast< BasicOperation >( pOperation ) )
@@ -454,9 +451,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
     std::optional< ExplicitOperationID > resultOpt;
 
     using namespace OperationsStage::Invocations::Operations;
-    std::vector< Operation* > operations;
-    getOperations( pInvocation->get_root_instruction(), operations );
-    for ( auto pOperation : operations )
+    for ( auto pOperation : getOperations( pInvocation->get_root_instruction() ) )
     {
         bool bFound = false;
         if ( !bFound )
@@ -719,6 +714,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
 
     // 5. Analyse result
     pInvocation->set_explicit_operation( determineExplicitOperationType( pInvocation ) );
+    pInvocation->set_variables( getVariables( pInvocation->get_root_instruction() ) );
 
     std::vector< Interface::IContext* >       contexts   = pInvocation->get_return_types_context();
     std::vector< Interface::DimensionTrait* > dimensions = pInvocation->get_return_types_dimension();
@@ -753,7 +749,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
 
     pInvocation->set_is_function_call( strFunctionReturnTypeOpt.has_value() );
 
-    std::ostringstream osReturnTypeStr;
+    std::ostringstream osReturnTypeStr, osRuntimeReturnType;
     {
         if ( !contexts.empty() )
         {
@@ -782,23 +778,28 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 }
                 osReturnTypeStr << " >";
             }
+            osRuntimeReturnType << osReturnTypeStr.str();
         }
         else if ( !dimensions.empty() )
         {
             if ( pInvocation->get_homogeneous() )
             {
-                printIContextFullType( dimensions.front()->get_parent(), osReturnTypeStr );
-                osReturnTypeStr << "::" << dimensions.front()->get_id()->get_str();
+                printIContextFullType( dimensions.front()->get_parent(), osRuntimeReturnType );
+                osRuntimeReturnType << "::" << dimensions.front()->get_id()->get_str();
+                osReturnTypeStr << osRuntimeReturnType.str();
                 switch ( id.m_operation )
                 {
                     case id_Imp_NoParams:
                         osReturnTypeStr << "::Read";
+                        osRuntimeReturnType << "::Type";
                         break;
                     case id_Imp_Params:
                         osReturnTypeStr << "::Write";
+                        osRuntimeReturnType << "::Type";
                         break;
                     case id_Get:
                         osReturnTypeStr << "::Read";
+                        osRuntimeReturnType << "::Type";
                         break;
                     case id_Start:
                     case id_Stop:
@@ -821,10 +822,12 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
         else
         {
             osReturnTypeStr << "void";
+            osRuntimeReturnType << "void";
         }
     }
 
     pInvocation->set_return_type_str( osReturnTypeStr.str() );
+    pInvocation->set_runtime_return_type_str( osRuntimeReturnType.str() );
 
     return pInvocation;
 }

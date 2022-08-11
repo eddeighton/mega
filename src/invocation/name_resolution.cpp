@@ -14,7 +14,9 @@ using namespace OperationsStage;
 namespace
 {
 
-void expandReferences( OperationsStage::Database& database, const OperationsStage::Derivation::Mapping* pMapping, std::vector< Operations::Name* >& names )
+void expandReferences( OperationsStage::Database&                  database,
+                       const OperationsStage::Derivation::Mapping* pMapping,
+                       std::vector< Operations::Name* >&           names )
 {
     using namespace OperationsStage::Operations;
 
@@ -38,8 +40,8 @@ void expandReferences( OperationsStage::Database& database, const OperationsStag
                         // if the dimension is to a mega type then add child nodes
                         bool bIsToMegaType = false;
 
-                        Concrete::Dimension*       pConcreteDimension  = pConVar->get_dimension().value();
-                        Interface::DimensionTrait* pInterfaceDimension = pConcreteDimension->get_interface_dimension();
+                        Concrete::Dimensions::User* pConcreteDimension  = pConVar->get_dimension().value();
+                        Interface::DimensionTrait*  pInterfaceDimension = pConcreteDimension->get_interface_dimension();
 
                         if ( bIsToMegaType )
                         {
@@ -110,7 +112,7 @@ void addType( OperationsStage::Database&        database,
                     if ( Concrete::Namespace* pNamespace = dynamic_database_cast< Concrete::Namespace >( pContext ) )
                     {
                         bFoundType = true;
-                        for ( Concrete::Dimension* pDimension : pNamespace->get_dimensions() )
+                        for ( Concrete::Dimensions::User* pDimension : pNamespace->get_dimensions() )
                         {
                             if ( pDimension == pElement->get_concrete()->get_dimension() )
                             {
@@ -124,7 +126,7 @@ void addType( OperationsStage::Database&        database,
                     if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
                     {
                         bFoundType = true;
-                        for ( Concrete::Dimension* pDimension : pAction->get_dimensions() )
+                        for ( Concrete::Dimensions::User* pDimension : pAction->get_dimensions() )
                         {
                             if ( pDimension == pElement->get_concrete()->get_dimension() )
                             {
@@ -138,7 +140,7 @@ void addType( OperationsStage::Database&        database,
                     if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
                     {
                         bFoundType = true;
-                        for ( Concrete::Dimension* pDimension : pEvent->get_dimensions() )
+                        for ( Concrete::Dimensions::User* pDimension : pEvent->get_dimensions() )
                         {
                             if ( pDimension == pElement->get_concrete()->get_dimension() )
                             {
@@ -158,7 +160,7 @@ void addType( OperationsStage::Database&        database,
                     if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
                     {
                         bFoundType = true;
-                        for ( Concrete::Dimension* pDimension : pObject->get_dimensions() )
+                        for ( Concrete::Dimensions::User* pDimension : pObject->get_dimensions() )
                         {
                             if ( pDimension == pElement->get_concrete()->get_dimension() )
                             {
@@ -288,8 +290,7 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
 
     using namespace OperationsStage::Operations;
 
-    Operations::Context* pContext = pInvocation->get_context();
-
+    Operations::Context*  pContext  = pInvocation->get_context();
     Operations::TypePath* pTypePath = pInvocation->get_type_path();
 
     std::vector< Name* > names;

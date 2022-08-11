@@ -155,6 +155,11 @@ namespace Parser
         ref< Inheritance > inheritance;
     }
 
+    object BufferDef : ContextDef -> ParserStage::AST
+    {
+        
+    }
+
     object SourceRoot  -> ParserStage::AST
     {
         value< boost::filesystem::path > sourceFile;

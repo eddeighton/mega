@@ -283,6 +283,19 @@ public:
                     },
                     []( Table* pTable, Parser::TableDef* pTableDef ) { pTable->push_back_table_defs( pTableDef ); } );
             }
+            else if ( Parser::BufferDef* pBufferDef = dynamic_database_cast< Parser::BufferDef >( pChildContext ) )
+            {
+                constructOrAggregate< Parser::BufferDef, Buffer >(
+                    database, pRoot, pBufferDef, currentName, namedContexts,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Parser::BufferDef* pBufferDef ) -> Buffer*
+                    {
+                        return database.construct< Buffer >( Buffer::Args(
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
+                            { pBufferDef } ) );
+                    },
+                    []( Buffer* pBuffer, Parser::BufferDef* pBufferDef ) { pBuffer->push_back_buffer_defs( pBufferDef ); } );
+            }
             else
             {
                 THROW_RTE( "Unknown context type" );
@@ -510,6 +523,10 @@ public:
     {
         using namespace InterfaceStage;
     }
+    void onBuffer( InterfaceStage::Database& database, InterfaceStage::Interface::Buffer* pBuffer )
+    {
+
+    }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
@@ -573,6 +590,10 @@ public:
         for ( Interface::Table* pTable : database.many< Interface::Table >( m_sourceFilePath ) )
         {
             onTable( database, pTable );
+        }
+        for ( Interface::Buffer* pBuffer : database.many< Interface::Buffer >( m_sourceFilePath ) )
+        {
+            onBuffer( database, pBuffer );
         }
 
         const task::FileHash fileHashCode = database.save_Tree_to_temp();

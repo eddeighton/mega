@@ -47,6 +47,7 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Object > >;
     persource accessor array< ref< Interface::Link > >;
     persource accessor array< ref< Interface::Table > >;
+    persource accessor array< ref< Interface::Buffer > >;
 }
 
 stage DependencyAnalysis
@@ -170,11 +171,23 @@ stage DerivationAnalysisView
     global accessor ref< Derivation::Mapping >;
 }
 
+stage MemoryStage
+{
+    source .mega;
+    dependency DerivationAnalysis;
+
+    file MemoryLayout;
+
+    persource accessor array< ref< Interface::IContext > >;
+    persource accessor ref< Concrete::Root >;
+    global accessor ref< HyperGraph::Graph >;
+}
+
 stage OperationsStage
 {
     source .mega;
     source .cpp;
-    dependency DerivationAnalysis;
+    dependency MemoryStage;
 
     file Operations;
 

@@ -226,7 +226,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    TskDescVec concreteTreeTasks;
+    TskDescVec interfaceAnalysisTasks;
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
@@ -234,13 +234,22 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
             const TskDesc includePCH                = encode( Task{ eTask_IncludePCH, sourceFilePath } );
             const TskDesc objectInterfaceGeneration = encode( Task{ eTask_InterfaceGeneration, sourceFilePath } );
             const TskDesc objectInterfaceAnalysis   = encode( Task{ eTask_InterfaceAnalysis, sourceFilePath } );
-            const TskDesc concreteTree              = encode( Task{ eTask_ConcreteTree, sourceFilePath } );
 
             dependencies.add( includes, symbolRolloutTasks );
             dependencies.add( includePCH, TskDescVec{ includes } );
             dependencies.add( objectInterfaceGeneration, TskDescVec{ includePCH } );
             dependencies.add( objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration } );
-            dependencies.add( concreteTree, TskDescVec{ objectInterfaceAnalysis } );
+
+            interfaceAnalysisTasks.push_back( objectInterfaceAnalysis );
+        }
+    }
+
+    TskDescVec concreteTreeTasks;
+    {
+        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        {
+            const TskDesc concreteTree = encode( Task{ eTask_ConcreteTree, sourceFilePath } );
+            dependencies.add( concreteTree, interfaceAnalysisTasks );
 
             concreteTreeTasks.push_back( concreteTree );
         }
@@ -256,14 +265,16 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
+            const TskDesc allocators        = encode( Task{ eTask_Allocators, sourceFilePath } );
             const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
             const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
             const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
             const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
 
+            dependencies.add( allocators, TskDescVec{ derivation } );
             dependencies.add( operations, TskDescVec{ derivation } );
             dependencies.add( operationsPCH, TskDescVec{ operations } );
-            dependencies.add( implementation, TskDescVec{ operationsPCH } );
+            dependencies.add( implementation, TskDescVec{ operationsPCH, allocators } );
             dependencies.add( implementationObj, TskDescVec{ implementation } );
 
             binaryTasks.push_back( implementationObj );

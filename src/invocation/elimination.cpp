@@ -180,25 +180,39 @@ secondStageElimination( const std::vector< OperationsStage::Invocations::Operati
     return elimination( pInstruction, functor );
 }
 
-void getOperations( OperationsStage::Invocations::Instructions::Instruction*             pInstruction,
-                    std::vector< OperationsStage::Invocations::Operations::Operation* >& operations )
+std::vector< OperationsStage::Invocations::Operations::Operation* >
+getOperations( OperationsStage::Invocations::Instructions::Instruction* pInstruction )
 {
     using OperationsStage::Invocations::Instructions::Instruction;
     using OperationsStage::Invocations::Instructions::InstructionGroup;
     using OperationsStage::Invocations::Operations::Operation;
 
+    std::vector< Operation* > operations;
+
     if ( Operation* pOperation = dynamic_database_cast< Operation >( pInstruction ) )
     {
         operations.push_back( pOperation );
     }
-    
+
     if ( InstructionGroup* pInstructionGroup = dynamic_database_cast< InstructionGroup >( pInstruction ) )
     {
         for ( Instruction* pChildInstruction : pInstructionGroup->get_children() )
         {
-            getOperations( pChildInstruction, operations );
+            const std::vector< Operation* > temp = getOperations( pChildInstruction );
+            std::copy( temp.begin(), temp.end(), std::back_inserter( operations ) );
         }
     }
+    return operations;
+}
+
+std::vector< OperationsStage::Invocations::Variables::Variable* >
+getVariables( OperationsStage::Invocations::Instructions::Instruction* pInstruction )
+{
+    using OperationsStage::Invocations::Variables::Variable;
+
+    std::vector< Variable* > variables;
+
+    return variables;
 }
 
 } // namespace invocation

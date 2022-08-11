@@ -862,7 +862,7 @@ namespace AST
     }
     bool Parser_ContextDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_ContextDef >( loader, const_cast< Parser_ContextDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_ContextDef >( loader, const_cast< Parser_ContextDef* >( this ) ) };
     }
     void Parser_ContextDef::set_inheritance_pointer()
     {
@@ -930,7 +930,7 @@ namespace AST
     }
     bool Parser_NamespaceDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_NamespaceDef >( loader, const_cast< Parser_NamespaceDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_NamespaceDef >( loader, const_cast< Parser_NamespaceDef* >( this ) ) };
     }
     void Parser_NamespaceDef::set_inheritance_pointer()
     {
@@ -970,7 +970,7 @@ namespace AST
     }
     bool Parser_AbstractDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_AbstractDef >( loader, const_cast< Parser_AbstractDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_AbstractDef >( loader, const_cast< Parser_AbstractDef* >( this ) ) };
     }
     void Parser_AbstractDef::set_inheritance_pointer()
     {
@@ -1019,7 +1019,7 @@ namespace AST
     }
     bool Parser_ActionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_ActionDef >( loader, const_cast< Parser_ActionDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_ActionDef >( loader, const_cast< Parser_ActionDef* >( this ) ) };
     }
     void Parser_ActionDef::set_inheritance_pointer()
     {
@@ -1075,7 +1075,7 @@ namespace AST
     }
     bool Parser_EventDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_EventDef >( loader, const_cast< Parser_EventDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_EventDef >( loader, const_cast< Parser_EventDef* >( this ) ) };
     }
     void Parser_EventDef::set_inheritance_pointer()
     {
@@ -1131,7 +1131,7 @@ namespace AST
     }
     bool Parser_FunctionDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_FunctionDef >( loader, const_cast< Parser_FunctionDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_FunctionDef >( loader, const_cast< Parser_FunctionDef* >( this ) ) };
     }
     void Parser_FunctionDef::set_inheritance_pointer()
     {
@@ -1185,7 +1185,7 @@ namespace AST
     }
     bool Parser_ObjectDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_ObjectDef >( loader, const_cast< Parser_ObjectDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_ObjectDef >( loader, const_cast< Parser_ObjectDef* >( this ) ) };
     }
     void Parser_ObjectDef::set_inheritance_pointer()
     {
@@ -1234,7 +1234,7 @@ namespace AST
     }
     bool Parser_LinkDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_LinkDef >( loader, const_cast< Parser_LinkDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_LinkDef >( loader, const_cast< Parser_LinkDef* >( this ) ) };
     }
     void Parser_LinkDef::set_inheritance_pointer()
     {
@@ -1288,7 +1288,7 @@ namespace AST
     }
     bool Parser_TableDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef > >{ data::Ptr< data::AST::Parser_TableDef >( loader, const_cast< Parser_TableDef* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_TableDef >( loader, const_cast< Parser_TableDef* >( this ) ) };
     }
     void Parser_TableDef::set_inheritance_pointer()
     {
@@ -1320,6 +1320,40 @@ namespace AST
                 { "inheritance", inheritance } } );
             part[ "properties" ].push_back( property );
         }
+    }
+        
+    // struct Parser_BufferDef : public mega::io::Object
+    Parser_BufferDef::Parser_BufferDef( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_BufferDef >( loader, this ) )          , p_AST_Parser_ContextDef( loader )
+    {
+    }
+    bool Parser_BufferDef::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >{ data::Ptr< data::AST::Parser_BufferDef >( loader, const_cast< Parser_BufferDef* >( this ) ) };
+    }
+    void Parser_BufferDef::set_inheritance_pointer()
+    {
+        p_AST_Parser_ContextDef->m_inheritance = data::Ptr< data::AST::Parser_BufferDef >( p_AST_Parser_ContextDef, this );
+    }
+    void Parser_BufferDef::load( mega::io::Loader& loader )
+    {
+        loader.load( p_AST_Parser_ContextDef );
+    }
+    void Parser_BufferDef::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_AST_Parser_ContextDef );
+    }
+    void Parser_BufferDef::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Parser_BufferDef" },
+                { "filetype" , "AST" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
     }
         
     // struct Parser_SourceRoot : public mega::io::Object
@@ -1733,7 +1767,7 @@ namespace Tree
     }
     bool Interface_ContextGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_ContextGroup >( loader, const_cast< Interface_ContextGroup* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_ContextGroup >( loader, const_cast< Interface_ContextGroup* >( this ) ) };
     }
     void Interface_ContextGroup::set_inheritance_pointer()
     {
@@ -1777,7 +1811,7 @@ namespace Tree
     }
     bool Interface_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Root >( loader, const_cast< Interface_Root* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Root >( loader, const_cast< Interface_Root* >( this ) ) };
     }
     void Interface_Root::set_inheritance_pointer()
     {
@@ -1829,7 +1863,7 @@ namespace Tree
     }
     bool Interface_IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_IContext >( loader, const_cast< Interface_IContext* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_IContext >( loader, const_cast< Interface_IContext* >( this ) ) };
     }
     void Interface_IContext::set_inheritance_pointer()
     {
@@ -1883,7 +1917,7 @@ namespace Tree
     }
     bool Interface_Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Namespace >( loader, const_cast< Interface_Namespace* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Namespace >( loader, const_cast< Interface_Namespace* >( this ) ) };
     }
     void Interface_Namespace::set_inheritance_pointer()
     {
@@ -1944,7 +1978,7 @@ namespace Tree
     }
     bool Interface_Abstract::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Abstract >( loader, const_cast< Interface_Abstract* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Abstract >( loader, const_cast< Interface_Abstract* >( this ) ) };
     }
     void Interface_Abstract::set_inheritance_pointer()
     {
@@ -2006,7 +2040,7 @@ namespace Tree
     }
     bool Interface_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Action >( loader, const_cast< Interface_Action* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Action >( loader, const_cast< Interface_Action* >( this ) ) };
     }
     void Interface_Action::set_inheritance_pointer()
     {
@@ -2076,7 +2110,7 @@ namespace Tree
     }
     bool Interface_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Event >( loader, const_cast< Interface_Event* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Event >( loader, const_cast< Interface_Event* >( this ) ) };
     }
     void Interface_Event::set_inheritance_pointer()
     {
@@ -2148,7 +2182,7 @@ namespace Tree
     }
     bool Interface_Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Function >( loader, const_cast< Interface_Function* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Function >( loader, const_cast< Interface_Function* >( this ) ) };
     }
     void Interface_Function::set_inheritance_pointer()
     {
@@ -2210,7 +2244,7 @@ namespace Tree
     }
     bool Interface_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Object >( loader, const_cast< Interface_Object* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Object >( loader, const_cast< Interface_Object* >( this ) ) };
     }
     void Interface_Object::set_inheritance_pointer()
     {
@@ -2274,7 +2308,7 @@ namespace Tree
     }
     bool Interface_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Link >( loader, const_cast< Interface_Link* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Link >( loader, const_cast< Interface_Link* >( this ) ) };
     }
     void Interface_Link::set_inheritance_pointer()
     {
@@ -2336,7 +2370,7 @@ namespace Tree
     }
     bool Interface_Table::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table > >{ data::Ptr< data::Tree::Interface_Table >( loader, const_cast< Interface_Table* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Table >( loader, const_cast< Interface_Table* >( this ) ) };
     }
     void Interface_Table::set_inheritance_pointer()
     {
@@ -2366,6 +2400,60 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "table_defs", table_defs } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Interface_Buffer : public mega::io::Object
+    Interface_Buffer::Interface_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Buffer >( loader, this ) )          , p_Tree_Interface_IContext( loader )
+    {
+    }
+    Interface_Buffer::Interface_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_BufferDef > >& buffer_defs)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Buffer >( loader, this ) )          , p_Tree_Interface_IContext( loader )
+          , buffer_defs( buffer_defs )
+    {
+    }
+    bool Interface_Buffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Table >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Buffer >( loader, const_cast< Interface_Buffer* >( this ) ) };
+    }
+    void Interface_Buffer::set_inheritance_pointer()
+    {
+        p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_Buffer >( p_Tree_Interface_IContext, this );
+    }
+    void Interface_Buffer::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_IContext );
+        loader.load( buffer_defs );
+        loader.load( dimension_traits );
+    }
+    void Interface_Buffer::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_IContext );
+        storer.store( buffer_defs );
+        VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Buffer.dimension_traits has NOT been set" );
+        storer.store( dimension_traits );
+    }
+    void Interface_Buffer::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Interface_Buffer" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "buffer_defs", buffer_defs } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimension_traits", dimension_traits.value() } } );
             part[ "properties" ].push_back( property );
         }
     }
@@ -3191,7 +3279,7 @@ namespace Concrete
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( loader )
     {
     }
-    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::optional< data::Ptr< data::Concrete::Concrete_Dimension > >& concrete)
+    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& concrete)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait )
           , concrete( concrete )
     {
@@ -3278,39 +3366,41 @@ namespace Concrete
         }
     }
         
-    // struct Concrete_Dimension : public mega::io::Object
-    Concrete_Dimension::Concrete_Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimension >( loader, this ) )          , parent( loader )
+    // struct Concrete_Dimensions_User : public mega::io::Object
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_User >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_User( loader )
+          , parent( loader )
           , interface_dimension( loader )
     {
     }
-    Concrete_Dimension::Concrete_Dimension( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimension >( loader, this ) )          , parent( parent )
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_User >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_User( loader )
+          , parent( parent )
           , interface_dimension( interface_dimension )
     {
     }
-    bool Concrete_Dimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Concrete_Dimensions_User::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Dimension > >{ data::Ptr< data::Concrete::Concrete_Dimension >( loader, const_cast< Concrete_Dimension* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_Dimensions_User > >{ data::Ptr< data::Concrete::Concrete_Dimensions_User >( loader, const_cast< Concrete_Dimensions_User* >( this ) ) };
     }
-    void Concrete_Dimension::set_inheritance_pointer()
+    void Concrete_Dimensions_User::set_inheritance_pointer()
     {
     }
-    void Concrete_Dimension::load( mega::io::Loader& loader )
+    void Concrete_Dimensions_User::load( mega::io::Loader& loader )
     {
         loader.load( parent );
         loader.load( interface_dimension );
     }
-    void Concrete_Dimension::store( mega::io::Storer& storer ) const
+    void Concrete_Dimensions_User::store( mega::io::Storer& storer ) const
     {
         storer.store( parent );
         storer.store( interface_dimension );
     }
-    void Concrete_Dimension::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_User::to_json( nlohmann::json& part ) const
     {
         part = nlohmann::json::object(
             { 
-                { "partname", "Concrete_Dimension" },
+                { "partname", "Concrete_Dimensions_User" },
                 { "filetype" , "Concrete" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -3339,7 +3429,7 @@ namespace Concrete
     }
     bool Concrete_ContextGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_ContextGroup >( loader, const_cast< Concrete_ContextGroup* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_ContextGroup >( loader, const_cast< Concrete_ContextGroup* >( this ) ) };
     }
     void Concrete_ContextGroup::set_inheritance_pointer()
     {
@@ -3373,12 +3463,14 @@ namespace Concrete
     // struct Concrete_Context : public mega::io::Object
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
+          , p_MemoryLayout_Concrete_Context( loader )
           , parent( loader )
           , interface( loader )
     {
     }
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_ContextGroup >& parent, const data::Ptr< data::Tree::Interface_IContext >& interface, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& inheritance)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
+          , p_MemoryLayout_Concrete_Context( loader )
           , parent( parent )
           , interface( interface )
           , inheritance( inheritance )
@@ -3386,7 +3478,7 @@ namespace Concrete
     }
     bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Context >( loader, const_cast< Concrete_Context* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Context >( loader, const_cast< Concrete_Context* >( this ) ) };
     }
     void Concrete_Context::set_inheritance_pointer()
     {
@@ -3440,7 +3532,7 @@ namespace Concrete
           , interface_namespace( loader )
     {
     }
-    Concrete_Namespace::Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Namespace >& interface_namespace, const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > >& dimensions)
+    Concrete_Namespace::Concrete_Namespace( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Namespace >& interface_namespace, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Namespace >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , interface_namespace( interface_namespace )
           , dimensions( dimensions )
@@ -3448,7 +3540,7 @@ namespace Concrete
     }
     bool Concrete_Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Namespace >( loader, const_cast< Concrete_Namespace* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Namespace >( loader, const_cast< Concrete_Namespace* >( this ) ) };
     }
     void Concrete_Namespace::set_inheritance_pointer()
     {
@@ -3492,18 +3584,20 @@ namespace Concrete
     // struct Concrete_Action : public mega::io::Object
     Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Action( loader )
           , interface_action( loader )
     {
     }
-    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Action >& interface_action, const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > >& dimensions)
+    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Action >& interface_action, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Action >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Action( loader )
           , interface_action( interface_action )
           , dimensions( dimensions )
     {
     }
     bool Concrete_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Action >( loader, const_cast< Concrete_Action* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Action >( loader, const_cast< Concrete_Action* >( this ) ) };
     }
     void Concrete_Action::set_inheritance_pointer()
     {
@@ -3547,18 +3641,20 @@ namespace Concrete
     // struct Concrete_Event : public mega::io::Object
     Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Event( loader )
           , interface_event( loader )
     {
     }
-    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Event >& interface_event, const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > >& dimensions)
+    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Event >& interface_event, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Event >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Event( loader )
           , interface_event( interface_event )
           , dimensions( dimensions )
     {
     }
     bool Concrete_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Event >( loader, const_cast< Concrete_Event* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Event >( loader, const_cast< Concrete_Event* >( this ) ) };
     }
     void Concrete_Event::set_inheritance_pointer()
     {
@@ -3612,7 +3708,7 @@ namespace Concrete
     }
     bool Concrete_Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Function >( loader, const_cast< Concrete_Function* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Function >( loader, const_cast< Concrete_Function* >( this ) ) };
     }
     void Concrete_Function::set_inheritance_pointer()
     {
@@ -3652,7 +3748,7 @@ namespace Concrete
           , interface_object( loader )
     {
     }
-    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object, const std::vector< data::Ptr< data::Concrete::Concrete_Dimension > >& dimensions)
+    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , interface_object( interface_object )
           , dimensions( dimensions )
@@ -3660,7 +3756,7 @@ namespace Concrete
     }
     bool Concrete_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Object >( loader, const_cast< Concrete_Object* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Object >( loader, const_cast< Concrete_Object* >( this ) ) };
     }
     void Concrete_Object::set_inheritance_pointer()
     {
@@ -3704,17 +3800,19 @@ namespace Concrete
     // struct Concrete_Link : public mega::io::Object
     Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Link( loader )
           , interface_link( loader )
     {
     }
     Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& interface_link)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Link( loader )
           , interface_link( interface_link )
     {
     }
     bool Concrete_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Link >( loader, const_cast< Concrete_Link* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Link >( loader, const_cast< Concrete_Link* >( this ) ) };
     }
     void Concrete_Link::set_inheritance_pointer()
     {
@@ -3761,7 +3859,7 @@ namespace Concrete
     }
     bool Concrete_Table::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Table >( loader, const_cast< Concrete_Table* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Table >( loader, const_cast< Concrete_Table* >( this ) ) };
     }
     void Concrete_Table::set_inheritance_pointer()
     {
@@ -3795,6 +3893,63 @@ namespace Concrete
         }
     }
         
+    // struct Concrete_Buffer : public mega::io::Object
+    Concrete_Buffer::Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Buffer >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Buffer( loader )
+          , interface_buffer( loader )
+    {
+    }
+    Concrete_Buffer::Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Buffer >& interface_buffer, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Buffer >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Buffer( loader )
+          , interface_buffer( interface_buffer )
+          , dimensions( dimensions )
+    {
+    }
+    bool Concrete_Buffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Buffer >( loader, const_cast< Concrete_Buffer* >( this ) ) };
+    }
+    void Concrete_Buffer::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Context->m_inheritance = data::Ptr< data::Concrete::Concrete_Buffer >( p_Concrete_Concrete_Context, this );
+    }
+    void Concrete_Buffer::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Context );
+        loader.load( interface_buffer );
+        loader.load( dimensions );
+    }
+    void Concrete_Buffer::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Context );
+        storer.store( interface_buffer );
+        storer.store( dimensions );
+    }
+    void Concrete_Buffer::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Buffer" },
+                { "filetype" , "Concrete" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "interface_buffer", interface_buffer } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "dimensions", dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Concrete_Root : public mega::io::Object
     Concrete_Root::Concrete_Root( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Root >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
@@ -3808,7 +3963,7 @@ namespace Concrete
     }
     bool Concrete_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Root >( loader, const_cast< Concrete_Root* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >{ data::Ptr< data::Concrete::Concrete_Root >( loader, const_cast< Concrete_Root* >( this ) ) };
     }
     void Concrete_Root::set_inheritance_pointer()
     {
@@ -4042,6 +4197,979 @@ namespace Derivations
                 { "inheritance", inheritance.value() } } );
             part[ "properties" ].push_back( property );
         }
+    }
+        
+}
+namespace MemoryLayout
+{
+    // struct Concrete_Dimensions_User : public mega::io::Object
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( loader )
+    {
+    }
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const std::size_t& offset)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( p_Concrete_Concrete_Dimensions_User )
+          , offset( offset )
+    {
+    }
+    bool Concrete_Dimensions_User::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Dimensions_User::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Dimensions_User->p_MemoryLayout_Concrete_Dimensions_User = data::Ptr< data::MemoryLayout::Concrete_Dimensions_User >( p_Concrete_Concrete_Dimensions_User, this );
+    }
+    void Concrete_Dimensions_User::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Dimensions_User );
+        loader.load( offset );
+    }
+    void Concrete_Dimensions_User::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Dimensions_User );
+        storer.store( offset );
+    }
+    void Concrete_Dimensions_User::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_User" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "offset", offset } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_Generated : public mega::io::Object
+    Concrete_Dimensions_Generated::Concrete_Dimensions_Generated( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >( loader, this ) )          , parent( loader )
+    {
+    }
+    Concrete_Dimensions_Generated::Concrete_Dimensions_Generated( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >( loader, this ) )          , parent( parent )
+    {
+    }
+    bool Concrete_Dimensions_Generated::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >( loader, const_cast< Concrete_Dimensions_Generated* >( this ) ) };
+    }
+    void Concrete_Dimensions_Generated::set_inheritance_pointer()
+    {
+    }
+    void Concrete_Dimensions_Generated::load( mega::io::Loader& loader )
+    {
+        loader.load( parent );
+        loader.load( offset );
+    }
+    void Concrete_Dimensions_Generated::store( mega::io::Storer& storer ) const
+    {
+        storer.store( parent );
+        VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::Concrete_Dimensions_Generated.offset has NOT been set" );
+        storer.store( offset );
+    }
+    void Concrete_Dimensions_Generated::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Generated" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parent", parent } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "offset", offset.value() } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_StopCycle : public mega::io::Object
+    Concrete_Dimensions_StopCycle::Concrete_Dimensions_StopCycle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+    {
+    }
+    bool Concrete_Dimensions_StopCycle::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >( loader, const_cast< Concrete_Dimensions_StopCycle* >( this ) ) };
+    }
+    void Concrete_Dimensions_StopCycle::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
+    }
+    void Concrete_Dimensions_StopCycle::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
+    }
+    void Concrete_Dimensions_StopCycle::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
+    }
+    void Concrete_Dimensions_StopCycle::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_StopCycle" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Concrete_Dimensions_Reference : public mega::io::Object
+    Concrete_Dimensions_Reference::Concrete_Dimensions_Reference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+    {
+    }
+    bool Concrete_Dimensions_Reference::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >( loader, const_cast< Concrete_Dimensions_Reference* >( this ) ) };
+    }
+    void Concrete_Dimensions_Reference::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
+    }
+    void Concrete_Dimensions_Reference::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
+    }
+    void Concrete_Dimensions_Reference::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
+    }
+    void Concrete_Dimensions_Reference::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Reference" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Concrete_Dimensions_State : public mega::io::Object
+    Concrete_Dimensions_State::Concrete_Dimensions_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+    {
+    }
+    bool Concrete_Dimensions_State::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >( loader, const_cast< Concrete_Dimensions_State* >( this ) ) };
+    }
+    void Concrete_Dimensions_State::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
+    }
+    void Concrete_Dimensions_State::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
+    }
+    void Concrete_Dimensions_State::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
+    }
+    void Concrete_Dimensions_State::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_State" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Concrete_Dimensions_Allocator : public mega::io::Object
+    Concrete_Dimensions_Allocator::Concrete_Dimensions_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+          , allocator( loader )
+    {
+    }
+    Concrete_Dimensions_Allocator::Concrete_Dimensions_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+          , allocator( allocator )
+    {
+    }
+    bool Concrete_Dimensions_Allocator::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, const_cast< Concrete_Dimensions_Allocator* >( this ) ) };
+    }
+    void Concrete_Dimensions_Allocator::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
+    }
+    void Concrete_Dimensions_Allocator::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
+        loader.load( allocator );
+    }
+    void Concrete_Dimensions_Allocator::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
+        storer.store( allocator );
+    }
+    void Concrete_Dimensions_Allocator::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_Allocator" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "allocator", allocator } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_LinkReference : public mega::io::Object
+    Concrete_Dimensions_LinkReference::Concrete_Dimensions_LinkReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+          , link( loader )
+    {
+    }
+    Concrete_Dimensions_LinkReference::Concrete_Dimensions_LinkReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Link >& link)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+          , link( link )
+    {
+    }
+    bool Concrete_Dimensions_LinkReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >( loader, const_cast< Concrete_Dimensions_LinkReference* >( this ) ) };
+    }
+    void Concrete_Dimensions_LinkReference::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
+    }
+    void Concrete_Dimensions_LinkReference::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
+        loader.load( link );
+    }
+    void Concrete_Dimensions_LinkReference::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
+        storer.store( link );
+    }
+    void Concrete_Dimensions_LinkReference::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_LinkReference" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link", link } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Context : public mega::io::Object
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
+          , allocator( loader )
+    {
+    }
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
+          , allocator( allocator )
+          , generated_dimensions( generated_dimensions )
+    {
+    }
+    bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Context::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Context->p_MemoryLayout_Concrete_Context = data::Ptr< data::MemoryLayout::Concrete_Context >( p_Concrete_Concrete_Context, this );
+    }
+    void Concrete_Context::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Context );
+        loader.load( allocator );
+        loader.load( generated_dimensions );
+    }
+    void Concrete_Context::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Context );
+        storer.store( allocator );
+        storer.store( generated_dimensions );
+    }
+    void Concrete_Context::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Context" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "allocator", allocator } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "generated_dimensions", generated_dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Action : public mega::io::Object
+    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Action( loader )
+    {
+    }
+    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Action > p_Concrete_Concrete_Action, const std::size_t& local_size, const std::size_t& total_size)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Action( p_Concrete_Concrete_Action )
+          , local_size( local_size )
+          , total_size( total_size )
+    {
+    }
+    bool Concrete_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Action::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Action->p_MemoryLayout_Concrete_Action = data::Ptr< data::MemoryLayout::Concrete_Action >( p_Concrete_Concrete_Action, this );
+    }
+    void Concrete_Action::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Action );
+        loader.load( local_size );
+        loader.load( total_size );
+    }
+    void Concrete_Action::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Action );
+        storer.store( local_size );
+        storer.store( total_size );
+    }
+    void Concrete_Action::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Action" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "local_size", local_size } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "total_size", total_size } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Event : public mega::io::Object
+    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Event( loader )
+    {
+    }
+    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Event > p_Concrete_Concrete_Event, const std::size_t& local_size, const std::size_t& total_size)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Event( p_Concrete_Concrete_Event )
+          , local_size( local_size )
+          , total_size( total_size )
+    {
+    }
+    bool Concrete_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Event::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Event->p_MemoryLayout_Concrete_Event = data::Ptr< data::MemoryLayout::Concrete_Event >( p_Concrete_Concrete_Event, this );
+    }
+    void Concrete_Event::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Event );
+        loader.load( local_size );
+        loader.load( total_size );
+    }
+    void Concrete_Event::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Event );
+        storer.store( local_size );
+        storer.store( total_size );
+    }
+    void Concrete_Event::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Event" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "local_size", local_size } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "total_size", total_size } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Link : public mega::io::Object
+    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Link( loader )
+    {
+    }
+    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Link > p_Concrete_Concrete_Link, const std::size_t& total_size)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Link( p_Concrete_Concrete_Link )
+          , total_size( total_size )
+    {
+    }
+    bool Concrete_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Link::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Link->p_MemoryLayout_Concrete_Link = data::Ptr< data::MemoryLayout::Concrete_Link >( p_Concrete_Concrete_Link, this );
+    }
+    void Concrete_Link::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Link );
+        loader.load( total_size );
+    }
+    void Concrete_Link::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Link );
+        storer.store( total_size );
+    }
+    void Concrete_Link::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Link" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "total_size", total_size } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Buffer : public mega::io::Object
+    Concrete_Buffer::Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Buffer( loader )
+    {
+    }
+    Concrete_Buffer::Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Buffer > p_Concrete_Concrete_Buffer, const std::size_t& total_size)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Buffer( p_Concrete_Concrete_Buffer )
+          , total_size( total_size )
+    {
+    }
+    bool Concrete_Buffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Buffer::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Buffer->p_MemoryLayout_Concrete_Buffer = data::Ptr< data::MemoryLayout::Concrete_Buffer >( p_Concrete_Concrete_Buffer, this );
+    }
+    void Concrete_Buffer::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Buffer );
+        loader.load( total_size );
+    }
+    void Concrete_Buffer::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Buffer );
+        storer.store( total_size );
+    }
+    void Concrete_Buffer::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Buffer" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "total_size", total_size } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Allocators_Allocator : public mega::io::Object
+    Allocators_Allocator::Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, this ) )          , parent_context( loader )
+          , allocated_context( loader )
+    {
+    }
+    Allocators_Allocator::Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context, const data::Ptr< data::Concrete::Concrete_Context >& allocated_context)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, this ) )          , parent_context( parent_context )
+          , allocated_context( allocated_context )
+    {
+    }
+    bool Allocators_Allocator::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > >{ data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, const_cast< Allocators_Allocator* >( this ) ) };
+    }
+    void Allocators_Allocator::set_inheritance_pointer()
+    {
+    }
+    void Allocators_Allocator::load( mega::io::Loader& loader )
+    {
+        loader.load( parent_context );
+        loader.load( allocated_context );
+    }
+    void Allocators_Allocator::store( mega::io::Storer& storer ) const
+    {
+        storer.store( parent_context );
+        storer.store( allocated_context );
+    }
+    void Allocators_Allocator::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Allocators_Allocator" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parent_context", parent_context } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "allocated_context", allocated_context } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Allocators_Nothing : public mega::io::Object
+    Allocators_Nothing::Allocators_Nothing( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Nothing >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
+    {
+    }
+    bool Allocators_Nothing::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > >{ data::Ptr< data::MemoryLayout::Allocators_Nothing >( loader, const_cast< Allocators_Nothing* >( this ) ) };
+    }
+    void Allocators_Nothing::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Allocators_Allocator->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Nothing >( p_MemoryLayout_Allocators_Allocator, this );
+    }
+    void Allocators_Nothing::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Allocators_Allocator );
+    }
+    void Allocators_Nothing::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Allocators_Allocator );
+    }
+    void Allocators_Nothing::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Allocators_Nothing" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Allocators_Singleton : public mega::io::Object
+    Allocators_Singleton::Allocators_Singleton( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Singleton >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
+    {
+    }
+    bool Allocators_Singleton::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > >{ data::Ptr< data::MemoryLayout::Allocators_Singleton >( loader, const_cast< Allocators_Singleton* >( this ) ) };
+    }
+    void Allocators_Singleton::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Allocators_Allocator->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Singleton >( p_MemoryLayout_Allocators_Allocator, this );
+    }
+    void Allocators_Singleton::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Allocators_Allocator );
+    }
+    void Allocators_Singleton::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Allocators_Allocator );
+    }
+    void Allocators_Singleton::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Allocators_Singleton" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Allocators_Range : public mega::io::Object
+    Allocators_Range::Allocators_Range( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range >( loader, this ) )          , p_MemoryLayout_Allocators_Allocator( loader )
+    {
+    }
+    bool Allocators_Range::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > >{ data::Ptr< data::MemoryLayout::Allocators_Range >( loader, const_cast< Allocators_Range* >( this ) ) };
+    }
+    void Allocators_Range::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Allocators_Allocator->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Range >( p_MemoryLayout_Allocators_Allocator, this );
+    }
+    void Allocators_Range::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Allocators_Allocator );
+    }
+    void Allocators_Range::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Allocators_Allocator );
+    }
+    void Allocators_Range::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Allocators_Range" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Allocators_Range32 : public mega::io::Object
+    Allocators_Range32::Allocators_Range32( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range32 >( loader, this ) )          , p_MemoryLayout_Allocators_Range( loader )
+    {
+    }
+    bool Allocators_Range32::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > >{ data::Ptr< data::MemoryLayout::Allocators_Range32 >( loader, const_cast< Allocators_Range32* >( this ) ) };
+    }
+    void Allocators_Range32::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Allocators_Range->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Range32 >( p_MemoryLayout_Allocators_Range, this );
+    }
+    void Allocators_Range32::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Allocators_Range );
+    }
+    void Allocators_Range32::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Allocators_Range );
+    }
+    void Allocators_Range32::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Allocators_Range32" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Allocators_Range64 : public mega::io::Object
+    Allocators_Range64::Allocators_Range64( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Range64 >( loader, this ) )          , p_MemoryLayout_Allocators_Range( loader )
+    {
+    }
+    bool Allocators_Range64::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > >{ data::Ptr< data::MemoryLayout::Allocators_Range64 >( loader, const_cast< Allocators_Range64* >( this ) ) };
+    }
+    void Allocators_Range64::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Allocators_Range->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_Range64 >( p_MemoryLayout_Allocators_Range, this );
+    }
+    void Allocators_Range64::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Allocators_Range );
+    }
+    void Allocators_Range64::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Allocators_Range );
+    }
+    void Allocators_Range64::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Allocators_Range64" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Allocators_RangeAny : public mega::io::Object
+    Allocators_RangeAny::Allocators_RangeAny( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_RangeAny >( loader, this ) )          , p_MemoryLayout_Allocators_Range( loader )
+    {
+    }
+    bool Allocators_RangeAny::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Allocators_Allocator >, data::Ptr< data::MemoryLayout::Allocators_Nothing >, data::Ptr< data::MemoryLayout::Allocators_Singleton >, data::Ptr< data::MemoryLayout::Allocators_Range >, data::Ptr< data::MemoryLayout::Allocators_Range32 >, data::Ptr< data::MemoryLayout::Allocators_Range64 >, data::Ptr< data::MemoryLayout::Allocators_RangeAny > >{ data::Ptr< data::MemoryLayout::Allocators_RangeAny >( loader, const_cast< Allocators_RangeAny* >( this ) ) };
+    }
+    void Allocators_RangeAny::set_inheritance_pointer()
+    {
+        p_MemoryLayout_Allocators_Range->m_inheritance = data::Ptr< data::MemoryLayout::Allocators_RangeAny >( p_MemoryLayout_Allocators_Range, this );
+    }
+    void Allocators_RangeAny::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_Allocators_Range );
+    }
+    void Allocators_RangeAny::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_Allocators_Range );
+    }
+    void Allocators_RangeAny::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "Allocators_RangeAny" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct MemoryLayout_Buffer : public mega::io::Object
+    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , context( loader )
+    {
+    }
+    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::size_t& stride, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , context( context )
+          , stride( stride )
+          , generated_dimensions( generated_dimensions )
+          , user_dimensions( user_dimensions )
+    {
+    }
+    bool MemoryLayout_Buffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > >{ data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, const_cast< MemoryLayout_Buffer* >( this ) ) };
+    }
+    void MemoryLayout_Buffer::set_inheritance_pointer()
+    {
+    }
+    void MemoryLayout_Buffer::load( mega::io::Loader& loader )
+    {
+        loader.load( context );
+        loader.load( stride );
+        loader.load( generated_dimensions );
+        loader.load( user_dimensions );
+    }
+    void MemoryLayout_Buffer::store( mega::io::Storer& storer ) const
+    {
+        storer.store( context );
+        storer.store( stride );
+        storer.store( generated_dimensions );
+        storer.store( user_dimensions );
+    }
+    void MemoryLayout_Buffer::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "MemoryLayout_Buffer" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "context", context } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "stride", stride } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "generated_dimensions", generated_dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "user_dimensions", user_dimensions } } );
+            part[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct MemoryLayout_GPUBuffer : public mega::io::Object
+    MemoryLayout_GPUBuffer::MemoryLayout_GPUBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >( loader, this ) )          , p_MemoryLayout_MemoryLayout_Buffer( loader )
+    {
+    }
+    bool MemoryLayout_GPUBuffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > >{ data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >( loader, const_cast< MemoryLayout_GPUBuffer* >( this ) ) };
+    }
+    void MemoryLayout_GPUBuffer::set_inheritance_pointer()
+    {
+        p_MemoryLayout_MemoryLayout_Buffer->m_inheritance = data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >( p_MemoryLayout_MemoryLayout_Buffer, this );
+    }
+    void MemoryLayout_GPUBuffer::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_MemoryLayout_Buffer );
+    }
+    void MemoryLayout_GPUBuffer::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_MemoryLayout_Buffer );
+    }
+    void MemoryLayout_GPUBuffer::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "MemoryLayout_GPUBuffer" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct MemoryLayout_SharedBuffer : public mega::io::Object
+    MemoryLayout_SharedBuffer::MemoryLayout_SharedBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >( loader, this ) )          , p_MemoryLayout_MemoryLayout_Buffer( loader )
+    {
+    }
+    bool MemoryLayout_SharedBuffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > >{ data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >( loader, const_cast< MemoryLayout_SharedBuffer* >( this ) ) };
+    }
+    void MemoryLayout_SharedBuffer::set_inheritance_pointer()
+    {
+        p_MemoryLayout_MemoryLayout_Buffer->m_inheritance = data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >( p_MemoryLayout_MemoryLayout_Buffer, this );
+    }
+    void MemoryLayout_SharedBuffer::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_MemoryLayout_Buffer );
+    }
+    void MemoryLayout_SharedBuffer::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_MemoryLayout_Buffer );
+    }
+    void MemoryLayout_SharedBuffer::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "MemoryLayout_SharedBuffer" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct MemoryLayout_SimpleBuffer : public mega::io::Object
+    MemoryLayout_SimpleBuffer::MemoryLayout_SimpleBuffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >( loader, this ) )          , p_MemoryLayout_MemoryLayout_Buffer( loader )
+    {
+    }
+    bool MemoryLayout_SimpleBuffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SharedBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > >{ data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >( loader, const_cast< MemoryLayout_SimpleBuffer* >( this ) ) };
+    }
+    void MemoryLayout_SimpleBuffer::set_inheritance_pointer()
+    {
+        p_MemoryLayout_MemoryLayout_Buffer->m_inheritance = data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >( p_MemoryLayout_MemoryLayout_Buffer, this );
+    }
+    void MemoryLayout_SimpleBuffer::load( mega::io::Loader& loader )
+    {
+        loader.load( p_MemoryLayout_MemoryLayout_Buffer );
+    }
+    void MemoryLayout_SimpleBuffer::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_MemoryLayout_MemoryLayout_Buffer );
+    }
+    void MemoryLayout_SimpleBuffer::to_json( nlohmann::json& part ) const
+    {
+        part = nlohmann::json::object(
+            { 
+                { "partname", "MemoryLayout_SimpleBuffer" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
     }
         
 }
@@ -4595,7 +5723,7 @@ namespace Operations
           , concrete( loader )
     {
     }
-    Invocations_Instructions_DimensionReferenceRead::Invocations_Instructions_DimensionReferenceRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance, const data::Ptr< data::Operations::Invocations_Variables_Dimension >& dimension_reference, const data::Ptr< data::Concrete::Concrete_Dimension >& concrete)
+    Invocations_Instructions_DimensionReferenceRead::Invocations_Instructions_DimensionReferenceRead( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Invocations_Variables_Instance >& instance, const data::Ptr< data::Operations::Invocations_Variables_Dimension >& dimension_reference, const data::Ptr< data::Concrete::Concrete_Dimensions_User >& concrete)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( loader, this ) )          , p_Operations_Invocations_Instructions_InstructionGroup( loader )
           , instance( instance )
           , dimension_reference( dimension_reference )
@@ -5039,7 +6167,7 @@ namespace Operations
           , concrete_dimension( loader )
     {
     }
-    Invocations_Operations_DimensionOperation::Invocations_Operations_DimensionOperation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension, const data::Ptr< data::Concrete::Concrete_Dimension >& concrete_dimension)
+    Invocations_Operations_DimensionOperation::Invocations_Operations_DimensionOperation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_DimensionTrait >& interface_dimension, const data::Ptr< data::Concrete::Concrete_Dimensions_User >& concrete_dimension)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >( loader, this ) )          , p_Operations_Invocations_Operations_Operation( loader )
           , interface_dimension( interface_dimension )
           , concrete_dimension( concrete_dimension )
@@ -5630,7 +6758,7 @@ namespace Operations
     Operations_ConcreteVariant::Operations_ConcreteVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_ConcreteVariant >( loader, this ) )    {
     }
-    Operations_ConcreteVariant::Operations_ConcreteVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& context, const std::optional< data::Ptr< data::Concrete::Concrete_Dimension > >& dimension)
+    Operations_ConcreteVariant::Operations_ConcreteVariant( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& context, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimension)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_ConcreteVariant >( loader, this ) )          , context( context )
           , dimension( dimension )
     {
@@ -6030,9 +7158,11 @@ namespace Operations
         loader.load( type_path_str );
         loader.load( explicit_operation );
         loader.load( return_type_str );
+        loader.load( runtime_return_type_str );
         loader.load( name_resolution );
         loader.load( root_variable );
         loader.load( root_instruction );
+        loader.load( variables );
         loader.load( return_types_context );
         loader.load( return_types_dimension );
         loader.load( homogeneous );
@@ -6050,12 +7180,16 @@ namespace Operations
         storer.store( explicit_operation );
         VERIFY_RTE_MSG( return_type_str.has_value(), "Operations::Operations_Invocation.return_type_str has NOT been set" );
         storer.store( return_type_str );
+        VERIFY_RTE_MSG( runtime_return_type_str.has_value(), "Operations::Operations_Invocation.runtime_return_type_str has NOT been set" );
+        storer.store( runtime_return_type_str );
         VERIFY_RTE_MSG( name_resolution.has_value(), "Operations::Operations_Invocation.name_resolution has NOT been set" );
         storer.store( name_resolution );
         VERIFY_RTE_MSG( root_variable.has_value(), "Operations::Operations_Invocation.root_variable has NOT been set" );
         storer.store( root_variable );
         VERIFY_RTE_MSG( root_instruction.has_value(), "Operations::Operations_Invocation.root_instruction has NOT been set" );
         storer.store( root_instruction );
+        VERIFY_RTE_MSG( variables.has_value(), "Operations::Operations_Invocation.variables has NOT been set" );
+        storer.store( variables );
         VERIFY_RTE_MSG( return_types_context.has_value(), "Operations::Operations_Invocation.return_types_context has NOT been set" );
         storer.store( return_types_context );
         VERIFY_RTE_MSG( return_types_dimension.has_value(), "Operations::Operations_Invocation.return_types_dimension has NOT been set" );
@@ -6118,6 +7252,11 @@ namespace Operations
         }
         {
             nlohmann::json property = nlohmann::json::object({
+                { "runtime_return_type_str", runtime_return_type_str.value() } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
                 { "name_resolution", name_resolution.value() } } );
             part[ "properties" ].push_back( property );
         }
@@ -6129,6 +7268,11 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "root_instruction", root_instruction.value() } } );
+            part[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "variables", variables.value() } } );
             part[ "properties" ].push_back( property );
         }
         {
@@ -6226,105 +7370,131 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 23: return new AST::Parser_ObjectDef( loader, objectInfo );
         case 24: return new AST::Parser_LinkDef( loader, objectInfo );
         case 25: return new AST::Parser_TableDef( loader, objectInfo );
-        case 26: return new AST::Parser_SourceRoot( loader, objectInfo );
-        case 27: return new AST::Parser_IncludeRoot( loader, objectInfo );
-        case 28: return new AST::Parser_ObjectSourceRoot( loader, objectInfo );
+        case 26: return new AST::Parser_BufferDef( loader, objectInfo );
+        case 27: return new AST::Parser_SourceRoot( loader, objectInfo );
+        case 28: return new AST::Parser_IncludeRoot( loader, objectInfo );
+        case 29: return new AST::Parser_ObjectSourceRoot( loader, objectInfo );
         case 17: return new Body::Parser_ContextDef( loader, objectInfo );
-        case 29: return new Tree::Interface_DimensionTrait( loader, objectInfo );
-        case 33: return new Tree::Interface_InheritanceTrait( loader, objectInfo );
-        case 35: return new Tree::Interface_LinkTrait( loader, objectInfo );
-        case 36: return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 38: return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
-        case 40: return new Tree::Interface_SizeTrait( loader, objectInfo );
-        case 42: return new Tree::Interface_ContextGroup( loader, objectInfo );
-        case 43: return new Tree::Interface_Root( loader, objectInfo );
-        case 44: return new Tree::Interface_IContext( loader, objectInfo );
-        case 47: return new Tree::Interface_Namespace( loader, objectInfo );
-        case 48: return new Tree::Interface_Abstract( loader, objectInfo );
-        case 49: return new Tree::Interface_Action( loader, objectInfo );
-        case 50: return new Tree::Interface_Event( loader, objectInfo );
-        case 51: return new Tree::Interface_Function( loader, objectInfo );
-        case 52: return new Tree::Interface_Object( loader, objectInfo );
-        case 53: return new Tree::Interface_Link( loader, objectInfo );
-        case 54: return new Tree::Interface_Table( loader, objectInfo );
-        case 113: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 114: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 115: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 116: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 117: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
-        case 118: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
-        case 119: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
-        case 30: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
-        case 45: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
-        case 32: return new Clang::Interface_DimensionTrait( loader, objectInfo );
-        case 34: return new Clang::Interface_InheritanceTrait( loader, objectInfo );
-        case 37: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
-        case 39: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
-        case 41: return new Clang::Interface_SizeTrait( loader, objectInfo );
-        case 31: return new Concrete::Interface_DimensionTrait( loader, objectInfo );
-        case 46: return new Concrete::Interface_IContext( loader, objectInfo );
-        case 91: return new Concrete::Concrete_Dimension( loader, objectInfo );
-        case 92: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 93: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 94: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 95: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 96: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 97: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 98: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 99: return new Concrete::Concrete_Link( loader, objectInfo );
-        case 100: return new Concrete::Concrete_Table( loader, objectInfo );
-        case 101: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 120: return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
-        case 121: return new Model::HyperGraph_Graph( loader, objectInfo );
-        case 122: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 123: return new Derivations::Derivation_Mapping( loader, objectInfo );
-        case 55: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
-        case 56: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
-        case 57: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
-        case 58: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
-        case 59: return new Operations::Invocations_Variables_Context( loader, objectInfo );
-        case 60: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
-        case 61: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
-        case 62: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
-        case 63: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
-        case 64: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
-        case 65: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
-        case 66: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
-        case 67: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
-        case 68: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
-        case 69: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
-        case 70: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
-        case 71: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
-        case 72: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
-        case 73: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
-        case 74: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 75: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
-        case 76: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
-        case 77: return new Operations::Invocations_Operations_Call( loader, objectInfo );
-        case 78: return new Operations::Invocations_Operations_Start( loader, objectInfo );
-        case 79: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
-        case 80: return new Operations::Invocations_Operations_Pause( loader, objectInfo );
-        case 81: return new Operations::Invocations_Operations_Resume( loader, objectInfo );
-        case 82: return new Operations::Invocations_Operations_Done( loader, objectInfo );
-        case 83: return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
-        case 84: return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
-        case 85: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
-        case 86: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
-        case 87: return new Operations::Invocations_Operations_Read( loader, objectInfo );
-        case 88: return new Operations::Invocations_Operations_Write( loader, objectInfo );
-        case 89: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
-        case 90: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 102: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 103: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 104: return new Operations::Operations_Element( loader, objectInfo );
-        case 105: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 106: return new Operations::Operations_Context( loader, objectInfo );
-        case 107: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 108: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 109: return new Operations::Operations_Name( loader, objectInfo );
-        case 110: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 111: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 112: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 30: return new Tree::Interface_DimensionTrait( loader, objectInfo );
+        case 34: return new Tree::Interface_InheritanceTrait( loader, objectInfo );
+        case 36: return new Tree::Interface_LinkTrait( loader, objectInfo );
+        case 37: return new Tree::Interface_ReturnTypeTrait( loader, objectInfo );
+        case 39: return new Tree::Interface_ArgumentListTrait( loader, objectInfo );
+        case 41: return new Tree::Interface_SizeTrait( loader, objectInfo );
+        case 43: return new Tree::Interface_ContextGroup( loader, objectInfo );
+        case 44: return new Tree::Interface_Root( loader, objectInfo );
+        case 45: return new Tree::Interface_IContext( loader, objectInfo );
+        case 48: return new Tree::Interface_Namespace( loader, objectInfo );
+        case 49: return new Tree::Interface_Abstract( loader, objectInfo );
+        case 50: return new Tree::Interface_Action( loader, objectInfo );
+        case 51: return new Tree::Interface_Event( loader, objectInfo );
+        case 52: return new Tree::Interface_Function( loader, objectInfo );
+        case 53: return new Tree::Interface_Object( loader, objectInfo );
+        case 54: return new Tree::Interface_Link( loader, objectInfo );
+        case 55: return new Tree::Interface_Table( loader, objectInfo );
+        case 56: return new Tree::Interface_Buffer( loader, objectInfo );
+        case 128: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 129: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 130: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 131: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 132: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
+        case 133: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
+        case 134: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 31: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
+        case 46: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
+        case 33: return new Clang::Interface_DimensionTrait( loader, objectInfo );
+        case 35: return new Clang::Interface_InheritanceTrait( loader, objectInfo );
+        case 38: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
+        case 40: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
+        case 42: return new Clang::Interface_SizeTrait( loader, objectInfo );
+        case 32: return new Concrete::Interface_DimensionTrait( loader, objectInfo );
+        case 47: return new Concrete::Interface_IContext( loader, objectInfo );
+        case 93: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 101: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 102: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 104: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 105: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 107: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 109: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 110: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 111: return new Concrete::Concrete_Link( loader, objectInfo );
+        case 113: return new Concrete::Concrete_Table( loader, objectInfo );
+        case 114: return new Concrete::Concrete_Buffer( loader, objectInfo );
+        case 116: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 135: return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
+        case 136: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 137: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 138: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 94: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 95: return new MemoryLayout::Concrete_Dimensions_Generated( loader, objectInfo );
+        case 96: return new MemoryLayout::Concrete_Dimensions_StopCycle( loader, objectInfo );
+        case 97: return new MemoryLayout::Concrete_Dimensions_Reference( loader, objectInfo );
+        case 98: return new MemoryLayout::Concrete_Dimensions_State( loader, objectInfo );
+        case 99: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
+        case 100: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
+        case 103: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 106: return new MemoryLayout::Concrete_Action( loader, objectInfo );
+        case 108: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 112: return new MemoryLayout::Concrete_Link( loader, objectInfo );
+        case 115: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
+        case 139: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 140: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 141: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 142: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 143: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 144: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 145: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 146: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 147: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 148: return new MemoryLayout::MemoryLayout_SharedBuffer( loader, objectInfo );
+        case 149: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 57: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
+        case 58: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
+        case 59: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
+        case 60: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
+        case 61: return new Operations::Invocations_Variables_Context( loader, objectInfo );
+        case 62: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
+        case 63: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
+        case 64: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
+        case 65: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
+        case 66: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
+        case 67: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
+        case 68: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
+        case 69: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
+        case 70: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
+        case 71: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
+        case 72: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
+        case 73: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
+        case 74: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
+        case 75: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
+        case 76: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
+        case 77: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
+        case 78: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
+        case 79: return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 80: return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 81: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 82: return new Operations::Invocations_Operations_Pause( loader, objectInfo );
+        case 83: return new Operations::Invocations_Operations_Resume( loader, objectInfo );
+        case 84: return new Operations::Invocations_Operations_Done( loader, objectInfo );
+        case 85: return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
+        case 86: return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
+        case 87: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 88: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 89: return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 90: return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 91: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 92: return new Operations::Invocations_Operations_Range( loader, objectInfo );
+        case 117: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 118: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 119: return new Operations::Operations_Element( loader, objectInfo );
+        case 120: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 121: return new Operations::Operations_Context( loader, objectInfo );
+        case 122: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 123: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 124: return new Operations::Operations_Name( loader, objectInfo );
+        case 125: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 126: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 127: return new Operations::Operations_Invocations( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

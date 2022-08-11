@@ -47,6 +47,7 @@ set( JINJA_TEMPLATES
 set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/base_task.hpp  
     ${MEGA_SRC_DIR}/compiler/interface.hpp  
+    ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
     ${MEGA_SRC_DIR}/compiler/task_complete.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
     ${MEGA_SRC_DIR}/compiler/task_cpp.cpp

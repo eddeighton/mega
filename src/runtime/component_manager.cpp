@@ -1,5 +1,5 @@
 
-#include "runtime/component_manager.hpp"
+#include "component_manager.hpp"
 
 namespace mega
 {

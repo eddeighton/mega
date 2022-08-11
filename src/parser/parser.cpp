@@ -781,6 +781,65 @@ public:
         return database.construct< TableDef >( TableDef::Args{ body, pInheritance } );
     }
 
+    BufferDef* parse_buffer( Database& database )
+    {
+        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
+        parse_comment();
+        //Inheritance* pInheritance = parse_inheritance( database );
+        //parse_comment();
+
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
+        {
+            if ( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                body = parse_context_body( database, pScopedIdentifier );
+                T.consumeClose();
+            }
+            else if ( Tok.is( clang::tok::semi ) )
+            {
+                ConsumeToken();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected semicolon" );
+            }
+        }
+
+        return database.construct< BufferDef >( BufferDef::Args{ body } );
+    }
+
+    TableDef* parse_meta( Database& database )
+    {
+        MEGA_PARSER_ERROR( "TODO implement meta" );
+        /*ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
+        parse_comment();
+        //Inheritance* pInheritance = parse_inheritance( database );
+        //parse_comment();
+
+        ContextDef::Args body = defaultBody( pScopedIdentifier );
+        {
+            if ( Tok.is( clang::tok::l_brace ) )
+            {
+                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
+                T.consumeOpen();
+                body = parse_context_body( database, pScopedIdentifier );
+                T.consumeClose();
+            }
+            else if ( Tok.is( clang::tok::semi ) )
+            {
+                ConsumeToken();
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Expected semicolon" );
+            }
+        }
+
+        return database.construct< BufferDef >( BufferDef::Args{ body } );*/
+    }
+
     ActionDef* parse_action( Database& database )
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
@@ -827,7 +886,7 @@ public:
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_namespace( database ) );
             }
-            else if ( Tok.is( clang::tok::kw_abstract ) || Tok.is( clang::tok::kw_interface ) )
+            else if ( Tok.is( clang::tok::kw_interface ) )
             {
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_abstract( database ) );
@@ -856,6 +915,16 @@ public:
             {
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_table( database ) );
+            }
+            else if ( Tok.is( clang::tok::kw_buffer ) )
+            {
+                ConsumeToken();
+                bodyArgs.children.value().push_back( parse_buffer( database ) );
+            }
+            else if ( Tok.is( clang::tok::kw_meta ) )
+            {
+                ConsumeToken();
+                bodyArgs.children.value().push_back( parse_meta( database ) );
             }
             else if ( Tok.is( clang::tok::kw_object ) )
             {
@@ -913,7 +982,8 @@ public:
                             clang::tok::kw_object,
                             clang::tok::kw_function,
                             clang::tok::kw_event,
-                            clang::tok::kw_abstract,
+                            clang::tok::kw_meta,
+                            clang::tok::kw_buffer,
                             clang::tok::kw_interface,
                             clang::tok::kw_dim,
                             clang::tok::kw_link,

@@ -99,3 +99,62 @@ namespace Derivation
         late< multimap< ref< Interface::IContext >, ref< Interface::IContext > > > inheritance;
     }
 }
+
+namespace Allocators
+{
+    object Allocator -> MemoryStage::MemoryLayout
+    {
+        ref< Concrete::Context > parent_context;
+        ref< Concrete::Context > allocated_context;
+    }
+
+    object Nothing : Allocator -> MemoryStage::MemoryLayout
+    {
+    }
+
+    object Singleton : Allocator -> MemoryStage::MemoryLayout
+    {
+    }
+
+    object Range : Allocator -> MemoryStage::MemoryLayout
+    {
+    }
+
+    object Range32 : Range -> MemoryStage::MemoryLayout
+    {
+    }
+
+    object Range64 : Range -> MemoryStage::MemoryLayout
+    {
+    }
+
+    object RangeAny : Range -> MemoryStage::MemoryLayout
+    {
+    }
+}
+
+namespace MemoryLayout
+{
+    object Buffer -> MemoryStage::MemoryLayout
+    {
+        ref< Concrete::Context > context;
+        value< std::size_t > stride;
+        array< ref< Concrete::Dimensions::Generated > > generated_dimensions;
+        array< ref< Concrete::Dimensions::User > > user_dimensions;
+    }
+
+    object GPUBuffer : Buffer -> MemoryStage::MemoryLayout
+    {
+        
+    }
+
+    object SharedBuffer : Buffer -> MemoryStage::MemoryLayout
+    {
+
+    }
+
+    object SimpleBuffer : Buffer -> MemoryStage::MemoryLayout
+    {
+
+    }
+}

@@ -3,8 +3,8 @@
 #include "grammar.hpp"
 
 #include "common/string.hpp"
-
 #include <common/hash.hpp>
+
 #include <memory>
 #include <vector>
 #include <utility>
@@ -1083,17 +1083,20 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
         for ( const std::vector< Interface::Ptr >& group : disjointInheritanceSets )
         {
             // check unique
+            common::Hash szNameHash;
             {
                 for ( Interface::Ptr pInterface : group )
                 {
                     VERIFY_RTE( uniqueInterfaces.count( pInterface ) == 0 );
                     uniqueInterfaces.insert( pInterface );
+                    szNameHash ^= pInterface->delimitTypeName( pStage->m_strName, "" );
                 }
             }
 
             std::ostringstream osSuperTypeName;
             {
-                osSuperTypeName << "__super_" << mapping.counter;
+                //osSuperTypeName << "__super_" << mapping.counter;
+                osSuperTypeName << "__super_" << szNameHash.toHexString();
             }
 
             SuperType::Ptr pSuperType = std::make_shared< SuperType >( mapping.counter, osSuperTypeName.str() );

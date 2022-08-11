@@ -22,8 +22,11 @@ EliminationResult
 secondStageElimination( const std::vector< OperationsStage::Invocations::Operations::Operation* >& candidateOperations,
                         OperationsStage::Invocations::Instructions::Instruction*                   pInstruction );
 
-void getOperations( OperationsStage::Invocations::Instructions::Instruction*             pInstruction,
-                    std::vector< OperationsStage::Invocations::Operations::Operation* >& operations );
+std::vector< OperationsStage::Invocations::Operations::Operation* >
+getOperations( OperationsStage::Invocations::Instructions::Instruction* pInstruction );
+
+std::vector< OperationsStage::Invocations::Variables::Variable* >
+getVariables( OperationsStage::Invocations::Instructions::Instruction* pInstruction );
 
 } // namespace invocation
 } // namespace mega

@@ -170,6 +170,12 @@ struct reference : TypeInstance
                                             : false;
     }
 };
+
+struct ExecutionContext
+{
+    void* pReserved = nullptr;
+};
+
 } // namespace mega
 
 #endif // EG_COMMON_22_04_2019

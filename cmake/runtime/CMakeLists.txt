@@ -17,13 +17,16 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/runtime/runtime.hpp
-    ${MEGA_API_DIR}/runtime/runtime_api.hpp
-    ${MEGA_API_DIR}/runtime/component_manager.hpp
 )
 
 set( RUNTIME_SOURCE
-    ${MEGA_SRC_DIR}/runtime/runtime.cpp
+    ${MEGA_SRC_DIR}/runtime/component_manager.hpp
     ${MEGA_SRC_DIR}/runtime/component_manager.cpp
+    ${MEGA_SRC_DIR}/runtime/jit.hpp
+    ${MEGA_SRC_DIR}/runtime/jit.cpp
+    ${MEGA_SRC_DIR}/runtime/database.hpp
+    ${MEGA_SRC_DIR}/runtime/database.cpp
+    ${MEGA_SRC_DIR}/runtime/runtime.cpp
 )
 
 add_library( runtime

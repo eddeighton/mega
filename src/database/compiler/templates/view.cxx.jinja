@@ -456,7 +456,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
         :   m_environment( environment ),
             m_manifest( m_environment, m_environment.project_manifest() )
     {
-        m_manifest.loadAll( m_environment, *this, m_readonlyFiles, VERSION, mega::io::FileInfo::{{ stage.name }} );
+        m_manifest.loadAll( m_environment, *this, m_readonlyFiles, m_environment.getVersion(), mega::io::FileInfo::{{ stage.name }} );
     }
     Pimpl( const mega::io::Environment& environment, const mega::io::SourceFilePath& sourceFile )
         :   m_environment( environment ),
@@ -465,7 +465,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
     {
 {% for file in stage.readwrite_files %}
         m_pFile_{{ file.name }} = m_manifest.createFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-            m_readwriteFiles, m_sourceFile, VERSION, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
+            m_readwriteFiles, m_sourceFile, m_environment.getVersion(), mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ stage.name }}_{{ file.name }} );
 {% endfor %}{# stage.readwrite_files #}
     }
 
@@ -480,10 +480,10 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                 pFile = m_pFile_{{ many_accessor.file }};
             else
                 pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                    m_readonlyFiles, sourceFile, VERSION, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+                    m_readonlyFiles, sourceFile, m_environment.getVersion(), mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
 {% else %}
             pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                m_readonlyFiles, sourceFile, VERSION, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+                m_readonlyFiles, sourceFile, m_environment.getVersion(), mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
 {% endif %}
             for( mega::io::Object* pObject : pFile->range() )
             {
@@ -675,7 +675,7 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
                 else
                 {
                     pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                        m_readonlyFiles, VERSION, mega::io::FileInfo::{{ stage.name }}, objectInfo.getFileID() );
+                        m_readonlyFiles, m_environment.getVersion(), mega::io::FileInfo::{{ stage.name }}, objectInfo.getFileID() );
                 }
             }
         }

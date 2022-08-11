@@ -12,6 +12,7 @@
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
 
+#include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <ios>
 #include <iostream>
@@ -30,6 +31,26 @@ nlohmann::json loadJson( const boost::filesystem::path& filePath )
     VERIFY_RTE_MSG( !file.fail(), "Failed to open json file: " << filePath.string() );
     return nlohmann::json::parse( std::istreambuf_iterator< char >( file ), std::istreambuf_iterator< char >() );
 }
+
+void renderFile( const boost::filesystem::path& basePath, const std::string& fileName, const std::string& strOutput )
+{
+    const boost::filesystem::path outputFilePath = basePath.native() / boost::filesystem::path( fileName );
+    if ( boost::filesystem::exists( outputFilePath ) )
+    {
+        std::ostringstream os;
+        os << basePath.native() << "_old" << fileName;
+        const boost::filesystem::path oldFile = os.str();
+        if ( boost::filesystem::exists( oldFile ) )
+            boost::filesystem::remove( oldFile );
+        boost::filesystem::ensureFoldersExist( oldFile );
+        boost::filesystem::copy( outputFilePath, oldFile );
+    }
+    if ( boost::filesystem::updateFileIfChanged( outputFilePath, strOutput ) )
+    {
+        std::cout << "Regenerated: " << outputFilePath.string() << std::endl;
+    }
+}
+
 } // namespace
 
 void generate( const Environment& env )
@@ -61,9 +82,7 @@ void generate( const Environment& env )
                     }
                     std::ostringstream osTargetFile;
                     osTargetFile << "/" << filePath.filename().replace_extension( ".hxx" ).string();
-
-                    boost::filesystem::updateFileIfChanged(
-                        env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
+                    renderFile( env.apiDir, osTargetFile.str(), strOutput );
                 }
                 catch ( std::exception& ex )
                 {
@@ -90,8 +109,7 @@ void generate( const Environment& env )
                     }
                     std::ostringstream osTargetFile;
                     osTargetFile << "/" << filePath.filename().replace_extension( ".cxx" ).string();
-                    boost::filesystem::updateFileIfChanged(
-                        env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
+                    renderFile( env.srcDir, osTargetFile.str(), strOutput );
                 }
                 catch ( std::exception& ex )
                 {
@@ -135,8 +153,7 @@ void generate( const Environment& env )
 
                 std::ostringstream osTargetFile;
                 osTargetFile << "/" + names.first + ".hxx";
-                boost::filesystem::updateFileIfChanged(
-                    env.apiDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
+                renderFile( env.apiDir, osTargetFile.str(), strOutput );
             }
             catch ( std::exception& ex )
             {
@@ -164,8 +181,7 @@ void generate( const Environment& env )
 
                 std::ostringstream osTargetFile;
                 osTargetFile << "/" + names.first + ".cxx";
-                boost::filesystem::updateFileIfChanged(
-                    env.srcDir.native() / boost::filesystem::path( osTargetFile.str() ), strOutput );
+                renderFile( env.srcDir, osTargetFile.str(), strOutput );
             }
             catch ( std::exception& ex )
             {

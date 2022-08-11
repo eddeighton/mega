@@ -55,7 +55,7 @@ namespace {{ file.name }}
 {% endfor %}{#part.property#}
     {
     }
-{% if length(part.properties) %}
+{% if length(part.initialisations) %}
     {{ part.name }}::{{ part.name }}( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo{% for property in part.initialisations %}, {{ property.argtype }} {{ property.name }}{% endfor %} )
         :   mega::io::Object( objectInfo ){% if part.has_inheritance %}, m_inheritance( data::Ptr< data::{{ file.name }}::{{ part.name }} >( loader, this ) ){% endif %}
 {% for pointer in part.data_pointers %}
@@ -71,7 +71,7 @@ namespace {{ file.name }}
 {% endfor %}{#part.property#}
     {
     }
-{% endif %}{# length(part.properties) #}
+{% endif %}{# length(part.initialisations) #}
     bool {{ part.name }}::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
 {% if part.has_inheritance %}

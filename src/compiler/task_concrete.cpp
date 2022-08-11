@@ -141,17 +141,21 @@ public:
         {
             // do nothing
         }
+        else if ( Interface::Buffer* pBuffer = dynamic_database_cast< Interface::Buffer >( pContext ) )
+        {
+            collectDimensions( pBuffer, identifierMap );
+        }
         else
         {
             THROW_RTE( "Unknown context type" );
         }
     }
 
-    void constructElements( ConcreteStage::Database&                            database,
-                            ConcreteStage::Concrete::ContextGroup*              parentConcreteContextGroup,
-                            const IdentifierMap&                                inheritedContexts,
-                            std::vector< ConcreteStage::Concrete::Context* >&   childContexts,
-                            std::vector< ConcreteStage::Concrete::Dimension* >& dimensions )
+    void constructElements( ConcreteStage::Database&                                   database,
+                            ConcreteStage::Concrete::ContextGroup*                     parentConcreteContextGroup,
+                            const IdentifierMap&                                       inheritedContexts,
+                            std::vector< ConcreteStage::Concrete::Context* >&          childContexts,
+                            std::vector< ConcreteStage::Concrete::Dimensions::User* >& dimensions )
     {
         using namespace ConcreteStage;
         using namespace ConcreteStage::Concrete;
@@ -167,8 +171,8 @@ public:
             Concrete::Context* pParentConcreteContext
                 = dynamic_database_cast< Concrete::Context >( parentConcreteContextGroup );
 
-            Dimension* pConcreteDimension
-                = database.construct< Dimension >( Dimension::Args{ pParentConcreteContext, pInterfaceDimension } );
+            Dimensions::User* pConcreteDimension = database.construct< Dimensions::User >(
+                Dimensions::User::Args{ pParentConcreteContext, pInterfaceDimension } );
             dimensions.push_back( pConcreteDimension );
 
             // set the pointer in interface to concrete dimension
@@ -195,8 +199,8 @@ public:
                 pConcrete->set_inheritance( inheritedContexts.inherited );
             }
 
-            std::vector< ConcreteStage::Concrete::Context* >   childContexts;
-            std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
+            std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+            std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
             constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
 
             pConcrete->set_dimensions( dimensions );
@@ -224,8 +228,8 @@ public:
                 pConcrete->set_inheritance( inheritedContexts.inherited );
             }
 
-            std::vector< ConcreteStage::Concrete::Context* >   childContexts;
-            std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
+            std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+            std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
             constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
 
             pConcrete->set_dimensions( dimensions );
@@ -246,8 +250,8 @@ public:
                 pConcrete->set_inheritance( inheritedContexts.inherited );
             }
 
-            std::vector< ConcreteStage::Concrete::Context* >   childContexts;
-            std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
+            std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+            std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
             constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
 
             pConcrete->set_dimensions( dimensions );
@@ -268,8 +272,8 @@ public:
                 pConcrete->set_inheritance( inheritedContexts.inherited );
             }
 
-            std::vector< ConcreteStage::Concrete::Context* >   childContexts;
-            std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
+            std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+            std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
             constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
             VERIFY_RTE( dimensions.empty() );
 
@@ -290,8 +294,8 @@ public:
                 pConcrete->set_inheritance( inheritedContexts.inherited );
             }
 
-            std::vector< ConcreteStage::Concrete::Context* >   childContexts;
-            std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
+            std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+            std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
             constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
 
             pConcrete->set_dimensions( dimensions );
@@ -312,8 +316,8 @@ public:
                 pConcrete->set_inheritance( inheritedContexts.inherited );
             }
 
-            std::vector< ConcreteStage::Concrete::Context* >   childContexts;
-            std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
+            std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+            std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
             constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
             VERIFY_RTE( dimensions.empty() );
 
@@ -334,8 +338,30 @@ public:
                 pConcrete->set_inheritance( inheritedContexts.inherited );
             }
 
-            std::vector< ConcreteStage::Concrete::Context* >   childContexts;
-            std::vector< ConcreteStage::Concrete::Dimension* > dimensions;
+            std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+            std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
+            constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
+            VERIFY_RTE( dimensions.empty() );
+
+            pConcrete->set_children( childContexts );
+
+            database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
+
+            return pConcrete;
+        }
+        else if ( Interface::Buffer* pBuffer = dynamic_database_cast< Interface::Buffer >( pContext ) )
+        {
+            Buffer* pConcrete = database.construct< Buffer >(
+                Buffer::Args{ Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pBuffer, {} }, pBuffer, {} } );
+
+            IdentifierMap inheritedContexts;
+            {
+                recurseInheritance( database, pConcrete, pBuffer, inheritedContexts );
+                pConcrete->set_inheritance( inheritedContexts.inherited );
+            }
+
+            std::vector< ConcreteStage::Concrete::Context* >          childContexts;
+            std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
             constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions );
             VERIFY_RTE( dimensions.empty() );
 
