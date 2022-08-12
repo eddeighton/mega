@@ -2791,12 +2791,12 @@ namespace Operations
     struct Operations_Invocations : public mega::io::Object
     {
         Operations_Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-        Operations_Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::invocation::ID, data::Ptr< data::Operations::Operations_Invocation > >& invocations);
+        Operations_Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::InvocationID, data::Ptr< data::Operations::Operations_Invocation > >& invocations);
         enum 
         {
             Object_Part_Type_ID = 127
         };
-        std::map< mega::invocation::ID, data::Ptr< data::Operations::Operations_Invocation > > invocations;
+        std::map< mega::InvocationID, data::Ptr< data::Operations::Operations_Invocation > > invocations;
         std::variant< data::Ptr< data::Operations::Operations_Invocations > > m_inheritance;
         virtual bool test_inheritance_pointer( ObjectPartLoader &loader ) const;
         virtual void set_inheritance_pointer();

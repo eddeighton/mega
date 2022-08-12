@@ -31,7 +31,7 @@ void* testFunc( const mega::reference& )
 }
 
 mega::runtime::ReadFunction JITCompiler::compile_read( const DatabaseInstance& database,
-    const mega::invocation::ID& invocation )
+    const mega::InvocationID& invocation )
 {
     const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocation );
 

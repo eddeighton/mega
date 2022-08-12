@@ -28,12 +28,11 @@ struct __invoke_impl
     {{ invocation.operation }}
 >
 {
-    static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
-    static const mega::invocation::ID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID );
-
     template< typename... Args >
     inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, Args... args ) const
     {
+        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
+        static const mega::InvocationID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID };
 {% if invocation.explicit_operation == "Read" %}
         // Read
         static mega::runtime::ReadFunction g_pRuntimeFunc = nullptr;

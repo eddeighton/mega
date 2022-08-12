@@ -5,7 +5,10 @@
 
 #include "common/string.hpp"
 
-std::ostream& operator<<( std::ostream& os, const mega::invocation::ID& invocationID )
+#include "nlohmann/json.hpp"
+
+
+std::ostream& operator<<( std::ostream& os, const mega::InvocationID& invocationID )
 {
     common::delimit( invocationID.m_context.begin(), invocationID.m_context.end(), ".", os );
     os << '_';

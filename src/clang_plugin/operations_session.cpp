@@ -37,7 +37,7 @@ class OperationsSession : public AnalysisSession
     OperationsStage::Database                                    m_database;
     std::map< std::string, ::OperationsStage::Symbols::Symbol* > m_symbols;
 
-    using InvocationsMap = std::map< mega::invocation::ID, ::OperationsStage::Operations::Invocation* >;
+    using InvocationsMap = std::map< mega::InvocationID, ::OperationsStage::Operations::Invocation* >;
     InvocationsMap m_invocationsMap;
 
 protected:
@@ -417,7 +417,7 @@ public:
 
                                     using namespace OperationsStage;
 
-                                    const mega::invocation::ID id{
+                                    const mega::InvocationID id{
                                         contextSymbolIDs, typePathSymbolIDs, operationTypeID };
 
                                     Operations::Invocation* pInvocation = nullptr;

@@ -66,7 +66,7 @@ public:
     }
 
     void resolveRead( const char* pszUnitName, mega::ExecutionContext executionContext, 
-            const mega::invocation::ID& invocation, ReadFunction* ppFunction )
+            const mega::InvocationID& invocation, ReadFunction* ppFunction )
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
@@ -92,7 +92,7 @@ private:
     bool                                m_bInitialised = false;
 
     // use unordered_map
-    using InvocationMap = std::map< mega::invocation::ID, void* >;
+    using InvocationMap = std::map< mega::InvocationID, void* >;
     InvocationMap m_invocations;
 
     using FunctionPtrMap = std::multimap< const char*, void* >;
@@ -117,7 +117,7 @@ namespace runtime
 void initialiseRuntime( const mega::network::Project& project ) { getStaticRuntime().reinitialise( project ); }
 
 void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
-               const mega::invocation::ID& invocationID, ReadFunction* ppFunction )
+               const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
     getStaticRuntime().resolveRead( pszUnitName, executionContext, invocationID, ppFunction );
 }

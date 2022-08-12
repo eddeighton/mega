@@ -7301,7 +7301,7 @@ namespace Operations
     Operations_Invocations::Operations_Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocations >( loader, this ) )    {
     }
-    Operations_Invocations::Operations_Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::invocation::ID, data::Ptr< data::Operations::Operations_Invocation > >& invocations)
+    Operations_Invocations::Operations_Invocations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::InvocationID, data::Ptr< data::Operations::Operations_Invocation > >& invocations)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocations >( loader, this ) )          , invocations( invocations )
     {
     }

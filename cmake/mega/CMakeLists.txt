@@ -17,6 +17,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/event.hpp
     ${MEGA_API_DIR}/mega/include.hpp
     ${MEGA_API_DIR}/mega/iterators.hpp
+    ${MEGA_API_DIR}/mega/invocation_id.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
     ${MEGA_API_DIR}/mega/operations.hpp
     ${MEGA_API_DIR}/mega/resource.cpp

@@ -573,7 +573,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
     return resultOpt.value();
 }
 
-OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::invocation::ID& id,
+OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::InvocationID& id,
                                                     Database& database, const mega::io::megaFilePath& sourceFile )
 {
     // std::cout << "Found invocation: " << id << std::endl;

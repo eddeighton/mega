@@ -20,7 +20,7 @@ class DatabaseInstance
 public:
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
-    const FinalStage::Operations::Invocation* getInvocation( const mega::invocation::ID& invocation ) const;
+    const FinalStage::Operations::Invocation* getInvocation( const mega::InvocationID& invocation ) const;
 
 private:
     mega::io::ArchiveEnvironment                      m_environment;

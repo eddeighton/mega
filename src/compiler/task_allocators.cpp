@@ -166,16 +166,12 @@ public:
             }
         }
 
-        if ( m_environment.exists( compilationFile ) )
-        {
-            m_environment.setBuildHashCode( compilationFile );
-            m_environment.stash( compilationFile, determinant );
-            succeeded( taskProgress );
-        }
-        else
-        {
-            failed( taskProgress );
-        }
+        const task::FileHash fileHashCode = database.save_MemoryLayout_to_temp();
+        m_environment.setBuildHashCode( compilationFile, fileHashCode );
+        m_environment.temp_to_real( compilationFile );
+        m_environment.stash( compilationFile, determinant );
+        
+        succeeded( taskProgress );
     }
 };
 

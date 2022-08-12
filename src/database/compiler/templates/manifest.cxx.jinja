@@ -126,7 +126,8 @@ namespace io
                     {
                         FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
                             std::make_pair( FileInfo::{{ dependency.stage }}_{{ dependency.name }}, fileInfo.getObjectSourceFilePath() ) );
-                        VERIFY_RTE( iFind != m_fileTypeMap.end() );
+                        VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), "Failed to locate compilation file of type: FileInfo::{{ dependency.stage }}_{{ dependency.name }} for source file: " <<
+                             fileInfo.getObjectSourceFilePath().path().string() );
                         m_dependencies[ fileInfo.getFileID() ].push_back( iFind->second->getFileID() );
                     }
 {% endfor %}

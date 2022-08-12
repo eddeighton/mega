@@ -66,7 +66,7 @@ toElementVector( OperationsStage::Database& database, const InheritanceMapping& 
                  const InterfaceVariantVectorVector& interfaceVariantVectorVector );
 
 
-OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::invocation::ID& id,
+OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::InvocationID& id,
                                                     OperationsStage::Database&    database,
                                                     const mega::io::megaFilePath& sourceFile );
 

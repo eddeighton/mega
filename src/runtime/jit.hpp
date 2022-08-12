@@ -56,7 +56,7 @@ namespace mega
             JITCompiler();
 
             mega::runtime::ReadFunction compile_read( const DatabaseInstance& database,
-                const mega::invocation::ID& invocation );
+                const mega::InvocationID& invocation );
 
             void unload_read( mega::runtime::ReadFunction pFunction );
 

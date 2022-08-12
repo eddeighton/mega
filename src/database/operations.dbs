@@ -82,6 +82,6 @@ namespace Operations
 
     object Invocations -> OperationsStage::Operations
     {
-        map< value< mega::invocation::ID >, ref< Invocation > > invocations;
+        map< value< mega::InvocationID >, ref< Invocation > > invocations;
     }
 }
