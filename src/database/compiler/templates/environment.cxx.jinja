@@ -14,9 +14,9 @@ namespace mega
 {
 namespace io
 {
-    std::size_t Environment::getVersion() const
+    std::size_t Environment::getVersion()
     {
-        return {{ version }};
+        return {{ schema_version }};
     }
 {% for stage in stages %}
 {% for file in stage.files %}

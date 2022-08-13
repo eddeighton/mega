@@ -51,8 +51,7 @@ class Manifest;
 class Loader
 {
 public:
-    Loader( const FileSystem& fileSystem, std::size_t version,
-            const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader );
+    Loader( const FileSystem& fileSystem, const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader );
 
     template < typename T >
     void load( T& value )

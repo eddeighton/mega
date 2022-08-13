@@ -1,5 +1,5 @@
-#ifndef {{ guard }}
-#define {{ guard }}
+#ifndef {{ guard }}_{{ database_file }}
+#define {{ guard }}_{{ database_file }}
 
 #include "database/common/object_info.hpp"
 #include "database/common/object.hpp"
@@ -41,6 +41,7 @@ namespace {{ file.name }}
 
 // definitions
 {% for file in files %}
+{% if file.name == database_file %}
 namespace {{ file.name }}
 {
 {% for part in file.parts %}
@@ -74,41 +75,26 @@ namespace {{ file.name }}
     };
 {% endfor %}{#file.parts#}
 }
+{% endif %}
 {% endfor %}{# files #}
 
 {% for conversion in conversions %}
+{% if conversion.file == database_file %}
 template <>
 inline Ptr< {{ conversion.to }} > convert( const Ptr< {{ conversion.from }} >& from )
 {
     return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
 }
+{% endif %}
 {% endfor %}{# conversions #}
 {% for conversion in base_conversions %}
+{% if conversion.file == database_file %}
 inline Ptr< {{ conversion.to }} > to_base( const Ptr< {{ conversion.from }} >& from )
 {
     return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
 }
+{% endif %}
 {% endfor %}{# base_conversions #}
 
-template < typename TVariant > 
-inline TVariant to_upper( TVariant &from )
-{
-    TVariant up_most = from;
-    for( ;; )
-    {
-        TVariant up_most_next = std::visit( []( auto&& arg ) -> TVariant { return arg->m_inheritance; }, up_most );
-        if( up_most_next == up_most )
-            break;
-        up_most = up_most_next;
-    }
-    return up_most;
 }
-
-class Factory
-{
-public:
-    static mega::io::Object* create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
-};
-
-}
-#endif //{{ guard }}
+#endif //{{ guard }}_{{ database_file }}

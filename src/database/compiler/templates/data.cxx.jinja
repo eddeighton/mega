@@ -1,5 +1,7 @@
 
-#include "database/model/data.hxx"
+{% for file in files %}
+#include "database/model/data_{{ file.name }}.hxx"
+{% endfor %}
 
 #include "nlohmann/json.hpp"
 
@@ -107,9 +109,9 @@ namespace {{ file.name }}
         storer.store( {{ property.name }} );
 {% endfor %}{#part.property#}
     }
-    void {{ part.name }}::to_json( nlohmann::json& part ) const
+    void {{ part.name }}::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "{{ part.name }}" },
                 { "filetype" , "{{ file.name }}" },
@@ -123,13 +125,13 @@ namespace {{ file.name }}
         {
             nlohmann::json property = nlohmann::json::object({
                 { "{{ property.name }}", {{ property.name }}.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
 {% else %}
         {
             nlohmann::json property = nlohmann::json::object({
                 { "{{ property.name }}", {{ property.name }} } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
 {% endif %}
 {% endfor %}{#part.property#}

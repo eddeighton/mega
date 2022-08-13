@@ -202,11 +202,10 @@ public:
 
         Database database( m_environment, m_environment.project_manifest() );
 
-        const std::string strCmd = mega::Compilation::make_implementationObj_compilation(
-            m_environment, m_toolChain, getComponent< Components::Component >( database, m_sourceFilePath ),
-            m_sourceFilePath )();
+        const mega::Compilation compilationCMD = mega::Compilation::make_implementationObj_compilation(
+            m_environment, m_toolChain, getComponent< Components::Component >( database, m_sourceFilePath ), m_sourceFilePath );
 
-        if ( run_cmd( taskProgress, strCmd ) )
+        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             failed( taskProgress );
             return;

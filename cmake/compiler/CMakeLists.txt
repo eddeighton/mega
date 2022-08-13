@@ -50,6 +50,7 @@ set( COMPILER_TASKS
     ${MEGA_SRC_DIR}/compiler/task_allocators.cpp
     ${MEGA_SRC_DIR}/compiler/task_complete.cpp
     ${MEGA_SRC_DIR}/compiler/task_concrete.cpp
+    ${MEGA_SRC_DIR}/compiler/task_concrete_id.cpp
     ${MEGA_SRC_DIR}/compiler/task_cpp.cpp
     ${MEGA_SRC_DIR}/compiler/task_dependencies.cpp 
     ${MEGA_SRC_DIR}/compiler/task_derivation.cpp

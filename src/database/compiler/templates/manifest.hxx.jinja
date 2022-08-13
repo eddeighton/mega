@@ -51,22 +51,22 @@ namespace io
         Manifest( const BuildEnvironment& environment, const std::vector< boost::filesystem::path >& sourceListings );
 
         File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-            const SourceFilePath& sourceFile, std::size_t version, FileInfo::Stage stage, FileInfo::Type fileType ) const;
+            const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const;
 
-        File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, std::size_t version, FileInfo::Stage stage,
+        File::PtrCst loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage,
             ObjectInfo::FileID fileID ) const;
 
-        void loadAll( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, std::size_t version, FileInfo::Stage stage ) const;
+        void loadAll( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, FileInfo::Stage stage ) const;
         
         File::Ptr createFile( const Environment& environment, data::ObjectPartLoader& loader, FileMap& readWriteFiles,
-            const SourceFilePath& sourceFile, std::size_t version, FileInfo::Stage stage, FileInfo::Type fileType ) const;
+            const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const;
 
         task::FileHash save_temp( const Environment& environment, const manifestFilePath& filepath ) const;
 
     private: 
         File::PtrCst loadFileImpl( const Environment& environment, 
             data::ObjectPartLoader& loader, 
-            FileMapCst& readOnlyFiles, std::size_t version, 
+            FileMapCst& readOnlyFiles,
             FileInfo::Stage stage, ObjectInfo::FileID fileID,
             std::vector< File::Ptr >& loadedFiles ) const;
         void initialiseLookupTables();

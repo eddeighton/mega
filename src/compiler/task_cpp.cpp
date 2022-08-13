@@ -236,17 +236,20 @@ public:
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceHeader ) } );
 
+        const mega::Compilation compilationCMD
+            = mega::Compilation::make_cpp_interfacePCH_compilation( m_environment, m_toolChain, pComponent );
+
         if ( m_environment.restore( interfacePCHFilePath, determinant ) )
         {
-            m_environment.setBuildHashCode( interfacePCHFilePath );
-            cached( taskProgress );
-            return;
+            //if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            {
+                m_environment.setBuildHashCode( interfacePCHFilePath );
+                cached( taskProgress );
+                return;
+            }
         }
 
-        const std::string strCmd
-            = mega::Compilation::make_cpp_interfacePCH_compilation( m_environment, m_toolChain, pComponent )();
-
-        if ( run_cmd( taskProgress, strCmd ) )
+        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             failed( taskProgress );
             return;
@@ -302,9 +305,18 @@ public:
                                                        pComponent->get_build_dir(), pComponent->get_name() ) ),
                                                    m_environment.FilePath( m_sourceFilePath ) } );
 
-        const bool bRestoredHPP = m_environment.restore( tempHPPFile, determinant );
+        const mega::Compilation compilationCMD
+            = mega::Compilation::make_cpp_pch_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath );
+
+        bool bRestoredHPP = m_environment.restore( tempHPPFile, determinant );
         if ( bRestoredHPP )
-            m_environment.setBuildHashCode( tempHPPFile );
+        {
+            //if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            {
+                m_environment.setBuildHashCode( tempHPPFile );
+                bRestoredHPP = true;
+            }
+        }
 
         if ( m_environment.restore( cppPCHFile, determinant ) && m_environment.restore( compilationFile, determinant ) )
         {
@@ -334,10 +346,7 @@ public:
             m_environment.stash( tempHPPFile, determinant );
         }
 
-        const std::string strCmd
-            = mega::Compilation::make_cpp_pch_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath )();
-
-        if ( run_cmd( taskProgress, strCmd ) )
+        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             std::ostringstream os;
             os << "Error compiling C++ source file: " << m_sourceFilePath.path();
@@ -551,14 +560,16 @@ public:
             return;
         }
 
-        const std::string strCmd
-            = mega::Compilation::make_cpp_obj_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath )();
+        const mega::Compilation compilationCMD
+            = mega::Compilation::make_cpp_obj_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
-        if ( run_cmd( taskProgress, strCmd ) )
+        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             std::ostringstream os;
             os << "Error compiling C++ source file: " << m_sourceFilePath.path();
-            throw std::runtime_error( os.str() );
+            msg( taskProgress, os.str() );
+            failed( taskProgress );
+            return;
         }
 
         if ( m_environment.exists( cppObjectFile ) )

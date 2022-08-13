@@ -117,18 +117,23 @@ std::string Interface::delimitTypeName( const std::string& strStageNamespace, co
     return os.str();
 }
 
-std::string Object::inheritanceGroupVariant() const
+std::string Object::inheritanceGroupVariant( model::Stage::Ptr pStage ) const
 {
     std::ostringstream os;
     os << "std::variant< ";
     bool bFirst = true;
     for ( WeakPtr pObjectWeak : *m_pInheritanceGroup )
     {
-        if ( bFirst )
-            bFirst = false;
-        else
-            os << ", ";
-        os << "data::Ptr< data::" << pObjectWeak.lock()->m_primaryObjectPart->getDataType( "::" ) << " >";
+        model::Object::Ptr pObject = pObjectWeak.lock();
+        // determine if this object is visible in this stage
+        if( !pStage || pStage->isInterface( pObject ) )
+        {
+            if ( bFirst )
+                bFirst = false;
+            else
+                os << ", ";
+            os << "data::Ptr< data::" << pObjectWeak.lock()->m_primaryObjectPart->getDataType( "::" ) << " >";
+        }
     }
     os << " >";
     return os.str();
@@ -1231,26 +1236,6 @@ void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
                         Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary }, baseListPlusSecondary ) );
                 }
 
-                pBase = pBase->m_base;
-            }
-        }
-
-        if ( pObject->m_base )
-        {
-            Object::Ptr              pBase = pObject;
-            Schema::ObjectPartVector baseList;
-            while ( pBase )
-            {
-                if ( pBase->m_base )
-                {
-                    baseList.push_back( pBase->m_primaryObjectPart );
-
-                    Schema::ObjectPartVector reversed = baseList;
-                    std::reverse( reversed.begin(), reversed.end() );
-                    pSchema->m_upcasts.insert( std::make_pair(
-                        Schema::ObjectPartPair{ pBase->m_base->m_primaryObjectPart, pObject->m_primaryObjectPart },
-                        reversed ) );
-                }
                 pBase = pBase->m_base;
             }
         }

@@ -39,8 +39,6 @@ int main( int argc, const char* argv[] )
     {
         bool bHelp = false;
         bool bGeneralWait = false;
-        bool bGenerateJSON = false;
-        bool bExecuteTemplates = false;
 
         std::vector< std::string > sourceFiles;
         std::string                outputAPIDir, outputSrcDir, dataDir, injaDir;
@@ -57,9 +55,6 @@ int main( int argc, const char* argv[] )
 
             ( "data_dir", po::value< std::string >( &dataDir ), "Directory for inja templates and data sub directories" )
             ( "inja_dir", po::value< std::string >( &injaDir ), "Directory for inja templates and data sub directories" )
-
-            ( "json",   po::bool_switch( &bGenerateJSON ), "Generate JSON data from input schema." )
-            ( "template",   po::bool_switch( &bExecuteTemplates ), "Execute output templates on JSON data." )
 
             ( "input",  po::value< std::vector< std::string > >( &sourceFiles ), "Input source file" )
             ;
@@ -90,7 +85,6 @@ int main( int argc, const char* argv[] )
             const Path dataFolderPath = inputStringToPath( dataDir );
             const Path injaFolderPath = inputStringToPath( injaDir );
 
-            if ( bGenerateJSON )
             {
                 PathVector inputSourceFiles;
                 for ( const std::string& strFile : sourceFiles )
@@ -145,13 +139,10 @@ int main( int argc, const char* argv[] )
 
                 // write schema to json data
                 db::jsonconv::toJSON( dataFolderPath, pSchema );
-            }
-
-            if ( bExecuteTemplates )
-            {
+                
                 const db::gen::Environment env{
                     outputAPIFolderPath, outputSrcFolderPath, dataFolderPath, injaFolderPath };
-                db::gen::generate( env );
+                db::gen::generate( env, pSchema );
             }
         }
     }

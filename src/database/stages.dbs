@@ -171,10 +171,42 @@ stage DerivationAnalysisView
     global accessor ref< Derivation::Mapping >;
 }
 
+
+stage ConcreteTypeAnalysis
+{
+    source .manifest;
+    dependency DerivationAnalysis;
+
+    file ConcreteTable;
+
+    persource accessor ref< Concrete::Context >;
+    global accessor ref< Symbols::SymbolTable >;
+}
+
+stage ConcreteTypeAnalysisView
+{
+    source .manifest;
+    dependency ConcreteTypeAnalysis;
+
+    persource accessor ref< Concrete::Context >;
+    global accessor ref< Symbols::SymbolTable >;
+}
+
+stage ConcreteTypeRollout
+{
+    source .mega;
+    dependency ConcreteTypeAnalysis;
+
+    file PerSourceConcreteTable;
+
+    persource accessor ref< Concrete::Context >;
+    global accessor ref< Symbols::SymbolTable >;
+}
+
 stage MemoryStage
 {
     source .mega;
-    dependency DerivationAnalysis;
+    dependency ConcreteTypeRollout;
 
     file MemoryLayout;
 

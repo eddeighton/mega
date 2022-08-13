@@ -39,32 +39,48 @@ namespace Symbols
     {
         // each symbol represents a unique string 
         // and MUST have a unique id
-        value< std::string > symbol;
-        value< std::int32_t > id;
-        array< ref< Interface::IContext > > contexts;
+        value< std::string >                      symbol;
+        value< std::int32_t >                     id;
+        array< ref< Interface::IContext > >       contexts;
         array< ref< Interface::DimensionTrait > > dimensions;
+    }
+
+    object ConcreteSymbol -> ConcreteTypeAnalysis::ConcreteTable
+    {
+        //array< ref< Symbol > >      symbol_sequence;
+        value< std::vector< std::int32_t > > id_sequence;
+        value< std::int32_t >                id;
+        ref< Concrete::Context >             context;
     }
 
     object SymbolSet -> SymbolAnalysis::SymbolTable
     {
-        map< value< std::string >, ref< Symbol > > symbols;
-        value< mega::io::megaFilePath > source_file;
-        value< std::size_t > hash_code;
+        map< value< std::string >, ref< Symbol > >                symbols;
+        value< mega::io::megaFilePath >                           source_file;
+        value< std::size_t >                                      hash_code;
+        map< ref< Interface::IContext >, ref< Symbol > >          context_symbols;
+        map< ref< Interface::DimensionTrait >, ref< Symbol > >    dimension_symbols;
+        map< ref< Interface::IContext >, value< int32_t > >       context_type_ids;
+        map< ref< Interface::DimensionTrait >, value< int32_t > > dimension_type_ids;
 
-        map< ref< Interface::IContext >        , ref< Symbol > > context_symbols;
-        map< ref< Interface::DimensionTrait > , ref< Symbol > > dimension_symbols;
-
-        map< ref< Interface::IContext >        , value< int32_t > > context_type_ids;
-        map< ref< Interface::DimensionTrait > , value< int32_t > > dimension_type_ids;
+        // ConcreteTypeAnalysis::ConcreteTable
+        map< value< std::vector< std::int32_t > >, ref< ConcreteSymbol > > concrete_symbols -> ConcreteTypeAnalysis::ConcreteTable;
+        map< ref< Concrete::Context >, value< int32_t > > context_concrete_ids -> ConcreteTypeAnalysis::ConcreteTable;
     }
 
     object SymbolTable -> SymbolAnalysis::SymbolTable
     {
-        map< value< mega::io::megaFilePath >, ref< SymbolSet > >    symbol_sets;
-        map< value< std::string >, ref< Symbol > >                  symbols;
-        map< value< int32_t >, ref< Interface::IContext > >         context_type_ids;
-        map< value< int32_t >, ref< Interface::DimensionTrait > >   dimension_type_ids;
-        map< value< int32_t >, ref< Symbol > >                      symbol_id_map;
+        map< value< mega::io::megaFilePath >, ref< SymbolSet > >        symbol_sets;
+        map< value< std::string >, ref< Symbol > >                      symbols;
+        
+        map< value< std::int32_t >, ref< Interface::IContext > >        context_type_ids;
+        map< value< std::int32_t >, ref< Interface::DimensionTrait > >  dimension_type_ids;
+        map< value< std::int32_t >, ref< Symbol > >                     symbol_id_map;
+
+        // ConcreteTypeAnalysis::ConcreteTable
+        map< value< std::vector< std::int32_t > >, ref< ConcreteSymbol > >  concrete_symbol_ids -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< std::int32_t >, ref< ConcreteSymbol > >                 concrete_symbols -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< std::int32_t >, ref< Concrete::Context > >              concrete_context_map -> ConcreteTypeAnalysis::ConcreteTable;
     }
 }
 
@@ -104,7 +120,7 @@ namespace Allocators
 {
     object Allocator -> MemoryStage::MemoryLayout
     {
-        ref< Concrete::Context > parent_context;
+        opt< ref< Concrete::Context > > parent_context;
         ref< Concrete::Context > allocated_context;
     }
 
@@ -135,12 +151,18 @@ namespace Allocators
 
 namespace MemoryLayout
 {
-    object Buffer -> MemoryStage::MemoryLayout
+    object Part  -> MemoryStage::MemoryLayout
     {
         ref< Concrete::Context > context;
-        value< std::size_t > stride;
+        value< std::size_t > size;
         array< ref< Concrete::Dimensions::Generated > > generated_dimensions;
         array< ref< Concrete::Dimensions::User > > user_dimensions;
+    }
+
+    object Buffer -> MemoryStage::MemoryLayout
+    {
+        value< std::size_t > stride;
+        array< ref< Part > > parts;
     }
 
     object GPUBuffer : Buffer -> MemoryStage::MemoryLayout

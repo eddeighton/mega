@@ -3,6 +3,8 @@
 #include "database/compiler/model.hpp"
 #include "nlohmann/json.hpp"
 
+#include "common/file.hpp"
+
 #include <algorithm>
 #include <fstream>
 #include <memory>
@@ -16,15 +18,20 @@ namespace
 {
 void writeJSON( const boost::filesystem::path& filePath, const nlohmann::json& data )
 {
-    std::ofstream os( filePath.native(), std::ios_base::trunc | std::ios_base::out );
+    std::ostringstream os;
     os << data;
+
+    if ( boost::filesystem::updateFileIfChanged( filePath, os.str() ) )
+    {
+        std::cout << "Regenerated: " << filePath.string() << std::endl;
+    }
 }
 
 void writeStageData( const boost::filesystem::path& dataDir, model::Schema::Ptr pSchema )
 {
     nlohmann::json data( { { "sources", nlohmann::json::array() },
                            { "stages", nlohmann::json::array() },
-                           { "version", pSchema->m_schemaHash.toHexString() } } );
+                           { "schema_version", pSchema->m_schemaHash.toHexString() } } );
 
     // get the unique source types
     for ( model::Source::Ptr pSource : pSchema->m_sources )
@@ -51,7 +58,7 @@ void writeStageData( const boost::filesystem::path& dataDir, model::Schema::Ptr 
                                                          { "sources", nlohmann::json::array() },
                                                          { "files", nlohmann::json::array() } } );
 
-        for( model::Source::Ptr pSource : pStage->m_sources )
+        for ( model::Source::Ptr pSource : pStage->m_sources )
         {
             stage[ "sources" ].push_back( pSource->m_strName );
         }
@@ -909,11 +916,14 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
     {
         const std::string strSuperTypeName = pSuperType->getTypeName();
 
-        nlohmann::json stype
-            = nlohmann::json::object( { { "name", strSuperTypeName },
-                                        { "interfaces", nlohmann::json::array() },
-                                        { "variant_type", pSuperType->m_base_object->inheritanceGroupVariant() },
-                                        { "functions", nlohmann::json::array() } } );
+        nlohmann::json stype = nlohmann::json::object(
+            { { "name", strSuperTypeName },
+              { "interfaces", nlohmann::json::array() },
+              // the super type variant needs to have ALL possible types even those not defined for stage
+              // due to how the inheritance works and the data_pointer::to_upper function expects the variant
+              // for inheritance to be the same type as the super type at the moment. //model::Stage::Ptr{}
+              { "variant_type", pSuperType->m_base_object->inheritanceGroupVariant( pStage ) },
+              { "functions", nlohmann::json::array() } } );
 
         {
             std::set< model::Object::Ptr, model::CountedObjectComparator< model::Object::Ptr > > objects;
@@ -1029,7 +1039,7 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
                     }
                 }
 
-                if ( pFunctionVariant )
+                if ( pFunctionVariant && pStage->isInterface( pObject ) )
                 {
                     nlohmann::json variant = nlohmann::json::object(
                         { { "matched", true },
@@ -1067,8 +1077,8 @@ void writeViewData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
         }
 
         nlohmann::json stage = nlohmann::json::object( { { "name", pStage->m_strName },
-                                                         { "version", pSchema->m_schemaHash.toHexString() },
                                                          { "perobject", true },
+                                                         { "datafiles", nlohmann::json::array() },
                                                          { "super_conversions", nlohmann::json::array() },
                                                          { "interface_conversions", nlohmann::json::array() },
                                                          { "readwrite_files", nlohmann::json::array() },
@@ -1080,6 +1090,16 @@ void writeViewData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
                                                          { "casts", nlohmann::json::array() } } );
 
         writeConversions( stage, pSchema, pStage );
+
+        for ( model::Stage::Ptr pStageIter : pSchema->m_stages )
+        {
+            for ( model::File::Ptr pFile : pStageIter->m_files )
+            {
+                stage[ "datafiles" ].push_back( pFile->m_strName );
+            }
+            if ( pStageIter == pStage )
+                break;
+        }
 
         for ( model::File::Ptr pFile : pStage->m_files )
         {
@@ -1114,10 +1134,12 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
     data[ "guard" ] = "DATABASE_DATA_GUARD_4_APRIL_2022";
 
     std::vector< model::File::Ptr > files;
+    model::Stage::Ptr pFinalStage;
     {
         for ( model::Stage::Ptr pStage : pSchema->m_stages )
         {
             std::copy( pStage->m_files.begin(), pStage->m_files.end(), std::back_inserter( files ) );
+            pFinalStage = pStage;
         }
     }
     for ( model::File::Ptr pFile : files )
@@ -1137,7 +1159,7 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
                                             { "typeID", pPart->m_typeID },
                                             { "has_base", false },
                                             { "has_inheritance", false },
-                                            { "inheritance_variant", pObject->inheritanceGroupVariant() },
+                                            { "inheritance_variant", pObject->inheritanceGroupVariant( pFinalStage ) },
                                             { "data_pointers", nlohmann::json::array() },
                                             { "raw_pointers", nlohmann::json::array() },
                                             { "properties", nlohmann::json::array() },
@@ -1283,9 +1305,32 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
             const model::Schema::ObjectPartPair&   parts    = i->first;
             const model::Schema::ObjectPartVector& sequence = i->second;
 
+            std::string strOwningFile;
+            {
+                model::Schema::ObjectPartVector allParts = sequence;
+                allParts.push_back( parts.first );
+
+                std::optional< model::File::Ptr > pLatestFileOpt;
+                int                               index = -1;
+                for ( model::ObjectPart::Ptr pPart : allParts )
+                {
+                    model::File::Ptr pFile = pPart->m_file.lock();
+                    auto             iFind = std::find( files.begin(), files.end(), pFile );
+                    const int        iDist = std::distance( files.begin(), iFind );
+                    if ( iDist > index )
+                    {
+                        index          = iDist;
+                        pLatestFileOpt = pFile;
+                    }
+                }
+                VERIFY_RTE( pLatestFileOpt.has_value() );
+                strOwningFile = pLatestFileOpt.value()->m_strName;
+            }
+
             nlohmann::json conversion = nlohmann::json::object( { { "from", parts.first->getDataType( "::" ) },
                                                                   { "to", parts.second->getDataType( "::" ) },
-                                                                  { "pointers", nlohmann::json::array() } } );
+                                                                  { "pointers", nlohmann::json::array() },
+                                                                  { "file", strOwningFile } } );
 
             for ( model::ObjectPart::Ptr pPart : sequence )
             {
@@ -1306,9 +1351,32 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
             const model::Schema::ObjectPartPair&   parts    = i->first;
             const model::Schema::ObjectPartVector& sequence = i->second;
 
+            std::string strOwningFile;
+            {
+                model::Schema::ObjectPartVector allParts = sequence;
+                allParts.push_back( parts.first );
+
+                std::optional< model::File::Ptr > pLatestFileOpt;
+                int                               index = -1;
+                for ( model::ObjectPart::Ptr pPart : allParts )
+                {
+                    model::File::Ptr pFile = pPart->m_file.lock();
+                    auto             iFind = std::find( files.begin(), files.end(), pFile );
+                    const int        iDist = std::distance( files.begin(), iFind );
+                    if ( iDist > index )
+                    {
+                        index          = iDist;
+                        pLatestFileOpt = pFile;
+                    }
+                }
+                VERIFY_RTE( pLatestFileOpt.has_value() );
+                strOwningFile = pLatestFileOpt.value()->m_strName;
+            }
+
             nlohmann::json conversion = nlohmann::json::object( { { "from", parts.first->getDataType( "::" ) },
                                                                   { "to", parts.second->getDataType( "::" ) },
-                                                                  { "pointers", nlohmann::json::array() } } );
+                                                                  { "pointers", nlohmann::json::array() },
+                                                                  { "file", strOwningFile } } );
 
             for ( model::ObjectPart::Ptr pPart : sequence )
             {
@@ -1316,58 +1384,6 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
             }
 
             data[ "base_conversions" ].push_back( conversion );
-        }
-    }
-
-    // up casts
-    {
-        for ( model::Schema::ConversionMap::const_iterator i    = pSchema->m_upcasts.begin(),
-                                                           iEnd = pSchema->m_upcasts.end();
-              i != iEnd;
-              ++i )
-        {
-            model::ObjectPart::Ptr                 pFrom    = i->first.first;
-            model::ObjectPart::Ptr                 pTo      = i->first.second;
-            const model::Schema::ObjectPartVector& sequence = i->second;
-
-            nlohmann::json upcast = nlohmann::json::object( { { "from", pFrom->getDataType( "::" ) },
-                                                              { "to", pTo->getDataType( "::" ) },
-                                                              { "final_var", "from" },
-                                                              { "casts", nlohmann::json::array() },
-                                                              { "casts_reversed", nlohmann::json::array() } } );
-
-            std::size_t szCounter = 0;
-            std::string strFrom   = "from";
-            for ( model::ObjectPart::Ptr pPart : sequence )
-            {
-                std::ostringstream os;
-                os << "p" << ++szCounter;
-
-                nlohmann::json cast = nlohmann::json::object(
-                    { { "type", pPart->getDataType( "::" ) }, { "var", os.str() }, { "from_var", strFrom } } );
-                strFrom = os.str();
-
-                upcast[ "casts" ].push_back( cast );
-                upcast[ "final_var" ] = os.str();
-            }
-
-            for ( model::ObjectPart::Ptr pPart : sequence )
-            {
-                std::ostringstream os;
-                os << "p" << --szCounter;
-                if ( os.str() == "p0" )
-                    break;
-
-                nlohmann::json cast
-                    = nlohmann::json::object( { { "type", pPart->getDataType( "::" ) }, { "var", os.str() } } );
-                upcast[ "casts_reversed" ].push_back( cast );
-            }
-
-            nlohmann::json cast
-                = nlohmann::json::object( { { "type", pFrom->getDataType( "::" ) }, { "var", "from" } } );
-            upcast[ "casts_reversed" ].push_back( cast );
-
-            data[ "up_casts" ].push_back( upcast );
         }
     }
 

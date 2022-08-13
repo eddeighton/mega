@@ -8,6 +8,7 @@
 #include "common/file.hpp"
 #include <common/stash.hpp>
 
+#include <optional>
 #include <vector>
 #include <string>
 
@@ -56,16 +57,14 @@ public:
             szSize = getSizeTraitSize( pAction->get_interface_action() );
             szTotalSize *= szSize;
 
-            pAction->set_local_size( szSize );
-            pAction->set_total_size( szTotalSize );
+            pAction = database.construct< Action >( Action::Args{ pAction, szSize, szTotalSize } );
         }
         else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
         {
             szSize = getSizeTraitSize( pAction->get_interface_action() );
             szTotalSize *= szSize;
 
-            pEvent->set_local_size( szSize );
-            pAction->set_total_size( szTotalSize );
+            pEvent = database.construct< Event >( Event::Args{ pEvent, szSize, szTotalSize } );
         }
         else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
         {
@@ -75,7 +74,7 @@ public:
         }
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
         {
-            pLink->set_total_size( szTotalSize );
+            pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize } );
         }
         else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
         {
@@ -84,7 +83,7 @@ public:
         else if ( Buffer* pBuffer = dynamic_database_cast< Buffer >( pContext ) )
         {
             szSize = 1U;
-            pBuffer->set_total_size( szTotalSize );
+            pBuffer = database.construct< Buffer >( Buffer::Args{ pBuffer, szTotalSize } );
         }
         else
         {
@@ -93,37 +92,48 @@ public:
 
         {
             using namespace MemoryStage::Allocators;
-            Allocator* pAllocator = nullptr;
+            Allocator* pAllocator                = nullptr;
+            bool       bCreateAllocatorDimension = true;
             if ( szSize == 0 )
             {
-                pAllocator = database.construct< Nothing >( Nothing::Args{ Allocator::Args{} } );
+                pAllocator
+                    = database.construct< Nothing >( Nothing::Args{ Allocator::Args{ std::nullopt, pContext } } );
+                bCreateAllocatorDimension = false;
             }
             else if ( szSize == 1 )
             {
-                pAllocator = database.construct< Singleton >( Singleton::Args{ Allocator::Args{} } );
+                pAllocator
+                    = database.construct< Singleton >( Singleton::Args{ Allocator::Args{ pParentContext, pContext } } );
             }
             else if ( szSize <= 32 )
             {
-                pAllocator = database.construct< Range32 >( Range32::Args{ Range::Args{ Allocator::Args{} } } );
+                pAllocator = database.construct< Range32 >(
+                    Range32::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext } } } );
             }
             else if ( szSize <= 64 )
             {
-                pAllocator = database.construct< Range64 >( Range64::Args{ Range::Args{ Allocator::Args{} } } );
+                pAllocator = database.construct< Range64 >(
+                    Range64::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext } } } );
             }
             else
             {
-                pAllocator = database.construct< RangeAny >( RangeAny::Args{ Range::Args{ Allocator::Args{} } } );
+                pAllocator = database.construct< RangeAny >(
+                    RangeAny::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext } } } );
             }
-            VERIFY_RTE( pAllocator );
-            pContext->set_allocator( pAllocator );
 
             using namespace MemoryStage::Concrete;
 
-            Dimensions::Allocator* pAllocatorDim
-                = database.construct< Dimensions::Allocator >( Dimensions::Allocator::Args{
-                    Dimensions::Generated::Args{ pContext }, pAllocator } );
-
-            pContext->push_back_generated_dimensions( pAllocatorDim );
+            if ( bCreateAllocatorDimension )
+            {
+                Dimensions::Allocator* pAllocatorDim = database.construct< Dimensions::Allocator >(
+                    Dimensions::Allocator::Args{ Dimensions::Generated::Args{ pContext }, pAllocator } );
+                pContext
+                    = database.construct< Context >( Context::Args{ pContext, pAllocator, { pAllocatorDim }, {} } );
+            }
+            else
+            {
+                pContext = database.construct< Context >( Context::Args{ pContext, pAllocator, {}, {} } );
+            }
         }
 
         for ( Concrete::ContextGroup* pContextGroup : pContext->get_children() )
@@ -170,7 +180,7 @@ public:
         m_environment.setBuildHashCode( compilationFile, fileHashCode );
         m_environment.temp_to_real( compilationFile );
         m_environment.stash( compilationFile, determinant );
-        
+
         succeeded( taskProgress );
     }
 };

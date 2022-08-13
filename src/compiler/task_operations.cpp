@@ -269,30 +269,33 @@ public:
               m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( m_environment.InterfacePCH( m_sourceFilePath ) ) } );
 
-        if ( m_environment.restore( operationsPCH, determinant )
-             && m_environment.restore( compilationFile, determinant ) )
-        {
-            m_environment.setBuildHashCode( operationsPCH );
-            m_environment.setBuildHashCode( compilationFile );
-            cached( taskProgress );
-            return;
-        }
-
         using namespace ConcreteStage;
 
         Database database( m_environment, m_sourceFilePath );
-
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
-        const std::string strCmd = mega::Compilation::make_operationsPCH_compilation(
-            m_environment, m_toolChain, pComponent, m_sourceFilePath )();
+        const mega::Compilation compilationCMD = mega::Compilation::make_operationsPCH_compilation(
+            m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
-        if ( run_cmd( taskProgress, strCmd ) )
+        if ( m_environment.restore( operationsPCH, determinant )
+             && m_environment.restore( compilationFile, determinant ) )
+        {
+            //if( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            {
+                m_environment.setBuildHashCode( operationsPCH );
+                m_environment.setBuildHashCode( compilationFile );
+                cached( taskProgress );
+                return;
+            }
+        }
+
+        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             std::ostringstream os;
             os << "Error compiling operations pch file for source file: " << m_sourceFilePath.path();
             msg( taskProgress, os.str() );
             failed( taskProgress );
+            return;
         }
         else
         {

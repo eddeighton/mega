@@ -4,7 +4,6 @@
 #include "database/common/object_info.hpp"
 #include "database/common/storer.hpp"
 
-#include "database/model/data.hxx"
 #include "database/model/manifest.hxx"
 #include <common/hash.hpp>
 
@@ -46,7 +45,7 @@ void File::load( const Manifest& )
     VERIFY_RTE( !m_pLoader );
     try
     {
-        m_pLoader = std::make_shared< Loader >( m_fileSystem, m_version, m_info.getFilePath(), m_objectLoader );
+        m_pLoader = std::make_shared< Loader >( m_fileSystem, m_info.getFilePath(), m_objectLoader );
         preload( *m_pLoader );
         for ( Object* pObject : m_objects )
         {
@@ -87,7 +86,7 @@ task::FileHash File::save_temp( const Manifest& manifest ) const
     {
         try
         {
-            Storer storer( m_fileSystem, m_info.getFilePath(), m_version, tempFile );
+            Storer storer( m_fileSystem, m_info.getFilePath(), tempFile );
 
             storer.store( m_objects.size() );
             for ( Object* pObject : m_objects )

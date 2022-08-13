@@ -135,7 +135,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
         {
             g_pSession = nullptr;
             std::ostringstream os;
-            os << "DatabaseVersion Exception constructing session for: " << strSourceFile;
+            os << "DatabaseVersion Exception constructing session for: " << strSourceFile << " : " << ex.what();
             if ( g_pASTContext )
             {
                 g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
@@ -166,7 +166,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
         if ( !g_error.empty() )
         {
             std::ostringstream os;
-            os << "Error in final analysis: " << g_error;
+            os << "Error in clang_plugin::runFinalAnalysis: " << g_error;
             g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
         }
         else if ( g_pSession )
@@ -178,7 +178,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             catch ( std::exception& ex )
             {
                 std::ostringstream os;
-                os << "Error in final analysis: " << ex.what();
+                os << "Error in clang_plugin::runFinalAnalysis: " << ex.what();
                 g_pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
             }
         }

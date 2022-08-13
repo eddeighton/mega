@@ -11,15 +11,35 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_DATABASE_GENERATED_HEADERS
-    ${MEGA_API_DIR}/database/model/data.hxx
     ${MEGA_API_DIR}/database/model/environment.hxx
     ${MEGA_API_DIR}/database/model/manifest.hxx
     ${MEGA_API_DIR}/database/model/file_info.hxx
 	)
 
+set( MEGA_DATABASE_GENERAED_DATA_HEADERS
+    ${MEGA_API_DIR}/database/model/data_AST.hxx
+    ${MEGA_API_DIR}/database/model/data_Body.hxx
+    ${MEGA_API_DIR}/database/model/data_Clang.hxx
+    ${MEGA_API_DIR}/database/model/data_Components.hxx
+    ${MEGA_API_DIR}/database/model/data_Concrete.hxx
+    ${MEGA_API_DIR}/database/model/data_ConcreteTable.hxx
+    ${MEGA_API_DIR}/database/model/data_Derivations.hxx
+    ${MEGA_API_DIR}/database/model/data_DPGraph.hxx
+    ${MEGA_API_DIR}/database/model/data_MemoryLayout.hxx
+    ${MEGA_API_DIR}/database/model/data_Model.hxx
+    ${MEGA_API_DIR}/database/model/data_Operations.hxx
+    ${MEGA_API_DIR}/database/model/data_PerSourceSymbols.hxx
+    ${MEGA_API_DIR}/database/model/data_PerSourceConcreteTable.hxx
+    ${MEGA_API_DIR}/database/model/data_SymbolTable.hxx
+    ${MEGA_API_DIR}/database/model/data_Tree.hxx
+)
+
 set( MEGA_DATABASE_STAGE_HEADERS
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
     ${MEGA_API_DIR}/database/model/ComponentListingView.hxx
+    ${MEGA_API_DIR}/database/model/ConcreteTypeAnalysis.hxx
+    ${MEGA_API_DIR}/database/model/ConcreteTypeAnalysisView.hxx
+    ${MEGA_API_DIR}/database/model/ConcreteTypeRollout.hxx
     ${MEGA_API_DIR}/database/model/ConcreteStage.hxx
     ${MEGA_API_DIR}/database/model/DependencyAnalysis.hxx
     ${MEGA_API_DIR}/database/model/DependencyAnalysisView.hxx
@@ -48,6 +68,9 @@ set( MEGA_DATABASE_GENERATED_SOURCES
 set( MEGA_DATABASE_STAGE_SOURCES
     ${MEGA_SRC_DIR}/database/model/ComponentListing.cxx
     ${MEGA_SRC_DIR}/database/model/ComponentListingView.cxx
+    ${MEGA_SRC_DIR}/database/model/ConcreteTypeAnalysis.cxx
+    ${MEGA_SRC_DIR}/database/model/ConcreteTypeAnalysisView.cxx
+    ${MEGA_SRC_DIR}/database/model/ConcreteTypeRollout.cxx
     ${MEGA_SRC_DIR}/database/model/ConcreteStage.cxx
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysis.cxx
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysisView.cxx
@@ -80,6 +103,7 @@ set( COMPILER_OUTPUTS
     ${MEGA_DATABASE_GENERATED_HEADERS}
     ${MEGA_DATABASE_GENERATED_SOURCES}
     ${MEGA_DATABASE_STAGE_HEADERS}
+    ${MEGA_DATABASE_GENERAED_DATA_HEADERS}
     ${MEGA_DATABASE_STAGE_SOURCES}
     )
 
@@ -88,6 +112,9 @@ set( COMPILER_BYPRODUCTS
     stages.json
     ComponentListing.json
     ComponentListingView.json
+    ConcreteTypeAnalysis.json
+    ConcreteTypeAnalysisView.json
+    ConcreteTypeRollout.json
     ConcreteStage.json
     DependencyAnalysis.json
     DependencyAnalysisView.json
@@ -120,28 +147,12 @@ set( TEMPLATES
     ${MEGA_SRC_DIR}/database/compiler/templates/view.cxx.jinja
 )
 
-#add_custom_command( 
-#    OUTPUT ${COMPILER_OUTPUTS}
-#    COMMAND database_compiler_driver
-#        --api ${MEGA_API_DIR}/database/model/
-#        --src ${MEGA_SRC_DIR}/database/model/
-#        --data_dir ${MEGA_SRC_DIR}/database/data/
-#        --inja_dir ${MEGA_SRC_DIR}/database/compiler/templates/
-#        --json
-#        --template
-#        --input ${DATABASE_SCHEMAS}
-#    DEPENDS ${DATABASE_SCHEMAS} ${TEMPLATES} database_compiler_driver
-#    COMMENT "Generating Database" 
-#    )
-
 add_custom_target( GenerateDatabase
     COMMAND database_compiler_driver
         --api ${MEGA_API_DIR}/database/model/
         --src ${MEGA_SRC_DIR}/database/model/
         --data_dir ${MEGA_SRC_DIR}/database/data/
         --inja_dir ${MEGA_SRC_DIR}/database/compiler/templates/
-        --json
-        --template
         --input ${DATABASE_SCHEMAS}
     DEPENDS ${DATABASE_SCHEMAS} ${TEMPLATES} database_compiler_driver
     BYPRODUCTS  ${COMPILER_OUTPUTS}
@@ -175,6 +186,7 @@ set( MEGA_DATABASE_COMMON
 
 set( MEGA_DATABASE_SOURCES
     ${MEGA_SRC_DIR}/database/common/archive.cpp
+    ${MEGA_SRC_DIR}/database/common/environment_archive.cpp
     ${MEGA_SRC_DIR}/database/common/environment_build.cpp
     ${MEGA_SRC_DIR}/database/common/environment_stash.cpp
     ${MEGA_SRC_DIR}/database/common/component_info.cpp
@@ -209,6 +221,7 @@ set( MEGA_TYPES_SOURCES
 add_library( database SHARED
                     ${MEGA_DATABASE_COMMON}
 					${MEGA_DATABASE_SOURCES}
+                    ${MEGA_DATABASE_GENERAED_DATA_HEADERS}
 					${MEGA_DATABASE_GENERATED_HEADERS}
 					${MEGA_DATABASE_GENERATED_SOURCES}
                     
@@ -227,6 +240,9 @@ target_include_directories( database PUBLIC ${MEGA_API_DIR} )
 set_target_properties( database PROPERTIES FOLDER database )
 set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+# dead code elimination did not reduce binary size of so
+#target_compile_options( database PUBLIC "-fdce" )
+
 link_boost( database filesystem )
 link_boost( database iostreams )
 link_boost( database serialization )
@@ -239,37 +255,40 @@ install( FILES ${MEGA_DATABASE_COMMON} DESTINATION include/database/common )
 install( FILES ${MEGA_TYPES_HEADERS} DESTINATION include/database/types )
 install( FILES ${MEGA_DATABASE_GENERATED_HEADERS} DESTINATION include/database/model )
 install( FILES ${MEGA_DATABASE_STAGE_HEADERS} DESTINATION include/database/model )
+install( FILES ${MEGA_DATABASE_GENERAED_DATA_HEADERS} DESTINATION include/database/model )
+
 install( TARGETS database EXPORT database DESTINATION bin)
 install( EXPORT database NAMESPACE MEGA:: FILE database-config.cmake DESTINATION share )
 
 # single stage libraries
-add_library( database_final SHARED
-                    ${MEGA_DATABASE_COMMON}
-					${MEGA_DATABASE_SOURCES}
-					${MEGA_DATABASE_GENERATED_HEADERS}
-					${MEGA_DATABASE_GENERATED_SOURCES}
-                    
-                    ${MEGA_API_DIR}/database/model/FinalStage.hxx
-                    ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
-
-                    ${MEGA_TYPES_HEADERS}
-                    ${MEGA_TYPES_SOURCES}
-				)
-#add_dependencies( database_final GenerateDatabase )
-add_dependencies( database_final database_compiler_driver )
-
-target_include_directories( database_final PUBLIC ${MEGA_API_DIR} )
-
-set_target_properties( database_final PROPERTIES FOLDER database )
-set_property(TARGET database_final PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-link_boost( database_final filesystem )
-link_boost( database_final iostreams )
-link_boost( database_final serialization )
-link_boost( database_final system )
-link_boost( database_final atomic )
-link_json( database_final )
-link_common( database_final )
-
-install( TARGETS database_final EXPORT database_final DESTINATION bin)
-install( EXPORT database_final NAMESPACE MEGA:: FILE database_final-config.cmake DESTINATION share )
+#add_library( database_final SHARED
+#                    ${MEGA_DATABASE_COMMON}
+#					${MEGA_DATABASE_SOURCES}
+#                    ${MEGA_DATABASE_GENERAED_DATA_HEADERS}
+#					${MEGA_DATABASE_GENERATED_HEADERS}
+#					${MEGA_DATABASE_GENERATED_SOURCES}
+#                    
+#                    ${MEGA_API_DIR}/database/model/FinalStage.hxx
+#                    ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
+#
+#                    ${MEGA_TYPES_HEADERS}
+#                    ${MEGA_TYPES_SOURCES}
+#				)
+##add_dependencies( database_final GenerateDatabase )
+#add_dependencies( database_final database_compiler_driver )
+#
+#target_include_directories( database_final PUBLIC ${MEGA_API_DIR} )
+#
+#set_target_properties( database_final PROPERTIES FOLDER database )
+#set_property(TARGET database_final PROPERTY POSITION_INDEPENDENT_CODE ON)
+#
+#link_boost( database_final filesystem )
+#link_boost( database_final iostreams )
+#link_boost( database_final serialization )
+#link_boost( database_final system )
+#link_boost( database_final atomic )
+#link_json( database_final )
+#link_common( database_final )
+#
+#install( TARGETS database_final EXPORT database_final DESTINATION bin)
+#install( EXPORT database_final NAMESPACE MEGA:: FILE database_final-config.cmake DESTINATION share )

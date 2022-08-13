@@ -138,7 +138,9 @@ private:
         {
             // load the object
             VERIFY_RTE( m_pLoader && m_pObjectInfo );
-            m_pObjectPart = dynamic_cast< T* >( m_pLoader->load( *m_pObjectInfo ) );
+            mega::io::Object* pObject = m_pLoader->load( *m_pObjectInfo );
+            // using c-cast here circumvents the need for undefined types
+            m_pObjectPart = ( T* )pObject;
             VERIFY_RTE( m_pObjectPart );
         }
         return m_pObjectPart;
@@ -176,6 +178,43 @@ template < typename TVariantType, typename TTo, typename TFrom >
 struct UpCast
 {
     inline TVariantType operator()( TFrom& from ) const { return from; }
+};
+
+template < typename TVariantTo, typename TVariantFrom >
+inline TVariantTo coerceVariant( const TVariantFrom& variantFrom )
+{
+    return std::visit( []( auto&& arg ) -> TVariantTo 
+    { 
+        if constexpr( std::is_convertible< TVariantFrom, TVariantTo >::value )
+        {
+            return TVariantTo{ arg }; 
+        }
+        if constexpr( !std::is_convertible< TVariantFrom, TVariantTo >::value )
+        {
+            THROW_RTE( "to_upper variant" );
+        }
+    }, variantFrom );
+}
+
+template < typename TVariant >
+inline TVariant to_upper( TVariant& from )
+{
+    TVariant up_most = from;
+    for ( ;; )
+    {
+        TVariant up_most_next = std::visit(
+            []( auto&& arg ) -> TVariant { return coerceVariant< TVariant >( arg->m_inheritance ); }, up_most );
+        if ( up_most_next == up_most )
+            break;
+        up_most = up_most_next;
+    }
+    return up_most;
+}
+
+class Factory
+{
+public:
+    static mega::io::Object* create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo );
 };
 
 } // namespace data

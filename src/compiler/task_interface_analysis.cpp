@@ -20,9 +20,9 @@
 
 namespace InterfaceAnalysisStage
 {
-    using namespace InterfaceAnalysisStage::Interface;
-    #include "interface.hpp"
-}
+using namespace InterfaceAnalysisStage::Interface;
+#include "interface.hpp"
+} // namespace InterfaceAnalysisStage
 
 namespace mega
 {
@@ -69,8 +69,8 @@ public:
         }
 
         InterfaceGen::TemplateEngine templateEngine( m_environment, injaEnvironment );
-        nlohmann::json structs   = nlohmann::json::array();
-        nlohmann::json typenames = nlohmann::json::array();
+        nlohmann::json               structs   = nlohmann::json::array();
+        nlohmann::json               typenames = nlohmann::json::array();
 
         Dependencies::Analysis* pDependencyAnalysis
             = database.one< Dependencies::Analysis >( m_environment.project_manifest() );
@@ -164,7 +164,8 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
-BaseTask::Ptr create_Task_InterfaceGeneration( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_InterfaceGeneration( const TaskArguments&          taskArguments,
+                                               const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_InterfaceGeneration >( taskArguments, sourceFilePath );
 }
@@ -193,25 +194,27 @@ public:
               m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( interfaceTreeFile ) } );
 
-        if ( m_environment.restore( interfacePCHFilePath, determinant )
-             && m_environment.restore( interfaceAnalysisFile, determinant ) )
-        {
-            m_environment.setBuildHashCode( interfacePCHFilePath );
-            m_environment.setBuildHashCode( interfaceAnalysisFile );
-            cached( taskProgress );
-            return;
-        }
-
         using namespace InterfaceAnalysisStage;
         using namespace InterfaceAnalysisStage::Interface;
-
         Database               database( m_environment, m_sourceFilePath );
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
-        const std::string strCmd = mega::Compilation::make_interfacePCH_compilation(
-            m_environment, m_toolChain, pComponent, m_sourceFilePath )();
+        const mega::Compilation compilationCMD = mega::Compilation::make_interfacePCH_compilation(
+            m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
-        if ( run_cmd( taskProgress, strCmd ) )
+        if ( m_environment.restore( interfacePCHFilePath, determinant )
+             && m_environment.restore( interfaceAnalysisFile, determinant ) )
+        {
+            //if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            {
+                m_environment.setBuildHashCode( interfacePCHFilePath );
+                m_environment.setBuildHashCode( interfaceAnalysisFile );
+                cached( taskProgress );
+                return;
+            }
+        }
+
+        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             failed( taskProgress );
             return;
@@ -236,7 +239,8 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
-BaseTask::Ptr create_Task_InterfaceAnalysis( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_InterfaceAnalysis( const TaskArguments&          taskArguments,
+                                             const mega::io::megaFilePath& sourceFilePath )
 {
     return std::make_unique< Task_InterfaceAnalysis >( taskArguments, sourceFilePath );
 }

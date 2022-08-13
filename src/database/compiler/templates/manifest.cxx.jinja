@@ -144,7 +144,7 @@ namespace io
     }
 
     File::PtrCst Manifest::loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-        const SourceFilePath& sourceFile, std::size_t version, FileInfo::Stage stage, FileInfo::Type fileType ) const
+        const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const
     {
         switch( fileType )
         {
@@ -156,7 +156,7 @@ namespace io
                         std::make_pair( FileInfo::{{ stage.name }}_{{ file.name }}, sourceFile ) );
                     VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), 
                         "Failed to locate compilation file of type: FileInfo::{{ stage.name }}_{{ file.name }} for source file: " << sourceFile.path().string() );
-                    return loadFile( environment, loader, readOnlyFiles, version, stage, iFind->second->getFileID() );
+                    return loadFile( environment, loader, readOnlyFiles, stage, iFind->second->getFileID() );
                 }
                 break;
 {% endfor %}
@@ -168,7 +168,7 @@ namespace io
     }
 
     File::PtrCst Manifest::loadFileImpl( const Environment& environment, data::ObjectPartLoader& loader, 
-            FileMapCst& readOnlyFiles, std::size_t version, FileInfo::Stage stage, 
+            FileMapCst& readOnlyFiles, FileInfo::Stage stage, 
             ObjectInfo::FileID fileID, std::vector< File::Ptr >& loadedFiles ) const
     {
         FileMapCst::const_iterator iFind = readOnlyFiles.find( fileID );
@@ -176,7 +176,7 @@ namespace io
             return iFind->second;
 
         const FileInfo& fileInfo = m_compilationFileInfos[ fileID ];
-        File::Ptr pLoadedFile = std::make_shared< File >( environment, fileInfo, version, stage, loader );
+        File::Ptr pLoadedFile = std::make_shared< File >( environment, fileInfo, stage, loader );
         pLoadedFile->load( *this );
         readOnlyFiles.insert( std::make_pair( fileInfo.getFileID(), pLoadedFile ) );
         loadedFiles.push_back( pLoadedFile );
@@ -185,7 +185,7 @@ namespace io
         {
             if( m_compilationFileInfos[ dependencyFileID ].getStage() < stage )
             {
-                loadFileImpl( environment, loader, readOnlyFiles, version, stage, dependencyFileID, loadedFiles );
+                loadFileImpl( environment, loader, readOnlyFiles, stage, dependencyFileID, loadedFiles );
             }
         }
 
@@ -194,10 +194,10 @@ namespace io
 
 
     File::PtrCst Manifest::loadFile( const Environment& environment, data::ObjectPartLoader& loader, FileMapCst& readOnlyFiles, 
-        std::size_t version, FileInfo::Stage stage, ObjectInfo::FileID fileID ) const
+        FileInfo::Stage stage, ObjectInfo::FileID fileID ) const
     {
         std::vector< File::Ptr > loadedFiles;
-        File::PtrCst pResult = loadFileImpl( environment, loader, readOnlyFiles, version, stage, fileID, loadedFiles );
+        File::PtrCst pResult = loadFileImpl( environment, loader, readOnlyFiles, stage, fileID, loadedFiles );
         for( File::Ptr pFile : loadedFiles )
         {
             pFile->load_post( *this );
@@ -206,27 +206,27 @@ namespace io
     }
 
     void Manifest::loadAll( const Environment& environment, data::ObjectPartLoader& loader, 
-            FileMapCst& readOnlyFiles, std::size_t version, FileInfo::Stage stage ) const
+            FileMapCst& readOnlyFiles, FileInfo::Stage stage ) const
     {
         for( FileInfoVector::const_iterator i = m_compilationFileInfos.begin(),
             iEnd = m_compilationFileInfos.end(); i!=iEnd; ++i )
         {
             if( i->getStage() <= stage )
             {
-                loadFile( environment, loader, readOnlyFiles, version, stage, i->getFileID() );
+                loadFile( environment, loader, readOnlyFiles, stage, i->getFileID() );
             }
         }
     }
 
     File::Ptr Manifest::createFile( const Environment& environment, data::ObjectPartLoader& loader, FileMap& readWriteFiles,
-        const SourceFilePath& sourceFile, std::size_t version, FileInfo::Stage stage, FileInfo::Type fileType ) const
+        const SourceFilePath& sourceFile, FileInfo::Stage stage, FileInfo::Type fileType ) const
     {
         FileTypeMap::const_iterator iFind = m_fileTypeMap.find( 
             std::make_pair( fileType, sourceFile ) );
         VERIFY_RTE_MSG( iFind != m_fileTypeMap.end(), 
             "Failed to locate compilation file of type: " << fileType << " for source file: " << sourceFile.path().string() );
         const FileInfo& fileInfo = *iFind->second;
-        File::Ptr pFile = std::make_shared< File >( environment, fileInfo, version, stage, loader );
+        File::Ptr pFile = std::make_shared< File >( environment, fileInfo, stage, loader );
         readWriteFiles.insert( std::make_pair( fileInfo.getFileID(), pFile ) );
         return pFile;
     }

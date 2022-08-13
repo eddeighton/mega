@@ -21,41 +21,6 @@
 namespace mega
 {
 
-// TODO: This does not work - clang just crashes when use -verify-pch
-
-class PCHVerification
-{
-    boost::filesystem::path                compiler;
-    std::vector< std::string >             flags;
-    std::vector< std::string >             defines;
-    std::vector< boost::filesystem::path > includeDirs;
-
-    boost::filesystem::path inputPCHFilePath;
-
-    PCHVerification() {}
-
-public:
-    std::string operator()() const;
-
-    template < typename TComponentType >
-    static inline PCHVerification
-    make_includePCH_verification( const io::BuildEnvironment& environment, const utilities::ToolChain& toolChain,
-                                  TComponentType* pComponent, const io::PrecompiledHeaderFile& pchFile )
-    {
-        PCHVerification verification;
-
-        verification.compiler = toolChain.clangCompilerPath;
-
-        verification.flags       = pComponent->get_cpp_flags();
-        verification.defines     = pComponent->get_cpp_defines();
-        verification.includeDirs = pComponent->get_include_directories();
-
-        verification.inputPCHFilePath = environment.FilePath( pchFile );
-
-        return verification;
-    }
-};
-
 class Compilation
 {
     boost::filesystem::path                  compiler;
@@ -76,7 +41,8 @@ class Compilation
     Compilation() {}
 
 public:
-    std::string operator()() const;
+    std::string generatePCHVerificationCMD() const;
+    std::string generateCompilationCMD() const;
 
     template < typename TComponentType >
     static inline Compilation
@@ -93,27 +59,6 @@ public:
 
         compilation.inputFile = environment.FilePath( environment.Include( sourceFile ) );
         compilation.outputPCH = environment.FilePath( environment.IncludePCH( sourceFile ) );
-
-        return compilation;
-    }
-
-    template < typename TComponentType >
-    static inline Compilation make_includePCH_compilation( const io::BuildEnvironment& environment,
-                                                           const utilities::ToolChain& toolChain,
-                                                           TComponentType*             pComponent )
-    {
-        Compilation compilation;
-
-        compilation.compiler = toolChain.clangCompilerPath;
-
-        compilation.flags       = pComponent->get_cpp_flags();
-        compilation.defines     = pComponent->get_cpp_defines();
-        compilation.includeDirs = pComponent->get_include_directories();
-
-        compilation.inputFile
-            = environment.FilePath( environment.Include( pComponent->get_build_dir(), pComponent->get_name() ) );
-        compilation.outputPCH
-            = environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) );
 
         return compilation;
     }
@@ -210,6 +155,28 @@ public:
 
         compilation.inputFile    = environment.FilePath( environment.Implementation( sourceFile ) );
         compilation.outputObject = environment.FilePath( environment.ImplementationObj( sourceFile ) );
+
+        return compilation;
+    }
+
+
+    template < typename TComponentType >
+    static inline Compilation make_cpp_includePCH_compilation( const io::BuildEnvironment& environment,
+                                                           const utilities::ToolChain& toolChain,
+                                                           TComponentType*             pComponent )
+    {
+        Compilation compilation;
+
+        compilation.compiler = toolChain.clangCompilerPath;
+
+        compilation.flags       = pComponent->get_cpp_flags();
+        compilation.defines     = pComponent->get_cpp_defines();
+        compilation.includeDirs = pComponent->get_include_directories();
+
+        compilation.inputFile
+            = environment.FilePath( environment.Include( pComponent->get_build_dir(), pComponent->get_name() ) );
+        compilation.outputPCH
+            = environment.FilePath( environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() ) );
 
         return compilation;
     }

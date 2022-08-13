@@ -10,7 +10,7 @@ digraph
 
 {% for node in nodes %}
     "{{ node.name }}" [
-        label = "{{ node.label }}({{ node.type_id }},{{ node.symbol }}){% for base in node.bases %}{% if loop.is_first%} : {% else %}, {% endif %}{{ base.label }}({{ base.type_id }},{{ base.symbol }}){% endfor %}{% for property in node.properties %}|{{ property.name }}({{ property.type_id }},{{ property.symbol }}): {{ property.value }}{% endfor %}"
+        label = "{{ node.label }}({{ node.concrete_id }},{{ node.type_id }},{{ node.symbol }}){% for base in node.bases %}{% if loop.is_first%} : {% else %}, {% endif %}{{ base.label }}({{ base.type_id }},{{ base.symbol }}){% endfor %}{% for property in node.properties %}|{{ property.name }}({{ property.type_id }},{{ property.symbol }}): {{ property.value }}{% endfor %}"
         shape = "record"
     ];
 {% endfor %}

@@ -1,10 +1,41 @@
 
 #include "utilities/tool_chain_hash.hpp"
 
+#include <boost/process.hpp>
+
 namespace mega
 {
 namespace utilities
 {
+
+namespace
+{
+std::string getClangVersion( const boost::filesystem::path& path_clangCompiler )
+{
+    namespace bp = boost::process;
+
+    std::ostringstream osResult;
+
+    std::ostringstream osCmd;
+    osCmd << path_clangCompiler.native() << " --version";
+
+    bp::ipstream errStream, outStream; // reading pipe-stream
+    bp::child    c( osCmd.str(), bp::std_out > outStream, bp::std_err > errStream );
+
+    std::string strOutputLine;
+    while ( c.running() && std::getline( outStream, strOutputLine ) )
+    {
+        if ( !strOutputLine.empty() )
+        {
+            osResult << strOutputLine;
+        }
+    }
+
+    c.wait();
+
+    return osResult.str();
+}
+} // namespace
 
 ToolChain::ToolChain() {}
 
@@ -22,9 +53,11 @@ ToolChain::ToolChain( const boost::filesystem::path& path_parserDll,
 
     , parserDllHash( path_parserDll )
     , megaCompilerHash( path_megaCompiler )
-    , clangCompilerHash( path_clangCompiler )
     , clangPluginHash( path_clangPlugin )
     , databaseHash( path_databaseDll )
+
+    , strClangCompilerVersion( getClangVersion( path_clangCompiler ) )
+    , clangCompilerHash( strClangCompilerVersion )
 
     , toolChainHash( parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash )
 {

@@ -43,8 +43,7 @@ namespace io
 class Storer
 {
 public:
-    Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, std::size_t version,
-            boost::filesystem::path& tempFile );
+    Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, boost::filesystem::path& tempFile );
 
     template < class T >
     inline void store( const T& value )

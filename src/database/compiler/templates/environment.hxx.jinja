@@ -19,7 +19,7 @@ namespace io
     class Environment : public FileSystem
     {
     public:
-        std::size_t getVersion() const;
+        static std::size_t getVersion();
 
         manifestFilePath project_manifest() const
         { 

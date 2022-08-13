@@ -39,7 +39,6 @@ public:
 private:
     const FileSystem&         m_fileSystem;
     FileInfo                  m_info;
-    std::size_t               m_version;
     FileInfo::Stage           m_stage;
     data::ObjectPartLoader&   m_objectLoader;
     Object::Array             m_objects;
@@ -48,11 +47,10 @@ private:
     void preload( Loader& loader );
 
 public:
-    File( const FileSystem& fileSystem, const FileInfo& info, std::size_t version, FileInfo::Stage stage,
+    File( const FileSystem& fileSystem, const FileInfo& info, FileInfo::Stage stage,
           data::ObjectPartLoader& objectLoader )
         : m_fileSystem( fileSystem )
         , m_info( info )
-        , m_version( version )
         , m_stage( stage )
         , m_objectLoader( objectLoader )
     {

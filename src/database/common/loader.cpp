@@ -27,6 +27,7 @@
 #include "database/types/sources.hpp"
 #include "database/model/file_info.hxx"
 #include "database/model/manifest.hxx"
+#include "database/model/environment.hxx"
 
 #include <utility>
 
@@ -50,7 +51,7 @@ namespace mega
 {
 namespace io
 {
-Loader::Loader( const FileSystem& fileSystem, std::size_t version, const CompilationFilePath& filePath,
+Loader::Loader( const FileSystem& fileSystem, const CompilationFilePath& filePath,
                 ::data::ObjectPartLoader& loader )
     : m_pFileStream( fileSystem.read( filePath ) )
     , m_archive( *m_pFileStream, m_objectInfos, loader )
@@ -58,9 +59,12 @@ Loader::Loader( const FileSystem& fileSystem, std::size_t version, const Compila
     {
         FileHeader fileHeader;
         m_archive& fileHeader;
-        if ( fileHeader.getVersion() != version )
+        if ( fileHeader.getVersion() != Environment::getVersion() )
         {
-            throw mega::io::DatabaseVersionException();
+            std::ostringstream os;
+            os << "Compilation file: " << filePath.path().string() << 
+                "has version: " << fileHeader.getVersion() << " when current version is: " << Environment::getVersion();
+            throw mega::io::DatabaseVersionException( os.str() );
         }
     }
 }

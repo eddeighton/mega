@@ -147,19 +147,12 @@ public:
         Database               database( m_environment, m_sourceFilePath );
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
+        const mega::Compilation compilationCMD = mega::Compilation::make_includePCH_compilation(
+            m_environment, m_toolChain, pComponent, m_sourceFilePath );
+
         if ( m_environment.restore( pchPath, determinant ) )
         {
-            // test if PCH is still valid
-            const std::string strCmd = mega::PCHVerification::make_includePCH_verification(
-                m_environment, m_toolChain, pComponent, pchPath )();
-
-            if ( run_cmd( taskProgress, strCmd ) )
-            {
-                std::ostringstream os;
-                os << "PCH file: " << pchPath.path() << " out of date";
-                msg( taskProgress, os.str() );
-            }
-            else
+            if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
             {
                 m_environment.setBuildHashCode( pchPath );
                 cached( taskProgress );
@@ -167,15 +160,13 @@ public:
             }
         }
 
-        const std::string strCmd = mega::Compilation::make_includePCH_compilation(
-            m_environment, m_toolChain, pComponent, m_sourceFilePath )();
-
-        if ( run_cmd( taskProgress, strCmd ) )
+        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             std::ostringstream os;
             os << "Error compiling include files to pch for source file: " << m_sourceFilePath.path();
             msg( taskProgress, os.str() );
             failed( taskProgress );
+            return;
         }
 
         m_environment.setBuildHashCode( pchPath );
@@ -352,22 +343,26 @@ public:
         const task::DeterminantHash determinant(
             { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( includeFilePath ) } );
 
+        const mega::Compilation compilationCMD
+            = mega::Compilation::make_cpp_includePCH_compilation( m_environment, m_toolChain, pComponent );
+
         if ( m_environment.restore( pchPath, determinant ) )
         {
-            m_environment.setBuildHashCode( pchPath );
-            cached( taskProgress );
-            return;
+            if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            {
+                m_environment.setBuildHashCode( pchPath );
+                cached( taskProgress );
+                return;
+            }
         }
 
-        const std::string strCmd
-            = mega::Compilation::make_includePCH_compilation( m_environment, m_toolChain, pComponent )();
-
-        if ( run_cmd( taskProgress, strCmd ) )
+        if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
             std::ostringstream os;
             os << "Error compiling include files to pch for component: " << pComponent->get_name();
             msg( taskProgress, os.str() );
             failed( taskProgress );
+            return;
         }
 
         m_environment.setBuildHashCode( pchPath );

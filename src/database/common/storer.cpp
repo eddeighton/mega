@@ -20,6 +20,8 @@
 #include "database/common/storer.hpp"
 #include "database/common/file_header.hpp"
 
+#include "database/model/environment.hxx"
+
 #include "common/file.hpp"
 
 namespace boost
@@ -41,14 +43,13 @@ namespace mega
 {
 namespace io
 {
-Storer::Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, std::size_t version,
-                boost::filesystem::path& tempFile )
+Storer::Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, boost::filesystem::path& tempFile )
     : m_pFileStream( fileSystem.write_temp( filePath, tempFile ) )
     , m_archive( *m_pFileStream, m_objectInfos )
 {
     {
         std::size_t manifestHash = 0U;
-        FileHeader  fileHeader( version, manifestHash );
+        FileHeader  fileHeader( Environment::getVersion(), manifestHash );
         m_archive&  fileHeader;
     }
 }

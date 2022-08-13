@@ -186,7 +186,7 @@ public:
     using WeakObjectPtrSetPtr = std::shared_ptr< WeakObjectPtrSet >;
     WeakObjectPtrSetPtr m_pInheritanceGroup;
 
-    std::string inheritanceGroupVariant() const;
+    std::string inheritanceGroupVariant( std::shared_ptr< Stage > pStage ) const;
     std::string delimitTypeName( const std::string& str ) const;
 
     std::weak_ptr< Namespace > m_namespace;
@@ -540,7 +540,6 @@ public:
 
     ConversionMap m_conversions;
     ConversionMap m_base_conversions;
-    ConversionMap m_upcasts;
 };
 
 inline std::string toConstRef( const std::string& strType )

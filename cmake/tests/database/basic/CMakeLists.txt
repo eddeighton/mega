@@ -18,7 +18,12 @@ set( BASIC_DIR ${MEGA_TEST_DIR}/database/basic )
 
 set( BASIC_DATABASE_GENERATED_HEADERS
 
-    ${BASIC_DIR}/database/model/data.hxx
+    ${BASIC_DIR}/database/model/data_FirstFile.hxx
+    ${BASIC_DIR}/database/model/data_SecondFile.hxx
+    ${BASIC_DIR}/database/model/data_ThirdFile.hxx
+    ${BASIC_DIR}/database/model/data_FourthFile.hxx
+    ${BASIC_DIR}/database/model/data_FifthFile.hxx
+
     ${BASIC_DIR}/database/model/environment.hxx
     ${BASIC_DIR}/database/model/manifest.hxx
     ${BASIC_DIR}/database/model/file_info.hxx
@@ -79,8 +84,6 @@ add_custom_command(
         --src ${BASIC_DIR}/database/model/
         --data_dir ${BASIC_DIR}/database/data/
         --inja_dir ${MEGA_SRC_DIR}/database/compiler/templates/
-        --json
-        --template
         --input ${DATABASE_SCHEMAS}
     DEPENDS ${DATABASE_SCHEMAS} ${TEMPLATES} database_compiler_driver
     COMMENT "Generating Database" )

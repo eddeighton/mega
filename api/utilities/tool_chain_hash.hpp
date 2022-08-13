@@ -25,7 +25,9 @@ struct ToolChain
                const boost::filesystem::path& databaseDll );
 
     boost::filesystem::path parserDllPath, megaCompilerPath, clangCompilerPath, clangPluginPath, databasePath;
-    task::FileHash          parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash;
+    task::FileHash          parserDllHash, megaCompilerHash, clangPluginHash, databaseHash;
+    std::string             strClangCompilerVersion;
+    common::Hash            clangCompilerHash;
     task::DeterminantHash   toolChainHash;
 
     template < typename Archive, typename HashCodeType >
@@ -52,6 +54,8 @@ struct ToolChain
         archive& boost::serialization::make_nvp( "clangPluginPath", clangPluginPath );
         archive& boost::serialization::make_nvp( "databasePath", databasePath );
 
+        archive& boost::serialization::make_nvp( "clangVersion", strClangCompilerVersion );
+
         saveHashCode( archive, "parserDllHash", parserDllHash );
         saveHashCode( archive, "megaCompilerHash", megaCompilerHash );
         saveHashCode( archive, "clangCompilerHash", clangCompilerHash );
@@ -69,6 +73,8 @@ struct ToolChain
         archive& boost::serialization::make_nvp( "clangCompilerPath", clangCompilerPath );
         archive& boost::serialization::make_nvp( "clangPluginPath", clangPluginPath );
         archive& boost::serialization::make_nvp( "databasePath", databasePath );
+
+        archive& boost::serialization::make_nvp( "clangVersion", strClangCompilerVersion );
 
         loadHashCode( archive, "parserDllHash", parserDllHash );
         loadHashCode( archive, "megaCompilerHash", megaCompilerHash );

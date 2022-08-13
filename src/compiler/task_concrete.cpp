@@ -192,6 +192,7 @@ public:
         {
             Namespace* pConcrete = database.construct< Namespace >( Namespace::Args{
                 Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pNamespace, {} }, pNamespace, {} } );
+            pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
             {
@@ -221,6 +222,7 @@ public:
         {
             Action* pConcrete = database.construct< Action >( Action::Args{
                 Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pAction, {} }, pAction, {} } );
+            pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
             {
@@ -243,6 +245,7 @@ public:
         {
             Event* pConcrete = database.construct< Event >(
                 Event::Args{ Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pEvent, {} }, pEvent, {} } );
+            pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
             {
@@ -265,6 +268,7 @@ public:
         {
             Function* pConcrete = database.construct< Function >( Function::Args{
                 Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pFunction, {} }, pFunction } );
+            pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
             {
@@ -287,6 +291,7 @@ public:
         {
             Object* pConcrete = database.construct< Object >( Object::Args{
                 Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pObject, {} }, pObject, {} } );
+            pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
             {
@@ -309,6 +314,7 @@ public:
         {
             Link* pConcrete = database.construct< Link >(
                 Link::Args{ Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pLink, {} }, pLink } );
+            pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
             {
@@ -331,6 +337,7 @@ public:
         {
             Table* pConcrete = database.construct< Table >(
                 Table::Args{ Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pTable, {} }, pTable } );
+            pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
             {
@@ -353,6 +360,7 @@ public:
         {
             Buffer* pConcrete = database.construct< Buffer >(
                 Buffer::Args{ Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pBuffer, {} }, pBuffer, {} } );
+            pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
             {

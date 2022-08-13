@@ -22,6 +22,8 @@ namespace mega
             std::unique_ptr< std::istream > read( const SourceFilePath& filePath ) const;
             std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const;
 
+            void verify();
+
             static void compile_archive( const boost::filesystem::path& filePath, const Manifest& manifest,
                                          const boost::filesystem::path& srcDir, const boost::filesystem::path& buildDir );
 

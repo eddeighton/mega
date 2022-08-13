@@ -255,9 +255,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    const TskDesc hyperGraph = encode( Task{ eTask_HyperGraph, manifestFilePath } );
-    const TskDesc derivation = encode( Task{ eTask_Derivation, manifestFilePath } );
+    const TskDesc concreteTypeAnalysis = encode( Task{ eTask_ConcreteTypeAnalysis, manifestFilePath } );
+    const TskDesc hyperGraph           = encode( Task{ eTask_HyperGraph, manifestFilePath } );
+    const TskDesc derivation           = encode( Task{ eTask_Derivation, manifestFilePath } );
 
+    dependencies.add( concreteTypeAnalysis, concreteTreeTasks );
     dependencies.add( hyperGraph, concreteTreeTasks );
     dependencies.add( derivation, TskDescVec{ hyperGraph } );
 
@@ -265,13 +267,15 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc allocators        = encode( Task{ eTask_Allocators, sourceFilePath } );
-            const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
-            const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
-            const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
-            const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
+            const TskDesc concreteTypeRollout = encode( Task{ eTask_ConcreteTypeRollout, sourceFilePath } );
+            const TskDesc allocators          = encode( Task{ eTask_Allocators, sourceFilePath } );
+            const TskDesc operations          = encode( Task{ eTask_Operations, sourceFilePath } );
+            const TskDesc operationsPCH       = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
+            const TskDesc implementation      = encode( Task{ eTask_Implementation, sourceFilePath } );
+            const TskDesc implementationObj   = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
 
-            dependencies.add( allocators, TskDescVec{ derivation } );
+            dependencies.add( concreteTypeRollout, TskDescVec{ derivation } );
+            dependencies.add( allocators, TskDescVec{ concreteTypeRollout } );
             dependencies.add( operations, TskDescVec{ derivation } );
             dependencies.add( operationsPCH, TskDescVec{ operations } );
             dependencies.add( implementation, TskDescVec{ operationsPCH, allocators } );

@@ -132,9 +132,8 @@ public:
                 Symbols::Symbol* pSymbol = i->second;
                 if ( pSymbol->get_id() != 0 ) // zero means not set
                 {
-                    VERIFY_RTE( !symbolLabels.count( pSymbol->get_id() ) );
+                    VERIFY_RTE( !symbolLabels.count( -pSymbol->get_id() ) );
                     symbolLabels.insert( -pSymbol->get_id() );
-                    // paranoiCheck.insert( pSymbol->get_id() );
                 }
             }
             std::set< std::int32_t >::iterator labelIter   = symbolLabels.begin();
@@ -157,11 +156,9 @@ public:
                         }
                     }
                     pSymbol->set_id( -szNextLabel );
-                    // paranoiCheck.insert( szNextLabel );
                     ++szNextLabel;
                 }
             }
-            // VERIFY_PARSER( paranoiCheck.size() == symbolMap.size() );
         }
         void labelNewTypes( const TypeMap& typeMap ) const
         {

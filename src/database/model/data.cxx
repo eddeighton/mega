@@ -1,5 +1,19 @@
 
-#include "database/model/data.hxx"
+#include "database/model/data_Components.hxx"
+#include "database/model/data_AST.hxx"
+#include "database/model/data_Body.hxx"
+#include "database/model/data_Tree.hxx"
+#include "database/model/data_DPGraph.hxx"
+#include "database/model/data_SymbolTable.hxx"
+#include "database/model/data_PerSourceSymbols.hxx"
+#include "database/model/data_Clang.hxx"
+#include "database/model/data_Concrete.hxx"
+#include "database/model/data_Model.hxx"
+#include "database/model/data_Derivations.hxx"
+#include "database/model/data_ConcreteTable.hxx"
+#include "database/model/data_PerSourceConcreteTable.hxx"
+#include "database/model/data_MemoryLayout.hxx"
+#include "database/model/data_Operations.hxx"
 
 #include "nlohmann/json.hpp"
 
@@ -87,9 +101,9 @@ namespace Components
         storer.store( mega_source_files );
         storer.store( cpp_source_files );
     }
-    void Components_Component::to_json( nlohmann::json& part ) const
+    void Components_Component::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Components_Component" },
                 { "filetype" , "Components" },
@@ -101,52 +115,52 @@ namespace Components
         {
             nlohmann::json property = nlohmann::json::object({
                 { "type", type } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "name", name } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "src_dir", src_dir } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "build_dir", build_dir } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "cpp_flags", cpp_flags } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "cpp_defines", cpp_defines } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "include_directories", include_directories } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dependencies", dependencies } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "mega_source_files", mega_source_files } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "cpp_source_files", cpp_source_files } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -176,9 +190,9 @@ namespace AST
     {
         storer.store( str );
     }
-    void Parser_Identifier::to_json( nlohmann::json& part ) const
+    void Parser_Identifier::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_Identifier" },
                 { "filetype" , "AST" },
@@ -190,7 +204,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "str", str } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -223,9 +237,9 @@ namespace AST
         storer.store( source_file );
         storer.store( line_number );
     }
-    void Parser_ScopedIdentifier::to_json( nlohmann::json& part ) const
+    void Parser_ScopedIdentifier::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_ScopedIdentifier" },
                 { "filetype" , "AST" },
@@ -237,17 +251,17 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "ids", ids } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "source_file", source_file } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "line_number", line_number } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -274,9 +288,9 @@ namespace AST
     {
         storer.store( str );
     }
-    void Parser_ArgumentList::to_json( nlohmann::json& part ) const
+    void Parser_ArgumentList::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_ArgumentList" },
                 { "filetype" , "AST" },
@@ -288,7 +302,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "str", str } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -315,9 +329,9 @@ namespace AST
     {
         storer.store( str );
     }
-    void Parser_ReturnType::to_json( nlohmann::json& part ) const
+    void Parser_ReturnType::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_ReturnType" },
                 { "filetype" , "AST" },
@@ -329,7 +343,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "str", str } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -356,9 +370,9 @@ namespace AST
     {
         storer.store( strings );
     }
-    void Parser_Inheritance::to_json( nlohmann::json& part ) const
+    void Parser_Inheritance::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_Inheritance" },
                 { "filetype" , "AST" },
@@ -370,7 +384,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "strings", strings } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -397,9 +411,9 @@ namespace AST
     {
         storer.store( str );
     }
-    void Parser_Size::to_json( nlohmann::json& part ) const
+    void Parser_Size::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_Size" },
                 { "filetype" , "AST" },
@@ -411,7 +425,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "str", str } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -450,9 +464,9 @@ namespace AST
         storer.store( derive_to );
         storer.store( ownership );
     }
-    void Parser_Link::to_json( nlohmann::json& part ) const
+    void Parser_Link::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_Link" },
                 { "filetype" , "AST" },
@@ -464,27 +478,27 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "linker", linker } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "linkee", linkee } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "derive_from", derive_from } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "derive_to", derive_to } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "ownership", ownership } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -518,9 +532,9 @@ namespace AST
         storer.store( id );
         storer.store( type );
     }
-    void Parser_Dimension::to_json( nlohmann::json& part ) const
+    void Parser_Dimension::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_Dimension" },
                 { "filetype" , "AST" },
@@ -532,17 +546,17 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "isConst", isConst } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "id", id } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "type", type } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -563,9 +577,9 @@ namespace AST
     void Parser_Include::store( mega::io::Storer& storer ) const
     {
     }
-    void Parser_Include::to_json( nlohmann::json& part ) const
+    void Parser_Include::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_Include" },
                 { "filetype" , "AST" },
@@ -604,9 +618,9 @@ namespace AST
         storer.store( p_AST_Parser_Include );
         storer.store( str );
     }
-    void Parser_SystemInclude::to_json( nlohmann::json& part ) const
+    void Parser_SystemInclude::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_SystemInclude" },
                 { "filetype" , "AST" },
@@ -618,7 +632,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "str", str } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -654,9 +668,9 @@ namespace AST
         VERIFY_RTE_MSG( root.has_value(), "AST::Parser_MegaInclude.root has NOT been set" );
         storer.store( root );
     }
-    void Parser_MegaInclude::to_json( nlohmann::json& part ) const
+    void Parser_MegaInclude::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_MegaInclude" },
                 { "filetype" , "AST" },
@@ -668,12 +682,12 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "megaSourceFilePath", megaSourceFilePath } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "root", root.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -698,9 +712,9 @@ namespace AST
     {
         storer.store( p_AST_Parser_MegaInclude );
     }
-    void Parser_MegaIncludeInline::to_json( nlohmann::json& part ) const
+    void Parser_MegaIncludeInline::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_MegaIncludeInline" },
                 { "filetype" , "AST" },
@@ -740,9 +754,9 @@ namespace AST
         storer.store( p_AST_Parser_MegaInclude );
         storer.store( id );
     }
-    void Parser_MegaIncludeNested::to_json( nlohmann::json& part ) const
+    void Parser_MegaIncludeNested::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_MegaIncludeNested" },
                 { "filetype" , "AST" },
@@ -754,7 +768,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "id", id } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -786,9 +800,9 @@ namespace AST
         storer.store( p_AST_Parser_Include );
         storer.store( cppSourceFilePath );
     }
-    void Parser_CPPInclude::to_json( nlohmann::json& part ) const
+    void Parser_CPPInclude::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_CPPInclude" },
                 { "filetype" , "AST" },
@@ -800,7 +814,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "cppSourceFilePath", cppSourceFilePath } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -827,9 +841,9 @@ namespace AST
     {
         storer.store( str );
     }
-    void Parser_Dependency::to_json( nlohmann::json& part ) const
+    void Parser_Dependency::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_Dependency" },
                 { "filetype" , "AST" },
@@ -841,7 +855,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "str", str } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -885,9 +899,9 @@ namespace AST
         storer.store( includes );
         storer.store( dependencies );
     }
-    void Parser_ContextDef::to_json( nlohmann::json& part ) const
+    void Parser_ContextDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_ContextDef" },
                 { "filetype" , "AST" },
@@ -899,27 +913,27 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "id", id } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "children", children } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimensions", dimensions } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "includes", includes } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dependencies", dependencies } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -944,9 +958,9 @@ namespace AST
     {
         storer.store( p_AST_Parser_ContextDef );
     }
-    void Parser_NamespaceDef::to_json( nlohmann::json& part ) const
+    void Parser_NamespaceDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_NamespaceDef" },
                 { "filetype" , "AST" },
@@ -986,9 +1000,9 @@ namespace AST
         storer.store( p_AST_Parser_ContextDef );
         storer.store( inheritance );
     }
-    void Parser_AbstractDef::to_json( nlohmann::json& part ) const
+    void Parser_AbstractDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_AbstractDef" },
                 { "filetype" , "AST" },
@@ -1000,7 +1014,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1037,9 +1051,9 @@ namespace AST
         storer.store( size );
         storer.store( inheritance );
     }
-    void Parser_ActionDef::to_json( nlohmann::json& part ) const
+    void Parser_ActionDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_ActionDef" },
                 { "filetype" , "AST" },
@@ -1051,12 +1065,12 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "size", size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1093,9 +1107,9 @@ namespace AST
         storer.store( size );
         storer.store( inheritance );
     }
-    void Parser_EventDef::to_json( nlohmann::json& part ) const
+    void Parser_EventDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_EventDef" },
                 { "filetype" , "AST" },
@@ -1107,12 +1121,12 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "size", size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1149,9 +1163,9 @@ namespace AST
         storer.store( argumentList );
         storer.store( returnType );
     }
-    void Parser_FunctionDef::to_json( nlohmann::json& part ) const
+    void Parser_FunctionDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_FunctionDef" },
                 { "filetype" , "AST" },
@@ -1163,12 +1177,12 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "argumentList", argumentList } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "returnType", returnType } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1201,9 +1215,9 @@ namespace AST
         storer.store( p_AST_Parser_ContextDef );
         storer.store( inheritance );
     }
-    void Parser_ObjectDef::to_json( nlohmann::json& part ) const
+    void Parser_ObjectDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_ObjectDef" },
                 { "filetype" , "AST" },
@@ -1215,7 +1229,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1252,9 +1266,9 @@ namespace AST
         storer.store( link );
         storer.store( target );
     }
-    void Parser_LinkDef::to_json( nlohmann::json& part ) const
+    void Parser_LinkDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_LinkDef" },
                 { "filetype" , "AST" },
@@ -1266,12 +1280,12 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "link", link } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "target", target } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1304,9 +1318,9 @@ namespace AST
         storer.store( p_AST_Parser_ContextDef );
         storer.store( inheritance );
     }
-    void Parser_TableDef::to_json( nlohmann::json& part ) const
+    void Parser_TableDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_TableDef" },
                 { "filetype" , "AST" },
@@ -1318,7 +1332,7 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1343,9 +1357,9 @@ namespace AST
     {
         storer.store( p_AST_Parser_ContextDef );
     }
-    void Parser_BufferDef::to_json( nlohmann::json& part ) const
+    void Parser_BufferDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_BufferDef" },
                 { "filetype" , "AST" },
@@ -1387,9 +1401,9 @@ namespace AST
         storer.store( component );
         storer.store( ast );
     }
-    void Parser_SourceRoot::to_json( nlohmann::json& part ) const
+    void Parser_SourceRoot::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_SourceRoot" },
                 { "filetype" , "AST" },
@@ -1401,17 +1415,17 @@ namespace AST
         {
             nlohmann::json property = nlohmann::json::object({
                 { "sourceFile", sourceFile } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "component", component } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "ast", ast } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1436,9 +1450,9 @@ namespace AST
     {
         storer.store( p_AST_Parser_SourceRoot );
     }
-    void Parser_IncludeRoot::to_json( nlohmann::json& part ) const
+    void Parser_IncludeRoot::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_IncludeRoot" },
                 { "filetype" , "AST" },
@@ -1470,9 +1484,9 @@ namespace AST
     {
         storer.store( p_AST_Parser_SourceRoot );
     }
-    void Parser_ObjectSourceRoot::to_json( nlohmann::json& part ) const
+    void Parser_ObjectSourceRoot::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_ObjectSourceRoot" },
                 { "filetype" , "AST" },
@@ -1509,9 +1523,9 @@ namespace Body
     {
         storer.store( body );
     }
-    void Parser_ContextDef::to_json( nlohmann::json& part ) const
+    void Parser_ContextDef::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Parser_ContextDef" },
                 { "filetype" , "Body" },
@@ -1523,7 +1537,7 @@ namespace Body
         {
             nlohmann::json property = nlohmann::json::object({
                 { "body", body } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1565,9 +1579,9 @@ namespace Tree
         storer.store( p_AST_Parser_Dimension );
         storer.store( parent );
     }
-    void Interface_DimensionTrait::to_json( nlohmann::json& part ) const
+    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_DimensionTrait" },
                 { "filetype" , "Tree" },
@@ -1579,7 +1593,7 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent", parent } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1605,9 +1619,9 @@ namespace Tree
     {
         storer.store( p_AST_Parser_Inheritance );
     }
-    void Interface_InheritanceTrait::to_json( nlohmann::json& part ) const
+    void Interface_InheritanceTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_InheritanceTrait" },
                 { "filetype" , "Tree" },
@@ -1639,9 +1653,9 @@ namespace Tree
     {
         storer.store( p_AST_Parser_Link );
     }
-    void Interface_LinkTrait::to_json( nlohmann::json& part ) const
+    void Interface_LinkTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_LinkTrait" },
                 { "filetype" , "Tree" },
@@ -1674,9 +1688,9 @@ namespace Tree
     {
         storer.store( p_AST_Parser_ReturnType );
     }
-    void Interface_ReturnTypeTrait::to_json( nlohmann::json& part ) const
+    void Interface_ReturnTypeTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_ReturnTypeTrait" },
                 { "filetype" , "Tree" },
@@ -1709,9 +1723,9 @@ namespace Tree
     {
         storer.store( p_AST_Parser_ArgumentList );
     }
-    void Interface_ArgumentListTrait::to_json( nlohmann::json& part ) const
+    void Interface_ArgumentListTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_ArgumentListTrait" },
                 { "filetype" , "Tree" },
@@ -1744,9 +1758,9 @@ namespace Tree
     {
         storer.store( p_AST_Parser_Size );
     }
-    void Interface_SizeTrait::to_json( nlohmann::json& part ) const
+    void Interface_SizeTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_SizeTrait" },
                 { "filetype" , "Tree" },
@@ -1780,9 +1794,9 @@ namespace Tree
     {
         storer.store( children );
     }
-    void Interface_ContextGroup::to_json( nlohmann::json& part ) const
+    void Interface_ContextGroup::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_ContextGroup" },
                 { "filetype" , "Tree" },
@@ -1794,7 +1808,7 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "children", children } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1827,9 +1841,9 @@ namespace Tree
         storer.store( p_Tree_Interface_ContextGroup );
         storer.store( root );
     }
-    void Interface_Root::to_json( nlohmann::json& part ) const
+    void Interface_Root::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Root" },
                 { "filetype" , "Tree" },
@@ -1841,7 +1855,7 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "root", root } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1881,9 +1895,9 @@ namespace Tree
         storer.store( identifier );
         storer.store( parent );
     }
-    void Interface_IContext::to_json( nlohmann::json& part ) const
+    void Interface_IContext::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_IContext" },
                 { "filetype" , "Tree" },
@@ -1895,12 +1909,12 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "identifier", identifier } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent", parent } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -1938,9 +1952,9 @@ namespace Tree
         VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Namespace.dimension_traits has NOT been set" );
         storer.store( dimension_traits );
     }
-    void Interface_Namespace::to_json( nlohmann::json& part ) const
+    void Interface_Namespace::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Namespace" },
                 { "filetype" , "Tree" },
@@ -1952,17 +1966,17 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "is_global", is_global } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "namespace_defs", namespace_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_traits", dimension_traits.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2000,9 +2014,9 @@ namespace Tree
         VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Interface_Abstract.inheritance_trait has NOT been set" );
         storer.store( inheritance_trait );
     }
-    void Interface_Abstract::to_json( nlohmann::json& part ) const
+    void Interface_Abstract::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Abstract" },
                 { "filetype" , "Tree" },
@@ -2014,17 +2028,17 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "abstract_defs", abstract_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_traits", dimension_traits.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance_trait", inheritance_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2065,9 +2079,9 @@ namespace Tree
         VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Action.size_trait has NOT been set" );
         storer.store( size_trait );
     }
-    void Interface_Action::to_json( nlohmann::json& part ) const
+    void Interface_Action::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Action" },
                 { "filetype" , "Tree" },
@@ -2079,22 +2093,22 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "action_defs", action_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_traits", dimension_traits.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance_trait", inheritance_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "size_trait", size_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2135,9 +2149,9 @@ namespace Tree
         VERIFY_RTE_MSG( size_trait.has_value(), "Tree::Interface_Event.size_trait has NOT been set" );
         storer.store( size_trait );
     }
-    void Interface_Event::to_json( nlohmann::json& part ) const
+    void Interface_Event::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Event" },
                 { "filetype" , "Tree" },
@@ -2149,22 +2163,22 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "event_defs", event_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_traits", dimension_traits.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance_trait", inheritance_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "size_trait", size_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2204,9 +2218,9 @@ namespace Tree
         VERIFY_RTE_MSG( arguments_trait.has_value(), "Tree::Interface_Function.arguments_trait has NOT been set" );
         storer.store( arguments_trait );
     }
-    void Interface_Function::to_json( nlohmann::json& part ) const
+    void Interface_Function::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Function" },
                 { "filetype" , "Tree" },
@@ -2218,17 +2232,17 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "function_defs", function_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "return_type_trait", return_type_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "arguments_trait", arguments_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2266,9 +2280,9 @@ namespace Tree
         VERIFY_RTE_MSG( inheritance_trait.has_value(), "Tree::Interface_Object.inheritance_trait has NOT been set" );
         storer.store( inheritance_trait );
     }
-    void Interface_Object::to_json( nlohmann::json& part ) const
+    void Interface_Object::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Object" },
                 { "filetype" , "Tree" },
@@ -2280,17 +2294,17 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "object_defs", object_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_traits", dimension_traits.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance_trait", inheritance_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2330,9 +2344,9 @@ namespace Tree
         VERIFY_RTE_MSG( link_target.has_value(), "Tree::Interface_Link.link_target has NOT been set" );
         storer.store( link_target );
     }
-    void Interface_Link::to_json( nlohmann::json& part ) const
+    void Interface_Link::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Link" },
                 { "filetype" , "Tree" },
@@ -2344,17 +2358,17 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "link_defs", link_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "link_trait", link_trait.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "link_target", link_target.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2386,9 +2400,9 @@ namespace Tree
         storer.store( p_Tree_Interface_IContext );
         storer.store( table_defs );
     }
-    void Interface_Table::to_json( nlohmann::json& part ) const
+    void Interface_Table::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Table" },
                 { "filetype" , "Tree" },
@@ -2400,7 +2414,7 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "table_defs", table_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2435,9 +2449,9 @@ namespace Tree
         VERIFY_RTE_MSG( dimension_traits.has_value(), "Tree::Interface_Buffer.dimension_traits has NOT been set" );
         storer.store( dimension_traits );
     }
-    void Interface_Buffer::to_json( nlohmann::json& part ) const
+    void Interface_Buffer::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_Buffer" },
                 { "filetype" , "Tree" },
@@ -2449,12 +2463,12 @@ namespace Tree
         {
             nlohmann::json property = nlohmann::json::object({
                 { "buffer_defs", buffer_defs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_traits", dimension_traits.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2487,9 +2501,9 @@ namespace DPGraph
         storer.store( location );
         storer.store( glob );
     }
-    void Dependencies_Glob::to_json( nlohmann::json& part ) const
+    void Dependencies_Glob::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Dependencies_Glob" },
                 { "filetype" , "DPGraph" },
@@ -2501,12 +2515,12 @@ namespace DPGraph
         {
             nlohmann::json property = nlohmann::json::object({
                 { "location", location } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "glob", glob } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2542,9 +2556,9 @@ namespace DPGraph
         storer.store( globs );
         storer.store( resolution );
     }
-    void Dependencies_SourceFileDependencies::to_json( nlohmann::json& part ) const
+    void Dependencies_SourceFileDependencies::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Dependencies_SourceFileDependencies" },
                 { "filetype" , "DPGraph" },
@@ -2556,22 +2570,22 @@ namespace DPGraph
         {
             nlohmann::json property = nlohmann::json::object({
                 { "source_file", source_file } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "hash_code", hash_code } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "globs", globs } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "resolution", resolution } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2598,9 +2612,9 @@ namespace DPGraph
     {
         storer.store( mega_source_files );
     }
-    void Dependencies_TransitiveDependencies::to_json( nlohmann::json& part ) const
+    void Dependencies_TransitiveDependencies::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Dependencies_TransitiveDependencies" },
                 { "filetype" , "DPGraph" },
@@ -2612,7 +2626,7 @@ namespace DPGraph
         {
             nlohmann::json property = nlohmann::json::object({
                 { "mega_source_files", mega_source_files } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2645,9 +2659,9 @@ namespace DPGraph
         storer.store( mega_dependencies );
         storer.store( cpp_dependencies );
     }
-    void Dependencies_Analysis::to_json( nlohmann::json& part ) const
+    void Dependencies_Analysis::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Dependencies_Analysis" },
                 { "filetype" , "DPGraph" },
@@ -2659,17 +2673,17 @@ namespace DPGraph
         {
             nlohmann::json property = nlohmann::json::object({
                 { "objects", objects } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "mega_dependencies", mega_dependencies } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "cpp_dependencies", cpp_dependencies } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2708,9 +2722,9 @@ namespace SymbolTable
         storer.store( contexts );
         storer.store( dimensions );
     }
-    void Symbols_Symbol::to_json( nlohmann::json& part ) const
+    void Symbols_Symbol::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Symbols_Symbol" },
                 { "filetype" , "SymbolTable" },
@@ -2722,31 +2736,33 @@ namespace SymbolTable
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbol", symbol } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "id", id } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "contexts", contexts } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimensions", dimensions } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
     // struct Symbols_SymbolSet : public mega::io::Object
     Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, this ) )    {
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, this ) )          , p_ConcreteTable_Symbols_SymbolSet( loader )
+    {
     }
     Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& context_symbols, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& dimension_symbols, const std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >& context_type_ids, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >& dimension_type_ids)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, this ) )          , symbols( symbols )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, this ) )          , p_ConcreteTable_Symbols_SymbolSet( loader )
+          , symbols( symbols )
           , source_file( source_file )
           , hash_code( hash_code )
           , context_symbols( context_symbols )
@@ -2782,9 +2798,9 @@ namespace SymbolTable
         storer.store( context_type_ids );
         storer.store( dimension_type_ids );
     }
-    void Symbols_SymbolSet::to_json( nlohmann::json& part ) const
+    void Symbols_SymbolSet::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Symbols_SymbolSet" },
                 { "filetype" , "SymbolTable" },
@@ -2796,46 +2812,48 @@ namespace SymbolTable
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbols", symbols } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "source_file", source_file } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "hash_code", hash_code } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context_symbols", context_symbols } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_symbols", dimension_symbols } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context_type_ids", context_type_ids } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_type_ids", dimension_type_ids } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
     // struct Symbols_SymbolTable : public mega::io::Object
     Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, this ) )    {
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, this ) )          , p_ConcreteTable_Symbols_SymbolTable( loader )
+    {
     }
-    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const std::map< int32_t, data::Ptr< data::Tree::Interface_IContext > >& context_type_ids, const std::map< int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& dimension_type_ids, const std::map< int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbol_id_map)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, this ) )          , symbol_sets( symbol_sets )
+    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const std::map< std::int32_t, data::Ptr< data::Tree::Interface_IContext > >& context_type_ids, const std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& dimension_type_ids, const std::map< std::int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbol_id_map)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, this ) )          , p_ConcreteTable_Symbols_SymbolTable( loader )
+          , symbol_sets( symbol_sets )
           , symbols( symbols )
           , context_type_ids( context_type_ids )
           , dimension_type_ids( dimension_type_ids )
@@ -2865,9 +2883,9 @@ namespace SymbolTable
         storer.store( dimension_type_ids );
         storer.store( symbol_id_map );
     }
-    void Symbols_SymbolTable::to_json( nlohmann::json& part ) const
+    void Symbols_SymbolTable::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Symbols_SymbolTable" },
                 { "filetype" , "SymbolTable" },
@@ -2879,27 +2897,27 @@ namespace SymbolTable
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbol_sets", symbol_sets } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbols", symbols } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context_type_ids", context_type_ids } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_type_ids", dimension_type_ids } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbol_id_map", symbol_id_map } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2937,9 +2955,9 @@ namespace PerSourceSymbols
         VERIFY_RTE_MSG( type_id.has_value(), "Tree::Interface_DimensionTrait.type_id has NOT been set" );
         storer.store( type_id );
     }
-    void Interface_DimensionTrait::to_json( nlohmann::json& part ) const
+    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_DimensionTrait" },
                 { "filetype" , "PerSourceSymbols" },
@@ -2951,12 +2969,12 @@ namespace PerSourceSymbols
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbol", symbol } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "type_id", type_id.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -2991,9 +3009,9 @@ namespace PerSourceSymbols
         VERIFY_RTE_MSG( type_id.has_value(), "Tree::Interface_IContext.type_id has NOT been set" );
         storer.store( type_id );
     }
-    void Interface_IContext::to_json( nlohmann::json& part ) const
+    void Interface_IContext::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_IContext" },
                 { "filetype" , "PerSourceSymbols" },
@@ -3005,12 +3023,12 @@ namespace PerSourceSymbols
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbol", symbol } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "type_id", type_id.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3054,9 +3072,9 @@ namespace Clang
         storer.store( simple );
         storer.store( symbols );
     }
-    void Interface_DimensionTrait::to_json( nlohmann::json& part ) const
+    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_DimensionTrait" },
                 { "filetype" , "Clang" },
@@ -3068,22 +3086,22 @@ namespace Clang
         {
             nlohmann::json property = nlohmann::json::object({
                 { "canonical_type", canonical_type } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "size", size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "simple", simple } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "symbols", symbols } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3115,9 +3133,9 @@ namespace Clang
         storer.store( p_Tree_Interface_InheritanceTrait );
         storer.store( contexts );
     }
-    void Interface_InheritanceTrait::to_json( nlohmann::json& part ) const
+    void Interface_InheritanceTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_InheritanceTrait" },
                 { "filetype" , "Clang" },
@@ -3129,7 +3147,7 @@ namespace Clang
         {
             nlohmann::json property = nlohmann::json::object({
                 { "contexts", contexts } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3161,9 +3179,9 @@ namespace Clang
         storer.store( p_Tree_Interface_ReturnTypeTrait );
         storer.store( canonical_type );
     }
-    void Interface_ReturnTypeTrait::to_json( nlohmann::json& part ) const
+    void Interface_ReturnTypeTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_ReturnTypeTrait" },
                 { "filetype" , "Clang" },
@@ -3175,7 +3193,7 @@ namespace Clang
         {
             nlohmann::json property = nlohmann::json::object({
                 { "canonical_type", canonical_type } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3207,9 +3225,9 @@ namespace Clang
         storer.store( p_Tree_Interface_ArgumentListTrait );
         storer.store( canonical_types );
     }
-    void Interface_ArgumentListTrait::to_json( nlohmann::json& part ) const
+    void Interface_ArgumentListTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_ArgumentListTrait" },
                 { "filetype" , "Clang" },
@@ -3221,7 +3239,7 @@ namespace Clang
         {
             nlohmann::json property = nlohmann::json::object({
                 { "canonical_types", canonical_types } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3253,9 +3271,9 @@ namespace Clang
         storer.store( p_Tree_Interface_SizeTrait );
         storer.store( size );
     }
-    void Interface_SizeTrait::to_json( nlohmann::json& part ) const
+    void Interface_SizeTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_SizeTrait" },
                 { "filetype" , "Clang" },
@@ -3267,7 +3285,7 @@ namespace Clang
         {
             nlohmann::json property = nlohmann::json::object({
                 { "size", size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3302,9 +3320,9 @@ namespace Concrete
         storer.store( p_Tree_Interface_DimensionTrait );
         storer.store( concrete );
     }
-    void Interface_DimensionTrait::to_json( nlohmann::json& part ) const
+    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_DimensionTrait" },
                 { "filetype" , "Concrete" },
@@ -3316,7 +3334,7 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "concrete", concrete } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3348,9 +3366,9 @@ namespace Concrete
         storer.store( p_Tree_Interface_IContext );
         storer.store( concrete );
     }
-    void Interface_IContext::to_json( nlohmann::json& part ) const
+    void Interface_IContext::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Interface_IContext" },
                 { "filetype" , "Concrete" },
@@ -3362,7 +3380,7 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "concrete", concrete } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3396,9 +3414,9 @@ namespace Concrete
         storer.store( parent );
         storer.store( interface_dimension );
     }
-    void Concrete_Dimensions_User::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Dimensions_User" },
                 { "filetype" , "Concrete" },
@@ -3410,12 +3428,12 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent", parent } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_dimension", interface_dimension } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3442,9 +3460,9 @@ namespace Concrete
     {
         storer.store( children );
     }
-    void Concrete_ContextGroup::to_json( nlohmann::json& part ) const
+    void Concrete_ContextGroup::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_ContextGroup" },
                 { "filetype" , "Concrete" },
@@ -3456,13 +3474,14 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "children", children } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
     // struct Concrete_Context : public mega::io::Object
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
+          , p_PerSourceConcreteTable_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Context( loader )
           , parent( loader )
           , interface( loader )
@@ -3470,6 +3489,7 @@ namespace Concrete
     }
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_ContextGroup >& parent, const data::Ptr< data::Tree::Interface_IContext >& interface, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& inheritance)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
+          , p_PerSourceConcreteTable_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Context( loader )
           , parent( parent )
           , interface( interface )
@@ -3498,9 +3518,9 @@ namespace Concrete
         storer.store( interface );
         storer.store( inheritance );
     }
-    void Concrete_Context::to_json( nlohmann::json& part ) const
+    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Context" },
                 { "filetype" , "Concrete" },
@@ -3512,17 +3532,17 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent", parent } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface", interface } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3558,9 +3578,9 @@ namespace Concrete
         storer.store( interface_namespace );
         storer.store( dimensions );
     }
-    void Concrete_Namespace::to_json( nlohmann::json& part ) const
+    void Concrete_Namespace::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Namespace" },
                 { "filetype" , "Concrete" },
@@ -3572,12 +3592,12 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_namespace", interface_namespace } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimensions", dimensions } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3615,9 +3635,9 @@ namespace Concrete
         storer.store( interface_action );
         storer.store( dimensions );
     }
-    void Concrete_Action::to_json( nlohmann::json& part ) const
+    void Concrete_Action::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Action" },
                 { "filetype" , "Concrete" },
@@ -3629,12 +3649,12 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_action", interface_action } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimensions", dimensions } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3672,9 +3692,9 @@ namespace Concrete
         storer.store( interface_event );
         storer.store( dimensions );
     }
-    void Concrete_Event::to_json( nlohmann::json& part ) const
+    void Concrete_Event::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Event" },
                 { "filetype" , "Concrete" },
@@ -3686,12 +3706,12 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_event", interface_event } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimensions", dimensions } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3724,9 +3744,9 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_Context );
         storer.store( interface_function );
     }
-    void Concrete_Function::to_json( nlohmann::json& part ) const
+    void Concrete_Function::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Function" },
                 { "filetype" , "Concrete" },
@@ -3738,18 +3758,20 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_function", interface_function } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
     // struct Concrete_Object : public mega::io::Object
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Object( loader )
           , interface_object( loader )
     {
     }
     Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Object >& interface_object, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Object >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_MemoryLayout_Concrete_Object( loader )
           , interface_object( interface_object )
           , dimensions( dimensions )
     {
@@ -3774,9 +3796,9 @@ namespace Concrete
         storer.store( interface_object );
         storer.store( dimensions );
     }
-    void Concrete_Object::to_json( nlohmann::json& part ) const
+    void Concrete_Object::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Object" },
                 { "filetype" , "Concrete" },
@@ -3788,12 +3810,12 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_object", interface_object } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimensions", dimensions } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3828,9 +3850,9 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_Context );
         storer.store( interface_link );
     }
-    void Concrete_Link::to_json( nlohmann::json& part ) const
+    void Concrete_Link::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Link" },
                 { "filetype" , "Concrete" },
@@ -3842,7 +3864,7 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_link", interface_link } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3875,9 +3897,9 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_Context );
         storer.store( interface_table );
     }
-    void Concrete_Table::to_json( nlohmann::json& part ) const
+    void Concrete_Table::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Table" },
                 { "filetype" , "Concrete" },
@@ -3889,7 +3911,7 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_table", interface_table } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3927,9 +3949,9 @@ namespace Concrete
         storer.store( interface_buffer );
         storer.store( dimensions );
     }
-    void Concrete_Buffer::to_json( nlohmann::json& part ) const
+    void Concrete_Buffer::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Buffer" },
                 { "filetype" , "Concrete" },
@@ -3941,12 +3963,12 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_buffer", interface_buffer } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimensions", dimensions } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -3979,9 +4001,9 @@ namespace Concrete
         storer.store( p_Concrete_Concrete_ContextGroup );
         storer.store( interface_root );
     }
-    void Concrete_Root::to_json( nlohmann::json& part ) const
+    void Concrete_Root::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Root" },
                 { "filetype" , "Concrete" },
@@ -3993,7 +4015,7 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_root", interface_root } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4026,9 +4048,9 @@ namespace Model
         storer.store( source_file );
         storer.store( hash_code );
     }
-    void HyperGraph_ObjectGraph::to_json( nlohmann::json& part ) const
+    void HyperGraph_ObjectGraph::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "HyperGraph_ObjectGraph" },
                 { "filetype" , "Model" },
@@ -4040,12 +4062,12 @@ namespace Model
         {
             nlohmann::json property = nlohmann::json::object({
                 { "source_file", source_file } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "hash_code", hash_code } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4072,9 +4094,9 @@ namespace Model
     {
         storer.store( objects );
     }
-    void HyperGraph_Graph::to_json( nlohmann::json& part ) const
+    void HyperGraph_Graph::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "HyperGraph_Graph" },
                 { "filetype" , "Model" },
@@ -4086,7 +4108,7 @@ namespace Model
         {
             nlohmann::json property = nlohmann::json::object({
                 { "objects", objects } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4122,9 +4144,9 @@ namespace Derivations
         storer.store( hash_code );
         storer.store( inheritance );
     }
-    void Derivation_ObjectMapping::to_json( nlohmann::json& part ) const
+    void Derivation_ObjectMapping::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Derivation_ObjectMapping" },
                 { "filetype" , "Derivations" },
@@ -4136,17 +4158,17 @@ namespace Derivations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "source_file", source_file } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "hash_code", hash_code } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4176,9 +4198,9 @@ namespace Derivations
         VERIFY_RTE_MSG( inheritance.has_value(), "Derivations::Derivation_Mapping.inheritance has NOT been set" );
         storer.store( inheritance );
     }
-    void Derivation_Mapping::to_json( nlohmann::json& part ) const
+    void Derivation_Mapping::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Derivation_Mapping" },
                 { "filetype" , "Derivations" },
@@ -4190,12 +4212,238 @@ namespace Derivations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "mappings", mappings } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "inheritance", inheritance.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+}
+namespace ConcreteTable
+{
+    // struct Symbols_ConcreteSymbol : public mega::io::Object
+    Symbols_ConcreteSymbol::Symbols_ConcreteSymbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol >( loader, this ) )          , context( loader )
+    {
+    }
+    Symbols_ConcreteSymbol::Symbols_ConcreteSymbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< std::int32_t >& id_sequence, const std::int32_t& id, const data::Ptr< data::Concrete::Concrete_Context >& context)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol >( loader, this ) )          , id_sequence( id_sequence )
+          , id( id )
+          , context( context )
+    {
+    }
+    bool Symbols_ConcreteSymbol::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >{ data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol >( loader, const_cast< Symbols_ConcreteSymbol* >( this ) ) };
+    }
+    void Symbols_ConcreteSymbol::set_inheritance_pointer()
+    {
+    }
+    void Symbols_ConcreteSymbol::load( mega::io::Loader& loader )
+    {
+        loader.load( id_sequence );
+        loader.load( id );
+        loader.load( context );
+    }
+    void Symbols_ConcreteSymbol::store( mega::io::Storer& storer ) const
+    {
+        storer.store( id_sequence );
+        storer.store( id );
+        storer.store( context );
+    }
+    void Symbols_ConcreteSymbol::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Symbols_ConcreteSymbol" },
+                { "filetype" , "ConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id_sequence", id_sequence } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "id", id } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "context", context } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Symbols_SymbolSet : public mega::io::Object
+    Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolSet( loader )
+    {
+    }
+    Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolSet > p_SymbolTable_Symbols_SymbolSet, const std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbols, const std::map< data::Ptr< data::Concrete::Concrete_Context >, int32_t >& context_concrete_ids)
+        :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolSet( p_SymbolTable_Symbols_SymbolSet )
+          , concrete_symbols( concrete_symbols )
+          , context_concrete_ids( context_concrete_ids )
+    {
+    }
+    bool Symbols_SymbolSet::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Symbols_SymbolSet::set_inheritance_pointer()
+    {
+        p_SymbolTable_Symbols_SymbolSet->p_ConcreteTable_Symbols_SymbolSet = data::Ptr< data::ConcreteTable::Symbols_SymbolSet >( p_SymbolTable_Symbols_SymbolSet, this );
+    }
+    void Symbols_SymbolSet::load( mega::io::Loader& loader )
+    {
+        loader.load( p_SymbolTable_Symbols_SymbolSet );
+        loader.load( concrete_symbols );
+        loader.load( context_concrete_ids );
+    }
+    void Symbols_SymbolSet::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_SymbolTable_Symbols_SymbolSet );
+        storer.store( concrete_symbols );
+        storer.store( context_concrete_ids );
+    }
+    void Symbols_SymbolSet::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Symbols_SymbolSet" },
+                { "filetype" , "ConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_symbols", concrete_symbols } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "context_concrete_ids", context_concrete_ids } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Symbols_SymbolTable : public mega::io::Object
+    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolTable( loader )
+    {
+    }
+    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolTable > p_SymbolTable_Symbols_SymbolTable, const std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbol_ids, const std::map< std::int32_t, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbols, const std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >& concrete_context_map)
+        :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolTable( p_SymbolTable_Symbols_SymbolTable )
+          , concrete_symbol_ids( concrete_symbol_ids )
+          , concrete_symbols( concrete_symbols )
+          , concrete_context_map( concrete_context_map )
+    {
+    }
+    bool Symbols_SymbolTable::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Symbols_SymbolTable::set_inheritance_pointer()
+    {
+        p_SymbolTable_Symbols_SymbolTable->p_ConcreteTable_Symbols_SymbolTable = data::Ptr< data::ConcreteTable::Symbols_SymbolTable >( p_SymbolTable_Symbols_SymbolTable, this );
+    }
+    void Symbols_SymbolTable::load( mega::io::Loader& loader )
+    {
+        loader.load( p_SymbolTable_Symbols_SymbolTable );
+        loader.load( concrete_symbol_ids );
+        loader.load( concrete_symbols );
+        loader.load( concrete_context_map );
+    }
+    void Symbols_SymbolTable::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_SymbolTable_Symbols_SymbolTable );
+        storer.store( concrete_symbol_ids );
+        storer.store( concrete_symbols );
+        storer.store( concrete_context_map );
+    }
+    void Symbols_SymbolTable::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Symbols_SymbolTable" },
+                { "filetype" , "ConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_symbol_ids", concrete_symbol_ids } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_symbols", concrete_symbols } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_context_map", concrete_context_map } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+}
+namespace PerSourceConcreteTable
+{
+    // struct Concrete_Context : public mega::io::Object
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
+    {
+    }
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const std::int32_t& concrete_id)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
+          , concrete_id( concrete_id )
+    {
+    }
+    bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Context::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Context->p_PerSourceConcreteTable_Concrete_Context = data::Ptr< data::PerSourceConcreteTable::Concrete_Context >( p_Concrete_Concrete_Context, this );
+    }
+    void Concrete_Context::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Context );
+        loader.load( concrete_id );
+    }
+    void Concrete_Context::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Context );
+        storer.store( concrete_id );
+    }
+    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Context" },
+                { "filetype" , "PerSourceConcreteTable" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_id", concrete_id } } );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4205,11 +4453,13 @@ namespace MemoryLayout
     // struct Concrete_Dimensions_User : public mega::io::Object
     Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( loader )
+          , part( loader )
     {
     }
-    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const std::size_t& offset)
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const std::size_t& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( p_Concrete_Concrete_Dimensions_User )
           , offset( offset )
+          , part( part )
     {
     }
     bool Concrete_Dimensions_User::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4224,15 +4474,17 @@ namespace MemoryLayout
     {
         loader.load( p_Concrete_Concrete_Dimensions_User );
         loader.load( offset );
+        loader.load( part );
     }
     void Concrete_Dimensions_User::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_User );
         storer.store( offset );
+        storer.store( part );
     }
-    void Concrete_Dimensions_User::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Dimensions_User" },
                 { "filetype" , "MemoryLayout" },
@@ -4244,13 +4496,19 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "offset", offset } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "part", part } } );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
     // struct Concrete_Dimensions_Generated : public mega::io::Object
     Concrete_Dimensions_Generated::Concrete_Dimensions_Generated( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >( loader, this ) )          , parent( loader )
+          , part( loader )
     {
     }
     Concrete_Dimensions_Generated::Concrete_Dimensions_Generated( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent)
@@ -4268,16 +4526,19 @@ namespace MemoryLayout
     {
         loader.load( parent );
         loader.load( offset );
+        loader.load( part );
     }
     void Concrete_Dimensions_Generated::store( mega::io::Storer& storer ) const
     {
         storer.store( parent );
         VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::Concrete_Dimensions_Generated.offset has NOT been set" );
         storer.store( offset );
+        VERIFY_RTE_MSG( part.has_value(), "MemoryLayout::Concrete_Dimensions_Generated.part has NOT been set" );
+        storer.store( part );
     }
-    void Concrete_Dimensions_Generated::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_Generated::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Dimensions_Generated" },
                 { "filetype" , "MemoryLayout" },
@@ -4289,12 +4550,17 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent", parent } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "offset", offset.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "part", part.value() } } );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4319,9 +4585,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
     }
-    void Concrete_Dimensions_StopCycle::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_StopCycle::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Dimensions_StopCycle" },
                 { "filetype" , "MemoryLayout" },
@@ -4353,9 +4619,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
     }
-    void Concrete_Dimensions_Reference::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_Reference::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Dimensions_Reference" },
                 { "filetype" , "MemoryLayout" },
@@ -4387,9 +4653,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
     }
-    void Concrete_Dimensions_State::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_State::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Dimensions_State" },
                 { "filetype" , "MemoryLayout" },
@@ -4429,9 +4695,9 @@ namespace MemoryLayout
         storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
         storer.store( allocator );
     }
-    void Concrete_Dimensions_Allocator::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_Allocator::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Dimensions_Allocator" },
                 { "filetype" , "MemoryLayout" },
@@ -4443,7 +4709,7 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "allocator", allocator } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4476,9 +4742,9 @@ namespace MemoryLayout
         storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
         storer.store( link );
     }
-    void Concrete_Dimensions_LinkReference::to_json( nlohmann::json& part ) const
+    void Concrete_Dimensions_LinkReference::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Dimensions_LinkReference" },
                 { "filetype" , "MemoryLayout" },
@@ -4490,7 +4756,7 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "link", link } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4500,10 +4766,11 @@ namespace MemoryLayout
           , allocator( loader )
     {
     }
-    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions)
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
           , allocator( allocator )
           , generated_dimensions( generated_dimensions )
+          , parts( parts )
     {
     }
     bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4519,16 +4786,18 @@ namespace MemoryLayout
         loader.load( p_Concrete_Concrete_Context );
         loader.load( allocator );
         loader.load( generated_dimensions );
+        loader.load( parts );
     }
     void Concrete_Context::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Context );
         storer.store( allocator );
         storer.store( generated_dimensions );
+        storer.store( parts );
     }
-    void Concrete_Context::to_json( nlohmann::json& part ) const
+    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Context" },
                 { "filetype" , "MemoryLayout" },
@@ -4540,12 +4809,17 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "allocator", allocator } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "generated_dimensions", generated_dimensions } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "parts", parts } } );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4580,9 +4854,9 @@ namespace MemoryLayout
         storer.store( local_size );
         storer.store( total_size );
     }
-    void Concrete_Action::to_json( nlohmann::json& part ) const
+    void Concrete_Action::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Action" },
                 { "filetype" , "MemoryLayout" },
@@ -4594,12 +4868,12 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "local_size", local_size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "total_size", total_size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4634,9 +4908,9 @@ namespace MemoryLayout
         storer.store( local_size );
         storer.store( total_size );
     }
-    void Concrete_Event::to_json( nlohmann::json& part ) const
+    void Concrete_Event::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Event" },
                 { "filetype" , "MemoryLayout" },
@@ -4648,12 +4922,58 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "local_size", local_size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "total_size", total_size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Object : public mega::io::Object
+    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Object( loader )
+    {
+    }
+    Concrete_Object::Concrete_Object( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Object > p_Concrete_Concrete_Object, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >& buffers)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Object( p_Concrete_Concrete_Object )
+          , buffers( buffers )
+    {
+    }
+    bool Concrete_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Object::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Object->p_MemoryLayout_Concrete_Object = data::Ptr< data::MemoryLayout::Concrete_Object >( p_Concrete_Concrete_Object, this );
+    }
+    void Concrete_Object::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Object );
+        loader.load( buffers );
+    }
+    void Concrete_Object::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Object );
+        storer.store( buffers );
+    }
+    void Concrete_Object::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Object" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "buffers", buffers } } );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4685,9 +5005,9 @@ namespace MemoryLayout
         storer.store( p_Concrete_Concrete_Link );
         storer.store( total_size );
     }
-    void Concrete_Link::to_json( nlohmann::json& part ) const
+    void Concrete_Link::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Link" },
                 { "filetype" , "MemoryLayout" },
@@ -4699,7 +5019,7 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "total_size", total_size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4731,9 +5051,9 @@ namespace MemoryLayout
         storer.store( p_Concrete_Concrete_Buffer );
         storer.store( total_size );
     }
-    void Concrete_Buffer::to_json( nlohmann::json& part ) const
+    void Concrete_Buffer::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Concrete_Buffer" },
                 { "filetype" , "MemoryLayout" },
@@ -4745,17 +5065,16 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "total_size", total_size } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
     // struct Allocators_Allocator : public mega::io::Object
     Allocators_Allocator::Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, this ) )          , parent_context( loader )
-          , allocated_context( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, this ) )          , allocated_context( loader )
     {
     }
-    Allocators_Allocator::Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent_context, const data::Ptr< data::Concrete::Concrete_Context >& allocated_context)
+    Allocators_Allocator::Allocators_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& parent_context, const data::Ptr< data::Concrete::Concrete_Context >& allocated_context)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Allocators_Allocator >( loader, this ) )          , parent_context( parent_context )
           , allocated_context( allocated_context )
     {
@@ -4777,9 +5096,9 @@ namespace MemoryLayout
         storer.store( parent_context );
         storer.store( allocated_context );
     }
-    void Allocators_Allocator::to_json( nlohmann::json& part ) const
+    void Allocators_Allocator::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Allocators_Allocator" },
                 { "filetype" , "MemoryLayout" },
@@ -4791,12 +5110,12 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent_context", parent_context } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "allocated_context", allocated_context } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -4821,9 +5140,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Allocators_Allocator );
     }
-    void Allocators_Nothing::to_json( nlohmann::json& part ) const
+    void Allocators_Nothing::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Allocators_Nothing" },
                 { "filetype" , "MemoryLayout" },
@@ -4855,9 +5174,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Allocators_Allocator );
     }
-    void Allocators_Singleton::to_json( nlohmann::json& part ) const
+    void Allocators_Singleton::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Allocators_Singleton" },
                 { "filetype" , "MemoryLayout" },
@@ -4889,9 +5208,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Allocators_Allocator );
     }
-    void Allocators_Range::to_json( nlohmann::json& part ) const
+    void Allocators_Range::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Allocators_Range" },
                 { "filetype" , "MemoryLayout" },
@@ -4923,9 +5242,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Allocators_Range );
     }
-    void Allocators_Range32::to_json( nlohmann::json& part ) const
+    void Allocators_Range32::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Allocators_Range32" },
                 { "filetype" , "MemoryLayout" },
@@ -4957,9 +5276,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Allocators_Range );
     }
-    void Allocators_Range64::to_json( nlohmann::json& part ) const
+    void Allocators_Range64::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Allocators_Range64" },
                 { "filetype" , "MemoryLayout" },
@@ -4991,9 +5310,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_Allocators_Range );
     }
-    void Allocators_RangeAny::to_json( nlohmann::json& part ) const
+    void Allocators_RangeAny::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Allocators_RangeAny" },
                 { "filetype" , "MemoryLayout" },
@@ -5004,16 +5323,79 @@ namespace MemoryLayout
             });
     }
         
-    // struct MemoryLayout_Buffer : public mega::io::Object
-    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , context( loader )
+    // struct MemoryLayout_Part : public mega::io::Object
+    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( loader )
     {
     }
-    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::size_t& stride, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , context( context )
-          , stride( stride )
+    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::size_t& size, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( context )
+          , size( size )
           , generated_dimensions( generated_dimensions )
           , user_dimensions( user_dimensions )
+    {
+    }
+    bool MemoryLayout_Part::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >{ data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, const_cast< MemoryLayout_Part* >( this ) ) };
+    }
+    void MemoryLayout_Part::set_inheritance_pointer()
+    {
+    }
+    void MemoryLayout_Part::load( mega::io::Loader& loader )
+    {
+        loader.load( context );
+        loader.load( size );
+        loader.load( generated_dimensions );
+        loader.load( user_dimensions );
+    }
+    void MemoryLayout_Part::store( mega::io::Storer& storer ) const
+    {
+        storer.store( context );
+        storer.store( size );
+        storer.store( generated_dimensions );
+        storer.store( user_dimensions );
+    }
+    void MemoryLayout_Part::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "MemoryLayout_Part" },
+                { "filetype" , "MemoryLayout" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "context", context } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "size", size } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "generated_dimensions", generated_dimensions } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "user_dimensions", user_dimensions } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct MemoryLayout_Buffer : public mega::io::Object
+    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )    {
+    }
+    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::size_t& stride, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , stride( stride )
+          , parts( parts )
     {
     }
     bool MemoryLayout_Buffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5025,21 +5407,17 @@ namespace MemoryLayout
     }
     void MemoryLayout_Buffer::load( mega::io::Loader& loader )
     {
-        loader.load( context );
         loader.load( stride );
-        loader.load( generated_dimensions );
-        loader.load( user_dimensions );
+        loader.load( parts );
     }
     void MemoryLayout_Buffer::store( mega::io::Storer& storer ) const
     {
-        storer.store( context );
         storer.store( stride );
-        storer.store( generated_dimensions );
-        storer.store( user_dimensions );
+        storer.store( parts );
     }
-    void MemoryLayout_Buffer::to_json( nlohmann::json& part ) const
+    void MemoryLayout_Buffer::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "MemoryLayout_Buffer" },
                 { "filetype" , "MemoryLayout" },
@@ -5050,23 +5428,13 @@ namespace MemoryLayout
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "context", context } } );
-            part[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
                 { "stride", stride } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "generated_dimensions", generated_dimensions } } );
-            part[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "user_dimensions", user_dimensions } } );
-            part[ "properties" ].push_back( property );
+                { "parts", parts } } );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5091,9 +5459,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_MemoryLayout_Buffer );
     }
-    void MemoryLayout_GPUBuffer::to_json( nlohmann::json& part ) const
+    void MemoryLayout_GPUBuffer::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "MemoryLayout_GPUBuffer" },
                 { "filetype" , "MemoryLayout" },
@@ -5125,9 +5493,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_MemoryLayout_Buffer );
     }
-    void MemoryLayout_SharedBuffer::to_json( nlohmann::json& part ) const
+    void MemoryLayout_SharedBuffer::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "MemoryLayout_SharedBuffer" },
                 { "filetype" , "MemoryLayout" },
@@ -5159,9 +5527,9 @@ namespace MemoryLayout
     {
         storer.store( p_MemoryLayout_MemoryLayout_Buffer );
     }
-    void MemoryLayout_SimpleBuffer::to_json( nlohmann::json& part ) const
+    void MemoryLayout_SimpleBuffer::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "MemoryLayout_SimpleBuffer" },
                 { "filetype" , "MemoryLayout" },
@@ -5198,9 +5566,9 @@ namespace Operations
     {
         storer.store( parent );
     }
-    void Invocations_Variables_Variable::to_json( nlohmann::json& part ) const
+    void Invocations_Variables_Variable::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Variables_Variable" },
                 { "filetype" , "Operations" },
@@ -5212,7 +5580,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent", parent } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5245,9 +5613,9 @@ namespace Operations
         storer.store( p_Operations_Invocations_Variables_Variable );
         storer.store( concrete );
     }
-    void Invocations_Variables_Instance::to_json( nlohmann::json& part ) const
+    void Invocations_Variables_Instance::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Variables_Instance" },
                 { "filetype" , "Operations" },
@@ -5259,7 +5627,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "concrete", concrete } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5291,9 +5659,9 @@ namespace Operations
         storer.store( p_Operations_Invocations_Variables_Variable );
         storer.store( types );
     }
-    void Invocations_Variables_Reference::to_json( nlohmann::json& part ) const
+    void Invocations_Variables_Reference::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Variables_Reference" },
                 { "filetype" , "Operations" },
@@ -5305,7 +5673,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "types", types } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5330,9 +5698,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Variables_Reference );
     }
-    void Invocations_Variables_Dimension::to_json( nlohmann::json& part ) const
+    void Invocations_Variables_Dimension::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Variables_Dimension" },
                 { "filetype" , "Operations" },
@@ -5364,9 +5732,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Variables_Reference );
     }
-    void Invocations_Variables_Context::to_json( nlohmann::json& part ) const
+    void Invocations_Variables_Context::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Variables_Context" },
                 { "filetype" , "Operations" },
@@ -5394,9 +5762,9 @@ namespace Operations
     void Invocations_Instructions_Instruction::store( mega::io::Storer& storer ) const
     {
     }
-    void Invocations_Instructions_Instruction::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_Instruction::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_Instruction" },
                 { "filetype" , "Operations" },
@@ -5435,9 +5803,9 @@ namespace Operations
         storer.store( p_Operations_Invocations_Instructions_Instruction );
         storer.store( children );
     }
-    void Invocations_Instructions_InstructionGroup::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_InstructionGroup::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_InstructionGroup" },
                 { "filetype" , "Operations" },
@@ -5449,7 +5817,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "children", children } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5482,9 +5850,9 @@ namespace Operations
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( context );
     }
-    void Invocations_Instructions_Root::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_Root::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_Root" },
                 { "filetype" , "Operations" },
@@ -5496,7 +5864,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context", context } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5533,9 +5901,9 @@ namespace Operations
         storer.store( from );
         storer.store( to );
     }
-    void Invocations_Instructions_ParentDerivation::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_ParentDerivation::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_ParentDerivation" },
                 { "filetype" , "Operations" },
@@ -5547,12 +5915,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "from", from } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "to", to } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5589,9 +5957,9 @@ namespace Operations
         storer.store( from );
         storer.store( to );
     }
-    void Invocations_Instructions_ChildDerivation::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_ChildDerivation::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_ChildDerivation" },
                 { "filetype" , "Operations" },
@@ -5603,12 +5971,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "from", from } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "to", to } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5645,9 +6013,9 @@ namespace Operations
         storer.store( from );
         storer.store( to );
     }
-    void Invocations_Instructions_EnumDerivation::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_EnumDerivation::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_EnumDerivation" },
                 { "filetype" , "Operations" },
@@ -5659,12 +6027,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "from", from } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "to", to } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5697,9 +6065,9 @@ namespace Operations
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( instance );
     }
-    void Invocations_Instructions_Enumeration::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_Enumeration::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_Enumeration" },
                 { "filetype" , "Operations" },
@@ -5711,7 +6079,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "instance", instance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5752,9 +6120,9 @@ namespace Operations
         storer.store( dimension_reference );
         storer.store( concrete );
     }
-    void Invocations_Instructions_DimensionReferenceRead::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_DimensionReferenceRead::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_DimensionReferenceRead" },
                 { "filetype" , "Operations" },
@@ -5766,17 +6134,17 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "instance", instance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_reference", dimension_reference } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "concrete", concrete } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5813,9 +6181,9 @@ namespace Operations
         storer.store( reference );
         storer.store( instance );
     }
-    void Invocations_Instructions_MonoReference::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_MonoReference::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_MonoReference" },
                 { "filetype" , "Operations" },
@@ -5827,12 +6195,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "reference", reference } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "instance", instance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5865,9 +6233,9 @@ namespace Operations
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
         storer.store( from_reference );
     }
-    void Invocations_Instructions_PolyReference::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_PolyReference::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_PolyReference" },
                 { "filetype" , "Operations" },
@@ -5879,7 +6247,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "from_reference", from_reference } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5916,9 +6284,9 @@ namespace Operations
         storer.store( reference );
         storer.store( to );
     }
-    void Invocations_Instructions_PolyCase::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_PolyCase::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_PolyCase" },
                 { "filetype" , "Operations" },
@@ -5930,12 +6298,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "reference", reference } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "to", to } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -5960,9 +6328,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
     }
-    void Invocations_Instructions_Failure::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_Failure::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_Failure" },
                 { "filetype" , "Operations" },
@@ -5994,9 +6362,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
     }
-    void Invocations_Instructions_Elimination::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_Elimination::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_Elimination" },
                 { "filetype" , "Operations" },
@@ -6028,9 +6396,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Instructions_InstructionGroup );
     }
-    void Invocations_Instructions_Prune::to_json( nlohmann::json& part ) const
+    void Invocations_Instructions_Prune::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Instructions_Prune" },
                 { "filetype" , "Operations" },
@@ -6076,9 +6444,9 @@ namespace Operations
         storer.store( return_types );
         storer.store( parameter_types );
     }
-    void Invocations_Operations_Operation::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Operation::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Operation" },
                 { "filetype" , "Operations" },
@@ -6090,17 +6458,17 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "instance", instance } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "return_types", return_types } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parameter_types", parameter_types } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6137,9 +6505,9 @@ namespace Operations
         storer.store( interface );
         storer.store( concrete_target );
     }
-    void Invocations_Operations_BasicOperation::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_BasicOperation::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_BasicOperation" },
                 { "filetype" , "Operations" },
@@ -6151,12 +6519,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface", interface } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "concrete_target", concrete_target } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6193,9 +6561,9 @@ namespace Operations
         storer.store( interface_dimension );
         storer.store( concrete_dimension );
     }
-    void Invocations_Operations_DimensionOperation::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_DimensionOperation::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_DimensionOperation" },
                 { "filetype" , "Operations" },
@@ -6207,12 +6575,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_dimension", interface_dimension } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "concrete_dimension", concrete_dimension } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6237,9 +6605,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Call::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Call::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Call" },
                 { "filetype" , "Operations" },
@@ -6271,9 +6639,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Start::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Start::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Start" },
                 { "filetype" , "Operations" },
@@ -6305,9 +6673,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Stop::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Stop::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Stop" },
                 { "filetype" , "Operations" },
@@ -6339,9 +6707,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Pause::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Pause::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Pause" },
                 { "filetype" , "Operations" },
@@ -6373,9 +6741,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Resume::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Resume::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Resume" },
                 { "filetype" , "Operations" },
@@ -6407,9 +6775,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Done::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Done::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Done" },
                 { "filetype" , "Operations" },
@@ -6441,9 +6809,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_WaitAction::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_WaitAction::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_WaitAction" },
                 { "filetype" , "Operations" },
@@ -6475,9 +6843,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_DimensionOperation );
     }
-    void Invocations_Operations_WaitDimension::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_WaitDimension::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_WaitDimension" },
                 { "filetype" , "Operations" },
@@ -6509,9 +6877,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_GetAction::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_GetAction::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_GetAction" },
                 { "filetype" , "Operations" },
@@ -6543,9 +6911,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_DimensionOperation );
     }
-    void Invocations_Operations_GetDimension::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_GetDimension::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_GetDimension" },
                 { "filetype" , "Operations" },
@@ -6577,9 +6945,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_DimensionOperation );
     }
-    void Invocations_Operations_Read::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Read::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Read" },
                 { "filetype" , "Operations" },
@@ -6611,9 +6979,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_DimensionOperation );
     }
-    void Invocations_Operations_Write::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Write::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Write" },
                 { "filetype" , "Operations" },
@@ -6653,9 +7021,9 @@ namespace Operations
         storer.store( p_Operations_Invocations_Operations_DimensionOperation );
         storer.store( dimension_reference );
     }
-    void Invocations_Operations_WriteLink::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_WriteLink::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_WriteLink" },
                 { "filetype" , "Operations" },
@@ -6667,7 +7035,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension_reference", dimension_reference } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6692,9 +7060,9 @@ namespace Operations
     {
         storer.store( p_Operations_Invocations_Operations_BasicOperation );
     }
-    void Invocations_Operations_Range::to_json( nlohmann::json& part ) const
+    void Invocations_Operations_Range::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Invocations_Operations_Range" },
                 { "filetype" , "Operations" },
@@ -6731,9 +7099,9 @@ namespace Operations
         storer.store( context );
         storer.store( dimension );
     }
-    void Operations_InterfaceVariant::to_json( nlohmann::json& part ) const
+    void Operations_InterfaceVariant::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_InterfaceVariant" },
                 { "filetype" , "Operations" },
@@ -6745,12 +7113,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context", context } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension", dimension } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6780,9 +7148,9 @@ namespace Operations
         storer.store( context );
         storer.store( dimension );
     }
-    void Operations_ConcreteVariant::to_json( nlohmann::json& part ) const
+    void Operations_ConcreteVariant::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_ConcreteVariant" },
                 { "filetype" , "Operations" },
@@ -6794,12 +7162,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context", context } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "dimension", dimension } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6831,9 +7199,9 @@ namespace Operations
         storer.store( interface );
         storer.store( concrete );
     }
-    void Operations_Element::to_json( nlohmann::json& part ) const
+    void Operations_Element::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_Element" },
                 { "filetype" , "Operations" },
@@ -6845,12 +7213,12 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface", interface } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "concrete", concrete } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6877,9 +7245,9 @@ namespace Operations
     {
         storer.store( elements );
     }
-    void Operations_ElementVector::to_json( nlohmann::json& part ) const
+    void Operations_ElementVector::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_ElementVector" },
                 { "filetype" , "Operations" },
@@ -6891,7 +7259,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "elements", elements } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6918,9 +7286,9 @@ namespace Operations
     {
         storer.store( vectors );
     }
-    void Operations_Context::to_json( nlohmann::json& part ) const
+    void Operations_Context::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_Context" },
                 { "filetype" , "Operations" },
@@ -6932,7 +7300,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "vectors", vectors } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -6959,9 +7327,9 @@ namespace Operations
     {
         storer.store( vectors );
     }
-    void Operations_TypePath::to_json( nlohmann::json& part ) const
+    void Operations_TypePath::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_TypePath" },
                 { "filetype" , "Operations" },
@@ -6973,7 +7341,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "vectors", vectors } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -7000,9 +7368,9 @@ namespace Operations
     {
         storer.store( children );
     }
-    void Operations_NameRoot::to_json( nlohmann::json& part ) const
+    void Operations_NameRoot::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_NameRoot" },
                 { "filetype" , "Operations" },
@@ -7014,7 +7382,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "children", children } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -7053,9 +7421,9 @@ namespace Operations
         storer.store( is_member );
         storer.store( is_reference );
     }
-    void Operations_Name::to_json( nlohmann::json& part ) const
+    void Operations_Name::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_Name" },
                 { "filetype" , "Operations" },
@@ -7067,17 +7435,17 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "element", element } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "is_member", is_member } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "is_reference", is_reference } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -7105,9 +7473,9 @@ namespace Operations
     {
         storer.store( root_name );
     }
-    void Operations_NameResolution::to_json( nlohmann::json& part ) const
+    void Operations_NameResolution::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_NameResolution" },
                 { "filetype" , "Operations" },
@@ -7119,7 +7487,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "root_name", root_name } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -7199,9 +7567,9 @@ namespace Operations
         VERIFY_RTE_MSG( is_function_call.has_value(), "Operations::Operations_Invocation.is_function_call has NOT been set" );
         storer.store( is_function_call );
     }
-    void Operations_Invocation::to_json( nlohmann::json& part ) const
+    void Operations_Invocation::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_Invocation" },
                 { "filetype" , "Operations" },
@@ -7213,87 +7581,87 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context", context } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "type_path", type_path } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "operation", operation } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "name", name } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context_str", context_str } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "type_path_str", type_path_str } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "explicit_operation", explicit_operation.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "return_type_str", return_type_str.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "runtime_return_type_str", runtime_return_type_str.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "name_resolution", name_resolution.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "root_variable", root_variable.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "root_instruction", root_instruction.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "variables", variables.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "return_types_context", return_types_context.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "return_types_dimension", return_types_dimension.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "homogeneous", homogeneous.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "is_function_call", is_function_call.value() } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -7320,9 +7688,9 @@ namespace Operations
     {
         storer.store( invocations );
     }
-    void Operations_Invocations::to_json( nlohmann::json& part ) const
+    void Operations_Invocations::to_json( nlohmann::json& _part__ ) const
     {
-        part = nlohmann::json::object(
+        _part__ = nlohmann::json::object(
             { 
                 { "partname", "Operations_Invocations" },
                 { "filetype" , "Operations" },
@@ -7334,7 +7702,7 @@ namespace Operations
         {
             nlohmann::json property = nlohmann::json::object({
                 { "invocations", invocations } } );
-            part[ "properties" ].push_back( property );
+            _part__[ "properties" ].push_back( property );
         }
     }
         
@@ -7393,13 +7761,13 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 54: return new Tree::Interface_Link( loader, objectInfo );
         case 55: return new Tree::Interface_Table( loader, objectInfo );
         case 56: return new Tree::Interface_Buffer( loader, objectInfo );
-        case 128: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 129: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 130: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 131: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 132: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
-        case 133: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
-        case 134: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 130: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 131: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 132: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 133: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 134: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
+        case 136: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
+        case 138: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 31: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 46: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 33: return new Clang::Interface_DimensionTrait( loader, objectInfo );
@@ -7412,19 +7780,23 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 93: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
         case 101: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
         case 102: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 104: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 105: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 107: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 109: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 110: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 111: return new Concrete::Concrete_Link( loader, objectInfo );
-        case 113: return new Concrete::Concrete_Table( loader, objectInfo );
-        case 114: return new Concrete::Concrete_Buffer( loader, objectInfo );
-        case 116: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 135: return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
-        case 136: return new Model::HyperGraph_Graph( loader, objectInfo );
-        case 137: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 138: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 105: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 106: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 108: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 110: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 111: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 113: return new Concrete::Concrete_Link( loader, objectInfo );
+        case 115: return new Concrete::Concrete_Table( loader, objectInfo );
+        case 116: return new Concrete::Concrete_Buffer( loader, objectInfo );
+        case 118: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 140: return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
+        case 141: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 142: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 143: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 135: return new ConcreteTable::Symbols_ConcreteSymbol( loader, objectInfo );
+        case 137: return new ConcreteTable::Symbols_SymbolSet( loader, objectInfo );
+        case 139: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 103: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
         case 94: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
         case 95: return new MemoryLayout::Concrete_Dimensions_Generated( loader, objectInfo );
         case 96: return new MemoryLayout::Concrete_Dimensions_StopCycle( loader, objectInfo );
@@ -7432,22 +7804,24 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 98: return new MemoryLayout::Concrete_Dimensions_State( loader, objectInfo );
         case 99: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
         case 100: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
-        case 103: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 106: return new MemoryLayout::Concrete_Action( loader, objectInfo );
-        case 108: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 112: return new MemoryLayout::Concrete_Link( loader, objectInfo );
-        case 115: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
-        case 139: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 140: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 141: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 142: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 143: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 144: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 145: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 146: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 147: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 148: return new MemoryLayout::MemoryLayout_SharedBuffer( loader, objectInfo );
-        case 149: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 104: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 107: return new MemoryLayout::Concrete_Action( loader, objectInfo );
+        case 109: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 112: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 114: return new MemoryLayout::Concrete_Link( loader, objectInfo );
+        case 117: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
+        case 144: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 145: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 146: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 147: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 148: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 149: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 150: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 151: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 152: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 153: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 154: return new MemoryLayout::MemoryLayout_SharedBuffer( loader, objectInfo );
+        case 155: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
         case 57: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
         case 58: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
         case 59: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
@@ -7484,17 +7858,17 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 90: return new Operations::Invocations_Operations_Write( loader, objectInfo );
         case 91: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
         case 92: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 117: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 118: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 119: return new Operations::Operations_Element( loader, objectInfo );
-        case 120: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 121: return new Operations::Operations_Context( loader, objectInfo );
-        case 122: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 123: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 124: return new Operations::Operations_Name( loader, objectInfo );
-        case 125: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 126: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 127: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 119: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 120: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 121: return new Operations::Operations_Element( loader, objectInfo );
+        case 122: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 123: return new Operations::Operations_Context( loader, objectInfo );
+        case 124: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 125: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 126: return new Operations::Operations_Name( loader, objectInfo );
+        case 127: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 128: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 129: return new Operations::Operations_Invocations( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

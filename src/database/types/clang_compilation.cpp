@@ -9,7 +9,7 @@
 namespace mega
 {
 
-std::string PCHVerification::operator()() const
+std::string Compilation::generatePCHVerificationCMD() const
 {
     std::ostringstream osCmd;
 
@@ -30,6 +30,37 @@ std::string PCHVerification::operator()() const
         osCmd << "-D" << strDefine << " ";
     }
 
+    // input pch
+    for ( const boost::filesystem::path& inputPCH : inputPCH )
+    {
+        osCmd << "-Xclang -fno-pch-timestamp -Xclang -include-pch ";
+        osCmd << "-Xclang " << inputPCH.native() << " ";
+    }
+
+    // eg
+    if ( compilationMode.has_value() )
+    {
+        VERIFY_RTE( compiler_plugin.has_value() );
+        VERIFY_RTE( srcDir.has_value() );
+        VERIFY_RTE( buildDir.has_value() );
+
+        osCmd << "-Xclang -egdll=" << compiler_plugin.value().native() << " ";
+        osCmd << "-Xclang -egmode=" << compilationMode.value() << " ";
+        osCmd << "-Xclang -egsrddir=" << srcDir.value().native() << " ";
+        osCmd << "-Xclang -egbuilddir=" << buildDir.value().native() << " ";
+
+        if ( sourceFile.has_value() )
+        {
+            osCmd << "-Xclang -egsource=" << sourceFile.value().native() << " ";
+        }
+    }
+    else
+    {
+        VERIFY_RTE( !srcDir.has_value() );
+        VERIFY_RTE( !buildDir.has_value() );
+        VERIFY_RTE( !sourceFile.has_value() );
+    }
+
     // include directories
     for ( const boost::filesystem::path& includeDir : includeDirs )
     {
@@ -37,17 +68,17 @@ std::string PCHVerification::operator()() const
     }
 
     // ensure no round trip debug cmd line handling in clang
-    osCmd << "-Xclang -no-round-trip-args ";
+    // osCmd << "-Xclang -no-round-trip-args ";
 
-    osCmd << " -verify-pch " << inputPCHFilePath.native();
+    // output
+    VERIFY_RTE( !outputObject.has_value() );
+    VERIFY_RTE( outputPCH.has_value() );
+    osCmd << " -verify-pch " << outputPCH.value().native();
 
     return osCmd.str();
 }
 
-
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-std::string Compilation::operator()() const
+std::string Compilation::generateCompilationCMD() const
 {
     std::ostringstream osCmd;
 
