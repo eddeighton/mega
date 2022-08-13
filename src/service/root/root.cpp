@@ -468,14 +468,15 @@ public:
                 SPDLOG_INFO( "FAILURE: Pipeline {} failed in: {}ms", configuration.getPipelineID(),
                              std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                 os << "Pipeline: " << configuration.getPipelineID() << " failed";
-                daemon.TermPipelineRun( network::PipelineResult( false, os.str() ) );
+                daemon.TermPipelineRun(
+                    network::PipelineResult( false, os.str(), m_root.m_stash.getBuildHashCodes() ) );
             }
             else
             {
                 SPDLOG_INFO( "SUCCESS: Pipeline {} succeeded in: {}", configuration.getPipelineID(),
                              std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                 os << "Pipeline: " << configuration.getPipelineID() << " succeeded";
-                daemon.TermPipelineRun( network::PipelineResult( true, os.str() ) );
+                daemon.TermPipelineRun( network::PipelineResult( true, os.str(), m_root.m_stash.getBuildHashCodes() ) );
             }
         }
     }

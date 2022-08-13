@@ -548,7 +548,7 @@ public:
             = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
         const mega::io::CompilationFilePath symbolRolloutFilePath
             = m_environment.SymbolRollout_PerSourceSymbols( m_sourceFilePath );
-        start( taskProgress, "Task_SymbolRollout", symbolAnalysisFilePath.path(), symbolRolloutFilePath.path() );
+        start( taskProgress, "Task_SymbolRollout", m_sourceFilePath.path(), symbolRolloutFilePath.path() );
 
         Task_SymbolAnalysis::InterfaceHashCodeGenerator hashGen( m_environment, m_toolChain.toolChainHash );
         const task::DeterminantHash                     determinant = hashGen( m_sourceFilePath );

@@ -17,18 +17,29 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+// copy from mega/src/cmake/database/database/CMakeLists.txt
 #include "database/model/ComponentListing.hxx"
-#include "database/model/ParserStage.hxx"
-#include "database/model/InterfaceStage.hxx"
+#include "database/model/ComponentListingView.hxx"
+#include "database/model/ConcreteTypeAnalysis.hxx"
+#include "database/model/ConcreteTypeAnalysisView.hxx"
+#include "database/model/ConcreteTypeRollout.hxx"
+#include "database/model/ConcreteStage.hxx"
 #include "database/model/DependencyAnalysis.hxx"
 #include "database/model/DependencyAnalysisView.hxx"
+#include "database/model/DerivationAnalysis.hxx"
+#include "database/model/DerivationAnalysisView.hxx"
+#include "database/model/FinalStage.hxx"    
+#include "database/model/HyperGraphAnalysis.hxx"
+#include "database/model/HyperGraphAnalysisView.hxx"
+#include "database/model/InterfaceAnalysisStage.hxx"
+#include "database/model/InterfaceStage.hxx"
+#include "database/model/MemoryStage.hxx"
+#include "database/model/OperationsStage.hxx"
+#include "database/model/ParserStage.hxx"
 #include "database/model/SymbolAnalysis.hxx"
 #include "database/model/SymbolAnalysisView.hxx"
 #include "database/model/SymbolRollout.hxx"
-#include "database/model/InterfaceAnalysisStage.hxx"
-#include "database/model/OperationsStage.hxx"
-#include "database/model/FinalStage.hxx"
-
+    
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/environment_build.hpp"
@@ -95,6 +106,28 @@ void command( bool bHelp, const std::vector< std::string >& args )
     if ( bHelp )
     {
         std::cout << commandOptions << "\n";
+        std::cout << "Valid stages:\n" <<
+        "ComponentListing\n" << 
+        "ComponentListingView\n" << 
+        "ParserStage\n" << 
+        "InterfaceStage\n" << 
+        "DependencyAnalysis\n" << 
+        "DependencyAnalysisView\n" << 
+        "SymbolAnalysis\n" << 
+        "SymbolAnalysisView\n" << 
+        "SymbolRollout\n" << 
+        "InterfaceAnalysisStage\n" << 
+        "ConcreteStage\n" << 
+        "HyperGraphAnalysis\n" << 
+        "HyperGraphAnalysisView\n" << 
+        "DerivationAnalysis\n" << 
+        "DerivationAnalysisView\n" << 
+        "ConcreteTypeAnalysis\n" << 
+        "ConcreteTypeAnalysisView\n" << 
+        "ConcreteTypeRollout\n" << 
+        "MemoryStage\n" << 
+        "OperationsStage\n" << 
+        "FinalStage\n";
     }
     else
     {
@@ -103,7 +136,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         bool bMatched = false;
 
+        // copy from /workspace/root/src/mega/src/api/database/model/file_info.hxx
         STAGE_DUMP( ComponentListing )
+        STAGE_DUMP( ComponentListingView )
         STAGE_DUMP( ParserStage )
         STAGE_DUMP( InterfaceStage )
         STAGE_DUMP( DependencyAnalysis )
@@ -112,6 +147,15 @@ void command( bool bHelp, const std::vector< std::string >& args )
         STAGE_DUMP( SymbolAnalysisView )
         STAGE_DUMP( SymbolRollout )
         STAGE_DUMP( InterfaceAnalysisStage )
+        STAGE_DUMP( ConcreteStage )
+        STAGE_DUMP( HyperGraphAnalysis )
+        STAGE_DUMP( HyperGraphAnalysisView )
+        STAGE_DUMP( DerivationAnalysis )
+        STAGE_DUMP( DerivationAnalysisView )
+        STAGE_DUMP( ConcreteTypeAnalysis )
+        STAGE_DUMP( ConcreteTypeAnalysisView )
+        STAGE_DUMP( ConcreteTypeRollout )
+        STAGE_DUMP( MemoryStage )
         STAGE_DUMP( OperationsStage )
         STAGE_DUMP( FinalStage )
 

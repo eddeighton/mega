@@ -29,7 +29,7 @@ public:
     {
         const mega::io::CompilationFilePath        astFile         = m_environment.ParserStage_AST( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
-        start( taskProgress, "Task_Include", astFile.path(), includeFilePath.path() );
+        start( taskProgress, "Task_Include", m_sourceFilePath.path(), includeFilePath.path() );
 
         // const task::DeterminantHash determinant(
         //     { m_toolChain.toolChainHash, m_environment.getBuildHashCode( astFile ) } );
@@ -138,7 +138,7 @@ public:
     {
         const mega::io::GeneratedHPPSourceFilePath includeFilePath = m_environment.Include( m_sourceFilePath );
         const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.IncludePCH( m_sourceFilePath );
-        start( taskProgress, "Task_IncludePCH", includeFilePath.path(), pchPath.path() );
+        start( taskProgress, "Task_IncludePCH", m_sourceFilePath.path(), pchPath.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( includeFilePath ) } );
@@ -338,7 +338,7 @@ public:
             = m_environment.Include( pComponent->get_build_dir(), pComponent->get_name() );
         const mega::io::PrecompiledHeaderFile pchPath
             = m_environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() );
-        start( taskProgress, "Task_CPPIncludePCH", includeFilePath.path(), pchPath.path() );
+        start( taskProgress, "Task_CPPIncludePCH", m_strComponentName, pchPath.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( includeFilePath ) } );

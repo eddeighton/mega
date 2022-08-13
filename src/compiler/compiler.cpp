@@ -43,6 +43,18 @@ struct Task
         = std::variant< mega::io::megaFilePath, mega::io::cppFilePath, mega::io::manifestFilePath, std::string >;
     FilePathVar sourceFilePath;
 
+    static std::string toString( const FilePathVar& filePathVar )
+    {
+        struct Visitor
+        {
+            std::string operator()( const mega::io::megaFilePath& filePath ) const { return filePath.path().string(); }
+            std::string operator()( const mega::io::cppFilePath& filePath ) const { return filePath.path().string(); }
+            std::string operator()( const mega::io::manifestFilePath& filePath ) const { return filePath.path().string(); }
+            std::string operator()( const std::string& componentName ) const { return componentName; }
+        } visitor;
+        return std::visit( visitor, filePathVar );
+    }
+
     Task( mega::compiler::TaskType taskType )
         : strTaskName( taskTypeToName( taskType ) )
     {
@@ -122,7 +134,7 @@ pipeline::TaskDescriptor encode( const Task& task )
         boost::archive::binary_oarchive oa( os );
         oa&                             task;
     }
-    return pipeline::TaskDescriptor( task.strTaskName, os.str() );
+    return pipeline::TaskDescriptor( task.strTaskName, Task::toString( task.sourceFilePath ), os.str() );
 }
 
 Task decode( const pipeline::TaskDescriptor& taskDescriptor )
@@ -276,9 +288,9 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
             dependencies.add( concreteTypeRollout, TskDescVec{ derivation } );
             dependencies.add( allocators, TskDescVec{ concreteTypeRollout } );
-            dependencies.add( operations, TskDescVec{ derivation } );
+            dependencies.add( operations, TskDescVec{ allocators } );
             dependencies.add( operationsPCH, TskDescVec{ operations } );
-            dependencies.add( implementation, TskDescVec{ operationsPCH, allocators } );
+            dependencies.add( implementation, TskDescVec{ operationsPCH } );
             dependencies.add( implementationObj, TskDescVec{ implementation } );
 
             binaryTasks.push_back( implementationObj );

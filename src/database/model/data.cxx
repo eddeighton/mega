@@ -4287,8 +4287,9 @@ namespace ConcreteTable
         :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolSet( loader )
     {
     }
-    Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolSet > p_SymbolTable_Symbols_SymbolSet, const std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbols, const std::map< data::Ptr< data::Concrete::Concrete_Context >, int32_t >& context_concrete_ids)
+    Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolSet > p_SymbolTable_Symbols_SymbolSet, const std::size_t& concrete_hash_code, const std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbols, const std::map< data::Ptr< data::Concrete::Concrete_Context >, int32_t >& context_concrete_ids)
         :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolSet( p_SymbolTable_Symbols_SymbolSet )
+          , concrete_hash_code( concrete_hash_code )
           , concrete_symbols( concrete_symbols )
           , context_concrete_ids( context_concrete_ids )
     {
@@ -4304,12 +4305,14 @@ namespace ConcreteTable
     void Symbols_SymbolSet::load( mega::io::Loader& loader )
     {
         loader.load( p_SymbolTable_Symbols_SymbolSet );
+        loader.load( concrete_hash_code );
         loader.load( concrete_symbols );
         loader.load( context_concrete_ids );
     }
     void Symbols_SymbolSet::store( mega::io::Storer& storer ) const
     {
         storer.store( p_SymbolTable_Symbols_SymbolSet );
+        storer.store( concrete_hash_code );
         storer.store( concrete_symbols );
         storer.store( context_concrete_ids );
     }
@@ -4324,6 +4327,11 @@ namespace ConcreteTable
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_hash_code", concrete_hash_code } } );
+            _part__[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "concrete_symbols", concrete_symbols } } );

@@ -358,8 +358,8 @@ public:
         }
         else if ( Interface::Buffer* pBuffer = dynamic_database_cast< Interface::Buffer >( pContext ) )
         {
-            Buffer* pConcrete = database.construct< Buffer >(
-                Buffer::Args{ Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pBuffer, {} }, pBuffer, {} } );
+            Buffer* pConcrete = database.construct< Buffer >( Buffer::Args{
+                Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pBuffer, {} }, pBuffer, {} } );
             pParentContextGroup->push_back_children( pConcrete );
 
             IdentifierMap inheritedContexts;
@@ -387,13 +387,15 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
+        const mega::io::CompilationFilePath interfaceTreeFile = m_environment.InterfaceStage_Tree( m_sourceFilePath );
         const mega::io::CompilationFilePath interfaceAnalysisFile
             = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
         const mega::io::CompilationFilePath concreteFile = m_environment.ConcreteStage_Concrete( m_sourceFilePath );
-        start( taskProgress, "Task_ConcreteTree", interfaceAnalysisFile.path(), concreteFile.path() );
+        start( taskProgress, "Task_ConcreteTree", m_sourceFilePath.path(), concreteFile.path() );
 
-        const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceAnalysisFile ) } );
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
+                                                   m_environment.getBuildHashCode( interfaceTreeFile ),
+                                                   m_environment.getBuildHashCode( interfaceAnalysisFile ) } );
 
         if ( m_environment.restore( concreteFile, determinant ) )
         {

@@ -11,6 +11,7 @@
 #include "boost/config.hpp"
 #include "boost/shared_ptr.hpp"
 
+#include <optional>
 #include <string>
 #include <memory>
 #include <vector>
@@ -44,10 +45,10 @@ public:
     Schedule( const Dependencies& dependencies );
 
     TaskDescriptor::Vector getReady() const;
+    std::optional< TaskDescriptor > getTask( const std::string& strTaskName, const std::string& strSourceFile ) const;
+    bool isComplete() const { return m_dependencies.getTasks() == m_complete; }
 
     void complete( const TaskDescriptor& task ) { m_complete.insert( task ); }
-
-    bool isComplete() const { return m_dependencies.getTasks() == m_complete; }
 
 private:
     Dependencies          m_dependencies;

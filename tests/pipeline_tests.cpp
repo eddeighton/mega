@@ -12,7 +12,7 @@
 
 mega::pipeline::TaskDescriptor make_task( const std::string& str )
 {
-    return mega::pipeline::TaskDescriptor{ str, {} };
+    return mega::pipeline::TaskDescriptor{ str, "", {} };
 }
 
 TEST( Pipeline, Basic )

@@ -39,6 +39,8 @@
 #include "common/stash.hpp"
 #include "utilities/tool_chain_hash.hpp"
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 #include <iostream>
 #include <spdlog/spdlog.h>
 
@@ -49,22 +51,36 @@ namespace pipeline
 
 mega::network::PipelineResult runPipeline( const boost::filesystem::path&       stashDir,
                                            const mega::utilities::ToolChain&    toolChain,
-                                           const mega::pipeline::Configuration& pipelineConfig )
+                                           const mega::pipeline::Configuration& pipelineConfig,
+                                           const std::string& strTaskName, const std::string& strSourceFile,
+                                           const boost::filesystem::path& buildPipelineResultPath )
 {
     VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
     task::Stash stash( stashDir );
+
+    // load previous builds hash codes
+    if ( !buildPipelineResultPath.empty() )
+    {
+        mega::network::PipelineResult buildPipelineResult;
+        auto pInFileStream = boost::filesystem::createBinaryInputFileStream( buildPipelineResultPath );
+        boost::archive::xml_iarchive archive( *pInFileStream );
+        archive& boost::serialization::make_nvp( "PipelineResult", buildPipelineResult );
+        stash.setBuildHashCodes( buildPipelineResult.getBuildHashCodes() );
+    }
 
     std::ostringstream            osLog;
     mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( pipelineConfig, osLog );
     SPDLOG_INFO( "{}", osLog.str() );
 
-    mega::network::PipelineResult pipelineResult( true, "" );
+    mega::network::PipelineResult pipelineResult( true, "", stash.getBuildHashCodes() );
 
     struct ProgressReport : public mega::pipeline::Progress
     {
+        task::Stash&                   m_stash;
         mega::network::PipelineResult& m_pipelineResult;
-        ProgressReport( mega::network::PipelineResult& pipelineResult )
+        ProgressReport( mega::network::PipelineResult& pipelineResult, task::Stash& stash )
             : m_pipelineResult( pipelineResult )
+            , m_stash( stash )
         {
         }
         virtual void onStarted( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
@@ -72,10 +88,10 @@ mega::network::PipelineResult runPipeline( const boost::filesystem::path&       
         virtual void onFailed( const std::string& strMsg )
         {
             SPDLOG_INFO( strMsg );
-            m_pipelineResult = mega::network::PipelineResult( false, strMsg );
+            m_pipelineResult = mega::network::PipelineResult( false, strMsg, m_stash.getBuildHashCodes() );
         }
         virtual void onCompleted( const std::string& strMsg ) { SPDLOG_INFO( strMsg ); }
-    } progressReporter( pipelineResult );
+    } progressReporter( pipelineResult, stash );
 
     struct StashImpl : public mega::pipeline::Stash
     {
@@ -122,18 +138,33 @@ mega::network::PipelineResult runPipeline( const boost::filesystem::path&       
     } dependencies( toolChain );
 
     mega::pipeline::Schedule schedule = pPipeline->getSchedule( progressReporter, stashImpl );
-    while ( !schedule.isComplete() && pipelineResult.getSuccess() )
+
+    if ( !strTaskName.empty() && !strSourceFile.empty() )
     {
-        bool bProgress = false;
-        for ( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
+        std::optional< mega::pipeline::TaskDescriptor > taskOpt = schedule.getTask( strTaskName, strSourceFile );
+        VERIFY_RTE_MSG( taskOpt.has_value(),
+                        "Failed to locate task with name: " << strTaskName << " and source file: " << strSourceFile );
+        pPipeline->execute( taskOpt.value(), progressReporter, stashImpl, dependencies );
+    }
+    else
+    {
+        while ( !schedule.isComplete() && pipelineResult.getSuccess() )
         {
-            pPipeline->execute( task, progressReporter, stashImpl, dependencies );
-            if ( !pipelineResult.getSuccess() )
-                break;
-            schedule.complete( task );
-            bProgress = true;
+            bool bProgress = false;
+            for ( const mega::pipeline::TaskDescriptor& task : schedule.getReady() )
+            {
+                pPipeline->execute( task, progressReporter, stashImpl, dependencies );
+                if ( !pipelineResult.getSuccess() )
+                    break;
+                schedule.complete( task );
+                bProgress = true;
+            }
+            VERIFY_RTE_MSG( bProgress, "Failed to make progress executing pipeline" );
         }
-        VERIFY_RTE_MSG( bProgress, "Failed to make progress executing pipeline" );
+        if ( pipelineResult.getSuccess() )
+        {
+            pipelineResult = mega::network::PipelineResult( true, "", stash.getBuildHashCodes() );
+        }
     }
 
     return pipelineResult;
@@ -141,20 +172,37 @@ mega::network::PipelineResult runPipeline( const boost::filesystem::path&       
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path stashDir, pipelineXML, toolchainXML;
+    boost::filesystem::path stashDir, pipelineXML, pipelineResultPath, buildPipelineResultPath, toolchainXML;
     bool                    bRunLocally = false;
+    std::string             strTaskName, strSourceFile;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Execute a Megastructure Pipeline" );
     {
         // clang-format off
         commandOptions.add_options()
-        ( "stash_dir",          po::value< boost::filesystem::path >( &stashDir ),      "Stash directory" )
-        ( "toolchain_xml",      po::value< boost::filesystem::path >( &toolchainXML ),  "Toolchain XML file" )
-        ( "configuration",      po::value< boost::filesystem::path >( &pipelineXML ),   "Pipeline Configuration XML File" )
-        ( "local",              po::bool_switch( &bRunLocally ),                        "Run locally" )
+        ( "stash_dir",          po::value< boost::filesystem::path >( &stashDir ),                  "Stash directory" )
+        ( "toolchain_xml",      po::value< boost::filesystem::path >( &toolchainXML ),              "Toolchain XML file" )
+        ( "configuration",      po::value< boost::filesystem::path >( &pipelineXML ),               "Pipeline Configuration XML File" )
+        ( "result",             po::value< boost::filesystem::path >( &pipelineResultPath ),        "Pipeline Result XML File" )
+        ( "build_result",       po::value< boost::filesystem::path >( &buildPipelineResultPath ),   "Pipeline Result XML File" )
+        ( "local",              po::bool_switch( &bRunLocally ),                                    "Run locally" )
+
+        ( "task", po::value< std::string >( &strTaskName ), "Specific task to run.  Must provide source file also." )
+        ( "source", po::value< std::string >( &strSourceFile ), "Source file for specific task" )
         ;
         // clang-format on
+    }
+
+    if ( !strTaskName.empty() )
+    {
+        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
+        VERIFY_RTE_MSG( !strSourceFile.empty(), "Task requires source file specification" );
+    }
+    if ( !strSourceFile.empty() )
+    {
+        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
+        VERIFY_RTE_MSG( !strTaskName.empty(), "Source file requires task specification" );
     }
 
     po::positional_options_description p;
@@ -186,7 +234,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             if ( bRunLocally )
             {
-                pipelineResult = runPipeline( stashDir, toolchain, pipelineConfig );
+                pipelineResult = runPipeline(
+                    stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile, buildPipelineResultPath );
             }
             else
             {
@@ -208,12 +257,20 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 catch ( std::exception& ex )
                 {
                     SPDLOG_INFO( "Megastructure service unavailable so running pipeline locally" );
-                    pipelineResult = runPipeline( stashDir, toolchain, pipelineConfig );
+                    pipelineResult = runPipeline( stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile, {} );
                 }
             }
         }
 
         VERIFY_RTE_MSG( pipelineResult.has_value(), "Failed to get pipeline result" );
+
+        if ( pipelineResult.value().getSuccess() && !pipelineResultPath.empty() )
+        {
+            auto pOutStream = boost::filesystem::createBinaryOutputFileStream( pipelineResultPath );
+            boost::archive::xml_oarchive archive( *pOutStream );
+            archive&                     boost::serialization::make_nvp( "PipelineResult", pipelineResult.value() );
+        }
+
         if ( !pipelineResult.value().getSuccess() )
         {
             SPDLOG_INFO( "Pipeline failed: {}", pipelineResult.value().getMessage() );

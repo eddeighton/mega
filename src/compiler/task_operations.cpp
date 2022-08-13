@@ -188,12 +188,14 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath concreteFile = m_environment.ConcreteStage_Concrete( m_sourceFilePath );
+        ;
         const mega::io::GeneratedHPPSourceFilePath operationsFile = m_environment.Operations( m_sourceFilePath );
-        start( taskProgress, "Task_Operations", concreteFile.path(), operationsFile.path() );
+        start( taskProgress, "Task_Operations", m_sourceFilePath.path(), operationsFile.path() );
 
         task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.OperationsTemplate(),
               m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( concreteFile ) } );
 
         if ( m_environment.restore( operationsFile, determinant ) )
@@ -262,7 +264,7 @@ public:
             = m_environment.OperationsStage_Operations( m_sourceFilePath );
         const mega::io::GeneratedHPPSourceFilePath operationsHPPFile = m_environment.Operations( m_sourceFilePath );
         const mega::io::PrecompiledHeaderFile      operationsPCH     = m_environment.OperationsPCH( m_sourceFilePath );
-        start( taskProgress, "Task_OperationsPCH", operationsHPPFile.path(), operationsPCH.path() );
+        start( taskProgress, "Task_OperationsPCH", m_sourceFilePath.path(), operationsPCH.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( operationsHPPFile ),

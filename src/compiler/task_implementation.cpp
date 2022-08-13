@@ -188,7 +188,7 @@ public:
 
         const mega::io::ObjectFilePath implementationObj = m_environment.ImplementationObj( m_sourceFilePath );
 
-        start( taskProgress, "Task_ImplementationObj", implementationFile.path(), implementationObj.path() );
+        start( taskProgress, "Task_ImplementationObj", m_sourceFilePath.path(), implementationObj.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( implementationFile ) } );

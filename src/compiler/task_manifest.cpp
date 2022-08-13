@@ -32,7 +32,7 @@ public:
     {
         const mega::io::manifestFilePath projectManifestPath = m_environment.project_manifest();
 
-        start( taskProgress, "Task_GenerateManifest", boost::filesystem::path{}, projectManifestPath.path() );
+        start( taskProgress, "Task_GenerateManifest", projectManifestPath.path(), projectManifestPath.path() );
 
         const mega::io::Manifest manifest( m_environment, m_componentInfoPaths );
         const task::FileHash     hashCode = manifest.save_temp( m_environment, projectManifestPath );

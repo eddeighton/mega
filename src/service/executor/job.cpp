@@ -41,12 +41,12 @@ void JobConversation::onProgress( const std::string& strMsg )
 
 void JobConversation::onFailed( const std::string& strMsg )
 {
-    getLeafResponse( *m_pYieldCtx ).RootPipelineStartTask( network::PipelineResult( false, strMsg ) );
+    getLeafResponse( *m_pYieldCtx ).RootPipelineStartTask( network::PipelineResult( false, strMsg, {} ) );
 }
 
 void JobConversation::onCompleted( const std::string& strMsg )
 {
-    getLeafResponse( *m_pYieldCtx ).RootPipelineStartTask( network::PipelineResult( true, strMsg ) );
+    getLeafResponse( *m_pYieldCtx ).RootPipelineStartTask( network::PipelineResult( true, strMsg, {} ) );
 }
 
 // pipeline::Stash

@@ -21,8 +21,9 @@ namespace pipeline
 
 TaskDescriptor::TaskDescriptor() {}
 
-TaskDescriptor::TaskDescriptor( const std::string& strName, const Buffer& buffer )
+TaskDescriptor::TaskDescriptor( const std::string& strName, const std::string& strSourceFileName, const Buffer& buffer )
     : m_strName( strName )
+    , m_strSourceFile( strSourceFileName )
     , m_buffer( buffer )
 {
 }
@@ -97,6 +98,22 @@ TaskDescriptor::Vector Schedule::getReady() const
     return ready;
 }
 
+std::optional< TaskDescriptor > Schedule::getTask( const std::string& strTaskName,
+                                                   const std::string& strSourceFile ) const
+{
+    std::optional< TaskDescriptor > result;
+
+    for ( const TaskDescriptor& task : m_dependencies.getTasks() )
+    {
+        if ( task.getName() == strTaskName && task.getSourceFile() == strSourceFile )
+        {
+            return task;
+        }
+    }
+
+    return result;
+}
+
 Stash::~Stash() {}
 
 Progress::Progress() {}
@@ -113,8 +130,8 @@ Pipeline::Ptr Registry::getPipeline( const Configuration& configuration, std::os
     {
         boost::filesystem::path tempDir = boost::filesystem::temp_directory_path() / "mega_registry";
         boost::filesystem::ensureFoldersExist( tempDir / "test" );
-        VERIFY_RTE_MSG( boost::filesystem::exists( tempDir ),
-            "Failed to create temporary folder: " << tempDir.string() );
+        VERIFY_RTE_MSG(
+            boost::filesystem::exists( tempDir ), "Failed to create temporary folder: " << tempDir.string() );
 
         std::ostringstream osTempFileName;
         {

@@ -73,7 +73,7 @@ public:
 
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader
             = m_environment.Interface( pComponent->get_build_dir(), pComponent->get_name() );
-        start( taskProgress, "Task_CPPInterfaceGeneration", pComponent->get_name(), interfaceHeader.path() );
+        start( taskProgress, "Task_CPPInterfaceGeneration", m_strComponentName, interfaceHeader.path() );
 
         /*const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash,
@@ -231,7 +231,7 @@ public:
         const mega::io::PrecompiledHeaderFile interfacePCHFilePath
             = m_environment.InterfacePCH( pComponent->get_build_dir(), pComponent->get_name() );
 
-        start( taskProgress, "Task_CPPInterfaceAnalysis", interfaceHeader.path(), interfacePCHFilePath.path() );
+        start( taskProgress, "Task_CPPInterfaceAnalysis", m_strComponentName, interfacePCHFilePath.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceHeader ) } );

@@ -44,7 +44,7 @@ public:
         const mega::io::CompilationFilePath symbolTableFile
             = m_environment.SymbolAnalysis_SymbolTable( m_environment.project_manifest() );
         const mega::io::GeneratedHPPSourceFilePath interfaceHeader = m_environment.Interface( m_sourceFilePath );
-        start( taskProgress, "Task_InterfaceGeneration", interfaceTreeFile.path(), interfaceHeader.path() );
+        start( taskProgress, "Task_InterfaceGeneration", m_sourceFilePath.path(), interfaceHeader.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceTreeFile ),
@@ -187,7 +187,7 @@ public:
         const mega::io::CompilationFilePath   interfaceAnalysisFile
             = m_environment.InterfaceAnalysisStage_Clang( m_sourceFilePath );
 
-        start( taskProgress, "Task_InterfaceAnalysis", interfaceHeader.path(), interfacePCHFilePath.path() );
+        start( taskProgress, "Task_InterfaceAnalysis", m_sourceFilePath.path(), interfacePCHFilePath.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceHeader ),

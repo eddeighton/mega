@@ -151,7 +151,7 @@ public:
         const mega::io::CompilationFilePath compilationFile
             = m_environment.MemoryStage_MemoryLayout( m_sourceFilePath );
 
-        start( taskProgress, "Task_Allocators", concrete.path(), compilationFile.path() );
+        start( taskProgress, "Task_Allocators", m_sourceFilePath.path(), compilationFile.path() );
 
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( concrete ) } );

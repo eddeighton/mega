@@ -64,8 +64,9 @@ namespace Symbols
         map< ref< Interface::DimensionTrait >, value< int32_t > > dimension_type_ids;
 
         // ConcreteTypeAnalysis::ConcreteTable
-        map< value< std::vector< std::int32_t > >, ref< ConcreteSymbol > > concrete_symbols -> ConcreteTypeAnalysis::ConcreteTable;
-        map< ref< Concrete::Context >, value< int32_t > > context_concrete_ids -> ConcreteTypeAnalysis::ConcreteTable;
+        value< std::size_t >                                                concrete_hash_code -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< std::vector< std::int32_t > >, ref< ConcreteSymbol > >  concrete_symbols -> ConcreteTypeAnalysis::ConcreteTable;
+        map< ref< Concrete::Context >, value< int32_t > >                   context_concrete_ids -> ConcreteTypeAnalysis::ConcreteTable;
     }
 
     object SymbolTable -> SymbolAnalysis::SymbolTable
