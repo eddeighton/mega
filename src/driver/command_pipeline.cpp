@@ -204,6 +204,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
         VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
         VERIFY_RTE_MSG( !strTaskName.empty(), "Source file requires task specification" );
     }
+    if( !buildPipelineResultPath.empty() )
+    {
+        VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify prior build result" );
+    }
 
     po::positional_options_description p;
     p.add( "dir", -1 );
