@@ -40,7 +40,7 @@ public:
 
     network::Node::Type getType() const { return m_nodeType; }
     network::Sender&    getDaemonSender() { return m_client; }
-    network::Sender&    getTerminalSender() { return *m_pSender; }
+    network::Sender&    getNodeChannelSender() { return *m_pSender; }
 
     // network::Sender
     virtual network::ConnectionID     getConnectionID() const { return m_pSelfSender->getConnectionID(); }

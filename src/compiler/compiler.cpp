@@ -286,7 +286,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
             const TskDesc implementation      = encode( Task{ eTask_Implementation, sourceFilePath } );
             const TskDesc implementationObj   = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
 
-            dependencies.add( concreteTypeRollout, TskDescVec{ derivation } );
+            dependencies.add( concreteTypeRollout, TskDescVec{ derivation, concreteTypeAnalysis } );
             dependencies.add( allocators, TskDescVec{ concreteTypeRollout } );
             dependencies.add( operations, TskDescVec{ allocators } );
             dependencies.add( operationsPCH, TskDescVec{ operations } );

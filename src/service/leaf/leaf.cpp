@@ -53,10 +53,10 @@ public:
     virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx ) override
     {
-        if ( ( m_leaf.getTerminalSender().getConnectionID() == connection )
+        if ( ( m_leaf.getNodeChannelSender().getConnectionID() == connection )
              || ( m_leaf.m_pSelfSender->getConnectionID() == connection ) )
         {
-            m_leaf.getTerminalSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+            m_leaf.getNodeChannelSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
         }
         else if ( m_leaf.getDaemonSender().getConnectionID() == connection )
         {
@@ -80,19 +80,23 @@ public:
 
     network::term_leaf::Response_Encode getTermResponse( boost::asio::yield_context& yield_ctx )
     {
-        return network::term_leaf::Response_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
+        return network::term_leaf::Response_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
     }
     network::leaf_term::Request_Encode getTermRequest( boost::asio::yield_context& yield_ctx )
     {
-        return network::leaf_term::Request_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
+        return network::leaf_term::Request_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+    }
+    network::leaf_tool::Request_Encode getToolRequest( boost::asio::yield_context& yield_ctx )
+    {
+        return network::leaf_tool::Request_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
     }
     network::exe_leaf::Response_Encode getExeResponse( boost::asio::yield_context& yield_ctx )
     {
-        return network::exe_leaf::Response_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
+        return network::exe_leaf::Response_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
     }
     network::leaf_exe::Request_Encode getExeRequest( boost::asio::yield_context& yield_ctx )
     {
-        return network::leaf_exe::Request_Encode( *this, m_leaf.getTerminalSender(), yield_ctx );
+        return network::leaf_exe::Request_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
     }
 
     // term_leaf
@@ -168,8 +172,7 @@ public:
             break;
             case network::Node::Tool:
             {
-                // auto result = getToolRequest( yield_ctx ).RootListNetworkNodes();
-                std::vector< std::string > result;
+                auto result = getToolRequest( yield_ctx ).RootListNetworkNodes();
                 result.push_back( getProcessName() );
                 getDaemonResponse( yield_ctx ).RootListNetworkNodes( result );
             }
