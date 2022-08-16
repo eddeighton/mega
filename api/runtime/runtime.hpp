@@ -14,7 +14,7 @@ void initialiseRuntime( const mega::network::Project& project );
 
 using ReadFunction = void* ( * )( const mega::reference& );
 
-void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
+__attribute__((used)) extern void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
                const mega::InvocationID& invocationID, ReadFunction* ppFunction );
 
 } // namespace runtime

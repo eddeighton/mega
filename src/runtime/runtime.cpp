@@ -116,7 +116,7 @@ namespace runtime
 
 void initialiseRuntime( const mega::network::Project& project ) { getStaticRuntime().reinitialise( project ); }
 
-void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
+__attribute__((used)) extern void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
                const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
     getStaticRuntime().resolveRead( pszUnitName, executionContext, invocationID, ppFunction );

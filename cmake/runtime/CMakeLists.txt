@@ -36,7 +36,8 @@ add_library( runtime
 
 target_link_libraries( runtime database )
 
-set_property(TARGET runtime PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_options( runtime PUBLIC -export-dynamic )
+#set_property(TARGET runtime PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories( runtime PUBLIC ${MEGA_API_DIR} )
 
 link_boost( runtime system )

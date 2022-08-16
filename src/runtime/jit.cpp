@@ -33,7 +33,7 @@ void* testFunc( const mega::reference& )
 mega::runtime::ReadFunction JITCompiler::compile_read( const DatabaseInstance& database,
     const mega::InvocationID& invocation )
 {
-    const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocation );
+    //const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocation );
 
     using namespace FinalStage::Invocations;
     //Variables::Context* pRootVariable = pInvocation->get_root_variable();
