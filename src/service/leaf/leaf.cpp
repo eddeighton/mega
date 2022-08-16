@@ -86,6 +86,10 @@ public:
     {
         return network::leaf_term::Request_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
     }
+    network::tool_leaf::Response_Encode getToolResponse( boost::asio::yield_context& yield_ctx )
+    {
+        return network::tool_leaf::Response_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+    }
     network::leaf_tool::Request_Encode getToolRequest( boost::asio::yield_context& yield_ctx )
     {
         return network::leaf_tool::Request_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
@@ -111,6 +115,12 @@ public:
     {
         auto result = getDaemonRequest( yield_ctx ).TermPipelineRun( configuration );
         getTermResponse( yield_ctx ).TermPipelineRun( result );
+    }
+
+    virtual void TermGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermGetMegastructureInstallation();
+        getTermResponse( yield_ctx ).TermGetMegastructureInstallation( result );
     }
 
     virtual void TermGetProject( boost::asio::yield_context& yield_ctx ) override
@@ -190,6 +200,7 @@ public:
             default:
                 THROW_RTE( "Leaf: Invalid leaf type" );
         }
+        SPDLOG_INFO( "Leaf: RootListNetworkNodes end" );
     }
 
     virtual void RootPipelineStartJobs( const mega::pipeline::Configuration& configuration,
@@ -344,6 +355,12 @@ public:
         getExeResponse( yield_ctx ).ExeRestore( result );
     }
 
+    virtual void ExeGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ExeGetMegastructureInstallation();
+        getExeResponse( yield_ctx ).ExeGetMegastructureInstallation( result );
+    }
+
     virtual void ExeGetProject( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ExeGetProject();
@@ -370,6 +387,12 @@ public:
     {
         getDaemonRequest( yield_ctx ).ExeSimWriteLockReady( timeStamp );
         getExeResponse( yield_ctx ).ExeSimWriteLockReady();
+    }
+
+    virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ToolGetMegastructureInstallation();
+        getToolResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
     }
 };
 

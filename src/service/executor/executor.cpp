@@ -56,17 +56,26 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
           }(),
           network::Node::Executor )
 {
-    m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
-        "parser", "g_parserSymbol", boost::dll::load_mode::append_decorations );
-
-    auto func = []( network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+    // determine megastructure installation from the root so can load the parser dll
+    // initialise the runtime using root active project if there is one
     {
-        network::exe_leaf::Request_Encode leaf( con, sender, yield_ctx );
-        mega::runtime::initialiseRuntime( leaf.ExeGetProject() );
-    };
-    conversationInitiated( network::ConversationBase::Ptr(
-        new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
-                                 getLeafSender().getConnectionID(), std::move( func ) ) ), m_leaf );
+        Executor& thisRef = *this;
+        auto      func    = [ &thisRef ](
+                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+        {
+            network::exe_leaf::Request_Encode leaf( con, sender, yield_ctx );
+            thisRef.m_megastructureInstallation = leaf.ExeGetMegastructureInstallation();
+
+            thisRef.m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
+                thisRef.m_megastructureInstallation.getParserPath(), "g_parserSymbol" );
+
+            mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, leaf.ExeGetProject() );
+        };
+        conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(
+                                   *this, createConversationID( getLeafSender().getConnectionID() ),
+                                   getLeafSender().getConnectionID(), std::move( func ) ) ),
+                               m_leaf );
+    }
 }
 
 Executor::~Executor()

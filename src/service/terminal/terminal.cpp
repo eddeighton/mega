@@ -225,6 +225,12 @@ bool Terminal::SetProject( const mega::network::Project& project )
     GENERIC_MSG_ARG1( bool, TermSetProject, project );
 }
 
+network::MegastructureInstallation Terminal::GetMegastructureInstallation() 
+{
+    //
+    GENERIC_MSG( mega::network::MegastructureInstallation, TermGetMegastructureInstallation );
+}
+
 mega::network::Project Terminal::GetProject()
 {
     //

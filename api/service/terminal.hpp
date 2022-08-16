@@ -12,6 +12,7 @@
 #include "service/network/sender.hpp"
 #include "service/network/channel.hpp"
 #include "service/protocol/common/header.hpp"
+#include "service/protocol/common/megastructure_installation.hpp"
 
 #include <boost/asio/io_service.hpp>
 
@@ -46,6 +47,7 @@ public:
 
     std::vector< std::string >             ListNetworkNodes();
     network::PipelineResult                PipelineRun( const pipeline::Configuration& pipelineConfig );
+    network::MegastructureInstallation     GetMegastructureInstallation();
     bool                                   SetProject( const mega::network::Project& project );
     mega::network::Project                 GetProject();
     bool                                   NewInstallation( const mega::network::Project& project );

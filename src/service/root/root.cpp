@@ -9,6 +9,7 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/header.hpp"
+#include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/pipeline_result.hpp"
 
 #include "service/protocol/model/root_daemon.hxx"
@@ -22,7 +23,9 @@
 #include "spdlog/stopwatch.h"
 
 #include <boost/archive/xml_iarchive.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/process/environment.hpp>
 #include <boost/system/detail/error_code.hpp>
 #include "boost/asio/experimental/concurrent_channel.hpp"
 
@@ -115,6 +118,12 @@ public:
         }
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.TermListNetworkNodes( nodes );
+    }
+
+    virtual void TermGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
+        daemon.TermGetMegastructureInstallation( m_root.getMegastructureInstallation() );
     }
 
     virtual void TermGetProject( boost::asio::yield_context& yield_ctx ) override
@@ -278,6 +287,12 @@ public:
         daemon.ExeRestore( bRestored );
     }
 
+    virtual void ExeGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
+        daemon.ExeGetMegastructureInstallation( m_root.getMegastructureInstallation() );
+    }
+
     virtual void ExeGetProject( boost::asio::yield_context& yield_ctx ) override
     {
         auto daemon = getStackTopDaemonResponse( yield_ctx );
@@ -299,6 +314,12 @@ public:
         VERIFY_RTE( pDaemon.has_value() );
         pDaemon->RootSimWriteLockReady( timeStamp );
         getStackTopDaemonResponse( yield_ctx ).ExeSimWriteLockReady();
+    }
+
+    virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto daemon = getStackTopDaemonResponse( yield_ctx );
+        daemon.ToolGetMegastructureInstallation( m_root.getMegastructureInstallation() );
     }
 };
 
@@ -574,6 +595,23 @@ void Root::shutdown()
 {
     m_server.stop();
     SPDLOG_INFO( "Root shutdown" );
+}
+
+network::MegastructureInstallation Root::getMegastructureInstallation()
+{
+    if ( !m_megastructureInstallationOpt.has_value() )
+    {
+        const boost::filesystem::path currentProcessPath = boost::dll::program_location();
+        VERIFY_RTE( !currentProcessPath.empty() );
+
+        const boost::filesystem::path binPath = currentProcessPath.parent_path();
+        VERIFY_RTE( binPath.has_parent_path() );
+
+        const boost::filesystem::path installationPath = binPath.parent_path();
+
+        m_megastructureInstallationOpt = network::MegastructureInstallation{ installationPath };
+    }
+    return m_megastructureInstallationOpt.value();
 }
 
 network::ConversationBase::Ptr Root::joinConversation( const network::ConnectionID& originatingConnectionID,

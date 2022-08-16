@@ -17,6 +17,8 @@ public:
     Project();
     Project( const boost::filesystem::path& projectInstallPath );
 
+    const bool isEmpty() const;
+
     const boost::filesystem::path& getProjectInstallPath() const { return m_projectInstallPath; }
 
     const boost::filesystem::path getProjectDatabase() const;

@@ -1,7 +1,7 @@
 COMMAND(archive,"Generate retail archive file")
 COMMAND(graph,"Generate graph json data files")
 COMMAND(inja,"Generically run an Inja template")
-COMMAND(interface,"Compile interface")
+COMMAND(interface,"Generate Megastructure Pipeline XML")
 COMMAND(json,"Dump database to json")
 COMMAND(list,"List mega source code")
 COMMAND(pipeline,"Execute a Megastructure Pipeline")

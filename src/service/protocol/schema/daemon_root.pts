@@ -12,6 +12,12 @@ msg TermPipelineRun
     response(mega::network::PipelineResult result);
 }
 
+msg TermGetMegastructureInstallation
+{
+    request();
+    response(mega::network::MegastructureInstallation intsallation);
+}
+
 msg TermGetProject
 {
     request();
@@ -87,6 +93,12 @@ msg ExeRestore
     response( bool bRestored );
 }
 
+msg ExeGetMegastructureInstallation
+{
+    request();
+    response(mega::network::MegastructureInstallation intsallation);
+}
+
 msg ExeGetProject
 {
     request();
@@ -103,4 +115,11 @@ msg ExeSimWriteLockReady
 {
     request( mega::TimeStamp timeStamp );
     response();
+}
+
+// Tool
+msg ToolGetMegastructureInstallation
+{
+    request();
+    response(mega::network::MegastructureInstallation intsallation);
 }

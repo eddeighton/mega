@@ -109,6 +109,7 @@ public:
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getRootRequest( yield_ctx ).TermListNetworkNodes();
+        SPDLOG_INFO( "Daemon got root response" );
         getStackTopLeafResponse( yield_ctx ).TermListNetworkNodes( result );
     }
 
@@ -117,6 +118,12 @@ public:
     {
         auto result = getRootRequest( yield_ctx ).TermPipelineRun( configuration );
         getStackTopLeafResponse( yield_ctx ).TermPipelineRun( result );
+    }
+
+    virtual void TermGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).TermGetMegastructureInstallation();
+        getStackTopLeafResponse( yield_ctx ).TermGetMegastructureInstallation( result );
     }
 
     virtual void TermGetProject( boost::asio::yield_context& yield_ctx ) override
@@ -214,6 +221,12 @@ public:
     {
         auto result = getRootRequest( yield_ctx ).ExeRestore( filePath, determinant );
         getStackTopLeafResponse( yield_ctx ).ExeRestore( result );
+    }
+
+    virtual void ExeGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ExeGetMegastructureInstallation();
+        getStackTopLeafResponse( yield_ctx ).ExeGetMegastructureInstallation( result );
     }
 
     virtual void ExeGetProject( boost::asio::yield_context& yield_ctx ) override
@@ -389,6 +402,12 @@ public:
         auto leafRequest = leafRequestByCon( getID(), yield_ctx );
         leafRequest->RootSimWriteLockReady( timeStamp );
         getRootResponse( yield_ctx ).RootSimWriteLockReady();
+    }
+
+    virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ToolGetMegastructureInstallation();
+        getStackTopLeafResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
     }
 };
 

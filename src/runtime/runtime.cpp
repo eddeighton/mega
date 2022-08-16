@@ -28,7 +28,8 @@ namespace
 class Runtime
 {
 public:
-    void reinitialise( const mega::network::Project& project )
+    void reinitialise( const mega::network::MegastructureInstallation& megastructureInstallation,
+                       const mega::network::Project&                   project )
     {
         if ( !m_componentManager )
         {
@@ -43,12 +44,15 @@ public:
 
         try
         {
-            if ( boost::filesystem::exists( project.getProjectDatabase() ) )
+            if ( !project.isEmpty() )
             {
-                m_database.reset( new DatabaseInstance( project.getProjectDatabase() ) );
-                SPDLOG_INFO(
-                    "ComponentManager initialised with project: {}", project.getProjectInstallPath().string() );
-                m_bInitialised = true;
+                if ( boost::filesystem::exists( project.getProjectDatabase() ) )
+                {
+                    m_database.reset( new DatabaseInstance( project.getProjectDatabase() ) );
+                    SPDLOG_INFO(
+                        "ComponentManager initialised with project: {}", project.getProjectInstallPath().string() );
+                    m_bInitialised = true;
+                }
             }
         }
         catch ( mega::io::DatabaseVersionException& ex )
@@ -65,8 +69,8 @@ public:
         }
     }
 
-    void resolveRead( const char* pszUnitName, mega::ExecutionContext executionContext, 
-            const mega::InvocationID& invocation, ReadFunction* ppFunction )
+    void resolveRead( const char* pszUnitName, mega::ExecutionContext executionContext,
+                      const mega::InvocationID& invocation, ReadFunction* ppFunction )
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
@@ -114,10 +118,14 @@ namespace mega
 namespace runtime
 {
 
-void initialiseRuntime( const mega::network::Project& project ) { getStaticRuntime().reinitialise( project ); }
+void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
+                        const mega::network::Project&                   project )
+{
+    getStaticRuntime().reinitialise( megastructureInstallation, project );
+}
 
-__attribute__((used)) extern void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
-               const mega::InvocationID& invocationID, ReadFunction* ppFunction )
+__attribute__( ( used ) ) extern void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
+                                                const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
     getStaticRuntime().resolveRead( pszUnitName, executionContext, invocationID, ppFunction );
 }

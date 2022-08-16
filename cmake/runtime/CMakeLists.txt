@@ -9,11 +9,19 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
+#get inja
+include( ${WORKSPACE_ROOT_PATH}/thirdparty/inja/inja_include.cmake )
+
 #get spdlog
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 
 #get common
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
+
+
+set( JINJA_TEMPLATES 
+    ${MEGA_SRC_DIR}/runtime/templates/read.jinja 
+	)
 
 set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/runtime/runtime.hpp
@@ -22,6 +30,8 @@ set( RUNTIME_HEADERS
 set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/component_manager.hpp
     ${MEGA_SRC_DIR}/runtime/component_manager.cpp
+    ${MEGA_SRC_DIR}/runtime/code_generator.hpp
+    ${MEGA_SRC_DIR}/runtime/code_generator.cpp
     ${MEGA_SRC_DIR}/runtime/jit.hpp
     ${MEGA_SRC_DIR}/runtime/jit.cpp
     ${MEGA_SRC_DIR}/runtime/database.hpp
@@ -45,6 +55,7 @@ link_boost( runtime filesystem )
 link_boost( runtime serialization )
 link_orc( runtime )
 link_json( runtime )
+link_inja( runtime )
 link_spdlog( runtime )
 link_common( runtime )
 

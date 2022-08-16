@@ -1,0 +1,39 @@
+
+#ifndef MEGASTRUCTURE_INSTALLATION_16_AUG_2022
+#define MEGASTRUCTURE_INSTALLATION_16_AUG_2022
+
+#include "utilities/serialization_helpers.hpp"
+#include "utilities/tool_chain_hash.hpp"
+
+#include "boost/filesystem/path.hpp"
+#include "boost/serialization/nvp.hpp"
+
+namespace mega
+{
+namespace network
+{
+class MegastructureInstallation
+{
+public:
+    MegastructureInstallation();
+    MegastructureInstallation( const boost::filesystem::path& projectInstallPath );
+
+    const bool isEmpty() const;
+
+    const boost::filesystem::path& getInstallationPath() const { return m_installationPath; }
+    const mega::utilities::ToolChain getToolchainXML() const;
+    const boost::filesystem::path getParserPath() const;
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& boost::serialization::make_nvp( "installationPath", m_installationPath );
+    }
+
+private:
+    boost::filesystem::path m_installationPath;
+};
+} // namespace network
+} // namespace mega
+
+#endif // MEGASTRUCTURE_INSTALLATION_16_AUG_2022

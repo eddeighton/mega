@@ -103,8 +103,9 @@ add_custom_command(
     )
 
 set( MEGA_PROTOCOL_COMMON_HEADERS
-    ${MEGA_API_DIR}/service/protocol/common/header.hpp
+    ${MEGA_API_DIR}/service/protocol/common/header.hpp  
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
+    ${MEGA_API_DIR}/service/protocol/common/megastructure_installation.hpp
     ${MEGA_API_DIR}/service/protocol/common/pipeline_result.hpp
     ${MEGA_API_DIR}/service/protocol/common/project.hpp
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
@@ -113,6 +114,7 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
 set( MEGA_PROTOCOL_COMMON_SOURCE
     ${MEGA_SRC_DIR}/service/protocol/common/header.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/node.cpp
+    ${MEGA_SRC_DIR}/service/protocol/common/megastructure_installation.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/project.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp
     )

@@ -6,6 +6,7 @@
 
 #include "service/network/client.hpp"
 #include "service/network/conversation_manager.hpp"
+#include "service/protocol/common/megastructure_installation.hpp"
 
 #include "parser/parser.hpp"
 #include "service/protocol/common/header.hpp"
@@ -54,6 +55,7 @@ private:
     network::ReceiverChannel                 m_receiverChannel;
     Leaf                                     m_leaf;
     SimulationMap                            m_simulations;
+    network::MegastructureInstallation       m_megastructureInstallation;
 };
 
 } // namespace service

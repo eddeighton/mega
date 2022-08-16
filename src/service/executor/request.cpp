@@ -99,7 +99,7 @@ void ExecutorRequestConversation::RootPipelineStartJobs( const pipeline::Configu
 void ExecutorRequestConversation::RootProjectUpdated( const mega::network::Project& project,
                                                       boost::asio::yield_context&   yield_ctx )
 {
-    mega::runtime::initialiseRuntime( project );
+    mega::runtime::initialiseRuntime( m_executor.m_megastructureInstallation, project );
     getLeafResponse( yield_ctx ).RootProjectUpdated();
 }
 
@@ -167,15 +167,15 @@ void ExecutorRequestConversation::RootSimWriteLock( const mega::network::Convers
     getLeafResponse( yield_ctx ).RootSimWriteLock();
 }
 
-void ExecutorRequestConversation::RootSimReadLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) 
+void ExecutorRequestConversation::RootSimReadLockReady( const mega::TimeStamp&      timeStamp,
+                                                        boost::asio::yield_context& yield_ctx )
 {
-
     getLeafResponse( yield_ctx ).RootSimReadLockReady();
 }
 
-void ExecutorRequestConversation::RootSimWriteLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) 
+void ExecutorRequestConversation::RootSimWriteLockReady( const mega::TimeStamp&      timeStamp,
+                                                         boost::asio::yield_context& yield_ctx )
 {
-
     getLeafResponse( yield_ctx ).RootSimWriteLockReady();
 }
 

@@ -1,5 +1,6 @@
 
 #include "mega/common.hpp"
+#include "service/protocol/common/megastructure_installation.hpp"
 #include "service/terminal.hpp"
 
 #include "service/network/network.hpp"
@@ -31,9 +32,10 @@ int main( int argc, const char* argv[] )
     bool                    bListNodes = false;
     boost::filesystem::path pipelinePath;
     boost::filesystem::path projectPath;
-    bool                    bGetProject      = false;
-    bool                    bNewSimulation   = false;
-    bool                    bListSimulations = false;
+    bool                    bGetMegastructureInstallation = false;
+    bool                    bGetProject                   = false;
+    bool                    bNewSimulation                = false;
+    bool                    bListSimulations              = false;
     std::string             strSimulationID;
     bool                    bLoop = false;
     bool                    bQuit = false;
@@ -45,6 +47,7 @@ int main( int argc, const char* argv[] )
     ( "help,?",         po::bool_switch( &bShowHelp ),                          "Show Command Line Help"    )
     ( "nodes,d",        po::bool_switch( &bListNodes ),                         "List network nodes"        )
     ( "pipeline,p",     po::value< boost::filesystem::path >( &pipelinePath ),  "Run a pipeline"            )
+    ( "getInstall,i",   po::bool_switch( &bGetMegastructureInstallation ),      "Get the Mega Structure Installation" )
     ( "setProject,s",   po::value< boost::filesystem::path >( &projectPath ),   "Select a project"          )
     ( "getProject,g",   po::bool_switch( &bGetProject ),                        "Get current project"       )
     ( "new,n",          po::bool_switch( &bNewSimulation ),                     "Start a new simulation"    )
@@ -116,10 +119,18 @@ int main( int argc, const char* argv[] )
                 const mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
                 SPDLOG_INFO( "Pipeline result:\n {} \n {}", result.getSuccess(), result.getMessage() );
             }
+            else if( bGetMegastructureInstallation )
+            {
+                mega::network::MegastructureInstallation install = terminal.GetMegastructureInstallation();
+                if ( install.isEmpty() )
+                    SPDLOG_INFO( "No Mega Structure Installation" );
+                else
+                    SPDLOG_INFO( "Megastructure Installation: {}", install.getInstallationPath().string() );
+            }
             else if ( bGetProject )
             {
                 mega::network::Project project = terminal.GetProject();
-                if ( project.getProjectInstallPath().empty() )
+                if ( project.isEmpty() )
                     SPDLOG_INFO( "No active project" );
                 else
                     SPDLOG_INFO( "Active project: {}", project.getProjectInstallPath().string() );
@@ -154,7 +165,7 @@ int main( int argc, const char* argv[] )
                 }
                 SPDLOG_INFO( "Attempting to read lock on {}", simID );
                 terminal.testReadLock( simID );
-                //SPDLOG_INFO( "{}", timeStamp );
+                // SPDLOG_INFO( "{}", timeStamp );
             }
             else if ( bQuit )
             {

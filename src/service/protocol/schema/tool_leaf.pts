@@ -1,0 +1,7 @@
+
+
+msg ToolGetMegastructureInstallation
+{
+    request();
+    response(mega::network::MegastructureInstallation intsallation);
+}

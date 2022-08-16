@@ -39,6 +39,12 @@ msg ExeRestore
 
 // project
 
+msg ExeGetMegastructureInstallation
+{
+    request();
+    response(mega::network::MegastructureInstallation intsallation);
+}
+
 msg ExeGetProject
 {
     request();
