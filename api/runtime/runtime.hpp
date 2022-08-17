@@ -1,6 +1,8 @@
 #ifndef RUNTIME_18_JUNE_2022
 #define RUNTIME_18_JUNE_2022
 
+#include "runtime/runtime_functions.hpp"
+
 #include "mega/common.hpp"
 #include "mega/invocation_id.hpp"
 
@@ -14,10 +16,11 @@ namespace runtime
 void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
                         const mega::network::Project&                   project );
 
-using ReadFunction = void* ( * )( const mega::reference& );
+extern void get_allocate( const char* pszUnitName, mega::ExecutionContext executionContext,
+                      const mega::InvocationID& invocationID, AllocateFunction* ppFunction );
 
-__attribute__( ( used ) ) extern void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
-                                                const mega::InvocationID& invocationID, ReadFunction* ppFunction );
+extern void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
+                      const mega::InvocationID& invocationID, ReadFunction* ppFunction );
 
 } // namespace runtime
 } // namespace mega

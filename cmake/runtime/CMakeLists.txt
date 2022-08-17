@@ -3,9 +3,6 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 #get boost
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/boost/boost_include.cmake )
 
-#get clang
-include( ${WORKSPACE_ROOT_PATH}/thirdparty/llvm/clang_include.cmake )
-
 #get json
 include( ${WORKSPACE_ROOT_PATH}/thirdparty/nlohmann/json_include.cmake )
 
@@ -20,10 +17,12 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 
 set( JINJA_TEMPLATES 
+    ${MEGA_SRC_DIR}/runtime/templates/allocate.jinja 
     ${MEGA_SRC_DIR}/runtime/templates/read.jinja 
 	)
 
 set( RUNTIME_HEADERS
+    ${MEGA_API_DIR}/runtime/runtime_functions.hpp
     ${MEGA_API_DIR}/runtime/runtime.hpp
 )
 
@@ -32,8 +31,6 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/component_manager.cpp
     ${MEGA_SRC_DIR}/runtime/code_generator.hpp
     ${MEGA_SRC_DIR}/runtime/code_generator.cpp
-    ${MEGA_SRC_DIR}/runtime/jit.hpp
-    ${MEGA_SRC_DIR}/runtime/jit.cpp
     ${MEGA_SRC_DIR}/runtime/database.hpp
     ${MEGA_SRC_DIR}/runtime/database.cpp
     ${MEGA_SRC_DIR}/runtime/runtime.cpp
@@ -45,6 +42,7 @@ add_library( runtime
 )
 
 target_link_libraries( runtime database )
+target_link_libraries( runtime jit )
 
 target_link_options( runtime PUBLIC -export-dynamic )
 #set_property(TARGET runtime PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -53,7 +51,6 @@ target_include_directories( runtime PUBLIC ${MEGA_API_DIR} )
 link_boost( runtime system )
 link_boost( runtime filesystem )
 link_boost( runtime serialization )
-link_orc( runtime )
 link_json( runtime )
 link_inja( runtime )
 link_spdlog( runtime )
@@ -62,3 +59,4 @@ link_common( runtime )
 install( FILES ${RUNTIME_HEADERS} DESTINATION include/runtime )
 install( TARGETS runtime EXPORT runtime DESTINATION bin)
 install( EXPORT runtime NAMESPACE MEGA:: FILE runtime-config.cmake DESTINATION share )
+install( FILES ${JINJA_TEMPLATES} DESTINATION templates )

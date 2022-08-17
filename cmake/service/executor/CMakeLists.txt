@@ -61,6 +61,7 @@ target_link_libraries( executorLib protocol )
 target_link_libraries( executorLib network )
 target_link_libraries( executorLib pipeline )
 target_link_libraries( executorLib database )
+target_link_libraries( executorLib jit )
 target_link_libraries( executorLib runtime )
 target_link_libraries( executorLib service )
 

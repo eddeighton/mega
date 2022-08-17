@@ -2,72 +2,48 @@
 #ifndef JIT_8_AUG_2022
 #define JIT_8_AUG_2022
 
-#include "runtime/runtime.hpp"
-
-#include "database.hpp"
-
-#include "database/model/FinalStage.hxx"
+#include "runtime/runtime_functions.hpp"
 
 #include <memory>
-
-#include "llvm/ExecutionEngine/Orc/ExecutionUtils.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/DataLayout.h"
-
-#include "llvm/ExecutionEngine/SectionMemoryManager.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/JITSymbol.h"
-
-#include "llvm/ExecutionEngine/Orc/Core.h"
-#include "llvm/ExecutionEngine/Orc/LLJIT.h"
-#include "llvm/ExecutionEngine/Orc/CompileUtils.h"
-#include "llvm/ExecutionEngine/Orc/IRCompileLayer.h"
-#include "llvm/ExecutionEngine/Orc/RTDyldObjectLinkingLayer.h"
-#include "llvm/ExecutionEngine/Orc/ThreadSafeModule.h"
-
-#include "llvm/Transforms/InstCombine/InstCombine.h"
-#include "llvm/Transforms/Scalar.h"
-#include "llvm/Transforms/Scalar/GVN.h"
-
-#include "llvm/IRReader/IRReader.h"
-
-#include "llvm/Target/TargetMachine.h"
-
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Support/Error.h"
-#include "llvm/Support/SourceMgr.h"
+#include <set>
 
 namespace mega
 {
-    namespace runtime
+namespace runtime
+{
+class JITCompiler
+{
+public:
+    JITCompiler();
+
+    class Module
     {
-        class JITCompiler
-        {
-            struct StaticInit
-            {
-                StaticInit();
-            };
-        public:
-            JITCompiler();
+    protected:
+        friend class JITCompiler;
+        virtual ~Module();
 
-            mega::runtime::ReadFunction compile_read( const DatabaseInstance& database,
-                const mega::InvocationID& invocation );
+    public:
+        using Ptr = std::shared_ptr< Module >;
 
-            void unload_read( mega::runtime::ReadFunction pFunction );
+        virtual mega::runtime::AllocateFunction getAllocate( const std::string& strSymbol ) = 0;
+        virtual mega::runtime::ReadFunction getRead( const std::string& strSymbol ) = 0;
+    };
 
-        private:
-            StaticInit m_staticInit;
-            std::unique_ptr< llvm::orc::LLJIT > m_pLLJit;
+    Module::Ptr compile( const std::string& strModule );
 
-            using InvocationMap = std::map< void*, std::shared_ptr< llvm::orc::JITDylib > >;
-            InvocationMap m_invocations;
-        };
-    }
-}
+private:
+    void    unload( Module* pModule );
 
-#endif //JIT_8_AUG_2022
+    struct StaticInit
+    {
+        StaticInit();
+    };
+    static StaticInit m_staticInit;
+
+    class Pimpl;
+    std::shared_ptr< Pimpl > m_pPimpl;
+};
+} // namespace runtime
+} // namespace mega
+
+#endif // JIT_8_AUG_2022

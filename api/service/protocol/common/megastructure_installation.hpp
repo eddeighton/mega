@@ -16,13 +16,16 @@ class MegastructureInstallation
 {
 public:
     MegastructureInstallation();
-    MegastructureInstallation( const boost::filesystem::path& projectInstallPath );
+    MegastructureInstallation( const boost::filesystem::path& megastructureInstallationPath );
 
     const bool isEmpty() const;
 
     const boost::filesystem::path& getInstallationPath() const { return m_installationPath; }
-    const mega::utilities::ToolChain getToolchainXML() const;
-    const boost::filesystem::path getParserPath() const;
+    mega::utilities::ToolChain     getToolchainXML() const;
+    boost::filesystem::path        getParserPath() const;
+    boost::filesystem::path        getClangPath() const;
+    boost::filesystem::path        getRuntimeTemplateAllocate() const;
+    boost::filesystem::path        getRuntimeTemplateRead() const;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )

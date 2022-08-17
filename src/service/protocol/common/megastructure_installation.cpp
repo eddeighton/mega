@@ -11,14 +11,14 @@ namespace network
 
 MegastructureInstallation::MegastructureInstallation() {}
 
-MegastructureInstallation::MegastructureInstallation( const boost::filesystem::path& projectInstallPath )
-    : m_installationPath( projectInstallPath )
+MegastructureInstallation::MegastructureInstallation( const boost::filesystem::path& megastructureInstallationPath )
+    : m_installationPath( megastructureInstallationPath )
 {
 }
 
 const bool MegastructureInstallation::isEmpty() const { return m_installationPath.empty(); }
 
-const mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() const
+mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() const
 {
     const boost::filesystem::path toolChainXMLPath = m_installationPath / "etc/toolchain.xml";
 
@@ -34,9 +34,15 @@ const mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() co
     return toolChain;
 }
 
-const boost::filesystem::path MegastructureInstallation::getParserPath() const
+boost::filesystem::path MegastructureInstallation::getParserPath() const { return getToolchainXML().parserDllPath; }
+boost::filesystem::path MegastructureInstallation::getClangPath() const { return getToolchainXML().clangCompilerPath; }
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateAllocate() const
 {
-    return getToolchainXML().parserDllPath;
+    return m_installationPath / "templates/allocate.jinja";
+}
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateRead() const
+{
+    return m_installationPath / "templates/read.jinja";
 }
 
 } // namespace network

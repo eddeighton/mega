@@ -1,2 +1,9 @@
 
 // ed was here
+#include "/workspace/root/src/mega/src/api/mega/common.hpp"
+
+void* {{ name }}( const mega::reference& )
+{
+    static int x = 234;
+    return &x;
+}
