@@ -23,6 +23,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/resource.cpp
     ${MEGA_API_DIR}/mega/resource.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
+    ${MEGA_API_DIR}/mega/root.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp
     ${MEGA_API_DIR}/mega/variant.hpp

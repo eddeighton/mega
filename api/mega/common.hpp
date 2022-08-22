@@ -22,6 +22,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <string>
 
 namespace mega
 {
@@ -56,6 +57,7 @@ inline const char* getActionState( ActionState state )
 }
 
 static const Address INVALID_ADDRESS = 0U;
+static const TypeID  ROOT_TYPE_ID    = 0U;
 
 using event_iterator = std::uint64_t;
 
@@ -174,7 +176,7 @@ struct reference : TypeInstance
 
 struct ExecutionContext
 {
-    void* pReserved = nullptr;
+    virtual std::string mapBuffer( const mega::reference& reference ) = 0;
 };
 
 } // namespace mega

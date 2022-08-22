@@ -3,11 +3,12 @@
 
 #include "runtime/runtime.hpp"
 
+extern mega::ExecutionContext* g_pExecutionContext;
+
 namespace 
 {
 
 static const char* g_unit_name = "{{ unitname }}";
-static const mega::ExecutionContext g_execution_context;
 
 template< typename ResultType, typename ContextType, typename TypePathType, typename OperationType >
 struct __invoke_impl{
@@ -38,9 +39,9 @@ struct __invoke_impl
         static mega::runtime::ReadFunction g_pRuntimeFunc = nullptr;
         if( nullptr == g_pRuntimeFunc )
         {
-            mega::runtime::get_read( g_unit_name, g_execution_context, id, &g_pRuntimeFunc );
+            mega::runtime::get_read( g_unit_name, *g_pExecutionContext, id, &g_pRuntimeFunc );
         }
-        return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( g_pRuntimeFunc( context.data ) );
+        return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( g_pRuntimeFunc( *g_pExecutionContext, context.data ) );
 {% else if invocation.explicit_operation == "Write" %}
         // Write
 {% else if invocation.explicit_operation == "Allocate" %}
@@ -48,9 +49,9 @@ struct __invoke_impl
         static mega::runtime::AllocateFunction g_pRuntimeFunc = nullptr;
         if( nullptr == g_pRuntimeFunc )
         {
-            mega::runtime::get_allocate( g_unit_name, g_execution_context, id, &g_pRuntimeFunc );
+            mega::runtime::get_allocate( g_unit_name, *g_pExecutionContext, id, &g_pRuntimeFunc );
         }
-        return {{ invocation.runtime_return_type }}( g_pRuntimeFunc( context.data ) );
+        return {{ invocation.runtime_return_type }}( g_pRuntimeFunc( *g_pExecutionContext, context.data ) );
 {% else if invocation.explicit_operation == "Call" %}
         // Call
 {% else if invocation.explicit_operation == "Start" %}

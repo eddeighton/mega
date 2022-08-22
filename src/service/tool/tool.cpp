@@ -1,6 +1,7 @@
 
 #include "service/tool.hpp"
 
+#include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
@@ -17,6 +18,8 @@
 #include "boost/bind/bind.hpp"
 
 #include <thread>
+
+extern mega::ExecutionContext* g_pExecutionContext;
 
 namespace mega
 {
@@ -70,7 +73,7 @@ public:
 };
 
 template < typename TConversationFunctor >
-class GenericConversation : public ToolRequestConversation
+class GenericConversation : public ToolRequestConversation, public mega::ExecutionContext
 {
     TConversationFunctor m_functor;
 
@@ -84,15 +87,27 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        ConversationBase::RequestStack stack( "GenericConversation", *this, m_tool.getLeafSender().getConnectionID() );
-        m_functor( *this, m_tool.getLeafSender(), yield_ctx );
+        m_pYieldContext     = &yield_ctx;
+        g_pExecutionContext = this;
+        m_functor( yield_ctx );
+        g_pExecutionContext = nullptr;
+        m_pYieldContext     = nullptr;
     }
+
+    // mega::ExecutionContext
+    virtual std::string mapBuffer( const mega::reference& reference )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        SPDLOG_INFO( "mapBuffer called with: {}", reference.type );
+        return "";
+    }
+
+    boost::asio::yield_context* m_pYieldContext = nullptr;
 };
 
 Tool::Tool()
     : network::ConversationManager( network::makeProcessName( network::Node::Tool ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
-    //, m_work_guard( m_io_context.get_executor() )
     , m_leaf(
           [ &m_receiverChannel = m_receiverChannel ]()
           {
@@ -106,7 +121,7 @@ Tool::Tool()
 Tool::~Tool()
 {
     m_receiverChannel.stop();
-    // m_work_guard.reset();
+    m_io_context.run();
 }
 
 network::ConversationBase::Ptr Tool::joinConversation( const network::ConnectionID& originatingConnectionID,
@@ -121,8 +136,7 @@ void Tool::run( Tool::Functor& function )
 {
     std::optional< std::variant< int, std::exception_ptr > > exceptionResult;
     {
-        auto func = [ &exceptionResult, &function ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
+        auto func = [ &exceptionResult, &function ]( boost::asio::yield_context& yield_ctx )
         {
             try
             {
@@ -134,11 +148,13 @@ void Tool::run( Tool::Functor& function )
                 exceptionResult = std::current_exception();
             }
         };
-        conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(
-                                   *this, createConversationID( getLeafSender().getConnectionID() ),
-                                   getLeafSender().getConnectionID(), std::move( func ) ) ),
-                               getLeafSender() );
+        network::ConversationBase::Ptr pConversation(
+            new GenericConversation( *this, createConversationID( getLeafSender().getConnectionID() ),
+                                     getLeafSender().getConnectionID(), std::move( func ) ) );
+
+        conversationInitiated( pConversation, getLeafSender() );
     }
+
     while ( !exceptionResult.has_value() )
         m_io_context.run_one();
 

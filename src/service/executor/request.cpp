@@ -4,6 +4,7 @@
 #include "service/executor.hpp"
 
 #include "job.hpp"
+#include "service/protocol/common/header.hpp"
 #include "simulation.hpp"
 
 #include "service/protocol/model/exe_sim.hxx"
@@ -117,8 +118,9 @@ void ExecutorRequestConversation::RootSimList( boost::asio::yield_context& yield
 
 void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yield_ctx )
 {
-    Simulation::Ptr pSim = std::make_shared< Simulation >(
-        m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ) );
+    const network::ConversationID id = m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() );
+
+    Simulation::Ptr pSim = std::make_shared< Simulation >( m_executor, id );
 
     m_executor.m_simulations.insert( { pSim->getID(), pSim } );
     m_executor.conversationInitiated( pSim, m_executor.getLeafSender() );

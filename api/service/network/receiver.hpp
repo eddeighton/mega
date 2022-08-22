@@ -11,6 +11,7 @@
 #include "boost/asio/spawn.hpp"
 
 #include <functional>
+#include <future>
 
 namespace mega
 {
@@ -29,8 +30,12 @@ public:
     {
         m_connectionID           = connectionID;
         SocketReceiver& receiver = *this;
-        boost::asio::spawn(
-            strandOrIOContext, [ &receiver ]( boost::asio::yield_context yield ) { receiver.receive( yield ); } );
+        boost::asio::spawn( strandOrIOContext,
+                            [ &receiver ]( boost::asio::yield_context yield )
+                            {
+                                //
+                                receiver.receive( yield );
+                            } );
     }
     void stop() { m_bContinue = false; }
 
@@ -57,9 +62,14 @@ public:
     {
         m_connectionID                      = connectionID;
         ConcurrentChannelReceiver& receiver = *this;
-        boost::asio::spawn(
-            strandOrIOContext, [ &receiver ]( boost::asio::yield_context yield ) { receiver.receive( yield ); } );
+        boost::asio::spawn( strandOrIOContext,
+                            [ &receiver ]( boost::asio::yield_context yield )
+                            {
+                                //
+                                receiver.receive( yield );
+                            } );
     }
+
     void stop() { m_bContinue = false; }
 
 private:
@@ -67,10 +77,10 @@ private:
     void onError( const boost::system::error_code& ec );
 
 private:
-    ConnectionID            m_connectionID;
-    bool                    m_bContinue = true;
-    ConversationManager&    m_conversationManager;
-    ConcurrentChannel&      m_channel;
+    ConnectionID         m_connectionID;
+    bool                 m_bContinue = true;
+    ConversationManager& m_conversationManager;
+    ConcurrentChannel&   m_channel;
 };
 
 } // namespace network

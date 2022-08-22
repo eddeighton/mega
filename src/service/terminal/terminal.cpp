@@ -103,8 +103,8 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        ConversationBase::RequestStack stack(
-            "GenericConversation", *this, m_terminal.getLeafSender().getConnectionID() );
+        //ConversationBase::RequestStack stack(
+        //    "GenericConversation", *this, m_terminal.getLeafSender().getConnectionID() );
         m_functor( *this, m_terminal.getLeafSender(), yield_ctx );
     }
 };
@@ -257,7 +257,7 @@ std::vector< network::ConversationID > Terminal::SimList()
 
 void Terminal::testReadLock( const network::ConversationID& simID )
 {
-    std::optional< std::variant< bool, std::exception_ptr > > result;
+    std::optional< std::variant< int, std::exception_ptr > > result;
     {
         auto func = [ &result, &simID ](
                         network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
@@ -267,7 +267,7 @@ void Terminal::testReadLock( const network::ConversationID& simID )
             {
                 leaf.TermSimReadLock( simID );
                 SPDLOG_INFO( "Readlock success" );
-                result = true;
+                result = 0;
             }
             catch ( std::exception& ex )
             {

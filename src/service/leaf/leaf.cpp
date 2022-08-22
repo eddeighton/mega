@@ -16,9 +16,13 @@
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/leaf_tool.hxx"
 
+#include "mega/common.hpp"
+
 #include "common/requireSemicolon.hpp"
 
 #include "boost/system/detail/error_code.hpp"
+
+mega::ExecutionContext* g_pExecutionContext = nullptr;
 
 namespace mega
 {
@@ -398,16 +402,19 @@ public:
 
 class LeafEnrole : public LeafRequestConversation
 {
+    std::promise< void >& m_promise;
+
 public:
-    LeafEnrole( Leaf& leaf, const network::ConnectionID& originatingConnectionID )
+    LeafEnrole( Leaf& leaf, const network::ConnectionID& originatingConnectionID, std::promise< void >& promise )
         : LeafRequestConversation( leaf, leaf.createConversationID( originatingConnectionID ), originatingConnectionID )
+        , m_promise( promise )
     {
     }
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        ConversationBase::RequestStack stack( "LeafEnrole", *this, m_leaf.getDaemonSender().getConnectionID() );
         getDaemonRequest( yield_ctx ).LeafEnrole( m_leaf.getType() );
+        boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };
 
@@ -425,9 +432,14 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType )
     m_pSelfSender = m_receiverChannel.getSender();
 
     // immediately enrole with node type
-    conversationInitiated(
-        network::ConversationBase::Ptr( new LeafEnrole( *this, getDaemonSender().getConnectionID() ) ),
-        getDaemonSender() );
+    {
+        std::promise< void >          promise;
+        std::future< void >           future = promise.get_future();
+        std::shared_ptr< LeafEnrole > pEnrole
+            = std::make_shared< LeafEnrole >( *this, getDaemonSender().getConnectionID(), promise );
+        conversationInitiated( pEnrole, getDaemonSender() );
+        future.wait();
+    }
 }
 
 Leaf::~Leaf()

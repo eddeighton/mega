@@ -3,10 +3,13 @@
 
 #include "service/executor.hpp"
 #include "service/network/conversation.hpp"
+#include "service/protocol/model/exe_leaf.hxx"
 #include "service/protocol/model/exe_sim.hxx"
 #include "service/protocol/model/messages.hxx"
 #include <boost/asio/execution_context.hpp>
 #include <boost/asio/this_coro.hpp>
+
+extern mega::ExecutionContext* g_pExecutionContext;
 
 namespace mega
 {
@@ -40,13 +43,26 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
     }
 }
 
+std::string Simulation::mapBuffer( const mega::reference& reference )
+{
+    // getLeafRequest( *m_pYieldContext ).ExeGetProject()
+
+    return "";
+}
+
 void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
-    ConversationBase::RequestStack stack( "Simulation testing", *this, getConnectionID() );
+    //ConversationBase::RequestStack stack( "Simulation testing", *this, getConnectionID() );
 
     SPDLOG_INFO( "Simulation Started: {}", getID() );
 
-    
+    // create the root
+    // mega::ExecutionContext*                      pThis = this;
+    m_pYieldContext     = &yield_ctx;
+    g_pExecutionContext = this;
+    std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
+        mega::runtime::allocateRoot( *g_pExecutionContext, getID() ),
+        []( Root* pRoot ) { mega::runtime::releaseRoot( *g_pExecutionContext, pRoot ); } );
 
     try
     {

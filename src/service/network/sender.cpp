@@ -11,6 +11,7 @@
 #include "common/assert_verify.hpp"
 
 #include <boost/asio/buffer.hpp>
+#include <boost/asio/experimental/channel_error.hpp>
 #include <boost/asio/write.hpp>
 
 #include "boost/interprocess/interprocess_fwd.hpp"
@@ -116,15 +117,24 @@ public:
     {
         const ChannelMsg channelMsg{ Header{ static_cast< MessageID >( getMsgID( msg ) ), conversationID }, msg };
         boost::system::error_code ec;
-        m_channel.async_send( ec, channelMsg,
-                              [ &msg ]( boost::system::error_code ec )
-                              {
-                                  if ( ec )
-                                  {
-                                      SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
-                                      THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
-                                  }
-                              } );
+        VERIFY_RTE_MSG( m_channel.is_open(), "Channel NOT open" );
+        m_channel.async_send( ec, channelMsg, yield_ctx );
+
+        if ( ec != boost::system::error_code() )
+        {
+            if ( ( ec != boost::asio::experimental::error::channel_cancelled )
+                 && ( ec != boost::asio::experimental::error::channel_closed ) )
+            {
+                SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
+                THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
+            }
+            else
+            {
+                SPDLOG_ERROR( "Failed to send request due to channel closed: {}", ec.what() );
+                THROW_RTE( "Failed to send request due to channel closed: " << ec.what() );
+            }
+        }
+
         return ec;
     }
 
@@ -169,15 +179,24 @@ public:
     {
         const ChannelMsg channelMsg{ Header{ static_cast< MessageID >( getMsgID( msg ) ), conversationID }, msg };
         boost::system::error_code ec;
-        m_channel.async_send( ec, channelMsg,
-                              [ &msg ]( boost::system::error_code ec )
-                              {
-                                  if ( ec )
-                                  {
-                                      SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
-                                      THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
-                                  }
-                              } );
+        VERIFY_RTE_MSG( m_channel.is_open(), "Channel NOT open" );
+        m_channel.async_send( ec, channelMsg, yield_ctx );
+
+        if ( ec != boost::system::error_code() )
+        {
+            if ( ( ec != boost::asio::experimental::error::channel_cancelled )
+                 && ( ec != boost::asio::experimental::error::channel_closed ) )
+            {
+                SPDLOG_ERROR( "Failed to send request: {} with error: {}", msg, ec.what() );
+                THROW_RTE( "Failed to send request on channel: " << msg << " : " << ec.what() );
+            }
+            else
+            {
+                SPDLOG_ERROR( "Failed to send request due to channel closed: {}", ec.what() );
+                THROW_RTE( "Failed to send request due to channel closed: " << ec.what() );
+            }
+        }
+
         return ec;
     }
 

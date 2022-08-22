@@ -37,8 +37,8 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        ConversationBase::RequestStack stack(
-            "GenericConversation", *this, m_executor.getLeafSender().getConnectionID() );
+        //ConversationBase::RequestStack stack(
+        //    "GenericConversation", *this, m_executor.getLeafSender().getConnectionID() );
         m_functor( *this, m_executor.getLeafSender(), yield_ctx );
     }
 };

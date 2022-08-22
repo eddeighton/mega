@@ -52,16 +52,19 @@ void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversa
         m_ioContext, 
         [ pConversation, &parentSender ]( boost::asio::yield_context yield_ctx ) 
         { 
+            ConversationBase::RequestStack stack( "Initiated", *pConversation, parentSender.getConnectionID() );
             {
-                auto msg = network::MSG_Conversation_New::make( network::MSG_Conversation_New{} );
-                parentSender.send( pConversation->getID(), msg, yield_ctx );
-            }
+                {
+                    auto msg = network::MSG_Conversation_New::make( network::MSG_Conversation_New{} );
+                    parentSender.send( pConversation->getID(), msg, yield_ctx );
+                }
 
-            pConversation->run( yield_ctx ); 
+                pConversation->run( yield_ctx ); 
 
-            {
-                auto msg = network::MSG_Conversation_End::make( network::MSG_Conversation_End{} );
-                parentSender.send( pConversation->getID(), msg, yield_ctx );
+                {
+                    auto msg = network::MSG_Conversation_End::make( network::MSG_Conversation_End{} );
+                    parentSender.send( pConversation->getID(), msg, yield_ctx );
+                }
             }
         } 
     );

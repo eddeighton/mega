@@ -23,6 +23,7 @@ namespace service
 class Tool : public network::ConversationManager
 {
     friend class ToolRequestConversation;
+
 public:
     Tool();
     ~Tool();
@@ -40,12 +41,11 @@ public:
     void run( Functor& function );
 
     network::Sender& getLeafSender() { return m_leaf; }
+
 private:
     boost::asio::io_context  m_io_context;
     network::ReceiverChannel m_receiverChannel;
-    //using ExecutorType = decltype( m_io_context.get_executor() );
-    //boost::asio::executor_work_guard< ExecutorType > m_work_guard;
-    Leaf                                             m_leaf;
+    Leaf                     m_leaf;
 };
 
 } // namespace service

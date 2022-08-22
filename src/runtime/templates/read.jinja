@@ -4,7 +4,7 @@
 
 static int x = 321;
 
-void* {{ name }}( const mega::reference& )
+void* {{ name }}( mega::ExecutionContext& executionContext, const mega::reference& )
 {
     return &x;
 }

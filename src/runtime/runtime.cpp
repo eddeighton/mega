@@ -74,12 +74,35 @@ public:
         }
     }
 
-    void get_allocate( const char* pszUnitName, mega::ExecutionContext executionContext,
-                      const mega::InvocationID& invocation, AllocateFunction* ppFunction )
+    ::Root* allocateRoot( mega::ExecutionContext& executionContext, const mega::network::ConversationID& simulationID )
+    {
+        mega::reference ref   = {};
+        ::Root*         pRoot = new ::Root( ref );
+
+        const std::string strBufferName = executionContext.mapBuffer( ref );
+
+        // executionContext
+
+        return pRoot;
+    }
+
+    void releaseRoot( mega::ExecutionContext& executionContext, ::Root* pRoot )
+    {
+        //
+        delete pRoot;
+    }
+
+    void get_allocate( const char* pszUnitName, mega::ExecutionContext& executionContext,
+                       const mega::InvocationID& invocation, AllocateFunction* ppFunction )
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+
+        {
+            mega::reference   ref           = {};
+            const std::string strBufferName = executionContext.mapBuffer( ref );
+        }
 
         JITCompiler::Module::Ptr pModule;
         {
@@ -97,14 +120,14 @@ public:
             }
         }
 
-        // _Z22ct1pt1__eg_ImpNoParamsRKN4mega9referenceE
+        // _Z22ct1pt1__eg_ImpNoParamsRN4mega16ExecutionContextERKNS_9referenceE
         std::ostringstream os;
-        os << "_Z22" << invocation << "RKN4mega9referenceE";
+        os << "_Z22" << invocation << "RN4mega16ExecutionContextERKNS_9referenceE";
         *ppFunction = pModule->getAllocate( os.str() );
     }
 
-    void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
-                      const mega::InvocationID& invocation, ReadFunction* ppFunction )
+    void get_read( const char* pszUnitName, mega::ExecutionContext& executionContext,
+                   const mega::InvocationID& invocation, ReadFunction* ppFunction )
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
@@ -127,7 +150,7 @@ public:
         }
         // _Z23ct1ps12__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z23" << invocation << "RKN4mega9referenceE";
+        os << "_Z23" << invocation << "RN4mega16ExecutionContextERKNS_9referenceE";
         *ppFunction = pModule->getRead( os.str() );
     }
 
@@ -167,13 +190,22 @@ void initialiseRuntime( const mega::network::MegastructureInstallation& megastru
     getStaticRuntime().reinitialise( megastructureInstallation, project );
 }
 
-extern void get_allocate( const char* pszUnitName, mega::ExecutionContext executionContext,
-                          const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
+::Root* allocateRoot( mega::ExecutionContext& executionContext, const mega::network::ConversationID& simulationID )
+{
+    return getStaticRuntime().allocateRoot( executionContext, simulationID );
+}
+void releaseRoot( mega::ExecutionContext& executionContext, ::Root* pRoot )
+{
+    getStaticRuntime().releaseRoot( executionContext, pRoot );
+}
+
+void get_allocate( const char* pszUnitName, mega::ExecutionContext& executionContext,
+                   const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
 {
     getStaticRuntime().get_allocate( pszUnitName, executionContext, invocationID, ppFunction );
 }
-extern void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
-                      const mega::InvocationID& invocationID, ReadFunction* ppFunction )
+void get_read( const char* pszUnitName, mega::ExecutionContext& executionContext,
+               const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
     getStaticRuntime().get_read( pszUnitName, executionContext, invocationID, ppFunction );
 }
