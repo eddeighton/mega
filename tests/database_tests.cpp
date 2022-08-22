@@ -20,6 +20,7 @@
 
 #include <fstream>
 
+/*
 class DatabaseTest : public ::testing::Test
 {
 public:
@@ -65,7 +66,7 @@ public:
         namespace bfs = boost::filesystem;
         bfs::remove_all( boost::filesystem::temp_directory_path() / "DatabaseTest" );
     }
-};
+};*/
 /*
 TEST_F( DatabaseTest, Basic )
 {
@@ -308,7 +309,6 @@ TEST_F( DatabaseTest, MapOfPointers )
         database.store();
     }
 }
-*/
 TEST_F( DatabaseTest, Inserter )
 {
     {
@@ -327,3 +327,4 @@ TEST_F( DatabaseTest, Inserter )
         // ASSERT_EQ( pComponent->get_include_directories().front(), "testpath" );
     }
 }
+*/

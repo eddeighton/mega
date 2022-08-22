@@ -61,6 +61,8 @@ namespace Interface
         value< std::int32_t > symbol -> SymbolRollout::PerSourceSymbols;
         late< value< std::int32_t > > type_id -> SymbolRollout::PerSourceSymbols;
         opt< ref< Concrete::Context > > concrete -> ConcreteStage::Concrete;
+
+        array< ref< Concrete::Context > > concrete_inheritors -> DerivationAnalysisRollout::PerSourceDerivations;
     }
 
     // main context types
@@ -107,6 +109,8 @@ namespace Interface
         array< ref< Parser::LinkDef > > link_defs;
         late< ref< LinkTrait > > link_trait;
         late< ref< InheritanceTrait > > link_target;
+
+        ref< HyperGraph::Relation > link_relation -> HyperGraphAnalysisRollout::PerSourceModel;
     }
     object Table : IContext -> InterfaceStage::Tree
     {

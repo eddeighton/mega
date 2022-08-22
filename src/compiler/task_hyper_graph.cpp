@@ -1,12 +1,15 @@
 
 #include "base_task.hpp"
 
+#include "database/model/DerivationAnalysis.hxx"
 #include "database/model/HyperGraphAnalysis.hxx"
 #include "database/model/HyperGraphAnalysisView.hxx"
+#include "database/model/HyperGraphAnalysisRollout.hxx"
 #include "database/model/manifest.hxx"
 
 #include "database/common/environment_archive.hpp"
 #include "database/common/exception.hpp"
+#include "database/types/cardinality.hpp"
 
 namespace mega
 {
@@ -32,28 +35,131 @@ public:
         {
         }
 
-        HyperGraphAnalysis::HyperGraph::ObjectGraph* operator()( HyperGraphAnalysis::Database& database,
-                                                                 const mega::io::megaFilePath& sourceFilePath,
-                                                                 const task::DeterminantHash   interfaceHash ) const
+        HyperGraphAnalysis::HyperGraph::Relations* operator()( HyperGraphAnalysis::Database& database,
+                                                               const mega::io::megaFilePath& sourceFilePath,
+                                                               const task::DeterminantHash   interfaceHash ) const
         {
             using namespace HyperGraphAnalysis;
             using namespace HyperGraphAnalysis::HyperGraph;
 
-            ObjectGraph* pDependencies
-                = database.construct< ObjectGraph >( ObjectGraph::Args{ sourceFilePath, interfaceHash.get() } );
+            std::map< Interface::Link*, Relation* > relations;
+
+            for ( Interface::Link* pLink : database.many< Interface::Link >( sourceFilePath ) )
+            {
+                std::vector< Interface::IContext* > targets = pLink->get_link_target()->get_contexts();
+                VERIFY_RTE_MSG( targets.size() == 1, "Invalid number of link targets" );
+
+                Interface::LinkTrait*        pLinkTrait = pLink->get_link_trait();
+                const mega::CardinalityRange linkee     = pLinkTrait->get_linkee();
+                const mega::CardinalityRange linker     = pLinkTrait->get_linker();
+
+                // linker is where link is defined
+                Relation* pRelation = nullptr;
+                /*if ( linker.lower().isMany() || linkee.lower().isMany() )
+                {
+                    pRelation = database.construct< NonSingularRelation >(
+                        NonSingularRelation::Args{ Relation::Args{ pLinkTrait, pLink, targets.front() } } );
+                }
+                else
+                {
+                    pRelation = database.construct< SingularRelation >(
+                        SingularRelation::Args{ Relation::Args{ pLinkTrait, pLink, targets.front() } } );
+                }*/
+
+                // Interface::Link* pLinkReconstructed
+                //     = database.construct< Interface::Link >( Interface::Link::Args( pLink, pRelation ) );
+
+                // relations.insert( { pLink, pRelation } );
+            }
+
+            Relations* pDependencies
+                = database.construct< Relations >( Relations::Args{ sourceFilePath, interfaceHash.get(), relations } );
             return pDependencies;
         }
 
-        HyperGraphAnalysis::HyperGraph::ObjectGraph*
-        operator()( HyperGraphAnalysis::Database&                          database,
-                    const HyperGraphAnalysisView::HyperGraph::ObjectGraph* pOldObjectGraph ) const
+        HyperGraphAnalysis::HyperGraph::Relations*
+        operator()( HyperGraphAnalysis::Database&                        database,
+                    const HyperGraphAnalysisView::HyperGraph::Relations* pOldObjectGraph ) const
         {
             using namespace HyperGraphAnalysis;
             using namespace HyperGraphAnalysis::HyperGraph;
 
-            ObjectGraph* pDependencies = database.construct< ObjectGraph >(
-                ObjectGraph::Args{ pOldObjectGraph->get_source_file(), pOldObjectGraph->get_hash_code() } );
+            std::map< Interface::Link*, Relation* > relations;
+
+            Relations* pDependencies = database.construct< Relations >(
+                Relations::Args{ pOldObjectGraph->get_source_file(), pOldObjectGraph->get_hash_code(), relations } );
             return pDependencies;
+        }
+        /*void reconstructContexts( HyperGraphAnalysis::Database&          database,
+                                  HyperGraphAnalysis::Concrete::Context* pContext ) const
+        {
+            using namespace HyperGraphAnalysis;
+            using namespace HyperGraphAnalysis::HyperGraph;
+
+            database.construct< Concrete::Context >( Concrete::Context::Args{ pContext, {} } );
+
+            for ( Concrete::Context* pChildContext : pContext->get_children() )
+            {
+                reconstructContexts( database, pChildContext );
+            }
+        }*/
+        void recurse( HyperGraphAnalysis::Database& database, HyperGraphAnalysis::Concrete::Context* pContext ) const
+        {
+            using namespace HyperGraphAnalysis;
+            using namespace HyperGraphAnalysis::HyperGraph;
+
+            if ( Concrete::Link* pConcreteLink = dynamic_database_cast< Concrete::Link >( pContext ) )
+            {
+                // Interface::Link* pInterfaceLink = pConcreteLink->get_interface_link();
+                // Relation*        pRelation      = pInterfaceLink->get_link_relation();
+                // VERIFY_RTE( pRelation );
+
+                // Concrete::Dimensions::LinkReference* pLinkReference
+                //     = database.construct< Concrete::Dimensions::LinkReference >(
+                //         Concrete::Dimensions::LinkReference::Args{ pConcreteLink } );
+
+                // Concrete::Link* pConcreteLinkReconstructed
+                //     = database.construct< Concrete::Link >( Concrete::Link::Args{ pConcreteLink, pLinkReference } );
+
+                // pContext->push_back_link_dimensions( pLinkReference );
+
+                /*Interface::IContext* pTarget = pRelation->get_target();
+
+                for( Concrete::Context* pConcreteTarget : pTarget->get_concrete_inheritors() )
+                {
+                    Concrete::Dimensions::LinkReference* pLinkTargetReference
+                        = database.construct< Concrete::Dimensions::LinkReference >(
+                            Concrete::Dimensions::LinkReference::Args{ pConcreteLink } );
+
+                    pConcreteTarget->push_back_link_dimensions( pLinkTargetReference );
+
+                }*/
+
+                // Derivation::ObjectMapping* pObjectMapping = database.one< Derivation::ObjectMapping >(
+                // m_environment.project_manifest()); pTarget->
+            }
+
+            for ( Concrete::Context* pChildContext : pContext->get_children() )
+            {
+                recurse( database, pChildContext );
+            }
+        }
+
+        void generateConcreteLinkDimensions( HyperGraphAnalysis::Database& database,
+                                             const mega::io::megaFilePath& sourceFilePath ) const
+        {
+            using namespace HyperGraphAnalysis;
+            using namespace HyperGraphAnalysis::HyperGraph;
+
+            Concrete::Root* pRoot = database.one< Concrete::Root >( sourceFilePath );
+            /*for ( Concrete::Context* pContext : pRoot->get_children() )
+            {
+                reconstructContexts( database, pContext );
+            }*/
+            for ( Concrete::Context* pContext : pRoot->get_children() )
+            {
+                recurse( database, pContext );
+            }
         }
     };
 
@@ -106,7 +212,7 @@ public:
         } hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
         bool bReusedOldDatabase = false;
-        if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
+        /*if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
             try
             {
@@ -123,8 +229,8 @@ public:
                     const Old::HyperGraph::Graph* pOldAnalysis
                         = oldDatabase.one< Old::HyperGraph::Graph >( manifestFilePath );
                     VERIFY_RTE( pOldAnalysis );
-                    using OldObjectGraphVector              = std::vector< Old::HyperGraph::ObjectGraph* >;
-                    const OldObjectGraphVector dependencies = pOldAnalysis->get_objects();
+                    using OldObjectGraphVector              = std::vector< Old::HyperGraph::Relations* >;
+                    const OldObjectGraphVector dependencies = pOldAnalysis->get_relations();
                     const PathSet              sourceFiles  = getSortedSourceFiles();
 
                     struct Compare
@@ -136,17 +242,17 @@ public:
                         }
                         bool operator()( OldObjectGraphVector::const_iterator i, PathSet::const_iterator j ) const
                         {
-                            const Old::HyperGraph::ObjectGraph* pDependencies = *i;
+                            const Old::HyperGraph::Relations* pDependencies = *i;
                             return pDependencies->get_source_file() < *j;
                         }
                         bool opposite( OldObjectGraphVector::const_iterator i, PathSet::const_iterator j ) const
                         {
-                            const Old::HyperGraph::ObjectGraph* pDependencies = *i;
+                            const Old::HyperGraph::Relations* pDependencies = *i;
                             return *j < pDependencies->get_source_file();
                         }
                     } comparator( m_environment );
 
-                    using NewDependenciesVector = std::vector< New::HyperGraph::ObjectGraph* >;
+                    using NewDependenciesVector = std::vector< New::HyperGraph::Relations* >;
                     NewDependenciesVector newDependencies;
                     {
                         generics::matchGetUpdates(
@@ -158,8 +264,8 @@ public:
                             [ &env = m_environment, &hashCodeGenerator, &newDependencies, &newDatabase, &taskProgress ](
                                 OldObjectGraphVector::const_iterator i, PathSet::const_iterator j ) -> bool
                             {
-                                const Old::HyperGraph::ObjectGraph* pDependencies = *i;
-                                const task::DeterminantHash         interfaceHash = hashCodeGenerator( *j );
+                                const Old::HyperGraph::Relations* pDependencies = *i;
+                                const task::DeterminantHash       interfaceHash = hashCodeGenerator( *j );
                                 if ( interfaceHash == pDependencies->get_hash_code() )
                                 {
                                     // since the code is NOT modified - can re use the globs from previous result
@@ -206,9 +312,9 @@ public:
                               &newDependencies ]( OldObjectGraphVector::const_iterator i )
                             {
                                 // since the code is modified - must re analyse ALL dependencies from the ground up
-                                const Old::HyperGraph::ObjectGraph* pDependencies = *i;
-                                const mega::io::megaFilePath        megaFilePath  = pDependencies->get_source_file();
-                                const task::DeterminantHash         interfaceHash = hashCodeGenerator( megaFilePath );
+                                const Old::HyperGraph::Relations* pDependencies = *i;
+                                const mega::io::megaFilePath      megaFilePath  = pDependencies->get_source_file();
+                                const task::DeterminantHash       interfaceHash = hashCodeGenerator( megaFilePath );
                                 newDependencies.push_back(
                                     CalculateGraph( env )( newDatabase, megaFilePath, interfaceHash ) );
                             } );
@@ -229,7 +335,7 @@ public:
             {
                 bReusedOldDatabase = false;
             }
-        }
+        }*/
 
         if ( !bReusedOldDatabase )
         {
@@ -238,14 +344,19 @@ public:
 
             Database database( m_environment, manifestFilePath );
             {
-                std::vector< ObjectGraph* > dependencies;
+                CalculateGraph functor( m_environment );
+
+                std::vector< Relations* > dependencies;
                 {
                     const PathSet sourceFiles = getSortedSourceFiles();
                     for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
                     {
                         const task::DeterminantHash interfaceHash = hashCodeGenerator( sourceFilePath );
-                        dependencies.push_back(
-                            CalculateGraph( m_environment )( database, sourceFilePath, interfaceHash ) );
+                        dependencies.push_back( functor( database, sourceFilePath, interfaceHash ) );
+                    }
+                    for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
+                    {
+                        functor.generateConcreteLinkDimensions( database, sourceFilePath );
                     }
                 }
                 database.construct< Graph >( Graph::Args{ dependencies } );
@@ -265,6 +376,53 @@ BaseTask::Ptr create_Task_HyperGraph( const TaskArguments&              taskArgu
                                       const mega::io::manifestFilePath& manifestFilePath )
 {
     return std::make_unique< Task_HyperGraph >( taskArguments, manifestFilePath );
+}
+
+class Task_HyperGraphRollout : public BaseTask
+{
+    const mega::io::megaFilePath& m_sourceFilePath;
+
+public:
+    Task_HyperGraphRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath& megaSourceFilePath )
+        : BaseTask( taskArguments )
+        , m_sourceFilePath( megaSourceFilePath )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        const mega::io::CompilationFilePath hyperGraphAnalysisCompilationFile
+            = m_environment.HyperGraphAnalysis_Model( m_environment.project_manifest() );
+        const mega::io::CompilationFilePath rolloutCompilationFile
+            = m_environment.HyperGraphAnalysisRollout_PerSourceModel( m_sourceFilePath );
+        start( taskProgress, "Task_ConcreteTypeRollout", m_sourceFilePath.path(), rolloutCompilationFile.path() );
+
+        const task::DeterminantHash determinant
+            = { m_environment.getBuildHashCode( hyperGraphAnalysisCompilationFile ) };
+
+        if ( m_environment.restore( rolloutCompilationFile, determinant ) )
+        {
+            m_environment.setBuildHashCode( rolloutCompilationFile );
+            cached( taskProgress );
+            return;
+        }
+
+        using namespace HyperGraphAnalysisRollout;
+
+        Database database( m_environment, m_sourceFilePath );
+
+        const task::FileHash fileHashCode = database.save_PerSourceModel_to_temp();
+        m_environment.setBuildHashCode( rolloutCompilationFile, fileHashCode );
+        m_environment.temp_to_real( rolloutCompilationFile );
+        m_environment.stash( rolloutCompilationFile, determinant );
+        succeeded( taskProgress );
+    }
+};
+
+BaseTask::Ptr create_Task_HyperGraphRollout( const TaskArguments&          taskArguments,
+                                             const mega::io::megaFilePath& megaSourceFilePath )
+{
+    return std::make_unique< Task_HyperGraphRollout >( taskArguments, megaSourceFilePath );
 }
 
 } // namespace compiler

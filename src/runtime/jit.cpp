@@ -83,42 +83,41 @@ public:
     }
 
     ~ModuleImpl() { ExitOnErr( m_jit.getExecutionSession().removeJITDylib( m_jitDynLib ) ); }
-/*
-    std::string mangleName( llvm::StringRef UnmangledName )
-    {
-        std::string MangledName;
+    /*
+        std::string mangleName( llvm::StringRef UnmangledName )
         {
-            llvm::raw_string_ostream MangledNameStream( MangledName );
-            llvm::Mangler::getNameWithPrefix( MangledNameStream, UnmangledName, m_jit.getDataLayout() );
+            std::string MangledName;
+            {
+                llvm::raw_string_ostream MangledNameStream( MangledName );
+                llvm::Mangler::getNameWithPrefix( MangledNameStream, UnmangledName, m_jit.getDataLayout() );
+            }
+            return MangledName;
         }
-        return MangledName;
-    }
 
-    llvm::JITTargetAddress findSymbolAddress( const std::string& strSymbol )
-    {
-        auto&                          executionSession = m_jit.getExecutionSession();
-        llvm::orc::SymbolStringPtr     pNamePtr         = executionSession.intern( mangleName( strSymbol ) );
+        llvm::JITTargetAddress findSymbolAddress( const std::string& strSymbol )
+        {
+            auto&                          executionSession = m_jit.getExecutionSession();
+            llvm::orc::SymbolStringPtr     pNamePtr         = executionSession.intern( mangleName( strSymbol ) );
 
-        llvm::orc::JITDylibSearchOrder jitDynListSearchList{
-            std::pair< llvm::orc::JITDylib*, llvm::orc::JITDylibLookupFlags >{
-                &m_jitDynLib, llvm::orc::JITDylibLookupFlags::MatchAllSymbols } };
+            llvm::orc::JITDylibSearchOrder jitDynListSearchList{
+                std::pair< llvm::orc::JITDylib*, llvm::orc::JITDylibLookupFlags >{
+                    &m_jitDynLib, llvm::orc::JITDylibLookupFlags::MatchAllSymbols } };
 
-        llvm::JITEvaluatedSymbol jitEvaluatedSymbol
-            = ExitOnErr( executionSession.lookup( jitDynListSearchList, pNamePtr ) );
-        VERIFY_RTE( jitEvaluatedSymbol );
+            llvm::JITEvaluatedSymbol jitEvaluatedSymbol
+                = ExitOnErr( executionSession.lookup( jitDynListSearchList, pNamePtr ) );
+            VERIFY_RTE( jitEvaluatedSymbol );
 
-        llvm::JITTargetAddress jitAddress = jitEvaluatedSymbol.getAddress();
-        VERIFY_RTE( jitAddress );
-        return jitAddress;
-    }
-*/
+            llvm::JITTargetAddress jitAddress = jitEvaluatedSymbol.getAddress();
+            VERIFY_RTE( jitAddress );
+            return jitAddress;
+        }
+    */
     virtual mega::runtime::AllocateFunction getAllocate( const std::string& strSymbol )
     {
         auto allocateFunction = ExitOnErr( m_jit.lookup( m_jitDynLib, strSymbol ) );
         VERIFY_RTE( allocateFunction );
 
-        mega::runtime::AllocateFunction pResultFunction
-            = allocateFunction.toPtr< mega::runtime::AllocateFunction >();
+        mega::runtime::AllocateFunction pResultFunction = allocateFunction.toPtr< mega::runtime::AllocateFunction >();
         VERIFY_RTE( pResultFunction );
         return pResultFunction;
     }

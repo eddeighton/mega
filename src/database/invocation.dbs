@@ -126,6 +126,10 @@ namespace Invocations
             ref< Concrete::Dimensions::User > concrete_dimension;
         }
 
+        object Allocate : BasicOperation -> OperationsStage::Operations
+        {
+        }
+
         object Call : BasicOperation -> OperationsStage::Operations
         {
         }

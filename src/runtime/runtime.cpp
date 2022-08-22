@@ -81,21 +81,26 @@ public:
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
-        auto iFind = m_invocations.find( invocation );
-        if ( iFind != m_invocations.end() )
+        JITCompiler::Module::Ptr pModule;
         {
-            //*ppFunction = iFind->second->getAllocate( "_Z8testFuncRKN4mega9referenceE" );
+            auto iFind = m_invocations.find( invocation );
+            if ( iFind != m_invocations.end() )
+            {
+                pModule = iFind->second;
+            }
+            else
+            {
+                std::ostringstream osModule;
+                m_pCodeGenerator->generate_allocate( *m_database, invocation, osModule );
+                pModule = m_pJITCompiler->compile( osModule.str() );
+                m_invocations.insert( std::make_pair( invocation, pModule ) );
+            }
         }
-        else
-        {
-            std::ostringstream osModule;
-            m_pCodeGenerator->generate_allocate( *m_database, invocation, osModule );
 
-            JITCompiler::Module::Ptr pModule = m_pJITCompiler->compile( osModule.str() );
-            m_invocations.insert( std::make_pair( invocation, pModule ) );
-
-            //*ppFunction = pModule->getAllocate( "_Z8testFuncRKN4mega9referenceE" );
-        }
+        // _Z22ct1pt1__eg_ImpNoParamsRKN4mega9referenceE
+        std::ostringstream os;
+        os << "_Z22" << invocation << "RKN4mega9referenceE";
+        *ppFunction = pModule->getAllocate( os.str() );
     }
 
     void get_read( const char* pszUnitName, mega::ExecutionContext executionContext,
@@ -105,27 +110,25 @@ public:
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
+        JITCompiler::Module::Ptr pModule;
+        {
+            auto iFind = m_invocations.find( invocation );
+            if ( iFind != m_invocations.end() )
+            {
+                pModule = iFind->second;
+            }
+            else
+            {
+                std::ostringstream osModule;
+                m_pCodeGenerator->generate_read( *m_database, invocation, osModule );
+                pModule = m_pJITCompiler->compile( osModule.str() );
+                m_invocations.insert( std::make_pair( invocation, pModule ) );
+            }
+        }
+        // _Z23ct1ps12__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        //os << invocation << "(mega::reference const&)";
-        //os << invocation;
-        //os << "_Z24ct15ps10__eg_ImpNoParamsRKN4mega9referenceE";
-        os << "_Z24" << invocation << "RKN4mega9referenceE";
-
-        auto iFind = m_invocations.find( invocation );
-        if ( iFind != m_invocations.end() )
-        {
-            *ppFunction = iFind->second->getRead( os.str() );
-        }
-        else
-        {
-            std::ostringstream osModule;
-            m_pCodeGenerator->generate_read( *m_database, invocation, osModule );
-
-            JITCompiler::Module::Ptr pModule = m_pJITCompiler->compile( osModule.str() );
-            m_invocations.insert( std::make_pair( invocation, pModule ) );
-
-            *ppFunction = pModule->getRead( os.str() );
-        }
+        os << "_Z23" << invocation << "RKN4mega9referenceE";
+        *ppFunction = pModule->getRead( os.str() );
     }
 
 private:

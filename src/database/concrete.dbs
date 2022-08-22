@@ -11,33 +11,41 @@ namespace Concrete
             ref< MemoryLayout::Part > part -> MemoryStage::MemoryLayout;
         }
 
-        object Generated -> MemoryStage::MemoryLayout
+        // HyperGraphAnalysis
+        object LinkReference -> HyperGraphAnalysisRollout::PerSourceModel
+        {
+            ref< Link > link;
+        }
+        object LinkSingle : LinkReference -> HyperGraphAnalysisRollout::PerSourceModel
+        {
+        }
+        object LinkMany : LinkReference -> HyperGraphAnalysisRollout::PerSourceModel
+        {
+        }
+
+        // MemoryStage
+        object Allocation -> MemoryStage::MemoryLayout
         {
             ref< Concrete::Context > parent;
             late< value< std::size_t > > offset;
             late< ref< MemoryLayout::Part > > part -> MemoryStage::MemoryLayout;
         }
-
-        object StopCycle : Generated -> MemoryStage::MemoryLayout
+/*
+        object StopCycle : Allocation -> MemoryStage::MemoryLayout
         {
         }
 
-        object Reference : Generated -> MemoryStage::MemoryLayout
+        object Reference : Allocation -> MemoryStage::MemoryLayout
         {
         }
 
-        object State : Generated -> MemoryStage::MemoryLayout
+        object State : Allocation -> MemoryStage::MemoryLayout
         {
-        }
+        }*/
 
-        object Allocator : Generated -> MemoryStage::MemoryLayout
+        object Allocator : Allocation -> MemoryStage::MemoryLayout
         {
             ref< Allocators::Allocator > allocator;
-        }
-
-        object LinkReference : Generated -> MemoryStage::MemoryLayout
-        {
-            ref< Link > link;
         }
     }
 
@@ -54,13 +62,13 @@ namespace Concrete
         
         value< std::int32_t > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
 
-        // MemoryStage::MemoryLayout
-        ref< Allocators::Allocator > allocator -> MemoryStage::MemoryLayout;
+        // hypergraph dimensions
+        array< ref< Dimensions::LinkReference > > link_dimensions -> HyperGraphAnalysisRollout::PerSourceModel;
 
         // MemoryStage::MemoryLayout
-        array< ref< Dimensions::Generated > > generated_dimensions -> MemoryStage::MemoryLayout;
+        ref< Allocators::Allocator > allocator -> MemoryStage::MemoryLayout;
+        array< ref< Dimensions::Allocation > > allocation_dimensions -> MemoryStage::MemoryLayout;
         array< ref< MemoryLayout::Part > > parts -> MemoryStage::MemoryLayout;
-        //array< ref< Dimensions::Dimension > > memory_layout -> MemoryStage::MemoryLayout;
     }
 
     object Namespace : Context -> ConcreteStage::Concrete
@@ -103,6 +111,8 @@ namespace Concrete
     object Link : Context -> ConcreteStage::Concrete
     {
         ref< Interface::Link > interface_link;
+
+        ref< Dimensions::LinkReference > link_reference -> HyperGraphAnalysisRollout::PerSourceModel;
 
         value< std::size_t > total_size -> MemoryStage::MemoryLayout;
     }

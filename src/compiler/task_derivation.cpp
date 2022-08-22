@@ -3,10 +3,12 @@
 
 #include "database/model/DerivationAnalysis.hxx"
 #include "database/model/DerivationAnalysisView.hxx"
+#include "database/model/DerivationAnalysisRollout.hxx"
 #include "database/model/manifest.hxx"
 
 #include "database/common/environment_archive.hpp"
 #include "database/common/exception.hpp"
+#include "database/types/sources.hpp"
 
 namespace mega
 {
@@ -158,16 +160,18 @@ public:
         return sourceFiles;
     }
 
-    void collate( DerivationAnalysis::Derivation::Mapping* pMapping )
+    void collate( DerivationAnalysis::Database& database, DerivationAnalysis::Derivation::Mapping* pMapping,
+                  const PathSet& sourceFiles )
     {
         using namespace DerivationAnalysis;
         using namespace DerivationAnalysis::Derivation;
-        
-        std::multimap< Interface::IContext*, Interface::IContext* > inheritance;
 
-        for( ObjectMapping* pObjectMapping : pMapping->get_mappings() )
+        using InheritanceMapping = std::multimap< Interface::IContext*, Interface::IContext* >;
+        InheritanceMapping inheritance;
+
+        for ( ObjectMapping* pObjectMapping : pMapping->get_mappings() )
         {
-            for( auto& [ pFrom, pTo ] : pObjectMapping->get_inheritance() )
+            for ( auto& [ pFrom, pTo ] : pObjectMapping->get_inheritance() )
             {
                 inheritance.insert( { pTo, pFrom } );
             }
@@ -323,8 +327,10 @@ public:
                             } );
                     }
 
-                    collate( newDatabase.construct< New::Derivation::Mapping >(
-                        New::Derivation::Mapping::Args{ newObjectMappings } ) );
+                    collate( newDatabase,
+                             newDatabase.construct< New::Derivation::Mapping >(
+                                 New::Derivation::Mapping::Args{ newObjectMappings } ),
+                             sourceFiles );
                 }
 
                 const task::FileHash fileHashCode = newDatabase.save_Derivations_to_temp();
@@ -349,8 +355,8 @@ public:
             Database database( m_environment, manifestFilePath );
             {
                 std::vector< ObjectMapping* > mappings;
+                const PathSet                 sourceFiles = getSortedSourceFiles();
                 {
-                    const PathSet sourceFiles = getSortedSourceFiles();
                     for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
                     {
                         const task::DeterminantHash interfaceHash = hashCodeGenerator( sourceFilePath );
@@ -358,7 +364,7 @@ public:
                             CalculateObjectMappings( m_environment )( database, sourceFilePath, interfaceHash ) );
                     }
                 }
-                collate( database.construct< Mapping >( Mapping::Args{ mappings } ) );
+                collate( database, database.construct< Mapping >( Mapping::Args{ mappings } ), sourceFiles );
             }
 
             const task::FileHash fileHashCode = database.save_Derivations_to_temp();
@@ -375,6 +381,75 @@ BaseTask::Ptr create_Task_Derivation( const TaskArguments&              taskArgu
                                       const mega::io::manifestFilePath& manifestFilePath )
 {
     return std::make_unique< Task_Derivation >( taskArguments, manifestFilePath );
+}
+
+class Task_DerivationRollout : public BaseTask
+{
+    const mega::io::megaFilePath& m_sourceFilePath;
+
+public:
+    Task_DerivationRollout( const TaskArguments& taskArguments, const mega::io::megaFilePath& megaSourceFilePath )
+        : BaseTask( taskArguments )
+        , m_sourceFilePath( megaSourceFilePath )
+    {
+    }
+
+    virtual void run( mega::pipeline::Progress& taskProgress )
+    {
+        const mega::io::CompilationFilePath analysisCompilationFilePath
+            = m_environment.DerivationAnalysis_Derivations( m_environment.project_manifest() );
+        const mega::io::CompilationFilePath rolloutCompilationFilePath
+            = m_environment.DerivationAnalysisRollout_PerSourceDerivations( m_sourceFilePath );
+        start( taskProgress, "Task_DerivationRollout", m_sourceFilePath.path(), rolloutCompilationFilePath.path() );
+
+        const task::DeterminantHash determinant
+            = { m_environment.getBuildHashCode( analysisCompilationFilePath ) };
+
+        if ( m_environment.restore( rolloutCompilationFilePath, determinant ) )
+        {
+            m_environment.setBuildHashCode( rolloutCompilationFilePath );
+            cached( taskProgress );
+            return;
+        }
+
+        using namespace DerivationAnalysisRollout;
+
+        Database database( m_environment, m_sourceFilePath );
+
+        using InheritanceMapping
+            = std::multimap< Interface::IContext*, Interface::IContext* >;
+
+        const Derivation::Mapping* pMapping    = database.one< Derivation::Mapping >( m_environment.project_manifest() );
+        const InheritanceMapping   inheritance = pMapping->get_inheritance();   
+
+        for ( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
+        {
+            std::vector< Concrete::Context* > concreteInheritors;
+            for ( InheritanceMapping::const_iterator i    = inheritance.lower_bound( pContext ),
+                                                        iEnd = inheritance.upper_bound( pContext );
+                    i != iEnd;
+                    ++i )
+            {
+                std::optional< Concrete::Context* > concreteOpt = i->second->get_concrete();
+                if ( concreteOpt.has_value() )
+                    concreteInheritors.push_back( concreteOpt.value() );
+            }
+            // reconstruct the interface context with its concrete inheritors list
+            database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, concreteInheritors } );
+        }
+
+        const task::FileHash fileHashCode = database.save_PerSourceDerivations_to_temp();
+        m_environment.setBuildHashCode( rolloutCompilationFilePath, fileHashCode );
+        m_environment.temp_to_real( rolloutCompilationFilePath );
+        m_environment.stash( rolloutCompilationFilePath, determinant );
+        succeeded( taskProgress );
+    }
+};
+
+BaseTask::Ptr create_Task_DerivationRollout( const TaskArguments&          taskArguments,
+                                             const mega::io::megaFilePath& megaSourceFilePath )
+{
+    return std::make_unique< Task_DerivationRollout >( taskArguments, megaSourceFilePath );
 }
 
 } // namespace compiler

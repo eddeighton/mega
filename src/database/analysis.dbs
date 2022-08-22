@@ -85,28 +85,12 @@ namespace Symbols
     }
 }
 
-namespace HyperGraph
-{
-    object ObjectGraph -> HyperGraphAnalysis::Model
-    {
-        value< mega::io::megaFilePath > source_file;
-        value< std::size_t > hash_code;
-
-    }
-
-    object Graph -> HyperGraphAnalysis::Model
-    {
-        array< ref< ObjectGraph > > objects;
-    }
-}
-
 namespace Derivation
 {
     object ObjectMapping -> DerivationAnalysis::Derivations
     {
         value< mega::io::megaFilePath > source_file;
         value< std::size_t > hash_code;
-
         multimap< ref< Interface::IContext >, ref< Interface::IContext > > inheritance;
     }
 
@@ -114,6 +98,35 @@ namespace Derivation
     {
         array< ref< ObjectMapping > > mappings;
         late< multimap< ref< Interface::IContext >, ref< Interface::IContext > > > inheritance;
+    }
+}
+
+namespace HyperGraph
+{
+    object Relation -> HyperGraphAnalysis::Model
+    {
+        // Interface::LinkTrait
+        ref< Interface::Link > link;
+        ref< Interface::IContext > target;
+    }
+    object SingularRelation : Relation -> HyperGraphAnalysis::Model
+    {
+    }
+    object NonSingularRelation : Relation -> HyperGraphAnalysis::Model
+    {
+    }
+
+    object Relations -> HyperGraphAnalysis::Model
+    {
+        value< mega::io::megaFilePath > source_file;
+        value< std::size_t > hash_code;
+
+        map< ref< Interface::Link >, ref< Relation > > relations;
+    }
+
+    object Graph -> HyperGraphAnalysis::Model
+    {
+        array< ref< Relations > > relations;
     }
 }
 
@@ -156,8 +169,9 @@ namespace MemoryLayout
     {
         ref< Concrete::Context > context;
         value< std::size_t > size;
-        array< ref< Concrete::Dimensions::Generated > > generated_dimensions;
         array< ref< Concrete::Dimensions::User > > user_dimensions;
+        array< ref< Concrete::Dimensions::LinkReference > > link_dimensions;
+        array< ref< Concrete::Dimensions::Allocation > > allocation_dimensions;
     }
 
     object Buffer -> MemoryStage::MemoryLayout

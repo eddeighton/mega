@@ -24,9 +24,11 @@ set( MEGA_DATABASE_GENERAED_DATA_HEADERS
     ${MEGA_API_DIR}/database/model/data_Concrete.hxx
     ${MEGA_API_DIR}/database/model/data_ConcreteTable.hxx
     ${MEGA_API_DIR}/database/model/data_Derivations.hxx
+    ${MEGA_API_DIR}/database/model/data_PerSourceDerivations.hxx
     ${MEGA_API_DIR}/database/model/data_DPGraph.hxx
     ${MEGA_API_DIR}/database/model/data_MemoryLayout.hxx
     ${MEGA_API_DIR}/database/model/data_Model.hxx
+    ${MEGA_API_DIR}/database/model/data_PerSourceModel.hxx
     ${MEGA_API_DIR}/database/model/data_Operations.hxx
     ${MEGA_API_DIR}/database/model/data_PerSourceSymbols.hxx
     ${MEGA_API_DIR}/database/model/data_PerSourceConcreteTable.hxx
@@ -45,9 +47,11 @@ set( MEGA_DATABASE_STAGE_HEADERS
     ${MEGA_API_DIR}/database/model/DependencyAnalysisView.hxx
     ${MEGA_API_DIR}/database/model/DerivationAnalysis.hxx
     ${MEGA_API_DIR}/database/model/DerivationAnalysisView.hxx
+    ${MEGA_API_DIR}/database/model/DerivationAnalysisRollout.hxx
     ${MEGA_API_DIR}/database/model/FinalStage.hxx    
     ${MEGA_API_DIR}/database/model/HyperGraphAnalysis.hxx
     ${MEGA_API_DIR}/database/model/HyperGraphAnalysisView.hxx
+    ${MEGA_API_DIR}/database/model/HyperGraphAnalysisRollout.hxx
     ${MEGA_API_DIR}/database/model/InterfaceAnalysisStage.hxx
     ${MEGA_API_DIR}/database/model/InterfaceStage.hxx
     ${MEGA_API_DIR}/database/model/MemoryStage.hxx
@@ -76,9 +80,11 @@ set( MEGA_DATABASE_STAGE_SOURCES
     ${MEGA_SRC_DIR}/database/model/DependencyAnalysisView.cxx
     ${MEGA_SRC_DIR}/database/model/DerivationAnalysis.cxx
     ${MEGA_SRC_DIR}/database/model/DerivationAnalysisView.cxx
+    ${MEGA_SRC_DIR}/database/model/DerivationAnalysisRollout.cxx
     ${MEGA_SRC_DIR}/database/model/FinalStage.cxx
     ${MEGA_SRC_DIR}/database/model/HyperGraphAnalysis.cxx
     ${MEGA_SRC_DIR}/database/model/HyperGraphAnalysisView.cxx
+    ${MEGA_SRC_DIR}/database/model/HyperGraphAnalysisRollout.cxx
     ${MEGA_SRC_DIR}/database/model/InterfaceAnalysisStage.cxx
     ${MEGA_SRC_DIR}/database/model/InterfaceStage.cxx
     ${MEGA_SRC_DIR}/database/model/MemoryStage.cxx
@@ -118,6 +124,7 @@ set( COMPILER_BYPRODUCTS
     ConcreteStage.json
     DependencyAnalysis.json
     DependencyAnalysisView.json
+    DependencyAnalysisRollout.json
     DerivationAnalysis.json
     DerivationAnalysisView.json
     FinalStage.json

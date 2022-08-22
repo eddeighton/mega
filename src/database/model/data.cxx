@@ -8,10 +8,12 @@
 #include "database/model/data_PerSourceSymbols.hxx"
 #include "database/model/data_Clang.hxx"
 #include "database/model/data_Concrete.hxx"
-#include "database/model/data_Model.hxx"
-#include "database/model/data_Derivations.hxx"
 #include "database/model/data_ConcreteTable.hxx"
 #include "database/model/data_PerSourceConcreteTable.hxx"
+#include "database/model/data_Derivations.hxx"
+#include "database/model/data_PerSourceDerivations.hxx"
+#include "database/model/data_Model.hxx"
+#include "database/model/data_PerSourceModel.hxx"
 #include "database/model/data_MemoryLayout.hxx"
 #include "database/model/data_Operations.hxx"
 
@@ -1864,6 +1866,7 @@ namespace Tree
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_IContext >( loader, this ) )          , p_Tree_Interface_ContextGroup( loader )
           , p_PerSourceSymbols_Interface_IContext( loader )
           , p_Concrete_Interface_IContext( loader )
+          , p_PerSourceDerivations_Interface_IContext( loader )
           , parent( loader )
     {
     }
@@ -1871,6 +1874,7 @@ namespace Tree
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_IContext >( loader, this ) )          , p_Tree_Interface_ContextGroup( loader )
           , p_PerSourceSymbols_Interface_IContext( loader )
           , p_Concrete_Interface_IContext( loader )
+          , p_PerSourceDerivations_Interface_IContext( loader )
           , identifier( identifier )
           , parent( parent )
     {
@@ -2311,12 +2315,14 @@ namespace Tree
     // struct Interface_Link : public mega::io::Object
     Interface_Link::Interface_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Link >( loader, this ) )          , p_Tree_Interface_IContext( loader )
+          , p_PerSourceModel_Interface_Link( loader )
           , link_trait( loader )
           , link_target( loader )
     {
     }
     Interface_Link::Interface_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_LinkDef > >& link_defs)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Link >( loader, this ) )          , p_Tree_Interface_IContext( loader )
+          , p_PerSourceModel_Interface_Link( loader )
           , link_defs( link_defs )
     {
     }
@@ -3482,6 +3488,7 @@ namespace Concrete
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
           , p_PerSourceConcreteTable_Concrete_Context( loader )
+          , p_PerSourceModel_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Context( loader )
           , parent( loader )
           , interface( loader )
@@ -3490,6 +3497,7 @@ namespace Concrete
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_ContextGroup >& parent, const data::Ptr< data::Tree::Interface_IContext >& interface, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& inheritance)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
           , p_PerSourceConcreteTable_Concrete_Context( loader )
+          , p_PerSourceModel_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Context( loader )
           , parent( parent )
           , interface( interface )
@@ -3822,12 +3830,14 @@ namespace Concrete
     // struct Concrete_Link : public mega::io::Object
     Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_PerSourceModel_Concrete_Link( loader )
           , p_MemoryLayout_Concrete_Link( loader )
           , interface_link( loader )
     {
     }
     Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& interface_link)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
+          , p_PerSourceModel_Concrete_Link( loader )
           , p_MemoryLayout_Concrete_Link( loader )
           , interface_link( interface_link )
     {
@@ -4015,208 +4025,6 @@ namespace Concrete
         {
             nlohmann::json property = nlohmann::json::object({
                 { "interface_root", interface_root } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-}
-namespace Model
-{
-    // struct HyperGraph_ObjectGraph : public mega::io::Object
-    HyperGraph_ObjectGraph::HyperGraph_ObjectGraph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_ObjectGraph >( loader, this ) )    {
-    }
-    HyperGraph_ObjectGraph::HyperGraph_ObjectGraph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_ObjectGraph >( loader, this ) )          , source_file( source_file )
-          , hash_code( hash_code )
-    {
-    }
-    bool HyperGraph_ObjectGraph::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_ObjectGraph > >{ data::Ptr< data::Model::HyperGraph_ObjectGraph >( loader, const_cast< HyperGraph_ObjectGraph* >( this ) ) };
-    }
-    void HyperGraph_ObjectGraph::set_inheritance_pointer()
-    {
-    }
-    void HyperGraph_ObjectGraph::load( mega::io::Loader& loader )
-    {
-        loader.load( source_file );
-        loader.load( hash_code );
-    }
-    void HyperGraph_ObjectGraph::store( mega::io::Storer& storer ) const
-    {
-        storer.store( source_file );
-        storer.store( hash_code );
-    }
-    void HyperGraph_ObjectGraph::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_ObjectGraph" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_file", source_file } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "hash_code", hash_code } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct HyperGraph_Graph : public mega::io::Object
-    HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Graph >( loader, this ) )    {
-    }
-    HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Model::HyperGraph_ObjectGraph > >& objects)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Graph >( loader, this ) )          , objects( objects )
-    {
-    }
-    bool HyperGraph_Graph::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Graph > >{ data::Ptr< data::Model::HyperGraph_Graph >( loader, const_cast< HyperGraph_Graph* >( this ) ) };
-    }
-    void HyperGraph_Graph::set_inheritance_pointer()
-    {
-    }
-    void HyperGraph_Graph::load( mega::io::Loader& loader )
-    {
-        loader.load( objects );
-    }
-    void HyperGraph_Graph::store( mega::io::Storer& storer ) const
-    {
-        storer.store( objects );
-    }
-    void HyperGraph_Graph::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_Graph" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "objects", objects } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-}
-namespace Derivations
-{
-    // struct Derivation_ObjectMapping : public mega::io::Object
-    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )    {
-    }
-    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >& inheritance)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )          , source_file( source_file )
-          , hash_code( hash_code )
-          , inheritance( inheritance )
-    {
-    }
-    bool Derivation_ObjectMapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >{ data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, const_cast< Derivation_ObjectMapping* >( this ) ) };
-    }
-    void Derivation_ObjectMapping::set_inheritance_pointer()
-    {
-    }
-    void Derivation_ObjectMapping::load( mega::io::Loader& loader )
-    {
-        loader.load( source_file );
-        loader.load( hash_code );
-        loader.load( inheritance );
-    }
-    void Derivation_ObjectMapping::store( mega::io::Storer& storer ) const
-    {
-        storer.store( source_file );
-        storer.store( hash_code );
-        storer.store( inheritance );
-    }
-    void Derivation_ObjectMapping::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Derivation_ObjectMapping" },
-                { "filetype" , "Derivations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "source_file", source_file } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "hash_code", hash_code } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Derivation_Mapping : public mega::io::Object
-    Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )    {
-    }
-    Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& mappings)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )          , mappings( mappings )
-    {
-    }
-    bool Derivation_Mapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >{ data::Ptr< data::Derivations::Derivation_Mapping >( loader, const_cast< Derivation_Mapping* >( this ) ) };
-    }
-    void Derivation_Mapping::set_inheritance_pointer()
-    {
-    }
-    void Derivation_Mapping::load( mega::io::Loader& loader )
-    {
-        loader.load( mappings );
-        loader.load( inheritance );
-    }
-    void Derivation_Mapping::store( mega::io::Storer& storer ) const
-    {
-        storer.store( mappings );
-        VERIFY_RTE_MSG( inheritance.has_value(), "Derivations::Derivation_Mapping.inheritance has NOT been set" );
-        storer.store( inheritance );
-    }
-    void Derivation_Mapping::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Derivation_Mapping" },
-                { "filetype" , "Derivations" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "mappings", mappings } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4456,6 +4264,637 @@ namespace PerSourceConcreteTable
     }
         
 }
+namespace Derivations
+{
+    // struct Derivation_ObjectMapping : public mega::io::Object
+    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )    {
+    }
+    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >& inheritance)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )          , source_file( source_file )
+          , hash_code( hash_code )
+          , inheritance( inheritance )
+    {
+    }
+    bool Derivation_ObjectMapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >{ data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, const_cast< Derivation_ObjectMapping* >( this ) ) };
+    }
+    void Derivation_ObjectMapping::set_inheritance_pointer()
+    {
+    }
+    void Derivation_ObjectMapping::load( mega::io::Loader& loader )
+    {
+        loader.load( source_file );
+        loader.load( hash_code );
+        loader.load( inheritance );
+    }
+    void Derivation_ObjectMapping::store( mega::io::Storer& storer ) const
+    {
+        storer.store( source_file );
+        storer.store( hash_code );
+        storer.store( inheritance );
+    }
+    void Derivation_ObjectMapping::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Derivation_ObjectMapping" },
+                { "filetype" , "Derivations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "source_file", source_file } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "hash_code", hash_code } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "inheritance", inheritance } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Derivation_Mapping : public mega::io::Object
+    Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )    {
+    }
+    Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& mappings)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )          , mappings( mappings )
+    {
+    }
+    bool Derivation_Mapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >{ data::Ptr< data::Derivations::Derivation_Mapping >( loader, const_cast< Derivation_Mapping* >( this ) ) };
+    }
+    void Derivation_Mapping::set_inheritance_pointer()
+    {
+    }
+    void Derivation_Mapping::load( mega::io::Loader& loader )
+    {
+        loader.load( mappings );
+        loader.load( inheritance );
+    }
+    void Derivation_Mapping::store( mega::io::Storer& storer ) const
+    {
+        storer.store( mappings );
+        VERIFY_RTE_MSG( inheritance.has_value(), "Derivations::Derivation_Mapping.inheritance has NOT been set" );
+        storer.store( inheritance );
+    }
+    void Derivation_Mapping::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Derivation_Mapping" },
+                { "filetype" , "Derivations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "mappings", mappings } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "inheritance", inheritance.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+}
+namespace PerSourceDerivations
+{
+    // struct Interface_IContext : public mega::io::Object
+    Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_IContext( loader )
+    {
+    }
+    Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const std::vector< data::Ptr< data::Concrete::Concrete_Context > >& concrete_inheritors)
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_IContext( p_Tree_Interface_IContext )
+          , concrete_inheritors( concrete_inheritors )
+    {
+    }
+    bool Interface_IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Interface_IContext::set_inheritance_pointer()
+    {
+        p_Tree_Interface_IContext->p_PerSourceDerivations_Interface_IContext = data::Ptr< data::PerSourceDerivations::Interface_IContext >( p_Tree_Interface_IContext, this );
+    }
+    void Interface_IContext::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_IContext );
+        loader.load( concrete_inheritors );
+    }
+    void Interface_IContext::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_IContext );
+        storer.store( concrete_inheritors );
+    }
+    void Interface_IContext::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_IContext" },
+                { "filetype" , "PerSourceDerivations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete_inheritors", concrete_inheritors } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+}
+namespace Model
+{
+    // struct HyperGraph_Relation : public mega::io::Object
+    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , link( loader )
+          , target( loader )
+    {
+    }
+    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& link, const data::Ptr< data::Tree::Interface_IContext >& target)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , link( link )
+          , target( target )
+    {
+    }
+    bool HyperGraph_Relation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >{ data::Ptr< data::Model::HyperGraph_Relation >( loader, const_cast< HyperGraph_Relation* >( this ) ) };
+    }
+    void HyperGraph_Relation::set_inheritance_pointer()
+    {
+    }
+    void HyperGraph_Relation::load( mega::io::Loader& loader )
+    {
+        loader.load( link );
+        loader.load( target );
+    }
+    void HyperGraph_Relation::store( mega::io::Storer& storer ) const
+    {
+        storer.store( link );
+        storer.store( target );
+    }
+    void HyperGraph_Relation::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "HyperGraph_Relation" },
+                { "filetype" , "Model" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link", link } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "target", target } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct HyperGraph_SingularRelation : public mega::io::Object
+    HyperGraph_SingularRelation::HyperGraph_SingularRelation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_SingularRelation >( loader, this ) )          , p_Model_HyperGraph_Relation( loader )
+    {
+    }
+    bool HyperGraph_SingularRelation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >{ data::Ptr< data::Model::HyperGraph_SingularRelation >( loader, const_cast< HyperGraph_SingularRelation* >( this ) ) };
+    }
+    void HyperGraph_SingularRelation::set_inheritance_pointer()
+    {
+        p_Model_HyperGraph_Relation->m_inheritance = data::Ptr< data::Model::HyperGraph_SingularRelation >( p_Model_HyperGraph_Relation, this );
+    }
+    void HyperGraph_SingularRelation::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Model_HyperGraph_Relation );
+    }
+    void HyperGraph_SingularRelation::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Model_HyperGraph_Relation );
+    }
+    void HyperGraph_SingularRelation::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "HyperGraph_SingularRelation" },
+                { "filetype" , "Model" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct HyperGraph_NonSingularRelation : public mega::io::Object
+    HyperGraph_NonSingularRelation::HyperGraph_NonSingularRelation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_NonSingularRelation >( loader, this ) )          , p_Model_HyperGraph_Relation( loader )
+    {
+    }
+    bool HyperGraph_NonSingularRelation::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >{ data::Ptr< data::Model::HyperGraph_NonSingularRelation >( loader, const_cast< HyperGraph_NonSingularRelation* >( this ) ) };
+    }
+    void HyperGraph_NonSingularRelation::set_inheritance_pointer()
+    {
+        p_Model_HyperGraph_Relation->m_inheritance = data::Ptr< data::Model::HyperGraph_NonSingularRelation >( p_Model_HyperGraph_Relation, this );
+    }
+    void HyperGraph_NonSingularRelation::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Model_HyperGraph_Relation );
+    }
+    void HyperGraph_NonSingularRelation::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Model_HyperGraph_Relation );
+    }
+    void HyperGraph_NonSingularRelation::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "HyperGraph_NonSingularRelation" },
+                { "filetype" , "Model" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct HyperGraph_Relations : public mega::io::Object
+    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )    {
+    }
+    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )          , source_file( source_file )
+          , hash_code( hash_code )
+          , relations( relations )
+    {
+    }
+    bool HyperGraph_Relations::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relations > >{ data::Ptr< data::Model::HyperGraph_Relations >( loader, const_cast< HyperGraph_Relations* >( this ) ) };
+    }
+    void HyperGraph_Relations::set_inheritance_pointer()
+    {
+    }
+    void HyperGraph_Relations::load( mega::io::Loader& loader )
+    {
+        loader.load( source_file );
+        loader.load( hash_code );
+        loader.load( relations );
+    }
+    void HyperGraph_Relations::store( mega::io::Storer& storer ) const
+    {
+        storer.store( source_file );
+        storer.store( hash_code );
+        storer.store( relations );
+    }
+    void HyperGraph_Relations::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "HyperGraph_Relations" },
+                { "filetype" , "Model" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "source_file", source_file } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "hash_code", hash_code } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "relations", relations } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct HyperGraph_Graph : public mega::io::Object
+    HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Graph >( loader, this ) )    {
+    }
+    HyperGraph_Graph::HyperGraph_Graph( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& relations)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Graph >( loader, this ) )          , relations( relations )
+    {
+    }
+    bool HyperGraph_Graph::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Graph > >{ data::Ptr< data::Model::HyperGraph_Graph >( loader, const_cast< HyperGraph_Graph* >( this ) ) };
+    }
+    void HyperGraph_Graph::set_inheritance_pointer()
+    {
+    }
+    void HyperGraph_Graph::load( mega::io::Loader& loader )
+    {
+        loader.load( relations );
+    }
+    void HyperGraph_Graph::store( mega::io::Storer& storer ) const
+    {
+        storer.store( relations );
+    }
+    void HyperGraph_Graph::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "HyperGraph_Graph" },
+                { "filetype" , "Model" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "relations", relations } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+}
+namespace PerSourceModel
+{
+    // struct Interface_Link : public mega::io::Object
+    Interface_Link::Interface_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_Link( loader )
+          , link_relation( loader )
+    {
+    }
+    Interface_Link::Interface_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_Link > p_Tree_Interface_Link, const data::Ptr< data::Model::HyperGraph_Relation >& link_relation)
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_Link( p_Tree_Interface_Link )
+          , link_relation( link_relation )
+    {
+    }
+    bool Interface_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Interface_Link::set_inheritance_pointer()
+    {
+        p_Tree_Interface_Link->p_PerSourceModel_Interface_Link = data::Ptr< data::PerSourceModel::Interface_Link >( p_Tree_Interface_Link, this );
+    }
+    void Interface_Link::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_Link );
+        loader.load( link_relation );
+    }
+    void Interface_Link::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_Link );
+        storer.store( link_relation );
+    }
+    void Interface_Link::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_Link" },
+                { "filetype" , "PerSourceModel" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link_relation", link_relation } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_LinkReference : public mega::io::Object
+    Concrete_Dimensions_LinkReference::Concrete_Dimensions_LinkReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference >( loader, this ) )          , link( loader )
+    {
+    }
+    Concrete_Dimensions_LinkReference::Concrete_Dimensions_LinkReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Link >& link)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference >( loader, this ) )          , link( link )
+    {
+    }
+    bool Concrete_Dimensions_LinkReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference >, data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkSingle >, data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkMany > >{ data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference >( loader, const_cast< Concrete_Dimensions_LinkReference* >( this ) ) };
+    }
+    void Concrete_Dimensions_LinkReference::set_inheritance_pointer()
+    {
+    }
+    void Concrete_Dimensions_LinkReference::load( mega::io::Loader& loader )
+    {
+        loader.load( link );
+    }
+    void Concrete_Dimensions_LinkReference::store( mega::io::Storer& storer ) const
+    {
+        storer.store( link );
+    }
+    void Concrete_Dimensions_LinkReference::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_LinkReference" },
+                { "filetype" , "PerSourceModel" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link", link } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Dimensions_LinkSingle : public mega::io::Object
+    Concrete_Dimensions_LinkSingle::Concrete_Dimensions_LinkSingle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkSingle >( loader, this ) )          , p_PerSourceModel_Concrete_Dimensions_LinkReference( loader )
+    {
+    }
+    bool Concrete_Dimensions_LinkSingle::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference >, data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkSingle >, data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkMany > >{ data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkSingle >( loader, const_cast< Concrete_Dimensions_LinkSingle* >( this ) ) };
+    }
+    void Concrete_Dimensions_LinkSingle::set_inheritance_pointer()
+    {
+        p_PerSourceModel_Concrete_Dimensions_LinkReference->m_inheritance = data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkSingle >( p_PerSourceModel_Concrete_Dimensions_LinkReference, this );
+    }
+    void Concrete_Dimensions_LinkSingle::load( mega::io::Loader& loader )
+    {
+        loader.load( p_PerSourceModel_Concrete_Dimensions_LinkReference );
+    }
+    void Concrete_Dimensions_LinkSingle::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_PerSourceModel_Concrete_Dimensions_LinkReference );
+    }
+    void Concrete_Dimensions_LinkSingle::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_LinkSingle" },
+                { "filetype" , "PerSourceModel" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Concrete_Dimensions_LinkMany : public mega::io::Object
+    Concrete_Dimensions_LinkMany::Concrete_Dimensions_LinkMany( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkMany >( loader, this ) )          , p_PerSourceModel_Concrete_Dimensions_LinkReference( loader )
+    {
+    }
+    bool Concrete_Dimensions_LinkMany::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference >, data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkSingle >, data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkMany > >{ data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkMany >( loader, const_cast< Concrete_Dimensions_LinkMany* >( this ) ) };
+    }
+    void Concrete_Dimensions_LinkMany::set_inheritance_pointer()
+    {
+        p_PerSourceModel_Concrete_Dimensions_LinkReference->m_inheritance = data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkMany >( p_PerSourceModel_Concrete_Dimensions_LinkReference, this );
+    }
+    void Concrete_Dimensions_LinkMany::load( mega::io::Loader& loader )
+    {
+        loader.load( p_PerSourceModel_Concrete_Dimensions_LinkReference );
+    }
+    void Concrete_Dimensions_LinkMany::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_PerSourceModel_Concrete_Dimensions_LinkReference );
+    }
+    void Concrete_Dimensions_LinkMany::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Dimensions_LinkMany" },
+                { "filetype" , "PerSourceModel" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
+    // struct Concrete_Context : public mega::io::Object
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
+    {
+    }
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const std::vector< data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference > >& link_dimensions)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
+          , link_dimensions( link_dimensions )
+    {
+    }
+    bool Concrete_Context::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Context::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Context->p_PerSourceModel_Concrete_Context = data::Ptr< data::PerSourceModel::Concrete_Context >( p_Concrete_Concrete_Context, this );
+    }
+    void Concrete_Context::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Context );
+        loader.load( link_dimensions );
+    }
+    void Concrete_Context::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Context );
+        storer.store( link_dimensions );
+    }
+    void Concrete_Context::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Context" },
+                { "filetype" , "PerSourceModel" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link_dimensions", link_dimensions } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+    // struct Concrete_Link : public mega::io::Object
+    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Link( loader )
+          , link_reference( loader )
+    {
+    }
+    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Link > p_Concrete_Concrete_Link, const data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference >& link_reference)
+        :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Link( p_Concrete_Concrete_Link )
+          , link_reference( link_reference )
+    {
+    }
+    bool Concrete_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Concrete_Link::set_inheritance_pointer()
+    {
+        p_Concrete_Concrete_Link->p_PerSourceModel_Concrete_Link = data::Ptr< data::PerSourceModel::Concrete_Link >( p_Concrete_Concrete_Link, this );
+    }
+    void Concrete_Link::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Concrete_Concrete_Link );
+        loader.load( link_reference );
+    }
+    void Concrete_Link::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Concrete_Concrete_Link );
+        storer.store( link_reference );
+    }
+    void Concrete_Link::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Concrete_Link" },
+                { "filetype" , "PerSourceModel" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link_reference", link_reference } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
+}
 namespace MemoryLayout
 {
     // struct Concrete_Dimensions_User : public mega::io::Object
@@ -4513,42 +4952,42 @@ namespace MemoryLayout
         }
     }
         
-    // struct Concrete_Dimensions_Generated : public mega::io::Object
-    Concrete_Dimensions_Generated::Concrete_Dimensions_Generated( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >( loader, this ) )          , parent( loader )
+    // struct Concrete_Dimensions_Allocation : public mega::io::Object
+    Concrete_Dimensions_Allocation::Concrete_Dimensions_Allocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >( loader, this ) )          , parent( loader )
           , part( loader )
     {
     }
-    Concrete_Dimensions_Generated::Concrete_Dimensions_Generated( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >( loader, this ) )          , parent( parent )
+    Concrete_Dimensions_Allocation::Concrete_Dimensions_Allocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& parent)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >( loader, this ) )          , parent( parent )
     {
     }
-    bool Concrete_Dimensions_Generated::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    bool Concrete_Dimensions_Allocation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >( loader, const_cast< Concrete_Dimensions_Generated* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >( loader, const_cast< Concrete_Dimensions_Allocation* >( this ) ) };
     }
-    void Concrete_Dimensions_Generated::set_inheritance_pointer()
+    void Concrete_Dimensions_Allocation::set_inheritance_pointer()
     {
     }
-    void Concrete_Dimensions_Generated::load( mega::io::Loader& loader )
+    void Concrete_Dimensions_Allocation::load( mega::io::Loader& loader )
     {
         loader.load( parent );
         loader.load( offset );
         loader.load( part );
     }
-    void Concrete_Dimensions_Generated::store( mega::io::Storer& storer ) const
+    void Concrete_Dimensions_Allocation::store( mega::io::Storer& storer ) const
     {
         storer.store( parent );
-        VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::Concrete_Dimensions_Generated.offset has NOT been set" );
+        VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::Concrete_Dimensions_Allocation.offset has NOT been set" );
         storer.store( offset );
-        VERIFY_RTE_MSG( part.has_value(), "MemoryLayout::Concrete_Dimensions_Generated.part has NOT been set" );
+        VERIFY_RTE_MSG( part.has_value(), "MemoryLayout::Concrete_Dimensions_Allocation.part has NOT been set" );
         storer.store( part );
     }
-    void Concrete_Dimensions_Generated::to_json( nlohmann::json& _part__ ) const
+    void Concrete_Dimensions_Allocation::to_json( nlohmann::json& _part__ ) const
     {
         _part__ = nlohmann::json::object(
             { 
-                { "partname", "Concrete_Dimensions_Generated" },
+                { "partname", "Concrete_Dimensions_Allocation" },
                 { "filetype" , "MemoryLayout" },
                 { "typeID", Object_Part_Type_ID },
                 { "fileID", getFileID() },
@@ -4572,135 +5011,33 @@ namespace MemoryLayout
         }
     }
         
-    // struct Concrete_Dimensions_StopCycle : public mega::io::Object
-    Concrete_Dimensions_StopCycle::Concrete_Dimensions_StopCycle( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
-    {
-    }
-    bool Concrete_Dimensions_StopCycle::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >( loader, const_cast< Concrete_Dimensions_StopCycle* >( this ) ) };
-    }
-    void Concrete_Dimensions_StopCycle::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
-    }
-    void Concrete_Dimensions_StopCycle::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
-    }
-    void Concrete_Dimensions_StopCycle::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
-    }
-    void Concrete_Dimensions_StopCycle::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_StopCycle" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Concrete_Dimensions_Reference : public mega::io::Object
-    Concrete_Dimensions_Reference::Concrete_Dimensions_Reference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
-    {
-    }
-    bool Concrete_Dimensions_Reference::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >( loader, const_cast< Concrete_Dimensions_Reference* >( this ) ) };
-    }
-    void Concrete_Dimensions_Reference::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
-    }
-    void Concrete_Dimensions_Reference::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
-    }
-    void Concrete_Dimensions_Reference::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
-    }
-    void Concrete_Dimensions_Reference::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_Reference" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct Concrete_Dimensions_State : public mega::io::Object
-    Concrete_Dimensions_State::Concrete_Dimensions_State( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
-    {
-    }
-    bool Concrete_Dimensions_State::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >( loader, const_cast< Concrete_Dimensions_State* >( this ) ) };
-    }
-    void Concrete_Dimensions_State::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
-    }
-    void Concrete_Dimensions_State::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
-    }
-    void Concrete_Dimensions_State::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
-    }
-    void Concrete_Dimensions_State::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_State" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
     // struct Concrete_Dimensions_Allocator : public mega::io::Object
     Concrete_Dimensions_Allocator::Concrete_Dimensions_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Allocation( loader )
           , allocator( loader )
     {
     }
     Concrete_Dimensions_Allocator::Concrete_Dimensions_Allocator( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Allocation( loader )
           , allocator( allocator )
     {
     }
     bool Concrete_Dimensions_Allocator::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, const_cast< Concrete_Dimensions_Allocator* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( loader, const_cast< Concrete_Dimensions_Allocator* >( this ) ) };
     }
     void Concrete_Dimensions_Allocator::set_inheritance_pointer()
     {
-        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
+        p_MemoryLayout_Concrete_Dimensions_Allocation->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >( p_MemoryLayout_Concrete_Dimensions_Allocation, this );
     }
     void Concrete_Dimensions_Allocator::load( mega::io::Loader& loader )
     {
-        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
+        loader.load( p_MemoryLayout_Concrete_Dimensions_Allocation );
         loader.load( allocator );
     }
     void Concrete_Dimensions_Allocator::store( mega::io::Storer& storer ) const
     {
-        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
+        storer.store( p_MemoryLayout_Concrete_Dimensions_Allocation );
         storer.store( allocator );
     }
     void Concrete_Dimensions_Allocator::to_json( nlohmann::json& _part__ ) const
@@ -4721,63 +5058,16 @@ namespace MemoryLayout
         }
     }
         
-    // struct Concrete_Dimensions_LinkReference : public mega::io::Object
-    Concrete_Dimensions_LinkReference::Concrete_Dimensions_LinkReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
-          , link( loader )
-    {
-    }
-    Concrete_Dimensions_LinkReference::Concrete_Dimensions_LinkReference( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Link >& link)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_Generated( loader )
-          , link( link )
-    {
-    }
-    bool Concrete_Dimensions_LinkReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_StopCycle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Reference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_State >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >{ data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >( loader, const_cast< Concrete_Dimensions_LinkReference* >( this ) ) };
-    }
-    void Concrete_Dimensions_LinkReference::set_inheritance_pointer()
-    {
-        p_MemoryLayout_Concrete_Dimensions_Generated->m_inheritance = data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >( p_MemoryLayout_Concrete_Dimensions_Generated, this );
-    }
-    void Concrete_Dimensions_LinkReference::load( mega::io::Loader& loader )
-    {
-        loader.load( p_MemoryLayout_Concrete_Dimensions_Generated );
-        loader.load( link );
-    }
-    void Concrete_Dimensions_LinkReference::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_MemoryLayout_Concrete_Dimensions_Generated );
-        storer.store( link );
-    }
-    void Concrete_Dimensions_LinkReference::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Concrete_Dimensions_LinkReference" },
-                { "filetype" , "MemoryLayout" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link", link } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
     // struct Concrete_Context : public mega::io::Object
     Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
           , allocator( loader )
     {
     }
-    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts)
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const data::Ptr< data::MemoryLayout::Allocators_Allocator >& allocator, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
           , allocator( allocator )
-          , generated_dimensions( generated_dimensions )
+          , allocation_dimensions( allocation_dimensions )
           , parts( parts )
     {
     }
@@ -4793,14 +5083,14 @@ namespace MemoryLayout
     {
         loader.load( p_Concrete_Concrete_Context );
         loader.load( allocator );
-        loader.load( generated_dimensions );
+        loader.load( allocation_dimensions );
         loader.load( parts );
     }
     void Concrete_Context::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Context );
         storer.store( allocator );
-        storer.store( generated_dimensions );
+        storer.store( allocation_dimensions );
         storer.store( parts );
     }
     void Concrete_Context::to_json( nlohmann::json& _part__ ) const
@@ -4821,7 +5111,7 @@ namespace MemoryLayout
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "generated_dimensions", generated_dimensions } } );
+                { "allocation_dimensions", allocation_dimensions } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -5336,11 +5626,12 @@ namespace MemoryLayout
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( loader )
     {
     }
-    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::size_t& size, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Generated > >& generated_dimensions, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions)
+    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::size_t& size, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions, const std::vector< data::Ptr< data::PerSourceModel::Concrete_Dimensions_LinkReference > >& link_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( context )
           , size( size )
-          , generated_dimensions( generated_dimensions )
           , user_dimensions( user_dimensions )
+          , link_dimensions( link_dimensions )
+          , allocation_dimensions( allocation_dimensions )
     {
     }
     bool MemoryLayout_Part::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5354,15 +5645,17 @@ namespace MemoryLayout
     {
         loader.load( context );
         loader.load( size );
-        loader.load( generated_dimensions );
         loader.load( user_dimensions );
+        loader.load( link_dimensions );
+        loader.load( allocation_dimensions );
     }
     void MemoryLayout_Part::store( mega::io::Storer& storer ) const
     {
         storer.store( context );
         storer.store( size );
-        storer.store( generated_dimensions );
         storer.store( user_dimensions );
+        storer.store( link_dimensions );
+        storer.store( allocation_dimensions );
     }
     void MemoryLayout_Part::to_json( nlohmann::json& _part__ ) const
     {
@@ -5387,12 +5680,17 @@ namespace MemoryLayout
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "generated_dimensions", generated_dimensions } } );
+                { "user_dimensions", user_dimensions } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "user_dimensions", user_dimensions } } );
+                { "link_dimensions", link_dimensions } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "allocation_dimensions", allocation_dimensions } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -5759,7 +6057,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Instruction::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Instruction >( loader, const_cast< Invocations_Instructions_Instruction* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Instruction >( loader, const_cast< Invocations_Instructions_Instruction* >( this ) ) };
     }
     void Invocations_Instructions_Instruction::set_inheritance_pointer()
     {
@@ -5795,7 +6093,7 @@ namespace Operations
     }
     bool Invocations_Instructions_InstructionGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >( loader, const_cast< Invocations_Instructions_InstructionGroup* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >( loader, const_cast< Invocations_Instructions_InstructionGroup* >( this ) ) };
     }
     void Invocations_Instructions_InstructionGroup::set_inheritance_pointer()
     {
@@ -5842,7 +6140,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, const_cast< Invocations_Instructions_Root* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Root >( loader, const_cast< Invocations_Instructions_Root* >( this ) ) };
     }
     void Invocations_Instructions_Root::set_inheritance_pointer()
     {
@@ -5891,7 +6189,7 @@ namespace Operations
     }
     bool Invocations_Instructions_ParentDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >( loader, const_cast< Invocations_Instructions_ParentDerivation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >( loader, const_cast< Invocations_Instructions_ParentDerivation* >( this ) ) };
     }
     void Invocations_Instructions_ParentDerivation::set_inheritance_pointer()
     {
@@ -5947,7 +6245,7 @@ namespace Operations
     }
     bool Invocations_Instructions_ChildDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >( loader, const_cast< Invocations_Instructions_ChildDerivation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >( loader, const_cast< Invocations_Instructions_ChildDerivation* >( this ) ) };
     }
     void Invocations_Instructions_ChildDerivation::set_inheritance_pointer()
     {
@@ -6003,7 +6301,7 @@ namespace Operations
     }
     bool Invocations_Instructions_EnumDerivation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >( loader, const_cast< Invocations_Instructions_EnumDerivation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >( loader, const_cast< Invocations_Instructions_EnumDerivation* >( this ) ) };
     }
     void Invocations_Instructions_EnumDerivation::set_inheritance_pointer()
     {
@@ -6057,7 +6355,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Enumeration::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( loader, const_cast< Invocations_Instructions_Enumeration* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Enumeration >( loader, const_cast< Invocations_Instructions_Enumeration* >( this ) ) };
     }
     void Invocations_Instructions_Enumeration::set_inheritance_pointer()
     {
@@ -6108,7 +6406,7 @@ namespace Operations
     }
     bool Invocations_Instructions_DimensionReferenceRead::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( loader, const_cast< Invocations_Instructions_DimensionReferenceRead* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >( loader, const_cast< Invocations_Instructions_DimensionReferenceRead* >( this ) ) };
     }
     void Invocations_Instructions_DimensionReferenceRead::set_inheritance_pointer()
     {
@@ -6171,7 +6469,7 @@ namespace Operations
     }
     bool Invocations_Instructions_MonoReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, const_cast< Invocations_Instructions_MonoReference* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_MonoReference >( loader, const_cast< Invocations_Instructions_MonoReference* >( this ) ) };
     }
     void Invocations_Instructions_MonoReference::set_inheritance_pointer()
     {
@@ -6225,7 +6523,7 @@ namespace Operations
     }
     bool Invocations_Instructions_PolyReference::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, const_cast< Invocations_Instructions_PolyReference* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyReference >( loader, const_cast< Invocations_Instructions_PolyReference* >( this ) ) };
     }
     void Invocations_Instructions_PolyReference::set_inheritance_pointer()
     {
@@ -6274,7 +6572,7 @@ namespace Operations
     }
     bool Invocations_Instructions_PolyCase::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, const_cast< Invocations_Instructions_PolyCase* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_PolyCase >( loader, const_cast< Invocations_Instructions_PolyCase* >( this ) ) };
     }
     void Invocations_Instructions_PolyCase::set_inheritance_pointer()
     {
@@ -6322,7 +6620,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Failure::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Failure >( loader, const_cast< Invocations_Instructions_Failure* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Failure >( loader, const_cast< Invocations_Instructions_Failure* >( this ) ) };
     }
     void Invocations_Instructions_Failure::set_inheritance_pointer()
     {
@@ -6356,7 +6654,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Elimination::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Elimination >( loader, const_cast< Invocations_Instructions_Elimination* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Elimination >( loader, const_cast< Invocations_Instructions_Elimination* >( this ) ) };
     }
     void Invocations_Instructions_Elimination::set_inheritance_pointer()
     {
@@ -6390,7 +6688,7 @@ namespace Operations
     }
     bool Invocations_Instructions_Prune::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Prune >( loader, const_cast< Invocations_Instructions_Prune* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Instructions_Prune >( loader, const_cast< Invocations_Instructions_Prune* >( this ) ) };
     }
     void Invocations_Instructions_Prune::set_inheritance_pointer()
     {
@@ -6432,7 +6730,7 @@ namespace Operations
     }
     bool Invocations_Operations_Operation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, const_cast< Invocations_Operations_Operation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Operation >( loader, const_cast< Invocations_Operations_Operation* >( this ) ) };
     }
     void Invocations_Operations_Operation::set_inheritance_pointer()
     {
@@ -6495,7 +6793,7 @@ namespace Operations
     }
     bool Invocations_Operations_BasicOperation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_BasicOperation >( loader, const_cast< Invocations_Operations_BasicOperation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_BasicOperation >( loader, const_cast< Invocations_Operations_BasicOperation* >( this ) ) };
     }
     void Invocations_Operations_BasicOperation::set_inheritance_pointer()
     {
@@ -6551,7 +6849,7 @@ namespace Operations
     }
     bool Invocations_Operations_DimensionOperation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >( loader, const_cast< Invocations_Operations_DimensionOperation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >( loader, const_cast< Invocations_Operations_DimensionOperation* >( this ) ) };
     }
     void Invocations_Operations_DimensionOperation::set_inheritance_pointer()
     {
@@ -6592,6 +6890,40 @@ namespace Operations
         }
     }
         
+    // struct Invocations_Operations_Allocate : public mega::io::Object
+    Invocations_Operations_Allocate::Invocations_Operations_Allocate( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Allocate >( loader, this ) )          , p_Operations_Invocations_Operations_BasicOperation( loader )
+    {
+    }
+    bool Invocations_Operations_Allocate::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Allocate >( loader, const_cast< Invocations_Operations_Allocate* >( this ) ) };
+    }
+    void Invocations_Operations_Allocate::set_inheritance_pointer()
+    {
+        p_Operations_Invocations_Operations_BasicOperation->m_inheritance = data::Ptr< data::Operations::Invocations_Operations_Allocate >( p_Operations_Invocations_Operations_BasicOperation, this );
+    }
+    void Invocations_Operations_Allocate::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Operations_Invocations_Operations_BasicOperation );
+    }
+    void Invocations_Operations_Allocate::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Operations_Invocations_Operations_BasicOperation );
+    }
+    void Invocations_Operations_Allocate::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Invocations_Operations_Allocate" },
+                { "filetype" , "Operations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+    }
+        
     // struct Invocations_Operations_Call : public mega::io::Object
     Invocations_Operations_Call::Invocations_Operations_Call( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Invocations_Operations_Call >( loader, this ) )          , p_Operations_Invocations_Operations_BasicOperation( loader )
@@ -6599,7 +6931,7 @@ namespace Operations
     }
     bool Invocations_Operations_Call::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Call >( loader, const_cast< Invocations_Operations_Call* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Call >( loader, const_cast< Invocations_Operations_Call* >( this ) ) };
     }
     void Invocations_Operations_Call::set_inheritance_pointer()
     {
@@ -6633,7 +6965,7 @@ namespace Operations
     }
     bool Invocations_Operations_Start::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Start >( loader, const_cast< Invocations_Operations_Start* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Start >( loader, const_cast< Invocations_Operations_Start* >( this ) ) };
     }
     void Invocations_Operations_Start::set_inheritance_pointer()
     {
@@ -6667,7 +6999,7 @@ namespace Operations
     }
     bool Invocations_Operations_Stop::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Stop >( loader, const_cast< Invocations_Operations_Stop* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Stop >( loader, const_cast< Invocations_Operations_Stop* >( this ) ) };
     }
     void Invocations_Operations_Stop::set_inheritance_pointer()
     {
@@ -6701,7 +7033,7 @@ namespace Operations
     }
     bool Invocations_Operations_Pause::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Pause >( loader, const_cast< Invocations_Operations_Pause* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Pause >( loader, const_cast< Invocations_Operations_Pause* >( this ) ) };
     }
     void Invocations_Operations_Pause::set_inheritance_pointer()
     {
@@ -6735,7 +7067,7 @@ namespace Operations
     }
     bool Invocations_Operations_Resume::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Resume >( loader, const_cast< Invocations_Operations_Resume* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Resume >( loader, const_cast< Invocations_Operations_Resume* >( this ) ) };
     }
     void Invocations_Operations_Resume::set_inheritance_pointer()
     {
@@ -6769,7 +7101,7 @@ namespace Operations
     }
     bool Invocations_Operations_Done::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Done >( loader, const_cast< Invocations_Operations_Done* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Done >( loader, const_cast< Invocations_Operations_Done* >( this ) ) };
     }
     void Invocations_Operations_Done::set_inheritance_pointer()
     {
@@ -6803,7 +7135,7 @@ namespace Operations
     }
     bool Invocations_Operations_WaitAction::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WaitAction >( loader, const_cast< Invocations_Operations_WaitAction* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WaitAction >( loader, const_cast< Invocations_Operations_WaitAction* >( this ) ) };
     }
     void Invocations_Operations_WaitAction::set_inheritance_pointer()
     {
@@ -6837,7 +7169,7 @@ namespace Operations
     }
     bool Invocations_Operations_WaitDimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WaitDimension >( loader, const_cast< Invocations_Operations_WaitDimension* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WaitDimension >( loader, const_cast< Invocations_Operations_WaitDimension* >( this ) ) };
     }
     void Invocations_Operations_WaitDimension::set_inheritance_pointer()
     {
@@ -6871,7 +7203,7 @@ namespace Operations
     }
     bool Invocations_Operations_GetAction::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetAction >( loader, const_cast< Invocations_Operations_GetAction* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetAction >( loader, const_cast< Invocations_Operations_GetAction* >( this ) ) };
     }
     void Invocations_Operations_GetAction::set_inheritance_pointer()
     {
@@ -6905,7 +7237,7 @@ namespace Operations
     }
     bool Invocations_Operations_GetDimension::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetDimension >( loader, const_cast< Invocations_Operations_GetDimension* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_GetDimension >( loader, const_cast< Invocations_Operations_GetDimension* >( this ) ) };
     }
     void Invocations_Operations_GetDimension::set_inheritance_pointer()
     {
@@ -6939,7 +7271,7 @@ namespace Operations
     }
     bool Invocations_Operations_Read::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Read >( loader, const_cast< Invocations_Operations_Read* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Read >( loader, const_cast< Invocations_Operations_Read* >( this ) ) };
     }
     void Invocations_Operations_Read::set_inheritance_pointer()
     {
@@ -6973,7 +7305,7 @@ namespace Operations
     }
     bool Invocations_Operations_Write::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Write >( loader, const_cast< Invocations_Operations_Write* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Write >( loader, const_cast< Invocations_Operations_Write* >( this ) ) };
     }
     void Invocations_Operations_Write::set_inheritance_pointer()
     {
@@ -7013,7 +7345,7 @@ namespace Operations
     }
     bool Invocations_Operations_WriteLink::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, const_cast< Invocations_Operations_WriteLink* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_WriteLink >( loader, const_cast< Invocations_Operations_WriteLink* >( this ) ) };
     }
     void Invocations_Operations_WriteLink::set_inheritance_pointer()
     {
@@ -7054,7 +7386,7 @@ namespace Operations
     }
     bool Invocations_Operations_Range::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Range >( loader, const_cast< Invocations_Operations_Range* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Operations::Invocations_Instructions_Instruction >, data::Ptr< data::Operations::Invocations_Instructions_InstructionGroup >, data::Ptr< data::Operations::Invocations_Instructions_Root >, data::Ptr< data::Operations::Invocations_Instructions_ParentDerivation >, data::Ptr< data::Operations::Invocations_Instructions_ChildDerivation >, data::Ptr< data::Operations::Invocations_Instructions_EnumDerivation >, data::Ptr< data::Operations::Invocations_Instructions_Enumeration >, data::Ptr< data::Operations::Invocations_Instructions_DimensionReferenceRead >, data::Ptr< data::Operations::Invocations_Instructions_MonoReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyReference >, data::Ptr< data::Operations::Invocations_Instructions_PolyCase >, data::Ptr< data::Operations::Invocations_Instructions_Failure >, data::Ptr< data::Operations::Invocations_Instructions_Elimination >, data::Ptr< data::Operations::Invocations_Instructions_Prune >, data::Ptr< data::Operations::Invocations_Operations_Operation >, data::Ptr< data::Operations::Invocations_Operations_BasicOperation >, data::Ptr< data::Operations::Invocations_Operations_DimensionOperation >, data::Ptr< data::Operations::Invocations_Operations_Allocate >, data::Ptr< data::Operations::Invocations_Operations_Call >, data::Ptr< data::Operations::Invocations_Operations_Start >, data::Ptr< data::Operations::Invocations_Operations_Stop >, data::Ptr< data::Operations::Invocations_Operations_Pause >, data::Ptr< data::Operations::Invocations_Operations_Resume >, data::Ptr< data::Operations::Invocations_Operations_Done >, data::Ptr< data::Operations::Invocations_Operations_WaitAction >, data::Ptr< data::Operations::Invocations_Operations_WaitDimension >, data::Ptr< data::Operations::Invocations_Operations_GetAction >, data::Ptr< data::Operations::Invocations_Operations_GetDimension >, data::Ptr< data::Operations::Invocations_Operations_Read >, data::Ptr< data::Operations::Invocations_Operations_Write >, data::Ptr< data::Operations::Invocations_Operations_WriteLink >, data::Ptr< data::Operations::Invocations_Operations_Range > >{ data::Ptr< data::Operations::Invocations_Operations_Range >( loader, const_cast< Invocations_Operations_Range* >( this ) ) };
     }
     void Invocations_Operations_Range::set_inheritance_pointer()
     {
@@ -7760,22 +8092,22 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 43: return new Tree::Interface_ContextGroup( loader, objectInfo );
         case 44: return new Tree::Interface_Root( loader, objectInfo );
         case 45: return new Tree::Interface_IContext( loader, objectInfo );
-        case 48: return new Tree::Interface_Namespace( loader, objectInfo );
-        case 49: return new Tree::Interface_Abstract( loader, objectInfo );
-        case 50: return new Tree::Interface_Action( loader, objectInfo );
-        case 51: return new Tree::Interface_Event( loader, objectInfo );
-        case 52: return new Tree::Interface_Function( loader, objectInfo );
-        case 53: return new Tree::Interface_Object( loader, objectInfo );
-        case 54: return new Tree::Interface_Link( loader, objectInfo );
-        case 55: return new Tree::Interface_Table( loader, objectInfo );
-        case 56: return new Tree::Interface_Buffer( loader, objectInfo );
-        case 130: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 131: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 132: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 133: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 134: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
-        case 136: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
-        case 138: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 49: return new Tree::Interface_Namespace( loader, objectInfo );
+        case 50: return new Tree::Interface_Abstract( loader, objectInfo );
+        case 51: return new Tree::Interface_Action( loader, objectInfo );
+        case 52: return new Tree::Interface_Event( loader, objectInfo );
+        case 53: return new Tree::Interface_Function( loader, objectInfo );
+        case 54: return new Tree::Interface_Object( loader, objectInfo );
+        case 55: return new Tree::Interface_Link( loader, objectInfo );
+        case 57: return new Tree::Interface_Table( loader, objectInfo );
+        case 58: return new Tree::Interface_Buffer( loader, objectInfo );
+        case 134: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 135: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 136: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 137: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 138: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
+        case 140: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
+        case 142: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 31: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 46: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 33: return new Clang::Interface_DimensionTrait( loader, objectInfo );
@@ -7785,98 +8117,105 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 42: return new Clang::Interface_SizeTrait( loader, objectInfo );
         case 32: return new Concrete::Interface_DimensionTrait( loader, objectInfo );
         case 47: return new Concrete::Interface_IContext( loader, objectInfo );
-        case 93: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
-        case 101: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 102: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 105: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 106: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 108: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 110: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 111: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 113: return new Concrete::Concrete_Link( loader, objectInfo );
-        case 115: return new Concrete::Concrete_Table( loader, objectInfo );
-        case 116: return new Concrete::Concrete_Buffer( loader, objectInfo );
-        case 118: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 140: return new Model::HyperGraph_ObjectGraph( loader, objectInfo );
-        case 141: return new Model::HyperGraph_Graph( loader, objectInfo );
-        case 142: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 143: return new Derivations::Derivation_Mapping( loader, objectInfo );
-        case 135: return new ConcreteTable::Symbols_ConcreteSymbol( loader, objectInfo );
-        case 137: return new ConcreteTable::Symbols_SymbolSet( loader, objectInfo );
-        case 139: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 103: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
-        case 94: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 95: return new MemoryLayout::Concrete_Dimensions_Generated( loader, objectInfo );
-        case 96: return new MemoryLayout::Concrete_Dimensions_StopCycle( loader, objectInfo );
-        case 97: return new MemoryLayout::Concrete_Dimensions_Reference( loader, objectInfo );
-        case 98: return new MemoryLayout::Concrete_Dimensions_State( loader, objectInfo );
-        case 99: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
-        case 100: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
-        case 104: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 107: return new MemoryLayout::Concrete_Action( loader, objectInfo );
-        case 109: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 112: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 114: return new MemoryLayout::Concrete_Link( loader, objectInfo );
-        case 117: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
-        case 144: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 145: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 146: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 147: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 148: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 149: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 150: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 151: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 152: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 153: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 154: return new MemoryLayout::MemoryLayout_SharedBuffer( loader, objectInfo );
-        case 155: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 57: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
-        case 58: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
-        case 59: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
-        case 60: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
-        case 61: return new Operations::Invocations_Variables_Context( loader, objectInfo );
-        case 62: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
-        case 63: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
-        case 64: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
-        case 65: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
-        case 66: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
-        case 67: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
-        case 68: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
-        case 69: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
-        case 70: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
-        case 71: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
-        case 72: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
-        case 73: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
-        case 74: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
-        case 75: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
-        case 76: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 77: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
-        case 78: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
-        case 79: return new Operations::Invocations_Operations_Call( loader, objectInfo );
-        case 80: return new Operations::Invocations_Operations_Start( loader, objectInfo );
-        case 81: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
-        case 82: return new Operations::Invocations_Operations_Pause( loader, objectInfo );
-        case 83: return new Operations::Invocations_Operations_Resume( loader, objectInfo );
-        case 84: return new Operations::Invocations_Operations_Done( loader, objectInfo );
-        case 85: return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
-        case 86: return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
-        case 87: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
-        case 88: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
-        case 89: return new Operations::Invocations_Operations_Read( loader, objectInfo );
-        case 90: return new Operations::Invocations_Operations_Write( loader, objectInfo );
-        case 91: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
-        case 92: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 119: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 120: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 121: return new Operations::Operations_Element( loader, objectInfo );
-        case 122: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 123: return new Operations::Operations_Context( loader, objectInfo );
-        case 124: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 125: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 126: return new Operations::Operations_Name( loader, objectInfo );
-        case 127: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 128: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 129: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 96: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 103: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 104: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 108: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 109: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 111: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 113: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 114: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 116: return new Concrete::Concrete_Link( loader, objectInfo );
+        case 119: return new Concrete::Concrete_Table( loader, objectInfo );
+        case 120: return new Concrete::Concrete_Buffer( loader, objectInfo );
+        case 122: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 139: return new ConcreteTable::Symbols_ConcreteSymbol( loader, objectInfo );
+        case 141: return new ConcreteTable::Symbols_SymbolSet( loader, objectInfo );
+        case 143: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 105: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 144: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 145: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 48: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
+        case 146: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 147: return new Model::HyperGraph_SingularRelation( loader, objectInfo );
+        case 148: return new Model::HyperGraph_NonSingularRelation( loader, objectInfo );
+        case 149: return new Model::HyperGraph_Relations( loader, objectInfo );
+        case 150: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 56: return new PerSourceModel::Interface_Link( loader, objectInfo );
+        case 98: return new PerSourceModel::Concrete_Dimensions_LinkReference( loader, objectInfo );
+        case 99: return new PerSourceModel::Concrete_Dimensions_LinkSingle( loader, objectInfo );
+        case 100: return new PerSourceModel::Concrete_Dimensions_LinkMany( loader, objectInfo );
+        case 106: return new PerSourceModel::Concrete_Context( loader, objectInfo );
+        case 117: return new PerSourceModel::Concrete_Link( loader, objectInfo );
+        case 97: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 101: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 102: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
+        case 107: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 110: return new MemoryLayout::Concrete_Action( loader, objectInfo );
+        case 112: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 115: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 118: return new MemoryLayout::Concrete_Link( loader, objectInfo );
+        case 121: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
+        case 151: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 152: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 153: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 154: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 155: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 156: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 157: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 158: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 159: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 160: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 161: return new MemoryLayout::MemoryLayout_SharedBuffer( loader, objectInfo );
+        case 162: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 59: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
+        case 60: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
+        case 61: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
+        case 62: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
+        case 63: return new Operations::Invocations_Variables_Context( loader, objectInfo );
+        case 64: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
+        case 65: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
+        case 66: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
+        case 67: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
+        case 68: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
+        case 69: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
+        case 70: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
+        case 71: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
+        case 72: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
+        case 73: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
+        case 74: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
+        case 75: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
+        case 76: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
+        case 77: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
+        case 78: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
+        case 79: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
+        case 80: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
+        case 81: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
+        case 82: return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 83: return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 84: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 85: return new Operations::Invocations_Operations_Pause( loader, objectInfo );
+        case 86: return new Operations::Invocations_Operations_Resume( loader, objectInfo );
+        case 87: return new Operations::Invocations_Operations_Done( loader, objectInfo );
+        case 88: return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
+        case 89: return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
+        case 90: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 91: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 92: return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 93: return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 94: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 95: return new Operations::Invocations_Operations_Range( loader, objectInfo );
+        case 123: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 124: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 125: return new Operations::Operations_Element( loader, objectInfo );
+        case 126: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 127: return new Operations::Operations_Context( loader, objectInfo );
+        case 128: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 129: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 130: return new Operations::Operations_Name( loader, objectInfo );
+        case 131: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 132: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 133: return new Operations::Operations_Invocations( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

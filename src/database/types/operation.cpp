@@ -40,17 +40,31 @@ OperationID getOperationName( const std::string& strName )
 
 const OperationIDStringArray& getOperationStrings() { return g_pszOperationStrings; }
 
-static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings
-    = { std::string( "Read" ),      std::string( "Write" ),        std::string( "Call" ),
-        std::string( "Start" ),     std::string( "Stop" ),         std::string( "Pause" ),
-        std::string( "Resume" ),    std::string( "WaitAction" ),   std::string( "WaitDimension" ),
-        std::string( "GetAction" ), std::string( "GetDimension" ), std::string( "Done" ),
-        std::string( "Range" ),     std::string( "Raw" ) };
+// clang-format off
+static const ExplicitOperationIDStringArray g_pszExplicitOperationStrings = 
+{ 
+    std::string( "Read" ),      
+    std::string( "Write" ),
+    std::string( "Allocate" ),
+    std::string( "Call" ),
+    std::string( "Start" ),     
+    std::string( "Stop" ),         
+    std::string( "Pause" ),
+    std::string( "Resume" ),    
+    std::string( "WaitAction" ),   
+    std::string( "WaitDimension" ),
+    std::string( "GetAction" ), 
+    std::string( "GetDimension" ), 
+    std::string( "Done" ),
+    std::string( "Range" ),     
+    std::string( "Raw" ) 
+};
+// clang-format on
 
 const std::string& getExplicitOperationString( ExplicitOperationID op )
 {
     ASSERT( ( static_cast< int >( op ) >= 0 )
-                && ( static_cast< int >( op ) < static_cast< int >( HIGHEST_EXPLICIT_OPERATION_TYPE ) ) );
+            && ( static_cast< int >( op ) < static_cast< int >( HIGHEST_EXPLICIT_OPERATION_TYPE ) ) );
     return g_pszExplicitOperationStrings[ op ];
 }
 

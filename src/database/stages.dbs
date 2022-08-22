@@ -133,49 +133,10 @@ stage ConcreteStage
     persource accessor ref< Interface::Root >;
 }
 
-stage HyperGraphAnalysis
-{
-    source .manifest;
-    dependency ConcreteStage;
-
-    file Model;
-
-    persource accessor ref< Interface::Root >;
-}
-
-stage HyperGraphAnalysisView
-{
-    source .manifest;
-    dependency HyperGraphAnalysis;
-
-    persource accessor ref< Interface::Root >;
-    persource accessor ref< Concrete::Root >;
-    global accessor ref< HyperGraph::Graph >;
-}
-
-stage DerivationAnalysis
-{
-    source .manifest;
-    dependency HyperGraphAnalysis;
-
-    file Derivations;
-
-    persource accessor array< ref< Interface::IContext > >;
-}
-
-stage DerivationAnalysisView
-{
-    source .manifest;
-    dependency DerivationAnalysis;
-
-    global accessor ref< Derivation::Mapping >;
-}
-
-
 stage ConcreteTypeAnalysis
 {
     source .manifest;
-    dependency DerivationAnalysis;
+    dependency ConcreteStage;
 
     file ConcreteTable;
 
@@ -203,10 +164,71 @@ stage ConcreteTypeRollout
     global accessor ref< Symbols::SymbolTable >;
 }
 
+stage DerivationAnalysis
+{
+    source .manifest;
+    dependency ConcreteTypeRollout;
+
+    file Derivations;
+
+    persource accessor array< ref< Interface::IContext > >;
+}
+
+stage DerivationAnalysisView
+{
+    source .manifest;
+    dependency DerivationAnalysis;
+
+    global accessor ref< Derivation::Mapping >;
+}
+
+stage DerivationAnalysisRollout
+{
+    source .mega;
+    dependency DerivationAnalysis;
+
+    file PerSourceDerivations;
+
+    persource accessor array< ref< Interface::IContext > >;
+    global accessor ref< Derivation::Mapping >;
+}
+
+stage HyperGraphAnalysis
+{
+    source .manifest;
+    dependency DerivationAnalysisRollout;
+
+    file Model;
+
+    persource accessor array< ref< Interface::Link > >;
+    persource accessor ref< Concrete::Root >;
+}
+
+stage HyperGraphAnalysisView
+{
+    source .manifest;
+    dependency HyperGraphAnalysis;
+
+    persource accessor ref< Interface::Root >;
+    persource accessor ref< Concrete::Root >;
+    global accessor ref< HyperGraph::Graph >;
+}
+
+stage HyperGraphAnalysisRollout
+{
+    source .mega;
+    dependency HyperGraphAnalysis;
+
+    file PerSourceModel;
+
+    persource accessor array< ref< Interface::Link > >;
+    persource accessor ref< Concrete::Root >;
+}
+
 stage MemoryStage
 {
     source .mega;
-    dependency ConcreteTypeRollout;
+    dependency HyperGraphAnalysisRollout;
 
     file MemoryLayout;
 

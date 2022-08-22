@@ -352,10 +352,22 @@ void build( Database& database, Invocation* pInvocation )
                     std::vector< Operation* > candidateOperations;
                     for ( Operation* pOperation : operations )
                     {
+                        using OperationsStage::Invocations::Operations::Allocate;
                         using OperationsStage::Invocations::Operations::Call;
                         using OperationsStage::Invocations::Operations::Start;
 
-                        if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )
+                        if ( Allocate* pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
+                        {
+                            for ( Element* pElement : nonPolyTargets )
+                            {
+                                if ( pElement->get_concrete()->get_context().value() == pAllocate->get_concrete_target()
+                                     && pElement->get_interface()->get_context().value() == pAllocate->get_interface() )
+                                {
+                                    candidateOperations.push_back( pAllocate );
+                                }
+                            }
+                        }
+                        else if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )
                         {
                             for ( Element* pElement : nonPolyTargets )
                             {
@@ -454,6 +466,14 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
     for ( auto pOperation : getOperations( pInvocation->get_root_instruction() ) )
     {
         bool bFound = false;
+        if ( !bFound )
+        {
+            if ( Allocate* pOp = dynamic_database_cast< Allocate >( pOperation ) )
+            {
+                setOrCheck( resultOpt, id_exp_Allocate );
+                bFound = true;
+            }
+        }
         if ( !bFound )
         {
             if ( Call* pOp = dynamic_database_cast< Call >( pOperation ) )

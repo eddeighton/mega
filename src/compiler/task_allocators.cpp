@@ -126,7 +126,7 @@ public:
             if ( bCreateAllocatorDimension )
             {
                 Dimensions::Allocator* pAllocatorDim = database.construct< Dimensions::Allocator >(
-                    Dimensions::Allocator::Args{ Dimensions::Generated::Args{ pContext }, pAllocator } );
+                    Dimensions::Allocator::Args{ Dimensions::Allocation::Args{ pContext }, pAllocator } );
                 pContext
                     = database.construct< Context >( Context::Args{ pContext, pAllocator, { pAllocatorDim }, {} } );
             }

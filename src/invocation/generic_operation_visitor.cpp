@@ -106,7 +106,7 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
     if ( pFrom && pFrom != pTo )
     {
         Concrete::ContextGroup* pCommon = findCommonRoot( pFrom, pTo );
-        VERIFY_RTE_MSG( pCommon, "Common root derivation failed" );
+        VERIFY( pCommon, Exception, "Common root derivation failed" );
 
         if ( Concrete::Root* pRoot = dynamic_database_cast< Concrete::Root >( pCommon ) )
         {
@@ -137,11 +137,11 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
         while ( pFrom != pCommon )
         {
             Concrete::Context* pFromContext = dynamic_database_cast< Concrete::Context >( pFrom );
-            VERIFY_RTE( pFromContext );
+            VERIFY( pFromContext, Exception, "" );
             Concrete::ContextGroup* pParentContextGroup = pFromContext->get_parent();
-            VERIFY_RTE( pParentContextGroup );
+            VERIFY( pParentContextGroup, Exception, "" );
             Concrete::Context* pParent = dynamic_database_cast< Concrete::Context >( pParentContextGroup );
-            VERIFY_RTE( pParent );
+            VERIFY( pParent, Exception, "" );
             // generate parent derivation instruction
 
             Variables::Instance* pInstanceVariable = m_database.construct< Variables::Instance >(
@@ -159,7 +159,8 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
         {
             path.push_back( pTo );
             Concrete::Context* p = dynamic_database_cast< Concrete::Context >( pTo );
-            pTo                  = p->get_parent();
+            VERIFY( p, Exception, "" );
+            pTo = p->get_parent();
         }
         std::reverse( path.begin(), path.end() );
 
@@ -171,7 +172,7 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
             //    return;
             //}
             Concrete::Context* pConcreteContext = dynamic_database_cast< Concrete::Context >( pConcreteContextIter );
-            VERIFY_RTE( pConcreteContext );
+            VERIFY( pConcreteContext, Exception, "" );
 
             Variables::Instance* pInstanceVariable = m_database.construct< Variables::Instance >(
                 Variables::Instance::Args{ Variables::Variable::Args{ pVariable }, pConcreteContext } );
@@ -193,7 +194,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
     Instructions::InstructionGroup* pInstruction = &parentInstruction;
     Variables::Instance*            pInstance    = &variable;
 
-    VERIFY_RTE( prev->get_element()->get_concrete()->get_context().has_value() );
+    VERIFY( prev->get_element()->get_concrete()->get_context().has_value(), Exception, "" );
     Concrete::Context* pPrevConcrete = prev->get_element()->get_concrete()->get_context().value();
 
     if ( currentConcrete->get_context().has_value() )
@@ -202,90 +203,117 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
         Interface::IContext*                           pCurrentInterface = pInterfaceVar->get_context().value();
         Concrete::Context* pCurrentConcrete = current.get_element()->get_concrete()->get_context().value();
 
-        commonRootDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstruction, pInstance );
-
-        using OperationsStage::Invocations::Instructions::Instruction;
-        using OperationsStage::Invocations::Operations::BasicOperation;
-        using OperationsStage::Invocations::Operations::Operation;
-
-        switch ( m_pInvocation->get_operation() )
+        if ( Concrete::Object* pCurrentConcreteObject = dynamic_database_cast< Concrete::Object >( pCurrentConcrete ) )
         {
-            case id_Imp_NoParams:
-            case id_Imp_Params:
+            //only operation on actual object is to allocate it.
+
+            using OperationsStage::Invocations::Instructions::Instruction;
+            using OperationsStage::Invocations::Operations::BasicOperation;
+            using OperationsStage::Invocations::Operations::Operation;
+
+            switch ( m_pInvocation->get_operation() )
             {
-                // only derive the parent for the starter
-                using OperationsStage::Invocations::Operations::Call;
-                Call* pCall = m_database.construct< Call >( Call::Args{
-                    BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                          pCurrentInterface, pCurrentConcrete } } );
-                pInstruction->push_back_children( pCall );
+                case id_Imp_NoParams:
+                {
+                    // only derive the parent for the starter
+                    using OperationsStage::Invocations::Operations::Allocate;
+                    Allocate* pAllocate = m_database.construct< Allocate >( Allocate::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pAllocate );
+                }
+                break;
+                default:
+                    THROW_INVOCATION_EXCEPTION( "Invalid invocation on object" );
             }
-            break;
-            case id_Start:
+        }
+        else
+        {
+            commonRootDerivation( pPrevConcrete, pCurrentConcrete->get_parent(), pInstruction, pInstance );
+
+            using OperationsStage::Invocations::Instructions::Instruction;
+            using OperationsStage::Invocations::Operations::BasicOperation;
+            using OperationsStage::Invocations::Operations::Operation;
+
+            switch ( m_pInvocation->get_operation() )
             {
-                using OperationsStage::Invocations::Operations::Start;
-                Start* pStart = m_database.construct< Start >( Start::Args{
-                    BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                          pCurrentInterface, pCurrentConcrete } } );
-                pInstruction->push_back_children( pStart );
+                case id_Imp_NoParams:
+                case id_Imp_Params:
+                {
+                    // only derive the parent for the starter
+                    using OperationsStage::Invocations::Operations::Call;
+                    Call* pCall = m_database.construct< Call >( Call::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pCall );
+                }
+                break;
+                case id_Start:
+                {
+                    using OperationsStage::Invocations::Operations::Start;
+                    Start* pStart = m_database.construct< Start >( Start::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pStart );
+                }
+                break;
+                case id_Stop:
+                {
+                    using OperationsStage::Invocations::Operations::Stop;
+                    Stop* pStop = m_database.construct< Stop >( Stop::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pStop );
+                }
+                break;
+                case id_Pause:
+                {
+                    using OperationsStage::Invocations::Operations::Pause;
+                    Pause* pPause = m_database.construct< Pause >( Pause::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pPause );
+                }
+                break;
+                case id_Resume:
+                {
+                    using OperationsStage::Invocations::Operations::Resume;
+                    Resume* pResume = m_database.construct< Resume >( Resume::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pResume );
+                }
+                break;
+                case id_Wait:
+                {
+                    using OperationsStage::Invocations::Operations::WaitAction;
+                    WaitAction* pWaitAction = m_database.construct< WaitAction >( WaitAction::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pWaitAction );
+                }
+                break;
+                case id_Get:
+                {
+                    using OperationsStage::Invocations::Operations::GetAction;
+                    GetAction* pGetAction = m_database.construct< GetAction >( GetAction::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pGetAction );
+                }
+                break;
+                case id_Done:
+                {
+                    using OperationsStage::Invocations::Operations::Done;
+                    Done* pDone = m_database.construct< Done >( Done::Args{
+                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
+                                              pCurrentInterface, pCurrentConcrete } } );
+                    pInstruction->push_back_children( pDone );
+                }
+                break;
+                default:
+                    THROW_RTE( "Unreachable" );
             }
-            break;
-            case id_Stop:
-            {
-                using OperationsStage::Invocations::Operations::Stop;
-                Stop* pStop = m_database.construct< Stop >( Stop::Args{
-                    BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                          pCurrentInterface, pCurrentConcrete } } );
-                pInstruction->push_back_children( pStop );
-            }
-            break;
-            case id_Pause:
-            {
-                using OperationsStage::Invocations::Operations::Pause;
-                Pause* pPause = m_database.construct< Pause >( Pause::Args{
-                    BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                          pCurrentInterface, pCurrentConcrete } } );
-                pInstruction->push_back_children( pPause );
-            }
-            break;
-            case id_Resume:
-            {
-                using OperationsStage::Invocations::Operations::Resume;
-                Resume* pResume = m_database.construct< Resume >( Resume::Args{
-                    BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                          pCurrentInterface, pCurrentConcrete } } );
-                pInstruction->push_back_children( pResume );
-            }
-            break;
-            case id_Wait:
-            {
-                using OperationsStage::Invocations::Operations::WaitAction;
-                WaitAction* pWaitAction = m_database.construct< WaitAction >( WaitAction::Args{
-                    BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                          pCurrentInterface, pCurrentConcrete } } );
-                pInstruction->push_back_children( pWaitAction );
-            }
-            break;
-            case id_Get:
-            {
-                using OperationsStage::Invocations::Operations::GetAction;
-                GetAction* pGetAction = m_database.construct< GetAction >( GetAction::Args{
-                    BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                          pCurrentInterface, pCurrentConcrete } } );
-                pInstruction->push_back_children( pGetAction );
-            }
-            break;
-            case id_Done:
-            {
-                using OperationsStage::Invocations::Operations::Done;
-                Done* pDone = m_database.construct< Done >( Done::Args{
-                    BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                          pCurrentInterface, pCurrentConcrete } } );
-                pInstruction->push_back_children( pDone );
-            }
-            break;
-            default:
-                THROW_RTE( "Unreachable" );
         }
     }
     else if ( currentConcrete->get_dimension().has_value() )
@@ -379,7 +407,7 @@ void GenericOperationVisitor::buildDimensionReference( OperationsStage::Operatio
 
     auto names = current.get_children();
 
-    VERIFY_RTE( current.get_element()->get_concrete()->get_dimension().has_value() );
+    VERIFY( current.get_element()->get_concrete()->get_dimension().has_value(), Exception, "" );
     Concrete::Dimensions::User* pDimension = current.get_element()->get_concrete()->get_dimension().value();
 
     using OperationsStage::Invocations::Variables::Dimension;
@@ -462,7 +490,7 @@ void GenericOperationVisitor::buildPolyCase( OperationsStage::Operations::Name* 
 
     ASSERT( current.get_element()->get_concrete()->get_context().has_value() );
     Concrete::Context* pContext = current.get_element()->get_concrete()->get_context().value();
-    VERIFY_RTE( pContext );
+    VERIFY( pContext, Exception, "" );
 
     Variables::Instance* pInstance = m_database.construct< Variables::Instance >(
         Variables::Instance::Args{ Variables::Variable::Args{ &variable }, pContext } );
@@ -502,7 +530,7 @@ void GenericOperationVisitor::buildMono( OperationsStage::Operations::Name* prev
 
     ASSERT( current.get_element()->get_concrete()->get_context().has_value() );
     Concrete::Context* pContext = current.get_element()->get_concrete()->get_context().value();
-    VERIFY_RTE( pContext );
+    VERIFY( pContext, Exception, "" );
 
     Variables::Instance* pInstance = m_database.construct< Variables::Instance >(
         Variables::Instance::Args{ Variables::Variable::Args{ &variable }, pContext } );
@@ -539,7 +567,7 @@ void GenericOperationVisitor::operator()()
     for ( OperationsStage::Operations::Name* pName : pNameRoot->get_children() )
     {
         auto contextOpt = pName->get_element()->get_concrete()->get_context();
-        VERIFY_RTE( contextOpt.has_value() );
+        VERIFY( contextOpt.has_value(), Exception, "" );
         types.push_back( contextOpt.value() );
     }
 
