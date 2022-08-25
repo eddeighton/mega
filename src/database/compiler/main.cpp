@@ -32,114 +32,157 @@ boost::filesystem::path inputStringToPath( const std::string strPath )
     return actualPath;
 }
 
-using namespace std::literals;
-
-static const std::vector< std::string > headerFiles = {
-    //
-    "ComponentListing.hxx"s,
-    "ComponentListingView.hxx"s,
-    "ConcreteStage.hxx"s,
-    "ConcreteTypeAnalysis.hxx"s,
-    "ConcreteTypeAnalysisView.hxx"s,
-    "ConcreteTypeRollout.hxx"s,
-    "data_AST.hxx"s,
-    "data_Body.hxx"s,
-    "data_Clang.hxx"s,
-    "data_Components.hxx"s,
-    "data_Concrete.hxx"s,
-    "data_ConcreteTable.hxx"s,
-    "data_Derivations.hxx"s,
-    "data_DPGraph.hxx"s,
-    "data_MemoryLayout.hxx"s,
-    "data_Model.hxx"s,
-    "data_Operations.hxx"s,
-    "data_PerSourceConcreteTable.hxx"s,
-    "data_PerSourceDerivations.hxx"s,
-    "data_PerSourceModel.hxx"s,
-    "data_PerSourceSymbols.hxx"s,
-    "data_SymbolTable.hxx"s,
-    "data_Tree.hxx"s,
-    "DependencyAnalysis.hxx"s,
-    "DependencyAnalysisView.hxx"s,
-    "DerivationAnalysis.hxx"s,
-    "DerivationAnalysisRollout.hxx"s,
-    "DerivationAnalysisView.hxx"s,
-    "environment.hxx"s,
-    "file_info.hxx"s,
-    "FinalStage.hxx"s,
-    "HyperGraphAnalysis.hxx"s,
-    "HyperGraphAnalysisRollout.hxx"s,
-    "HyperGraphAnalysisView.hxx"s,
-    "InterfaceAnalysisStage.hxx"s,
-    "InterfaceStage.hxx"s,
-    "manifest.hxx"s,
-    "MemoryStage.hxx"s,
-    "OperationsStage.hxx"s,
-    "ParserStage.hxx"s,
-    "SymbolAnalysis.hxx"s,
-    "SymbolAnalysisView.hxx"s,
-    "SymbolRollout.hxx"s };
-
-static const std::vector< std::string > sourceFiles = {
-    //
-    "ComponentListing.cxx"s,
-    "ComponentListingView.cxx"s,
-    "ConcreteStage.cxx"s,
-    "ConcreteTypeAnalysis.cxx"s,
-    "ConcreteTypeAnalysisView.cxx"s,
-    "ConcreteTypeRollout.cxx"s,
-    "data.cxx"s,
-    "DependencyAnalysis.cxx"s,
-    "DependencyAnalysisView.cxx"s,
-    "DerivationAnalysis.cxx"s,
-    "DerivationAnalysisRollout.cxx"s,
-    "DerivationAnalysisView.cxx"s,
-    "environment.cxx"s,
-    "file_info.cxx"s,
-    "FinalStage.cxx"s,
-    "HyperGraphAnalysis.cxx"s,
-    "HyperGraphAnalysisRollout.cxx"s,
-    "HyperGraphAnalysisView.cxx"s,
-    "InterfaceAnalysisStage.cxx"s,
-    "InterfaceStage.cxx"s,
-    "manifest.cxx"s,
-    "MemoryStage.cxx"s,
-    "OperationsStage.cxx"s,
-    "ParserStage.cxx"s,
-    "SymbolAnalysis.cxx"s,
-    "SymbolAnalysisView.cxx"s,
-    "SymbolRollout.cxx"s,
-};
-
-bool restore( const boost::filesystem::path& stashDirectory, const boost::filesystem::path& outputAPIFolderPath,
-              const boost::filesystem::path& outputSrcFolderPath, const task::DeterminantHash& determinant )
+db::schema::Schema loadSchema( const std::vector< boost::filesystem::path >& inputSourceFiles )
 {
-    task::Stash stash( stashDirectory );
-
-    bool bRestored = true;
-    for ( const auto& headerFile : headerFiles )
+    db::schema::Schema schema;
+    for ( const boost::filesystem::path& sourceFilePath : inputSourceFiles )
     {
-        bRestored = bRestored && stash.restore( outputAPIFolderPath / headerFile, determinant );
-    }
-    for ( const auto& sourceFileName : sourceFiles )
-    {
-        bRestored = bRestored && stash.restore( outputSrcFolderPath / sourceFileName, determinant );
-    }
+        std::string strFileContents;
+        boost::filesystem::loadAsciiFile( sourceFilePath, strFileContents, true );
 
+        std::ostringstream      osError;
+        db::schema::Schema      fileSchema;
+        db::schema::ParseResult result = db::schema::parse( strFileContents, fileSchema, osError );
+        if ( result.bSuccess )
+        {
+            std::string::const_iterator iterReached = result.iterReached.base();
+            if ( iterReached == strFileContents.end() )
+            {
+                std::copy( fileSchema.m_elements.begin(), fileSchema.m_elements.end(),
+                           std::back_inserter( schema.m_elements ) );
+            }
+            else
+            {
+                const int         distance      = std::distance( strFileContents.cbegin(), iterReached );
+                const int         distanceToEnd = std::distance( iterReached, strFileContents.cend() );
+                const std::string strError( strFileContents.cbegin() + std::max( 0, distance - 30 ),
+                                            iterReached + std::min( distanceToEnd - distance, 30 ) );
+                THROW_RTE( "Failed to load schema file: " << sourceFilePath.string() << " Could not parse beyond line: "
+                                                          << result.iterReached.position() << "\n"
+                                                          << strError << "\n"
+                                                          << osError.str() );
+            }
+        }
+        else
+        {
+            THROW_RTE( "Failed to load schema file: " << sourceFilePath.string() << " Error: " << osError.str() );
+        }
+    }
+    return schema;
+}
+
+struct OutputFiles
+{
+    std::vector< std::string > headerFiles;
+    std::vector< std::string > sourceFiles;
+};
+void calculateOutputFiles( const db::schema::Schema& schema, OutputFiles& outputFiles )
+{
+    using namespace std::literals;
+    static const std::vector< std::string > constantHeaderFiles
+        = { "environment.hxx"s, "file_info.hxx"s, "manifest.hxx"s };
+    static const std::vector< std::string > constantSourceFiles
+        = { "data.cxx"s, "environment.cxx"s, "file_info.cxx"s, "manifest.cxx"s };
+
+    outputFiles.headerFiles = constantHeaderFiles;
+    outputFiles.sourceFiles = constantSourceFiles;
+
+    struct Visitor
+    {
+        OutputFiles& outputFiles;
+        Visitor( OutputFiles& outputFiles )
+            : outputFiles( outputFiles )
+        {
+        }
+        void operator()( const db::schema::Stage& stage ) const
+        {
+            // view header file
+            {
+                std::ostringstream os;
+                os << stage.m_name << ".hxx";
+                outputFiles.headerFiles.push_back( os.str() );
+            }
+            // view source file
+            {
+                std::ostringstream os;
+                os << stage.m_name << ".cxx";
+                outputFiles.sourceFiles.push_back( os.str() );
+            }
+
+            struct StageElementVariantVisitor
+            {
+                OutputFiles& outputFiles;
+                StageElementVariantVisitor( OutputFiles& outputFiles )
+                    : outputFiles( outputFiles )
+                {
+                }
+                void operator()( const db::schema::File& file ) const
+                {
+                    std::ostringstream os;
+                    os << "data_" << file.m_id << ".hxx";
+                    outputFiles.headerFiles.push_back( os.str() );
+                }
+                void operator()( const db::schema::Source& source ) const {}
+                void operator()( const db::schema::Dependency& dependency ) const {}
+                void operator()( const db::schema::GlobalAccessor& accessor ) const {}
+                void operator()( const db::schema::PerSourceAccessor& accessor ) const {}
+            } stageVisitor( outputFiles );
+            for ( const auto& element : stage.m_elements )
+            {
+                boost::apply_visitor( stageVisitor, element );
+            }
+        }
+        void operator()( const db::schema::Namespace& namespace_ ) const {}
+    } visitor( outputFiles );
+
+    for ( const auto& element : schema.m_elements )
+    {
+        boost::apply_visitor( visitor, element );
+    }
+}
+
+std::optional< task::Stash > g_stashOpt;
+
+bool restore( const boost::filesystem::path& outputAPIFolderPath, const boost::filesystem::path& outputSrcFolderPath,
+              const task::DeterminantHash& determinant, const OutputFiles& outputFiles )
+{
+    bool bRestored = false;
+    if ( g_stashOpt.has_value() )
+    {
+        bRestored = true;
+        for ( const auto& headerFile : outputFiles.headerFiles )
+        {
+            if ( !g_stashOpt.value().restore( outputAPIFolderPath / headerFile, determinant ) )
+            {
+                bRestored = false;
+                break;
+            }
+        }
+        for ( const auto& sourceFileName : outputFiles.sourceFiles )
+        {
+            if ( !g_stashOpt.value().restore( outputSrcFolderPath / sourceFileName, determinant ) )
+            {
+                bRestored = false;
+                break;
+            }
+        }
+    }
     return bRestored;
 }
 
-void stash( const boost::filesystem::path& stashDirectory, const boost::filesystem::path& outputAPIFolderPath,
-            const boost::filesystem::path& outputSrcFolderPath, const task::DeterminantHash& determinant )
+void stash( const boost::filesystem::path& outputAPIFolderPath, const boost::filesystem::path& outputSrcFolderPath,
+            const task::DeterminantHash& determinant, const OutputFiles& outputFiles )
 {
-    task::Stash stash( stashDirectory );
-    for ( const auto& headerFile : headerFiles )
+    if ( g_stashOpt.has_value() )
     {
-        stash.stash( outputAPIFolderPath / headerFile, determinant );
-    }
-    for ( const auto& sourceFileName : sourceFiles )
-    {
-        stash.stash( outputSrcFolderPath / sourceFileName, determinant );
+        for ( const auto& headerFile : outputFiles.headerFiles )
+        {
+            g_stashOpt.value().stash( outputAPIFolderPath / headerFile, determinant );
+        }
+        for ( const auto& sourceFileName : outputFiles.sourceFiles )
+        {
+            g_stashOpt.value().stash( outputSrcFolderPath / sourceFileName, determinant );
+        }
     }
 }
 
@@ -153,7 +196,7 @@ int main( int argc, const char* argv[] )
         bool bGeneralWait = false;
 
         std::vector< std::string > sourceFiles;
-        std::string                outputAPIDir, outputSrcDir, dataDir, injaDir, stashDir;
+        std::string                outputAPIDir, outputSrcDir, dataDir, injaDir, databaseCompilerLib, stashDir;
 
         po::options_description commandOptions( " Commands" );
         {
@@ -162,9 +205,10 @@ int main( int argc, const char* argv[] )
             ( "help",   po::bool_switch( &bHelp ), "Print command line help info." )
             ( "wait",   po::bool_switch( &bGeneralWait ), "Wait at startup for attaching a debugger" )
 
-            ( "api",    po::value< std::string >( &outputAPIDir ),  "Output folder to generate API" )
-            ( "src",    po::value< std::string >( &outputSrcDir ),  "Output folder to generate source" )
-            ( "stash",  po::value< std::string >( &stashDir ),      "Stash directory" )
+            ( "api",    po::value< std::string >( &outputAPIDir ),          "Output folder to generate API" )
+            ( "src",    po::value< std::string >( &outputSrcDir ),          "Output folder to generate source" )
+            ( "dblib",  po::value< std::string >( &databaseCompilerLib ),   "Path to database compiler library" )
+            ( "stash",  po::value< std::string >( &stashDir ),              "Stash directory" )
 
             ( "data_dir", po::value< std::string >( &dataDir ), "Directory for inja templates and data sub directories" )
             ( "inja_dir", po::value< std::string >( &injaDir ), "Directory for inja templates and data sub directories" )
@@ -190,11 +234,11 @@ int main( int argc, const char* argv[] )
             using Path       = boost::filesystem::path;
             using PathVector = std::vector< Path >;
 
-            const Path outputAPIFolderPath = inputStringToPath( outputAPIDir );
-            const Path outputSrcFolderPath = inputStringToPath( outputSrcDir );
-
-            const Path dataFolderPath = inputStringToPath( dataDir );
-            const Path injaFolderPath = inputStringToPath( injaDir );
+            const Path outputAPIFolderPath     = inputStringToPath( outputAPIDir );
+            const Path outputSrcFolderPath     = inputStringToPath( outputSrcDir );
+            const Path databaseCompilerLibPath = inputStringToPath( databaseCompilerLib );
+            const Path dataFolderPath          = inputStringToPath( dataDir );
+            const Path injaFolderPath          = inputStringToPath( injaDir );
 
             {
                 PathVector inputSourceFiles;
@@ -203,57 +247,23 @@ int main( int argc, const char* argv[] )
                     inputSourceFiles.push_back( inputStringToPath( strFile ) );
                 }
 
-                task::DeterminantHash determinant;
+                task::DeterminantHash determinant{ databaseCompilerLibPath };
                 for ( const Path& sourceFilePath : inputSourceFiles )
                 {
                     determinant ^= sourceFilePath;
                 }
 
-                bool bRestored = true;
+                const db::schema::Schema schema = loadSchema( inputSourceFiles );
+                OutputFiles              outputFiles;
+                calculateOutputFiles( schema, outputFiles );
+
                 if ( !stashDir.empty() )
                 {
-                    bRestored = restore( stashDir, outputAPIFolderPath, outputSrcFolderPath, determinant );
+                    g_stashOpt = task::Stash( stashDir );
                 }
 
-                if ( !bRestored )
+                if ( !restore( outputAPIFolderPath, outputSrcFolderPath, determinant, outputFiles ) )
                 {
-                    db::schema::Schema schema;
-                    for ( const Path& sourceFilePath : inputSourceFiles )
-                    {
-                        std::string strFileContents;
-                        boost::filesystem::loadAsciiFile( sourceFilePath, strFileContents, true );
-
-                        std::ostringstream      osError;
-                        db::schema::Schema      fileSchema;
-                        db::schema::ParseResult result = db::schema::parse( strFileContents, fileSchema, osError );
-                        if ( result.bSuccess )
-                        {
-                            std::string::const_iterator iterReached = result.iterReached.base();
-                            if ( iterReached == strFileContents.end() )
-                            {
-                                std::copy( fileSchema.m_elements.begin(), fileSchema.m_elements.end(),
-                                           std::back_inserter( schema.m_elements ) );
-                            }
-                            else
-                            {
-                                const int         distance = std::distance( strFileContents.cbegin(), iterReached );
-                                const int         distanceToEnd = std::distance( iterReached, strFileContents.cend() );
-                                const std::string strError( strFileContents.cbegin() + std::max( 0, distance - 30 ),
-                                                            iterReached + std::min( distanceToEnd - distance, 30 ) );
-                                THROW_RTE( "Failed to load schema file: " << sourceFilePath.string()
-                                                                          << " Could not parse beyond line: "
-                                                                          << result.iterReached.position() << "\n"
-                                                                          << strError << "\n"
-                                                                          << osError.str() );
-                            }
-                        }
-                        else
-                        {
-                            THROW_RTE( "Failed to load schema file: " << sourceFilePath.string()
-                                                                      << " Error: " << osError.str() );
-                        }
-                    }
-
                     // std::cout << "Parsed schema:\n" << schema << std::endl;
                     db::model::Schema::Ptr pSchema = db::model::from_ast( schema );
 
@@ -264,10 +274,17 @@ int main( int argc, const char* argv[] )
                         outputAPIFolderPath, outputSrcFolderPath, dataFolderPath, injaFolderPath };
                     db::gen::generate( env, pSchema );
 
-                    if ( !stashDir.empty() )
-                    {
-                        stash( stashDir, outputAPIFolderPath, outputSrcFolderPath, determinant );
-                    }
+                    stash( outputAPIFolderPath, outputSrcFolderPath, determinant, outputFiles );
+
+                    std::cout << "Database compiler regenerated: "
+                              << outputFiles.headerFiles.size() + outputFiles.sourceFiles.size()
+                              << " database source files" << std::endl;
+                }
+                else
+                {
+                    std::cout << "Database compiler restored: "
+                              << outputFiles.headerFiles.size() + outputFiles.sourceFiles.size()
+                              << " database source files without recompiling" << std::endl;
                 }
             }
         }

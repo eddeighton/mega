@@ -16,16 +16,16 @@ configure_file( ${MEGA_SRC_DIR}/version/version.cpp.in ${MEGA_SRC_DIR}/version/v
 set( VERSION_HEADERS
     ${MEGA_API_DIR}/version/version.hpp )
 
-add_library( version STATIC
-    ${VERSION_HEADERS} 
-    ${MEGA_SRC_DIR}/version/version.cxx )
+#add_library( version STATIC
+#    ${VERSION_HEADERS} 
+#    ${MEGA_SRC_DIR}/version/version.cxx )
 
-set_property(TARGET version PROPERTY POSITION_INDEPENDENT_CODE ON)
+#set_property(TARGET version PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-target_include_directories( version PUBLIC ${MEGA_API_DIR} )
+#target_include_directories( version PUBLIC ${MEGA_API_DIR} )
 
-link_boost( version serialization )
+#link_boost( version serialization )
 
 install( FILES ${VERSION_HEADERS} DESTINATION include/version )
-install( TARGETS version EXPORT version DESTINATION lib)
-install( EXPORT version NAMESPACE MEGA:: FILE version-config.cmake DESTINATION share )
+#install( TARGETS version EXPORT version DESTINATION lib)
+#install( EXPORT version NAMESPACE MEGA:: FILE version-config.cmake DESTINATION share )
