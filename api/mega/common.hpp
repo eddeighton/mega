@@ -26,6 +26,8 @@
 
 namespace mega
 {
+static constexpr std::uint32_t MAX_SIMULATIONS = 256;
+
 using Instance  = std::uint32_t; // 32bit only for now
 using SymbolID  = std::int32_t;
 using TypeID    = std::int32_t;

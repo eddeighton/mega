@@ -110,12 +110,10 @@ Stuff::Stuff( std::shared_ptr< clang::HeaderSearchOptions > headerSearchOptions,
           headerSearchOptions, *pSourceManager, *pDiagnosticsEngine, languageOptions, nullptr ) )
     , pModuleLoader( std::make_unique< clang::TrivialModuleLoader >() )
     , pPreprocessorOptions( std::make_shared< clang::PreprocessorOptions >() )
-    //, pPCMCache( new clang::MemoryBufferCache )
     , pPreprocessor( std::make_shared< clang::Preprocessor >( pPreprocessorOptions,
                                                               *pDiagnosticsEngine,
                                                               languageOptions,
                                                               *pSourceManager,
-                                                              //*pPCMCache,
                                                               *pHeaderSearch,
                                                               *pModuleLoader,
                                                               // PTHMgr

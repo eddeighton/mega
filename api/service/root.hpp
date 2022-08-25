@@ -1,6 +1,8 @@
 #ifndef ROOT_26_MAY_2022
 #define ROOT_26_MAY_2022
 
+#include "execution_context_manager.hpp"
+
 #include "service/network/server.hpp"
 #include "service/network/conversation_manager.hpp"
 
@@ -44,6 +46,7 @@ private:
     task::Stash                                         m_stash;
     mega::network::RootConfig                           m_config;
     std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
+    ExecutionContextManager                             m_executionContextManager;
 };
 
 } // namespace service

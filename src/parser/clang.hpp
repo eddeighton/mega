@@ -18,7 +18,7 @@
 #include "clang/Basic/BitmaskEnum.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Basic/LangOptions.h"
-#include "clang/Basic/MemoryBufferCache.h"
+//#include "clang/Basic/MemoryBufferCache.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Lex/Token.h"
 #include "clang/Lex/Lexer.h"
@@ -83,7 +83,6 @@ private:
     std::unique_ptr< clang::HeaderSearch >               pHeaderSearch;
     std::unique_ptr< clang::TrivialModuleLoader >        pModuleLoader;
     std::shared_ptr< clang::PreprocessorOptions >        pPreprocessorOptions;
-    llvm::IntrusiveRefCntPtr< clang::MemoryBufferCache > pPCMCache;
     std::shared_ptr< clang::Preprocessor >               pPreprocessor;
     std::shared_ptr< clang::TargetOptions >              pTargetOptions;
     std::shared_ptr< clang::TargetInfo >                 pTargetInfo;

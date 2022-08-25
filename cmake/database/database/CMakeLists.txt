@@ -158,6 +158,7 @@ add_custom_target( GenerateDatabase
     COMMAND database_compiler_driver
         --api ${MEGA_API_DIR}/database/model/
         --src ${MEGA_SRC_DIR}/database/model/
+        --stash ${CMAKE_BINARY_DIR}/stash
         --data_dir ${MEGA_SRC_DIR}/database/data/
         --inja_dir ${MEGA_SRC_DIR}/database/compiler/templates/
         --input ${DATABASE_SCHEMAS}

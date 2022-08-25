@@ -264,6 +264,18 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeSimWriteLockReady();
     }
 
+    virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ExeCreateExecutionContext();
+        getStackTopLeafResponse( yield_ctx ).ExeCreateExecutionContext( result );
+    }
+
+    virtual void ExeReleaseExecutionContext( const mega::Address& index, boost::asio::yield_context& yield_ctx ) override
+    {
+        getRootRequest( yield_ctx ).ExeReleaseExecutionContext( index );
+        getStackTopLeafResponse( yield_ctx ).ExeReleaseExecutionContext();
+    }
+
     // root_daemon
     virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
@@ -408,6 +420,17 @@ public:
     {
         auto result = getRootRequest( yield_ctx ).ToolGetMegastructureInstallation();
         getStackTopLeafResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
+    }
+    virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ToolCreateExecutionContext();
+        getStackTopLeafResponse( yield_ctx ).ToolCreateExecutionContext( result );
+    }
+
+    virtual void ToolReleaseExecutionContext( const mega::Address& index, boost::asio::yield_context& yield_ctx ) override
+    {
+        getRootRequest( yield_ctx ).ToolReleaseExecutionContext( index );
+        getStackTopLeafResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
 };
 

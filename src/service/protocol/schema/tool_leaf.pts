@@ -3,5 +3,17 @@
 msg ToolGetMegastructureInstallation
 {
     request();
-    response(mega::network::MegastructureInstallation intsallation);
+    response(mega::network::MegastructureInstallation installation);
+}
+
+msg ToolCreateExecutionContext
+{
+    request();
+    response(std::pair< bool, mega::Address > result);
+}
+
+msg ToolReleaseExecutionContext
+{
+    request(mega::Address index);
+    response();
 }

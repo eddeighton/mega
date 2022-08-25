@@ -316,10 +316,36 @@ public:
         getStackTopDaemonResponse( yield_ctx ).ExeSimWriteLockReady();
     }
 
+    virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    {
+        getStackTopDaemonResponse( yield_ctx )
+            .ExeCreateExecutionContext( m_root.m_executionContextManager.create( getID() ) );
+    }
+
+    virtual void ExeReleaseExecutionContext( const mega::Address&        index,
+                                             boost::asio::yield_context& yield_ctx ) override
+    {
+        m_root.m_executionContextManager.release( index );
+        getStackTopDaemonResponse( yield_ctx ).ExeReleaseExecutionContext();
+    }
+
     virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
     {
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ToolGetMegastructureInstallation( m_root.getMegastructureInstallation() );
+    }
+
+    virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    {
+        getStackTopDaemonResponse( yield_ctx )
+            .ToolCreateExecutionContext( m_root.m_executionContextManager.create( getID() ) );
+    }
+
+    virtual void ToolReleaseExecutionContext( const mega::Address&        index,
+                                              boost::asio::yield_context& yield_ctx ) override
+    {
+        m_root.m_executionContextManager.release( index );
+        getStackTopDaemonResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
 };
 
@@ -643,6 +669,8 @@ void Root::conversationEnd( const network::Header& header, const network::Receiv
     VERIFY_RTE( pCon );
     pCon->conversationEnd( header.getConversationID() );
     SPDLOG_TRACE( "Root::conversationEnd: {} {}", header.getConversationID(), msg.msg );
+
+    m_executionContextManager.release( header.getConversationID() );
 }
 
 } // namespace service

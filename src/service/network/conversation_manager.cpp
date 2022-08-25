@@ -5,6 +5,8 @@
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/model/messages.hxx"
 
+#include "boost/asio/this_coro.hpp"
+
 #include <iostream>
 
 namespace mega
@@ -59,6 +61,8 @@ void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversa
                     parentSender.send( pConversation->getID(), msg, yield_ctx );
                 }
 
+                //yield_ctx.coro.lock();
+
                 pConversation->run( yield_ctx ); 
 
                 {
@@ -66,7 +70,11 @@ void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversa
                     parentSender.send( pConversation->getID(), msg, yield_ctx );
                 }
             }
-        } 
+        }
+/*#ifdef WIN32
+    // segmented stacks do NOT work on windows
+        ,boost::coroutines::attributes( 0xffffff ) //16,777,215₁₀
+#endif*/
     );
     // clang-format on
     SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
@@ -86,6 +94,10 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
         { 
             pConversation->run( yield_ctx ); 
         } 
+/*#ifdef WIN32
+    // segmented stacks do NOT work on windows
+        ,boost::coroutines::attributes( 0xffffff ) //16,777,215₁₀
+#endif*/
     );
     // clang-format on
     SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );

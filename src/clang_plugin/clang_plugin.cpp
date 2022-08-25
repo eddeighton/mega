@@ -299,6 +299,7 @@ struct EG_PLUGIN_INTERFACE_IMPL : EG_PLUGIN_INTERFACE
             if ( const clang::IdentifierInfo* pIdentifierInfo
                  = clang::getOperationID( g_pSession->getASTContext(), typePathType, bHasArguments ) )
             {
+                std::cout << "getInvocationOperationType: " << pIdentifierInfo->getName().str() << std::endl;
                 // return the type
                 clang::TagDecl* operatorClassDecl = nullptr;
                 {

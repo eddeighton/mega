@@ -20,7 +20,7 @@ msg TermPipelineRun
 msg TermGetMegastructureInstallation
 {
     request();
-    response(mega::network::MegastructureInstallation intsallation);
+    response(mega::network::MegastructureInstallation installation);
 }
 
 msg TermGetProject
@@ -102,7 +102,7 @@ msg ExeRestore
 msg ExeGetMegastructureInstallation
 {
     request();
-    response(mega::network::MegastructureInstallation intsallation);
+    response(mega::network::MegastructureInstallation installation);
 }
 
 msg ExeGetProject
@@ -123,9 +123,33 @@ msg ExeSimWriteLockReady
     response();
 }
 
+msg ExeCreateExecutionContext
+{
+    request();
+    response(std::pair< bool, mega::Address > result);
+}
+
+msg ExeReleaseExecutionContext
+{
+    request(mega::Address index);
+    response();
+}
+
 // Tool
 msg ToolGetMegastructureInstallation
 {
     request();
-    response(mega::network::MegastructureInstallation intsallation);
+    response(mega::network::MegastructureInstallation installation);
+}
+
+msg ToolCreateExecutionContext
+{
+    request();
+    response(std::pair< bool, mega::Address > result);
+}
+
+msg ToolReleaseExecutionContext
+{
+    request(mega::Address index);
+    response();
 }

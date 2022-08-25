@@ -24,6 +24,9 @@ public:
         ID = mega::ROOT_TYPE_ID
     };
     mega::reference data;
+    inline Root( )
+    {
+    }
     inline Root( const mega::reference& reference )
         :   data( reference )
     {
@@ -43,6 +46,8 @@ public:
         }
     }
     */
+    
+
 };
 #pragma GCC diagnostic pop
 

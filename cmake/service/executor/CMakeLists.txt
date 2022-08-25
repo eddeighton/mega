@@ -65,7 +65,7 @@ target_link_libraries( executorLib jit )
 target_link_libraries( executorLib runtime )
 target_link_libraries( executorLib service )
 
-install( FILES ${EXECUTOR_LIB_API} DESTINATION include/service/executor )
+install( FILES ${EXECUTOR_LIB_API} DESTINATION include/service )
 install( TARGETS executorLib EXPORT executorLib DESTINATION bin)
 install( EXPORT executorLib NAMESPACE MEGA:: FILE executorLib-config.cmake DESTINATION share )
 

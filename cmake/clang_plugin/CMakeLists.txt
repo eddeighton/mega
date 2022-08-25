@@ -32,9 +32,7 @@ add_library( clang_plugin MODULE
 
 set_target_properties( clang_plugin PROPERTIES FOLDER clang_plugin )
 
-link_boost( clang_plugin filesystem )
-link_boost( clang_plugin iostreams )
-link_boost( clang_plugin serialization )
+link_boost_usual( clang_plugin )
 link_common( clang_plugin )
 
 # import clang - symbols linked dynamically when load plugin

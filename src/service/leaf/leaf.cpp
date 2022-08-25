@@ -393,10 +393,36 @@ public:
         getExeResponse( yield_ctx ).ExeSimWriteLockReady();
     }
 
+    virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ExeCreateExecutionContext();
+        getExeResponse( yield_ctx ).ExeCreateExecutionContext( result );
+    }
+
+    virtual void ExeReleaseExecutionContext( const mega::Address&        index,
+                                             boost::asio::yield_context& yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ExeReleaseExecutionContext( index );
+        getExeResponse( yield_ctx ).ExeReleaseExecutionContext();
+    }
+
     virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ToolGetMegastructureInstallation();
         getToolResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
+    }
+
+    virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ToolCreateExecutionContext();
+        getToolResponse( yield_ctx ).ToolCreateExecutionContext( result );
+    }
+
+    virtual void ToolReleaseExecutionContext( const mega::Address&        index,
+                                              boost::asio::yield_context& yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ToolReleaseExecutionContext( index );
+        getToolResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
 };
 

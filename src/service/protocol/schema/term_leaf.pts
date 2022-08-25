@@ -15,7 +15,7 @@ msg TermPipelineRun
 msg TermGetMegastructureInstallation
 {
     request();
-    response(mega::network::MegastructureInstallation intsallation);
+    response(mega::network::MegastructureInstallation installation);
 }
 
 msg TermGetProject

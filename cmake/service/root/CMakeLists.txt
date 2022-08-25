@@ -12,13 +12,13 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 
 #get the source code
-set( DAEMON_SOURCE_DIR ${MEGA_SRC_DIR}/service/root )
+set( ROOT_SOURCE_DIR ${MEGA_SRC_DIR}/service/root )
 
-set( DAEMON_SOURCE 
-    ${DAEMON_SOURCE_DIR}/main.cpp
+set( ROOT_SOURCE 
+    ${ROOT_SOURCE_DIR}/main.cpp
  )
 
-add_executable( root ${DAEMON_SOURCE}  )
+add_executable( root ${ROOT_SOURCE} )
 
 target_compile_options( root PUBLIC "-fcoroutines" )
 

@@ -11,13 +11,17 @@
 #include "service/network/log.hpp"
 
 #include "mega/common.hpp"
+#include "mega/root.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <array>
 //#include <unordered_map>
+
+std::array< Root*, mega::MAX_SIMULATIONS > m_roots;
 
 namespace mega
 {
@@ -25,6 +29,13 @@ namespace runtime
 {
 namespace
 {
+
+void* dummy_read( mega::ExecutionContext& executionContext, const mega::reference& )
+{
+    static int x = 456;
+    return &x;
+}
+
 
 class Runtime
 {
@@ -79,8 +90,7 @@ public:
         mega::reference ref   = {};
         ::Root*         pRoot = new ::Root( ref );
 
-        const std::string strBufferName = executionContext.mapBuffer( ref );
-
+        // const std::string strBufferName = executionContext.mapBuffer( ref );
         // executionContext
 
         return pRoot;

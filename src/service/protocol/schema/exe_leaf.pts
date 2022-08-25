@@ -42,7 +42,7 @@ msg ExeRestore
 msg ExeGetMegastructureInstallation
 {
     request();
-    response(mega::network::MegastructureInstallation intsallation);
+    response(mega::network::MegastructureInstallation installation);
 }
 
 msg ExeGetProject
@@ -60,5 +60,17 @@ msg ExeSimReadLockReady
 msg ExeSimWriteLockReady
 {
     request( mega::TimeStamp timeStamp );
+    response();
+}
+
+msg ExeCreateExecutionContext
+{
+    request();
+    response(std::pair< bool, mega::Address > result);
+}
+
+msg ExeReleaseExecutionContext
+{
+    request(mega::Address index);
     response();
 }

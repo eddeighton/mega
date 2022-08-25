@@ -1,6 +1,11 @@
 
 #include "service/tool.hpp"
 
+#include "mega/common.hpp"
+#include "mega/root.hpp"
+
+#include "runtime/runtime.hpp"
+
 #include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/network.hpp"
@@ -60,6 +65,11 @@ public:
         }
     }
 
+    network::tool_leaf::Request_Encode getToolRequest( boost::asio::yield_context& yield_ctx )
+    {
+        return network::tool_leaf::Request_Encode( *this, m_tool.getLeafSender(), yield_ctx );
+    }
+
     network::leaf_tool::Response_Encode getLeafResponse( boost::asio::yield_context& yield_ctx )
     {
         return network::leaf_tool::Response_Encode( *this, m_tool.getLeafSender(), yield_ctx );
@@ -89,6 +99,15 @@ public:
     {
         m_pYieldContext     = &yield_ctx;
         g_pExecutionContext = this;
+
+        const std::pair< bool, mega::Address > result = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
+        VERIFY_RTE_MSG( result.first, "Failed to acquire execution context" );
+        SPDLOG_INFO( "Acquired execution context: {}", result.second );
+
+        std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
+            mega::runtime::allocateRoot( *g_pExecutionContext, getID() ),
+            []( Root* pRoot ) { mega::runtime::releaseRoot( *g_pExecutionContext, pRoot ); } );
+
         m_functor( yield_ctx );
         g_pExecutionContext = nullptr;
         m_pYieldContext     = nullptr;
