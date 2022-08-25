@@ -1,5 +1,5 @@
-#ifndef {{ guard }}_{{ database_file }}
-#define {{ guard }}_{{ database_file }}
+#ifndef {{ guard }}
+#define {{ guard }}
 
 #include "database/common/object_info.hpp"
 #include "database/common/object.hpp"
@@ -41,7 +41,6 @@ namespace {{ file.name }}
 
 // definitions
 {% for file in files %}
-{% if file.name == database_file %}
 namespace {{ file.name }}
 {
 {% for part in file.parts %}
@@ -75,26 +74,25 @@ namespace {{ file.name }}
     };
 {% endfor %}{#file.parts#}
 }
-{% endif %}
 {% endfor %}{# files #}
 
 {% for conversion in conversions %}
-{% if conversion.file == database_file %}
 template <>
 inline Ptr< {{ conversion.to }} > convert( const Ptr< {{ conversion.from }} >& from )
 {
     return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
 }
-{% endif %}
 {% endfor %}{# conversions #}
 {% for conversion in base_conversions %}
-{% if conversion.file == database_file %}
 inline Ptr< {{ conversion.to }} > to_base( const Ptr< {{ conversion.from }} >& from )
 {
     return from{% for pointer in conversion.pointers %}->{{ pointer }}{% endfor %};
 }
-{% endif %}
 {% endfor %}{# base_conversions #}
 
+{% for function in functions %}
+{{ function.propertytype }}& {{ function.name }}({{ function.variant_type }}& m_data);
+{% endfor %}{# for function in functions #}
+
 }
-#endif //{{ guard }}_{{ database_file }}
+#endif //{{ guard }}

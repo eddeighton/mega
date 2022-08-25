@@ -1,7 +1,5 @@
 
-{% for file in files %}
-#include "database/model/data_{{ file.name }}.hxx"
-{% endfor %}
+#include "database/model/data.hxx"
 
 #include "nlohmann/json.hpp"
 
@@ -141,6 +139,34 @@ namespace {{ file.name }}
 }
 {% endfor %}{# files #}
 
+
+{% for function in functions %}
+{{ function.propertytype }}& {{ function.name }}({{ function.variant_type }}& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> {{ function.propertytype }}&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+{% for variant in function.variants %}
+{% if variant.matched %}
+            {% if ( not loop.is_first ) %}else {% endif %} if constexpr( std::is_same_v< T, data::Ptr< data::{{ variant.primaryobjectpart }} > >)
+            {
+                data::Ptr< data::{{ variant.dataobjectpart }} > part = 
+                    data::convert< data::{{ variant.dataobjectpart }} >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: {{ function.name }}" );
+                return part->{{ function.property }};
+            }
+{% endif %}
+{% endfor %}{# function.bodies #}
+            else
+            {
+                THROW_RTE( "Invalid call to {{ function.name }}" );
+            }
+        }
+        , m_data );
+}
+{% endfor %}{# for function in functions #}
 
 mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
 {

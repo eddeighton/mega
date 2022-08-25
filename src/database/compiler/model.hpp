@@ -252,14 +252,22 @@ public:
     Property::Ptr              m_property;
     std::weak_ptr< Interface > m_interface;
 
+    struct Param
+    {
+        std::string type, name;
+    };
+    using ParamVector = std::vector< Param >;
+
     virtual std::string getName() const                                             = 0;
     virtual std::string getReturnType( const std::string& strStageNamespace ) const = 0;
-    virtual std::string getParams( const std::string& strStageNamespace ) const     = 0;
+    virtual ParamVector getParams( const std::string& strStageNamespace ) const     = 0;
 
     inline std::string getMangledName( const std::string& strStageNamespace ) const
     {
         std::ostringstream os;
-        os << getReturnType( strStageNamespace ) << getName() << getParams( strStageNamespace );
+        os << getReturnType( strStageNamespace ) << getName();
+        for ( const auto& param : getParams( strStageNamespace ) )
+            os << param.type << param.name;
         return os.str();
     }
 };
@@ -283,11 +291,7 @@ public:
         os << m_property->m_type->getViewType( strStageNamespace, true );
         return os.str();
     }
-    virtual std::string getParams( const std::string& strStageNamespace ) const
-    {
-        std::ostringstream os;
-        return os.str();
-    }
+    virtual ParamVector getParams( const std::string& strStageNamespace ) const { return ParamVector{}; }
 };
 class FunctionSetter : public Function
 {
@@ -304,11 +308,10 @@ public:
         return os.str();
     }
     virtual std::string getReturnType( const std::string& strStageNamespace ) const { return "void"; }
-    virtual std::string getParams( const std::string& strStageNamespace ) const
+    virtual ParamVector getParams( const std::string& strStageNamespace ) const
     {
-        std::ostringstream os;
-        os << m_property->m_type->getViewType( strStageNamespace, true ) << " value ";
-        return os.str();
+        using namespace std::string_literals;
+        return ParamVector{ Param{ m_property->m_type->getViewType( strStageNamespace, true ), "value"s } };
     }
 };
 class FunctionInserter : public Function
@@ -321,7 +324,7 @@ public:
     }
     virtual std::string getName() const;
     virtual std::string getReturnType( const std::string& strStageNamespace ) const { return "void"; }
-    virtual std::string getParams( const std::string& strStageNamespace ) const;
+    virtual ParamVector getParams( const std::string& strStageNamespace ) const;
 };
 
 class SuperType;

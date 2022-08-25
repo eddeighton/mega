@@ -80,7 +80,7 @@ void calculateOutputFiles( const db::schema::Schema& schema, OutputFiles& output
 {
     using namespace std::literals;
     static const std::vector< std::string > constantHeaderFiles
-        = { "environment.hxx"s, "file_info.hxx"s, "manifest.hxx"s };
+        = { "environment.hxx"s, "file_info.hxx"s, "manifest.hxx"s, "data.hxx"s };
     static const std::vector< std::string > constantSourceFiles
         = { "data.cxx"s, "environment.cxx"s, "file_info.cxx"s, "manifest.cxx"s };
 
@@ -107,29 +107,6 @@ void calculateOutputFiles( const db::schema::Schema& schema, OutputFiles& output
                 std::ostringstream os;
                 os << stage.m_name << ".cxx";
                 outputFiles.sourceFiles.push_back( os.str() );
-            }
-
-            struct StageElementVariantVisitor
-            {
-                OutputFiles& outputFiles;
-                StageElementVariantVisitor( OutputFiles& outputFiles )
-                    : outputFiles( outputFiles )
-                {
-                }
-                void operator()( const db::schema::File& file ) const
-                {
-                    std::ostringstream os;
-                    os << "data_" << file.m_id << ".hxx";
-                    outputFiles.headerFiles.push_back( os.str() );
-                }
-                void operator()( const db::schema::Source& source ) const {}
-                void operator()( const db::schema::Dependency& dependency ) const {}
-                void operator()( const db::schema::GlobalAccessor& accessor ) const {}
-                void operator()( const db::schema::PerSourceAccessor& accessor ) const {}
-            } stageVisitor( outputFiles );
-            for ( const auto& element : stage.m_elements )
-            {
-                boost::apply_visitor( stageVisitor, element );
             }
         }
         void operator()( const db::schema::Namespace& namespace_ ) const {}
@@ -264,15 +241,21 @@ int main( int argc, const char* argv[] )
 
                 if ( !restore( outputAPIFolderPath, outputSrcFolderPath, determinant, outputFiles ) )
                 {
-                    // std::cout << "Parsed schema:\n" << schema << std::endl;
-                    db::model::Schema::Ptr pSchema = db::model::from_ast( schema );
+                    // generate json
+                    {
+                        // std::cout << "Parsed schema:\n" << schema << std::endl;
+                        db::model::Schema::Ptr pSchema = db::model::from_ast( schema );
 
-                    // write schema to json data
-                    db::jsonconv::toJSON( dataFolderPath, pSchema );
+                        // write schema to json data
+                        db::jsonconv::toJSON( dataFolderPath, pSchema );
+                    }
 
-                    const db::gen::Environment env{
-                        outputAPIFolderPath, outputSrcFolderPath, dataFolderPath, injaFolderPath };
-                    db::gen::generate( env, pSchema );
+                    // generate source code
+                    {
+                        const db::gen::Environment env{
+                            outputAPIFolderPath, outputSrcFolderPath, dataFolderPath, injaFolderPath };
+                        db::gen::generate( env );
+                    }
 
                     stash( outputAPIFolderPath, outputSrcFolderPath, determinant, outputFiles );
 

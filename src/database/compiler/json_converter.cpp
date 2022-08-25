@@ -89,7 +89,12 @@ nlohmann::json writeFunctionSignature( model::Stage::Ptr pStage, model::Function
     nlohmann::json function;
     function[ "name" ]       = pFunction->getName();
     function[ "returntype" ] = pFunction->getReturnType( pStage->m_strName );
-    function[ "params" ]     = pFunction->getParams( pStage->m_strName );
+    function[ "params" ]     = nlohmann::json::array();
+    for ( const auto& param : pFunction->getParams( pStage->m_strName ) )
+    {
+        const nlohmann::json paramData = nlohmann::json::object( { { "name", param.name }, { "type", param.type } } );
+        function[ "params" ].push_back( paramData );
+    }
     return function;
 }
 
@@ -893,7 +898,7 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
     return function;
 }
 
-void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
+void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage, std::vector< nlohmann::json >& functions )
 {
     {
         std::set< model::Interface::Ptr, model::CountedObjectComparator< model::Interface::Ptr > > interfaces;
@@ -979,15 +984,24 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
             nlohmann::json function = nlohmann::json::object(
                 { { "name", pFunction->getName() },
                   { "returntype", pFunction->getReturnType( pStage->m_strName ) },
+                  { "variant_type", pSuperType->m_base_object->inheritanceGroupVariant( pStage ) },
                   { "propertytype", pFunction->m_property->m_type->getDatabaseType( model::Type::eNormal ) },
                   { "property", pFunction->m_property->m_strName },
-                  { "params", pFunction->getParams( pStage->m_strName ) },
+                  { "params", nlohmann::json::array() },
+                  { "is_void", ( pFunction->getReturnType( pStage->m_strName ) == "void" ) ? true : false },
                   { "body", writeFunctionBody( pStage, pFunction ) } } );
+
+            for ( const auto& param : pFunction->getParams( pStage->m_strName ) )
+            {
+                const nlohmann::json paramData
+                    = nlohmann::json::object( { { "name", param.name }, { "type", param.type } } );
+                function[ "params" ].push_back( paramData );
+            }
 
             std::set< model::Object::Ptr, model::CountedObjectComparator< model::Object::Ptr > > remaining;
 
-            using InterfaceFunctionMap = std::
-                map< model::Object::Ptr, model::Function::Ptr, model::CountedObjectComparator< model::Object::Ptr > >;
+            using InterfaceFunctionMap = std::map< model::Object::Ptr, model::Function::Ptr,
+                                                   model::CountedObjectComparator< model::Object::Ptr > >;
             InterfaceFunctionMap implemented;
             {
                 for ( model::Object::WeakPtr pObject : *pSuperType->m_base_object->m_pInheritanceGroup )
@@ -1059,13 +1073,18 @@ void writeSuperTypes( nlohmann::json& stage, model::Stage::Ptr pStage )
             }
 
             stype[ "functions" ].push_back( function );
+
+            // record the function
+            functions.push_back( function );
         }
 
         stage[ "supertypes" ].push_back( stype );
     }
 }
 
-void writeViewData( const boost::filesystem::path& dataDir, model::Schema::Ptr pSchema )
+void writeViewData( const boost::filesystem::path& dataDir,
+                    model::Schema::Ptr             pSchema,
+                    std::vector< nlohmann::json >& functions )
 {
     for ( model::Stage::Ptr pStage : pSchema->m_stages )
     {
@@ -1114,7 +1133,7 @@ void writeViewData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
 
         writeAccessors( stage, pStage );
         writeConstructors( stage, pStage );
-        writeSuperTypes( stage, pStage );
+        writeSuperTypes( stage, pStage, functions );
 
         data[ "stage" ] = stage;
 
@@ -1124,17 +1143,20 @@ void writeViewData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
     }
 }
 
-void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr pSchema )
+void writeDataData( const boost::filesystem::path& dataDir,
+                    model::Schema::Ptr             pSchema,
+                    std::vector< nlohmann::json >& functions )
 {
     nlohmann::json data( { { "files", nlohmann::json::array() },
                            { "conversions", nlohmann::json::array() },
                            { "base_conversions", nlohmann::json::array() },
-                           { "up_casts", nlohmann::json::array() } } );
+                           { "up_casts", nlohmann::json::array() },
+                           { "functions", nlohmann::json::array() } } );
 
     data[ "guard" ] = "DATABASE_DATA_GUARD_4_APRIL_2022";
 
     std::vector< model::File::Ptr > files;
-    model::Stage::Ptr pFinalStage;
+    model::Stage::Ptr               pFinalStage;
     {
         for ( model::Stage::Ptr pStage : pSchema->m_stages )
         {
@@ -1387,6 +1409,30 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
         }
     }
 
+    // functions
+    {
+        std::sort( functions.begin(), functions.end(),
+                   []( const nlohmann::json& left, const nlohmann::json& right )
+                   {
+                       return ( left[ "name" ] != right[ "name" ] ) ? ( left[ "name" ] < right[ "name" ] )
+                              : ( left[ "variant_type" ] != right[ "variant_type" ] )
+                                  ? ( left[ "variant_type" ] < right[ "variant_type" ] )
+                                  : false;
+                   } );
+
+        functions.erase( std::unique( functions.begin(), functions.end(),
+                                      []( const nlohmann::json& left, const nlohmann::json& right ) {
+                                          return left[ "name" ] == right[ "name" ]
+                                                 && left[ "variant_type" ] == right[ "variant_type" ];
+                                      } ),
+                         functions.end() );
+
+        for ( nlohmann::json& function : functions )
+        {
+            data[ "functions" ].push_back( function );
+        }
+    }
+
     writeJSON( dataDir / "data.json", data );
 }
 
@@ -1395,8 +1441,9 @@ void writeDataData( const boost::filesystem::path& dataDir, model::Schema::Ptr p
 void toJSON( const boost::filesystem::path& dataDir, model::Schema::Ptr pSchema )
 {
     writeStageData( dataDir, pSchema );
-    writeViewData( dataDir, pSchema );
-    writeDataData( dataDir, pSchema );
+    std::vector< nlohmann::json > functions;
+    writeViewData( dataDir, pSchema, functions );
+    writeDataData( dataDir, pSchema, functions );
 }
 
 } // namespace jsonconv

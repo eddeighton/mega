@@ -40,10 +40,7 @@ std::string Object::delimitTypeName( const std::string& str ) const
     return os.str();
 }
 
-std::string Object::getDataTypeName() const
-{
-    return delimitTypeName( "_" );
-}
+std::string Object::getDataTypeName() const { return delimitTypeName( "_" ); }
 
 std::string ObjectPart::getDataType( const std::string& strDelimiter ) const
 {
@@ -83,26 +80,28 @@ std::string FunctionInserter::getName() const
     return os.str();
 }
 
-std::string FunctionInserter::getParams( const std::string& strStageNamespace ) const
+Function::ParamVector FunctionInserter::getParams( const std::string& strStageNamespace ) const
 {
-    std::ostringstream os;
-    model::Type::Ptr   pType = m_property->m_type;
+    using namespace std::string_literals;
+    Function::ParamVector parameters;
+
+    model::Type::Ptr pType = m_property->m_type;
     if ( model::ArrayType::Ptr pArray = std::dynamic_pointer_cast< model::ArrayType >( pType ) )
     {
-        os << pArray->m_underlyingType->getViewType( strStageNamespace, true ) << " value ";
+        parameters.push_back(
+            Function::Param{ pArray->m_underlyingType->getViewType( strStageNamespace, true ), "value"s } );
     }
     else if ( model::MapType::Ptr pMap = std::dynamic_pointer_cast< model::MapType >( pType ) )
     {
-        model::Type::Ptr pFrom = pMap->m_fromType;
-        model::Type::Ptr pTo   = pMap->m_toType;
-        os << pFrom->getViewType( strStageNamespace, true ) << " key , " << pTo->getViewType( strStageNamespace, true )
-           << " value ";
+        parameters.push_back( Function::Param{ pMap->m_fromType->getViewType( strStageNamespace, true ), "key"s } );
+        parameters.push_back( Function::Param{ pMap->m_toType->getViewType( strStageNamespace, true ), "value"s } );
     }
     else
     {
         THROW_RTE( "Unsupported inserter type" );
     }
-    return os.str();
+
+    return parameters;
 }
 
 std::string Interface::delimitTypeName( const std::string& strStageNamespace, const std::string& str ) const
@@ -126,7 +125,7 @@ std::string Object::inheritanceGroupVariant( model::Stage::Ptr pStage ) const
     {
         model::Object::Ptr pObject = pObjectWeak.lock();
         // determine if this object is visible in this stage
-        if( !pStage || pStage->isInterface( pObject ) )
+        if ( !pStage || pStage->isInterface( pObject ) )
         {
             if ( bFirst )
                 bFirst = false;
@@ -1041,7 +1040,8 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
                     // is the object in the group?
                     std::vector< Interface::Ptr > intersection;
                     std::set_intersection( group.begin(), group.end(), existingGroup.begin(), existingGroup.end(),
-                                           std::back_inserter( intersection ), CountedObjectComparator< Interface::Ptr >() );
+                                           std::back_inserter( intersection ),
+                                           CountedObjectComparator< Interface::Ptr >() );
                     if ( !intersection.empty() )
                     {
                         std::copy( group.begin(), group.end(), std::back_inserter( existingGroup ) );
@@ -1100,7 +1100,7 @@ void superTypes( Mapping& mapping, Schema::Ptr pSchema )
 
             std::ostringstream osSuperTypeName;
             {
-                //osSuperTypeName << "__super_" << mapping.counter;
+                // osSuperTypeName << "__super_" << mapping.counter;
                 osSuperTypeName << "__super_" << szNameHash.toHexString();
             }
 

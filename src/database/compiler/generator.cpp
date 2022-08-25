@@ -53,7 +53,7 @@ void renderFile( const boost::filesystem::path& basePath, const std::string& fil
 
 } // namespace
 
-void generate( const Environment& env, db::model::Schema::Ptr pSchema )
+void generate( const Environment& env )
 {
     for ( boost::filesystem::directory_iterator iter( env.dataDir ); iter != boost::filesystem::directory_iterator();
           ++iter )
@@ -121,44 +121,6 @@ void generate( const Environment& env, db::model::Schema::Ptr pSchema )
         }
     }
 
-    // generate the data headers - one for each file
-    for( model::Stage::Ptr pStage : pSchema->m_stages )
-    {
-        for( model::File::Ptr pFile : pStage->m_files )
-        {
-            const boost::filesystem::path jsonFile = env.dataDir / "data.json";
-            {
-                try
-                {
-                    std::string strOutput;
-                    {
-                        std::ostringstream osOutput;
-                        inja::Environment  injaEnv( env.injaDir.native(), env.apiDir.native() );
-                        injaEnv.set_trim_blocks( true );
-                        auto data = loadJson( jsonFile );
-                        data[ "database_file" ] = pFile->m_strName;
-
-                        inja::Template headerTemplate = injaEnv.parse_template( "/data.hxx.jinja" );
-                        injaEnv.render_to( osOutput, headerTemplate, data );
-                        strOutput = osOutput.str();
-
-                        mega::utilities::clang_format( strOutput, std::optional< boost::filesystem::path >() );
-                    }
-
-                    std::ostringstream osTargetFile;
-                    osTargetFile << "/data_" + pFile->m_strName + ".hxx";
-                    renderFile( env.apiDir, osTargetFile.str(), strOutput );
-                }
-                catch ( std::exception& ex )
-                {
-                    THROW_RTE( "Error processing template: data.hxx.jinja"
-                                                            << " with data: " << jsonFile.string()
-                                                            << " Error: " << ex.what() );
-                }
-            }
-        }
-    }
-
     // clang-format off
     std::vector< std::pair< std::string, std::string > > filenames = 
     {
@@ -172,7 +134,7 @@ void generate( const Environment& env, db::model::Schema::Ptr pSchema )
     for ( const std::pair< std::string, std::string >& names : filenames )
     {
         const boost::filesystem::path jsonFile = env.dataDir / names.second;
-        if( names.second != "data.json" )
+        //if( names.second != "data.json" )
         {
             try
             {

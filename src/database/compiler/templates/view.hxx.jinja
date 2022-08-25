@@ -81,7 +81,7 @@ namespace {{ stage.name }}
 {% endif %}
 
 {% for function in interface.functions %}
-            virtual {{ function.returntype }} {{ function.name }}({{ function.params }}) const = 0;
+            virtual {{ function.returntype }} {{ function.name }}({% for param in function.params %}{{ param.type }} {{ param.name }}{% if not loop.is_last %}, {% endif %}{% endfor %}) const = 0;
 {% endfor %}{#interface.functions#}
             virtual const mega::io::ObjectInfo& _get_object_info() const = 0;
         private:
