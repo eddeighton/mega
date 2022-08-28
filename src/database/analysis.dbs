@@ -121,7 +121,7 @@ namespace HyperGraph
         value< mega::io::megaFilePath > source_file;
         value< std::size_t > hash_code;
 
-        map< ref< Interface::Link >, ref< Relation > > relations;
+        multimap< ref< Interface::IContext >, ref< Relation > > relations;
     }
 
     object Graph -> HyperGraphAnalysis::Model

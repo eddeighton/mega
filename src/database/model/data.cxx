@@ -4531,7 +4531,7 @@ namespace Model
     HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )    {
     }
-    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
+    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
           , relations( relations )
@@ -14123,10 +14123,10 @@ std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& get_relations(std
         }
         , m_data );
 }
-std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& get_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >& get_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relations > >)
@@ -16275,10 +16275,10 @@ std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_Transit
         }
         , m_data );
 }
-std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& insert_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >& insert_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relations > >)
@@ -24736,10 +24736,10 @@ std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& set_relations(std
         }
         , m_data );
 }
-std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& set_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >& set_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relations > >)

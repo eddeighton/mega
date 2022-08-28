@@ -82,6 +82,7 @@ add_custom_command(
         --api ${ADVANCED_DIR}/database/model/
         --src ${ADVANCED_DIR}/database/model/
         --dblib $<TARGET_FILE:database_compiler>
+        --stash ${CMAKE_CURRENT_BINARY_DIR}/stash
         --data_dir ${ADVANCED_DIR}/database/data/
         --inja_dir ${MEGA_SRC_DIR}/database/compiler/templates/
         --input ${DATABASE_SCHEMAS}

@@ -42,12 +42,16 @@ public:
             using namespace HyperGraphAnalysis;
             using namespace HyperGraphAnalysis::HyperGraph;
 
-            std::map< Interface::Link*, Relation* > relations;
+            std::multimap< Interface::IContext*, Relation* > relations;
 
             for ( Interface::Link* pLink : database.many< Interface::Link >( sourceFilePath ) )
             {
-                std::vector< Interface::IContext* > targets = pLink->get_link_target()->get_contexts();
-                VERIFY_RTE_MSG( targets.size() == 1, "Invalid number of link targets" );
+                Interface::IContext* pTarget = nullptr;
+                {
+                    std::vector< Interface::IContext* > targets = pLink->get_link_target()->get_contexts();
+                    VERIFY_RTE_MSG( targets.size() == 1, "Invalid number of link targets" );
+                    pTarget = targets.front();
+                }
 
                 Interface::LinkTrait*        pLinkTrait = pLink->get_link_trait();
                 const mega::CardinalityRange linkee     = pLinkTrait->get_linkee();
@@ -55,21 +59,22 @@ public:
 
                 // linker is where link is defined
                 Relation* pRelation = nullptr;
-                /*if ( linker.lower().isMany() || linkee.lower().isMany() )
+                if ( linker.lower().isMany() || linkee.lower().isMany() )
                 {
                     pRelation = database.construct< NonSingularRelation >(
-                        NonSingularRelation::Args{ Relation::Args{ pLinkTrait, pLink, targets.front() } } );
+                        NonSingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
                 }
                 else
                 {
                     pRelation = database.construct< SingularRelation >(
-                        SingularRelation::Args{ Relation::Args{ pLinkTrait, pLink, targets.front() } } );
-                }*/
+                        SingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
+                }
 
                 // Interface::Link* pLinkReconstructed
                 //     = database.construct< Interface::Link >( Interface::Link::Args( pLink, pRelation ) );
 
-                // relations.insert( { pLink, pRelation } );
+                relations.insert( { pTarget, pRelation } );
+                relations.insert( { pLink, pRelation } );
             }
 
             Relations* pDependencies
@@ -84,7 +89,35 @@ public:
             using namespace HyperGraphAnalysis;
             using namespace HyperGraphAnalysis::HyperGraph;
 
-            std::map< Interface::Link*, Relation* > relations;
+            std::multimap< HyperGraphAnalysisView::Interface::IContext*, HyperGraphAnalysisView::HyperGraph::Relation* >
+                oldRelations = pOldObjectGraph->get_relations();
+
+            std::multimap< Interface::IContext*, Relation* > relations;
+
+            for ( const auto& [ pOldContext, pOldRelation ] : oldRelations )
+            {
+                Interface::IContext* pContext = database.convert< Interface::IContext >( pOldContext );
+                Relation* pRelation = nullptr;
+                if ( HyperGraphAnalysisView::HyperGraph::SingularRelation* pSingular
+                     = HyperGraphAnalysisView::dynamic_database_cast<
+                         HyperGraphAnalysisView::HyperGraph::SingularRelation >( pOldRelation ) )
+                {
+                    //pRelation = database.construct< SingularRelation >(
+                    //    SingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
+
+                }
+                else if ( HyperGraphAnalysisView::HyperGraph::NonSingularRelation* pNonSingular
+                          = HyperGraphAnalysisView::dynamic_database_cast<
+                              HyperGraphAnalysisView::HyperGraph::NonSingularRelation >( pOldRelation ) )
+                {
+                }
+                else
+                {
+                    THROW_RTE( "Unknown relation type" );
+                }
+            }
+            //
+            // database.convert<typename T>(const TFrom *pFrom)
 
             Relations* pDependencies = database.construct< Relations >(
                 Relations::Args{ pOldObjectGraph->get_source_file(), pOldObjectGraph->get_hash_code(), relations } );
