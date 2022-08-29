@@ -425,15 +425,6 @@ public:
             }
         }
         {
-            if ( LinkInterface* pLinkInterface = dynamic_database_cast< LinkInterface >( pContext ) )
-            {
-                if ( !inheritanceAnalysis(
-                         pLinkInterface, pLinkInterface->get_link_target(), result.loc, result.pDeclContext ) )
-                    return false;
-                bProcess = true;
-            }
-        }
-        {
             if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
             {
                 if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )

@@ -165,14 +165,6 @@ public:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( LinkInterface* pLinkInterface = dynamic_database_cast< LinkInterface >( pContext ) )
-        {
-            CleverUtility c( types, pLinkInterface->get_identifier() );
-            for ( IContext* pNestedContext : pLinkInterface->get_children() )
-            {
-                recurse( pNestedContext, data, namespaces, types );
-            }
-        }
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
         {
             CleverUtility c( types, pLink->get_identifier() );

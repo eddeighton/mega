@@ -381,21 +381,6 @@ public:
                 }
             }
             {
-                if ( LinkInterface* pLinkInterface = dynamic_database_cast< LinkInterface >( pContext ) )
-                {
-                    VERIFY_RTE( !bFoundType );
-                    bFoundType = true;
-                    for ( const nlohmann::json& trait :
-                          getInheritanceTraits( typenames, pLinkInterface, pLinkInterface->get_link_target() ) )
-                    {
-                        contextData[ "trait_structs" ].push_back( trait );
-                        structs.push_back( trait );
-                    }
-
-                    templateEngine.renderContext( contextData, os );
-                }
-            }
-            {
                 if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );

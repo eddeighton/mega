@@ -110,8 +110,7 @@ namespace Concrete
 
     object Link : Context -> ConcreteStage::Concrete
     {
-        opt< ref< Interface::LinkInterface > > link_interface;
-        opt< ref< Interface::Link > > link;
+        ref< Interface::Link > link;
 
         //ref< Dimensions::LinkReference > link_reference -> HyperGraphAnalysisRollout::PerSourceModel;
 

@@ -201,6 +201,7 @@ stage HyperGraphAnalysis
     file Model;
 
     persource accessor array< ref< Interface::Link > >;
+    persource accessor array< ref< Interface::LinkInterface > >;
     persource accessor ref< Concrete::Root >;
 }
 

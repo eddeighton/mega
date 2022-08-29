@@ -95,22 +95,22 @@ public:
                         }
                     }
                 }
-                else if ( Interface::LinkInterface* pLinkInterface = dynamic_database_cast< Interface::LinkInterface >( pContext ) )
-                {
-                    if ( Interface::LinkTrait* pLinkTrait = pLinkInterface->get_link_trait() )
-                    {
-                        switch ( pLinkTrait->get_derivation().get() )
-                        {
-                            case mega::DerivationDirection::eDeriveNone:
-                            case mega::DerivationDirection::eDeriveSource:
-                            case mega::DerivationDirection::eDeriveTarget:
-                            case mega::DerivationDirection::TOTAL_DERIVATION_MODES:
-                                break;
-                        }
-                    }
-                }
                 else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
                 {
+                    if ( Interface::LinkInterface* pLinkInterface = dynamic_database_cast< Interface::LinkInterface >( pContext ) )
+                    {
+                        if ( Interface::LinkTrait* pLinkTrait = pLinkInterface->get_link_trait() )
+                        {
+                            switch ( pLinkTrait->get_derivation().get() )
+                            {
+                                case mega::DerivationDirection::eDeriveNone:
+                                case mega::DerivationDirection::eDeriveSource:
+                                case mega::DerivationDirection::eDeriveTarget:
+                                case mega::DerivationDirection::TOTAL_DERIVATION_MODES:
+                                    break;
+                            }
+                        }
+                    }
                 }
                 else
                 {

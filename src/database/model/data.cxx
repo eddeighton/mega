@@ -1776,7 +1776,7 @@ namespace Tree
     }
     bool Interface_ContextGroup::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_ContextGroup >( loader, const_cast< Interface_ContextGroup* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_ContextGroup >( loader, const_cast< Interface_ContextGroup* >( this ) ) };
     }
     void Interface_ContextGroup::set_inheritance_pointer()
     {
@@ -1820,7 +1820,7 @@ namespace Tree
     }
     bool Interface_Root::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Root >( loader, const_cast< Interface_Root* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Root >( loader, const_cast< Interface_Root* >( this ) ) };
     }
     void Interface_Root::set_inheritance_pointer()
     {
@@ -1874,7 +1874,7 @@ namespace Tree
     }
     bool Interface_IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_IContext >( loader, const_cast< Interface_IContext* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_IContext >( loader, const_cast< Interface_IContext* >( this ) ) };
     }
     void Interface_IContext::set_inheritance_pointer()
     {
@@ -1928,7 +1928,7 @@ namespace Tree
     }
     bool Interface_Namespace::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Namespace >( loader, const_cast< Interface_Namespace* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Namespace >( loader, const_cast< Interface_Namespace* >( this ) ) };
     }
     void Interface_Namespace::set_inheritance_pointer()
     {
@@ -1989,7 +1989,7 @@ namespace Tree
     }
     bool Interface_Abstract::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Abstract >( loader, const_cast< Interface_Abstract* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Abstract >( loader, const_cast< Interface_Abstract* >( this ) ) };
     }
     void Interface_Abstract::set_inheritance_pointer()
     {
@@ -2051,7 +2051,7 @@ namespace Tree
     }
     bool Interface_Action::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Action >( loader, const_cast< Interface_Action* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Action >( loader, const_cast< Interface_Action* >( this ) ) };
     }
     void Interface_Action::set_inheritance_pointer()
     {
@@ -2121,7 +2121,7 @@ namespace Tree
     }
     bool Interface_Event::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Event >( loader, const_cast< Interface_Event* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Event >( loader, const_cast< Interface_Event* >( this ) ) };
     }
     void Interface_Event::set_inheritance_pointer()
     {
@@ -2193,7 +2193,7 @@ namespace Tree
     }
     bool Interface_Function::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Function >( loader, const_cast< Interface_Function* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Function >( loader, const_cast< Interface_Function* >( this ) ) };
     }
     void Interface_Function::set_inheritance_pointer()
     {
@@ -2255,7 +2255,7 @@ namespace Tree
     }
     bool Interface_Object::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Object >( loader, const_cast< Interface_Object* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Object >( loader, const_cast< Interface_Object* >( this ) ) };
     }
     void Interface_Object::set_inheritance_pointer()
     {
@@ -2305,70 +2305,6 @@ namespace Tree
         }
     }
         
-    // struct Interface_LinkInterface : public mega::io::Object
-    Interface_LinkInterface::Interface_LinkInterface( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_LinkInterface >( loader, this ) )          , p_Tree_Interface_IContext( loader )
-          , link_trait( loader )
-          , link_target( loader )
-    {
-    }
-    Interface_LinkInterface::Interface_LinkInterface( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_LinkInterfaceDef > >& link_interface_defs)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_LinkInterface >( loader, this ) )          , p_Tree_Interface_IContext( loader )
-          , link_interface_defs( link_interface_defs )
-    {
-    }
-    bool Interface_LinkInterface::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_LinkInterface >( loader, const_cast< Interface_LinkInterface* >( this ) ) };
-    }
-    void Interface_LinkInterface::set_inheritance_pointer()
-    {
-        p_Tree_Interface_IContext->m_inheritance = data::Ptr< data::Tree::Interface_LinkInterface >( p_Tree_Interface_IContext, this );
-    }
-    void Interface_LinkInterface::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Tree_Interface_IContext );
-        loader.load( link_interface_defs );
-        loader.load( link_trait );
-        loader.load( link_target );
-    }
-    void Interface_LinkInterface::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Tree_Interface_IContext );
-        storer.store( link_interface_defs );
-        VERIFY_RTE_MSG( link_trait.has_value(), "Tree::Interface_LinkInterface.link_trait has NOT been set" );
-        storer.store( link_trait );
-        VERIFY_RTE_MSG( link_target.has_value(), "Tree::Interface_LinkInterface.link_target has NOT been set" );
-        storer.store( link_target );
-    }
-    void Interface_LinkInterface::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_LinkInterface" },
-                { "filetype" , "Tree" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_interface_defs", link_interface_defs } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_trait", link_trait.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_target", link_target.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
     // struct Interface_Link : public mega::io::Object
     Interface_Link::Interface_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Link >( loader, this ) )          , p_Tree_Interface_IContext( loader )
@@ -2382,7 +2318,7 @@ namespace Tree
     }
     bool Interface_Link::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Link >( loader, const_cast< Interface_Link* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Link >( loader, const_cast< Interface_Link* >( this ) ) };
     }
     void Interface_Link::set_inheritance_pointer()
     {
@@ -2424,6 +2360,49 @@ namespace Tree
         }
     }
         
+    // struct Interface_LinkInterface : public mega::io::Object
+    Interface_LinkInterface::Interface_LinkInterface( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_LinkInterface >( loader, this ) )          , p_Tree_Interface_Link( loader )
+          , link_trait( loader )
+    {
+    }
+    bool Interface_LinkInterface::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_LinkInterface >( loader, const_cast< Interface_LinkInterface* >( this ) ) };
+    }
+    void Interface_LinkInterface::set_inheritance_pointer()
+    {
+        p_Tree_Interface_Link->m_inheritance = data::Ptr< data::Tree::Interface_LinkInterface >( p_Tree_Interface_Link, this );
+    }
+    void Interface_LinkInterface::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_Link );
+        loader.load( link_trait );
+    }
+    void Interface_LinkInterface::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_Link );
+        VERIFY_RTE_MSG( link_trait.has_value(), "Tree::Interface_LinkInterface.link_trait has NOT been set" );
+        storer.store( link_trait );
+    }
+    void Interface_LinkInterface::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_LinkInterface" },
+                { "filetype" , "Tree" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "link_trait", link_trait.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Interface_Buffer : public mega::io::Object
     Interface_Buffer::Interface_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_Buffer >( loader, this ) )          , p_Tree_Interface_IContext( loader )
@@ -2436,7 +2415,7 @@ namespace Tree
     }
     bool Interface_Buffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Buffer >( loader, const_cast< Interface_Buffer* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >{ data::Ptr< data::Tree::Interface_Buffer >( loader, const_cast< Interface_Buffer* >( this ) ) };
     }
     void Interface_Buffer::set_inheritance_pointer()
     {
@@ -3829,12 +3808,12 @@ namespace Concrete
     Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Link( loader )
+          , link( loader )
     {
     }
-    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< data::Ptr< data::Tree::Interface_LinkInterface > >& link_interface, const std::optional< data::Ptr< data::Tree::Interface_Link > >& link)
+    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& link)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Link >( loader, this ) )          , p_Concrete_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Link( loader )
-          , link_interface( link_interface )
           , link( link )
     {
     }
@@ -3849,13 +3828,11 @@ namespace Concrete
     void Concrete_Link::load( mega::io::Loader& loader )
     {
         loader.load( p_Concrete_Concrete_Context );
-        loader.load( link_interface );
         loader.load( link );
     }
     void Concrete_Link::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Context );
-        storer.store( link_interface );
         storer.store( link );
     }
     void Concrete_Link::to_json( nlohmann::json& _part__ ) const
@@ -3869,11 +3846,6 @@ namespace Concrete
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "link_interface", link_interface } } );
-            _part__[ "properties" ].push_back( property );
-        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "link", link } } );
@@ -4382,31 +4354,39 @@ namespace Model
 {
     // struct HyperGraph_Relation : public mega::io::Object
     HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , first( loader )
-          , second( loader )
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , source( loader )
+          , target( loader )
+          , source_interface( loader )
+          , target_interface( loader )
     {
     }
-    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_LinkInterface >& first, const data::Ptr< data::Tree::Interface_LinkInterface >& second)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , first( first )
-          , second( second )
+    HyperGraph_Relation::HyperGraph_Relation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_Link >& source, const data::Ptr< data::Tree::Interface_Link >& target, const data::Ptr< data::Tree::Interface_LinkInterface >& source_interface, const data::Ptr< data::Tree::Interface_LinkInterface >& target_interface)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relation >( loader, this ) )          , source( source )
+          , target( target )
+          , source_interface( source_interface )
+          , target_interface( target_interface )
     {
     }
     bool HyperGraph_Relation::test_inheritance_pointer( ObjectPartLoader &loader ) const
     {
-        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >{ data::Ptr< data::Model::HyperGraph_Relation >( loader, const_cast< HyperGraph_Relation* >( this ) ) };
+        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relation > >{ data::Ptr< data::Model::HyperGraph_Relation >( loader, const_cast< HyperGraph_Relation* >( this ) ) };
     }
     void HyperGraph_Relation::set_inheritance_pointer()
     {
     }
     void HyperGraph_Relation::load( mega::io::Loader& loader )
     {
-        loader.load( first );
-        loader.load( second );
+        loader.load( source );
+        loader.load( target );
+        loader.load( source_interface );
+        loader.load( target_interface );
     }
     void HyperGraph_Relation::store( mega::io::Storer& storer ) const
     {
-        storer.store( first );
-        storer.store( second );
+        storer.store( source );
+        storer.store( target );
+        storer.store( source_interface );
+        storer.store( target_interface );
     }
     void HyperGraph_Relation::to_json( nlohmann::json& _part__ ) const
     {
@@ -4421,89 +4401,31 @@ namespace Model
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "first", first } } );
+                { "source", source } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "second", second } } );
+                { "target", target } } );
             _part__[ "properties" ].push_back( property );
         }
-    }
-        
-    // struct HyperGraph_SingularRelation : public mega::io::Object
-    HyperGraph_SingularRelation::HyperGraph_SingularRelation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_SingularRelation >( loader, this ) )          , p_Model_HyperGraph_Relation( loader )
-    {
-    }
-    bool HyperGraph_SingularRelation::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >{ data::Ptr< data::Model::HyperGraph_SingularRelation >( loader, const_cast< HyperGraph_SingularRelation* >( this ) ) };
-    }
-    void HyperGraph_SingularRelation::set_inheritance_pointer()
-    {
-        p_Model_HyperGraph_Relation->m_inheritance = data::Ptr< data::Model::HyperGraph_SingularRelation >( p_Model_HyperGraph_Relation, this );
-    }
-    void HyperGraph_SingularRelation::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Model_HyperGraph_Relation );
-    }
-    void HyperGraph_SingularRelation::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Model_HyperGraph_Relation );
-    }
-    void HyperGraph_SingularRelation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_SingularRelation" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-    }
-        
-    // struct HyperGraph_NonSingularRelation : public mega::io::Object
-    HyperGraph_NonSingularRelation::HyperGraph_NonSingularRelation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_NonSingularRelation >( loader, this ) )          , p_Model_HyperGraph_Relation( loader )
-    {
-    }
-    bool HyperGraph_NonSingularRelation::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return m_inheritance == std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >{ data::Ptr< data::Model::HyperGraph_NonSingularRelation >( loader, const_cast< HyperGraph_NonSingularRelation* >( this ) ) };
-    }
-    void HyperGraph_NonSingularRelation::set_inheritance_pointer()
-    {
-        p_Model_HyperGraph_Relation->m_inheritance = data::Ptr< data::Model::HyperGraph_NonSingularRelation >( p_Model_HyperGraph_Relation, this );
-    }
-    void HyperGraph_NonSingularRelation::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Model_HyperGraph_Relation );
-    }
-    void HyperGraph_NonSingularRelation::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Model_HyperGraph_Relation );
-    }
-    void HyperGraph_NonSingularRelation::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "HyperGraph_NonSingularRelation" },
-                { "filetype" , "Model" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "source_interface", source_interface } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "target_interface", target_interface } } );
+            _part__[ "properties" ].push_back( property );
+        }
     }
         
     // struct HyperGraph_Relations : public mega::io::Object
     HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )    {
     }
-    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
+    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
           , relations( relations )
@@ -7747,7 +7669,7 @@ namespace Operations
 }
 
 
-std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& get_abstract_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& get_abstract_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_AbstractDef > >&
@@ -7768,7 +7690,7 @@ std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& get_abstract_defs(std
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ActionDef > >& get_action_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ActionDef > >& get_action_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ActionDef > >&
@@ -8075,7 +7997,7 @@ data::Ptr< data::AST::Parser_ArgumentList >& get_argumentList(std::variant< data
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_ArgumentListTrait > >& get_arguments_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Tree::Interface_ArgumentListTrait > >& get_arguments_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_ArgumentListTrait > >&
@@ -8234,7 +8156,7 @@ std::string& get_body(std::variant< data::Ptr< data::AST::Parser_ContextDef >, d
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_BufferDef > >& get_buffer_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_BufferDef > >& get_buffer_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_BufferDef > >&
@@ -8750,7 +8672,7 @@ std::vector< data::Ptr< data::Operations::Operations_Name > >& get_children(std:
         }
         , m_data );
 }
-std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_children(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_children(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::Tree::Interface_IContext > >&
@@ -8828,7 +8750,7 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_children(std::va
                     "Invalid data reference in: get_children" );
                 return part->children;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Tree::Interface_ContextGroup > part = 
                     data::convert< data::Tree::Interface_ContextGroup >( arg );
@@ -8836,7 +8758,7 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_children(std::va
                     "Invalid data reference in: get_children" );
                 return part->children;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_ContextGroup > part = 
                     data::convert< data::Tree::Interface_ContextGroup >( arg );
@@ -8980,7 +8902,7 @@ data::Ptr< data::Operations::Operations_ConcreteVariant >& get_concrete(std::var
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Concrete::Concrete_Context > >&
@@ -9042,7 +8964,7 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete(std
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Concrete::Interface_IContext > part = 
                     data::convert< data::Concrete::Interface_IContext >( arg );
@@ -9050,7 +8972,7 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete(std
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Concrete::Interface_IContext > part = 
                     data::convert< data::Concrete::Interface_IContext >( arg );
@@ -9253,7 +9175,7 @@ std::int32_t& get_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_
         }
         , m_data );
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Context > >&
@@ -9315,7 +9237,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete_inher
                     "Invalid data reference in: get_concrete_inheritors" );
                 return part->concrete_inheritors;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
@@ -9323,7 +9245,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete_inher
                     "Invalid data reference in: get_concrete_inheritors" );
                 return part->concrete_inheritors;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
@@ -10152,7 +10074,7 @@ std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Sy
         }
         , m_data );
 }
-std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& get_dimension_traits(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& get_dimension_traits(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >&
@@ -10472,7 +10394,7 @@ std::vector< data::Ptr< data::Operations::Operations_Element > >& get_elements(s
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_EventDef > >& get_event_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_EventDef > >& get_event_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_EventDef > >&
@@ -10510,43 +10432,6 @@ std::optional< mega::ExplicitOperationID >& get_explicit_operation(std::variant<
             else
             {
                 THROW_RTE( "Invalid call to get_explicit_operation" );
-            }
-        }
-        , m_data );
-}
-data::Ptr< data::Tree::Interface_LinkInterface >& get_first(std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> data::Ptr< data::Tree::Interface_LinkInterface >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_first" );
-                return part->first;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_SingularRelation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_first" );
-                return part->first;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_first" );
-                return part->first;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_first" );
             }
         }
         , m_data );
@@ -10609,7 +10494,7 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& get_from_referen
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_FunctionDef > >& get_function_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_FunctionDef > >& get_function_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_FunctionDef > >&
@@ -11012,7 +10897,7 @@ std::vector< std::int32_t >& get_id_sequence(std::variant< data::Ptr< data::Conc
         }
         , m_data );
 }
-std::string& get_identifier(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::string& get_identifier(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::string&
@@ -11074,7 +10959,7 @@ std::string& get_identifier(std::variant< data::Ptr< data::Tree::Interface_Conte
                     "Invalid data reference in: get_identifier" );
                 return part->identifier;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Tree::Interface_IContext > part = 
                     data::convert< data::Tree::Interface_IContext >( arg );
@@ -11082,7 +10967,7 @@ std::string& get_identifier(std::variant< data::Ptr< data::Tree::Interface_Conte
                     "Invalid data reference in: get_identifier" );
                 return part->identifier;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_IContext > part = 
                     data::convert< data::Tree::Interface_IContext >( arg );
@@ -11412,7 +11297,7 @@ std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tre
         }
         , m_data );
 }
-std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > >& get_inheritance_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > >& get_inheritance_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > >&
@@ -12158,7 +12043,7 @@ std::optional< bool >& get_is_function_call(std::variant< data::Ptr< data::Opera
         }
         , m_data );
 }
-bool& get_is_global(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+bool& get_is_global(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> bool&
@@ -12242,10 +12127,10 @@ std::size_t& get_line_number(std::variant< data::Ptr< data::AST::Parser_ScopedId
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_Link > >& get_link(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+data::Ptr< data::Tree::Interface_Link >& get_link(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_Link > >&
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_Link >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Link > >)
@@ -12263,13 +12148,21 @@ std::optional< data::Ptr< data::Tree::Interface_Link > >& get_link(std::variant<
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_LinkDef > >& get_link_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_LinkDef > >& get_link_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_LinkDef > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            {
+                data::Ptr< data::Tree::Interface_Link > part = 
+                    data::convert< data::Tree::Interface_Link >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_link_defs" );
+                return part->link_defs;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_Link > part = 
                     data::convert< data::Tree::Interface_Link >( arg );
@@ -12305,63 +12198,21 @@ data::Ptr< data::AST::Parser_LinkInterface >& get_link_interface(std::variant< d
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_LinkInterface > >& get_link_interface(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_LinkInterface > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Link > >)
-            {
-                data::Ptr< data::Concrete::Concrete_Link > part = 
-                    data::convert< data::Concrete::Concrete_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_link_interface" );
-                return part->link_interface;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_link_interface" );
-            }
-        }
-        , m_data );
-}
-std::vector< data::Ptr< data::AST::Parser_LinkInterfaceDef > >& get_link_interface_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_LinkInterfaceDef > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
-            {
-                data::Ptr< data::Tree::Interface_LinkInterface > part = 
-                    data::convert< data::Tree::Interface_LinkInterface >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_link_interface_defs" );
-                return part->link_interface_defs;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_link_interface_defs" );
-            }
-        }
-        , m_data );
-}
-std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& get_link_target(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& get_link_target(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >&
         {
             using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
-                data::Ptr< data::Tree::Interface_LinkInterface > part = 
-                    data::convert< data::Tree::Interface_LinkInterface >( arg );
+                data::Ptr< data::Tree::Interface_Link > part = 
+                    data::convert< data::Tree::Interface_Link >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_link_target" );
                 return part->link_target;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_Link > part = 
                     data::convert< data::Tree::Interface_Link >( arg );
@@ -12376,7 +12227,7 @@ std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& get_link_t
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >& get_link_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >& get_link_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >&
@@ -12631,7 +12482,7 @@ std::optional< data::Ptr< data::Operations::Operations_NameResolution > >& get_n
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ContextDef > >& get_namespace_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ContextDef > >& get_namespace_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ContextDef > >&
@@ -12652,7 +12503,7 @@ std::vector< data::Ptr< data::AST::Parser_ContextDef > >& get_namespace_defs(std
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& get_object_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& get_object_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ObjectDef > >&
@@ -13173,7 +13024,7 @@ std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > >& 
         }
         , m_data );
 }
-data::Ptr< data::Tree::Interface_ContextGroup >& get_parent(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+data::Ptr< data::Tree::Interface_ContextGroup >& get_parent(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> data::Ptr< data::Tree::Interface_ContextGroup >&
@@ -13235,7 +13086,7 @@ data::Ptr< data::Tree::Interface_ContextGroup >& get_parent(std::variant< data::
                     "Invalid data reference in: get_parent" );
                 return part->parent;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Tree::Interface_IContext > part = 
                     data::convert< data::Tree::Interface_IContext >( arg );
@@ -13243,7 +13094,7 @@ data::Ptr< data::Tree::Interface_ContextGroup >& get_parent(std::variant< data::
                     "Invalid data reference in: get_parent" );
                 return part->parent;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_IContext > part = 
                     data::convert< data::Tree::Interface_IContext >( arg );
@@ -13557,10 +13408,10 @@ std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& get_relations(std
         }
         , m_data );
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >& get_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& get_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >&
+        []( auto& arg ) -> std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relations > >)
@@ -13641,7 +13492,7 @@ std::optional< std::string >& get_return_type_str(std::variant< data::Ptr< data:
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >& get_return_type_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >& get_return_type_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >&
@@ -13898,7 +13749,7 @@ std::optional< data::Ptr< data::AST::Parser_IncludeRoot > >& get_root(std::varia
         }
         , m_data );
 }
-data::Ptr< data::AST::Parser_ObjectSourceRoot >& get_root(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+data::Ptr< data::AST::Parser_ObjectSourceRoot >& get_root(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> data::Ptr< data::AST::Parser_ObjectSourceRoot >&
@@ -13999,43 +13850,6 @@ std::optional< std::string >& get_runtime_return_type_str(std::variant< data::Pt
             else
             {
                 THROW_RTE( "Invalid call to get_runtime_return_type_str" );
-            }
-        }
-        , m_data );
-}
-data::Ptr< data::Tree::Interface_LinkInterface >& get_second(std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> data::Ptr< data::Tree::Interface_LinkInterface >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_second" );
-                return part->second;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_SingularRelation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_second" );
-                return part->second;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_second" );
-                return part->second;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_second" );
             }
         }
         , m_data );
@@ -14153,7 +13967,7 @@ std::size_t& get_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_
         }
         , m_data );
 }
-std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& get_size_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& get_size_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >&
@@ -14178,6 +13992,27 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& 
             else
             {
                 THROW_RTE( "Invalid call to get_size_trait" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Tree::Interface_Link >& get_source(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_Link >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
+            {
+                data::Ptr< data::Model::HyperGraph_Relation > part = 
+                    data::convert< data::Model::HyperGraph_Relation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_source" );
+                return part->source;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_source" );
             }
         }
         , m_data );
@@ -14320,6 +14155,27 @@ mega::io::megaFilePath& get_source_file(std::variant< data::Ptr< data::SymbolTab
             else
             {
                 THROW_RTE( "Invalid call to get_source_file" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Tree::Interface_LinkInterface >& get_source_interface(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_LinkInterface >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
+            {
+                data::Ptr< data::Model::HyperGraph_Relation > part = 
+                    data::convert< data::Model::HyperGraph_Relation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_source_interface" );
+                return part->source_interface;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_source_interface" );
             }
         }
         , m_data );
@@ -14695,7 +14551,7 @@ std::string& get_symbol(std::variant< data::Ptr< data::SymbolTable::Symbols_Symb
         }
         , m_data );
 }
-std::int32_t& get_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::int32_t& get_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::int32_t&
@@ -14757,7 +14613,7 @@ std::int32_t& get_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextG
                     "Invalid data reference in: get_symbol" );
                 return part->symbol;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::PerSourceSymbols::Interface_IContext > part = 
                     data::convert< data::PerSourceSymbols::Interface_IContext >( arg );
@@ -14765,7 +14621,7 @@ std::int32_t& get_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextG
                     "Invalid data reference in: get_symbol" );
                 return part->symbol;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::PerSourceSymbols::Interface_IContext > part = 
                     data::convert< data::PerSourceSymbols::Interface_IContext >( arg );
@@ -14918,6 +14774,48 @@ data::Ptr< data::AST::Parser_Inheritance >& get_target(std::variant< data::Ptr< 
             else
             {
                 THROW_RTE( "Invalid call to get_target" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Tree::Interface_Link >& get_target(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_Link >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
+            {
+                data::Ptr< data::Model::HyperGraph_Relation > part = 
+                    data::convert< data::Model::HyperGraph_Relation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_target" );
+                return part->target;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_target" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Tree::Interface_LinkInterface >& get_target_interface(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_LinkInterface >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
+            {
+                data::Ptr< data::Model::HyperGraph_Relation > part = 
+                    data::convert< data::Model::HyperGraph_Relation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_target_interface" );
+                return part->target_interface;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_target_interface" );
             }
         }
         , m_data );
@@ -15104,7 +15002,7 @@ std::optional< std::int32_t >& get_type_id(std::variant< data::Ptr< data::AST::P
         }
         , m_data );
 }
-std::optional< std::int32_t >& get_type_id(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::int32_t >& get_type_id(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::int32_t >&
@@ -15166,7 +15064,7 @@ std::optional< std::int32_t >& get_type_id(std::variant< data::Ptr< data::Tree::
                     "Invalid data reference in: get_type_id" );
                 return part->type_id;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::PerSourceSymbols::Interface_IContext > part = 
                     data::convert< data::PerSourceSymbols::Interface_IContext >( arg );
@@ -15174,7 +15072,7 @@ std::optional< std::int32_t >& get_type_id(std::variant< data::Ptr< data::Tree::
                     "Invalid data reference in: get_type_id" );
                 return part->type_id;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::PerSourceSymbols::Interface_IContext > part = 
                     data::convert< data::PerSourceSymbols::Interface_IContext >( arg );
@@ -15696,10 +15594,10 @@ std::map< mega::io::megaFilePath, data::Ptr< data::DPGraph::Dependencies_Transit
         }
         , m_data );
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >& insert_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& insert_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >&
+        []( auto& arg ) -> std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relations > >)
@@ -15801,7 +15699,7 @@ std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& insert_
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& push_back_abstract_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& push_back_abstract_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_AbstractDef > >&
@@ -15822,7 +15720,7 @@ std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& push_back_abstract_de
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ActionDef > >& push_back_action_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ActionDef > >& push_back_action_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ActionDef > >&
@@ -15941,7 +15839,7 @@ std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& 
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_BufferDef > >& push_back_buffer_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_BufferDef > >& push_back_buffer_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_BufferDef > >&
@@ -16344,7 +16242,7 @@ std::vector< data::Ptr< data::Operations::Operations_Name > >& push_back_childre
         }
         , m_data );
 }
-std::vector< data::Ptr< data::Tree::Interface_IContext > >& push_back_children(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Tree::Interface_IContext > >& push_back_children(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::Tree::Interface_IContext > >&
@@ -16422,7 +16320,7 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& push_back_children(s
                     "Invalid data reference in: push_back_children" );
                 return part->children;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Tree::Interface_ContextGroup > part = 
                     data::convert< data::Tree::Interface_ContextGroup >( arg );
@@ -16430,7 +16328,7 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& push_back_children(s
                     "Invalid data reference in: push_back_children" );
                 return part->children;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_ContextGroup > part = 
                     data::convert< data::Tree::Interface_ContextGroup >( arg );
@@ -16453,7 +16351,7 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& push_back_children(s
         }
         , m_data );
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Context > >& push_back_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Context > >& push_back_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Context > >&
@@ -16515,7 +16413,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& push_back_concrete
                     "Invalid data reference in: push_back_concrete_inheritors" );
                 return part->concrete_inheritors;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
@@ -16523,7 +16421,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& push_back_concrete
                     "Invalid data reference in: push_back_concrete_inheritors" );
                 return part->concrete_inheritors;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
@@ -16773,7 +16671,7 @@ std::vector< mega::io::megaFilePath >& push_back_dependencies(std::variant< data
         }
         , m_data );
 }
-std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& push_back_dimension_traits(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& push_back_dimension_traits(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >&
@@ -17030,7 +16928,7 @@ std::vector< data::Ptr< data::Operations::Operations_Element > >& push_back_elem
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_EventDef > >& push_back_event_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_EventDef > >& push_back_event_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_EventDef > >&
@@ -17051,7 +16949,7 @@ std::vector< data::Ptr< data::AST::Parser_EventDef > >& push_back_event_defs(std
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_FunctionDef > >& push_back_function_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_FunctionDef > >& push_back_function_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_FunctionDef > >&
@@ -17313,7 +17211,7 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& push_back_inheritanc
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_LinkDef > >& push_back_link_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_LinkDef > >& push_back_link_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_LinkDef > >&
@@ -17327,30 +17225,17 @@ std::vector< data::Ptr< data::AST::Parser_LinkDef > >& push_back_link_defs(std::
                     "Invalid data reference in: push_back_link_defs" );
                 return part->link_defs;
             }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            {
+                data::Ptr< data::Tree::Interface_Link > part = 
+                    data::convert< data::Tree::Interface_Link >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: push_back_link_defs" );
+                return part->link_defs;
+            }
             else
             {
                 THROW_RTE( "Invalid call to push_back_link_defs" );
-            }
-        }
-        , m_data );
-}
-std::vector< data::Ptr< data::AST::Parser_LinkInterfaceDef > >& push_back_link_interface_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_LinkInterfaceDef > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
-            {
-                data::Ptr< data::Tree::Interface_LinkInterface > part = 
-                    data::convert< data::Tree::Interface_LinkInterface >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_link_interface_defs" );
-                return part->link_interface_defs;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to push_back_link_interface_defs" );
             }
         }
         , m_data );
@@ -17418,7 +17303,7 @@ std::vector< mega::io::megaFilePath >& push_back_mega_source_files(std::variant<
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ContextDef > >& push_back_namespace_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ContextDef > >& push_back_namespace_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ContextDef > >&
@@ -17439,7 +17324,7 @@ std::vector< data::Ptr< data::AST::Parser_ContextDef > >& push_back_namespace_de
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& push_back_object_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& push_back_object_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ObjectDef > >&
@@ -18164,7 +18049,7 @@ std::vector< data::Ptr< data::Operations::Operations_ElementVector > >& push_bac
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& set_abstract_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& set_abstract_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_AbstractDef > >&
@@ -18185,7 +18070,7 @@ std::vector< data::Ptr< data::AST::Parser_AbstractDef > >& set_abstract_defs(std
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ActionDef > >& set_action_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ActionDef > >& set_action_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ActionDef > >&
@@ -18492,7 +18377,7 @@ data::Ptr< data::AST::Parser_ArgumentList >& set_argumentList(std::variant< data
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_ArgumentListTrait > >& set_arguments_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Tree::Interface_ArgumentListTrait > >& set_arguments_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_ArgumentListTrait > >&
@@ -18651,7 +18536,7 @@ std::string& set_body(std::variant< data::Ptr< data::AST::Parser_ContextDef >, d
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_BufferDef > >& set_buffer_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_BufferDef > >& set_buffer_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_BufferDef > >&
@@ -19138,7 +19023,7 @@ std::vector< data::Ptr< data::Operations::Operations_Name > >& set_children(std:
         }
         , m_data );
 }
-std::vector< data::Ptr< data::Tree::Interface_IContext > >& set_children(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Tree::Interface_IContext > >& set_children(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::Tree::Interface_IContext > >&
@@ -19216,7 +19101,7 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& set_children(std::va
                     "Invalid data reference in: set_children" );
                 return part->children;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Tree::Interface_ContextGroup > part = 
                     data::convert< data::Tree::Interface_ContextGroup >( arg );
@@ -19224,7 +19109,7 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& set_children(std::va
                     "Invalid data reference in: set_children" );
                 return part->children;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_ContextGroup > part = 
                     data::convert< data::Tree::Interface_ContextGroup >( arg );
@@ -19368,7 +19253,7 @@ data::Ptr< data::Operations::Operations_ConcreteVariant >& set_concrete(std::var
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Concrete::Concrete_Context > >&
@@ -19430,7 +19315,7 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete(std
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Concrete::Interface_IContext > part = 
                     data::convert< data::Concrete::Interface_IContext >( arg );
@@ -19438,7 +19323,7 @@ std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete(std
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Concrete::Interface_IContext > part = 
                     data::convert< data::Concrete::Interface_IContext >( arg );
@@ -19641,7 +19526,7 @@ std::int32_t& set_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_
         }
         , m_data );
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Context > >&
@@ -19703,7 +19588,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete_inher
                     "Invalid data reference in: set_concrete_inheritors" );
                 return part->concrete_inheritors;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
@@ -19711,7 +19596,7 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete_inher
                     "Invalid data reference in: set_concrete_inheritors" );
                 return part->concrete_inheritors;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
@@ -20511,7 +20396,7 @@ std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Sy
         }
         , m_data );
 }
-std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& set_dimension_traits(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >& set_dimension_traits(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > > >&
@@ -20831,7 +20716,7 @@ std::vector< data::Ptr< data::Operations::Operations_Element > >& set_elements(s
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_EventDef > >& set_event_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_EventDef > >& set_event_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_EventDef > >&
@@ -20869,43 +20754,6 @@ std::optional< mega::ExplicitOperationID >& set_explicit_operation(std::variant<
             else
             {
                 THROW_RTE( "Invalid call to set_explicit_operation" );
-            }
-        }
-        , m_data );
-}
-data::Ptr< data::Tree::Interface_LinkInterface >& set_first(std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> data::Ptr< data::Tree::Interface_LinkInterface >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_first" );
-                return part->first;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_SingularRelation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_first" );
-                return part->first;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_first" );
-                return part->first;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_first" );
             }
         }
         , m_data );
@@ -20968,7 +20816,7 @@ data::Ptr< data::Operations::Invocations_Variables_Reference >& set_from_referen
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_FunctionDef > >& set_function_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_FunctionDef > >& set_function_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_FunctionDef > >&
@@ -21342,7 +21190,7 @@ std::vector< std::int32_t >& set_id_sequence(std::variant< data::Ptr< data::Conc
         }
         , m_data );
 }
-std::string& set_identifier(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::string& set_identifier(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::string&
@@ -21404,7 +21252,7 @@ std::string& set_identifier(std::variant< data::Ptr< data::Tree::Interface_Conte
                     "Invalid data reference in: set_identifier" );
                 return part->identifier;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Tree::Interface_IContext > part = 
                     data::convert< data::Tree::Interface_IContext >( arg );
@@ -21412,7 +21260,7 @@ std::string& set_identifier(std::variant< data::Ptr< data::Tree::Interface_Conte
                     "Invalid data reference in: set_identifier" );
                 return part->identifier;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_IContext > part = 
                     data::convert< data::Tree::Interface_IContext >( arg );
@@ -21742,7 +21590,7 @@ std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tre
         }
         , m_data );
 }
-std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > >& set_inheritance_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > >& set_inheritance_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > > >&
@@ -22459,7 +22307,7 @@ std::optional< bool >& set_is_function_call(std::variant< data::Ptr< data::Opera
         }
         , m_data );
 }
-bool& set_is_global(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+bool& set_is_global(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> bool&
@@ -22543,10 +22391,10 @@ std::size_t& set_line_number(std::variant< data::Ptr< data::AST::Parser_ScopedId
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_Link > >& set_link(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+data::Ptr< data::Tree::Interface_Link >& set_link(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_Link > >&
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_Link >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Link > >)
@@ -22564,13 +22412,21 @@ std::optional< data::Ptr< data::Tree::Interface_Link > >& set_link(std::variant<
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_LinkDef > >& set_link_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_LinkDef > >& set_link_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_LinkDef > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            {
+                data::Ptr< data::Tree::Interface_Link > part = 
+                    data::convert< data::Tree::Interface_Link >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_link_defs" );
+                return part->link_defs;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_Link > part = 
                     data::convert< data::Tree::Interface_Link >( arg );
@@ -22606,63 +22462,21 @@ data::Ptr< data::AST::Parser_LinkInterface >& set_link_interface(std::variant< d
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_LinkInterface > >& set_link_interface(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_LinkInterface > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Link > >)
-            {
-                data::Ptr< data::Concrete::Concrete_Link > part = 
-                    data::convert< data::Concrete::Concrete_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_link_interface" );
-                return part->link_interface;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_link_interface" );
-            }
-        }
-        , m_data );
-}
-std::vector< data::Ptr< data::AST::Parser_LinkInterfaceDef > >& set_link_interface_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_LinkInterfaceDef > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
-            {
-                data::Ptr< data::Tree::Interface_LinkInterface > part = 
-                    data::convert< data::Tree::Interface_LinkInterface >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_link_interface_defs" );
-                return part->link_interface_defs;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_link_interface_defs" );
-            }
-        }
-        , m_data );
-}
-std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& set_link_target(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& set_link_target(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >&
         {
             using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
-                data::Ptr< data::Tree::Interface_LinkInterface > part = 
-                    data::convert< data::Tree::Interface_LinkInterface >( arg );
+                data::Ptr< data::Tree::Interface_Link > part = 
+                    data::convert< data::Tree::Interface_Link >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_link_target" );
                 return part->link_target;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_Link > part = 
                     data::convert< data::Tree::Interface_Link >( arg );
@@ -22677,7 +22491,7 @@ std::optional< data::Ptr< data::Tree::Interface_InheritanceTrait > >& set_link_t
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >& set_link_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >& set_link_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >&
@@ -22932,7 +22746,7 @@ std::optional< data::Ptr< data::Operations::Operations_NameResolution > >& set_n
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ContextDef > >& set_namespace_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ContextDef > >& set_namespace_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ContextDef > >&
@@ -22953,7 +22767,7 @@ std::vector< data::Ptr< data::AST::Parser_ContextDef > >& set_namespace_defs(std
         }
         , m_data );
 }
-std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& set_object_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::AST::Parser_ObjectDef > >& set_object_defs(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::AST::Parser_ObjectDef > >&
@@ -23445,7 +23259,7 @@ std::optional< data::Ptr< data::Operations::Invocations_Variables_Variable > >& 
         }
         , m_data );
 }
-data::Ptr< data::Tree::Interface_ContextGroup >& set_parent(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+data::Ptr< data::Tree::Interface_ContextGroup >& set_parent(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> data::Ptr< data::Tree::Interface_ContextGroup >&
@@ -23507,7 +23321,7 @@ data::Ptr< data::Tree::Interface_ContextGroup >& set_parent(std::variant< data::
                     "Invalid data reference in: set_parent" );
                 return part->parent;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::Tree::Interface_IContext > part = 
                     data::convert< data::Tree::Interface_IContext >( arg );
@@ -23515,7 +23329,7 @@ data::Ptr< data::Tree::Interface_ContextGroup >& set_parent(std::variant< data::
                     "Invalid data reference in: set_parent" );
                 return part->parent;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::Tree::Interface_IContext > part = 
                     data::convert< data::Tree::Interface_IContext >( arg );
@@ -23829,10 +23643,10 @@ std::vector< data::Ptr< data::Model::HyperGraph_Relations > >& set_relations(std
         }
         , m_data );
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >& set_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& set_relations(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Model::HyperGraph_Relation > >&
+        []( auto& arg ) -> std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relations > >)
@@ -23913,7 +23727,7 @@ std::optional< std::string >& set_return_type_str(std::variant< data::Ptr< data:
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >& set_return_type_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >& set_return_type_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< data::Ptr< data::Tree::Interface_ReturnTypeTrait > >&
@@ -24170,7 +23984,7 @@ std::optional< data::Ptr< data::AST::Parser_IncludeRoot > >& set_root(std::varia
         }
         , m_data );
 }
-data::Ptr< data::AST::Parser_ObjectSourceRoot >& set_root(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+data::Ptr< data::AST::Parser_ObjectSourceRoot >& set_root(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> data::Ptr< data::AST::Parser_ObjectSourceRoot >&
@@ -24271,43 +24085,6 @@ std::optional< std::string >& set_runtime_return_type_str(std::variant< data::Pt
             else
             {
                 THROW_RTE( "Invalid call to set_runtime_return_type_str" );
-            }
-        }
-        , m_data );
-}
-data::Ptr< data::Tree::Interface_LinkInterface >& set_second(std::variant< data::Ptr< data::Model::HyperGraph_Relation >, data::Ptr< data::Model::HyperGraph_SingularRelation >, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> data::Ptr< data::Tree::Interface_LinkInterface >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_second" );
-                return part->second;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_SingularRelation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_second" );
-                return part->second;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_NonSingularRelation > >)
-            {
-                data::Ptr< data::Model::HyperGraph_Relation > part = 
-                    data::convert< data::Model::HyperGraph_Relation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_second" );
-                return part->second;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_second" );
             }
         }
         , m_data );
@@ -24425,7 +24202,7 @@ std::size_t& set_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_
         }
         , m_data );
 }
-std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& set_size_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& set_size_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >&
@@ -24450,6 +24227,27 @@ std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& 
             else
             {
                 THROW_RTE( "Invalid call to set_size_trait" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Tree::Interface_Link >& set_source(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_Link >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
+            {
+                data::Ptr< data::Model::HyperGraph_Relation > part = 
+                    data::convert< data::Model::HyperGraph_Relation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_source" );
+                return part->source;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_source" );
             }
         }
         , m_data );
@@ -24592,6 +24390,27 @@ mega::io::megaFilePath& set_source_file(std::variant< data::Ptr< data::SymbolTab
             else
             {
                 THROW_RTE( "Invalid call to set_source_file" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Tree::Interface_LinkInterface >& set_source_interface(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_LinkInterface >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
+            {
+                data::Ptr< data::Model::HyperGraph_Relation > part = 
+                    data::convert< data::Model::HyperGraph_Relation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_source_interface" );
+                return part->source_interface;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_source_interface" );
             }
         }
         , m_data );
@@ -24851,7 +24670,7 @@ std::string& set_symbol(std::variant< data::Ptr< data::SymbolTable::Symbols_Symb
         }
         , m_data );
 }
-std::int32_t& set_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::int32_t& set_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::int32_t&
@@ -24913,7 +24732,7 @@ std::int32_t& set_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextG
                     "Invalid data reference in: set_symbol" );
                 return part->symbol;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::PerSourceSymbols::Interface_IContext > part = 
                     data::convert< data::PerSourceSymbols::Interface_IContext >( arg );
@@ -24921,7 +24740,7 @@ std::int32_t& set_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextG
                     "Invalid data reference in: set_symbol" );
                 return part->symbol;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::PerSourceSymbols::Interface_IContext > part = 
                     data::convert< data::PerSourceSymbols::Interface_IContext >( arg );
@@ -25074,6 +24893,48 @@ data::Ptr< data::AST::Parser_Inheritance >& set_target(std::variant< data::Ptr< 
             else
             {
                 THROW_RTE( "Invalid call to set_target" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Tree::Interface_Link >& set_target(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_Link >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
+            {
+                data::Ptr< data::Model::HyperGraph_Relation > part = 
+                    data::convert< data::Model::HyperGraph_Relation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_target" );
+                return part->target;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_target" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Tree::Interface_LinkInterface >& set_target_interface(std::variant< data::Ptr< data::Model::HyperGraph_Relation > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Tree::Interface_LinkInterface >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relation > >)
+            {
+                data::Ptr< data::Model::HyperGraph_Relation > part = 
+                    data::convert< data::Model::HyperGraph_Relation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_target_interface" );
+                return part->target_interface;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_target_interface" );
             }
         }
         , m_data );
@@ -25231,7 +25092,7 @@ std::optional< std::int32_t >& set_type_id(std::variant< data::Ptr< data::AST::P
         }
         , m_data );
 }
-std::optional< std::int32_t >& set_type_id(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< std::int32_t >& set_type_id(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::optional< std::int32_t >&
@@ -25293,7 +25154,7 @@ std::optional< std::int32_t >& set_type_id(std::variant< data::Ptr< data::Tree::
                     "Invalid data reference in: set_type_id" );
                 return part->type_id;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::PerSourceSymbols::Interface_IContext > part = 
                     data::convert< data::PerSourceSymbols::Interface_IContext >( arg );
@@ -25301,7 +25162,7 @@ std::optional< std::int32_t >& set_type_id(std::variant< data::Ptr< data::Tree::
                     "Invalid data reference in: set_type_id" );
                 return part->type_id;
             }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::PerSourceSymbols::Interface_IContext > part = 
                     data::convert< data::PerSourceSymbols::Interface_IContext >( arg );
@@ -25538,8 +25399,8 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 53: return new Tree::Interface_Event( loader, objectInfo );
         case 54: return new Tree::Interface_Function( loader, objectInfo );
         case 55: return new Tree::Interface_Object( loader, objectInfo );
-        case 56: return new Tree::Interface_LinkInterface( loader, objectInfo );
-        case 57: return new Tree::Interface_Link( loader, objectInfo );
+        case 56: return new Tree::Interface_Link( loader, objectInfo );
+        case 57: return new Tree::Interface_LinkInterface( loader, objectInfo );
         case 58: return new Tree::Interface_Buffer( loader, objectInfo );
         case 128: return new DPGraph::Dependencies_Glob( loader, objectInfo );
         case 129: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
@@ -25576,10 +25437,8 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 139: return new Derivations::Derivation_Mapping( loader, objectInfo );
         case 49: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
         case 140: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 141: return new Model::HyperGraph_SingularRelation( loader, objectInfo );
-        case 142: return new Model::HyperGraph_NonSingularRelation( loader, objectInfo );
-        case 143: return new Model::HyperGraph_Relations( loader, objectInfo );
-        case 144: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 141: return new Model::HyperGraph_Relations( loader, objectInfo );
+        case 142: return new Model::HyperGraph_Graph( loader, objectInfo );
         case 97: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
         case 98: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
         case 99: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
@@ -25589,18 +25448,18 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 111: return new MemoryLayout::Concrete_Object( loader, objectInfo );
         case 113: return new MemoryLayout::Concrete_Link( loader, objectInfo );
         case 115: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
-        case 145: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 146: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 147: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 148: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 149: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 150: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 151: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 152: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 153: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 154: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 155: return new MemoryLayout::MemoryLayout_SharedBuffer( loader, objectInfo );
-        case 156: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 143: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 144: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 145: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 146: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 147: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 148: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 149: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 150: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 151: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 152: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 153: return new MemoryLayout::MemoryLayout_SharedBuffer( loader, objectInfo );
+        case 154: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
         case 59: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
         case 60: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
         case 61: return new Operations::Invocations_Variables_Reference( loader, objectInfo );

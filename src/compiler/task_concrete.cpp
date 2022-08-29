@@ -133,14 +133,17 @@ public:
                 }
             }
         }
-        else if ( Interface::LinkInterface* pLinkInterface
-                  = dynamic_database_cast< Interface::LinkInterface >( pContext ) )
-        {
-            // do nothing
-        }
         else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
         {
             // do nothing
+            if ( Interface::LinkInterface* pLinkInterface = dynamic_database_cast< Interface::LinkInterface >( pLink ) )
+            {
+                // do nothing
+            }
+            else
+            {
+                // do nothing
+            }
         }
         else if ( Interface::Buffer* pBuffer = dynamic_database_cast< Interface::Buffer >( pContext ) )
         {
@@ -332,44 +335,12 @@ public:
 
             return pConcrete;
         }
-        else if ( Interface::LinkInterface* pLinkInterface
-                  = dynamic_database_cast< Interface::LinkInterface >( pContext ) )
-        {
-            if ( bInObjectScope )
-            {
-                Link* pConcrete = database.construct< Link >(
-                    Link::Args{ Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pLinkInterface, {} },
-                                pLinkInterface, std::nullopt } );
-                pParentContextGroup->push_back_children( pConcrete );
-
-                IdentifierMap inheritedContexts;
-                {
-                    recurseInheritance( database, pConcrete, pLinkInterface, inheritedContexts );
-                    pConcrete->set_inheritance( inheritedContexts.inherited );
-                }
-
-                std::vector< ConcreteStage::Concrete::Context* >          childContexts;
-                std::vector< ConcreteStage::Concrete::Dimensions::User* > dimensions;
-                constructElements( database, pConcrete, inheritedContexts, childContexts, dimensions, bInObjectScope );
-                VERIFY_RTE( dimensions.empty() );
-
-                pConcrete->set_children( childContexts );
-
-                database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
-
-                return pConcrete;
-            }
-            else
-            {
-                return nullptr;
-            }
-        }
         else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
         {
             if ( bInObjectScope )
             {
                 Link* pConcrete = database.construct< Link >( Link::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pLink, {} }, std::nullopt, pLink } );
+                    Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pLink, {} }, pLink } );
                 pParentContextGroup->push_back_children( pConcrete );
 
                 IdentifierMap inheritedContexts;

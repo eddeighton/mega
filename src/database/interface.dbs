@@ -104,18 +104,15 @@ namespace Interface
         late< array< ref< DimensionTrait > > > dimension_traits;
         late< opt< ref< InheritanceTrait > > > inheritance_trait;
     }
-    object LinkInterface : IContext -> InterfaceStage::Tree
-    {
-        array< ref< Parser::LinkInterfaceDef > > link_interface_defs;
-        late< ref< LinkTrait > > link_trait;
-        late< ref< InheritanceTrait > > link_target;
-
-        //ref< HyperGraph::Relation > link_relation -> HyperGraphAnalysisRollout::PerSourceModel;
-    }
     object Link : IContext -> InterfaceStage::Tree
     {
         array< ref< Parser::LinkDef > > link_defs;
         late< ref< InheritanceTrait > > link_target;
+        //ref< HyperGraph::Relation > link_relation -> HyperGraphAnalysisRollout::PerSourceModel;
+    }
+    object LinkInterface : Link -> InterfaceStage::Tree
+    {
+        late< ref< LinkTrait > > link_trait;
     }
     object Buffer : IContext -> InterfaceStage::Tree
     {

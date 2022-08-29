@@ -35,6 +35,53 @@ public:
         {
         }
 
+        HyperGraphAnalysis::Interface::IContext* getLinkTarget( HyperGraphAnalysis::Interface::Link* pLink ) const
+        {
+            const auto targets = pLink->get_link_target()->get_contexts();
+            VERIFY_RTE( targets.size() == 1 );
+            return targets.front();
+        }
+
+        HyperGraphAnalysis::Interface::LinkInterface*
+        findLinkInterface( HyperGraphAnalysis::Interface::Link* pLink ) const
+        {
+            using namespace HyperGraphAnalysis;
+            using namespace HyperGraphAnalysis::HyperGraph;
+
+            // if pLink is an interface link then it IS the pSourceLinkInterface
+            if ( Interface::LinkInterface* pSourceInterfaceLink
+                 = dynamic_database_cast< Interface::LinkInterface >( pLink ) )
+            {
+                return pSourceInterfaceLink;
+            }
+            else
+            {
+                Interface::IContext* pInterfaceTarget = getLinkTarget( pLink );
+                // otherwise the links target will define its interface link
+                // either it targets a link
+                if ( Interface::Link* pTargetLink = dynamic_database_cast< Interface::Link >( pInterfaceTarget ) )
+                {
+                    if ( Interface::LinkInterface* pTargetLinkInterface
+                         = dynamic_database_cast< Interface::LinkInterface >( pInterfaceTarget ) )
+                    {
+                        // if the target is a link interface than that IS the pSourceLinkInterface
+                        return pTargetLinkInterface;
+                    }
+                    else
+                    {
+                        // recurse
+                        return findLinkInterface( pTargetLink );
+                    }
+                }
+                // or it targets an object
+                else if ( Interface::Object* pTargetObject
+                          = dynamic_database_cast< Interface::Object >( pInterfaceTarget ) )
+                {
+                    THROW_RTE( "Link targetss to objects unsupported" );
+                }
+            }
+        }
+
         HyperGraphAnalysis::HyperGraph::Relations* operator()( HyperGraphAnalysis::Database& database,
                                                                const mega::io::megaFilePath& sourceFilePath,
                                                                const task::DeterminantHash   interfaceHash ) const
@@ -42,46 +89,26 @@ public:
             using namespace HyperGraphAnalysis;
             using namespace HyperGraphAnalysis::HyperGraph;
 
-            std::multimap< Interface::IContext*, Relation* > relations;
+            std::map< Interface::Link*, Relation* > relations;
 
-            /*for ( Interface::Link* pLink : database.many< Interface::Link >( sourceFilePath ) )
+            for ( Interface::Link* pSourceLink : database.many< Interface::Link >( sourceFilePath ) )
             {
-                Interface::IContext* pTarget = nullptr;
-                {
-                    std::vector< Interface::IContext* > targets = pLink->get_link_target()->get_contexts();
-                    VERIFY_RTE_MSG( targets.size() == 1, "Invalid number of link targets" );
-                    pTarget = targets.front();
-                }
-
-                Interface::LinkTrait*                         pLinkTrait  = pLink->get_link_trait();
-                const std::optional< mega::CardinalityRange > cardinality = pLinkTrait->get_cardinality();
-
-                // linker is where link is defined
-                Relation* pRelation = nullptr;
-                if ( cardinality.has_value() && cardinality.value().maximum().isMany() )
-                {
-                    pRelation = database.construct< NonSingularRelation >(
-                        NonSingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
-                }
-                else
-                {
-                    pRelation = database.construct< SingularRelation >(
-                        SingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
-                }
-
-                // Interface::Link* pLinkReconstructed
-                //     = database.construct< Interface::Link >( Interface::Link::Args( pLink, pRelation ) );
-
-                relations.insert( { pTarget, pRelation } );
-                relations.insert( { pLink, pRelation } );
-            }*/
+                Interface::LinkInterface* pSourceLinkInterface = findLinkInterface( pSourceLink );
+                Interface::Link*          pTargetLink
+                    = dynamic_database_cast< Interface::Link >( getLinkTarget( pSourceLinkInterface ) );
+                VERIFY_RTE_MSG( pTargetLink, "Invalid link target" );
+                Interface::LinkInterface* pTargetLinkInterface = findLinkInterface( pTargetLink );
+                Relation* pRelation = database.construct< Relation >(
+                    Relation::Args{ pSourceLink, pTargetLink, pSourceLinkInterface, pTargetLinkInterface } );
+                relations.insert( { pSourceLink, pRelation } );
+            }
 
             Relations* pDependencies
                 = database.construct< Relations >( Relations::Args{ sourceFilePath, interfaceHash.get(), relations } );
             return pDependencies;
         }
 
-        HyperGraphAnalysis::HyperGraph::Relations*
+        /*HyperGraphAnalysis::HyperGraph::Relations*
         operator()( HyperGraphAnalysis::Database&                        database,
                     const HyperGraphAnalysisView::HyperGraph::Relations* pOldObjectGraph ) const
         {
@@ -120,78 +147,7 @@ public:
             Relations* pDependencies = database.construct< Relations >(
                 Relations::Args{ pOldObjectGraph->get_source_file(), pOldObjectGraph->get_hash_code(), relations } );
             return pDependencies;
-        }
-        /*void reconstructContexts( HyperGraphAnalysis::Database&          database,
-                                  HyperGraphAnalysis::Concrete::Context* pContext ) const
-        {
-            using namespace HyperGraphAnalysis;
-            using namespace HyperGraphAnalysis::HyperGraph;
-
-            database.construct< Concrete::Context >( Concrete::Context::Args{ pContext, {} } );
-
-            for ( Concrete::Context* pChildContext : pContext->get_children() )
-            {
-                reconstructContexts( database, pChildContext );
-            }
         }*/
-        void recurse( HyperGraphAnalysis::Database& database, HyperGraphAnalysis::Concrete::Context* pContext ) const
-        {
-            using namespace HyperGraphAnalysis;
-            using namespace HyperGraphAnalysis::HyperGraph;
-
-            if ( Concrete::Link* pConcreteLink = dynamic_database_cast< Concrete::Link >( pContext ) )
-            {
-                // Interface::Link* pInterfaceLink = pConcreteLink->get_interface_link();
-                // Relation*        pRelation      = pInterfaceLink->get_link_relation();
-                // VERIFY_RTE( pRelation );
-
-                // Concrete::Dimensions::LinkReference* pLinkReference
-                //     = database.construct< Concrete::Dimensions::LinkReference >(
-                //         Concrete::Dimensions::LinkReference::Args{ pConcreteLink } );
-
-                // Concrete::Link* pConcreteLinkReconstructed
-                //     = database.construct< Concrete::Link >( Concrete::Link::Args{ pConcreteLink, pLinkReference } );
-
-                // pContext->push_back_link_dimensions( pLinkReference );
-
-                /*Interface::IContext* pTarget = pRelation->get_target();
-
-                for( Concrete::Context* pConcreteTarget : pTarget->get_concrete_inheritors() )
-                {
-                    Concrete::Dimensions::LinkReference* pLinkTargetReference
-                        = database.construct< Concrete::Dimensions::LinkReference >(
-                            Concrete::Dimensions::LinkReference::Args{ pConcreteLink } );
-
-                    pConcreteTarget->push_back_link_dimensions( pLinkTargetReference );
-
-                }*/
-
-                // Derivation::ObjectMapping* pObjectMapping = database.one< Derivation::ObjectMapping >(
-                // m_environment.project_manifest()); pTarget->
-            }
-
-            for ( Concrete::Context* pChildContext : pContext->get_children() )
-            {
-                recurse( database, pChildContext );
-            }
-        }
-
-        void generateConcreteLinkDimensions( HyperGraphAnalysis::Database& database,
-                                             const mega::io::megaFilePath& sourceFilePath ) const
-        {
-            using namespace HyperGraphAnalysis;
-            using namespace HyperGraphAnalysis::HyperGraph;
-
-            Concrete::Root* pRoot = database.one< Concrete::Root >( sourceFilePath );
-            /*for ( Concrete::Context* pContext : pRoot->get_children() )
-            {
-                reconstructContexts( database, pContext );
-            }*/
-            for ( Concrete::Context* pContext : pRoot->get_children() )
-            {
-                recurse( database, pContext );
-            }
-        }
     };
 
     using PathSet = std::set< mega::io::megaFilePath >;
@@ -385,10 +341,10 @@ public:
                         const task::DeterminantHash interfaceHash = hashCodeGenerator( sourceFilePath );
                         dependencies.push_back( functor( database, sourceFilePath, interfaceHash ) );
                     }
-                    for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
+                    /*for ( const mega::io::megaFilePath& sourceFilePath : sourceFiles )
                     {
                         functor.generateConcreteLinkDimensions( database, sourceFilePath );
-                    }
+                    }*/
                 }
                 database.construct< Graph >( Graph::Args{ dependencies } );
             }

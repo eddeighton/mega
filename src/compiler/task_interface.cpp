@@ -265,12 +265,12 @@ public:
                     []( Database& database, const std::string& name, ContextGroup* pParent,
                         Parser::LinkInterfaceDef* pLinkInterfaceDef ) -> LinkInterface*
                     {
-                        return database.construct< LinkInterface >( LinkInterface::Args(
+                        return database.construct< LinkInterface >( LinkInterface::Args( Link::Args(
                             IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
-                            { pLinkInterfaceDef } ) );
+                            { pLinkInterfaceDef } ) ) );
                     },
                     []( LinkInterface* pLinkInterface, Parser::LinkInterfaceDef* pLinkInterfaceDef )
-                    { pLinkInterface->push_back_link_interface_defs( pLinkInterfaceDef ); } );
+                    { pLinkInterface->push_back_link_defs( pLinkInterfaceDef ); } );
             }
             else if ( Parser::LinkDef* pLinkDef = dynamic_database_cast< Parser::LinkDef >( pChildContext ) )
             {
@@ -494,34 +494,6 @@ public:
         pObject->set_dimension_traits( dimensions );
         pObject->set_inheritance_trait( inheritance );
     }
-    void onLinkInterface( InterfaceStage::Database& database, InterfaceStage::Interface::LinkInterface* pLinkInterface )
-    {
-        using namespace InterfaceStage;
-
-        for ( Parser::LinkInterfaceDef* pDef : pLinkInterface->get_link_interface_defs() )
-        {
-            VERIFY_PARSER( pDef->get_dimensions().empty(), "Link interface has dimensions", pDef->get_id() );
-            VERIFY_PARSER( pDef->get_body().empty(), "Link interface has body", pDef->get_id() );
-
-            Parser::LinkInterface* pLinkSpec = pDef->get_link_interface();
-
-            Interface::LinkTrait* pLinkTrait
-                = database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkSpec } );
-
-            pLinkInterface->set_link_trait( pLinkTrait );
-
-            Parser::Inheritance* pLinkTarget = pDef->get_target();
-
-            using namespace InterfaceStage;
-            const std::vector< std::string >& strings = pLinkTarget->get_strings();
-            VERIFY_PARSER( !strings.empty(), "Invalid link target", pDef->get_id() );
-
-            Interface::InheritanceTrait* pInheritance
-                = database.construct< Interface::InheritanceTrait >( Interface::InheritanceTrait::Args{ pLinkTarget } );
-
-            pLinkInterface->set_link_target( pInheritance );
-        }
-    }
     void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink )
     {
         using namespace InterfaceStage;
@@ -530,6 +502,17 @@ public:
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Link has dimensions", pDef->get_id() );
             VERIFY_PARSER( pDef->get_body().empty(), "Link has body", pDef->get_id() );
+
+            if ( Parser::LinkInterfaceDef* pLinkInterfaceDef
+                 = dynamic_database_cast< Parser::LinkInterfaceDef >( pDef ) )
+            {
+                Interface::LinkInterface* pLinkInterface = dynamic_database_cast< Interface::LinkInterface >( pLink );
+                VERIFY_PARSER( pLinkInterface, "Invalid link interface definition", pLinkInterfaceDef->get_id() );
+                Interface::LinkTrait* pLinkTrait = database.construct< Interface::LinkTrait >(
+                    Interface::LinkTrait::Args{ pLinkInterfaceDef->get_link_interface() } );
+                //VERIFY_PARSER( !pLinkInterface->get_link_trait(), "Link interface has link trait", pDef->get_id() );
+                pLinkInterface->set_link_trait( pLinkTrait );
+            }
 
             Parser::Inheritance* pLinkTarget = pDef->get_target();
 
@@ -602,10 +585,6 @@ public:
         for ( Interface::Object* pObject : database.many< Interface::Object >( m_sourceFilePath ) )
         {
             onObject( database, pObject );
-        }
-        for ( Interface::LinkInterface* pLinkInterface : database.many< Interface::LinkInterface >( m_sourceFilePath ) )
-        {
-            onLinkInterface( database, pLinkInterface );
         }
         for ( Interface::Link* pLink : database.many< Interface::Link >( m_sourceFilePath ) )
         {

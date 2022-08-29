@@ -105,14 +105,10 @@ namespace HyperGraph
 {
     object Relation -> HyperGraphAnalysis::Model
     {
-        ref< Interface::LinkInterface > first;
-        ref< Interface::LinkInterface > second;
-    }
-    object SingularRelation : Relation -> HyperGraphAnalysis::Model
-    {
-    }
-    object NonSingularRelation : Relation -> HyperGraphAnalysis::Model
-    {
+        ref< Interface::Link >          source;
+        ref< Interface::Link >          target;
+        ref< Interface::LinkInterface > source_interface;
+        ref< Interface::LinkInterface > target_interface;
     }
 
     object Relations -> HyperGraphAnalysis::Model
@@ -120,7 +116,9 @@ namespace HyperGraph
         value< mega::io::megaFilePath > source_file;
         value< std::size_t > hash_code;
 
-        multimap< ref< Interface::IContext >, ref< Relation > > relations;
+        //multimap< ref< Interface::IContext >, ref< Relation > > relations;
+
+        map< ref< Interface::Link >, ref< Relation > > relations;
     }
 
     object Graph -> HyperGraphAnalysis::Model
