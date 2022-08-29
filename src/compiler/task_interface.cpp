@@ -522,10 +522,11 @@ public:
     void onTable( InterfaceStage::Database& database, InterfaceStage::Interface::Table* pTable )
     {
         using namespace InterfaceStage;
+        THROW_RTE( "Table NOT IMPLEMENTED!" );
     }
     void onBuffer( InterfaceStage::Database& database, InterfaceStage::Interface::Buffer* pBuffer )
     {
-
+        THROW_RTE( "Buffer NOT IMPLEMENTED!" );
     }
 
     virtual void run( mega::pipeline::Progress& taskProgress )

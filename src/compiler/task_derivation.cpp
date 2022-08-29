@@ -99,16 +99,16 @@ public:
                 {
                     if ( Interface::LinkTrait* pLinkTrait = pLink->get_link_trait() )
                     {
-                        if ( pLinkTrait->get_derive_from() )
+                        if ( pLinkTrait->get_derivation().has_value() )
                         {
-                            // pLinkTrait->get_ownership().
-                        }
-                        else if ( pLinkTrait->get_derive_to() )
-                        {
-                        }
-                        else
-                        {
-                            // no derivation direction?
+                            switch ( pLinkTrait->get_derivation().value().get() )
+                            {
+                                case mega::DerivationDirection::eDeriveNone:
+                                case mega::DerivationDirection::eDeriveSource:
+                                case mega::DerivationDirection::eDeriveTarget:
+                                case mega::DerivationDirection::TOTAL_DERIVATION_MODES:
+                                    break;
+                            }
                         }
                     }
                 }
@@ -402,8 +402,7 @@ public:
             = m_environment.DerivationAnalysisRollout_PerSourceDerivations( m_sourceFilePath );
         start( taskProgress, "Task_DerivationRollout", m_sourceFilePath.path(), rolloutCompilationFilePath.path() );
 
-        const task::DeterminantHash determinant
-            = { m_environment.getBuildHashCode( analysisCompilationFilePath ) };
+        const task::DeterminantHash determinant = { m_environment.getBuildHashCode( analysisCompilationFilePath ) };
 
         if ( m_environment.restore( rolloutCompilationFilePath, determinant ) )
         {
@@ -416,19 +415,18 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
-        using InheritanceMapping
-            = std::multimap< Interface::IContext*, Interface::IContext* >;
+        using InheritanceMapping = std::multimap< Interface::IContext*, Interface::IContext* >;
 
-        const Derivation::Mapping* pMapping    = database.one< Derivation::Mapping >( m_environment.project_manifest() );
-        const InheritanceMapping   inheritance = pMapping->get_inheritance();   
+        const Derivation::Mapping* pMapping = database.one< Derivation::Mapping >( m_environment.project_manifest() );
+        const InheritanceMapping   inheritance = pMapping->get_inheritance();
 
         for ( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )
         {
             std::vector< Concrete::Context* > concreteInheritors;
             for ( InheritanceMapping::const_iterator i    = inheritance.lower_bound( pContext ),
-                                                        iEnd = inheritance.upper_bound( pContext );
-                    i != iEnd;
-                    ++i )
+                                                     iEnd = inheritance.upper_bound( pContext );
+                  i != iEnd;
+                  ++i )
             {
                 std::optional< Concrete::Context* > concreteOpt = i->second->get_concrete();
                 if ( concreteOpt.has_value() )

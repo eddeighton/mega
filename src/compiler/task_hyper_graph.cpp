@@ -53,13 +53,12 @@ public:
                     pTarget = targets.front();
                 }
 
-                Interface::LinkTrait*        pLinkTrait = pLink->get_link_trait();
-                const mega::CardinalityRange linkee     = pLinkTrait->get_linkee();
-                const mega::CardinalityRange linker     = pLinkTrait->get_linker();
+                Interface::LinkTrait*                         pLinkTrait  = pLink->get_link_trait();
+                const std::optional< mega::CardinalityRange > cardinality = pLinkTrait->get_cardinality();
 
                 // linker is where link is defined
                 Relation* pRelation = nullptr;
-                if ( linker.lower().isMany() || linkee.lower().isMany() )
+                if ( cardinality.has_value() && cardinality.value().maximum().isMany() )
                 {
                     pRelation = database.construct< NonSingularRelation >(
                         NonSingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
@@ -96,15 +95,14 @@ public:
 
             for ( const auto& [ pOldContext, pOldRelation ] : oldRelations )
             {
-                Interface::IContext* pContext = database.convert< Interface::IContext >( pOldContext );
-                Relation* pRelation = nullptr;
+                Interface::IContext* pContext  = database.convert< Interface::IContext >( pOldContext );
+                Relation*            pRelation = nullptr;
                 if ( HyperGraphAnalysisView::HyperGraph::SingularRelation* pSingular
                      = HyperGraphAnalysisView::dynamic_database_cast<
                          HyperGraphAnalysisView::HyperGraph::SingularRelation >( pOldRelation ) )
                 {
-                    //pRelation = database.construct< SingularRelation >(
-                    //    SingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
-
+                    // pRelation = database.construct< SingularRelation >(
+                    //     SingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
                 }
                 else if ( HyperGraphAnalysisView::HyperGraph::NonSingularRelation* pNonSingular
                           = HyperGraphAnalysisView::dynamic_database_cast<

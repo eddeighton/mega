@@ -3,6 +3,7 @@
 #include "clang.hpp"
 
 #include "database/types/ownership.hpp"
+#include "database/types/derivation.hpp"
 #include "database/types/sources.hpp"
 #include "database/types/cardinality.hpp"
 #include "database/types/ownership.hpp"
@@ -203,10 +204,10 @@ public:
         return database.construct< ReturnType >( ReturnType::Args{ str } );
     }
 
-    Inheritance* parse_inheritance( Database& database )
+    Inheritance* parse_inheritance( Database& database, bool bSkipColon = false )
     {
         std::vector< std::string > strings;
-        if ( Tok.is( clang::tok::colon ) )
+        if ( bSkipColon || Tok.is( clang::tok::colon ) )
         {
             bool bFoundComma = true;
             while ( bFoundComma )
@@ -630,10 +631,9 @@ public:
 
     Link* parse_link_spec( Database& database )
     {
-        bool              derive_from = false;
-        bool              derive_to   = false;
-        mega::Ownership   ownership( mega::Ownership::eOwnNothing );
-        mega::Cardinality linker_min, linker_max, linkee_min, linkee_max;
+        std::optional< mega::Ownership >           ownership;
+        std::optional< mega::DerivationDirection > derivation;
+        std::optional< mega::CardinalityRange >    cardinality_range;
 
         if ( !Tok.is( clang::tok::l_square ) )
         {
@@ -644,12 +644,14 @@ public:
             BalancedDelimiterTracker T( *this, clang::tok::l_square );
             T.consumeOpen();
 
-            parse_cardinality( linker_min );
+            mega::Cardinality minimum, maximum;
+            parse_cardinality( minimum );
             if ( Tok.is( clang::tok::colon ) )
             {
                 ConsumeToken();
-                parse_cardinality( linker_max );
+                parse_cardinality( maximum );
                 parse_comment();
+                cardinality_range = mega::CardinalityRange{ minimum, maximum };
             }
             else
             {
@@ -666,63 +668,39 @@ public:
         if ( Tok.is( clang::tok::lessless ) )
         {
             ConsumeToken();
-            derive_from = true;
-            ownership.set( mega::Ownership::eOwnLinker );
+            ownership  = { mega::Ownership::eOwnSource };
+            derivation = { mega::DerivationDirection::eDeriveSource };
         }
         else if ( Tok.is( clang::tok::less ) )
         {
             ConsumeToken();
-            derive_from = true;
+            derivation = { mega::DerivationDirection::eDeriveSource };
+        }
+        else if ( Tok.is( clang::tok::minus ) )
+        {
+            ConsumeToken();
         }
         parse_comment();
 
         if ( Tok.is( clang::tok::greatergreater ) )
         {
             ConsumeToken();
-            derive_to = true;
-            ownership.set( mega::Ownership::eOwnLinkee );
+            ownership  = { mega::Ownership::eOwnTarget };
+            derivation = { mega::DerivationDirection::eDeriveTarget };
         }
         else if ( Tok.is( clang::tok::greater ) )
         {
             ConsumeToken();
-            derive_to = true;
+            derivation = { mega::DerivationDirection::eDeriveTarget };
         }
         parse_comment();
 
-        if ( !Tok.is( clang::tok::l_square ) )
-        {
-            MEGA_PARSER_ERROR( "Expected left square bracket for link relation specifier" );
-        }
-        {
-            BalancedDelimiterTracker T( *this, clang::tok::l_square );
-            T.consumeOpen();
-
-            parse_cardinality( linkee_min );
-            if ( Tok.is( clang::tok::colon ) )
-            {
-                ConsumeToken();
-                parse_cardinality( linkee_max );
-                parse_comment();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected colon in link cardinality specifier" );
-            }
-            if ( !Tok.is( clang::tok::r_square ) )
-            {
-                MEGA_PARSER_ERROR( "Expected right square bracket for link relation specifier" );
-            }
-            T.consumeClose();
-        }
-
-        return database.construct< Link >( Link::Args{ mega::CardinalityRange( linker_min, linker_max ),
-                                                             mega::CardinalityRange( linkee_min, linkee_max ),
-                                                             derive_from, derive_to, ownership } );
+        return database.construct< Link >( Link::Args{ cardinality_range, derivation, ownership } );
     }
 
     LinkDef* parse_link( Database& database )
     {
-        // link A::Type::Name [ !0:1 <->> 1:* ] : Target::Type
+        // link A::Type::Name [ !0:1 ] <<->> Target::Type
 
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
@@ -730,7 +708,7 @@ public:
         Link* pLinkSpec = parse_link_spec( database );
         parse_comment();
 
-        Inheritance* pInheritance = parse_inheritance( database );
+        Inheritance* pInheritance = parse_inheritance( database, true );
         parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
@@ -788,8 +766,8 @@ public:
     {
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
-        //Inheritance* pInheritance = parse_inheritance( database );
-        //parse_comment();
+        // Inheritance* pInheritance = parse_inheritance( database );
+        // parse_comment();
 
         ContextDef::Args body = defaultBody( pScopedIdentifier );
         {
@@ -1050,25 +1028,22 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                                            std::ostream&                                 osWarn )
 
     {
-
-
         struct A
         {
-            virtual ~A(){}
+            virtual ~A() {}
             int i = 1;
         };
         struct B : public A
         {
             int j = 1;
         };
-        B b;
+        B  b;
         A* pB = &b;
-        B* p = dynamic_cast< B* >( pB );
-        if( p->i != p->j )
+        B* p  = dynamic_cast< B* >( pB );
+        if ( p->i != p->j )
         {
             THROW_RTE( "The world is broken" );
         }
-
 
         boost::filesystem::path sourceDir = sourceFile;
         sourceDir.remove_filename();

@@ -61,24 +61,24 @@ struct CardinalityRange
 {
     CardinalityRange() {}
 
-    CardinalityRange( const Cardinality& lower, const Cardinality& upper )
-        : m_lower( lower )
-        , m_upper( upper )
+    CardinalityRange( const Cardinality& minimum, const Cardinality& maximum )
+        : m_minimum( minimum )
+        , m_maximum( maximum )
     {
     }
 
-    const Cardinality& lower() const { return m_lower; }
-    const Cardinality& upper() const { return m_upper; }
+    const Cardinality& minimum() const { return m_minimum; }
+    const Cardinality& maximum() const { return m_maximum; }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
-        archive& m_lower;
-        archive& m_upper;
+        archive& m_minimum;
+        archive& m_maximum;
     }
 
 private:
-    Cardinality m_lower, m_upper;
+    Cardinality m_minimum, m_maximum;
 };
 
 } // namespace mega
@@ -93,7 +93,7 @@ inline void to_json( nlohmann::json& j, const mega::Cardinality& cardinality )
 }
 inline void to_json( nlohmann::json& j, const mega::CardinalityRange& cardinalityRange )
 {
-    j = nlohmann::json{ { "lower", cardinalityRange.lower() }, { "upper", cardinalityRange.upper() } };
+    j = nlohmann::json{ { "minimum", cardinalityRange.minimum() }, { "maximum", cardinalityRange.maximum() } };
 }
 } // namespace mega
 

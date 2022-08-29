@@ -13,8 +13,8 @@ public:
     enum Value
     {
         eOwnNothing,
-        eOwnLinkee,
-        eOwnLinker,
+        eOwnSource,
+        eOwnTarget,
         TOTAL_OWNERSHIP_MODES
     };
 

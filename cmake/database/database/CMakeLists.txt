@@ -17,26 +17,6 @@ set( MEGA_DATABASE_GENERATED_HEADERS
     ${MEGA_API_DIR}/database/model/data.hxx
 	)
 
-#set( MEGA_DATABASE_GENERAED_DATA_HEADERS
-#    ${MEGA_API_DIR}/database/model/data_AST.hxx
-#    ${MEGA_API_DIR}/database/model/data_Body.hxx
-#    ${MEGA_API_DIR}/database/model/data_Clang.hxx
-#    ${MEGA_API_DIR}/database/model/data_Components.hxx
-#    ${MEGA_API_DIR}/database/model/data_Concrete.hxx
-#    ${MEGA_API_DIR}/database/model/data_ConcreteTable.hxx
-#    ${MEGA_API_DIR}/database/model/data_Derivations.hxx
-#    ${MEGA_API_DIR}/database/model/data_PerSourceDerivations.hxx
-#    ${MEGA_API_DIR}/database/model/data_DPGraph.hxx
-#    ${MEGA_API_DIR}/database/model/data_MemoryLayout.hxx
-#    ${MEGA_API_DIR}/database/model/data_Model.hxx
-#    ${MEGA_API_DIR}/database/model/data_PerSourceModel.hxx
-#    ${MEGA_API_DIR}/database/model/data_Operations.hxx
-#    ${MEGA_API_DIR}/database/model/data_PerSourceSymbols.hxx
-#    ${MEGA_API_DIR}/database/model/data_PerSourceConcreteTable.hxx
-#    ${MEGA_API_DIR}/database/model/data_SymbolTable.hxx
-#    ${MEGA_API_DIR}/database/model/data_Tree.hxx
-#)
-
 set( MEGA_DATABASE_STAGE_HEADERS
     ${MEGA_API_DIR}/database/model/ComponentListing.hxx
     ${MEGA_API_DIR}/database/model/ComponentListingView.hxx
@@ -209,6 +189,7 @@ set( MEGA_TYPES_HEADERS
     ${MEGA_API_DIR}/database/types/cardinality.hpp
     ${MEGA_API_DIR}/database/types/operation.hpp
     ${MEGA_API_DIR}/database/types/ownership.hpp
+    ${MEGA_API_DIR}/database/types/derivation.hpp
     ${MEGA_API_DIR}/database/types/sources.hpp
     ${MEGA_API_DIR}/database/types/modes.hpp
     ${MEGA_API_DIR}/database/types/component_type.hpp
@@ -220,6 +201,7 @@ set( MEGA_TYPES_SOURCES
     ${MEGA_SRC_DIR}/database/types/cardinality.cpp
     ${MEGA_SRC_DIR}/database/types/operation.cpp
     ${MEGA_SRC_DIR}/database/types/ownership.cpp
+    ${MEGA_SRC_DIR}/database/types/derivation.cpp
     ${MEGA_SRC_DIR}/database/types/sources.cpp
     ${MEGA_SRC_DIR}/database/types/modes.cpp
     ${MEGA_SRC_DIR}/database/types/component_type.cpp

@@ -8,7 +8,7 @@
 namespace
 {
 std::array< std::string, mega::Ownership::TOTAL_OWNERSHIP_MODES > g_pszModes
-    = { "OwnNothing", "OwnLinkee", "OwnLinker" };
+    = { "OwnNothing", "OwnSource", "OwnTarget" };
 }
 
 namespace mega
@@ -19,8 +19,8 @@ const char* Ownership::str() const
     switch ( m_value )
     {
         case eOwnNothing:
-        case eOwnLinkee:
-        case eOwnLinker:
+        case eOwnSource:
+        case eOwnTarget:
             return g_pszModes[ m_value ].c_str();
         case TOTAL_OWNERSHIP_MODES:
         default:

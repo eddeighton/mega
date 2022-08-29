@@ -55,11 +55,9 @@ namespace Parser
 
     object Link -> ParserStage::AST
     {
-        value< mega::CardinalityRange > linker;
-        value< mega::CardinalityRange > linkee;
-        value< bool > derive_from; // linker <-  linkee
-        value< bool > derive_to;   // linker  -> linkee
-        value< mega::Ownership > ownership;
+        opt< value< mega::CardinalityRange > >     cardinality;
+        opt< value< mega::DerivationDirection > >  derivation;
+        opt< value< mega::Ownership > >            ownership;
     }
 
     object Dimension -> ParserStage::AST

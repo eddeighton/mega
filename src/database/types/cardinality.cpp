@@ -3,18 +3,18 @@
 
 std::ostream& operator<<( std::ostream& os, const mega::CardinalityRange& cardinalityRange )
 {
-    if( cardinalityRange.lower().isNullAllowed() )
+    if( cardinalityRange.minimum().isNullAllowed() )
         os << '!';
-    if( cardinalityRange.lower().isMany() )
+    if( cardinalityRange.minimum().isMany() )
         os << "*";
     else
-        os << cardinalityRange.lower().getNumber();
+        os << cardinalityRange.minimum().getNumber();
     os << ":";
-    if( cardinalityRange.upper().isNullAllowed() )
+    if( cardinalityRange.maximum().isNullAllowed() )
         os << '!';
-    if( cardinalityRange.upper().isMany() )
+    if( cardinalityRange.maximum().isMany() )
         os << "*";
     else
-        os << cardinalityRange.upper().getNumber();
+        os << cardinalityRange.maximum().getNumber();
     return os;
 }

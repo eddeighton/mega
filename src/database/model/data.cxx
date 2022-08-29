@@ -419,11 +419,9 @@ namespace AST
     Parser_Link::Parser_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Link >( loader, this ) )    {
     }
-    Parser_Link::Parser_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::CardinalityRange& linker, const mega::CardinalityRange& linkee, const bool& derive_from, const bool& derive_to, const mega::Ownership& ownership)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Link >( loader, this ) )          , linker( linker )
-          , linkee( linkee )
-          , derive_from( derive_from )
-          , derive_to( derive_to )
+    Parser_Link::Parser_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::optional< mega::CardinalityRange >& cardinality, const std::optional< mega::DerivationDirection >& derivation, const std::optional< mega::Ownership >& ownership)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_Link >( loader, this ) )          , cardinality( cardinality )
+          , derivation( derivation )
           , ownership( ownership )
     {
     }
@@ -436,18 +434,14 @@ namespace AST
     }
     void Parser_Link::load( mega::io::Loader& loader )
     {
-        loader.load( linker );
-        loader.load( linkee );
-        loader.load( derive_from );
-        loader.load( derive_to );
+        loader.load( cardinality );
+        loader.load( derivation );
         loader.load( ownership );
     }
     void Parser_Link::store( mega::io::Storer& storer ) const
     {
-        storer.store( linker );
-        storer.store( linkee );
-        storer.store( derive_from );
-        storer.store( derive_to );
+        storer.store( cardinality );
+        storer.store( derivation );
         storer.store( ownership );
     }
     void Parser_Link::to_json( nlohmann::json& _part__ ) const
@@ -463,22 +457,12 @@ namespace AST
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "linker", linker } } );
+                { "cardinality", cardinality } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "linkee", linkee } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "derive_from", derive_from } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "derive_to", derive_to } } );
+                { "derivation", derivation } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -8654,6 +8638,56 @@ std::vector< std::string >& get_canonical_types(std::variant< data::Ptr< data::A
         }
         , m_data );
 }
+std::optional< mega::CardinalityRange >& get_cardinality(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< mega::CardinalityRange >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
+            {
+                data::Ptr< data::AST::Parser_Link > part = 
+                    data::convert< data::AST::Parser_Link >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_cardinality" );
+                return part->cardinality;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_cardinality" );
+            }
+        }
+        , m_data );
+}
+std::optional< mega::CardinalityRange >& get_cardinality(std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< mega::CardinalityRange >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
+            {
+                data::Ptr< data::AST::Parser_Link > part = 
+                    data::convert< data::AST::Parser_Link >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_cardinality" );
+                return part->cardinality;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkTrait > >)
+            {
+                data::Ptr< data::AST::Parser_Link > part = 
+                    data::convert< data::AST::Parser_Link >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_cardinality" );
+                return part->cardinality;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_cardinality" );
+            }
+        }
+        , m_data );
+}
 std::vector< data::Ptr< data::AST::Parser_ContextDef > >& get_children(std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >& m_data)
 {
     return std::visit( 
@@ -10254,10 +10288,10 @@ std::vector< mega::io::megaFilePath >& get_dependencies(std::variant< data::Ptr<
         }
         , m_data );
 }
-bool& get_derive_from(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
+std::optional< mega::DerivationDirection >& get_derivation(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> bool&
+        []( auto& arg ) -> std::optional< mega::DerivationDirection >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
@@ -10265,20 +10299,20 @@ bool& get_derive_from(std::variant< data::Ptr< data::AST::Parser_Link > >& m_dat
                 data::Ptr< data::AST::Parser_Link > part = 
                     data::convert< data::AST::Parser_Link >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_derive_from" );
-                return part->derive_from;
+                    "Invalid data reference in: get_derivation" );
+                return part->derivation;
             }
             else
             {
-                THROW_RTE( "Invalid call to get_derive_from" );
+                THROW_RTE( "Invalid call to get_derivation" );
             }
         }
         , m_data );
 }
-bool& get_derive_from(std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >& m_data)
+std::optional< mega::DerivationDirection >& get_derivation(std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> bool&
+        []( auto& arg ) -> std::optional< mega::DerivationDirection >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
@@ -10286,70 +10320,20 @@ bool& get_derive_from(std::variant< data::Ptr< data::AST::Parser_Link >, data::P
                 data::Ptr< data::AST::Parser_Link > part = 
                     data::convert< data::AST::Parser_Link >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_derive_from" );
-                return part->derive_from;
+                    "Invalid data reference in: get_derivation" );
+                return part->derivation;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkTrait > >)
             {
                 data::Ptr< data::AST::Parser_Link > part = 
                     data::convert< data::AST::Parser_Link >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_derive_from" );
-                return part->derive_from;
+                    "Invalid data reference in: get_derivation" );
+                return part->derivation;
             }
             else
             {
-                THROW_RTE( "Invalid call to get_derive_from" );
-            }
-        }
-        , m_data );
-}
-bool& get_derive_to(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> bool&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_derive_to" );
-                return part->derive_to;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_derive_to" );
-            }
-        }
-        , m_data );
-}
-bool& get_derive_to(std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> bool&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_derive_to" );
-                return part->derive_to;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkTrait > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_derive_to" );
-                return part->derive_to;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_derive_to" );
+                THROW_RTE( "Invalid call to get_derivation" );
             }
         }
         , m_data );
@@ -12847,106 +12831,6 @@ std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >& get_link_trait(st
         }
         , m_data );
 }
-mega::CardinalityRange& get_linkee(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> mega::CardinalityRange&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_linkee" );
-                return part->linkee;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_linkee" );
-            }
-        }
-        , m_data );
-}
-mega::CardinalityRange& get_linkee(std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> mega::CardinalityRange&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_linkee" );
-                return part->linkee;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkTrait > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_linkee" );
-                return part->linkee;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_linkee" );
-            }
-        }
-        , m_data );
-}
-mega::CardinalityRange& get_linker(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> mega::CardinalityRange&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_linker" );
-                return part->linker;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_linker" );
-            }
-        }
-        , m_data );
-}
-mega::CardinalityRange& get_linker(std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> mega::CardinalityRange&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_linker" );
-                return part->linker;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkTrait > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_linker" );
-                return part->linker;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_linker" );
-            }
-        }
-        , m_data );
-}
 std::size_t& get_local_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
@@ -13315,10 +13199,10 @@ mega::OperationID& get_operation(std::variant< data::Ptr< data::Operations::Oper
         }
         , m_data );
 }
-mega::Ownership& get_ownership(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
+std::optional< mega::Ownership >& get_ownership(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> mega::Ownership&
+        []( auto& arg ) -> std::optional< mega::Ownership >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
@@ -13336,10 +13220,10 @@ mega::Ownership& get_ownership(std::variant< data::Ptr< data::AST::Parser_Link >
         }
         , m_data );
 }
-mega::Ownership& get_ownership(std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >& m_data)
+std::optional< mega::Ownership >& get_ownership(std::variant< data::Ptr< data::AST::Parser_Link >, data::Ptr< data::Tree::Interface_LinkTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> mega::Ownership&
+        []( auto& arg ) -> std::optional< mega::Ownership >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
@@ -19470,6 +19354,27 @@ std::vector< std::string >& set_canonical_types(std::variant< data::Ptr< data::A
         }
         , m_data );
 }
+std::optional< mega::CardinalityRange >& set_cardinality(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< mega::CardinalityRange >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
+            {
+                data::Ptr< data::AST::Parser_Link > part = 
+                    data::convert< data::AST::Parser_Link >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_cardinality" );
+                return part->cardinality;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_cardinality" );
+            }
+        }
+        , m_data );
+}
 std::vector< data::Ptr< data::AST::Parser_ContextDef > >& set_children(std::variant< data::Ptr< data::AST::Parser_ContextDef >, data::Ptr< data::AST::Parser_NamespaceDef >, data::Ptr< data::AST::Parser_AbstractDef >, data::Ptr< data::AST::Parser_ActionDef >, data::Ptr< data::AST::Parser_EventDef >, data::Ptr< data::AST::Parser_FunctionDef >, data::Ptr< data::AST::Parser_ObjectDef >, data::Ptr< data::AST::Parser_LinkDef >, data::Ptr< data::AST::Parser_TableDef >, data::Ptr< data::AST::Parser_BufferDef > >& m_data)
 {
     return std::visit( 
@@ -21070,10 +20975,10 @@ std::vector< mega::io::megaFilePath >& set_dependencies(std::variant< data::Ptr<
         }
         , m_data );
 }
-bool& set_derive_from(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
+std::optional< mega::DerivationDirection >& set_derivation(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> bool&
+        []( auto& arg ) -> std::optional< mega::DerivationDirection >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
@@ -21081,33 +20986,12 @@ bool& set_derive_from(std::variant< data::Ptr< data::AST::Parser_Link > >& m_dat
                 data::Ptr< data::AST::Parser_Link > part = 
                     data::convert< data::AST::Parser_Link >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_derive_from" );
-                return part->derive_from;
+                    "Invalid data reference in: set_derivation" );
+                return part->derivation;
             }
             else
             {
-                THROW_RTE( "Invalid call to set_derive_from" );
-            }
-        }
-        , m_data );
-}
-bool& set_derive_to(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> bool&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_derive_to" );
-                return part->derive_to;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_derive_to" );
+                THROW_RTE( "Invalid call to set_derivation" );
             }
         }
         , m_data );
@@ -23547,48 +23431,6 @@ std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >& set_link_trait(st
         }
         , m_data );
 }
-mega::CardinalityRange& set_linkee(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> mega::CardinalityRange&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_linkee" );
-                return part->linkee;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_linkee" );
-            }
-        }
-        , m_data );
-}
-mega::CardinalityRange& set_linker(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> mega::CardinalityRange&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
-            {
-                data::Ptr< data::AST::Parser_Link > part = 
-                    data::convert< data::AST::Parser_Link >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_linker" );
-                return part->linker;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_linker" );
-            }
-        }
-        , m_data );
-}
 std::size_t& set_local_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Table >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
@@ -23957,10 +23799,10 @@ mega::OperationID& set_operation(std::variant< data::Ptr< data::Operations::Oper
         }
         , m_data );
 }
-mega::Ownership& set_ownership(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
+std::optional< mega::Ownership >& set_ownership(std::variant< data::Ptr< data::AST::Parser_Link > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> mega::Ownership&
+        []( auto& arg ) -> std::optional< mega::Ownership >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_Link > >)
