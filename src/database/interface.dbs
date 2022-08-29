@@ -23,7 +23,7 @@ namespace Interface
         array< ref< IContext > > contexts -> InterfaceAnalysisStage::Clang;
     }
 
-    object LinkTrait : Parser::Link -> InterfaceStage::Tree
+    object LinkTrait : Parser::LinkInterface -> InterfaceStage::Tree
     {
 
     }
@@ -104,17 +104,18 @@ namespace Interface
         late< array< ref< DimensionTrait > > > dimension_traits;
         late< opt< ref< InheritanceTrait > > > inheritance_trait;
     }
-    object Link : IContext -> InterfaceStage::Tree
+    object LinkInterface : IContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::LinkDef > > link_defs;
+        array< ref< Parser::LinkInterfaceDef > > link_interface_defs;
         late< ref< LinkTrait > > link_trait;
         late< ref< InheritanceTrait > > link_target;
 
-        ref< HyperGraph::Relation > link_relation -> HyperGraphAnalysisRollout::PerSourceModel;
+        //ref< HyperGraph::Relation > link_relation -> HyperGraphAnalysisRollout::PerSourceModel;
     }
-    object Table : IContext -> InterfaceStage::Tree
+    object Link : IContext -> InterfaceStage::Tree
     {
-        array< ref< Parser::TableDef > > table_defs;
+        array< ref< Parser::LinkDef > > link_defs;
+        late< ref< InheritanceTrait > > link_target;
     }
     object Buffer : IContext -> InterfaceStage::Tree
     {

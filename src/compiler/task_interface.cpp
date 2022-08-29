@@ -257,6 +257,21 @@ public:
                     []( Object* pObject, Parser::ObjectDef* pObjectDef )
                     { pObject->push_back_object_defs( pObjectDef ); } );
             }
+            else if ( Parser::LinkInterfaceDef* pLinkInterfaceDef
+                      = dynamic_database_cast< Parser::LinkInterfaceDef >( pChildContext ) )
+            {
+                constructOrAggregate< Parser::LinkInterfaceDef, LinkInterface >(
+                    database, pRoot, pLinkInterfaceDef, currentName, namedContexts,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Parser::LinkInterfaceDef* pLinkInterfaceDef ) -> LinkInterface*
+                    {
+                        return database.construct< LinkInterface >( LinkInterface::Args(
+                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
+                            { pLinkInterfaceDef } ) );
+                    },
+                    []( LinkInterface* pLinkInterface, Parser::LinkInterfaceDef* pLinkInterfaceDef )
+                    { pLinkInterface->push_back_link_interface_defs( pLinkInterfaceDef ); } );
+            }
             else if ( Parser::LinkDef* pLinkDef = dynamic_database_cast< Parser::LinkDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::LinkDef, Link >(
@@ -270,19 +285,6 @@ public:
                     },
                     []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
             }
-            else if ( Parser::TableDef* pTableDef = dynamic_database_cast< Parser::TableDef >( pChildContext ) )
-            {
-                constructOrAggregate< Parser::TableDef, Table >(
-                    database, pRoot, pTableDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent,
-                        Parser::TableDef* pTableDef ) -> Table*
-                    {
-                        return database.construct< Table >( Table::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
-                            { pTableDef } ) );
-                    },
-                    []( Table* pTable, Parser::TableDef* pTableDef ) { pTable->push_back_table_defs( pTableDef ); } );
-            }
             else if ( Parser::BufferDef* pBufferDef = dynamic_database_cast< Parser::BufferDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::BufferDef, Buffer >(
@@ -294,7 +296,8 @@ public:
                             IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent ),
                             { pBufferDef } ) );
                     },
-                    []( Buffer* pBuffer, Parser::BufferDef* pBufferDef ) { pBuffer->push_back_buffer_defs( pBufferDef ); } );
+                    []( Buffer* pBuffer, Parser::BufferDef* pBufferDef )
+                    { pBuffer->push_back_buffer_defs( pBufferDef ); } );
             }
             else
             {
@@ -491,6 +494,34 @@ public:
         pObject->set_dimension_traits( dimensions );
         pObject->set_inheritance_trait( inheritance );
     }
+    void onLinkInterface( InterfaceStage::Database& database, InterfaceStage::Interface::LinkInterface* pLinkInterface )
+    {
+        using namespace InterfaceStage;
+
+        for ( Parser::LinkInterfaceDef* pDef : pLinkInterface->get_link_interface_defs() )
+        {
+            VERIFY_PARSER( pDef->get_dimensions().empty(), "Link interface has dimensions", pDef->get_id() );
+            VERIFY_PARSER( pDef->get_body().empty(), "Link interface has body", pDef->get_id() );
+
+            Parser::LinkInterface* pLinkSpec = pDef->get_link_interface();
+
+            Interface::LinkTrait* pLinkTrait
+                = database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkSpec } );
+
+            pLinkInterface->set_link_trait( pLinkTrait );
+
+            Parser::Inheritance* pLinkTarget = pDef->get_target();
+
+            using namespace InterfaceStage;
+            const std::vector< std::string >& strings = pLinkTarget->get_strings();
+            VERIFY_PARSER( !strings.empty(), "Invalid link target", pDef->get_id() );
+
+            Interface::InheritanceTrait* pInheritance
+                = database.construct< Interface::InheritanceTrait >( Interface::InheritanceTrait::Args{ pLinkTarget } );
+
+            pLinkInterface->set_link_target( pInheritance );
+        }
+    }
     void onLink( InterfaceStage::Database& database, InterfaceStage::Interface::Link* pLink )
     {
         using namespace InterfaceStage;
@@ -499,13 +530,6 @@ public:
         {
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Link has dimensions", pDef->get_id() );
             VERIFY_PARSER( pDef->get_body().empty(), "Link has body", pDef->get_id() );
-
-            Parser::Link* pLinkSpec = pDef->get_link();
-
-            Interface::LinkTrait* pLinkTrait
-                = database.construct< Interface::LinkTrait >( Interface::LinkTrait::Args{ pLinkSpec } );
-
-            pLink->set_link_trait( pLinkTrait );
 
             Parser::Inheritance* pLinkTarget = pDef->get_target();
 
@@ -518,11 +542,6 @@ public:
 
             pLink->set_link_target( pInheritance );
         }
-    }
-    void onTable( InterfaceStage::Database& database, InterfaceStage::Interface::Table* pTable )
-    {
-        using namespace InterfaceStage;
-        THROW_RTE( "Table NOT IMPLEMENTED!" );
     }
     void onBuffer( InterfaceStage::Database& database, InterfaceStage::Interface::Buffer* pBuffer )
     {
@@ -584,13 +603,13 @@ public:
         {
             onObject( database, pObject );
         }
+        for ( Interface::LinkInterface* pLinkInterface : database.many< Interface::LinkInterface >( m_sourceFilePath ) )
+        {
+            onLinkInterface( database, pLinkInterface );
+        }
         for ( Interface::Link* pLink : database.many< Interface::Link >( m_sourceFilePath ) )
         {
             onLink( database, pLink );
-        }
-        for ( Interface::Table* pTable : database.many< Interface::Table >( m_sourceFilePath ) )
-        {
-            onTable( database, pTable );
         }
         for ( Interface::Buffer* pBuffer : database.many< Interface::Buffer >( m_sourceFilePath ) )
         {

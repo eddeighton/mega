@@ -194,14 +194,14 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
         addInheritance( pObject->get_inheritance_trait(), node );
         addProperties( node, pObject->get_dimension_traits() );
     }
+    else if ( LinkInterface* pLinkInterface = dynamic_database_cast< LinkInterface >( pContext ) )
+    {
+        os << "LinkInterface: " << getIdentifier( pContext );
+        node[ "label" ] = os.str();
+    }
     else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
     {
         os << "Link: " << getIdentifier( pContext );
-        node[ "label" ] = os.str();
-    }
-    else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
-    {
-        os << "Table: " << getIdentifier( pContext );
         node[ "label" ] = os.str();
     }
     else
@@ -284,11 +284,6 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
     else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
     {
         os << "Link: " << getIdentifier( pContext );
-        node[ "label" ] = os.str();
-    }
-    else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
-    {
-        os << "Table: " << getIdentifier( pContext );
         node[ "label" ] = os.str();
     }
     else if ( Buffer* pBuffer = dynamic_database_cast< Buffer >( pContext ) )

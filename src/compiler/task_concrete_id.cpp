@@ -31,11 +31,12 @@ public:
         }
         inline task::DeterminantHash operator()( const mega::io::megaFilePath& sourceFilePath ) const
         {
-            return task::DeterminantHash( toolChainHash,
-                                          env.getBuildHashCode( env.ConcreteStage_Concrete( sourceFilePath ) ),
-                                          env.getBuildHashCode( env.InterfaceStage_Tree( sourceFilePath ) ),
-                                          env.getBuildHashCode( env.InterfaceAnalysisStage_Clang( sourceFilePath ) ),
-                                          env.getBuildHashCode( env.SymbolRollout_PerSourceSymbols( sourceFilePath ) ) );
+            return task::DeterminantHash(
+                toolChainHash,
+                env.getBuildHashCode( env.ConcreteStage_Concrete( sourceFilePath ) ),
+                env.getBuildHashCode( env.InterfaceStage_Tree( sourceFilePath ) ),
+                env.getBuildHashCode( env.InterfaceAnalysisStage_Clang( sourceFilePath ) ),
+                env.getBuildHashCode( env.SymbolRollout_PerSourceSymbols( sourceFilePath ) ) );
         }
     };
 
@@ -193,7 +194,7 @@ public:
             = m_environment.ConcreteTypeAnalysis_ConcreteTable( manifestFilePath );
         start( taskProgress, "Task_ConcreteTypeAnalysis", manifestFilePath.path(), symbolCompilationFile.path() );
 
-        //std::ostringstream os;
+        // std::ostringstream os;
         task::DeterminantHash determinant(
             m_toolChain.toolChainHash,
             m_environment.getBuildHashCode( m_environment.SymbolAnalysis_SymbolTable( manifestFilePath ) ) );
@@ -204,7 +205,7 @@ public:
                 m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) ),
                 m_environment.getBuildHashCode( m_environment.InterfaceAnalysisStage_Clang( sourceFilePath ) ) );
 
-            //os << sourceFilePath.path() << " : " << hashCode.toHexString() << std::endl;
+            // os << sourceFilePath.path() << " : " << hashCode.toHexString() << std::endl;
             determinant ^= hashCode;
         }
         //{
@@ -442,7 +443,22 @@ public:
                         newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } );
                         for ( auto& [ id, pSymbol ] : idPathToSymbolMap )
                         {
-                            VERIFY_RTE( globalIDPathToSymbolMap.insert( std::make_pair( id, pSymbol ) ).second );
+                            const bool bResult = globalIDPathToSymbolMap.insert( std::make_pair( id, pSymbol ) ).second;
+                            if ( !bResult )
+                            {
+                                const auto         path = SymbolCollector::getContextPath( pSymbol->get_context() );
+                                std::ostringstream os;
+                                bool               bFirst = true;
+                                for ( const auto p : path )
+                                {
+                                    if ( bFirst )
+                                        bFirst = false;
+                                    else
+                                        os << "::";
+                                    os << p->get_interface()->get_identifier();
+                                }
+                                THROW_RTE( "Duplicate symbols found: " << os.str() );
+                            }
                         }
                     }
                     SymbolCollector().labelNewContexts( globalIDPathToSymbolMap );

@@ -44,7 +44,7 @@ public:
 
             std::multimap< Interface::IContext*, Relation* > relations;
 
-            for ( Interface::Link* pLink : database.many< Interface::Link >( sourceFilePath ) )
+            /*for ( Interface::Link* pLink : database.many< Interface::Link >( sourceFilePath ) )
             {
                 Interface::IContext* pTarget = nullptr;
                 {
@@ -74,7 +74,7 @@ public:
 
                 relations.insert( { pTarget, pRelation } );
                 relations.insert( { pLink, pRelation } );
-            }
+            }*/
 
             Relations* pDependencies
                 = database.construct< Relations >( Relations::Args{ sourceFilePath, interfaceHash.get(), relations } );

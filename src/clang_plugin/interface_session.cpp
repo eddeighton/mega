@@ -171,7 +171,7 @@ public:
                         }
                     }
                 }
-                if( strCanonicalType.empty() && symbols.empty() )
+                if ( strCanonicalType.empty() && symbols.empty() )
                 {
                     THROW_RTE( "Failed to determine dimension type" );
                 }
@@ -425,16 +425,19 @@ public:
             }
         }
         {
-            if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+            if ( LinkInterface* pLinkInterface = dynamic_database_cast< LinkInterface >( pContext ) )
             {
-                if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
+                if ( !inheritanceAnalysis(
+                         pLinkInterface, pLinkInterface->get_link_target(), result.loc, result.pDeclContext ) )
                     return false;
                 bProcess = true;
             }
         }
         {
-            if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
+            if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
             {
+                if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
+                    return false;
                 bProcess = true;
             }
         }

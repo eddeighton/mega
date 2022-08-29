@@ -176,12 +176,6 @@ void addType( OperationsStage::Database&        database,
                         bFoundType = true;
                     }
                 }
-                {
-                    if ( Concrete::Table* pTable = dynamic_database_cast< Concrete::Table >( pContext ) )
-                    {
-                        bFoundType = true;
-                    }
-                }
 
                 VERIFY_RTE( bFoundType );
             }

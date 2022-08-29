@@ -74,11 +74,7 @@ public:
         }
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
         {
-            pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize } );
-        }
-        else if ( Table* pTable = dynamic_database_cast< Table >( pContext ) )
-        {
-            szSize = 1U;
+            //pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize } );
         }
         else if ( Buffer* pBuffer = dynamic_database_cast< Buffer >( pContext ) )
         {

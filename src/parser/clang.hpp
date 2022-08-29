@@ -55,7 +55,8 @@ llvm::IntrusiveRefCntPtr< clang::DiagnosticsEngine > get_llvm_diagnosticEngine( 
 #define MEGA_PARSER_ERROR( _msg )                                                                                          \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << Tok.getLocation().printToString( sm ) << " " << _msg;  \
                                      Diags->Report( Tok.getLocation(), clang::diag::err_mega_generic_error ) << _os.str(); \
-                                     THROW_RTE( "Parser error: " << _os.str() ); )
+                                      )
+// THROW_RTE( "Parser error: " << _os.str() );
 
 #define MEGA_PARSER_WARNING( _msg )                                                                                       \
     DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _os; _os << Tok.getLocation().printToString( sm ) << " " << _msg; \

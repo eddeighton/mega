@@ -53,11 +53,11 @@ namespace Parser
         value< std::string > str;
     }
 
-    object Link -> ParserStage::AST
+    object LinkInterface -> ParserStage::AST
     {
-        opt< value< mega::CardinalityRange > >     cardinality;
-        opt< value< mega::DerivationDirection > >  derivation;
-        opt< value< mega::Ownership > >            ownership;
+        value< mega::CardinalityRange >     cardinality;
+        value< mega::DerivationDirection >  derivation;
+        value< mega::Ownership >            ownership;
     }
 
     object Dimension -> ParserStage::AST
@@ -144,16 +144,20 @@ namespace Parser
 
     object LinkDef : ContextDef -> ParserStage::AST
     {
-        ref< Link > link;
         ref< Inheritance > target;
     }
 
-    object TableDef : ContextDef -> ParserStage::AST
+    object LinkInterfaceDef : LinkDef -> ParserStage::AST
     {
-        ref< Inheritance > inheritance;
+        ref< LinkInterface > link_interface;
     }
 
     object BufferDef : ContextDef -> ParserStage::AST
+    {
+        
+    }
+
+    object MetaDef : ContextDef -> ParserStage::AST
     {
         
     }

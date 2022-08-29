@@ -95,24 +95,21 @@ public:
                         }
                     }
                 }
-                else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
+                else if ( Interface::LinkInterface* pLinkInterface = dynamic_database_cast< Interface::LinkInterface >( pContext ) )
                 {
-                    if ( Interface::LinkTrait* pLinkTrait = pLink->get_link_trait() )
+                    if ( Interface::LinkTrait* pLinkTrait = pLinkInterface->get_link_trait() )
                     {
-                        if ( pLinkTrait->get_derivation().has_value() )
+                        switch ( pLinkTrait->get_derivation().get() )
                         {
-                            switch ( pLinkTrait->get_derivation().value().get() )
-                            {
-                                case mega::DerivationDirection::eDeriveNone:
-                                case mega::DerivationDirection::eDeriveSource:
-                                case mega::DerivationDirection::eDeriveTarget:
-                                case mega::DerivationDirection::TOTAL_DERIVATION_MODES:
-                                    break;
-                            }
+                            case mega::DerivationDirection::eDeriveNone:
+                            case mega::DerivationDirection::eDeriveSource:
+                            case mega::DerivationDirection::eDeriveTarget:
+                            case mega::DerivationDirection::TOTAL_DERIVATION_MODES:
+                                break;
                         }
                     }
                 }
-                else if ( Interface::Table* pTable = dynamic_database_cast< Interface::Table >( pContext ) )
+                else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
                 {
                 }
                 else

@@ -105,9 +105,8 @@ namespace HyperGraph
 {
     object Relation -> HyperGraphAnalysis::Model
     {
-        // Interface::LinkTrait
-        ref< Interface::Link > link;
-        ref< Interface::IContext > target;
+        ref< Interface::LinkInterface > first;
+        ref< Interface::LinkInterface > second;
     }
     object SingularRelation : Relation -> HyperGraphAnalysis::Model
     {
@@ -170,7 +169,7 @@ namespace MemoryLayout
         ref< Concrete::Context > context;
         value< std::size_t > size;
         array< ref< Concrete::Dimensions::User > > user_dimensions;
-        array< ref< Concrete::Dimensions::LinkReference > > link_dimensions;
+        //array< ref< Concrete::Dimensions::LinkReference > > link_dimensions;
         array< ref< Concrete::Dimensions::Allocation > > allocation_dimensions;
     }
 

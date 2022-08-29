@@ -45,8 +45,8 @@ stage InterfaceStage
     persource accessor array< ref< Interface::Event > >;
     persource accessor array< ref< Interface::Function > >;
     persource accessor array< ref< Interface::Object > >;
+    persource accessor array< ref< Interface::LinkInterface > >;
     persource accessor array< ref< Interface::Link > >;
-    persource accessor array< ref< Interface::Table > >;
     persource accessor array< ref< Interface::Buffer > >;
 }
 

@@ -210,9 +210,21 @@ public:
         if ( bSkipColon || Tok.is( clang::tok::colon ) )
         {
             bool bFoundComma = true;
+            bool bFirst = true;
             while ( bFoundComma )
             {
-                ConsumeAnyToken();
+                if( bFirst )
+                {
+                    bFirst = false;
+                    if( !bSkipColon )
+                    {
+                        ConsumeAnyToken();
+                    }
+                }
+                else
+                {
+                    ConsumeAnyToken();
+                }
                 bFoundComma = false;
 
                 clang::SourceLocation startLoc = Tok.getLocation();
@@ -339,6 +351,7 @@ public:
         else
         {
             MEGA_PARSER_ERROR( "Cannot locate include file: " << strFile );
+            return boost::filesystem::path{};
         }
     }
 
@@ -629,18 +642,19 @@ public:
         }
     }
 
-    Link* parse_link_spec( Database& database )
+    bool parse_link_spec( Database&                  database,
+                          mega::Ownership&           ownership,
+                          mega::DerivationDirection& derivation,
+                          mega::CardinalityRange&    cardinality_range
+
+    )
     {
-        std::optional< mega::Ownership >           ownership;
-        std::optional< mega::DerivationDirection > derivation;
-        std::optional< mega::CardinalityRange >    cardinality_range;
+        bool bIsLinkInterface = false;
 
-        if ( !Tok.is( clang::tok::l_square ) )
+        if ( Tok.is( clang::tok::l_square ) )
         {
-            MEGA_PARSER_ERROR( "Expected left square bracket for link relation specifier" );
-        }
+            bIsLinkInterface = true;
 
-        {
             BalancedDelimiterTracker T( *this, clang::tok::l_square );
             T.consumeOpen();
 
@@ -665,47 +679,77 @@ public:
         }
         parse_comment();
 
-        if ( Tok.is( clang::tok::lessless ) )
+        if ( bIsLinkInterface )
         {
-            ConsumeToken();
-            ownership  = { mega::Ownership::eOwnSource };
-            derivation = { mega::DerivationDirection::eDeriveSource };
+            if ( Tok.is( clang::tok::lessless ) )
+            {
+                bIsLinkInterface = true;
+                ConsumeToken();
+                ownership  = { mega::Ownership::eOwnSource };
+                derivation = { mega::DerivationDirection::eDeriveSource };
+            }
+            else if ( Tok.is( clang::tok::less ) )
+            {
+                bIsLinkInterface = true;
+                ConsumeToken();
+                derivation = { mega::DerivationDirection::eDeriveSource };
+            }
+            else if ( Tok.is( clang::tok::minus ) )
+            {
+                bIsLinkInterface = true;
+                ConsumeToken();
+            }
+            else if ( Tok.is( clang::tok::greatergreater ) )
+            {
+                bIsLinkInterface = true;
+                ConsumeToken();
+                ownership  = { mega::Ownership::eOwnTarget };
+                derivation = { mega::DerivationDirection::eDeriveTarget };
+            }
+            else if ( Tok.is( clang::tok::greater ) )
+            {
+                bIsLinkInterface = true;
+                ConsumeToken();
+                derivation = { mega::DerivationDirection::eDeriveTarget };
+            }
+            else
+            {
+                MEGA_PARSER_ERROR( "Invalid link interface definition" );
+            }
+            parse_comment();
         }
-        else if ( Tok.is( clang::tok::less ) )
+        else
         {
-            ConsumeToken();
-            derivation = { mega::DerivationDirection::eDeriveSource };
-        }
-        else if ( Tok.is( clang::tok::minus ) )
-        {
+            if ( !Tok.is( clang::tok::colon ) )
+            {
+                MEGA_PARSER_ERROR( "Invalid link definition" );
+            }
             ConsumeToken();
         }
         parse_comment();
-
-        if ( Tok.is( clang::tok::greatergreater ) )
-        {
-            ConsumeToken();
-            ownership  = { mega::Ownership::eOwnTarget };
-            derivation = { mega::DerivationDirection::eDeriveTarget };
-        }
-        else if ( Tok.is( clang::tok::greater ) )
-        {
-            ConsumeToken();
-            derivation = { mega::DerivationDirection::eDeriveTarget };
-        }
-        parse_comment();
-
-        return database.construct< Link >( Link::Args{ cardinality_range, derivation, ownership } );
+        return bIsLinkInterface;
     }
 
     LinkDef* parse_link( Database& database )
     {
         // link A::Type::Name [ !0:1 ] <<->> Target::Type
+        // link A::Type::Name : Target::Type
 
         ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
         parse_comment();
 
-        Link* pLinkSpec = parse_link_spec( database );
+        LinkInterface* pLinkInterface = nullptr;
+        {
+            mega::Ownership           ownership;
+            mega::DerivationDirection derivation;
+            mega::CardinalityRange    cardinality_range;
+            if ( parse_link_spec( database, ownership, derivation, cardinality_range ) )
+            {
+                pLinkInterface = database.construct< LinkInterface >(
+                    LinkInterface::Args{ cardinality_range, derivation, ownership } );
+            }
+        }
+
         parse_comment();
 
         Inheritance* pInheritance = parse_inheritance( database, true );
@@ -730,36 +774,15 @@ public:
             }
         }
 
-        return database.construct< LinkDef >( LinkDef::Args{ body, pLinkSpec, pInheritance } );
-    }
-
-    TableDef* parse_table( Database& database )
-    {
-        ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
-        parse_comment();
-        Inheritance* pInheritance = parse_inheritance( database );
-        parse_comment();
-
-        ContextDef::Args body = defaultBody( pScopedIdentifier );
+        if ( pLinkInterface )
         {
-            if ( Tok.is( clang::tok::l_brace ) )
-            {
-                BalancedDelimiterTracker T( *this, clang::tok::l_brace );
-                T.consumeOpen();
-                body = parse_context_body( database, pScopedIdentifier );
-                T.consumeClose();
-            }
-            else if ( Tok.is( clang::tok::semi ) )
-            {
-                ConsumeToken();
-            }
-            else
-            {
-                MEGA_PARSER_ERROR( "Expected semicolon" );
-            }
+            return database.construct< LinkInterfaceDef >(
+                LinkInterfaceDef::Args{ LinkDef::Args{ body, pInheritance }, pLinkInterface } );
         }
-
-        return database.construct< TableDef >( TableDef::Args{ body, pInheritance } );
+        else
+        {
+            return database.construct< LinkDef >( LinkDef::Args{ body, pInheritance } );
+        }
     }
 
     BufferDef* parse_buffer( Database& database )
@@ -791,7 +814,7 @@ public:
         return database.construct< BufferDef >( BufferDef::Args{ body } );
     }
 
-    TableDef* parse_meta( Database& database )
+    MetaDef* parse_meta( Database& database )
     {
         MEGA_PARSER_ERROR( "TODO implement meta" );
         /*ScopedIdentifier* pScopedIdentifier = parse_scopedIdentifier( database );
@@ -819,6 +842,7 @@ public:
         }
 
         return database.construct< BufferDef >( BufferDef::Args{ body } );*/
+        return nullptr;
     }
 
     ActionDef* parse_action( Database& database )
@@ -892,11 +916,6 @@ public:
                 ConsumeToken();
                 bodyArgs.children.value().push_back( parse_link( database ) );
             }
-            else if ( Tok.is( clang::tok::kw_table ) )
-            {
-                ConsumeToken();
-                bodyArgs.children.value().push_back( parse_table( database ) );
-            }
             else if ( Tok.is( clang::tok::kw_buffer ) )
             {
                 ConsumeToken();
@@ -968,7 +987,6 @@ public:
                             clang::tok::kw_interface,
                             clang::tok::kw_dim,
                             clang::tok::kw_link,
-                            clang::tok::kw_table,
                             clang::tok::kw_include,
                             clang::tok::kw_dependency
                         )
@@ -1028,23 +1046,6 @@ struct EG_PARSER_IMPL : EG_PARSER_INTERFACE
                                            std::ostream&                                 osWarn )
 
     {
-        struct A
-        {
-            virtual ~A() {}
-            int i = 1;
-        };
-        struct B : public A
-        {
-            int j = 1;
-        };
-        B  b;
-        A* pB = &b;
-        B* p  = dynamic_cast< B* >( pB );
-        if ( p->i != p->j )
-        {
-            THROW_RTE( "The world is broken" );
-        }
-
         boost::filesystem::path sourceDir = sourceFile;
         sourceDir.remove_filename();
 
