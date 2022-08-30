@@ -109,10 +109,10 @@ public:
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
-        {
+        /*{
             mega::reference   ref           = {};
             const std::string strBufferName = executionContext.mapBuffer( ref );
-        }
+        }*/
 
         JITCompiler::Module::Ptr pModule;
         {

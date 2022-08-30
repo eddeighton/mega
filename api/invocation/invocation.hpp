@@ -58,13 +58,9 @@ InterfaceVariantVectorVector
 symbolVectorToInterfaceVariantVector( OperationsStage::Database&                              database,
                                       const std::vector< OperationsStage::Symbols::Symbol* >& symbols );
 
-using InheritanceMapping
-    = std::multimap< OperationsStage::Interface::IContext*, OperationsStage::Interface::IContext* >;
-
 std::vector< OperationsStage::Operations::ElementVector* >
-toElementVector( OperationsStage::Database& database, const InheritanceMapping& inheritance,
+toElementVector( OperationsStage::Database&          database,
                  const InterfaceVariantVectorVector& interfaceVariantVectorVector );
-
 
 OperationsStage::Operations::Invocation* construct( io::Environment& environment, const mega::InvocationID& id,
                                                     OperationsStage::Database&    database,

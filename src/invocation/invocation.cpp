@@ -125,24 +125,21 @@ symbolIDVectorToInterfaceVariantVector( Database& database, const SymbolMaps& sy
     return result;
 }
 
-ElementVector* toElementVector( Database& database, const InheritanceMapping& inheritance,
-                                const InterfaceVariantVector& interfaceVariantVector )
+ElementVector* toElementVector( Database& database, const InterfaceVariantVector& interfaceVariantVector )
 {
     std::vector< Element* > elements;
 
     auto addElement = [ &database, &elements ]( Interface::IContext* pContext )
     {
-        Interface::IContext* pDerived = pContext;
-        VERIFY_RTE( pDerived->get_concrete().has_value() );
-        Concrete::Context* pConcrete = pDerived->get_concrete().value();
-
-        InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
-            InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
-        ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
-            ConcreteVariant::Args{ pConcrete, std::optional< Concrete::Dimensions::User* >() } );
-
-        Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
-        elements.push_back( pElement );
+        for ( Concrete::Context* pConcrete : pContext->get_concrete() )
+        {
+            InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
+                InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
+            ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
+                ConcreteVariant::Args{ pConcrete, std::optional< Concrete::Dimensions::User* >() } );
+            Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
+            elements.push_back( pElement );
+        }
     };
 
     for ( InterfaceVariant* pInterfaceVariant : interfaceVariantVector )
@@ -151,27 +148,28 @@ ElementVector* toElementVector( Database& database, const InheritanceMapping& in
         {
             Interface::IContext* pContext = pInterfaceVariant->get_context().value();
 
-            addElement( pContext );
-            for ( InheritanceMapping::const_iterator i    = inheritance.lower_bound( pContext ),
-                                                     iEnd = inheritance.upper_bound( pContext );
-                  i != iEnd;
-                  ++i )
+            for ( Concrete::Context* pConcrete : pContext->get_concrete() )
             {
-                addElement( i->second );
+                InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
+                    InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
+                ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
+                    ConcreteVariant::Args{ pConcrete, std::optional< Concrete::Dimensions::User* >() } );
+                Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
+                elements.push_back( pElement );
             }
         }
         else if ( pInterfaceVariant->get_dimension().has_value() )
         {
             Interface::DimensionTrait* pDimension = pInterfaceVariant->get_dimension().value();
-            VERIFY_RTE( pDimension->get_concrete().has_value() );
-            Concrete::Dimensions::User* pConcreteDimension = pDimension->get_concrete().value();
-
-            InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
-                InterfaceVariant::Args{ std::optional< Interface::IContext* >(), pDimension } );
-            ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
-                ConcreteVariant::Args{ std::optional< Concrete::Context* >(), pConcreteDimension } );
-            Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
-            elements.push_back( pElement );
+            for ( Concrete::Dimensions::User* pConcreteDimension : pDimension->get_concrete() )
+            {
+                InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
+                    InterfaceVariant::Args{ std::optional< Interface::IContext* >(), pDimension } );
+                ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
+                    ConcreteVariant::Args{ std::optional< Concrete::Context* >(), pConcreteDimension } );
+                Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
+                elements.push_back( pElement );
+            }
         }
         else
         {
@@ -184,13 +182,13 @@ ElementVector* toElementVector( Database& database, const InheritanceMapping& in
     return database.construct< ElementVector >( ElementVector::Args{ elements } );
 }
 
-std::vector< ElementVector* > toElementVector( Database& database, const InheritanceMapping& inheritance,
+std::vector< ElementVector* > toElementVector( Database&                           database,
                                                const InterfaceVariantVectorVector& interfaceVariantVectorVector )
 {
     std::vector< ElementVector* > result;
     for ( const InterfaceVariantVector& interfaceVariantVector : interfaceVariantVectorVector )
     {
-        result.push_back( toElementVector( database, inheritance, interfaceVariantVector ) );
+        result.push_back( toElementVector( database, interfaceVariantVector ) );
     }
     return result;
 }
@@ -339,7 +337,8 @@ void build( Database& database, Invocation* pInvocation )
                         auto pInterface = pElement->get_interface()->get_context().value();
                         auto pConcrete  = pElement->get_concrete()->get_context().value();
 
-                        if ( pInterface->get_concrete() == pConcrete )
+                        auto t = pInterface->get_concrete();
+                        if( std::find( t.begin(), t.end(), pConcrete ) != t.end() )
                         {
                             nonPolyTargets.push_back( pElement );
                         }
@@ -618,11 +617,8 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     }
 
     // 2. Convert from Interface Contexts to Interface/Concrete context pair element vectors
-    const Derivation::Mapping* pMapping    = database.one< Derivation::Mapping >( manifestFile );
-    const InheritanceMapping   inheritance = pMapping->get_inheritance();
-
-    std::vector< ElementVector* > contextElements  = toElementVector( database, inheritance, context );
-    std::vector< ElementVector* > typePathElements = toElementVector( database, inheritance, typePath );
+    std::vector< ElementVector* > contextElements  = toElementVector( database, context );
+    std::vector< ElementVector* > typePathElements = toElementVector( database, typePath );
 
     Context*  pContext  = database.construct< Context >( Context::Args{ contextElements } );
     TypePath* pTypePath = database.construct< TypePath >( TypePath::Args{ typePathElements } );
@@ -726,7 +722,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
         pContext, pTypePath, id.m_operation, osName.str(), osContextStr.str(), osTypePathStr.str() } );
 
     // 3. Compute name resolution
-    NameResolution* pNameResolution = resolve( database, pMapping, pInvocation );
+    NameResolution* pNameResolution = resolve( database, pInvocation );
     pInvocation->set_name_resolution( pNameResolution );
 
     // 4. Build the instructions

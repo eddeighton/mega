@@ -10,7 +10,7 @@ namespace Interface
         value< std::int32_t > symbol -> SymbolRollout::PerSourceSymbols;
         late< value< std::int32_t > > type_id -> SymbolRollout::PerSourceSymbols;
         
-        opt< ref< Concrete::Dimensions::User > > concrete -> ConcreteStage::Concrete;
+        array< ref< Concrete::Dimensions::User > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
 
         value< std::string >             canonical_type  -> InterfaceAnalysisStage::Clang;
         value< std::size_t >             size            -> InterfaceAnalysisStage::Clang;
@@ -60,9 +60,8 @@ namespace Interface
         ref< ContextGroup > parent;
         value< std::int32_t > symbol -> SymbolRollout::PerSourceSymbols;
         late< value< std::int32_t > > type_id -> SymbolRollout::PerSourceSymbols;
-        opt< ref< Concrete::Context > > concrete -> ConcreteStage::Concrete;
-
-        array< ref< Concrete::Context > > concrete_inheritors -> DerivationAnalysisRollout::PerSourceDerivations;
+        
+        array< ref< Concrete::Context > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
     }
 
     // main context types

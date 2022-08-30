@@ -21,7 +21,6 @@ public:
 };
 
 OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&                  database,
-                                                      const OperationsStage::Derivation::Mapping* pMapping,
                                                       OperationsStage::Operations::Invocation*    pInvocation
 
 );

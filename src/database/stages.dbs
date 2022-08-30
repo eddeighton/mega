@@ -131,6 +131,7 @@ stage ConcreteStage
     global accessor array< ref< Components::Component > >;
     global accessor ref< Symbols::SymbolTable >;
     persource accessor ref< Interface::Root >;
+    persource accessor array< ref< Interface::DimensionTrait > >;
 }
 
 stage ConcreteTypeAnalysis
@@ -171,7 +172,8 @@ stage DerivationAnalysis
 
     file Derivations;
 
-    persource accessor array< ref< Interface::IContext > >;
+    persource accessor array< ref< Concrete::Context > >;
+    persource accessor array< ref< Concrete::Dimensions::User > >;
 }
 
 stage DerivationAnalysisView
@@ -190,6 +192,7 @@ stage DerivationAnalysisRollout
     file PerSourceDerivations;
 
     persource accessor array< ref< Interface::IContext > >;
+    persource accessor array< ref< Interface::DimensionTrait > >;
     global accessor ref< Derivation::Mapping >;
 }
 

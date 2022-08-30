@@ -91,13 +91,15 @@ namespace Derivation
     {
         value< mega::io::megaFilePath > source_file;
         value< std::size_t > hash_code;
-        multimap< ref< Interface::IContext >, ref< Interface::IContext > > inheritance;
+        multimap< ref< Interface::IContext >, ref< Concrete::Context > > inheritance_contexts;
+        multimap< ref< Interface::DimensionTrait >, ref< Concrete::Dimensions::User > > inheritance_dimensions;
     }
 
     object Mapping -> DerivationAnalysis::Derivations
     {
         array< ref< ObjectMapping > > mappings;
-        late< multimap< ref< Interface::IContext >, ref< Interface::IContext > > > inheritance;
+        multimap< ref< Interface::IContext >, ref< Concrete::Context > > inheritance_contexts;
+        multimap< ref< Interface::DimensionTrait >, ref< Concrete::Dimensions::User > > inheritance_dimensions;
     }
 }
 

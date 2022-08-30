@@ -49,7 +49,8 @@ public:
     };
 
     template < typename TContextType >
-    void collectDimensions( TContextType* pInterfaceContext, IdentifierMap& identifierMap )
+    void collectDimensions( ConcreteStage::Database& database, TContextType* pInterfaceContext,
+                            IdentifierMap& identifierMap )
     {
         using namespace ConcreteStage;
         VERIFY_RTE( pInterfaceContext );
@@ -83,11 +84,11 @@ public:
         if ( Interface::Namespace* pNamespace = dynamic_database_cast< Interface::Namespace >( pContext ) )
         {
             // do nothing
-            collectDimensions( pNamespace, identifierMap );
+            collectDimensions( database, pNamespace, identifierMap );
         }
         else if ( Interface::Abstract* pAbstract = dynamic_database_cast< Interface::Abstract >( pContext ) )
         {
-            collectDimensions( pAbstract, identifierMap );
+            collectDimensions( database, pAbstract, identifierMap );
             if ( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
             {
                 for ( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
@@ -98,7 +99,7 @@ public:
         }
         else if ( Interface::Action* pAction = dynamic_database_cast< Interface::Action >( pContext ) )
         {
-            collectDimensions( pAction, identifierMap );
+            collectDimensions( database, pAction, identifierMap );
             if ( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
             {
                 for ( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
@@ -109,7 +110,7 @@ public:
         }
         else if ( Interface::Event* pEvent = dynamic_database_cast< Interface::Event >( pContext ) )
         {
-            collectDimensions( pEvent, identifierMap );
+            collectDimensions( database, pEvent, identifierMap );
             if ( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait() )
             {
                 for ( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
@@ -124,7 +125,7 @@ public:
         }
         else if ( Interface::Object* pObject = dynamic_database_cast< Interface::Object >( pContext ) )
         {
-            collectDimensions( pObject, identifierMap );
+            collectDimensions( database, pObject, identifierMap );
             if ( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
             {
                 for ( Interface::IContext* pInheritedContext : inheritanceOpt.value()->get_contexts() )
@@ -147,7 +148,7 @@ public:
         }
         else if ( Interface::Buffer* pBuffer = dynamic_database_cast< Interface::Buffer >( pContext ) )
         {
-            collectDimensions( pBuffer, identifierMap );
+            collectDimensions( database, pBuffer, identifierMap );
         }
         else
         {
@@ -178,10 +179,6 @@ public:
             Dimensions::User* pConcreteDimension = database.construct< Dimensions::User >(
                 Dimensions::User::Args{ pParentConcreteContext, pInterfaceDimension } );
             dimensions.push_back( pConcreteDimension );
-
-            // set the pointer in interface to concrete dimension
-            database.construct< Interface::DimensionTrait >(
-                Interface::DimensionTrait::Args{ pInterfaceDimension, pConcreteDimension } );
         }
     }
 
@@ -211,14 +208,10 @@ public:
             pConcrete->set_dimensions( dimensions );
             pConcrete->set_children( childContexts );
 
-            database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
-
             return pConcrete;
         }
         else if ( Interface::Abstract* pAbstract = dynamic_database_cast< Interface::Abstract >( pContext ) )
         {
-            database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { std::nullopt } } );
-
             // do nothing
             return nullptr;
         }
@@ -242,8 +235,6 @@ public:
 
                 pConcrete->set_dimensions( dimensions );
                 pConcrete->set_children( childContexts );
-
-                database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
                 return pConcrete;
             }
@@ -273,8 +264,6 @@ public:
                 pConcrete->set_dimensions( dimensions );
                 pConcrete->set_children( childContexts );
 
-                database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
-
                 return pConcrete;
             }
             else
@@ -303,8 +292,6 @@ public:
 
                 pConcrete->set_children( childContexts );
 
-                database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
-
                 return pConcrete;
             }
             else
@@ -331,8 +318,6 @@ public:
             pConcrete->set_dimensions( dimensions );
             pConcrete->set_children( childContexts );
 
-            database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
-
             return pConcrete;
         }
         else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
@@ -355,8 +340,6 @@ public:
                 VERIFY_RTE( dimensions.empty() );
 
                 pConcrete->set_children( childContexts );
-
-                database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
                 return pConcrete;
             }
@@ -385,8 +368,6 @@ public:
                 VERIFY_RTE( dimensions.empty() );
 
                 pConcrete->set_children( childContexts );
-
-                database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, { pConcrete } } );
 
                 return pConcrete;
             }

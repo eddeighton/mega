@@ -1543,7 +1543,7 @@ namespace Tree
     Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_DimensionTrait >( loader, this ) )          , p_AST_Parser_Dimension( loader )
           , p_PerSourceSymbols_Interface_DimensionTrait( loader )
-          , p_Concrete_Interface_DimensionTrait( loader )
+          , p_PerSourceDerivations_Interface_DimensionTrait( loader )
           , p_Clang_Interface_DimensionTrait( loader )
           , parent( loader )
     {
@@ -1551,7 +1551,7 @@ namespace Tree
     Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Tree::Interface_IContext >& parent)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_DimensionTrait >( loader, this ) )          , p_AST_Parser_Dimension( loader )
           , p_PerSourceSymbols_Interface_DimensionTrait( loader )
-          , p_Concrete_Interface_DimensionTrait( loader )
+          , p_PerSourceDerivations_Interface_DimensionTrait( loader )
           , p_Clang_Interface_DimensionTrait( loader )
           , parent( parent )
     {
@@ -1858,7 +1858,6 @@ namespace Tree
     Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_IContext >( loader, this ) )          , p_Tree_Interface_ContextGroup( loader )
           , p_PerSourceSymbols_Interface_IContext( loader )
-          , p_Concrete_Interface_IContext( loader )
           , p_PerSourceDerivations_Interface_IContext( loader )
           , parent( loader )
     {
@@ -1866,7 +1865,6 @@ namespace Tree
     Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& identifier, const data::Ptr< data::Tree::Interface_ContextGroup >& parent)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Tree::Interface_IContext >( loader, this ) )          , p_Tree_Interface_ContextGroup( loader )
           , p_PerSourceSymbols_Interface_IContext( loader )
-          , p_Concrete_Interface_IContext( loader )
           , p_PerSourceDerivations_Interface_IContext( loader )
           , identifier( identifier )
           , parent( parent )
@@ -3279,98 +3277,6 @@ namespace Clang
 }
 namespace Concrete
 {
-    // struct Interface_DimensionTrait : public mega::io::Object
-    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( loader )
-    {
-    }
-    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& concrete)
-        :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait )
-          , concrete( concrete )
-    {
-    }
-    bool Interface_DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Interface_DimensionTrait::set_inheritance_pointer()
-    {
-        p_Tree_Interface_DimensionTrait->p_Concrete_Interface_DimensionTrait = data::Ptr< data::Concrete::Interface_DimensionTrait >( p_Tree_Interface_DimensionTrait, this );
-    }
-    void Interface_DimensionTrait::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Tree_Interface_DimensionTrait );
-        loader.load( concrete );
-    }
-    void Interface_DimensionTrait::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Tree_Interface_DimensionTrait );
-        storer.store( concrete );
-    }
-    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_DimensionTrait" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete", concrete } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
-    // struct Interface_IContext : public mega::io::Object
-    Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
-        :   mega::io::Object( objectInfo )          , p_Tree_Interface_IContext( loader )
-    {
-    }
-    Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const std::optional< data::Ptr< data::Concrete::Concrete_Context > >& concrete)
-        :   mega::io::Object( objectInfo )          , p_Tree_Interface_IContext( p_Tree_Interface_IContext )
-          , concrete( concrete )
-    {
-    }
-    bool Interface_IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
-    {
-        return false;
-    }
-    void Interface_IContext::set_inheritance_pointer()
-    {
-        p_Tree_Interface_IContext->p_Concrete_Interface_IContext = data::Ptr< data::Concrete::Interface_IContext >( p_Tree_Interface_IContext, this );
-    }
-    void Interface_IContext::load( mega::io::Loader& loader )
-    {
-        loader.load( p_Tree_Interface_IContext );
-        loader.load( concrete );
-    }
-    void Interface_IContext::store( mega::io::Storer& storer ) const
-    {
-        storer.store( p_Tree_Interface_IContext );
-        storer.store( concrete );
-    }
-    void Interface_IContext::to_json( nlohmann::json& _part__ ) const
-    {
-        _part__ = nlohmann::json::object(
-            { 
-                { "partname", "Interface_IContext" },
-                { "filetype" , "Concrete" },
-                { "typeID", Object_Part_Type_ID },
-                { "fileID", getFileID() },
-                { "index", getIndex() }, 
-                { "properties", nlohmann::json::array() }
-            });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "concrete", concrete } } );
-            _part__[ "properties" ].push_back( property );
-        }
-    }
-        
     // struct Concrete_Dimensions_User : public mega::io::Object
     Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Dimensions_User >( loader, this ) )          , p_MemoryLayout_Concrete_Dimensions_User( loader )
@@ -4200,10 +4106,11 @@ namespace Derivations
     Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )    {
     }
-    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >& inheritance)
+    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
-          , inheritance( inheritance )
+          , inheritance_contexts( inheritance_contexts )
+          , inheritance_dimensions( inheritance_dimensions )
     {
     }
     bool Derivation_ObjectMapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4217,13 +4124,15 @@ namespace Derivations
     {
         loader.load( source_file );
         loader.load( hash_code );
-        loader.load( inheritance );
+        loader.load( inheritance_contexts );
+        loader.load( inheritance_dimensions );
     }
     void Derivation_ObjectMapping::store( mega::io::Storer& storer ) const
     {
         storer.store( source_file );
         storer.store( hash_code );
-        storer.store( inheritance );
+        storer.store( inheritance_contexts );
+        storer.store( inheritance_dimensions );
     }
     void Derivation_ObjectMapping::to_json( nlohmann::json& _part__ ) const
     {
@@ -4248,7 +4157,12 @@ namespace Derivations
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance } } );
+                { "inheritance_contexts", inheritance_contexts } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "inheritance_dimensions", inheritance_dimensions } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4257,8 +4171,10 @@ namespace Derivations
     Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )    {
     }
-    Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& mappings)
+    Derivation_Mapping::Derivation_Mapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& mappings, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_Mapping >( loader, this ) )          , mappings( mappings )
+          , inheritance_contexts( inheritance_contexts )
+          , inheritance_dimensions( inheritance_dimensions )
     {
     }
     bool Derivation_Mapping::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4271,13 +4187,14 @@ namespace Derivations
     void Derivation_Mapping::load( mega::io::Loader& loader )
     {
         loader.load( mappings );
-        loader.load( inheritance );
+        loader.load( inheritance_contexts );
+        loader.load( inheritance_dimensions );
     }
     void Derivation_Mapping::store( mega::io::Storer& storer ) const
     {
         storer.store( mappings );
-        VERIFY_RTE_MSG( inheritance.has_value(), "Derivations::Derivation_Mapping.inheritance has NOT been set" );
-        storer.store( inheritance );
+        storer.store( inheritance_contexts );
+        storer.store( inheritance_dimensions );
     }
     void Derivation_Mapping::to_json( nlohmann::json& _part__ ) const
     {
@@ -4297,7 +4214,12 @@ namespace Derivations
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "inheritance", inheritance.value() } } );
+                { "inheritance_contexts", inheritance_contexts } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "inheritance_dimensions", inheritance_dimensions } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4305,14 +4227,60 @@ namespace Derivations
 }
 namespace PerSourceDerivations
 {
+    // struct Interface_DimensionTrait : public mega::io::Object
+    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( loader )
+    {
+    }
+    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& concrete)
+        :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait )
+          , concrete( concrete )
+    {
+    }
+    bool Interface_DimensionTrait::test_inheritance_pointer( ObjectPartLoader &loader ) const
+    {
+        return false;
+    }
+    void Interface_DimensionTrait::set_inheritance_pointer()
+    {
+        p_Tree_Interface_DimensionTrait->p_PerSourceDerivations_Interface_DimensionTrait = data::Ptr< data::PerSourceDerivations::Interface_DimensionTrait >( p_Tree_Interface_DimensionTrait, this );
+    }
+    void Interface_DimensionTrait::load( mega::io::Loader& loader )
+    {
+        loader.load( p_Tree_Interface_DimensionTrait );
+        loader.load( concrete );
+    }
+    void Interface_DimensionTrait::store( mega::io::Storer& storer ) const
+    {
+        storer.store( p_Tree_Interface_DimensionTrait );
+        storer.store( concrete );
+    }
+    void Interface_DimensionTrait::to_json( nlohmann::json& _part__ ) const
+    {
+        _part__ = nlohmann::json::object(
+            { 
+                { "partname", "Interface_DimensionTrait" },
+                { "filetype" , "PerSourceDerivations" },
+                { "typeID", Object_Part_Type_ID },
+                { "fileID", getFileID() },
+                { "index", getIndex() }, 
+                { "properties", nlohmann::json::array() }
+            });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "concrete", concrete } } );
+            _part__[ "properties" ].push_back( property );
+        }
+    }
+        
     // struct Interface_IContext : public mega::io::Object
     Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_IContext( loader )
     {
     }
-    Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const std::vector< data::Ptr< data::Concrete::Concrete_Context > >& concrete_inheritors)
+    Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const std::vector< data::Ptr< data::Concrete::Concrete_Context > >& concrete)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_IContext( p_Tree_Interface_IContext )
-          , concrete_inheritors( concrete_inheritors )
+          , concrete( concrete )
     {
     }
     bool Interface_IContext::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -4326,12 +4294,12 @@ namespace PerSourceDerivations
     void Interface_IContext::load( mega::io::Loader& loader )
     {
         loader.load( p_Tree_Interface_IContext );
-        loader.load( concrete_inheritors );
+        loader.load( concrete );
     }
     void Interface_IContext::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Tree_Interface_IContext );
-        storer.store( concrete_inheritors );
+        storer.store( concrete );
     }
     void Interface_IContext::to_json( nlohmann::json& _part__ ) const
     {
@@ -4346,7 +4314,7 @@ namespace PerSourceDerivations
             });
         {
             nlohmann::json property = nlohmann::json::object({
-                { "concrete_inheritors", concrete_inheritors } } );
+                { "concrete", concrete } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -8971,16 +8939,16 @@ data::Ptr< data::Components::Components_Component >& get_component(std::variant<
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_concrete(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_concrete(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
             {
-                data::Ptr< data::Concrete::Interface_DimensionTrait > part = 
-                    data::convert< data::Concrete::Interface_DimensionTrait >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_DimensionTrait > part = 
+                    data::convert< data::PerSourceDerivations::Interface_DimensionTrait >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
@@ -9055,88 +9023,88 @@ data::Ptr< data::Operations::Operations_ConcreteVariant >& get_concrete(std::var
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Concrete::Concrete_Context > >&
+        []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_IContext > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Namespace > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Abstract > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Action > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Event > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Function > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Object > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Buffer > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_concrete" );
                 return part->concrete;
@@ -9324,99 +9292,6 @@ std::int32_t& get_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_
             else
             {
                 THROW_RTE( "Invalid call to get_concrete_id" );
-            }
-        }
-        , m_data );
-}
-std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Context > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_IContext > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Namespace > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Abstract > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Action > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Event > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Function > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Object > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Buffer > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_concrete_inheritors" );
             }
         }
         , m_data );
@@ -11477,10 +11352,10 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& get_inheritance(std:
         }
         , m_data );
 }
-std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > >& get_inheritance(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& get_inheritance_contexts(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_Mapping > >)
@@ -11488,20 +11363,20 @@ std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data:
                 data::Ptr< data::Derivations::Derivation_Mapping > part = 
                     data::convert< data::Derivations::Derivation_Mapping >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_inheritance" );
-                return part->inheritance;
+                    "Invalid data reference in: get_inheritance_contexts" );
+                return part->inheritance_contexts;
             }
             else
             {
-                THROW_RTE( "Invalid call to get_inheritance" );
+                THROW_RTE( "Invalid call to get_inheritance_contexts" );
             }
         }
         , m_data );
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >& get_inheritance(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& get_inheritance_contexts(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_ObjectMapping > >)
@@ -11509,12 +11384,54 @@ std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tre
                 data::Ptr< data::Derivations::Derivation_ObjectMapping > part = 
                     data::convert< data::Derivations::Derivation_ObjectMapping >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_inheritance" );
-                return part->inheritance;
+                    "Invalid data reference in: get_inheritance_contexts" );
+                return part->inheritance_contexts;
             }
             else
             {
-                THROW_RTE( "Invalid call to get_inheritance" );
+                THROW_RTE( "Invalid call to get_inheritance_contexts" );
+            }
+        }
+        , m_data );
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_inheritance_dimensions(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_Mapping > >)
+            {
+                data::Ptr< data::Derivations::Derivation_Mapping > part = 
+                    data::convert< data::Derivations::Derivation_Mapping >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_inheritance_dimensions" );
+                return part->inheritance_dimensions;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_inheritance_dimensions" );
+            }
+        }
+        , m_data );
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_inheritance_dimensions(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_ObjectMapping > >)
+            {
+                data::Ptr< data::Derivations::Derivation_ObjectMapping > part = 
+                    data::convert< data::Derivations::Derivation_ObjectMapping >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_inheritance_dimensions" );
+                return part->inheritance_dimensions;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_inheritance_dimensions" );
             }
         }
         , m_data );
@@ -15684,10 +15601,10 @@ std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& ins
         }
         , m_data );
 }
-std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > >& insert_inheritance(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& insert_inheritance_contexts(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_Mapping > >)
@@ -15695,20 +15612,20 @@ std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data:
                 data::Ptr< data::Derivations::Derivation_Mapping > part = 
                     data::convert< data::Derivations::Derivation_Mapping >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: insert_inheritance" );
-                return part->inheritance;
+                    "Invalid data reference in: insert_inheritance_contexts" );
+                return part->inheritance_contexts;
             }
             else
             {
-                THROW_RTE( "Invalid call to insert_inheritance" );
+                THROW_RTE( "Invalid call to insert_inheritance_contexts" );
             }
         }
         , m_data );
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >& insert_inheritance(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& insert_inheritance_contexts(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_ObjectMapping > >)
@@ -15716,12 +15633,54 @@ std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tre
                 data::Ptr< data::Derivations::Derivation_ObjectMapping > part = 
                     data::convert< data::Derivations::Derivation_ObjectMapping >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: insert_inheritance" );
-                return part->inheritance;
+                    "Invalid data reference in: insert_inheritance_contexts" );
+                return part->inheritance_contexts;
             }
             else
             {
-                THROW_RTE( "Invalid call to insert_inheritance" );
+                THROW_RTE( "Invalid call to insert_inheritance_contexts" );
+            }
+        }
+        , m_data );
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& insert_inheritance_dimensions(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_Mapping > >)
+            {
+                data::Ptr< data::Derivations::Derivation_Mapping > part = 
+                    data::convert< data::Derivations::Derivation_Mapping >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: insert_inheritance_dimensions" );
+                return part->inheritance_dimensions;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to insert_inheritance_dimensions" );
+            }
+        }
+        , m_data );
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& insert_inheritance_dimensions(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_ObjectMapping > >)
+            {
+                data::Ptr< data::Derivations::Derivation_ObjectMapping > part = 
+                    data::convert< data::Derivations::Derivation_ObjectMapping >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: insert_inheritance_dimensions" );
+                return part->inheritance_dimensions;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to insert_inheritance_dimensions" );
             }
         }
         , m_data );
@@ -16525,7 +16484,28 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& push_back_children(s
         }
         , m_data );
 }
-std::vector< data::Ptr< data::Concrete::Concrete_Context > >& push_back_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& push_back_concrete(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
+            {
+                data::Ptr< data::PerSourceDerivations::Interface_DimensionTrait > part = 
+                    data::convert< data::PerSourceDerivations::Interface_DimensionTrait >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to push_back_concrete" );
+            }
+        }
+        , m_data );
+}
+std::vector< data::Ptr< data::Concrete::Concrete_Context > >& push_back_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
         []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Context > >&
@@ -16536,84 +16516,84 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& push_back_concrete
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Namespace > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Abstract > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Action > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Event > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Function > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Object > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Buffer > >)
             {
                 data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
                     data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: push_back_concrete_inheritors" );
-                return part->concrete_inheritors;
+                    "Invalid data reference in: push_back_concrete" );
+                return part->concrete;
             }
             else
             {
-                THROW_RTE( "Invalid call to push_back_concrete_inheritors" );
+                THROW_RTE( "Invalid call to push_back_concrete" );
             }
         }
         , m_data );
@@ -19287,16 +19267,16 @@ data::Ptr< data::Components::Components_Component >& set_component(std::variant<
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_concrete(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_concrete(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
             {
-                data::Ptr< data::Concrete::Interface_DimensionTrait > part = 
-                    data::convert< data::Concrete::Interface_DimensionTrait >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_DimensionTrait > part = 
+                    data::convert< data::PerSourceDerivations::Interface_DimensionTrait >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
@@ -19371,88 +19351,88 @@ data::Ptr< data::Operations::Operations_ConcreteVariant >& set_concrete(std::var
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Concrete::Concrete_Context > >&
+        []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_IContext > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Namespace > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Abstract > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Action > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Event > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Function > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Object > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
             }
             else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Buffer > >)
             {
-                data::Ptr< data::Concrete::Interface_IContext > part = 
-                    data::convert< data::Concrete::Interface_IContext >( arg );
+                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
+                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_concrete" );
                 return part->concrete;
@@ -19640,99 +19620,6 @@ std::int32_t& set_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_
             else
             {
                 THROW_RTE( "Invalid call to set_concrete_id" );
-            }
-        }
-        , m_data );
-}
-std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete_inheritors(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Context > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_IContext > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Namespace > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Abstract > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Action > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Event > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Function > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Object > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Link > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_LinkInterface > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_Buffer > >)
-            {
-                data::Ptr< data::PerSourceDerivations::Interface_IContext > part = 
-                    data::convert< data::PerSourceDerivations::Interface_IContext >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_concrete_inheritors" );
-                return part->concrete_inheritors;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_concrete_inheritors" );
             }
         }
         , m_data );
@@ -21735,10 +21622,10 @@ std::vector< data::Ptr< data::Tree::Interface_IContext > >& set_inheritance(std:
         }
         , m_data );
 }
-std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > >& set_inheritance(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& set_inheritance_contexts(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_Mapping > >)
@@ -21746,20 +21633,20 @@ std::optional< std::multimap< data::Ptr< data::Tree::Interface_IContext >, data:
                 data::Ptr< data::Derivations::Derivation_Mapping > part = 
                     data::convert< data::Derivations::Derivation_Mapping >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_inheritance" );
-                return part->inheritance;
+                    "Invalid data reference in: set_inheritance_contexts" );
+                return part->inheritance_contexts;
             }
             else
             {
-                THROW_RTE( "Invalid call to set_inheritance" );
+                THROW_RTE( "Invalid call to set_inheritance_contexts" );
             }
         }
         , m_data );
 }
-std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >& set_inheritance(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
+std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& set_inheritance_contexts(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_IContext > >&
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_ObjectMapping > >)
@@ -21767,12 +21654,54 @@ std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tre
                 data::Ptr< data::Derivations::Derivation_ObjectMapping > part = 
                     data::convert< data::Derivations::Derivation_ObjectMapping >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_inheritance" );
-                return part->inheritance;
+                    "Invalid data reference in: set_inheritance_contexts" );
+                return part->inheritance_contexts;
             }
             else
             {
-                THROW_RTE( "Invalid call to set_inheritance" );
+                THROW_RTE( "Invalid call to set_inheritance_contexts" );
+            }
+        }
+        , m_data );
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_inheritance_dimensions(std::variant< data::Ptr< data::Derivations::Derivation_Mapping > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_Mapping > >)
+            {
+                data::Ptr< data::Derivations::Derivation_Mapping > part = 
+                    data::convert< data::Derivations::Derivation_Mapping >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_inheritance_dimensions" );
+                return part->inheritance_dimensions;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_inheritance_dimensions" );
+            }
+        }
+        , m_data );
+}
+std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_inheritance_dimensions(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_ObjectMapping > >)
+            {
+                data::Ptr< data::Derivations::Derivation_ObjectMapping > part = 
+                    data::convert< data::Derivations::Derivation_ObjectMapping >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_inheritance_dimensions" );
+                return part->inheritance_dimensions;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_inheritance_dimensions" );
             }
         }
         , m_data );
@@ -25532,22 +25461,22 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 44: return new Tree::Interface_ContextGroup( loader, objectInfo );
         case 45: return new Tree::Interface_Root( loader, objectInfo );
         case 46: return new Tree::Interface_IContext( loader, objectInfo );
-        case 50: return new Tree::Interface_Namespace( loader, objectInfo );
-        case 51: return new Tree::Interface_Abstract( loader, objectInfo );
-        case 52: return new Tree::Interface_Action( loader, objectInfo );
-        case 53: return new Tree::Interface_Event( loader, objectInfo );
-        case 54: return new Tree::Interface_Function( loader, objectInfo );
-        case 55: return new Tree::Interface_Object( loader, objectInfo );
-        case 56: return new Tree::Interface_Link( loader, objectInfo );
-        case 58: return new Tree::Interface_LinkInterface( loader, objectInfo );
-        case 59: return new Tree::Interface_Buffer( loader, objectInfo );
-        case 132: return new DPGraph::Dependencies_Glob( loader, objectInfo );
-        case 133: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
-        case 134: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
-        case 135: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
-        case 136: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
-        case 138: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
-        case 140: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
+        case 49: return new Tree::Interface_Namespace( loader, objectInfo );
+        case 50: return new Tree::Interface_Abstract( loader, objectInfo );
+        case 51: return new Tree::Interface_Action( loader, objectInfo );
+        case 52: return new Tree::Interface_Event( loader, objectInfo );
+        case 53: return new Tree::Interface_Function( loader, objectInfo );
+        case 54: return new Tree::Interface_Object( loader, objectInfo );
+        case 55: return new Tree::Interface_Link( loader, objectInfo );
+        case 57: return new Tree::Interface_LinkInterface( loader, objectInfo );
+        case 58: return new Tree::Interface_Buffer( loader, objectInfo );
+        case 131: return new DPGraph::Dependencies_Glob( loader, objectInfo );
+        case 132: return new DPGraph::Dependencies_SourceFileDependencies( loader, objectInfo );
+        case 133: return new DPGraph::Dependencies_TransitiveDependencies( loader, objectInfo );
+        case 134: return new DPGraph::Dependencies_Analysis( loader, objectInfo );
+        case 135: return new SymbolTable::Symbols_Symbol( loader, objectInfo );
+        case 137: return new SymbolTable::Symbols_SymbolSet( loader, objectInfo );
+        case 139: return new SymbolTable::Symbols_SymbolTable( loader, objectInfo );
         case 32: return new PerSourceSymbols::Interface_DimensionTrait( loader, objectInfo );
         case 47: return new PerSourceSymbols::Interface_IContext( loader, objectInfo );
         case 34: return new Clang::Interface_DimensionTrait( loader, objectInfo );
@@ -25555,102 +25484,101 @@ mega::io::Object* Factory::create( ObjectPartLoader& loader, const mega::io::Obj
         case 39: return new Clang::Interface_ReturnTypeTrait( loader, objectInfo );
         case 41: return new Clang::Interface_ArgumentListTrait( loader, objectInfo );
         case 43: return new Clang::Interface_SizeTrait( loader, objectInfo );
-        case 33: return new Concrete::Interface_DimensionTrait( loader, objectInfo );
-        case 48: return new Concrete::Interface_IContext( loader, objectInfo );
-        case 97: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
-        case 104: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
-        case 105: return new Concrete::Concrete_Context( loader, objectInfo );
-        case 108: return new Concrete::Concrete_Namespace( loader, objectInfo );
-        case 109: return new Concrete::Concrete_Action( loader, objectInfo );
-        case 111: return new Concrete::Concrete_Event( loader, objectInfo );
-        case 113: return new Concrete::Concrete_Function( loader, objectInfo );
-        case 114: return new Concrete::Concrete_Object( loader, objectInfo );
-        case 116: return new Concrete::Concrete_Link( loader, objectInfo );
-        case 118: return new Concrete::Concrete_Buffer( loader, objectInfo );
-        case 120: return new Concrete::Concrete_Root( loader, objectInfo );
-        case 137: return new ConcreteTable::Symbols_ConcreteSymbol( loader, objectInfo );
-        case 139: return new ConcreteTable::Symbols_SymbolSet( loader, objectInfo );
-        case 141: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
-        case 106: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
-        case 142: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
-        case 143: return new Derivations::Derivation_Mapping( loader, objectInfo );
-        case 49: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
-        case 144: return new Model::HyperGraph_Relation( loader, objectInfo );
-        case 145: return new Model::HyperGraph_Relations( loader, objectInfo );
-        case 146: return new Model::HyperGraph_Graph( loader, objectInfo );
-        case 57: return new PerSourceModel::Interface_Link( loader, objectInfo );
-        case 98: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
-        case 99: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
-        case 100: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
-        case 101: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
-        case 102: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
-        case 103: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
-        case 107: return new MemoryLayout::Concrete_Context( loader, objectInfo );
-        case 110: return new MemoryLayout::Concrete_Action( loader, objectInfo );
-        case 112: return new MemoryLayout::Concrete_Event( loader, objectInfo );
-        case 115: return new MemoryLayout::Concrete_Object( loader, objectInfo );
-        case 117: return new MemoryLayout::Concrete_Link( loader, objectInfo );
-        case 119: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
-        case 147: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
-        case 148: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
-        case 149: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
-        case 150: return new MemoryLayout::Allocators_Range( loader, objectInfo );
-        case 151: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
-        case 152: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
-        case 153: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
-        case 154: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
-        case 155: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
-        case 156: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
-        case 157: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
-        case 158: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
-        case 60: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
-        case 61: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
-        case 62: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
-        case 63: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
-        case 64: return new Operations::Invocations_Variables_Context( loader, objectInfo );
-        case 65: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
-        case 66: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
-        case 67: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
-        case 68: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
-        case 69: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
-        case 70: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
-        case 71: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
-        case 72: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
-        case 73: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
-        case 74: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
-        case 75: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
-        case 76: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
-        case 77: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
-        case 78: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
-        case 79: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
-        case 80: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
-        case 81: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
-        case 82: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
-        case 83: return new Operations::Invocations_Operations_Call( loader, objectInfo );
-        case 84: return new Operations::Invocations_Operations_Start( loader, objectInfo );
-        case 85: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
-        case 86: return new Operations::Invocations_Operations_Pause( loader, objectInfo );
-        case 87: return new Operations::Invocations_Operations_Resume( loader, objectInfo );
-        case 88: return new Operations::Invocations_Operations_Done( loader, objectInfo );
-        case 89: return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
-        case 90: return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
-        case 91: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
-        case 92: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
-        case 93: return new Operations::Invocations_Operations_Read( loader, objectInfo );
-        case 94: return new Operations::Invocations_Operations_Write( loader, objectInfo );
-        case 95: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
-        case 96: return new Operations::Invocations_Operations_Range( loader, objectInfo );
-        case 121: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
-        case 122: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
-        case 123: return new Operations::Operations_Element( loader, objectInfo );
-        case 124: return new Operations::Operations_ElementVector( loader, objectInfo );
-        case 125: return new Operations::Operations_Context( loader, objectInfo );
-        case 126: return new Operations::Operations_TypePath( loader, objectInfo );
-        case 127: return new Operations::Operations_NameRoot( loader, objectInfo );
-        case 128: return new Operations::Operations_Name( loader, objectInfo );
-        case 129: return new Operations::Operations_NameResolution( loader, objectInfo );
-        case 130: return new Operations::Operations_Invocation( loader, objectInfo );
-        case 131: return new Operations::Operations_Invocations( loader, objectInfo );
+        case 96: return new Concrete::Concrete_Dimensions_User( loader, objectInfo );
+        case 103: return new Concrete::Concrete_ContextGroup( loader, objectInfo );
+        case 104: return new Concrete::Concrete_Context( loader, objectInfo );
+        case 107: return new Concrete::Concrete_Namespace( loader, objectInfo );
+        case 108: return new Concrete::Concrete_Action( loader, objectInfo );
+        case 110: return new Concrete::Concrete_Event( loader, objectInfo );
+        case 112: return new Concrete::Concrete_Function( loader, objectInfo );
+        case 113: return new Concrete::Concrete_Object( loader, objectInfo );
+        case 115: return new Concrete::Concrete_Link( loader, objectInfo );
+        case 117: return new Concrete::Concrete_Buffer( loader, objectInfo );
+        case 119: return new Concrete::Concrete_Root( loader, objectInfo );
+        case 136: return new ConcreteTable::Symbols_ConcreteSymbol( loader, objectInfo );
+        case 138: return new ConcreteTable::Symbols_SymbolSet( loader, objectInfo );
+        case 140: return new ConcreteTable::Symbols_SymbolTable( loader, objectInfo );
+        case 105: return new PerSourceConcreteTable::Concrete_Context( loader, objectInfo );
+        case 141: return new Derivations::Derivation_ObjectMapping( loader, objectInfo );
+        case 142: return new Derivations::Derivation_Mapping( loader, objectInfo );
+        case 33: return new PerSourceDerivations::Interface_DimensionTrait( loader, objectInfo );
+        case 48: return new PerSourceDerivations::Interface_IContext( loader, objectInfo );
+        case 143: return new Model::HyperGraph_Relation( loader, objectInfo );
+        case 144: return new Model::HyperGraph_Relations( loader, objectInfo );
+        case 145: return new Model::HyperGraph_Graph( loader, objectInfo );
+        case 56: return new PerSourceModel::Interface_Link( loader, objectInfo );
+        case 97: return new MemoryLayout::Concrete_Dimensions_User( loader, objectInfo );
+        case 98: return new MemoryLayout::Concrete_Dimensions_LinkReference( loader, objectInfo );
+        case 99: return new MemoryLayout::Concrete_Dimensions_LinkSingle( loader, objectInfo );
+        case 100: return new MemoryLayout::Concrete_Dimensions_LinkMany( loader, objectInfo );
+        case 101: return new MemoryLayout::Concrete_Dimensions_Allocation( loader, objectInfo );
+        case 102: return new MemoryLayout::Concrete_Dimensions_Allocator( loader, objectInfo );
+        case 106: return new MemoryLayout::Concrete_Context( loader, objectInfo );
+        case 109: return new MemoryLayout::Concrete_Action( loader, objectInfo );
+        case 111: return new MemoryLayout::Concrete_Event( loader, objectInfo );
+        case 114: return new MemoryLayout::Concrete_Object( loader, objectInfo );
+        case 116: return new MemoryLayout::Concrete_Link( loader, objectInfo );
+        case 118: return new MemoryLayout::Concrete_Buffer( loader, objectInfo );
+        case 146: return new MemoryLayout::Allocators_Allocator( loader, objectInfo );
+        case 147: return new MemoryLayout::Allocators_Nothing( loader, objectInfo );
+        case 148: return new MemoryLayout::Allocators_Singleton( loader, objectInfo );
+        case 149: return new MemoryLayout::Allocators_Range( loader, objectInfo );
+        case 150: return new MemoryLayout::Allocators_Range32( loader, objectInfo );
+        case 151: return new MemoryLayout::Allocators_Range64( loader, objectInfo );
+        case 152: return new MemoryLayout::Allocators_RangeAny( loader, objectInfo );
+        case 153: return new MemoryLayout::MemoryLayout_Part( loader, objectInfo );
+        case 154: return new MemoryLayout::MemoryLayout_Buffer( loader, objectInfo );
+        case 155: return new MemoryLayout::MemoryLayout_NonSimpleBuffer( loader, objectInfo );
+        case 156: return new MemoryLayout::MemoryLayout_SimpleBuffer( loader, objectInfo );
+        case 157: return new MemoryLayout::MemoryLayout_GPUBuffer( loader, objectInfo );
+        case 59: return new Operations::Invocations_Variables_Variable( loader, objectInfo );
+        case 60: return new Operations::Invocations_Variables_Instance( loader, objectInfo );
+        case 61: return new Operations::Invocations_Variables_Reference( loader, objectInfo );
+        case 62: return new Operations::Invocations_Variables_Dimension( loader, objectInfo );
+        case 63: return new Operations::Invocations_Variables_Context( loader, objectInfo );
+        case 64: return new Operations::Invocations_Instructions_Instruction( loader, objectInfo );
+        case 65: return new Operations::Invocations_Instructions_InstructionGroup( loader, objectInfo );
+        case 66: return new Operations::Invocations_Instructions_Root( loader, objectInfo );
+        case 67: return new Operations::Invocations_Instructions_ParentDerivation( loader, objectInfo );
+        case 68: return new Operations::Invocations_Instructions_ChildDerivation( loader, objectInfo );
+        case 69: return new Operations::Invocations_Instructions_EnumDerivation( loader, objectInfo );
+        case 70: return new Operations::Invocations_Instructions_Enumeration( loader, objectInfo );
+        case 71: return new Operations::Invocations_Instructions_DimensionReferenceRead( loader, objectInfo );
+        case 72: return new Operations::Invocations_Instructions_MonoReference( loader, objectInfo );
+        case 73: return new Operations::Invocations_Instructions_PolyReference( loader, objectInfo );
+        case 74: return new Operations::Invocations_Instructions_PolyCase( loader, objectInfo );
+        case 75: return new Operations::Invocations_Instructions_Failure( loader, objectInfo );
+        case 76: return new Operations::Invocations_Instructions_Elimination( loader, objectInfo );
+        case 77: return new Operations::Invocations_Instructions_Prune( loader, objectInfo );
+        case 78: return new Operations::Invocations_Operations_Operation( loader, objectInfo );
+        case 79: return new Operations::Invocations_Operations_BasicOperation( loader, objectInfo );
+        case 80: return new Operations::Invocations_Operations_DimensionOperation( loader, objectInfo );
+        case 81: return new Operations::Invocations_Operations_Allocate( loader, objectInfo );
+        case 82: return new Operations::Invocations_Operations_Call( loader, objectInfo );
+        case 83: return new Operations::Invocations_Operations_Start( loader, objectInfo );
+        case 84: return new Operations::Invocations_Operations_Stop( loader, objectInfo );
+        case 85: return new Operations::Invocations_Operations_Pause( loader, objectInfo );
+        case 86: return new Operations::Invocations_Operations_Resume( loader, objectInfo );
+        case 87: return new Operations::Invocations_Operations_Done( loader, objectInfo );
+        case 88: return new Operations::Invocations_Operations_WaitAction( loader, objectInfo );
+        case 89: return new Operations::Invocations_Operations_WaitDimension( loader, objectInfo );
+        case 90: return new Operations::Invocations_Operations_GetAction( loader, objectInfo );
+        case 91: return new Operations::Invocations_Operations_GetDimension( loader, objectInfo );
+        case 92: return new Operations::Invocations_Operations_Read( loader, objectInfo );
+        case 93: return new Operations::Invocations_Operations_Write( loader, objectInfo );
+        case 94: return new Operations::Invocations_Operations_WriteLink( loader, objectInfo );
+        case 95: return new Operations::Invocations_Operations_Range( loader, objectInfo );
+        case 120: return new Operations::Operations_InterfaceVariant( loader, objectInfo );
+        case 121: return new Operations::Operations_ConcreteVariant( loader, objectInfo );
+        case 122: return new Operations::Operations_Element( loader, objectInfo );
+        case 123: return new Operations::Operations_ElementVector( loader, objectInfo );
+        case 124: return new Operations::Operations_Context( loader, objectInfo );
+        case 125: return new Operations::Operations_TypePath( loader, objectInfo );
+        case 126: return new Operations::Operations_NameRoot( loader, objectInfo );
+        case 127: return new Operations::Operations_Name( loader, objectInfo );
+        case 128: return new Operations::Operations_NameResolution( loader, objectInfo );
+        case 129: return new Operations::Operations_Invocation( loader, objectInfo );
+        case 130: return new Operations::Operations_Invocations( loader, objectInfo );
         default:
             THROW_RTE( "Unrecognised object type ID" );
     }

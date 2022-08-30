@@ -15,7 +15,6 @@ namespace
 {
 
 void expandReferences( OperationsStage::Database&                  database,
-                       const OperationsStage::Derivation::Mapping* pMapping,
                        std::vector< Operations::Name* >&           names )
 {
     using namespace OperationsStage::Operations;
@@ -54,7 +53,7 @@ void expandReferences( OperationsStage::Database&                  database,
                                 = symbolVectorToInterfaceVariantVector( database, symbols );
 
                             std::vector< Operations::ElementVector* > elementVector = toElementVector(
-                                database, pMapping->get_inheritance(), interfaceVariantVectorVector );
+                                database, interfaceVariantVectorVector );
 
                             for ( Operations::ElementVector* pElementVector : elementVector )
                             {
@@ -253,7 +252,6 @@ void pruneBranches( OperationsStage::Operations::Name* pName )
 } // namespace
 
 OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&                  database,
-                                                      const OperationsStage::Derivation::Mapping* pMapping,
                                                       OperationsStage::Operations::Invocation*    pInvocation )
 {
     bool bExpandFinalReferences = false;
@@ -302,7 +300,7 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
 
     for ( ElementVector* pElementVector : pTypePath->get_vectors() )
     {
-        expandReferences( database, pMapping, names );
+        expandReferences( database, names );
         addType( database, names, pElementVector );
 
         for ( Name* pName : pNameRoot->get_children() )
@@ -313,7 +311,7 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
 
     if ( bExpandFinalReferences )
     {
-        expandReferences( database, pMapping, names );
+        expandReferences( database, names );
         for ( Name* pName : pNameRoot->get_children() )
         {
             pruneBranches( pName );
