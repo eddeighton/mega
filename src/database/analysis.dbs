@@ -115,9 +115,6 @@ namespace HyperGraph
     {
         value< mega::io::megaFilePath > source_file;
         value< std::size_t > hash_code;
-
-        //multimap< ref< Interface::IContext >, ref< Relation > > relations;
-
         map< ref< Interface::Link >, ref< Relation > > relations;
     }
 
@@ -133,6 +130,7 @@ namespace Allocators
     {
         opt< ref< Concrete::Context > > parent_context;
         ref< Concrete::Context > allocated_context;
+        late< opt< ref< Concrete::Dimensions::Allocator > > > dimension;
     }
 
     object Nothing : Allocator -> MemoryStage::MemoryLayout
@@ -166,9 +164,9 @@ namespace MemoryLayout
     {
         ref< Concrete::Context > context;
         value< std::size_t > size;
-        array< ref< Concrete::Dimensions::User > > user_dimensions;
-        //array< ref< Concrete::Dimensions::LinkReference > > link_dimensions;
-        array< ref< Concrete::Dimensions::Allocation > > allocation_dimensions;
+        array< ref< Concrete::Dimensions::User > >          user_dimensions;
+        array< ref< Concrete::Dimensions::LinkReference > > link_dimensions;
+        array< ref< Concrete::Dimensions::Allocation > >    allocation_dimensions;
     }
 
     object Buffer -> MemoryStage::MemoryLayout
@@ -177,12 +175,7 @@ namespace MemoryLayout
         array< ref< Part > > parts;
     }
 
-    object GPUBuffer : Buffer -> MemoryStage::MemoryLayout
-    {
-        
-    }
-
-    object SharedBuffer : Buffer -> MemoryStage::MemoryLayout
+    object NonSimpleBuffer : Buffer -> MemoryStage::MemoryLayout
     {
 
     }
@@ -190,5 +183,10 @@ namespace MemoryLayout
     object SimpleBuffer : Buffer -> MemoryStage::MemoryLayout
     {
 
+    }
+
+    object GPUBuffer : Buffer -> MemoryStage::MemoryLayout
+    {
+        
     }
 }

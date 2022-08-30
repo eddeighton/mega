@@ -224,6 +224,7 @@ stage HyperGraphAnalysisRollout
 
     persource accessor array< ref< Interface::Link > >;
     persource accessor ref< Concrete::Root >;
+    global accessor ref< HyperGraph::Graph >;
 }
 
 stage MemoryStage
@@ -235,7 +236,6 @@ stage MemoryStage
 
     persource accessor array< ref< Interface::IContext > >;
     persource accessor ref< Concrete::Root >;
-    global accessor ref< HyperGraph::Graph >;
 }
 
 stage OperationsStage
@@ -263,6 +263,7 @@ stage FinalStage
     persource accessor ref< Interface::Root >;
     persource accessor ref< Concrete::Root >;
     persource accessor ref< Operations::Invocations >;
+    persource accessor array< ref< Concrete::Link > >;
     persource accessor array< ref< Parser::SystemInclude > >;
     persource accessor array< ref< Parser::CPPInclude > >;
 }

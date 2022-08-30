@@ -61,21 +61,31 @@ std::string getContextFullTypeName( TContextType* pContext )
 {
     using namespace FinalStage;
 
-    std::ostringstream os;
-
-    bool bFirst = true;
-    while ( pContext )
+    std::vector< TContextType* > path;
     {
-        if ( !bFirst )
+        while ( pContext )
         {
-            os << "_";
+            path.push_back( pContext );
+            pContext = dynamic_database_cast< TContextType >( pContext->get_parent() );
         }
-        else
+        std::reverse( path.begin(), path.end() );
+    }
+
+    std::ostringstream os;
+    {
+        bool bFirst = true;
+        for ( TContextType* pIter : path )
         {
-            bFirst = false;
+            if ( !bFirst )
+            {
+                os << "_";
+            }
+            else
+            {
+                bFirst = false;
+            }
+            os << getIdentifier( pIter );
         }
-        os << getIdentifier( pContext );
-        pContext = dynamic_database_cast< TContextType >( pContext->get_parent() );
     }
 
     return os.str();
@@ -136,13 +146,14 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
 
     std::ostringstream os;
 
-    nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName( pContext ) },
-                                                    { "label", "" },
-                                                    { "concrete_id", "" },
-                                                    { "type_id", pContext->get_type_id() },
-                                                    { "symbol", pContext->get_symbol() },
-                                                    { "bases", nlohmann::json::array() },
-                                                    { "properties", nlohmann::json::array() } } );
+    nlohmann::json node
+        = nlohmann::json::object( { { "name", getContextFullTypeName< FinalStage::Interface::IContext >( pContext ) },
+                                    { "label", "" },
+                                    { "concrete_id", "" },
+                                    { "type_id", pContext->get_type_id() },
+                                    { "symbol", pContext->get_symbol() },
+                                    { "bases", nlohmann::json::array() },
+                                    { "properties", nlohmann::json::array() } } );
 
     if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
     {
@@ -215,9 +226,10 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     {
         recurse( data, pChildContext );
 
-        nlohmann::json edge = nlohmann::json::object( { { "from", getContextFullTypeName( pContext ) },
-                                                        { "to", getContextFullTypeName( pChildContext ) },
-                                                        { "colour", "000000" } } );
+        nlohmann::json edge
+            = nlohmann::json::object( { { "from", getContextFullTypeName< Interface::IContext >( pContext ) },
+                                        { "to", getContextFullTypeName< Interface::IContext >( pChildContext ) },
+                                        { "colour", "000000" } } );
         data[ "edges" ].push_back( edge );
     }
 }
@@ -229,7 +241,7 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
 
     std::ostringstream os;
 
-    nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName( pContext ) },
+    nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName< Concrete::Context >( pContext ) },
                                                     { "label", "" },
                                                     { "concrete_id", pContext->get_concrete_id() },
                                                     { "type_id", pContext->get_interface()->get_type_id() },
@@ -302,9 +314,10 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
     {
         recurse( data, pChildContext );
 
-        nlohmann::json edge = nlohmann::json::object( { { "from", getContextFullTypeName( pContext ) },
-                                                        { "to", getContextFullTypeName( pChildContext ) },
-                                                        { "colour", "000000" } } );
+        nlohmann::json edge
+            = nlohmann::json::object( { { "from", getContextFullTypeName< Concrete::Context >( pContext ) },
+                                        { "to", getContextFullTypeName< Concrete::Context >( pChildContext ) },
+                                        { "colour", "000000" } } );
         data[ "edges" ].push_back( edge );
     }
 }
@@ -349,6 +362,99 @@ void generateInterfaceGraphVizConcrete( std::ostream&          os,
             for ( Concrete::Context* pContext : pRoot->get_children() )
             {
                 recurse( data, pContext );
+            }
+        }
+    }
+    os << data;
+}
+
+void createGraphNode( std::set< FinalStage::Interface::Link* >& links, FinalStage::Interface::Link* pLink,
+                      nlohmann::json& data, bool bInterface )
+{
+    using namespace FinalStage;
+
+    std::ostringstream os;
+    if ( bInterface )
+        os << "Interface: " << getContextFullTypeName< Interface::IContext >( pLink );
+    else
+        os << "Link: " << getContextFullTypeName< Interface::IContext >( pLink );
+
+    if ( links.find( pLink ) == links.end() )
+    {
+        nlohmann::json node
+            = nlohmann::json::object( { { "name", getContextFullTypeName< Interface::IContext >( pLink ) },
+                                        { "label", os.str() },
+                                        { "concrete_id", "" }, // pLink->get_concrete_id()
+                                        { "type_id", pLink->get_type_id() },
+                                        { "symbol", pLink->get_symbol() },
+                                        { "bases", nlohmann::json::array() },
+                                        { "properties", nlohmann::json::array() } } );
+        data[ "nodes" ].push_back( node );
+        links.insert( pLink );
+    }
+}
+
+void createEdge( FinalStage::Interface::Link*                                                         pFrom,
+                 FinalStage::Interface::Link*                                                         pTo,
+                 std::set< std::pair< FinalStage::Interface::Link*, FinalStage::Interface::Link* > >& edges,
+                 nlohmann::json&                                                                      data )
+{
+    using namespace FinalStage;
+
+    using LinkPair = std::pair< Interface::Link*, Interface::Link* >;
+    // LinkPair p{ pFrom < pTo ? pFrom : pTo, pFrom < pTo ? pTo : pFrom };
+    LinkPair p{ pFrom, pTo };
+    if ( !edges.count( p ) )
+    {
+        nlohmann::json edge
+            = nlohmann::json::object( { { "from", getContextFullTypeName< Interface::IContext >( pFrom ) },
+                                        { "to", getContextFullTypeName< Interface::IContext >( pTo ) },
+                                        { "colour", "000000" } } );
+        data[ "edges" ].push_back( edge );
+        edges.insert( p );
+    }
+}
+
+void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment, mega::io::Manifest& manifest )
+{
+    using namespace FinalStage;
+
+    nlohmann::json data
+        = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+
+    std::set< Interface::Link* > links;
+    using LinkPair = std::pair< Interface::Link*, Interface::Link* >;
+    std::set< LinkPair > edges;
+
+    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    {
+        Database database( environment, sourceFilePath );
+
+        for ( Concrete::Link* pLink : database.many< Concrete::Link >( sourceFilePath ) )
+        {
+            Interface::Link*      pInterfaceLink = pLink->get_link();
+            HyperGraph::Relation* pRelation      = pInterfaceLink->get_relation();
+
+            Interface::LinkInterface* pSourceInterface = pRelation->get_source_interface();
+            Interface::LinkInterface* pTargetInterface = pRelation->get_target_interface();
+
+            Interface::Link* pSource = pRelation->get_source();
+            Interface::Link* pTarget = pRelation->get_target();
+
+            createGraphNode( links, pSourceInterface, data, true );
+            createGraphNode( links, pTargetInterface, data, true );
+            createEdge( pSourceInterface, pTargetInterface, edges, data );
+
+            if ( pSourceInterface != pSource )
+            {
+                createGraphNode( links, pSource, data, false );
+                createEdge( pSourceInterface, pSource, edges, data );
+            }
+
+            if ( pTargetInterface != pTarget )
+            {
+                createGraphNode( links, pTarget, data, false );
+                createEdge( pTargetInterface, pTarget, edges, data );
             }
         }
     }
@@ -407,6 +513,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
             else if ( strGraphType == "concrete" )
             {
                 generateInterfaceGraphVizConcrete( osOutput, *pEnvironment, manifest );
+            }
+            else if ( strGraphType == "hyper" )
+            {
+                generateHyperGraphViz( osOutput, *pEnvironment, manifest );
             }
             else
             {

@@ -108,7 +108,7 @@ namespace Interface
     {
         array< ref< Parser::LinkDef > > link_defs;
         late< ref< InheritanceTrait > > link_target;
-        //ref< HyperGraph::Relation > link_relation -> HyperGraphAnalysisRollout::PerSourceModel;
+        ref< HyperGraph::Relation >     relation -> HyperGraphAnalysisRollout::PerSourceModel;
     }
     object LinkInterface : Link -> InterfaceStage::Tree
     {

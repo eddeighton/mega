@@ -77,7 +77,11 @@ public:
                 else if ( Interface::Object* pTargetObject
                           = dynamic_database_cast< Interface::Object >( pInterfaceTarget ) )
                 {
-                    THROW_RTE( "Link targetss to objects unsupported" );
+                    THROW_RTE( "Link targets to objects unsupported" );
+                }
+                else
+                {
+                    THROW_RTE( "Link targets invalid type" );
                 }
             }
         }
@@ -98,7 +102,7 @@ public:
                     = dynamic_database_cast< Interface::Link >( getLinkTarget( pSourceLinkInterface ) );
                 VERIFY_RTE_MSG( pTargetLink, "Invalid link target" );
                 Interface::LinkInterface* pTargetLinkInterface = findLinkInterface( pTargetLink );
-                Relation* pRelation = database.construct< Relation >(
+                Relation*                 pRelation            = database.construct< Relation >(
                     Relation::Args{ pSourceLink, pTargetLink, pSourceLinkInterface, pTargetLinkInterface } );
                 relations.insert( { pSourceLink, pRelation } );
             }
@@ -397,6 +401,26 @@ public:
         using namespace HyperGraphAnalysisRollout;
 
         Database database( m_environment, m_sourceFilePath );
+
+        {
+            HyperGraph::Relations* pRelations = nullptr;
+            {
+                HyperGraph::Graph* pHyperGraph = database.one< HyperGraph::Graph >( m_environment.project_manifest() );
+                for ( HyperGraph::Relations* pIter : pHyperGraph->get_relations() )
+                {
+                    if ( pIter->get_source_file() == m_sourceFilePath )
+                    {
+                        pRelations = pIter;
+                        break;
+                    }
+                }
+            }
+            VERIFY_RTE_MSG( pRelations, "Failed to locate hypergraph relations" );
+            for ( auto& [ pLink, pRelation ] : pRelations->get_relations() )
+            {
+                database.construct< Interface::Link >( Interface::Link::Args{ pLink, pRelation } );
+            }
+        }
 
         const task::FileHash fileHashCode = database.save_PerSourceModel_to_temp();
         m_environment.setBuildHashCode( rolloutCompilationFile, fileHashCode );

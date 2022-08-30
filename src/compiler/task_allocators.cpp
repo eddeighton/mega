@@ -42,8 +42,9 @@ public:
     {
     }
 
-    void recurse( MemoryStage::Database& database, MemoryStage::Concrete::Context* pParentContext,
-                  MemoryStage::Concrete::Context* pContext, std::size_t szTotalSize )
+    void createallocators( MemoryStage::Database& database, MemoryStage::Concrete::Context* pParentContext,
+                           MemoryStage::Concrete::Context* pContext, std::size_t szTotalSize,
+                           std::vector< MemoryStage::Concrete::Dimensions::Allocator* >& allocatorDimensions )
     {
         using namespace MemoryStage;
         using namespace MemoryStage::Concrete;
@@ -74,16 +75,42 @@ public:
         }
         else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
         {
-            //pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize } );
+            HyperGraph::Relation* pRelation = pLink->get_link()->get_relation();
+
+            Concrete::Dimensions::LinkReference* pLinkRef = nullptr;
+            if ( pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany() )
+            {
+                // range
+                pLinkRef = database.construct< Concrete::Dimensions::LinkMany >(
+                    Concrete::Dimensions::LinkMany::Args{ Concrete::Dimensions::LinkReference::Args{ pLink } } );
+            }
+            else
+            {
+                // singular
+                pLinkRef = database.construct< Concrete::Dimensions::LinkSingle >(
+                    Concrete::Dimensions::LinkSingle::Args{ Concrete::Dimensions::LinkReference::Args{ pLink } } );
+            }
+
+            pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize, pLinkRef } );
         }
         else if ( Buffer* pBuffer = dynamic_database_cast< Buffer >( pContext ) )
         {
-            szSize = 1U;
+            szSize  = 1U;
             pBuffer = database.construct< Buffer >( Buffer::Args{ pBuffer, szTotalSize } );
         }
         else
         {
             THROW_RTE( "Unknown context type" );
+        }
+
+        std::vector< Dimensions::Allocator* > nestedAllocatorDimensions;
+
+        for ( Concrete::ContextGroup* pContextGroup : pContext->get_children() )
+        {
+            if ( Concrete::Context* pChildContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+            {
+                createallocators( database, pContext, pChildContext, szTotalSize, nestedAllocatorDimensions );
+            }
         }
 
         {
@@ -116,27 +143,203 @@ public:
                 pAllocator = database.construct< RangeAny >(
                     RangeAny::Args{ Range::Args{ Allocator::Args{ pParentContext, pContext } } } );
             }
-
-            using namespace MemoryStage::Concrete;
+            VERIFY_RTE( pAllocator );
 
             if ( bCreateAllocatorDimension )
             {
                 Dimensions::Allocator* pAllocatorDim = database.construct< Dimensions::Allocator >(
                     Dimensions::Allocator::Args{ Dimensions::Allocation::Args{ pContext }, pAllocator } );
-                pContext
-                    = database.construct< Context >( Context::Args{ pContext, pAllocator, { pAllocatorDim }, {} } );
+                pAllocator->set_dimension( pAllocatorDim );
+                allocatorDimensions.push_back( pAllocatorDim );
             }
             else
             {
-                pContext = database.construct< Context >( Context::Args{ pContext, pAllocator, {}, {} } );
+                pAllocator->set_dimension( std::nullopt );
+            }
+            pContext
+                = database.construct< Context >( Context::Args{ pContext, pAllocator, nestedAllocatorDimensions } );
+        }
+    }
+
+    struct Parts
+    {
+        using PartVector = std::vector< MemoryStage::MemoryLayout::Part* >;
+        PartVector simpleParts, nonSimpleParts, gpuParts;
+    };
+
+    template < typename TContextType >
+    void createParts( MemoryStage::Database& database, TContextType* pContext, Parts* pParts )
+    {
+        using namespace MemoryStage;
+        using namespace MemoryStage::Concrete;
+
+        struct Dimensions
+        {
+            std::size_t                                         szSize = 0U;
+            std::vector< Concrete::Dimensions::User* >          user;
+            std::vector< Concrete::Dimensions::LinkReference* > link;
+            std::vector< Concrete::Dimensions::Allocation* >    alloc;
+
+            bool empty() const
+            {
+                return user.empty() && link.empty() && alloc.empty();
+            }
+
+            void setParts( MemoryStage::Database& database, MemoryLayout::Part* pPart )
+            {
+                for ( auto p : user )
+                {
+                    database.construct< Concrete::Dimensions::User >( Concrete::Dimensions::User::Args{ p, pPart } );
+                }
+                for ( auto p : link )
+                    p->set_part( pPart );
+                for ( auto p : alloc )
+                    p->set_part( pPart );
+            }
+        };
+        Dimensions simple, nonSimple, gpu;
+
+        for ( Concrete::Dimensions::Allocation* pAllocation : pContext->get_allocation_dimensions() )
+        {
+            // simple.szSize += //?;
+            simple.alloc.push_back( pAllocation );
+        }
+
+        if constexpr ( std::is_same< TContextType, Concrete::Link >::value )
+        {
+            // simple.szSize += //?;
+            simple.link.push_back( pContext->get_link_reference() );
+        }
+        else
+        {
+            for ( Concrete::Dimensions::User* pDim : pContext->get_dimensions() )
+            {
+                Interface::DimensionTrait* pTrait = pDim->get_interface_dimension();
+                if ( pTrait->get_simple() )
+                {
+                    simple.szSize += pTrait->get_size();
+                    simple.user.push_back( pDim );
+                }
+                else
+                {
+                    nonSimple.szSize += pTrait->get_size();
+                    nonSimple.user.push_back( pDim );
+                }
             }
         }
 
-        for ( Concrete::ContextGroup* pContextGroup : pContext->get_children() )
+        if ( !simple.empty() )
         {
-            if ( Concrete::Context* pChildContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+            MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
+                MemoryLayout::Part::Args{ pContext, simple.szSize, simple.user, simple.link, simple.alloc } );
+            simple.setParts( database, pContextPart );
+            pParts->simpleParts.push_back( pContextPart );
+        }
+        if ( !nonSimple.empty() )
+        {
+            MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >( MemoryLayout::Part::Args{
+                pContext, nonSimple.szSize, nonSimple.user, nonSimple.link, nonSimple.alloc } );
+            nonSimple.setParts( database, pContextPart );
+            pParts->nonSimpleParts.push_back( pContextPart );
+        }
+        if ( !gpu.empty() )
+        {
+            MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
+                MemoryLayout::Part::Args{ pContext, gpu.szSize, gpu.user, gpu.link, gpu.alloc } );
+            gpu.setParts( database, pContextPart );
+            pParts->gpuParts.push_back( pContextPart );
+        }
+    }
+
+    void createBuffers( MemoryStage::Database& database, MemoryStage::Concrete::Context* pParentContext,
+                        MemoryStage::Concrete::Context* pContext, Parts* pParts )
+    {
+        using namespace MemoryStage;
+        using namespace MemoryStage::Concrete;
+
+        if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+        {
+            Parts parts;
+
+            createParts( database, pObject, &parts );
+
+            for ( Concrete::ContextGroup* pContextGroup : pContext->get_children() )
             {
-                recurse( database, pContext, pChildContext, szTotalSize );
+                if ( Concrete::Context* pChildContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+                {
+                    createBuffers( database, pContext, pChildContext, &parts );
+                }
+            }
+
+            std::vector< MemoryLayout::Buffer* > objectBuffers;
+            if ( !parts.simpleParts.empty() )
+            {
+                std::size_t szStride = 0U;
+                for ( auto p : parts.simpleParts )
+                    szStride += p->get_size();
+                MemoryLayout::SimpleBuffer* pSimpleBuffer = database.construct< MemoryLayout::SimpleBuffer >(
+                    MemoryLayout::SimpleBuffer::Args{ MemoryLayout::Buffer::Args{ szStride, parts.simpleParts } } );
+                objectBuffers.push_back( pSimpleBuffer );
+            }
+            if ( !parts.nonSimpleParts.empty() )
+            {
+                std::size_t szStride = 0U;
+                for ( auto p : parts.nonSimpleParts )
+                    szStride += p->get_size();
+                MemoryLayout::NonSimpleBuffer* pNonSimpleBuffer
+                    = database.construct< MemoryLayout::NonSimpleBuffer >( MemoryLayout::NonSimpleBuffer::Args{
+                        MemoryLayout::Buffer::Args{ szStride, parts.nonSimpleParts } } );
+                objectBuffers.push_back( pNonSimpleBuffer );
+            }
+            if ( !parts.gpuParts.empty() )
+            {
+                std::size_t szStride = 0U;
+                for ( auto p : parts.gpuParts )
+                    szStride += p->get_size();
+                MemoryLayout::GPUBuffer* pGPUBuffer = database.construct< MemoryLayout::GPUBuffer >(
+                    MemoryLayout::GPUBuffer::Args{ MemoryLayout::Buffer::Args{ szStride, parts.gpuParts } } );
+                objectBuffers.push_back( pGPUBuffer );
+            }
+
+            pObject = database.construct< Object >( Object::Args{ pObject, objectBuffers } );
+        }
+        else
+        {
+            if ( pParts )
+            {
+                if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+                {
+                }
+                else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+                {
+                    createParts( database, pAction, pParts );
+                }
+                else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+                {
+                    createParts( database, pEvent, pParts );
+                }
+                else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+                {
+                }
+                else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+                {
+                    createParts( database, pLink, pParts );
+                }
+                else if ( Buffer* pBuffer = dynamic_database_cast< Buffer >( pContext ) )
+                {
+                }
+                else
+                {
+                    THROW_RTE( "Unknown context type" );
+                }
+            }
+
+            for ( Concrete::ContextGroup* pContextGroup : pContext->get_children() )
+            {
+                if ( Concrete::Context* pChildContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+                {
+                    createBuffers( database, pContext, pChildContext, pParts );
+                }
             }
         }
     }
@@ -168,7 +371,16 @@ public:
         {
             if ( Concrete::Context* pContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
             {
-                recurse( database, nullptr, pContext, 1 );
+                std::vector< Concrete::Dimensions::Allocator* > nestedAllocatorDimensions;
+                createallocators( database, nullptr, pContext, 1, nestedAllocatorDimensions );
+                VERIFY_RTE( nestedAllocatorDimensions.empty() );
+            }
+        }
+        for ( Concrete::ContextGroup* pContextGroup : pConcreteRoot->get_children() )
+        {
+            if ( Concrete::Context* pContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+            {
+                createBuffers( database, nullptr, pContext, nullptr );
             }
         }
 
