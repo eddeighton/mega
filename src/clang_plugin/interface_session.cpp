@@ -217,12 +217,21 @@ public:
     bool sizeAnalysis( TContextType* pContext, Interface::SizeTrait* pSizeTrait, SourceLocation loc,
                        DeclContext* pDeclContext )
     {
-        if ( std::optional< std::size_t > sizeOpt
-             = getConstant( pASTContext, pSema, pDeclContext, loc, ::mega::EG_SIZE_PREFIX_TRAIT_TYPE ) )
+        DeclLocType dimensionResult
+            = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, ::mega::EG_SIZE_PREFIX_TRAIT_TYPE );
+        if ( dimensionResult.pDeclContext )
         {
-            m_database.construct< Interface::SizeTrait >(
-                Interface::SizeTrait::Args{ pSizeTrait, static_cast< std::size_t >( sizeOpt.value() ) } );
-            return true;
+            if ( std::optional< std::size_t > sizeOpt
+                 = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, loc, ::mega::EG_TRAITS_SIZE ) )
+            {
+                m_database.construct< Interface::SizeTrait >(
+                    Interface::SizeTrait::Args{ pSizeTrait, sizeOpt.value() } );
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         else
         {
@@ -372,7 +381,8 @@ public:
                 }
                 if ( std::optional< Interface::SizeTrait* > sizeOpt = pAction->get_size_trait() )
                 {
-                    sizeAnalysis( pAction, sizeOpt.value(), result.loc, result.pDeclContext );
+                    if ( !sizeAnalysis( pAction, sizeOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
                 }
                 bProcess = true;
             }
@@ -389,7 +399,8 @@ public:
                 }
                 if ( std::optional< Interface::SizeTrait* > sizeOpt = pEvent->get_size_trait() )
                 {
-                    sizeAnalysis( pEvent, sizeOpt.value(), result.loc, result.pDeclContext );
+                    if ( !sizeAnalysis( pEvent, sizeOpt.value(), result.loc, result.pDeclContext ) )
+                        return false;
                 }
                 bProcess = true;
             }

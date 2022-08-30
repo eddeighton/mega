@@ -8,10 +8,10 @@ namespace mega
 namespace compiler
 {
 
-class Task_ObjectInterfaceGen : public BaseTask
+class Task_InterfaceTree : public BaseTask
 {
 public:
-    Task_ObjectInterfaceGen( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
+    Task_InterfaceTree( const TaskArguments& taskArguments, const mega::io::megaFilePath& sourceFilePath )
         : BaseTask( taskArguments )
         , m_sourceFilePath( sourceFilePath )
     {
@@ -510,7 +510,7 @@ public:
                 VERIFY_PARSER( pLinkInterface, "Invalid link interface definition", pLinkInterfaceDef->get_id() );
                 Interface::LinkTrait* pLinkTrait = database.construct< Interface::LinkTrait >(
                     Interface::LinkTrait::Args{ pLinkInterfaceDef->get_link_interface() } );
-                //VERIFY_PARSER( !pLinkInterface->get_link_trait(), "Link interface has link trait", pDef->get_id() );
+                // VERIFY_PARSER( !pLinkInterface->get_link_trait(), "Link interface has link trait", pDef->get_id() );
                 pLinkInterface->set_link_trait( pLinkTrait );
             }
 
@@ -534,7 +534,7 @@ public:
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
         const mega::io::CompilationFilePath treePath = m_environment.InterfaceStage_Tree( m_sourceFilePath );
-        start( taskProgress, "Task_ObjectInterfaceGen", m_sourceFilePath.path(), treePath.path() );
+        start( taskProgress, "Task_InterfaceTree", m_sourceFilePath.path(), treePath.path() );
 
         const task::FileHash parserStageASTHashCode
             = m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) );
@@ -605,10 +605,10 @@ public:
     const mega::io::megaFilePath& m_sourceFilePath;
 };
 
-BaseTask::Ptr create_Task_ObjectInterfaceGen( const TaskArguments&          taskArguments,
-                                              const mega::io::megaFilePath& sourceFilePath )
+BaseTask::Ptr create_Task_InterfaceTree( const TaskArguments&          taskArguments,
+                                         const mega::io::megaFilePath& sourceFilePath )
 {
-    return std::make_unique< Task_ObjectInterfaceGen >( taskArguments, sourceFilePath );
+    return std::make_unique< Task_InterfaceTree >( taskArguments, sourceFilePath );
 }
 
 } // namespace compiler

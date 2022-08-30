@@ -5415,9 +5415,8 @@ namespace MemoryLayout
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( loader )
     {
     }
-    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::size_t& size, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >& link_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions)
+    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >& link_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( context )
-          , size( size )
           , user_dimensions( user_dimensions )
           , link_dimensions( link_dimensions )
           , allocation_dimensions( allocation_dimensions )
@@ -5433,7 +5432,6 @@ namespace MemoryLayout
     void MemoryLayout_Part::load( mega::io::Loader& loader )
     {
         loader.load( context );
-        loader.load( size );
         loader.load( user_dimensions );
         loader.load( link_dimensions );
         loader.load( allocation_dimensions );
@@ -5441,7 +5439,6 @@ namespace MemoryLayout
     void MemoryLayout_Part::store( mega::io::Storer& storer ) const
     {
         storer.store( context );
-        storer.store( size );
         storer.store( user_dimensions );
         storer.store( link_dimensions );
         storer.store( allocation_dimensions );
@@ -5460,11 +5457,6 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context", context } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "size", size } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -5488,9 +5480,8 @@ namespace MemoryLayout
     MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )    {
     }
-    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::size_t& stride, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , stride( stride )
-          , parts( parts )
+    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , parts( parts )
     {
     }
     bool MemoryLayout_Buffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5502,12 +5493,10 @@ namespace MemoryLayout
     }
     void MemoryLayout_Buffer::load( mega::io::Loader& loader )
     {
-        loader.load( stride );
         loader.load( parts );
     }
     void MemoryLayout_Buffer::store( mega::io::Storer& storer ) const
     {
-        storer.store( stride );
         storer.store( parts );
     }
     void MemoryLayout_Buffer::to_json( nlohmann::json& _part__ ) const
@@ -5521,11 +5510,6 @@ namespace MemoryLayout
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
-        {
-            nlohmann::json property = nlohmann::json::object({
-                { "stride", stride } } );
-            _part__[ "properties" ].push_back( property );
-        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parts", parts } } );
@@ -10522,7 +10506,15 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_dimens
         []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
         {
             using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
+            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Namespace > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Namespace > part = 
+                    data::convert< data::Concrete::Concrete_Namespace >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_dimensions" );
+                return part->dimensions;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
             {
                 data::Ptr< data::Concrete::Concrete_Action > part = 
                     data::convert< data::Concrete::Concrete_Action >( arg );
@@ -10550,14 +10542,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_dimens
             {
                 data::Ptr< data::Concrete::Concrete_Buffer > part = 
                     data::convert< data::Concrete::Concrete_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_dimensions" );
-                return part->dimensions;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Namespace > >)
-            {
-                data::Ptr< data::Concrete::Concrete_Namespace > part = 
-                    data::convert< data::Concrete::Concrete_Namespace >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_dimensions" );
                 return part->dimensions;
@@ -14202,27 +14186,6 @@ std::size_t& get_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::P
         }
         , m_data );
 }
-std::size_t& get_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::size_t&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_size" );
-                return part->size;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_size" );
-            }
-        }
-        , m_data );
-}
 std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& get_size_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
@@ -14666,51 +14629,6 @@ std::string& get_str(std::variant< data::Ptr< data::AST::Parser_Size >, data::Pt
             else
             {
                 THROW_RTE( "Invalid call to get_str" );
-            }
-        }
-        , m_data );
-}
-std::size_t& get_stride(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::size_t&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_stride" );
-                return part->stride;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_stride" );
-                return part->stride;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_stride" );
-                return part->stride;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_stride" );
-                return part->stride;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_stride" );
             }
         }
         , m_data );
@@ -24468,27 +24386,6 @@ std::size_t& set_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::P
         }
         , m_data );
 }
-std::size_t& set_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::size_t&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_size" );
-                return part->size;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_size" );
-            }
-        }
-        , m_data );
-}
 std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& set_size_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
@@ -24845,51 +24742,6 @@ std::string& set_str(std::variant< data::Ptr< data::AST::Parser_Size > >& m_data
             else
             {
                 THROW_RTE( "Invalid call to set_str" );
-            }
-        }
-        , m_data );
-}
-std::size_t& set_stride(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::size_t&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_stride" );
-                return part->stride;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_stride" );
-                return part->stride;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_stride" );
-                return part->stride;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >)
-            {
-                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
-                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_stride" );
-                return part->stride;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_stride" );
             }
         }
         , m_data );

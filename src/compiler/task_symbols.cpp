@@ -30,8 +30,8 @@ public:
         }
         inline task::DeterminantHash operator()( const mega::io::megaFilePath& megaFilePath ) const
         {
-            return task::DeterminantHash(
-                { toolChainHash, env.getBuildHashCode( env.InterfaceStage_Tree( megaFilePath ) ) } );
+            return task::DeterminantHash( { toolChainHash, env.getBuildHashCode( env.ParserStage_AST( megaFilePath ) ),
+                                            env.getBuildHashCode( env.InterfaceStage_Tree( megaFilePath ) ) } );
         }
     };
 
@@ -245,6 +245,7 @@ public:
         task::DeterminantHash determinant( m_toolChain.toolChainHash );
         for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
+            determinant ^= m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) );
             determinant ^= m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) );
         }
 

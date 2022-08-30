@@ -34,6 +34,7 @@ public:
             return task::DeterminantHash(
                 toolChainHash,
                 env.getBuildHashCode( env.ConcreteStage_Concrete( sourceFilePath ) ),
+                env.getBuildHashCode( env.ParserStage_AST( sourceFilePath ) ),
                 env.getBuildHashCode( env.InterfaceStage_Tree( sourceFilePath ) ),
                 env.getBuildHashCode( env.InterfaceAnalysisStage_Clang( sourceFilePath ) ),
                 env.getBuildHashCode( env.SymbolRollout_PerSourceSymbols( sourceFilePath ) ) );
@@ -202,6 +203,7 @@ public:
         {
             const task::DeterminantHash hashCode(
                 m_environment.getBuildHashCode( m_environment.ConcreteStage_Concrete( sourceFilePath ) ),
+                m_environment.getBuildHashCode( m_environment.ParserStage_AST( sourceFilePath ) ),
                 m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( sourceFilePath ) ),
                 m_environment.getBuildHashCode( m_environment.InterfaceAnalysisStage_Clang( sourceFilePath ) ) );
 

@@ -47,9 +47,10 @@ public:
         start( taskProgress, "Task_InterfaceGeneration", m_sourceFilePath.path(), interfaceHeader.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceTreeFile ),
-              m_environment.getBuildHashCode( symbolTableFile ), m_environment.ContextTemplate(),
-              m_environment.InterfaceTemplate() } );
+            { m_toolChain.toolChainHash,
+              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( interfaceTreeFile ), m_environment.getBuildHashCode( symbolTableFile ),
+              m_environment.ContextTemplate(), m_environment.InterfaceTemplate() } );
 
         if ( m_environment.restore( interfaceHeader, determinant ) )
         {
@@ -192,6 +193,7 @@ public:
         const task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.getBuildHashCode( interfaceHeader ),
               m_environment.getBuildHashCode( m_environment.IncludePCH( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( interfaceTreeFile ) } );
 
         using namespace InterfaceAnalysisStage;
@@ -205,7 +207,7 @@ public:
         if ( m_environment.restore( interfacePCHFilePath, determinant )
              && m_environment.restore( interfaceAnalysisFile, determinant ) )
         {
-            //if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            // if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
             {
                 m_environment.setBuildHashCode( interfacePCHFilePath );
                 m_environment.setBuildHashCode( interfaceAnalysisFile );

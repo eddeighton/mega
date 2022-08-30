@@ -62,7 +62,7 @@ public:
         }
         else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
         {
-            szSize = getSizeTraitSize( pAction->get_interface_action() );
+            szSize = getSizeTraitSize( pEvent->get_interface_event() );
             szTotalSize *= szSize;
 
             pEvent = database.construct< Event >( Event::Args{ pEvent, szSize, szTotalSize } );
@@ -175,15 +175,11 @@ public:
 
         struct Dimensions
         {
-            std::size_t                                         szSize = 0U;
             std::vector< Concrete::Dimensions::User* >          user;
             std::vector< Concrete::Dimensions::LinkReference* > link;
             std::vector< Concrete::Dimensions::Allocation* >    alloc;
 
-            bool empty() const
-            {
-                return user.empty() && link.empty() && alloc.empty();
-            }
+            bool empty() const { return user.empty() && link.empty() && alloc.empty(); }
 
             void setParts( MemoryStage::Database& database, MemoryLayout::Part* pPart )
             {
@@ -201,13 +197,11 @@ public:
 
         for ( Concrete::Dimensions::Allocation* pAllocation : pContext->get_allocation_dimensions() )
         {
-            // simple.szSize += //?;
             simple.alloc.push_back( pAllocation );
         }
 
         if constexpr ( std::is_same< TContextType, Concrete::Link >::value )
         {
-            // simple.szSize += //?;
             simple.link.push_back( pContext->get_link_reference() );
         }
         else
@@ -217,12 +211,10 @@ public:
                 Interface::DimensionTrait* pTrait = pDim->get_interface_dimension();
                 if ( pTrait->get_simple() )
                 {
-                    simple.szSize += pTrait->get_size();
                     simple.user.push_back( pDim );
                 }
                 else
                 {
-                    nonSimple.szSize += pTrait->get_size();
                     nonSimple.user.push_back( pDim );
                 }
             }
@@ -231,21 +223,21 @@ public:
         if ( !simple.empty() )
         {
             MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
-                MemoryLayout::Part::Args{ pContext, simple.szSize, simple.user, simple.link, simple.alloc } );
+                MemoryLayout::Part::Args{ pContext, simple.user, simple.link, simple.alloc } );
             simple.setParts( database, pContextPart );
             pParts->simpleParts.push_back( pContextPart );
         }
         if ( !nonSimple.empty() )
         {
-            MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >( MemoryLayout::Part::Args{
-                pContext, nonSimple.szSize, nonSimple.user, nonSimple.link, nonSimple.alloc } );
+            MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
+                MemoryLayout::Part::Args{ pContext, nonSimple.user, nonSimple.link, nonSimple.alloc } );
             nonSimple.setParts( database, pContextPart );
             pParts->nonSimpleParts.push_back( pContextPart );
         }
         if ( !gpu.empty() )
         {
             MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
-                MemoryLayout::Part::Args{ pContext, gpu.szSize, gpu.user, gpu.link, gpu.alloc } );
+                MemoryLayout::Part::Args{ pContext, gpu.user, gpu.link, gpu.alloc } );
             gpu.setParts( database, pContextPart );
             pParts->gpuParts.push_back( pContextPart );
         }
@@ -274,30 +266,20 @@ public:
             std::vector< MemoryLayout::Buffer* > objectBuffers;
             if ( !parts.simpleParts.empty() )
             {
-                std::size_t szStride = 0U;
-                for ( auto p : parts.simpleParts )
-                    szStride += p->get_size();
                 MemoryLayout::SimpleBuffer* pSimpleBuffer = database.construct< MemoryLayout::SimpleBuffer >(
-                    MemoryLayout::SimpleBuffer::Args{ MemoryLayout::Buffer::Args{ szStride, parts.simpleParts } } );
+                    MemoryLayout::SimpleBuffer::Args{ MemoryLayout::Buffer::Args{ parts.simpleParts } } );
                 objectBuffers.push_back( pSimpleBuffer );
             }
             if ( !parts.nonSimpleParts.empty() )
             {
-                std::size_t szStride = 0U;
-                for ( auto p : parts.nonSimpleParts )
-                    szStride += p->get_size();
-                MemoryLayout::NonSimpleBuffer* pNonSimpleBuffer
-                    = database.construct< MemoryLayout::NonSimpleBuffer >( MemoryLayout::NonSimpleBuffer::Args{
-                        MemoryLayout::Buffer::Args{ szStride, parts.nonSimpleParts } } );
+                MemoryLayout::NonSimpleBuffer* pNonSimpleBuffer = database.construct< MemoryLayout::NonSimpleBuffer >(
+                    MemoryLayout::NonSimpleBuffer::Args{ MemoryLayout::Buffer::Args{ parts.nonSimpleParts } } );
                 objectBuffers.push_back( pNonSimpleBuffer );
             }
             if ( !parts.gpuParts.empty() )
             {
-                std::size_t szStride = 0U;
-                for ( auto p : parts.gpuParts )
-                    szStride += p->get_size();
                 MemoryLayout::GPUBuffer* pGPUBuffer = database.construct< MemoryLayout::GPUBuffer >(
-                    MemoryLayout::GPUBuffer::Args{ MemoryLayout::Buffer::Args{ szStride, parts.gpuParts } } );
+                    MemoryLayout::GPUBuffer::Args{ MemoryLayout::Buffer::Args{ parts.gpuParts } } );
                 objectBuffers.push_back( pGPUBuffer );
             }
 
@@ -353,7 +335,10 @@ public:
         start( taskProgress, "Task_Allocators", m_sourceFilePath.path(), compilationFile.path() );
 
         const task::DeterminantHash determinant(
-            { m_toolChain.toolChainHash, m_environment.getBuildHashCode( concrete ) } );
+            { m_toolChain.toolChainHash,
+              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( m_environment.InterfaceStage_Tree( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( concrete ) } );
 
         if ( m_environment.restore( compilationFile, determinant ) )
         {

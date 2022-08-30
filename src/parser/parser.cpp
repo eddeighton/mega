@@ -210,13 +210,13 @@ public:
         if ( bSkipColon || Tok.is( clang::tok::colon ) )
         {
             bool bFoundComma = true;
-            bool bFirst = true;
+            bool bFirst      = true;
             while ( bFoundComma )
             {
-                if( bFirst )
+                if ( bFirst )
                 {
                     bFirst = false;
-                    if( !bSkipColon )
+                    if ( !bSkipColon )
                     {
                         ConsumeAnyToken();
                     }
@@ -740,8 +740,8 @@ public:
 
         LinkInterface* pLinkInterface = nullptr;
         {
-            mega::Ownership           ownership;
-            mega::DerivationDirection derivation;
+            mega::Ownership           ownership{ mega::Ownership::eOwnNothing };
+            mega::DerivationDirection derivation{ mega::DerivationDirection::eDeriveNone };
             mega::CardinalityRange    cardinality_range;
             if ( parse_link_spec( database, ownership, derivation, cardinality_range ) )
             {

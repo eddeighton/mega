@@ -202,7 +202,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     }
     mega::io::Manifest manifest( environment, manifestFilePath );
 
-    TskDescVec interfaceGenTasks;
+    TskDescVec interfaceTreeTasks;
 
     pipeline::Dependencies dependencies;
 
@@ -214,20 +214,20 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
-            const TskDesc parseAst           = encode( Task{ eTask_ParseAST, sourceFilePath } );
-            const TskDesc objectInterfaceGen = encode( Task{ eTask_ObjectInterfaceGen, sourceFilePath } );
+            const TskDesc parseAst      = encode( Task{ eTask_ParseAST, sourceFilePath } );
+            const TskDesc interfaceTree = encode( Task{ eTask_InterfaceTree, sourceFilePath } );
 
             dependencies.add( parseAst, TskDescVec{} );
-            dependencies.add( objectInterfaceGen, TskDescVec{ parseAst } );
+            dependencies.add( interfaceTree, TskDescVec{ parseAst } );
 
-            interfaceGenTasks.push_back( objectInterfaceGen );
+            interfaceTreeTasks.push_back( interfaceTree );
         }
     }
 
     const TskDesc dependencyAnalysis = encode( Task{ eTask_DependencyAnalysis, manifestFilePath } );
     const TskDesc symbolAnalysis     = encode( Task{ eTask_SymbolAnalysis, manifestFilePath } );
 
-    dependencies.add( dependencyAnalysis, interfaceGenTasks );
+    dependencies.add( dependencyAnalysis, interfaceTreeTasks );
     dependencies.add( symbolAnalysis, TskDescVec{ dependencyAnalysis } );
 
     TskDescVec symbolRolloutTasks;

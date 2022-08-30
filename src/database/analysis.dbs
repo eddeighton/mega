@@ -163,7 +163,6 @@ namespace MemoryLayout
     object Part  -> MemoryStage::MemoryLayout
     {
         ref< Concrete::Context > context;
-        value< std::size_t > size;
         array< ref< Concrete::Dimensions::User > >          user_dimensions;
         array< ref< Concrete::Dimensions::LinkReference > > link_dimensions;
         array< ref< Concrete::Dimensions::Allocation > >    allocation_dimensions;
@@ -171,7 +170,6 @@ namespace MemoryLayout
 
     object Buffer -> MemoryStage::MemoryLayout
     {
-        value< std::size_t > stride;
         array< ref< Part > > parts;
     }
 

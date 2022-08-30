@@ -461,6 +461,204 @@ void generateHyperGraphViz( std::ostream& os, mega::io::Environment& environment
     os << data;
 }
 
+std::string createMemoryNode( FinalStage::Concrete::Object* pObject, nlohmann::json& data )
+{
+    using namespace FinalStage;
+
+    std::ostringstream osName;
+    osName << "object_" << getContextFullTypeName( pObject );
+
+    nlohmann::json node = nlohmann::json::object( { { "name", osName.str() },
+                                                    { "label", getContextFullTypeName( pObject ) },
+                                                    { "concrete_id", pObject->get_concrete_id() },
+                                                    { "type_id", pObject->get_interface()->get_type_id() },
+                                                    { "symbol", pObject->get_interface()->get_symbol() },
+                                                    { "bases", nlohmann::json::array() },
+                                                    { "properties", nlohmann::json::array() } } );
+    data[ "nodes" ].push_back( node );
+    return osName.str();
+}
+
+std::string createMemoryNode( FinalStage::MemoryLayout::Buffer* pBuffer, nlohmann::json& data )
+{
+    using namespace FinalStage;
+
+    std::ostringstream osName;
+    std::ostringstream os;
+
+    osName << "buffer_" << pBuffer->_get_object_info().getFileID() << "_" << pBuffer->_get_object_info().getType()
+           << "_" << pBuffer->_get_object_info().getIndex();
+
+    if ( MemoryLayout::SimpleBuffer* pSimpleBuffer = dynamic_database_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+    {
+        os << "Simple";
+    }
+    else if ( MemoryLayout::NonSimpleBuffer* pNonSimpleBuffer
+              = dynamic_database_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
+    {
+        os << "NonSimple";
+    }
+    else if ( MemoryLayout::GPUBuffer* pGPUBuffer = dynamic_database_cast< MemoryLayout::GPUBuffer >( pBuffer ) )
+    {
+        os << "GPU";
+    }
+    else
+    {
+        THROW_RTE( "Unknown buffer type" );
+    }
+
+    nlohmann::json node = nlohmann::json::object( { { "name", osName.str() },
+                                                    { "label", os.str() },
+                                                    { "concrete_id", "" },
+                                                    { "type_id", "" },
+                                                    { "symbol", "" },
+                                                    { "bases", nlohmann::json::array() },
+                                                    { "properties", nlohmann::json::array() } } );
+    data[ "nodes" ].push_back( node );
+    return osName.str();
+}
+
+std::string createMemoryNode( FinalStage::MemoryLayout::Part* pPart, nlohmann::json& data )
+{
+    using namespace FinalStage;
+
+    std::ostringstream osName;
+    osName << "part_" << getContextFullTypeName( pPart->get_context() );
+
+    std::ostringstream os;
+    os << "Part: " << getContextFullTypeName( pPart->get_context() );
+
+    nlohmann::json node = nlohmann::json::object( { { "name", osName.str() },
+                                                    { "label", os.str() },
+                                                    { "concrete_id", "" },
+                                                    { "type_id", "" },
+                                                    { "symbol", "" },
+                                                    { "bases", nlohmann::json::array() },
+                                                    { "properties", nlohmann::json::array() } } );
+
+    for ( auto p : pPart->get_user_dimensions() )
+    {
+        nlohmann::json property
+            = nlohmann::json::object( { { "name", p->get_interface_dimension()->get_id()->get_str() },
+                                        { "type_id", p->get_interface_dimension()->get_type_id() },
+                                        { "symbol", p->get_interface_dimension()->get_symbol() },
+                                        { "value", p->get_interface_dimension()->get_type() } } );
+        node[ "properties" ].push_back( property );
+    }
+    for ( auto p : pPart->get_allocation_dimensions() )
+    {
+        if ( Concrete::Dimensions::Allocator* pAllocatorDimension
+             = dynamic_database_cast< Concrete::Dimensions::Allocator >( p ) )
+        {
+            Allocators::Allocator* pAllocator = pAllocatorDimension->get_allocator();
+            Concrete::Context*     pAllocated = pAllocator->get_allocated_context();
+
+            std::ostringstream osValue;
+            {
+                if ( Allocators::Nothing* pNothing = dynamic_database_cast< Allocators::Nothing >( pAllocator ) )
+                {
+                    osValue << "Nothing";
+                }
+                else if ( Allocators::Singleton* pSingleton
+                          = dynamic_database_cast< Allocators::Singleton >( pAllocator ) )
+                {
+                    osValue << "Singleton";
+                }
+                else if ( Allocators::Range32* pRange32 = dynamic_database_cast< Allocators::Range32 >( pAllocator ) )
+                {
+                    osValue << "Range32";
+                }
+                else if ( Allocators::Range64* pRange64 = dynamic_database_cast< Allocators::Range64 >( pAllocator ) )
+                {
+                    osValue << "Range64";
+                }
+                else if ( Allocators::RangeAny* pRangeAny
+                          = dynamic_database_cast< Allocators::RangeAny >( pAllocator ) )
+                {
+                    osValue << "RangeAny";
+                }
+                else
+                {
+                    THROW_RTE( "Unknown allocator type" );
+                }
+            }
+
+            nlohmann::json property
+                = nlohmann::json::object( { { "name", pAllocated->get_interface()->get_identifier() },
+                                            { "type_id", pAllocated->get_concrete_id() },
+                                            { "symbol", "" },
+                                            { "value", osValue.str() } } );
+            node[ "properties" ].push_back( property );
+        }
+        else
+        {
+            THROW_RTE( "Unknown allocator dimension type" );
+        }
+    }
+    for ( auto p : pPart->get_link_dimensions() )
+    {
+        Concrete::Link* pLink = p->get_link();
+
+        std::ostringstream osValue;
+        {
+            if ( Concrete::Dimensions::LinkSingle* pLinkSingle
+                 = dynamic_database_cast< Concrete::Dimensions::LinkSingle >( p ) )
+            {
+                osValue << "Single";
+            }
+            else if ( Concrete::Dimensions::LinkMany* pLinkMany
+                      = dynamic_database_cast< Concrete::Dimensions::LinkMany >( p ) )
+            {
+                osValue << "Many";
+            }
+            else
+            {
+                THROW_RTE( "Unknown link reference type" );
+            }
+        }
+
+        nlohmann::json property = nlohmann::json::object( { { "name", pLink->get_link()->get_identifier() },
+                                                            { "type_id", pLink->get_link()->get_type_id() },
+                                                            { "symbol", "" },
+                                                            { "value", osValue.str() } } );
+        node[ "properties" ].push_back( property );
+    }
+    data[ "nodes" ].push_back( node );
+    return osName.str();
+}
+
+void generateMemoryGraphViz( std::ostream& os, mega::io::Environment& environment, mega::io::Manifest& manifest )
+{
+    using namespace FinalStage;
+
+    nlohmann::json data
+        = nlohmann::json::object( { { "nodes", nlohmann::json::array() }, { "edges", nlohmann::json::array() } } );
+
+    for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+    {
+        Database database( environment, sourceFilePath );
+
+        for ( Concrete::Object* pObject : database.many< Concrete::Object >( sourceFilePath ) )
+        {
+            const std::string strObject = createMemoryNode( pObject, data );
+            for ( MemoryLayout::Buffer* pBuffer : pObject->get_buffers() )
+            {
+                const std::string strBuffer = createMemoryNode( pBuffer, data );
+                data[ "edges" ].push_back(
+                    nlohmann::json::object( { { "from", strObject }, { "to", strBuffer }, { "colour", "0000FF" } } ) );
+
+                for ( MemoryLayout::Part* pPart : pBuffer->get_parts() )
+                {
+                    const std::string strPart = createMemoryNode( pPart, data );
+                    data[ "edges" ].push_back( nlohmann::json::object(
+                        { { "from", strBuffer }, { "to", strPart }, { "colour", "00FF00" } } ) );
+                }
+            }
+        }
+    }
+    os << data;
+}
+
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     std::string             strGraphType;
@@ -517,6 +715,10 @@ void command( bool bHelp, const std::vector< std::string >& args )
             else if ( strGraphType == "hyper" )
             {
                 generateHyperGraphViz( osOutput, *pEnvironment, manifest );
+            }
+            else if ( strGraphType == "memory" )
+            {
+                generateMemoryGraphViz( osOutput, *pEnvironment, manifest );
             }
             else
             {

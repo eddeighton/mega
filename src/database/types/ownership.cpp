@@ -24,7 +24,7 @@ const char* Ownership::str() const
             return g_pszModes[ m_value ].c_str();
         case TOTAL_OWNERSHIP_MODES:
         default:
-            THROW_RTE( "Invalid compilation mode" );
+            THROW_RTE( "Invalid Ownership type" );
     }
 }
 

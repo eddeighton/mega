@@ -339,8 +339,8 @@ public:
         {
             if ( bInObjectScope )
             {
-                Link* pConcrete = database.construct< Link >( Link::Args{
-                    Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pLink, {} }, pLink } );
+                Link* pConcrete = database.construct< Link >(
+                    Link::Args{ Context::Args{ ContextGroup::Args{ {} }, pParentContextGroup, pLink, {} }, pLink } );
                 pParentContextGroup->push_back_children( pConcrete );
 
                 IdentifierMap inheritedContexts;
@@ -409,9 +409,11 @@ public:
         const mega::io::CompilationFilePath concreteFile = m_environment.ConcreteStage_Concrete( m_sourceFilePath );
         start( taskProgress, "Task_ConcreteTree", m_sourceFilePath.path(), concreteFile.path() );
 
-        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
-                                                   m_environment.getBuildHashCode( interfaceTreeFile ),
-                                                   m_environment.getBuildHashCode( interfaceAnalysisFile ) } );
+        const task::DeterminantHash determinant(
+            { m_toolChain.toolChainHash,
+              m_environment.getBuildHashCode( m_environment.ParserStage_AST( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode( interfaceTreeFile ),
+              m_environment.getBuildHashCode( interfaceAnalysisFile ) } );
 
         if ( m_environment.restore( concreteFile, determinant ) )
         {
