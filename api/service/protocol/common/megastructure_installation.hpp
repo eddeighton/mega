@@ -24,6 +24,8 @@ public:
     mega::utilities::ToolChain     getToolchainXML() const;
     boost::filesystem::path        getParserPath() const;
     boost::filesystem::path        getClangPath() const;
+    
+    boost::filesystem::path        getRuntimeTemplateAllocation() const;
     boost::filesystem::path        getRuntimeTemplateAllocate() const;
     boost::filesystem::path        getRuntimeTemplateRead() const;
 

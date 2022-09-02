@@ -13,6 +13,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/coroutine.hpp
     ${MEGA_API_DIR}/mega/default_traits.hpp
     ${MEGA_API_DIR}/mega/eg_common_strings.hpp
+    ${MEGA_API_DIR}/mega/execution_context.hpp
     ${MEGA_API_DIR}/mega/event_log.cpp
     ${MEGA_API_DIR}/mega/event.hpp
     ${MEGA_API_DIR}/mega/include.hpp

@@ -2,6 +2,7 @@
 #include "service/tool.hpp"
 
 #include "mega/common.hpp"
+#include "mega/execution_context.hpp"
 #include "mega/root.hpp"
 
 #include "runtime/runtime.hpp"
@@ -23,8 +24,6 @@
 #include "boost/bind/bind.hpp"
 
 #include <thread>
-
-extern mega::ExecutionContext* g_pExecutionContext;
 
 namespace mega
 {
@@ -97,28 +96,36 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        m_pYieldContext     = &yield_ctx;
-        g_pExecutionContext = this;
+        execution_resume( this );
 
-        const std::pair< bool, mega::Address > result = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
+        m_pYieldContext = &yield_ctx;
+
+        const std::pair< bool, mega::ExecutionIndex > result = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
         VERIFY_RTE_MSG( result.first, "Failed to acquire execution context" );
         SPDLOG_INFO( "Acquired execution context: {}", result.second );
 
         std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
-            mega::runtime::allocateRoot( *g_pExecutionContext, getID() ),
-            []( Root* pRoot ) { mega::runtime::releaseRoot( *g_pExecutionContext, pRoot ); } );
+            mega::runtime::allocateRoot( result.second ), []( Root* pRoot ) { mega::runtime::releaseRoot( pRoot ); } );
 
         m_functor( yield_ctx );
-        g_pExecutionContext = nullptr;
-        m_pYieldContext     = nullptr;
+
+        m_pYieldContext = nullptr;
+
+        execution_suspend();
     }
 
     // mega::ExecutionContext
-    virtual std::string mapBuffer( const mega::reference& reference )
+    virtual LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID )
     {
         VERIFY_RTE( m_pYieldContext );
-        SPDLOG_INFO( "mapBuffer called with: {}", reference.type );
-        return "";
+        SPDLOG_INFO( "allocate called with: {} {}", executionIndex, objectTypeID );
+        return LogicalAddress{ getToolRequest( *m_pYieldContext ).ToolAllocate( executionIndex, objectTypeID ) };
+    }
+    virtual void deAllocate( ExecutionIndex executionIndex, LogicalAddress logicalAddress )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        SPDLOG_INFO( "deAllocate called with: {} {}", executionIndex, logicalAddress );
+        getToolRequest( *m_pYieldContext ).ToolDeAllocate( executionIndex, Address{ logicalAddress } );
     }
 
     boost::asio::yield_context* m_pYieldContext = nullptr;

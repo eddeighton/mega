@@ -1,6 +1,7 @@
 
 #include "service/root.hpp"
 
+#include "mega/common.hpp"
 #include "pipeline/task.hpp"
 
 #include "service/network/conversation.hpp"
@@ -322,7 +323,7 @@ public:
             .ExeCreateExecutionContext( m_root.m_executionContextManager.create( getID() ) );
     }
 
-    virtual void ExeReleaseExecutionContext( const mega::Address&        index,
+    virtual void ExeReleaseExecutionContext( const mega::ExecutionIndex& index,
                                              boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_executionContextManager.release( index );
@@ -334,6 +335,21 @@ public:
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ToolGetMegastructureInstallation( m_root.getMegastructureInstallation() );
     }
+    virtual void ExeAllocate( const mega::ExecutionIndex& executionIndex,
+                              const mega::TypeID&         objectTypeID,
+                              boost::asio::yield_context& yield_ctx ) override
+    {
+        const Address result = m_root.m_logicalAddressSpace.allocate( executionIndex, objectTypeID );
+        getStackTopDaemonResponse( yield_ctx ).ExeAllocate( result.value );
+    }
+
+    virtual void ExeDeAllocate( const mega::ExecutionIndex& executionIndex,
+                                const mega::AddressStorage& logicalAddress,
+                                boost::asio::yield_context& yield_ctx ) override
+    {
+        m_root.m_logicalAddressSpace.deAllocate( executionIndex, logicalAddress );
+        getStackTopDaemonResponse( yield_ctx ).ExeDeAllocate();
+    }
 
     virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
     {
@@ -341,11 +357,26 @@ public:
             .ToolCreateExecutionContext( m_root.m_executionContextManager.create( getID() ) );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::Address&        index,
+    virtual void ToolReleaseExecutionContext( const mega::ExecutionIndex& index,
                                               boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_executionContextManager.release( index );
         getStackTopDaemonResponse( yield_ctx ).ToolReleaseExecutionContext();
+    }
+    virtual void ToolAllocate( const mega::ExecutionIndex& executionIndex,
+                               const mega::TypeID&         objectTypeID,
+                               boost::asio::yield_context& yield_ctx ) override
+    {
+        const Address result = m_root.m_logicalAddressSpace.allocate( executionIndex, objectTypeID );
+        getStackTopDaemonResponse( yield_ctx ).ToolAllocate( result );
+    }
+
+    virtual void ToolDeAllocate( const mega::ExecutionIndex& executionIndex,
+                                 const mega::AddressStorage& logicalAddress,
+                                 boost::asio::yield_context& yield_ctx ) override
+    {
+        m_root.m_logicalAddressSpace.deAllocate( executionIndex, logicalAddress );
+        getStackTopDaemonResponse( yield_ctx ).ToolDeAllocate();
     }
 };
 

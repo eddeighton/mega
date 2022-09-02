@@ -28,7 +28,7 @@ namespace mega
 // it is NOT possible to invoke on an event in c++
 struct Event
 {
-    inline Event() { data.address = INVALID_ADDRESS; }
+    inline Event() { data.address.value = INVALID_ADDRESS; }
 
     inline Event( const reference& from ) { data = from; }
 
@@ -65,7 +65,7 @@ struct Event
 
     inline operator const void*() const
     {
-        if ( data.address != INVALID_ADDRESS )
+        if ( data.address.value != INVALID_ADDRESS )
         {
             return reinterpret_cast< const void* >( &data );
         }

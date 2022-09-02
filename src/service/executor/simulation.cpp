@@ -1,6 +1,7 @@
 
 #include "service/executor/simulation.hpp"
 
+#include "mega/common.hpp"
 #include "service/executor.hpp"
 
 #include "service/network/conversation.hpp"
@@ -10,9 +11,6 @@
 #include "service/protocol/model/messages.hxx"
 
 #include <boost/asio/execution_context.hpp>
-#include <boost/asio/this_coro.hpp>
-
-extern mega::ExecutionContext* g_pExecutionContext;
 
 namespace mega
 {
@@ -46,98 +44,114 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
     }
 }
 
-std::string Simulation::mapBuffer( const mega::reference& reference )
+LogicalAddress Simulation::allocate( ExecutionIndex executionIndex, TypeID objectTypeID )
 {
-    // getLeafRequest( *m_pYieldContext ).ExeGetProject()
-
-    return "";
+    VERIFY_RTE( m_pYieldContext );
+    return LogicalAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocate( executionIndex, objectTypeID ) };
 }
 
-void Simulation::run( boost::asio::yield_context& yield_ctx )
+void Simulation::deAllocate( ExecutionIndex executionIndex, LogicalAddress logicalAddress )
 {
-    //ConversationBase::RequestStack stack( "Simulation testing", *this, getConnectionID() );
+    VERIFY_RTE( m_pYieldContext );
+    getLeafRequest( *m_pYieldContext ).ExeDeAllocate( executionIndex, Address{ logicalAddress } );
+}
 
-    SPDLOG_INFO( "Simulation Started: {}", getID() );
-
-    // create the root
-    // mega::ExecutionContext*                      pThis = this;
-    m_pYieldContext     = &yield_ctx;
-    g_pExecutionContext = this;
-    std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
-        mega::runtime::allocateRoot( *g_pExecutionContext, getID() ),
-        []( Root* pRoot ) { mega::runtime::releaseRoot( *g_pExecutionContext, pRoot ); } );
-
+void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
+{
     try
     {
-        do
+        const std::pair< bool, mega::ExecutionIndex > result = getLeafRequest( yield_ctx ).ExeCreateExecutionContext();
+        VERIFY_RTE_MSG( result.first, "Failed to acquire execution index" );
+
+        std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
+            mega::runtime::allocateRoot( result.second ), []( Root* pRoot ) { mega::runtime::releaseRoot( pRoot ); } );
+
+        // run simulation cycle
+
+        // process incoming requests
+        SUSPEND_EXECUTION_CONTEXT();
         {
-            // m_requestChannel.ready()
-
-            const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
-
-            std::optional< mega::network::ConversationID > requestingConversationID;
-
-            switch ( network::getMsgID( msg.msg ) )
+            do
             {
-                case network::exe_sim::MSG_ExeSimReadLockAcquire_Request::ID:
+                const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
+
+                std::optional< mega::network::ConversationID > requestingConversationID;
+
+                switch ( network::getMsgID( msg.msg ) )
                 {
-                    requestingConversationID
-                        = network::exe_sim::MSG_ExeSimReadLockAcquire_Request::get( msg.msg ).simulationID;
-                }
-                break;
-                case network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::ID:
-                {
-                    requestingConversationID
-                        = network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::get( msg.msg ).simulationID;
-                }
-                break;
-                case network::exe_sim::MSG_ExeSimReadLockRelease_Request::ID:
-                {
-                    requestingConversationID
-                        = network::exe_sim::MSG_ExeSimReadLockRelease_Request::get( msg.msg ).simulationID;
-                }
-                break;
-                case network::exe_sim::MSG_ExeSimWriteLockRelease_Request::ID:
-                {
-                    requestingConversationID
-                        = network::exe_sim::MSG_ExeSimWriteLockRelease_Request::get( msg.msg ).simulationID;
-                }
-                break;
-                default:
+                    case network::exe_sim::MSG_ExeSimReadLockAcquire_Request::ID:
+                    {
+                        requestingConversationID
+                            = network::exe_sim::MSG_ExeSimReadLockAcquire_Request::get( msg.msg ).simulationID;
+                    }
                     break;
-            }
+                    case network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::ID:
+                    {
+                        requestingConversationID
+                            = network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::get( msg.msg ).simulationID;
+                    }
+                    break;
+                    case network::exe_sim::MSG_ExeSimReadLockRelease_Request::ID:
+                    {
+                        requestingConversationID
+                            = network::exe_sim::MSG_ExeSimReadLockRelease_Request::get( msg.msg ).simulationID;
+                    }
+                    break;
+                    case network::exe_sim::MSG_ExeSimWriteLockRelease_Request::ID:
+                    {
+                        requestingConversationID
+                            = network::exe_sim::MSG_ExeSimWriteLockRelease_Request::get( msg.msg ).simulationID;
+                    }
+                    break;
+                    default:
+                        break;
+                }
 
-            ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
-            try
-            {
-                ASSERT( isRequest( msg.msg ) );
-                if ( !dispatchRequest( msg.msg, yield_ctx ) )
+                ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
+                try
                 {
-                    SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
-                    THROW_RTE( "Failed to dispatch request message: " << msg.msg );
+                    ASSERT( isRequest( msg.msg ) );
+                    if ( !dispatchRequest( msg.msg, yield_ctx ) )
+                    {
+                        SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
+                        THROW_RTE( "Failed to dispatch request message: " << msg.msg );
+                    }
                 }
-            }
-            catch ( std::exception& ex )
-            {
-                if ( requestingConversationID.has_value() )
+                catch ( std::exception& ex )
                 {
-                    Conversation::Ptr pRequestCon
-                        = m_executor.findExistingConversation( requestingConversationID.value() );
-                    pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
+                    if ( requestingConversationID.has_value() )
+                    {
+                        Conversation::Ptr pRequestCon
+                            = m_executor.findExistingConversation( requestingConversationID.value() );
+                        pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
+                    }
+                    else
+                    {
+                        error( m_stack.back(), ex.what(), yield_ctx );
+                    }
                 }
-                else
-                {
-                    error( m_stack.back(), ex.what(), yield_ctx );
-                }
-            }
-
-        } while ( !m_stack.empty() );
+            } while ( !m_stack.empty() );
+        }
+        RESUME_EXECUTION_CONTEXT();
     }
     catch ( std::exception& ex )
     {
         SPDLOG_WARN( "Conversation: {} exception: {}", getID(), ex.what() );
         m_conversationManager.conversationCompleted( shared_from_this() );
     }
+}
+
+void Simulation::run( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_INFO( "Simulation Started: {}", getID() );
+
+    execution_resume( this );
+
+    m_pYieldContext = &yield_ctx;
+
+    runSimulation( yield_ctx );
+
+    execution_suspend();
 }
 
 void Simulation::ExeSimReadLockAcquire( const mega::network::ConversationID& requestingConID,

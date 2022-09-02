@@ -4,6 +4,7 @@
 #include "runtime/runtime_functions.hpp"
 
 #include "mega/common.hpp"
+#include "mega/execution_context.hpp"
 #include "mega/root.hpp"
 #include "mega/invocation_id.hpp"
 
@@ -15,18 +16,15 @@ namespace mega
 {
 namespace runtime
 {
-extern void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
-                               const mega::network::Project&                   project );
+void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
+                        const mega::network::Project&                   project );
 
-extern ::Root* allocateRoot( mega::ExecutionContext&              executionContext,
-                             const mega::network::ConversationID& simulationID );
-extern void    releaseRoot( mega::ExecutionContext& executionContext, ::Root* pRoot );
+::Root* allocateRoot( const mega::ExecutionIndex& executionIndex );
+void    releaseRoot( ::Root* pRoot );
 
-extern void get_allocate( const char* pszUnitName, mega::ExecutionContext& executionContext,
-                          const mega::InvocationID& invocationID, AllocateFunction* ppFunction );
+void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction );
 
-extern void get_read( const char* pszUnitName, mega::ExecutionContext& executionContext,
-                      const mega::InvocationID& invocationID, ReadFunction* ppFunction );
+void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction );
 
 } // namespace runtime
 } // namespace mega

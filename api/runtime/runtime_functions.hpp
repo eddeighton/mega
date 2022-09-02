@@ -8,8 +8,8 @@ namespace mega
 namespace runtime
 {
 
-using AllocateFunction = mega::reference ( * )( mega::ExecutionContext& executionContext, const mega::reference& );
-using ReadFunction = void* ( * )( mega::ExecutionContext& executionContext, const mega::reference& );
+using AllocateFunction = mega::reference ( * )( const mega::reference& );
+using ReadFunction = void* ( * )( const mega::reference& );
 
 } // namespace runtime
 } // namespace mega

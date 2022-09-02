@@ -17,11 +17,11 @@ namespace service
 class ExecutionContextManager
 {
 public:
-    std::pair< bool, mega::Address > create( const network::ConversationID& conversationID )
+    std::pair< bool, mega::ExecutionIndex > create( const network::ConversationID& conversationID )
     {
         if ( !m_allocations.full() )
         {
-            mega::Instance nextFree = m_allocations.nextFree();
+            mega::ExecutionIndex nextFree = m_allocations.nextFree();
             SPDLOG_INFO( "Creating execution context: {} for conversation: {}", nextFree, conversationID );
             m_allocations.allocate( nextFree );
             m_simulations.insert( { nextFree, conversationID } );
@@ -47,16 +47,16 @@ public:
         }
     }
 
-    void release( mega::Address address )
+    void release( mega::ExecutionIndex address )
     {
         m_allocations.free( address );
         m_simulations.erase( address );
     }
 
 private:
-    mega::RingAllocator< mega::MAX_SIMULATIONS >       m_allocations;
-    std::map< mega::Address, network::ConversationID > m_simulations;
-    std::map< network::ConversationID, mega::Address > m_conversations;
+    mega::RingAllocator< mega::ExecutionIndex, mega::MAX_SIMULATIONS > m_allocations;
+    std::map< mega::ExecutionIndex, network::ConversationID >          m_simulations;
+    std::map< network::ConversationID, mega::ExecutionIndex >          m_conversations;
 };
 } // namespace service
 } // namespace mega

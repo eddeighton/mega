@@ -11,35 +11,81 @@
 #include "service/network/log.hpp"
 
 #include "mega/common.hpp"
+#include "mega/execution_context.hpp"
 #include "mega/root.hpp"
 
 #include "common/assert_verify.hpp"
+
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/containers/vector.hpp>
+#include <boost/interprocess/allocators/allocator.hpp>
 
 #include <iostream>
 #include <sstream>
 #include <map>
 #include <array>
-//#include <unordered_map>
-
-std::array< Root*, mega::MAX_SIMULATIONS > m_roots;
+#include <unordered_map>
 
 namespace mega
 {
 namespace runtime
 {
+
+class ExecutionIndexMemory
+{
+public:
+    using Allocator
+        = boost::interprocess::allocator< int, boost::interprocess::managed_shared_memory::segment_manager >;
+    using Vector = boost::interprocess::vector< int, Allocator >;
+
+    ExecutionIndexMemory( const std::string& strMemoryName )
+        : m_sharedMemory( boost::interprocess::open_only, strMemoryName.c_str() )
+        , m_allocator( m_sharedMemory.get_segment_manager() )
+        , m_vector( m_sharedMemory.construct< Vector >( "TheVector" )( m_allocator ) )
+    {
+    }
+
+    boost::interprocess::managed_shared_memory m_sharedMemory;
+    Allocator                                  m_allocator;
+    Vector*                                    m_vector;
+};
+
+std::array< ExecutionIndexMemory*, mega::MAX_SIMULATIONS > m_memory;
+
 namespace
 {
 
-void* dummy_read( mega::ExecutionContext& executionContext, const mega::reference& )
-{
-    static int x = 456;
-    return &x;
-}
-
+std::array< Root*, mega::MAX_SIMULATIONS > m_roots;
 
 class Runtime
 {
+    // LogicalAddress -> PhysicalAddress
+    using AddressMapping = std::unordered_map< AddressStorage, AddressStorage >;
+
 public:
+    LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID )
+    {
+        ExecutionContext* pExecutionContext = ExecutionContext::execution_get();
+        VERIFY_RTE( pExecutionContext );
+        return pExecutionContext->allocate( executionIndex, objectTypeID );
+    }
+
+    PhysicalAddress logicalToPhysical( ExecutionIndex executionIndex, TypeID objectTypeID,
+                                       LogicalAddress logicalAddress )
+    {
+        auto iFind = m_addressMapping.find( Address{ logicalAddress } );
+        if ( iFind != m_addressMapping.end() )
+        {
+            return Address{ iFind->second }.physical;
+        }
+        else
+        {
+            PhysicalAddress result;
+
+            return result;
+        }
+    }
+
     void reinitialise( const mega::network::MegastructureInstallation& megastructureInstallation,
                        const mega::network::Project&                   project )
     {
@@ -85,34 +131,36 @@ public:
         }
     }
 
-    ::Root* allocateRoot( mega::ExecutionContext& executionContext, const mega::network::ConversationID& simulationID )
+    ::Root* allocateRoot( const mega::ExecutionIndex& executionIndex )
     {
-        mega::reference ref   = {};
-        ::Root*         pRoot = new ::Root( ref );
+        mega::reference ref;
+        {
+            ref.physical.type      = mega::PHYSICAL_ADDRESS;
+            ref.physical.execution = executionIndex;
+            ref.physical.object    = 0;
+            ref.typeID             = mega::ROOT_TYPE_ID;
+            ref.instance           = 0;
+        }
 
-        // const std::string strBufferName = executionContext.mapBuffer( ref );
-        // executionContext
+        ::Root* pRoot = new ::Root( ref );
+
+        m_roots[ executionIndex ] = pRoot;
 
         return pRoot;
     }
 
-    void releaseRoot( mega::ExecutionContext& executionContext, ::Root* pRoot )
+    void releaseRoot( ::Root* pRoot )
     {
-        //
+        VERIFY_RTE( pRoot->data.getType() == mega::PHYSICAL_ADDRESS );
+        m_roots[ pRoot->data.physical.execution ] = nullptr;
         delete pRoot;
     }
 
-    void get_allocate( const char* pszUnitName, mega::ExecutionContext& executionContext,
-                       const mega::InvocationID& invocation, AllocateFunction* ppFunction )
+    void get_allocate( const char* pszUnitName, const mega::InvocationID& invocation, AllocateFunction* ppFunction )
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-
-        /*{
-            mega::reference   ref           = {};
-            const std::string strBufferName = executionContext.mapBuffer( ref );
-        }*/
 
         JITCompiler::Module::Ptr pModule;
         {
@@ -129,15 +177,13 @@ public:
                 m_invocations.insert( std::make_pair( invocation, pModule ) );
             }
         }
-
-        // _Z22ct1pt1__eg_ImpNoParamsRN4mega16ExecutionContextERKNS_9referenceE
+        // ct3pt3__eg_ImpNoParams -> _Z22ct3pt3__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z22" << invocation << "RN4mega16ExecutionContextERKNS_9referenceE";
+        os << "_Z22" << invocation << "RKN4mega9referenceE";
         *ppFunction = pModule->getAllocate( os.str() );
     }
 
-    void get_read( const char* pszUnitName, mega::ExecutionContext& executionContext,
-                   const mega::InvocationID& invocation, ReadFunction* ppFunction )
+    void get_read( const char* pszUnitName, const mega::InvocationID& invocation, ReadFunction* ppFunction )
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
@@ -160,7 +206,7 @@ public:
         }
         // _Z23ct1ps12__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z23" << invocation << "RN4mega16ExecutionContextERKNS_9referenceE";
+        os << "_Z23" << invocation << "RKN4mega9referenceE";
         *ppFunction = pModule->getRead( os.str() );
     }
 
@@ -170,6 +216,7 @@ private:
     ComponentManager::Ptr               m_componentManager;
     std::unique_ptr< DatabaseInstance > m_database;
     bool                                m_bInitialised = false;
+    AddressMapping                      m_addressMapping;
 
     // use unordered_map
     using InvocationMap = std::map< mega::InvocationID, JITCompiler::Module::Ptr >;
@@ -194,30 +241,32 @@ namespace mega
 namespace runtime
 {
 
+// routines used by jit compiled functions
+LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID )
+{
+    return getStaticRuntime().allocate( executionIndex, objectTypeID );
+}
+
+// public facing runtime interface
 void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
                         const mega::network::Project&                   project )
 {
     getStaticRuntime().reinitialise( megastructureInstallation, project );
 }
 
-::Root* allocateRoot( mega::ExecutionContext& executionContext, const mega::network::ConversationID& simulationID )
+::Root* allocateRoot( const mega::ExecutionIndex& executionIndex )
 {
-    return getStaticRuntime().allocateRoot( executionContext, simulationID );
+    return getStaticRuntime().allocateRoot( executionIndex );
 }
-void releaseRoot( mega::ExecutionContext& executionContext, ::Root* pRoot )
-{
-    getStaticRuntime().releaseRoot( executionContext, pRoot );
-}
+void releaseRoot( ::Root* pRoot ) { getStaticRuntime().releaseRoot( pRoot ); }
 
-void get_allocate( const char* pszUnitName, mega::ExecutionContext& executionContext,
-                   const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
+void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
 {
-    getStaticRuntime().get_allocate( pszUnitName, executionContext, invocationID, ppFunction );
+    getStaticRuntime().get_allocate( pszUnitName, invocationID, ppFunction );
 }
-void get_read( const char* pszUnitName, mega::ExecutionContext& executionContext,
-               const mega::InvocationID& invocationID, ReadFunction* ppFunction )
+void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
-    getStaticRuntime().get_read( pszUnitName, executionContext, invocationID, ppFunction );
+    getStaticRuntime().get_read( pszUnitName, invocationID, ppFunction );
 }
 
 } // namespace runtime

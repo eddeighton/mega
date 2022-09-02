@@ -10,6 +10,7 @@
 
 #include "mega/common.hpp"
 #include "mega/common_strings.hpp"
+#include <optional>
 
 namespace mega
 {
@@ -129,31 +130,17 @@ ElementVector* toElementVector( Database& database, const InterfaceVariantVector
 {
     std::vector< Element* > elements;
 
-    auto addElement = [ &database, &elements ]( Interface::IContext* pContext )
-    {
-        for ( Concrete::Context* pConcrete : pContext->get_concrete() )
-        {
-            InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
-                InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
-            ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
-                ConcreteVariant::Args{ pConcrete, std::optional< Concrete::Dimensions::User* >() } );
-            Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
-            elements.push_back( pElement );
-        }
-    };
-
     for ( InterfaceVariant* pInterfaceVariant : interfaceVariantVector )
     {
         if ( pInterfaceVariant->get_context().has_value() )
         {
             Interface::IContext* pContext = pInterfaceVariant->get_context().value();
-
             for ( Concrete::Context* pConcrete : pContext->get_concrete() )
             {
-                InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
-                    InterfaceVariant::Args{ pContext, std::optional< Interface::DimensionTrait* >() } );
-                ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
-                    ConcreteVariant::Args{ pConcrete, std::optional< Concrete::Dimensions::User* >() } );
+                InterfaceVariant* pInterfaceVar
+                    = database.construct< InterfaceVariant >( InterfaceVariant::Args{ pContext, std::nullopt } );
+                ConcreteVariant* pConcreteVar
+                    = database.construct< ConcreteVariant >( ConcreteVariant::Args{ pConcrete, std::nullopt } );
                 Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
                 elements.push_back( pElement );
             }
@@ -163,10 +150,10 @@ ElementVector* toElementVector( Database& database, const InterfaceVariantVector
             Interface::DimensionTrait* pDimension = pInterfaceVariant->get_dimension().value();
             for ( Concrete::Dimensions::User* pConcreteDimension : pDimension->get_concrete() )
             {
-                InterfaceVariant* pInterfaceVar = database.construct< InterfaceVariant >(
-                    InterfaceVariant::Args{ std::optional< Interface::IContext* >(), pDimension } );
+                InterfaceVariant* pInterfaceVar
+                    = database.construct< InterfaceVariant >( InterfaceVariant::Args{ std::nullopt, pDimension } );
                 ConcreteVariant* pConcreteVar = database.construct< ConcreteVariant >(
-                    ConcreteVariant::Args{ std::optional< Concrete::Context* >(), pConcreteDimension } );
+                    ConcreteVariant::Args{ std::nullopt, pConcreteDimension } );
                 Element* pElement = database.construct< Element >( Element::Args{ pInterfaceVar, pConcreteVar } );
                 elements.push_back( pElement );
             }
@@ -338,7 +325,7 @@ void build( Database& database, Invocation* pInvocation )
                         auto pConcrete  = pElement->get_concrete()->get_context().value();
 
                         auto t = pInterface->get_concrete();
-                        if( std::find( t.begin(), t.end(), pConcrete ) != t.end() )
+                        if ( std::find( t.begin(), t.end(), pConcrete ) != t.end() )
                         {
                             nonPolyTargets.push_back( pElement );
                         }

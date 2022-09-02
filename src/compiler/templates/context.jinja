@@ -9,7 +9,7 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
     {
         data.instance = 0;
         data.type = 0;
-        data.address = mega::INVALID_ADDRESS;
+        data.address.value = mega::INVALID_ADDRESS;
     };
     inline {{ name }}( const mega::reference& reference )
         :   data( reference )

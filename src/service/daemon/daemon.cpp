@@ -270,10 +270,27 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeCreateExecutionContext( result );
     }
 
-    virtual void ExeReleaseExecutionContext( const mega::Address& index, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeReleaseExecutionContext( const mega::ExecutionIndex& index,
+                                             boost::asio::yield_context& yield_ctx ) override
     {
         getRootRequest( yield_ctx ).ExeReleaseExecutionContext( index );
         getStackTopLeafResponse( yield_ctx ).ExeReleaseExecutionContext();
+    }
+
+    virtual void ExeAllocate( const mega::ExecutionIndex& executionIndex,
+                              const mega::TypeID&         objectTypeID,
+                              boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ExeAllocate( executionIndex, objectTypeID );
+        getStackTopLeafResponse( yield_ctx ).ExeAllocate( result );
+    }
+
+    virtual void ExeDeAllocate( const mega::ExecutionIndex& executionIndex,
+                                const mega::AddressStorage& logicalAddress,
+                                boost::asio::yield_context& yield_ctx ) override
+    {
+        getRootRequest( yield_ctx ).ExeDeAllocate( executionIndex, logicalAddress );
+        getStackTopLeafResponse( yield_ctx ).ExeDeAllocate();
     }
 
     // root_daemon
@@ -427,10 +444,26 @@ public:
         getStackTopLeafResponse( yield_ctx ).ToolCreateExecutionContext( result );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::Address& index, boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolReleaseExecutionContext( const mega::ExecutionIndex& index,
+                                              boost::asio::yield_context& yield_ctx ) override
     {
         getRootRequest( yield_ctx ).ToolReleaseExecutionContext( index );
         getStackTopLeafResponse( yield_ctx ).ToolReleaseExecutionContext();
+    }
+    virtual void ToolAllocate( const mega::ExecutionIndex& executionIndex,
+                               const mega::TypeID&         objectTypeID,
+                               boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ToolAllocate( executionIndex, objectTypeID );
+        getStackTopLeafResponse( yield_ctx ).ToolAllocate( result );
+    }
+
+    virtual void ToolDeAllocate( const mega::ExecutionIndex& executionIndex,
+                                 const mega::AddressStorage& logicalAddress,
+                                 boost::asio::yield_context& yield_ctx ) override
+    {
+        getRootRequest( yield_ctx ).ToolDeAllocate( executionIndex, logicalAddress );
+        getStackTopLeafResponse( yield_ctx ).ToolDeAllocate();
     }
 };
 

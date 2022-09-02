@@ -2,6 +2,7 @@
 #ifndef LOG_28_MAY_2022
 #define LOG_28_MAY_2022
 
+#include "mega/common.hpp"
 #include "service/protocol/model/messages.hxx"
 
 #include "spdlog/spdlog.h"
@@ -168,6 +169,70 @@ struct formatter< mega::network::ConnectionID >
         std::ostringstream os;
         os << connectionID;
         return format_to( ctx.out(), "{}", os.str() );
+    }
+};
+
+template <>
+struct formatter< mega::TypeInstance >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::TypeInstance& typeInstance, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        return format_to( ctx.out(), "{}.{}", typeInstance.typeID, typeInstance.instance );
+    }
+};
+
+template <>
+struct formatter< mega::LogicalAddress >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::LogicalAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        return format_to( ctx.out(), "logical:{}", address.address );
+    }
+};
+
+template <>
+struct formatter< mega::PhysicalAddress >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::PhysicalAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        return format_to( ctx.out(), "physical:{}.{}", address.execution, address.object );
+    }
+};
+
+template <>
+struct formatter< mega::Address >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::Address& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        switch ( address.getType() )
+        {
+            case mega::LOGICAL_ADDRESS:
+                return format_to( ctx.out(), "{}", address.logical );
+            case mega::PHYSICAL_ADDRESS:
+                return format_to( ctx.out(), "{}", address.physical );
+            default:
+                THROW_RTE( "Unknown address type" );
+        }
+    }
+};
+
+template <>
+struct formatter< mega::reference >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        return format_to( ctx.out(), "{}.{}", static_cast< const mega::Address& >( ref ),
+                          static_cast< const mega::TypeInstance& >( ref ) );
     }
 };
 

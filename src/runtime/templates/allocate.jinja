@@ -3,7 +3,15 @@
 // ed was here
 #include "/workspace/root/src/mega/src/api/mega/common.hpp"
 
-mega::reference {{ name }}( mega::ExecutionContext& executionContext, const mega::reference& context )
+extern LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID );
+
+mega::reference {{ name }}( const mega::reference& context )
 {
-    return context;
+    mega::reference result;
+    result.logical = allocate( context.address.physical.execution, context.typeID );
+    result.physical = logicalToPhysical( context.address.physical.execution, context.typeID, result.logical );
+
+    result.instance = 0;
+    result.typeID = context.typeID;
+    return result;
 }

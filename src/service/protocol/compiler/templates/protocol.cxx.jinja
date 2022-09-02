@@ -7,6 +7,8 @@
 #include "service/network/log.hpp"
 #include "service/network/sender.hpp"
 
+#include "mega/execution_context.hpp"
+
 #include "common/assert_verify.hpp"
 
 namespace mega
@@ -35,6 +37,7 @@ Request_Encode::Request_Encode( ConversationBase& conversation,
 {%endfor%} 
 )
 {
+    SUSPEND_EXECUTION_CONTEXT();
     ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_conversation, m_sender.getConnectionID() );
 
     {
@@ -57,6 +60,7 @@ Request_Encode::Request_Encode( ConversationBase& conversation,
     const Message msg = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
     VERIFY_RTE_MSG( getMsgID( msg ) == {{ filename }}::MSG_{{ request.name }}_Response::ID,
         "Unexpected reponse of type: " << getMsgNameFromID( getMsgID( msg ) ) << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+    RESUME_EXECUTION_CONTEXT();
 {%if request.return_type != "void" %}
     return {{ filename }}::MSG_{{ request.name }}_Response::get( msg ).{{ request.return_msg_member }};
 {% endif %}

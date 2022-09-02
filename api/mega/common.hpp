@@ -26,13 +26,110 @@
 
 namespace mega
 {
-static constexpr std::uint32_t MAX_SIMULATIONS = 256;
 
-using Instance  = std::uint32_t; // 32bit only for now
-using SymbolID  = std::int32_t;
-using TypeID    = std::int32_t;
-using TimeStamp = std::uint32_t;
-using Address   = std::uint64_t;
+using Instance       = std::uint16_t;
+using SymbolID       = std::int16_t;
+using TypeID         = std::int16_t;
+using TimeStamp      = std::uint32_t;
+using AddressStorage = std::uint32_t;
+using ExecutionIndex = std::uint16_t;
+using ObjectIndex    = std::uint32_t;
+using event_iterator = std::uint64_t;
+
+static constexpr ExecutionIndex MAX_SIMULATIONS = 512;
+static constexpr ObjectIndex    MAX_OBJECTS     = 4194304;
+static constexpr std::uint32_t  INVALID_ADDRESS = std::numeric_limits< std::uint32_t >::max();
+static constexpr TypeID         ROOT_TYPE_ID    = 0U;
+
+struct TypeInstance
+{
+    Instance instance = 0U;
+    TypeID   typeID   = 0;
+
+    inline bool operator==( const TypeInstance& cmp ) const
+    {
+        return ( instance == cmp.instance ) && ( typeID == cmp.typeID );
+    }
+    inline bool operator!=( const TypeInstance& cmp ) const { return !( *this == cmp ); }
+    inline bool operator<( const TypeInstance& cmp ) const
+    {
+        return ( instance != cmp.instance ) ? ( instance < cmp.instance )
+               : ( typeID != cmp.typeID )   ? ( typeID < cmp.typeID )
+                                            : false;
+    }
+};
+static_assert( sizeof( TypeInstance ) == 4U );
+
+enum AddressType
+{
+    LOGICAL_ADDRESS  = 0,
+    PHYSICAL_ADDRESS = 1
+};
+
+struct PhysicalAddress
+{
+    // 2 ^ 9    == 512
+    // 2 ^ 22   == 4194304
+    AddressStorage execution : 9, object : 22, type : 1;
+};
+static_assert( sizeof( PhysicalAddress ) == 4U );
+
+struct LogicalAddress
+{
+    // 2 ^ 31   == 2147483648
+    AddressStorage address : 31, type : 1;
+};
+static_assert( sizeof( LogicalAddress ) == 4U );
+
+struct Address
+{
+    union
+    {
+        AddressStorage  value;
+        LogicalAddress  logical;
+        PhysicalAddress physical;
+    };
+    Address()
+        : value( INVALID_ADDRESS )
+    {
+    }
+    Address( const AddressStorage& value )
+        : value( value )
+    {
+    }
+    Address( const LogicalAddress& logicalAddress )
+        : logical( logicalAddress )
+    {
+    }
+    Address( const PhysicalAddress& physicalAddress )
+        : physical( physicalAddress )
+    {
+    }
+
+    inline bool        valid() const { return value != INVALID_ADDRESS; }
+    inline AddressType getType() const { return static_cast< AddressType >( logical.type ); }
+    inline             operator AddressStorage() const { return value; }
+    inline bool        operator==( const Address& cmp ) const { return ( value == cmp.value ); }
+    inline bool        operator!=( const Address& cmp ) const { return !( *this == cmp ); }
+    inline bool        operator<( const Address& cmp ) const { return value < cmp.value; }
+};
+static_assert( sizeof( Address ) == 4U );
+
+struct reference : TypeInstance, Address
+{
+    inline bool operator==( const reference& cmp ) const
+    {
+        return ( !valid() && !cmp.valid() ) || ( TypeInstance::operator==( cmp ) && Address::operator==( cmp ) );
+    }
+    inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
+    inline bool operator<( const reference& cmp ) const
+    {
+        return TypeInstance::operator!=( cmp ) ? TypeInstance::operator<( cmp )
+               : Address::operator!=( cmp )    ? Address::operator<( cmp )
+                                               : false;
+    }
+};
+static_assert( sizeof( reference ) == 8U );
 
 enum ActionState
 {
@@ -58,25 +155,20 @@ inline const char* getActionState( ActionState state )
     }
 }
 
-static const Address INVALID_ADDRESS = 0U;
-static const TypeID  ROOT_TYPE_ID    = 0U;
-
-using event_iterator = std::uint64_t;
-
 enum OperationID : TypeID
 {
-    id_Imp_NoParams = std::numeric_limits< TypeID >::min(), // id_Imp_NoParams (-2147483648)
-    id_Imp_Params,                                          // id_Imp_Params   (-2147483647)
-    id_Start,                                               // id_Start        (-2147483646)
-    id_Stop,                                                // id_Stop         (-2147483645)
-    id_Pause,                                               // id_Pause        (-2147483644)
-    id_Resume,                                              // id_Resume       (-2147483643)
-    id_Wait,                                                // id_Wait         (-2147483642)
-    id_Get,                                                 // id_Get          (-2147483641)
-    id_Done,                                                // id_Done         (-2147483640)
-    id_Range,                                               // id_Range        (-2147483639)
-    id_Raw,                                                 // id_Raw          (-2147483638)
-    HIGHEST_OPERATION_TYPE                                  // HIGHEST_OPERATION_TYPE (-2147483637)
+    id_Imp_NoParams = std::numeric_limits< TypeID >::min(),
+    id_Imp_Params,
+    id_Start,
+    id_Stop,
+    id_Pause,
+    id_Resume,
+    id_Wait,
+    id_Get,
+    id_Done,
+    id_Range,
+    id_Raw,
+    HIGHEST_OPERATION_TYPE
 };
 
 enum ExplicitOperationID : TypeID
@@ -133,52 +225,6 @@ enum ReferenceState
     Stopped,
     Paused,
     Running
-};
-
-struct TypeInstance
-{
-    Instance instance = 0U;
-    TypeID   type     = 0;
-
-    inline bool operator==( const TypeInstance& cmp ) const
-    {
-        return ( instance == cmp.instance ) && ( type == cmp.type );
-    }
-
-    inline bool operator!=( const TypeInstance& cmp ) const { return !( *this == cmp ); }
-
-    inline bool operator<( const TypeInstance& cmp ) const
-    {
-        return ( instance != cmp.instance ) ? ( instance < cmp.instance )
-               : ( type != cmp.type )       ? ( type < cmp.type )
-                                            : false;
-    }
-};
-
-struct reference : TypeInstance
-{
-    Address address = INVALID_ADDRESS;
-
-    inline bool operator==( const reference& cmp ) const
-    {
-        return ( ( address == INVALID_ADDRESS ) && ( cmp.address == INVALID_ADDRESS ) )
-               || ( ( instance == cmp.instance ) && ( type == cmp.type ) && ( address == cmp.address ) );
-    }
-
-    inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
-
-    inline bool operator<( const reference& cmp ) const
-    {
-        return ( instance != cmp.instance ) ? ( instance < cmp.instance )
-               : ( type != cmp.type )       ? ( type < cmp.type )
-               : ( address != cmp.address ) ? ( address < cmp.address )
-                                            : false;
-    }
-};
-
-struct ExecutionContext
-{
-    virtual std::string mapBuffer( const mega::reference& reference ) = 0;
 };
 
 } // namespace mega

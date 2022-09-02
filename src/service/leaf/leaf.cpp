@@ -17,12 +17,11 @@
 #include "service/protocol/model/leaf_tool.hxx"
 
 #include "mega/common.hpp"
+#include "mega/execution_context.hpp"
 
 #include "common/requireSemicolon.hpp"
 
 #include "boost/system/detail/error_code.hpp"
-
-mega::ExecutionContext* g_pExecutionContext = nullptr;
 
 namespace mega
 {
@@ -399,11 +398,26 @@ public:
         getExeResponse( yield_ctx ).ExeCreateExecutionContext( result );
     }
 
-    virtual void ExeReleaseExecutionContext( const mega::Address&        index,
+    virtual void ExeReleaseExecutionContext( const mega::ExecutionIndex& index,
                                              boost::asio::yield_context& yield_ctx ) override
     {
         getDaemonRequest( yield_ctx ).ExeReleaseExecutionContext( index );
         getExeResponse( yield_ctx ).ExeReleaseExecutionContext();
+    }
+    virtual void ExeAllocate( const mega::ExecutionIndex& executionIndex,
+                              const mega::TypeID&         objectTypeID,
+                              boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ExeAllocate( executionIndex, objectTypeID );
+        getExeResponse( yield_ctx ).ExeAllocate( result );
+    }
+
+    virtual void ExeDeAllocate( const mega::ExecutionIndex& executionIndex,
+                                const mega::AddressStorage& logicalAddress,
+                                boost::asio::yield_context& yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ExeDeAllocate( executionIndex, logicalAddress );
+        getExeResponse( yield_ctx ).ExeDeAllocate();
     }
 
     virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
@@ -418,11 +432,26 @@ public:
         getToolResponse( yield_ctx ).ToolCreateExecutionContext( result );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::Address&        index,
+    virtual void ToolReleaseExecutionContext( const mega::ExecutionIndex& index,
                                               boost::asio::yield_context& yield_ctx ) override
     {
         getDaemonRequest( yield_ctx ).ToolReleaseExecutionContext( index );
         getToolResponse( yield_ctx ).ToolReleaseExecutionContext();
+    }
+    virtual void ToolAllocate( const mega::ExecutionIndex& executionIndex,
+                               const mega::TypeID&         objectTypeID,
+                               boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ToolAllocate( executionIndex, objectTypeID );
+        getToolResponse( yield_ctx ).ToolAllocate( result );
+    }
+
+    virtual void ToolDeAllocate( const mega::ExecutionIndex& executionIndex,
+                                 const mega::AddressStorage& logicalAddress,
+                                 boost::asio::yield_context& yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ToolDeAllocate( executionIndex, logicalAddress );
+        getToolResponse( yield_ctx ).ToolDeAllocate();
     }
 };
 

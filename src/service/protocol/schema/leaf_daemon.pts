@@ -126,12 +126,23 @@ msg ExeSimWriteLockReady
 msg ExeCreateExecutionContext
 {
     request();
-    response(std::pair< bool, mega::Address > result);
+    response(std::pair< bool, mega::ExecutionIndex > result);
 }
 
 msg ExeReleaseExecutionContext
 {
-    request(mega::Address index);
+    request(mega::ExecutionIndex index);
+    response();
+}
+
+msg ExeAllocate
+{
+    request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
+    response(mega::AddressStorage logicalAddress);
+}
+msg ExeDeAllocate
+{
+    request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
     response();
 }
 
@@ -145,11 +156,22 @@ msg ToolGetMegastructureInstallation
 msg ToolCreateExecutionContext
 {
     request();
-    response(std::pair< bool, mega::Address > result);
+    response(std::pair< bool, mega::ExecutionIndex > result);
 }
 
 msg ToolReleaseExecutionContext
 {
-    request(mega::Address index);
+    request(mega::ExecutionIndex index);
+    response();
+}
+
+msg ToolAllocate
+{
+    request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
+    response(mega::AddressStorage logicalAddress);
+}
+msg ToolDeAllocate
+{
+    request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
     response();
 }

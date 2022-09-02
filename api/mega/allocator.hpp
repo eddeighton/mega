@@ -155,12 +155,13 @@ private:
 };
     
 
-template< std::size_t _Size >
+template< typename TInstanceType, TInstanceType _Size >
 class RingAllocator
 {
-    friend struct mega::DimensionTraits< mega::RingAllocator< _Size > >;
+    friend struct mega::DimensionTraits< mega::RingAllocator< TInstanceType, _Size > >;
 public:
-    static const std::size_t Size = _Size;
+    using InstanceType = TInstanceType;
+    static const TInstanceType Size = _Size;
     
     inline RingAllocator()
     {
@@ -168,17 +169,17 @@ public:
         m_head = 0U;
         m_tail = 0U;
         m_full = 0U;
-        for( std::size_t sz = 0; sz != Size; ++sz )
+        for( InstanceType sz = 0; sz != Size; ++sz )
         {
             m_ring[ sz ] = sz;
         }
     }
     
-    inline Instance nextFree() const
+    inline InstanceType nextFree() const
     {
         if( !m_full )
         {
-            std::size_t szHead = m_head;
+            TInstanceType szHead = m_head;
             if( szHead == Size - 1 )
                 szHead = 0U;
             else
@@ -189,7 +190,7 @@ public:
         return Size;
     }
 
-    inline void allocate( Instance instance )
+    inline void allocate( InstanceType instance )
     {
         if( m_head == Size - 1 )
             m_head = 0U;
@@ -199,7 +200,7 @@ public:
             m_full = true;
     }
     
-    inline void free( Instance instance )
+    inline void free( InstanceType instance )
     {
         if( m_full )
             m_full = false;
@@ -221,9 +222,9 @@ public:
         return m_full;
     }
 private:
-    std::size_t m_head, m_tail;
+    TInstanceType m_head, m_tail;
     bool m_full;
-    std::array< Instance, Size > m_ring;
+    std::array< InstanceType, Size > m_ring;
     
 };
 

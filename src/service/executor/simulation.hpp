@@ -3,6 +3,7 @@
 #define SIMULATION_22_JUNE_2022
 
 #include "mega/common.hpp"
+#include "mega/execution_context.hpp"
 #include "mega/root.hpp"
 
 #include "request.hpp"
@@ -31,6 +32,8 @@ public:
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
+    void runSimulation( boost::asio::yield_context& yield_ctx );
+
     network::Sender& getRequestSender()
     {
         if ( !m_pRequestChannelSender )
@@ -52,7 +55,8 @@ public:
                                          boost::asio::yield_context&          yield_ctx ) override;
 
     // mega::ExecutionContext
-    virtual std::string mapBuffer( const mega::reference& reference );
+    virtual LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID );
+    virtual void deAllocate( ExecutionIndex executionIndex, LogicalAddress logicalAddress );
 
 private:
     network::ConcurrentChannel  m_requestChannel;
