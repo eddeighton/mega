@@ -1,11 +1,9 @@
 
 #include "common.hpp"
 
-#include "common/assert_verify.hpp"
+#include "mega/common.hpp"
 
-#include <boost/interprocess/shared_memory_object.hpp>
-#include <boost/interprocess/mapped_region.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
+#include "common/assert_verify.hpp"
 
 #include <iostream>
 #include <new>
@@ -25,7 +23,8 @@ int main( int argc, const char* argv[] )
     {
         try
         {
-            ManagedSharedMemory segment( boost::interprocess::create_only, SHARED_MEMORY_NAME, SHARED_MEMORY_SIZE );
+            mega::runtime::ManagedSharedMemory segment(
+                boost::interprocess::create_only, SHARED_MEMORY_NAME, SHARED_MEMORY_SIZE );
 
             // segment.get_segment_manager()->get_free_memory()
 
@@ -38,7 +37,7 @@ int main( int argc, const char* argv[] )
                 ExampleSharedBufferIndex::Ptr   pBuffer = pBufferIndex->get( index );
                 for ( int j = 0; j < 100; ++j )
                 {
-                    pBuffer->m_vector.push_back( j );
+                    pBuffer->Plug->link_5.push_back( mega::reference{} );
                 }
             }
 
@@ -46,8 +45,8 @@ int main( int argc, const char* argv[] )
         }
         catch ( boost::interprocess::bad_alloc& ex )
         {
-            ManagedSharedMemory       segment( boost::interprocess::open_only, SHARED_MEMORY_NAME );
-            ExampleSharedBufferIndex* pBufferIndex
+            mega::runtime::ManagedSharedMemory segment( boost::interprocess::open_only, SHARED_MEMORY_NAME );
+            ExampleSharedBufferIndex*          pBufferIndex
                 = segment.find< ExampleSharedBufferIndex >( "ExampleSharedBufferIndex" ).first;
             std::cout << "Exception: Created: " << pBufferIndex->size() << " free: " << segment.get_free_memory()
                       << std::endl;

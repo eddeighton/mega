@@ -21,7 +21,7 @@ class LogicalAddressSpace
     using LogicalOwnershipMap = std::unordered_map< mega::AddressStorage, mega::ExecutionIndex >;
 
 public:
-    Address allocate( const mega::ExecutionIndex executionIndex, const mega::TypeID objectTypeID )
+    Address allocateLogical( const mega::ExecutionIndex executionIndex, const mega::TypeID objectTypeID )
     {
         AddressStorage nextFree;
         {
@@ -49,7 +49,7 @@ public:
         return Address{ logicalAddress };
     }
 
-    void deAllocate( const mega::ExecutionIndex executionIndex, const mega::AddressStorage logicalAddress )
+    void deAllocateLogical( const mega::ExecutionIndex executionIndex, const mega::AddressStorage logicalAddress )
     {
         auto iFind = m_ownership.find( logicalAddress );
         VERIFY_RTE( iFind != m_ownership.end() );

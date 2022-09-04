@@ -53,6 +53,13 @@ public:
         m_simulations.erase( address );
     }
 
+    const network::ConversationID& get( mega::ExecutionIndex executionIndex ) const
+    {
+        auto iFind = m_simulations.find( executionIndex );
+        VERIFY_RTE_MSG( iFind != m_simulations.end(), "Failed to locate execution index: " << executionIndex );
+        return iFind->second;
+    }
+
 private:
     mega::RingAllocator< mega::ExecutionIndex, mega::MAX_SIMULATIONS > m_allocations;
     std::map< mega::ExecutionIndex, network::ConversationID >          m_simulations;

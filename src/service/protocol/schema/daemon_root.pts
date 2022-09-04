@@ -1,4 +1,9 @@
 
+msg DaemonGetExecutionContextID
+{
+    request(mega::ExecutionIndex executionIndex);
+    response(mega::network::ConversationID conversationID);
+}
 
 msg TermListNetworkNodes
 {
@@ -129,12 +134,12 @@ msg ExeReleaseExecutionContext
     response();
 }
 
-msg ExeAllocate
+msg ExeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
     response(mega::AddressStorage logicalAddress);
 }
-msg ExeDeAllocate
+msg ExeDeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
     response();
@@ -159,12 +164,12 @@ msg ToolReleaseExecutionContext
     response();
 }
 
-msg ToolAllocate
+msg ToolAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
     response(mega::AddressStorage logicalAddress);
 }
-msg ToolDeAllocate
+msg ToolDeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
     response();

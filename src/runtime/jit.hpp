@@ -25,14 +25,17 @@ public:
     public:
         using Ptr = std::shared_ptr< Module >;
 
-        virtual mega::runtime::AllocateFunction getAllocate( const std::string& strSymbol ) = 0;
-        virtual mega::runtime::ReadFunction getRead( const std::string& strSymbol ) = 0;
+        virtual mega::runtime::GetSharedFunction          getGetShared( const std::string& strSymbol )          = 0;
+        virtual mega::runtime::AllocationSharedFunction   getAllocationShared( const std::string& strSymbol )   = 0;
+        virtual mega::runtime::DeAllocationSharedFunction getDeAllocationShared( const std::string& strSymbol ) = 0;
+        virtual mega::runtime::AllocateFunction           getAllocate( const std::string& strSymbol )           = 0;
+        virtual mega::runtime::ReadFunction               getRead( const std::string& strSymbol )               = 0;
     };
 
     Module::Ptr compile( const std::string& strModule );
 
 private:
-    void    unload( Module* pModule );
+    void unload( Module* pModule );
 
     struct StaticInit
     {

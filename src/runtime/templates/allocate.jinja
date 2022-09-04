@@ -1,17 +1,25 @@
 
 
-// ed was here
 #include "/workspace/root/src/mega/src/api/mega/common.hpp"
 
-extern LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID );
+namespace mega
+{
+namespace runtime
+{
+LogicalAddress allocateLogical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID );
+mega::PhysicalAddress logicalToPhysical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID, mega::LogicalAddress logicalAddress );
+}
+}
 
 mega::reference {{ name }}( const mega::reference& context )
 {
-    mega::reference result;
-    result.logical = allocate( context.address.physical.execution, context.typeID );
-    result.physical = logicalToPhysical( context.address.physical.execution, context.typeID, result.logical );
+    const mega::LogicalAddress logicalAddress = mega::runtime::allocateLogical( context.physical.execution, context.typeID );
 
-    result.instance = 0;
-    result.typeID = context.typeID;
+    mega::reference result;
+    {
+        result.physical = mega::runtime::logicalToPhysical( context.physical.execution, context.typeID, logicalAddress );
+        result.instance = 0;
+        result.typeID = context.typeID;
+    }
     return result;
 }

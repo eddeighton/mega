@@ -2,28 +2,48 @@
 #ifndef COMMON_SEPT_1_2022
 #define COMMON_SEPT_1_2022
 
-#include <boost/container/throw_exception.hpp>
+#include "mega/default_traits.hpp"
 
-#include <boost/interprocess/interprocess_fwd.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/segment_manager.hpp>
-#include <boost/interprocess/sync/mutex_family.hpp>
-#include <boost/interprocess/containers/vector.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/container/throw_exception.hpp>
 
 static const char    SHARED_MEMORY_NAME[] = "MySharedMemory";
 static constexpr int SHARED_MEMORY_SIZE   = 1024 * 1024 * 1;
 
-using VoidPtr = boost::interprocess::offset_ptr< void, long, unsigned long >;
+using Allocator
+    = boost::interprocess::allocator< mega::reference, typename mega::runtime::ManagedSharedMemory::segment_manager >;
 
-using ManagedHeapMemory = boost::interprocess::basic_managed_heap_memory<
-    char, boost::interprocess::rbtree_best_fit< boost::interprocess::null_mutex_family, VoidPtr >,
-    boost::interprocess::flat_map_index >;
+struct _PartPlug
+{
+    using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
+    _PartPlug( TSegmentManagerType* pSegmentManager )
+        : link_5( mega::DimensionTraits< mega::ReferenceVector >::init( pSegmentManager ) )
+    {
+    }
+    mega::ReferenceVector link_5;
+};
+struct _PartSocket2
+{
+    using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
+    _PartSocket2( TSegmentManagerType* pSegmentManager )
+        : link_4( Allocator( pSegmentManager ) )
+    {
+    }
+    mega::ReferenceVector link_4;
+};
 
-using ManagedSharedMemory = boost::interprocess::basic_managed_shared_memory<
-    char, boost::interprocess::rbtree_best_fit< boost::interprocess::null_mutex_family, VoidPtr >,
-    boost::interprocess::iset_index >;
-
+// ObjectTypeID
+struct SharedBuffer_3
+{
+    using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
+    SharedBuffer_3( TSegmentManagerType* pSegmentManager )
+        : Plug{ { _PartPlug( pSegmentManager ) } }
+        , Socket2{ { _PartSocket2( pSegmentManager ) } }
+    {
+    }
+    _PartPlug    Plug[ 1 ];
+    _PartSocket2 Socket2[ 1 ];
+};
+/*
 template < typename TMemoryType >
 class ExampleBuffer
 {
@@ -40,7 +60,7 @@ public:
 
     int                                              m_int = 123;
     boost::interprocess::vector< int, IntAllocator > m_vector;
-};
+};*/
 
 template < typename TMemoryType, typename TBuffer >
 class IndexedBufferAllocator
@@ -117,7 +137,7 @@ private:
     FreeList             m_freeList;
 };
 
-using ExampleSharedBufferIndex = IndexedBufferAllocator< ManagedSharedMemory, ExampleBuffer< ManagedSharedMemory > >;
-using ExampleHeapBufferIndex   = IndexedBufferAllocator< ManagedHeapMemory, ExampleBuffer< ManagedHeapMemory > >;
+using ExampleSharedBufferIndex = IndexedBufferAllocator< mega::runtime::ManagedSharedMemory, SharedBuffer_3 >;
+// using ExampleHeapBufferIndex   = IndexedBufferAllocator< ManagedHeapMemory, SharedBuffer_3 >;
 
 #endif // COMMON_SEPT_1_2022

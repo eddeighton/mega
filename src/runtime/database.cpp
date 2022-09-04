@@ -1,5 +1,6 @@
 
 #include "database.hpp"
+#include "database/model/FinalStage.hxx"
 
 namespace mega
 {
@@ -12,6 +13,7 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     , m_database( m_environment, m_manifest.getManifestFilePath() )
     , m_components( m_database.many< FinalStage::Components::Component >( m_manifest.getManifestFilePath() ) )
     , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )
+    , m_concreteIDs( m_pSymbolTable->get_concrete_context_map() )
 {
 }
 
@@ -48,5 +50,58 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
     }
     THROW_RTE( "Failed to resolve invocation: " << invocation );
 }
+
+const FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectType ) const
+{
+    auto iFind = m_concreteIDs.find( objectType );
+    VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << objectType );
+    FinalStage::Concrete::Context* pContext = iFind->second;
+    FinalStage::Concrete::Object*  pObject
+        = FinalStage::dynamic_database_cast< FinalStage::Concrete::Object >( pContext );
+    VERIFY_RTE_MSG( pObject, "Failed to locate concrete object id: " << objectType );
+    return pObject;
+}
+
+const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::TypeID objectType ) const
+{
+    auto iFind = m_concreteIDs.find( objectType );
+    VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << objectType );
+    FinalStage::Concrete::Context* pContext = iFind->second;
+    return pContext->get_component();
+}
+
+std::size_t DatabaseInstance::getConcreteContextTotalAllocation( mega::TypeID concreteID ) const
+{
+    using namespace FinalStage;
+
+    auto iFind = m_concreteIDs.find( concreteID );
+    VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << concreteID );
+    FinalStage::Concrete::Context* pContext = iFind->second;
+
+    if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
+    {
+        return 1;
+    }
+    else if ( Concrete::Event* pEvent
+                = dynamic_database_cast< Concrete::Event >( pContext ) )
+    {
+        return pEvent->get_total_size();
+    }
+    else if ( Concrete::Action* pAction
+                = dynamic_database_cast< Concrete::Action >( pContext ) )
+    {
+        return pAction->get_total_size();
+    }
+    else if ( Concrete::Link* pLink
+                = dynamic_database_cast< Concrete::Link >( pContext ) )
+    {
+        return pLink->get_total_size();
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 } // namespace runtime
 } // namespace mega

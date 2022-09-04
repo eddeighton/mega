@@ -24,8 +24,9 @@ public:
         ID = mega::ROOT_TYPE_ID
     };
     mega::reference data;
-    inline Root( )
+    inline Root()
     {
+        data.value = mega::INVALID_ADDRESS;
     }
     inline Root( const mega::reference& reference )
         :   data( reference )

@@ -75,12 +75,17 @@ msg ExeReleaseExecutionContext
     response();
 }
 
-msg ExeAllocate
+msg ExeAcquireMemory
+{
+    request(mega::ExecutionIndex executionIndex);
+    response(std::string strMemoryName);
+}
+msg ExeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
     response(mega::AddressStorage logicalAddress);
 }
-msg ExeDeAllocate
+msg ExeDeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
     response();

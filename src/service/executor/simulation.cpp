@@ -44,16 +44,25 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
     }
 }
 
-LogicalAddress Simulation::allocate( ExecutionIndex executionIndex, TypeID objectTypeID )
+ExecutionIndex Simulation::getThisExecutionIndex()
+{
+    return m_executionIndex;
+}
+std::string Simulation::acquireMemory( ExecutionIndex executionIndex )
 {
     VERIFY_RTE( m_pYieldContext );
-    return LogicalAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocate( executionIndex, objectTypeID ) };
+    return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( executionIndex );
+}
+LogicalAddress Simulation::allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID )
+{
+    VERIFY_RTE( m_pYieldContext );
+    return LogicalAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocateLogical( executionIndex, objectTypeID ) };
 }
 
-void Simulation::deAllocate( ExecutionIndex executionIndex, LogicalAddress logicalAddress )
+void Simulation::deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress )
 {
     VERIFY_RTE( m_pYieldContext );
-    getLeafRequest( *m_pYieldContext ).ExeDeAllocate( executionIndex, Address{ logicalAddress } );
+    getLeafRequest( *m_pYieldContext ).ExeDeAllocateLogical( executionIndex, Address{ logicalAddress } );
 }
 
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
@@ -62,6 +71,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
     {
         const std::pair< bool, mega::ExecutionIndex > result = getLeafRequest( yield_ctx ).ExeCreateExecutionContext();
         VERIFY_RTE_MSG( result.first, "Failed to acquire execution index" );
+        m_executionIndex = result.second;
 
         std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
             mega::runtime::allocateRoot( result.second ), []( Root* pRoot ) { mega::runtime::releaseRoot( pRoot ); } );

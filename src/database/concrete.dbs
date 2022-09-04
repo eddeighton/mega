@@ -34,18 +34,6 @@ namespace Concrete
         {
             ref< Allocators::Allocator > allocator;
         }
-/*
-        object StopCycle : Allocation -> MemoryStage::MemoryLayout
-        {
-        }
-
-        object Reference : Allocation -> MemoryStage::MemoryLayout
-        {
-        }
-
-        object State : Allocation -> MemoryStage::MemoryLayout
-        {
-        }*/
     }
 
     object ContextGroup -> ConcreteStage::Concrete
@@ -55,6 +43,7 @@ namespace Concrete
 
     object Context : ContextGroup -> ConcreteStage::Concrete
     {
+        ref< Components::Component > component;
         ref< ContextGroup > parent;
         ref< Interface::IContext > interface;
         array< ref< Interface::IContext > > inheritance;

@@ -277,20 +277,29 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeReleaseExecutionContext();
     }
 
-    virtual void ExeAllocate( const mega::ExecutionIndex& executionIndex,
+    virtual void ExeAcquireMemory( const mega::ExecutionIndex& executionIndex,
+                                   boost::asio::yield_context& yield_ctx ) override
+    {
+        const network::ConversationID conversationID
+            = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( executionIndex );
+        const std::string strMemory = m_daemon.m_sharedMemoryManager.acquire( conversationID );
+        getStackTopLeafResponse( yield_ctx ).ExeAcquireMemory( strMemory );
+    }
+
+    virtual void ExeAllocateLogical( const mega::ExecutionIndex& executionIndex,
                               const mega::TypeID&         objectTypeID,
                               boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ExeAllocate( executionIndex, objectTypeID );
-        getStackTopLeafResponse( yield_ctx ).ExeAllocate( result );
+        auto result = getRootRequest( yield_ctx ).ExeAllocateLogical( executionIndex, objectTypeID );
+        getStackTopLeafResponse( yield_ctx ).ExeAllocateLogical( result );
     }
 
-    virtual void ExeDeAllocate( const mega::ExecutionIndex& executionIndex,
+    virtual void ExeDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
                                 const mega::AddressStorage& logicalAddress,
                                 boost::asio::yield_context& yield_ctx ) override
     {
-        getRootRequest( yield_ctx ).ExeDeAllocate( executionIndex, logicalAddress );
-        getStackTopLeafResponse( yield_ctx ).ExeDeAllocate();
+        getRootRequest( yield_ctx ).ExeDeAllocateLogical( executionIndex, logicalAddress );
+        getStackTopLeafResponse( yield_ctx ).ExeDeAllocateLogical();
     }
 
     // root_daemon
@@ -450,20 +459,29 @@ public:
         getRootRequest( yield_ctx ).ToolReleaseExecutionContext( index );
         getStackTopLeafResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
-    virtual void ToolAllocate( const mega::ExecutionIndex& executionIndex,
+
+    virtual void ToolAcquireMemory( const mega::ExecutionIndex& executionIndex,
+                                    boost::asio::yield_context& yield_ctx ) override
+    {
+        const network::ConversationID conversationID
+            = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( executionIndex );
+        const std::string strMemory = m_daemon.m_sharedMemoryManager.acquire( conversationID );
+        getStackTopLeafResponse( yield_ctx ).ToolAcquireMemory( strMemory );
+    }
+    virtual void ToolAllocateLogical( const mega::ExecutionIndex& executionIndex,
                                const mega::TypeID&         objectTypeID,
                                boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ToolAllocate( executionIndex, objectTypeID );
-        getStackTopLeafResponse( yield_ctx ).ToolAllocate( result );
+        auto result = getRootRequest( yield_ctx ).ToolAllocateLogical( executionIndex, objectTypeID );
+        getStackTopLeafResponse( yield_ctx ).ToolAllocateLogical( result );
     }
 
-    virtual void ToolDeAllocate( const mega::ExecutionIndex& executionIndex,
+    virtual void ToolDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
                                  const mega::AddressStorage& logicalAddress,
                                  boost::asio::yield_context& yield_ctx ) override
     {
-        getRootRequest( yield_ctx ).ToolDeAllocate( executionIndex, logicalAddress );
-        getStackTopLeafResponse( yield_ctx ).ToolDeAllocate();
+        getRootRequest( yield_ctx ).ToolDeAllocateLogical( executionIndex, logicalAddress );
+        getStackTopLeafResponse( yield_ctx ).ToolDeAllocateLogical();
     }
 };
 
@@ -489,10 +507,6 @@ network::ConversationBase::Ptr Daemon::joinConversation( const network::Connecti
                                                          const network::Header&       header,
                                                          const network::Message&      msg )
 {
-    /*switch ( msgHeader.getMessageID() )
-    {
-        default:
-    }*/
     return network::ConversationBase::Ptr(
         new DaemonRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
@@ -513,6 +527,7 @@ void Daemon::conversationEnd( const network::Header& header, const network::Rece
     auto pCon = m_leafServer.getConnection( msg.connectionID );
     VERIFY_RTE( pCon );
     pCon->conversationEnd( header.getConversationID() );
+    m_sharedMemoryManager.release( header.getConversationID() );
     boost::asio::spawn(
         m_ioContext,
         [ &m_rootClient = m_rootClient, header, message = msg.msg ]( boost::asio::yield_context yield_ctx )

@@ -18,12 +18,17 @@ msg ToolReleaseExecutionContext
     response();
 }
 
-msg ToolAllocate
+msg ToolAcquireMemory
+{
+    request(mega::ExecutionIndex executionIndex);
+    response(std::string strMemoryName);
+}
+msg ToolAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
     response(mega::AddressStorage logicalAddress);
 }
-msg ToolDeAllocate
+msg ToolDeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
     response();

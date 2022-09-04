@@ -58,7 +58,7 @@ struct TypeInstance
                                             : false;
     }
 };
-static_assert( sizeof( TypeInstance ) == 4U );
+static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
 
 enum AddressType
 {
@@ -72,14 +72,14 @@ struct PhysicalAddress
     // 2 ^ 22   == 4194304
     AddressStorage execution : 9, object : 22, type : 1;
 };
-static_assert( sizeof( PhysicalAddress ) == 4U );
+static_assert( sizeof( PhysicalAddress ) == 4U, "Invalid PhysicalAddress Size");
 
 struct LogicalAddress
 {
     // 2 ^ 31   == 2147483648
     AddressStorage address : 31, type : 1;
 };
-static_assert( sizeof( LogicalAddress ) == 4U );
+static_assert( sizeof( LogicalAddress ) == 4U, "Invalid LogicalAddress Size" );
 
 struct Address
 {
@@ -113,7 +113,7 @@ struct Address
     inline bool        operator!=( const Address& cmp ) const { return !( *this == cmp ); }
     inline bool        operator<( const Address& cmp ) const { return value < cmp.value; }
 };
-static_assert( sizeof( Address ) == 4U );
+static_assert( sizeof( Address ) == 4U, "Invalid Address Size" );
 
 struct reference : TypeInstance, Address
 {
@@ -129,7 +129,7 @@ struct reference : TypeInstance, Address
                                                : false;
     }
 };
-static_assert( sizeof( reference ) == 8U );
+static_assert( sizeof( reference ) == 8U, "Invalid reference Size" );
 
 enum ActionState
 {

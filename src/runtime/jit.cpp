@@ -112,24 +112,40 @@ public:
             return jitAddress;
         }
     */
-    virtual mega::runtime::AllocateFunction getAllocate( const std::string& strSymbol )
+    template < typename TFunctionPtrType >
+    TFunctionPtrType getFunctionPtr( const std::string& strSymbol )
     {
-        auto allocateFunction = ExitOnErr( m_jit.lookup( m_jitDynLib, strSymbol ) );
-        VERIFY_RTE( allocateFunction );
+        auto functionPtr = ExitOnErr( m_jit.lookup( m_jitDynLib, strSymbol ) );
+        VERIFY_RTE( functionPtr );
 
-        mega::runtime::AllocateFunction pResultFunction = allocateFunction.toPtr< mega::runtime::AllocateFunction >();
+        TFunctionPtrType pResultFunction = functionPtr.toPtr< TFunctionPtrType >();
         VERIFY_RTE( pResultFunction );
         return pResultFunction;
     }
 
-    virtual mega::runtime::ReadFunction getRead( const std::string& strSymbol )
+    virtual mega::runtime::GetSharedFunction getGetShared( const std::string& strSymbol ) override
     {
-        auto invocationFunctionAddress = ExitOnErr( m_jit.lookup( m_jitDynLib, strSymbol ) );
-        VERIFY_RTE( invocationFunctionAddress );
+        return getFunctionPtr< mega::runtime::GetSharedFunction >( strSymbol );
+    }
+    
+    virtual mega::runtime::AllocationSharedFunction getAllocationShared( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::AllocationSharedFunction >( strSymbol );
+    }
 
-        mega::runtime::ReadFunction pResultFunction = invocationFunctionAddress.toPtr< mega::runtime::ReadFunction >();
-        VERIFY_RTE( pResultFunction );
-        return pResultFunction;
+    virtual mega::runtime::DeAllocationSharedFunction getDeAllocationShared( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::DeAllocationSharedFunction >( strSymbol );
+    }
+
+    virtual mega::runtime::AllocateFunction getAllocate( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::AllocateFunction >( strSymbol );
+    }
+
+    virtual mega::runtime::ReadFunction getRead( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::ReadFunction >( strSymbol );
     }
 
 private:

@@ -22,6 +22,7 @@ public:
     CodeGenerator( const mega::network::MegastructureInstallation& megastructureInstallation,
                    const mega::network::Project&                   project );
 
+    void generate_allocation( const DatabaseInstance& database, mega::TypeID objectTypeID, std::ostream& os );
     void generate_allocate( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
     void generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
 

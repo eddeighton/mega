@@ -14,9 +14,13 @@ public:
     static ExecutionContext* execution_get();
 
 public:
+    virtual ExecutionIndex getThisExecutionIndex() = 0;
 
-    virtual LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID ) = 0;
-    virtual void deAllocate( ExecutionIndex executionIndex, LogicalAddress logicalAddress ) = 0;
+    virtual std::string acquireMemory( ExecutionIndex executionIndex ) = 0;
+
+    virtual LogicalAddress allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID ) = 0;
+    virtual void deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress ) = 0;
+
 };
 
 #define SUSPEND_EXECUTION_CONTEXT()                                            \

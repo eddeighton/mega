@@ -103,6 +103,7 @@ public:
         const std::pair< bool, mega::ExecutionIndex > result = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
         VERIFY_RTE_MSG( result.first, "Failed to acquire execution context" );
         SPDLOG_INFO( "Acquired execution context: {}", result.second );
+        m_executionIndex = result.second;
 
         std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
             mega::runtime::allocateRoot( result.second ), []( Root* pRoot ) { mega::runtime::releaseRoot( pRoot ); } );
@@ -115,20 +116,32 @@ public:
     }
 
     // mega::ExecutionContext
-    virtual LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID )
+    virtual ExecutionIndex getThisExecutionIndex() override
+    {
+        return m_executionIndex;
+    }
+    virtual std::string acquireMemory( ExecutionIndex executionIndex )
     {
         VERIFY_RTE( m_pYieldContext );
-        SPDLOG_INFO( "allocate called with: {} {}", executionIndex, objectTypeID );
-        return LogicalAddress{ getToolRequest( *m_pYieldContext ).ToolAllocate( executionIndex, objectTypeID ) };
+        SPDLOG_INFO( "acquireMemory called with: {}", executionIndex );
+        return getToolRequest( *m_pYieldContext ).ToolAcquireMemory( executionIndex );
     }
-    virtual void deAllocate( ExecutionIndex executionIndex, LogicalAddress logicalAddress )
+
+    virtual LogicalAddress allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        SPDLOG_INFO( "allocateLogical called with: {} {}", executionIndex, objectTypeID );
+        return LogicalAddress{ getToolRequest( *m_pYieldContext ).ToolAllocateLogical( executionIndex, objectTypeID ) };
+    }
+    virtual void deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress )
     {
         VERIFY_RTE( m_pYieldContext );
         SPDLOG_INFO( "deAllocate called with: {} {}", executionIndex, logicalAddress );
-        getToolRequest( *m_pYieldContext ).ToolDeAllocate( executionIndex, Address{ logicalAddress } );
+        getToolRequest( *m_pYieldContext ).ToolDeAllocateLogical( executionIndex, Address{ logicalAddress } );
     }
 
     boost::asio::yield_context* m_pYieldContext = nullptr;
+    mega::ExecutionIndex m_executionIndex;
 };
 
 Tool::Tool()

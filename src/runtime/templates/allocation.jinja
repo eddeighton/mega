@@ -1,3 +1,155 @@
 
-#include <boost/interprocess/managed_shared_memory.hpp>
+#include "mega/common.hpp"
+#include "mega/default_traits.hpp"
 
+namespace mega
+{
+namespace runtime
+{
+ManagedHeapMemory&   getHeapMemoryManager( mega::ExecutionIndex executionIndex );
+ManagedSharedMemory& getSharedMemoryManager( mega::ExecutionIndex executionIndex );
+}
+}
+
+{% for part in shared_parts %}
+struct {{part.type}}
+{
+    using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
+    {{part.type}}( TSegmentManagerType* pSegmentManager ) :
+{% for member in part.members %}
+        {{member.name}}( mega::DimensionTraits< {{ member.type }} >::init( pSegmentManager ) ){% if not loop.is_last%},{% endif %}
+{% endfor %}
+    {}
+{% for member in part.members %}
+    {{member.type}} {{member.name}};
+{% endfor %}
+};
+{% endfor %}
+
+struct SharedBuffer_{{ ObjectTypeID }}
+{
+    using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
+    SharedBuffer_{{ ObjectTypeID }}( TSegmentManagerType* pSegmentManager ) :
+{% for part in shared_parts %}
+        {{part.name}}{ { {%for init in part.inits %}pSegmentManager{% if not loop.is_last%},{% endif %}{% endfor %} } }{% if not loop.is_last%},{% endif %}
+{% endfor %}
+    {}
+{% for part in shared_parts %}
+    {{part.type}} {{part.name}}[ {{part.size}} ];
+{% endfor %}
+};
+
+class SharedIndexAllocator_{{ ObjectTypeID }}
+{
+public:
+    using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
+    using TBuffer             = SharedBuffer_{{ ObjectTypeID }};
+    using Ptr                 = boost::interprocess::offset_ptr< TBuffer >;
+
+private:
+    using BufferAllocator = boost::interprocess::allocator< TBuffer, TSegmentManagerType >;
+    using PtrAllocator    = boost::interprocess::allocator< Ptr, TSegmentManagerType >;
+    using IndexAllocator  = boost::interprocess::allocator< mega::ObjectIndex, TSegmentManagerType >;
+    using BufferVector    = boost::interprocess::vector< Ptr, PtrAllocator >;
+    using FreeList        = boost::interprocess::vector< mega::ObjectIndex, IndexAllocator >;
+
+public:
+    SharedIndexAllocator_{{ ObjectTypeID }}( TSegmentManagerType* pSegmentManager )
+        :   m_pSegmentManager( pSegmentManager )
+        , m_bufferAllocator( pSegmentManager )
+        , m_buffers( PtrAllocator{ pSegmentManager } )
+        , m_freeList( IndexAllocator{ pSegmentManager } )
+    {
+
+    }
+
+    mega::ObjectIndex allocate()
+    {
+        Ptr pBuffer = m_bufferAllocator.allocate_one();
+        try
+        {
+            m_bufferAllocator.construct( pBuffer, m_pSegmentManager );
+
+            if ( !m_freeList.empty() )
+            {
+                mega::ObjectIndex index = m_freeList.back();
+                m_buffers[ index ] = pBuffer;
+                m_freeList.pop_back();
+                return index;
+            }
+            else
+            {
+                m_buffers.push_back( pBuffer );
+                return m_buffers.size() - 1U;
+            }
+        }
+        catch ( boost::container::out_of_range& ex )
+        {
+            m_bufferAllocator.deallocate_one( pBuffer );
+            throw boost::interprocess::bad_alloc{};
+        }
+        catch ( boost::interprocess::bad_alloc& ex )
+        {
+            m_bufferAllocator.deallocate_one( pBuffer );
+            throw boost::interprocess::bad_alloc{};
+        }
+    }
+
+    void deallocate( mega::ObjectIndex index )
+    {
+        m_freeList.push_back( index );
+        Ptr pBuffer = m_buffers[ index ];
+        m_bufferAllocator.destroy( pBuffer );
+        m_bufferAllocator.deallocate_one( pBuffer );
+    }
+
+    Ptr get( mega::ObjectIndex index ) const { return m_buffers[ index ]; }
+
+    std::size_t size() const { return m_buffers.size() - m_freeList.size(); }
+
+private:
+    TSegmentManagerType* m_pSegmentManager;
+    BufferAllocator      m_bufferAllocator;
+    BufferVector         m_buffers;
+    FreeList             m_freeList;
+};
+
+SharedIndexAllocator_{{ ObjectTypeID }}* g_shared_allocators_{{ ObjectTypeID }}[ mega::MAX_SIMULATIONS ] = {};
+
+SharedBuffer_{{ ObjectTypeID }}* get_shared_{{ ObjectTypeID }}( mega::PhysicalAddress address )
+{
+    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = g_shared_allocators_{{ ObjectTypeID }}[ address.execution ];
+    if( pAllocator == nullptr )
+    {
+        mega::runtime::ManagedSharedMemory& managedSharedMemory = mega::runtime::getSharedMemoryManager( address.execution );
+        pAllocator = new SharedIndexAllocator_{{ ObjectTypeID }}( managedSharedMemory.get_segment_manager() );
+        g_shared_allocators_{{ ObjectTypeID }}[ address.execution ] = pAllocator;
+    }
+    return pAllocator->get( address.object ).get();
+}
+
+mega::PhysicalAddress alloc_shared_{{ ObjectTypeID }}( mega::ExecutionIndex executionIndex )
+{
+    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = g_shared_allocators_{{ ObjectTypeID }}[ executionIndex ];
+    if( pAllocator == nullptr )
+    {
+        mega::runtime::ManagedSharedMemory& managedSharedMemory = mega::runtime::getSharedMemoryManager( executionIndex );
+        pAllocator = new SharedIndexAllocator_{{ ObjectTypeID }}( managedSharedMemory.get_segment_manager() );
+        g_shared_allocators_{{ ObjectTypeID }}[ executionIndex ] = pAllocator;
+    }
+
+    mega::PhysicalAddress result;
+    {
+        result.type      = mega::PHYSICAL_ADDRESS;
+        result.execution = executionIndex;
+        result.object    = pAllocator->allocate();
+    }
+
+    return result;
+}
+
+void dealloc_shared_{{ ObjectTypeID }}( mega::PhysicalAddress address )
+{
+    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = g_shared_allocators_{{ ObjectTypeID }}[ address.execution ];
+    pAllocator->deallocate( address.object );
+}

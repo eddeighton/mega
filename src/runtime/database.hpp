@@ -21,13 +21,17 @@ public:
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
     const FinalStage::Operations::Invocation* getInvocation( const mega::InvocationID& invocation ) const;
+    const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
+    const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
+    std::size_t                               getConcreteContextTotalAllocation( mega::TypeID concreteID ) const;
 
 private:
-    mega::io::ArchiveEnvironment                      m_environment;
-    mega::io::Manifest                                m_manifest;
-    FinalStage::Database                              m_database;
-    std::vector< FinalStage::Components::Component* > m_components;
-    FinalStage::Symbols::SymbolTable*                 m_pSymbolTable;
+    mega::io::ArchiveEnvironment                             m_environment;
+    mega::io::Manifest                                       m_manifest;
+    FinalStage::Database                                     m_database;
+    std::vector< FinalStage::Components::Component* >        m_components;
+    FinalStage::Symbols::SymbolTable*                        m_pSymbolTable;
+    std::map< std::int32_t, FinalStage::Concrete::Context* > m_concreteIDs;
 };
 
 } // namespace runtime

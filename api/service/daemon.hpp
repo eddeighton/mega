@@ -1,6 +1,8 @@
 #ifndef DAEMON_25_MAY_2022
 #define DAEMON_25_MAY_2022
 
+#include "service/shared_memory_manager.hpp"
+
 #include "service/network/client.hpp"
 #include "service/network/server.hpp"
 #include "service/network/conversation_manager.hpp"
@@ -29,8 +31,9 @@ public:
     virtual void conversationEnd( const network::Header& header, const network::ReceivedMsg& msg );
 
 private:
-    network::Client m_rootClient;
-    network::Server m_leafServer;
+    network::Client     m_rootClient;
+    network::Server     m_leafServer;
+    SharedMemoryManager m_sharedMemoryManager;
 };
 } // namespace service
 } // namespace mega

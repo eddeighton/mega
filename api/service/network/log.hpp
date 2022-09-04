@@ -3,6 +3,8 @@
 #define LOG_28_MAY_2022
 
 #include "mega/common.hpp"
+#include "mega/invocation_id.hpp"
+
 #include "service/protocol/model/messages.hxx"
 
 #include "spdlog/spdlog.h"
@@ -233,6 +235,19 @@ struct formatter< mega::reference >
     {
         return format_to( ctx.out(), "{}.{}", static_cast< const mega::Address& >( ref ),
                           static_cast< const mega::TypeInstance& >( ref ) );
+    }
+};
+
+template <>
+struct formatter< mega::InvocationID >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::InvocationID& invocationID, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        std::ostringstream os;
+        os << invocationID;
+        return format_to( ctx.out(), "{}", os.str() );
     }
 };
 

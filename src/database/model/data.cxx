@@ -3376,14 +3376,16 @@ namespace Concrete
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
           , p_PerSourceConcreteTable_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Context( loader )
+          , component( loader )
           , parent( loader )
           , interface( loader )
     {
     }
-    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_ContextGroup >& parent, const data::Ptr< data::Tree::Interface_IContext >& interface, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& inheritance)
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Components::Components_Component >& component, const data::Ptr< data::Concrete::Concrete_ContextGroup >& parent, const data::Ptr< data::Tree::Interface_IContext >& interface, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& inheritance)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Concrete::Concrete_Context >( loader, this ) )          , p_Concrete_Concrete_ContextGroup( loader )
           , p_PerSourceConcreteTable_Concrete_Context( loader )
           , p_MemoryLayout_Concrete_Context( loader )
+          , component( component )
           , parent( parent )
           , interface( interface )
           , inheritance( inheritance )
@@ -3400,6 +3402,7 @@ namespace Concrete
     void Concrete_Context::load( mega::io::Loader& loader )
     {
         loader.load( p_Concrete_Concrete_ContextGroup );
+        loader.load( component );
         loader.load( parent );
         loader.load( interface );
         loader.load( inheritance );
@@ -3407,6 +3410,7 @@ namespace Concrete
     void Concrete_Context::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_ContextGroup );
+        storer.store( component );
         storer.store( parent );
         storer.store( interface );
         storer.store( inheritance );
@@ -3422,6 +3426,11 @@ namespace Concrete
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "component", component } } );
+            _part__[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "parent", parent } } );
@@ -8928,6 +8937,83 @@ data::Ptr< data::Components::Components_Component >& get_component(std::variant<
             {
                 data::Ptr< data::AST::Parser_SourceRoot > part = 
                     data::convert< data::AST::Parser_SourceRoot >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_component" );
+                return part->component;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_component" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Components::Components_Component >& get_component(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Components::Components_Component >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Context > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Namespace > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Event > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Function > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Object > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Link > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Buffer > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_component" );
                 return part->component;
@@ -19256,6 +19342,83 @@ data::Ptr< data::Components::Components_Component >& set_component(std::variant<
             {
                 data::Ptr< data::AST::Parser_SourceRoot > part = 
                     data::convert< data::AST::Parser_SourceRoot >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_component" );
+                return part->component;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_component" );
+            }
+        }
+        , m_data );
+}
+data::Ptr< data::Components::Components_Component >& set_component(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> data::Ptr< data::Components::Components_Component >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Context > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Namespace > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Event > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Function > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Object > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Link > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_component" );
+                return part->component;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Buffer > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Context > part = 
+                    data::convert< data::Concrete::Concrete_Context >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: set_component" );
                 return part->component;

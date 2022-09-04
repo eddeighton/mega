@@ -55,13 +55,16 @@ public:
                                          boost::asio::yield_context&          yield_ctx ) override;
 
     // mega::ExecutionContext
-    virtual LogicalAddress allocate( ExecutionIndex executionIndex, TypeID objectTypeID );
-    virtual void deAllocate( ExecutionIndex executionIndex, LogicalAddress logicalAddress );
+    virtual ExecutionIndex getThisExecutionIndex() override;
+    virtual std::string    acquireMemory( ExecutionIndex executionIndex ) override;
+    virtual LogicalAddress allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID ) override;
+    virtual void           deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress ) override;
 
 private:
     network::ConcurrentChannel  m_requestChannel;
     network::Sender::Ptr        m_pRequestChannelSender;
     boost::asio::yield_context* m_pYieldContext = nullptr;
+    ExecutionIndex              m_executionIndex;
 };
 
 } // namespace service

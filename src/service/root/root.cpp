@@ -2,6 +2,7 @@
 #include "service/root.hpp"
 
 #include "mega/common.hpp"
+#include "mega/execution_context.hpp"
 #include "pipeline/task.hpp"
 
 #include "service/network/conversation.hpp"
@@ -105,6 +106,13 @@ public:
     }
 
     // network::daemon_root::Impl
+    virtual void DaemonGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
+                                              boost::asio::yield_context& yield_ctx ) override
+    {
+        const network::ConversationID& conversationID = m_root.m_executionContextManager.get( executionIndex );
+        getStackTopDaemonResponse( yield_ctx ).DaemonGetExecutionContextID( conversationID );
+    }
+
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
         std::vector< std::string > nodes;
@@ -335,20 +343,20 @@ public:
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ToolGetMegastructureInstallation( m_root.getMegastructureInstallation() );
     }
-    virtual void ExeAllocate( const mega::ExecutionIndex& executionIndex,
-                              const mega::TypeID&         objectTypeID,
-                              boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeAllocateLogical( const mega::ExecutionIndex& executionIndex,
+                                     const mega::TypeID&         objectTypeID,
+                                     boost::asio::yield_context& yield_ctx ) override
     {
-        const Address result = m_root.m_logicalAddressSpace.allocate( executionIndex, objectTypeID );
-        getStackTopDaemonResponse( yield_ctx ).ExeAllocate( result.value );
+        const Address result = m_root.m_logicalAddressSpace.allocateLogical( executionIndex, objectTypeID );
+        getStackTopDaemonResponse( yield_ctx ).ExeAllocateLogical( result.value );
     }
 
-    virtual void ExeDeAllocate( const mega::ExecutionIndex& executionIndex,
-                                const mega::AddressStorage& logicalAddress,
-                                boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
+                                       const mega::AddressStorage& logicalAddress,
+                                       boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_logicalAddressSpace.deAllocate( executionIndex, logicalAddress );
-        getStackTopDaemonResponse( yield_ctx ).ExeDeAllocate();
+        m_root.m_logicalAddressSpace.deAllocateLogical( executionIndex, logicalAddress );
+        getStackTopDaemonResponse( yield_ctx ).ExeDeAllocateLogical();
     }
 
     virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
@@ -363,20 +371,20 @@ public:
         m_root.m_executionContextManager.release( index );
         getStackTopDaemonResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
-    virtual void ToolAllocate( const mega::ExecutionIndex& executionIndex,
-                               const mega::TypeID&         objectTypeID,
-                               boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolAllocateLogical( const mega::ExecutionIndex& executionIndex,
+                                      const mega::TypeID&         objectTypeID,
+                                      boost::asio::yield_context& yield_ctx ) override
     {
-        const Address result = m_root.m_logicalAddressSpace.allocate( executionIndex, objectTypeID );
-        getStackTopDaemonResponse( yield_ctx ).ToolAllocate( result );
+        const Address result = m_root.m_logicalAddressSpace.allocateLogical( executionIndex, objectTypeID );
+        getStackTopDaemonResponse( yield_ctx ).ToolAllocateLogical( result );
     }
 
-    virtual void ToolDeAllocate( const mega::ExecutionIndex& executionIndex,
-                                 const mega::AddressStorage& logicalAddress,
-                                 boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
+                                        const mega::AddressStorage& logicalAddress,
+                                        boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_logicalAddressSpace.deAllocate( executionIndex, logicalAddress );
-        getStackTopDaemonResponse( yield_ctx ).ToolDeAllocate();
+        m_root.m_logicalAddressSpace.deAllocateLogical( executionIndex, logicalAddress );
+        getStackTopDaemonResponse( yield_ctx ).ToolDeAllocateLogical();
     }
 };
 
