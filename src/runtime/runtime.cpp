@@ -2,6 +2,7 @@
 
 #include "runtime/runtime.hpp"
 
+#include "address_space.hpp"
 #include "jit.hpp"
 #include "component_manager.hpp"
 #include "database.hpp"
@@ -27,7 +28,6 @@ namespace mega
 {
 namespace runtime
 {
-
 namespace
 {
 
@@ -44,7 +44,7 @@ class Runtime
             runtime.get_allocation( m_objectTypeID, &m_pGetShared, &m_pAllocationShared, &m_pDeAllocationShared );
         }
 
-        PhysicalAddress acquire( ExecutionIndex executionIndex )
+        PhysicalAddress allocateShared( ExecutionIndex executionIndex )
         {
             return m_pAllocationShared( executionIndex );
         }
@@ -56,7 +56,6 @@ class Runtime
         DeAllocationSharedFunction m_pDeAllocationShared = nullptr;
     };
     // LogicalAddress -> PhysicalAddress
-    using AddressMapping         = std::unordered_map< AddressStorage, AddressStorage >;
     using IndexArray             = std::array< void*, mega::MAX_SIMULATIONS >;
     using ObjectTypeAllocatorMap = std::unordered_map< TypeID, ObjectTypeAllocator::Ptr >;
 
@@ -115,19 +114,21 @@ public:
     {
         SPDLOG_INFO( "logicalToPhysical: {} {} {}", executionIndex, objectTypeID, logicalAddress );
 
-        auto iFind = m_addressMapping.find( Address{ logicalAddress } );
-        if ( iFind != m_addressMapping.end() )
+        AddressSpace::Lock lock( m_addressSpace.mutex() );
+
+        auto resultOpt = m_addressSpace.find( logicalAddress );
+        if ( resultOpt.has_value() )
         {
             // ensure the object type allocator is established
             getOrCreateObjectTypeAllocator( objectTypeID );
-            return Address{ iFind->second }.physical;
+            return resultOpt.value();
         }
         else
         {
-            ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
-            const PhysicalAddress    result     = pAllocator->acquire( executionIndex );
-            m_addressMapping.insert( { Address{ logicalAddress }, Address{ result } } );
-            return result;
+            ObjectTypeAllocator::Ptr pAllocator      = getOrCreateObjectTypeAllocator( objectTypeID );
+            const PhysicalAddress    physicalAddress = pAllocator->allocateShared( executionIndex );
+            m_addressSpace.insert( logicalAddress, physicalAddress );
+            return physicalAddress;
         }
     }
 
@@ -235,6 +236,8 @@ public:
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
+        std::lock_guard< std::mutex > lock( m_jitMutex );
+
         JITCompiler::Module::Ptr pModule;
         {
             auto iFind = m_allocations.find( objectTypeID );
@@ -280,6 +283,8 @@ public:
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
+        std::lock_guard< std::mutex > lock( m_jitMutex );
+
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
         JITCompiler::Module::Ptr pModule;
@@ -307,6 +312,8 @@ public:
     {
         VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
 
+        std::lock_guard< std::mutex > lock( m_jitMutex );
+
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
         JITCompiler::Module::Ptr pModule;
@@ -331,12 +338,13 @@ public:
     }
 
 private:
+    std::mutex                          m_jitMutex;
     std::unique_ptr< CodeGenerator >    m_pCodeGenerator;
     std::unique_ptr< JITCompiler >      m_pJITCompiler;
     ComponentManager::Ptr               m_componentManager;
     std::unique_ptr< DatabaseInstance > m_database;
     bool                                m_bInitialised = false;
-    AddressMapping                      m_addressMapping;
+    AddressSpace                        m_addressSpace;
     ObjectTypeAllocatorMap              m_objectTypeAllocatorMapping;
     ExecutionContextRoot                m_executionContextRoot;
     ExecutionContextMemoryArray         m_executionContextMemory;
