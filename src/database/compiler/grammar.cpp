@@ -40,11 +40,9 @@ namespace db
             {
             }
 
-            void operator()( Iterator first, Iterator last, Iterator err_pos, boost::spirit::info const& what ) const
+            void operator()( Iterator, Iterator, Iterator err_pos, boost::spirit::info const& what ) const
             {
-                Iterator eol = err_pos;
-                // int line = calculateLineNumber( first, err_pos );
-                int line = boost::spirit::get_line( err_pos );
+                const int line = boost::spirit::get_line( err_pos );
                 if ( line != -1 )
                     errorStream << '(' << line << ')';
                 else

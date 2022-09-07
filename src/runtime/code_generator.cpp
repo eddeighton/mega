@@ -7,6 +7,7 @@
 
 #include "common/file.hpp"
 #include "common/string.hpp"
+#include "common/stash.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -27,106 +28,86 @@ namespace runtime
 namespace
 {
 
-class GeneratorUtil
+void runCompilation( const std::string& strCmd )
 {
-public:
-    GeneratorUtil( const boost::filesystem::path& clangPath, const boost::filesystem::path& tempDir )
-        : m_clangPath( clangPath )
-        , m_uuid( common::uuid() )
-        , m_sourcePath( tempDir / ( m_uuid + ".cpp" ) )
-        , m_irPath( tempDir / ( m_uuid + ".ir" ) )
-    {
-    }
+    SPDLOG_DEBUG( "Compiling: {}", strCmd );
 
-    std::unique_ptr< boost::filesystem::ofstream > createSourceFile()
+    std::ostringstream osOutput, osError;
+    int                iCompilationResult = 0;
     {
-        return boost::filesystem::createNewFileStream( m_sourcePath );
-    }
+        namespace bp = boost::process;
 
-    void compile( const std::string& strCmd, std::ostream& os )
-    {
-        SPDLOG_INFO( "Compiling: {}", strCmd );
+        bp::ipstream errStream, outStream; // reading pipe-stream
+        bp::child    c( strCmd, bp::std_out > outStream, bp::std_err > errStream );
 
-        std::ostringstream osOutput, osError;
-        int                iCompilationResult = 0;
+        std::string strOutputLine;
+        while ( c.running() && std::getline( outStream, strOutputLine ) )
         {
-            namespace bp = boost::process;
+            if ( !strOutputLine.empty() )
+            {
+                osOutput << "\nOUT    : " << strOutputLine;
+            }
+        }
 
-            bp::ipstream errStream, outStream; // reading pipe-stream
-            bp::child    c( strCmd, bp::std_out > outStream, bp::std_err > errStream );
-
-            std::string strOutputLine;
-            while ( c.running() && std::getline( outStream, strOutputLine ) )
+        c.wait();
+        iCompilationResult = c.exit_code();
+        if ( iCompilationResult )
+        {
+            osError << common::COLOUR_RED_BEGIN << "FAILED : "; // << m_sourcePath.string();
+            while ( errStream && std::getline( errStream, strOutputLine ) )
             {
                 if ( !strOutputLine.empty() )
                 {
-                    osOutput << "\nOUT    : " << strOutputLine;
+                    osError << "\nERROR  : " << strOutputLine;
                 }
             }
+            osError << common::COLOUR_END;
+        }
+    }
+    VERIFY_RTE_MSG( iCompilationResult == 0, "Error compilation invocation: " << osError.str() );
+}
 
-            c.wait();
-            iCompilationResult = c.exit_code();
-            if ( iCompilationResult )
+void compile( const boost::filesystem::path& clangPath,
+              const boost::filesystem::path& inputCPPFilePath,
+              const boost::filesystem::path& outputIRFilePath,
+              std::optional< const FinalStage::Components::Component* >
+                  pComponent )
+{
+    auto startTime = std::chrono::steady_clock::now();
+    {
+        std::ostringstream osCmd;
+
+        osCmd << clangPath << " -S -emit-llvm ";
+
+        if ( pComponent.has_value() )
+        {
+            // flags
+            for ( const std::string& flag : pComponent.value()->get_cpp_flags() )
             {
-                osError << common::COLOUR_RED_BEGIN << "FAILED : " << m_sourcePath.string();
-                while ( errStream && std::getline( errStream, strOutputLine ) )
-                {
-                    if ( !strOutputLine.empty() )
-                    {
-                        osError << "\nERROR  : " << strOutputLine;
-                    }
-                }
-                osError << common::COLOUR_END;
+                VERIFY_RTE( !flag.empty() );
+                osCmd << "-" << flag << " ";
+            }
+
+            // defines
+            for ( const std::string& strDefine : pComponent.value()->get_cpp_defines() )
+            {
+                VERIFY_RTE( !strDefine.empty() );
+                osCmd << "-D" << strDefine << " ";
+            }
+
+            // include directories
+            for ( const boost::filesystem::path& includeDir : pComponent.value()->get_include_directories() )
+            {
+                osCmd << "-I " << includeDir.native() << " ";
             }
         }
-        VERIFY_RTE_MSG( iCompilationResult == 0, "Error compilation invocation: " << osError.str() );
 
-        boost::filesystem::loadAsciiFile( m_irPath, os );
+        osCmd << "-o " << outputIRFilePath.native() << " -c " << inputCPPFilePath.native();
+        runCompilation( osCmd.str() );
     }
-
-    void compile( const FinalStage::Components::Component* pComponent, std::ostream& os )
-    {
-        std::ostringstream osCmd;
-
-        osCmd << m_clangPath << " -S -emit-llvm ";
-
-        // flags
-        for ( const std::string& flag : pComponent->get_cpp_flags() )
-        {
-            VERIFY_RTE( !flag.empty() );
-            osCmd << "-" << flag << " ";
-        }
-
-        // defines
-        for ( const std::string& strDefine : pComponent->get_cpp_defines() )
-        {
-            VERIFY_RTE( !strDefine.empty() );
-            osCmd << "-D" << strDefine << " ";
-        }
-
-        // include directories
-        for ( const boost::filesystem::path& includeDir : pComponent->get_include_directories() )
-        {
-            osCmd << "-I " << includeDir.native() << " ";
-        }
-
-        osCmd << "-o " << m_irPath.native() << " -c " << m_sourcePath.native();
-        compile( osCmd.str(), os );
-    }
-
-    void compile( std::ostream& os )
-    {
-        std::ostringstream osCmd;
-        osCmd << m_clangPath << " -S -emit-llvm -o " << m_irPath.native() << " -c " << m_sourcePath.native();
-        compile( osCmd.str(), os );
-    }
-
-private:
-    const boost::filesystem::path& m_clangPath;
-    const std::string              m_uuid;
-    const boost::filesystem::path  m_sourcePath;
-    const boost::filesystem::path  m_irPath;
-};
+    const auto timeDelta = std::chrono::steady_clock::now() - startTime;
+    SPDLOG_TRACE( "Clang Compilation time: {}", timeDelta );
+}
 
 } // namespace
 
@@ -137,11 +118,21 @@ class CodeGenerator::Pimpl
     ::inja::Template                               m_allocationTemplate;
     ::inja::Template                               m_allocateTemplate;
     ::inja::Template                               m_readTemplate;
+    boost::filesystem::path                        m_clangPath;
+    boost::filesystem::path                        m_tempDir;
 
 public:
-    Pimpl( const mega::network::MegastructureInstallation& megastructureInstallation )
+    Pimpl( const mega::network::MegastructureInstallation& megastructureInstallation,
+           const mega::network::Project&                   project )
         : m_megastructureInstallation( megastructureInstallation )
+        , m_tempDir( project.getProjectTempDir() )
+        , m_clangPath( megastructureInstallation.getClangPath() )
     {
+        if ( !boost::filesystem::exists( m_tempDir ) )
+        {
+            boost::filesystem::create_directories( m_tempDir );
+        }
+
         m_injaEnvironment.set_trim_blocks( true );
 
         m_allocationTemplate
@@ -164,23 +155,43 @@ public:
     {
         m_injaEnvironment.render_to( os, m_readTemplate, data );
     }
+
+    void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
+                          std::optional< const FinalStage::Components::Component* > pComponent )
+    {
+        ExecutionContext* pExecutionContext = ExecutionContext::get();
+        VERIFY_RTE( pExecutionContext );
+
+        const boost::filesystem::path irFilePath = m_tempDir / ( strName + ".ir" );
+
+        const task::DeterminantHash determinant{ strCPPCode };
+        if ( pExecutionContext->restore( irFilePath.native(), determinant.get() ) )
+        {
+            boost::filesystem::loadAsciiFile( irFilePath, osIR );
+        }
+        else
+        {
+            boost::filesystem::path inputCPPFilePath = m_tempDir / ( strName + ".cpp" );
+            {
+                auto pFStream = boost::filesystem::createNewFileStream( inputCPPFilePath );
+                *pFStream << strCPPCode;
+            }
+            compile( m_clangPath, inputCPPFilePath, irFilePath, pComponent );
+            pExecutionContext->stash( irFilePath.native(), determinant.get() );
+            boost::filesystem::loadAsciiFile( irFilePath, osIR );
+        }
+    }
 };
 
 CodeGenerator::CodeGenerator( const mega::network::MegastructureInstallation& megastructureInstallation,
                               const mega::network::Project&                   project )
-    : m_pPimpl( std::make_shared< Pimpl >( megastructureInstallation ) )
-    , m_tempDir( project.getProjectTempDir() )
-    , m_clangPath( megastructureInstallation.getClangPath() )
+    : m_pPimpl( std::make_shared< Pimpl >( megastructureInstallation, project ) )
 {
-    if ( !boost::filesystem::exists( m_tempDir ) )
-    {
-        boost::filesystem::create_directories( m_tempDir );
-    }
 }
 
 void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega::TypeID objectTypeID, std::ostream& os )
 {
-    SPDLOG_INFO( "generate_allocation: {}", objectTypeID );
+    SPDLOG_TRACE( "generate_allocation: {}", objectTypeID );
 
     const FinalStage::Concrete::Object*      pObject    = database.getObject( objectTypeID );
     const FinalStage::Components::Component* pComponent = pObject->get_component();
@@ -322,18 +333,15 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
         }
     }
 
-    GeneratorUtil generator( m_clangPath, m_tempDir );
-    {
-        auto pFileStream = generator.createSourceFile();
-        m_pPimpl->render_allocation( data, *pFileStream );
-    }
-    generator.compile( pComponent, os );
+    std::ostringstream osCPPCode;
+    m_pPimpl->render_allocation( data, osCPPCode );
+    m_pPimpl->compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
 }
 
 void CodeGenerator::generate_allocate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                                        std::ostream& os )
 {
-    SPDLOG_INFO( "generate_allocate: {}", invocationID );
+    SPDLOG_TRACE( "generate_allocate: {}", invocationID );
     // const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocation );
     // using namespace FinalStage::Invocations;
     // Variables::Context* pRootVariable = pInvocation->get_root_variable();
@@ -341,36 +349,275 @@ void CodeGenerator::generate_allocate( const DatabaseInstance& database, const m
 
     std::ostringstream osName;
     osName << invocationID;
-    nlohmann::json data( { { "name", osName.str() } } );
+    nlohmann::json     data( { { "name", osName.str() } } );
+    std::ostringstream osCPPCode;
+    m_pPimpl->render_allocate( data, osCPPCode );
+    m_pPimpl->compileToLLVMIR( osName.str(), osCPPCode.str(), os, std::nullopt );
+}
 
-    GeneratorUtil generator( m_clangPath, m_tempDir );
+using VariableMap = std::map< FinalStage::Invocations::Variables::Variable*, std::string >;
+
+void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, const VariableMap& variables,
+              nlohmann::json& data )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Invocations;
+
+    if ( Instructions::InstructionGroup* pInstructionGroup
+         = dynamic_database_cast< Instructions::InstructionGroup >( pInstruction ) )
     {
-        auto pFileStream = generator.createSourceFile();
-        m_pPimpl->render_allocate( data, *pFileStream );
+        if ( Instructions::ParentDerivation* pParentDerivation
+             = dynamic_database_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
+        {
+            std::ostringstream os;
+            os << "//ParentDerivation";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Instructions::ChildDerivation* pChildDerivation
+                  = dynamic_database_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
+        {
+            std::ostringstream os;
+            os << "//ChildDerivation";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Instructions::EnumDerivation* pEnumDerivation
+                  = dynamic_database_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
+        {
+            std::ostringstream os;
+            os << "//EnumDerivation";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Instructions::Enumeration* pEnumeration
+                  = dynamic_database_cast< Instructions::Enumeration >( pInstructionGroup ) )
+        {
+            std::ostringstream os;
+            os << "//Enumeration";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Instructions::DimensionReferenceRead* pDimensionReferenceRead
+                  = dynamic_database_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
+        {
+            std::ostringstream os;
+            os << "//DimensionReferenceRead";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Instructions::MonoReference* pMonoReference
+                  = dynamic_database_cast< Instructions::MonoReference >( pInstructionGroup ) )
+        {
+            // pMonoReference->get_instance()
+            // pMonoReference->get_reference()
+
+            std::ostringstream os;
+            os << "//MonoReference";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Instructions::PolyReference* pPolyReference
+                  = dynamic_database_cast< Instructions::PolyReference >( pInstructionGroup ) )
+        {
+            std::ostringstream os;
+            os << "//PolyReference";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Instructions::PolyCase* pPolyCase
+                  = dynamic_database_cast< Instructions::PolyCase >( pInstructionGroup ) )
+        {
+            std::ostringstream os;
+            os << "//PolyCase";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else
+        {
+            THROW_RTE( "Unknown instruction type" );
+        }
+
+        for ( auto pInstruction : pInstructionGroup->get_children() )
+        {
+            recurse( pInstruction, variables, data );
+        }
     }
-    generator.compile( os );
+    else if ( FinalStage::Invocations::Operations::Operation* pOperation
+              = dynamic_database_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
+    {
+        using namespace FinalStage::Invocations::Operations;
+
+        if ( Allocate* pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Allocate";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Call";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Start* pStart = dynamic_database_cast< Start >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Start";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Stop* pStop = dynamic_database_cast< Stop >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Stop";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Pause* pPause = dynamic_database_cast< Pause >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Pause";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Resume* pResume = dynamic_database_cast< Resume >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Resume";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Done* pDone = dynamic_database_cast< Done >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Done";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( WaitAction* pWaitAction = dynamic_database_cast< WaitAction >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//WaitAction";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( WaitDimension* pWaitDimension = dynamic_database_cast< WaitDimension >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//WaitDimension";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( GetAction* pGetAction = dynamic_database_cast< GetAction >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//GetAction";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( GetDimension* pGetDimension = dynamic_database_cast< GetDimension >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//GetDimension";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Read* pRead = dynamic_database_cast< Read >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Read";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Write* pWrite = dynamic_database_cast< Write >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Write";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( WriteLink* pWriteLink = dynamic_database_cast< WriteLink >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//WriteLink";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else if ( Range* pRange = dynamic_database_cast< Range >( pOperation ) )
+        {
+            std::ostringstream os;
+            os << "//Range";
+            data[ "assignments" ].push_back( os.str() );
+        }
+        else
+        {
+            THROW_RTE( "Unknown operation type" );
+        }
+    }
+    else
+    {
+        THROW_RTE( "Unknown instruction type" );
+    }
 }
 
 void CodeGenerator::generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                                    std::ostream& os )
 {
-    SPDLOG_INFO( "generate_read: {}", invocationID );
-    // const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocation );
-    // using namespace FinalStage::Invocations;
-    // Variables::Context* pRootVariable = pInvocation->get_root_variable();
-    // pInvocation->get_root_instruction()
+    SPDLOG_TRACE( "generate_read: {}", invocationID );
 
     std::ostringstream osName;
-    osName << invocationID;
-
-    nlohmann::json data( { { "name", osName.str() } } );
-
-    GeneratorUtil generator( m_clangPath, m_tempDir );
     {
-        auto pFileStream = generator.createSourceFile();
-        m_pPimpl->render_read( data, *pFileStream );
+        osName << invocationID;
     }
-    generator.compile( os );
+
+    nlohmann::json data( { { "name", osName.str() },
+                           { "module_name", osName.str() },
+                           { "getters", nlohmann::json::array() },
+                           { "variables", nlohmann::json::array() },
+                           { "assignments", nlohmann::json::array() } } );
+
+    {
+        using namespace FinalStage;
+        using namespace FinalStage::Invocations;
+
+        const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocationID );
+
+        VariableMap variables;
+        {
+            int iVariableCounter = 0;
+            for ( auto pVariable : pInvocation->get_variables() )
+            {
+                if ( Variables::Instance* pInstanceVar = dynamic_database_cast< Variables::Instance >( pVariable ) )
+                {
+                    std::ostringstream osName;
+                    osName << "mega::Instance var_" << pInstanceVar->get_concrete()->get_interface()->get_identifier();
+                    osName << "_" << iVariableCounter++;
+                    data[ "variables" ].push_back( osName.str() );
+                    variables.insert( { pVariable, osName.str() } );
+                }
+                else if ( Variables::Dimension* pDimensionVar
+                          = dynamic_database_cast< Variables::Dimension >( pVariable ) )
+                {
+                    std::ostringstream osName;
+                    for ( Concrete::Context* pContext : pDimensionVar->get_types() )
+                    {
+                        osName << "mega::reference var_" << pContext->get_interface()->get_identifier();
+                        osName << "_" << iVariableCounter++;
+                    }
+                    data[ "variables" ].push_back( osName.str() );
+                    variables.insert( { pVariable, osName.str() } );
+                }
+                else if ( Variables::Context* pContextVar = dynamic_database_cast< Variables::Context >( pVariable ) )
+                {
+                    std::ostringstream osName;
+                    for ( Concrete::Context* pContext : pContextVar->get_types() )
+                    {
+                        osName << "mega::reference var_" << pContext->get_interface()->get_identifier();
+                        osName << "_" << iVariableCounter++;
+                    }
+                    data[ "variables" ].push_back( osName.str() );
+                    variables.insert( { pVariable, osName.str() } );
+                }
+                else
+                {
+                    THROW_RTE( "Unknown variable type" );
+                }
+            }
+        }
+
+        for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
+        {
+            recurse( pInstruction, variables, data );
+        }
+    }
+
+    std::ostringstream osCPPCode;
+    {
+        m_pPimpl->render_read( data, osCPPCode );
+    }
+    m_pPimpl->compileToLLVMIR( osName.str(), osCPPCode.str(), os, std::nullopt );
 }
+
 } // namespace runtime
 } // namespace mega

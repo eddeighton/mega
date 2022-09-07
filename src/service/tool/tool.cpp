@@ -76,8 +76,14 @@ public:
 
     virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
-        SPDLOG_INFO( "Tool RootListNetworkNodes" );
+        SPDLOG_TRACE( "Tool RootListNetworkNodes" );
         getLeafResponse( yield_ctx ).RootListNetworkNodes( { m_tool.getProcessName() } );
+    }
+
+    virtual void RootShutdown( boost::asio::yield_context& yield_ctx ) override
+    {
+        getLeafResponse( yield_ctx ).RootShutdown();
+        boost::asio::post( [ &tool = m_tool ]() { tool.shutdown(); } );
     }
 };
 
@@ -96,52 +102,58 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        execution_resume( this );
+        ExecutionContext::resume( this );
 
         m_pYieldContext = &yield_ctx;
 
         const std::pair< bool, mega::ExecutionIndex > result = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
         VERIFY_RTE_MSG( result.first, "Failed to acquire execution context" );
-        SPDLOG_INFO( "Acquired execution context: {}", result.second );
-        m_executionIndex = result.second;
-
-        std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
-            mega::runtime::allocateRoot( result.second ), []( Root* pRoot ) { mega::runtime::releaseRoot( pRoot ); } );
+        SPDLOG_TRACE( "Acquired execution context: {}", result.second );
+        m_executionRoot = std::move( mega::runtime::ExecutionRoot( result.second ) );
 
         m_functor( yield_ctx );
 
         m_pYieldContext = nullptr;
 
-        execution_suspend();
+        ExecutionContext::suspend();
     }
 
     // mega::ExecutionContext
-    virtual ExecutionIndex getThisExecutionIndex() override
-    {
-        return m_executionIndex;
-    }
-    virtual std::string acquireMemory( ExecutionIndex executionIndex )
+    virtual ExecutionIndex getThisExecutionIndex() override { return m_executionRoot->index(); }
+    mega::reference        getRoot() override { return m_executionRoot->root(); }
+    virtual std::string    acquireMemory( ExecutionIndex executionIndex ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        SPDLOG_INFO( "acquireMemory called with: {}", executionIndex );
+        SPDLOG_TRACE( "acquireMemory called with: {}", executionIndex );
         return getToolRequest( *m_pYieldContext ).ToolAcquireMemory( executionIndex );
     }
 
-    virtual LogicalAddress allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID )
+    virtual LogicalAddress allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        SPDLOG_INFO( "allocateLogical called with: {} {}", executionIndex, objectTypeID );
+        SPDLOG_TRACE( "allocateLogical called with: {} {}", executionIndex, objectTypeID );
         return LogicalAddress{ getToolRequest( *m_pYieldContext ).ToolAllocateLogical( executionIndex, objectTypeID ) };
     }
-    virtual void deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress )
+    virtual void deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        SPDLOG_INFO( "deAllocate called with: {} {}", executionIndex, logicalAddress );
+        SPDLOG_TRACE( "deAllocate called with: {} {}", executionIndex, logicalAddress );
         getToolRequest( *m_pYieldContext ).ToolDeAllocateLogical( executionIndex, Address{ logicalAddress } );
     }
+    virtual void stash( const std::string& filePath, std::size_t determinant ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        getToolRequest( *m_pYieldContext ).ToolStash( filePath, determinant );
 
-    boost::asio::yield_context* m_pYieldContext = nullptr;
-    mega::ExecutionIndex m_executionIndex;
+    }
+    virtual bool restore( const std::string& filePath, std::size_t determinant ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getToolRequest( *m_pYieldContext ).ToolRestore( filePath, determinant );
+    }
+
+    boost::asio::yield_context*                   m_pYieldContext = nullptr;
+    std::optional< mega::runtime::ExecutionRoot > m_executionRoot;
 };
 
 Tool::Tool()
@@ -161,6 +173,11 @@ Tool::~Tool()
 {
     m_receiverChannel.stop();
     m_io_context.run();
+}
+
+void Tool::shutdown()
+{
+    // TODO ?
 }
 
 network::ConversationBase::Ptr Tool::joinConversation( const network::ConnectionID& originatingConnectionID,

@@ -231,7 +231,8 @@ set_target_properties( database PROPERTIES FOLDER database )
 set_property(TARGET database PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 # dead code elimination did not reduce binary size of so
-#target_compile_options( database PUBLIC "-fdce" )
+target_compile_options( database PRIVATE "-O2" )
+
 
 link_boost( database filesystem )
 link_boost( database iostreams )

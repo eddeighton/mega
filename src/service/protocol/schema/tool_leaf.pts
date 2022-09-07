@@ -33,3 +33,14 @@ msg ToolDeAllocateLogical
     request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
     response();
 }
+
+msg ToolStash
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response();
+}
+msg ToolRestore
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response( bool bRestored );
+}

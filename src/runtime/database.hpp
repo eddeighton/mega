@@ -24,6 +24,7 @@ public:
     const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
     std::size_t                               getConcreteContextTotalAllocation( mega::TypeID concreteID ) const;
+    mega::TypeID                              getRootTypeID() const;
 
 private:
     mega::io::ArchiveEnvironment                             m_environment;
@@ -32,6 +33,7 @@ private:
     std::vector< FinalStage::Components::Component* >        m_components;
     FinalStage::Symbols::SymbolTable*                        m_pSymbolTable;
     std::map< std::int32_t, FinalStage::Concrete::Context* > m_concreteIDs;
+    mega::TypeID                                             m_rootTypeID;
 };
 
 } // namespace runtime

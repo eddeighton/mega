@@ -33,6 +33,15 @@ TInstruction* make_ins_group( OperationsStage::Database& database, Instructions:
     return pNewInstruction;
 }
 
+template < typename TVariable, typename... ConstructorArgs >
+TVariable* make_variable( OperationsStage::Database& database, OperationsStage::Operations::Invocation* pInvocation,
+                          ConstructorArgs&&... ctorArgs )
+{
+    TVariable* pVariable = database.construct< TVariable >( typename TVariable::Args{ ctorArgs... } );
+    pInvocation->push_back_variables( pVariable );
+    return pVariable;
+}
+
 Instructions::InstructionGroup* make_elim_ins( OperationsStage::Database&      database,
                                                Instructions::InstructionGroup* pInstruction )
 {
@@ -142,9 +151,10 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
             VERIFY( pParentContextGroup, Exception, "" );
             Concrete::Context* pParent = dynamic_database_cast< Concrete::Context >( pParentContextGroup );
             VERIFY( pParent, Exception, "" );
-            // generate parent derivation instruction
 
-            Variables::Instance* pInstanceVariable = m_database.construct< Variables::Instance >(
+            // generate parent derivation instruction
+            Variables::Instance* pInstanceVariable = make_variable< Variables::Instance >(
+                m_database, m_pInvocation,
                 Variables::Instance::Args{ Variables::Variable::Args{ pVariable }, pParent } );
 
             pInstruction = make_ins_group< Instructions::ParentDerivation >(
@@ -174,7 +184,8 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
             Concrete::Context* pConcreteContext = dynamic_database_cast< Concrete::Context >( pConcreteContextIter );
             VERIFY( pConcreteContext, Exception, "" );
 
-            Variables::Instance* pInstanceVariable = m_database.construct< Variables::Instance >(
+            Variables::Instance* pInstanceVariable = make_variable< Variables::Instance >(
+                m_database, m_pInvocation,
                 Variables::Instance::Args{ Variables::Variable::Args{ pVariable }, pConcreteContext } );
 
             pInstruction = make_ins_group< Instructions::ChildDerivation >(
@@ -205,8 +216,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
 
         if ( Concrete::Object* pCurrentConcreteObject = dynamic_database_cast< Concrete::Object >( pCurrentConcrete ) )
         {
-            //only operation on actual object is to allocate it.
-
+            // only operation on actual object is to allocate it.
             using OperationsStage::Invocations::Instructions::Instruction;
             using OperationsStage::Invocations::Operations::BasicOperation;
             using OperationsStage::Invocations::Operations::Operation;
@@ -413,8 +423,9 @@ void GenericOperationVisitor::buildDimensionReference( OperationsStage::Operatio
     using OperationsStage::Invocations::Variables::Dimension;
     using OperationsStage::Invocations::Variables::Reference;
     using OperationsStage::Invocations::Variables::Variable;
-    Dimension* pDimensionVariable
-        = m_database.construct< Dimension >( Dimension::Args{ Reference::Args{ Variable::Args{ pVariable }, {} } } );
+
+    Dimension* pDimensionVariable = make_variable< Dimension >(
+        m_database, m_pInvocation, Dimension::Args{ Reference::Args{ Variable::Args{ pVariable }, {} } } );
 
     pInstructionGroup = make_ins_group< Instructions::DimensionReferenceRead >(
         m_database, pInstructionGroup, pVariable, pDimensionVariable, pDimension );
@@ -492,8 +503,8 @@ void GenericOperationVisitor::buildPolyCase( OperationsStage::Operations::Name* 
     Concrete::Context* pContext = current.get_element()->get_concrete()->get_context().value();
     VERIFY( pContext, Exception, "" );
 
-    Variables::Instance* pInstance = m_database.construct< Variables::Instance >(
-        Variables::Instance::Args{ Variables::Variable::Args{ &variable }, pContext } );
+    Variables::Instance* pInstance = make_variable< Variables::Instance >(
+        m_database, m_pInvocation, Variables::Instance::Args{ Variables::Variable::Args{ &variable }, pContext } );
 
     {
         pInstructionGroup
@@ -532,8 +543,8 @@ void GenericOperationVisitor::buildMono( OperationsStage::Operations::Name* prev
     Concrete::Context* pContext = current.get_element()->get_concrete()->get_context().value();
     VERIFY( pContext, Exception, "" );
 
-    Variables::Instance* pInstance = m_database.construct< Variables::Instance >(
-        Variables::Instance::Args{ Variables::Variable::Args{ &variable }, pContext } );
+    Variables::Instance* pInstance = make_variable< Variables::Instance >(
+        m_database, m_pInvocation, Variables::Instance::Args{ Variables::Variable::Args{ &variable }, pContext } );
 
     pInstructionGroup
         = make_ins_group< Instructions::MonoReference >( m_database, pInstructionGroup, pVariable, pInstance );
@@ -572,8 +583,8 @@ void GenericOperationVisitor::operator()()
     }
 
     // clang-format off
-    Variables::Context* pContext = m_database.construct< Variables::Context >
-    ( 
+    Variables::Context* pContext = make_variable< Variables::Context >(
+        m_database, m_pInvocation,
         Variables::Context::Args
         {
             Variables::Reference::Args
@@ -584,13 +595,11 @@ void GenericOperationVisitor::operator()()
                 }, 
                 types 
             } 
-        } 
-    );
+        } );
     // clang-format on
 
     Instructions::Root* pRoot = make_ins_group< Instructions::Root >( m_database, nullptr, pContext );
 
-    m_pInvocation->set_root_variable( pContext );
     m_pInvocation->set_root_instruction( pRoot );
 
     if ( types.size() > 1 )

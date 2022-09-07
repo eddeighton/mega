@@ -49,6 +49,10 @@ class Runtime
             return m_pAllocationShared( executionIndex );
         }
 
+        void deAllocateShared( PhysicalAddress address ) { m_pDeAllocationShared( address ); }
+
+        GetSharedFunction getGetter() const { return m_pGetShared; }
+
     private:
         mega::TypeID               m_objectTypeID;
         GetSharedFunction          m_pGetShared          = nullptr;
@@ -80,21 +84,21 @@ class Runtime
         ManagedSharedMemory m_shared;
     };
     using ExecutionContextMemoryArray = std::array< ExecutionContextMemory::Ptr, mega::MAX_SIMULATIONS >;
-    using ExecutionContextRoot        = std::array< Root*, mega::MAX_SIMULATIONS >;
+    using ExecutionContextRoot        = std::array< mega::reference, mega::MAX_SIMULATIONS >;
 
 public:
     LogicalAddress allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID )
     {
-        SPDLOG_INFO( "allocateLogical: {}", executionIndex, objectTypeID );
+        SPDLOG_TRACE( "allocateLogical: {}", executionIndex, objectTypeID );
 
-        ExecutionContext* pExecutionContext = ExecutionContext::execution_get();
+        ExecutionContext* pExecutionContext = ExecutionContext::get();
         VERIFY_RTE( pExecutionContext );
         return pExecutionContext->allocateLogical( executionIndex, objectTypeID );
     }
 
     ObjectTypeAllocator::Ptr getOrCreateObjectTypeAllocator( TypeID objectTypeID )
     {
-        SPDLOG_INFO( "getOrCreateObjectTypeAllocator: {}", objectTypeID );
+        SPDLOG_TRACE( "getOrCreateObjectTypeAllocator: {}", objectTypeID );
 
         auto jFind = m_objectTypeAllocatorMapping.find( objectTypeID );
         if ( jFind != m_objectTypeAllocatorMapping.end() )
@@ -112,7 +116,7 @@ public:
     PhysicalAddress logicalToPhysical( ExecutionIndex executionIndex, TypeID objectTypeID,
                                        LogicalAddress logicalAddress )
     {
-        SPDLOG_INFO( "logicalToPhysical: {} {} {}", executionIndex, objectTypeID, logicalAddress );
+        SPDLOG_TRACE( "logicalToPhysical: {} {} {}", executionIndex, objectTypeID, logicalAddress );
 
         AddressSpace::Lock lock( m_addressSpace.mutex() );
 
@@ -137,7 +141,7 @@ public:
         ExecutionContextMemory* pMemory = m_executionContextMemory[ executionIndex ].get();
         if ( pMemory == nullptr )
         {
-            ExecutionContext* pExecutionContext = ExecutionContext::execution_get();
+            ExecutionContext* pExecutionContext = ExecutionContext::get();
             VERIFY_RTE( pExecutionContext );
             const std::string strMemory                = pExecutionContext->acquireMemory( executionIndex );
             m_executionContextMemory[ executionIndex ] = std::make_unique< ExecutionContextMemory >( strMemory );
@@ -151,7 +155,7 @@ public:
         ExecutionContextMemory* pMemory = m_executionContextMemory[ executionIndex ].get();
         if ( pMemory == nullptr )
         {
-            ExecutionContext* pExecutionContext = ExecutionContext::execution_get();
+            ExecutionContext* pExecutionContext = ExecutionContext::get();
             VERIFY_RTE( pExecutionContext );
             const std::string strMemory                = pExecutionContext->acquireMemory( executionIndex );
             m_executionContextMemory[ executionIndex ] = std::make_unique< ExecutionContextMemory >( strMemory );
@@ -160,82 +164,55 @@ public:
         return pMemory->getShared();
     }
 
-    void reinitialise( const mega::network::MegastructureInstallation& megastructureInstallation,
-                       const mega::network::Project&                   project )
+    mega::reference allocateRoot( const mega::ExecutionIndex& executionIndex )
     {
-        if ( !m_componentManager )
-        {
-            m_componentManager = std::make_unique< ComponentManager >();
-        }
-        if ( !m_pJITCompiler )
-        {
-            m_pJITCompiler = std::make_unique< JITCompiler >();
-        }
-        if ( !m_pCodeGenerator )
-        {
-            m_pCodeGenerator = std::make_unique< CodeGenerator >( megastructureInstallation, project );
-        }
+        const TypeID          rootTypeID          = m_database.getRootTypeID();
+        const LogicalAddress  rootLogicalAddress  = allocateLogical( executionIndex, rootTypeID );
+        const PhysicalAddress rootPhysicalAddress = logicalToPhysical( executionIndex, rootTypeID, rootLogicalAddress );
 
-        m_database.reset();
-
-        try
-        {
-            if ( !project.isEmpty() )
-            {
-                if ( boost::filesystem::exists( project.getProjectDatabase() ) )
-                {
-                    m_database.reset( new DatabaseInstance( project.getProjectDatabase() ) );
-                    SPDLOG_INFO(
-                        "ComponentManager initialised with project: {}", project.getProjectInstallPath().string() );
-                    m_bInitialised = true;
-                }
-            }
-        }
-        catch ( mega::io::DatabaseVersionException& ex )
-        {
-            m_bInitialised = false;
-            SPDLOG_ERROR( "ComponentManager failed to initialise project: {} database version exception: {}",
-                          project.getProjectInstallPath().string(), ex.what() );
-        }
-        catch ( std::exception& ex )
-        {
-            m_bInitialised = false;
-            SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
-                          project.getProjectInstallPath().string(), ex.what() );
-        }
-    }
-
-    ::Root* allocateRoot( const mega::ExecutionIndex& executionIndex )
-    {
         mega::reference ref;
         {
-            ref.physical.type      = mega::PHYSICAL_ADDRESS;
-            ref.physical.execution = executionIndex;
-            ref.physical.object    = 0;
-            ref.typeID             = mega::ROOT_TYPE_ID;
-            ref.instance           = 0;
+            ref.physical = rootPhysicalAddress;
+            ref.typeID   = rootTypeID;
+            ref.instance = 0;
         }
 
-        ::Root* pRoot = new ::Root( ref );
+        m_executionContextRoot[ executionIndex ] = ref;
 
-        m_executionContextRoot[ executionIndex ] = pRoot;
-
-        return pRoot;
+        return ref;
     }
 
-    void releaseRoot( ::Root* pRoot )
+    void deAllocateRoot( const mega::ExecutionIndex& executionIndex )
     {
-        VERIFY_RTE( pRoot->data.getType() == mega::PHYSICAL_ADDRESS );
-        m_executionContextRoot[ pRoot->data.physical.execution ] = nullptr;
-        delete pRoot;
+        const mega::reference ref = m_executionContextRoot[ executionIndex ];
+        VERIFY_RTE( ref.value != mega::INVALID_ADDRESS );
+
+        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( ref.typeID );
+        // pAllocator->deAllocateShared( ref.physical );
+    }
+
+    void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
+    {
+        std::lock_guard< std::mutex > lock( m_jitMutex );
+
+        m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+
+        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
+        *ppFunction                         = pAllocator->getGetter();
+    }
+
+    JITCompiler::Module::Ptr compile( const std::string& strCode )
+    {
+        auto                     startTime = std::chrono::steady_clock::now();
+        JITCompiler::Module::Ptr pModule   = m_jitCompiler.compile( strCode );
+        SPDLOG_TRACE( "JIT Compilation time: {}", std::chrono::steady_clock::now() - startTime );
+        return pModule;
     }
 
     void get_allocation( mega::TypeID objectTypeID, GetSharedFunction* pGetSharedFunction,
                          AllocationSharedFunction*   ppAllocationShared,
                          DeAllocationSharedFunction* ppDeAllocationShared )
     {
-        VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
-
         std::lock_guard< std::mutex > lock( m_jitMutex );
 
         JITCompiler::Module::Ptr pModule;
@@ -248,8 +225,8 @@ public:
             else
             {
                 std::ostringstream osModule;
-                m_pCodeGenerator->generate_allocation( *m_database, objectTypeID, osModule );
-                pModule = m_pJITCompiler->compile( osModule.str() );
+                m_codeGenerator.generate_allocation( m_database, objectTypeID, osModule );
+                pModule = compile( osModule.str() );
                 m_allocations.insert( std::make_pair( objectTypeID, pModule ) );
             }
         }
@@ -281,8 +258,6 @@ public:
 
     void get_allocate( const char* pszUnitName, const mega::InvocationID& invocation, AllocateFunction* ppFunction )
     {
-        VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
-
         std::lock_guard< std::mutex > lock( m_jitMutex );
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
@@ -297,8 +272,8 @@ public:
             else
             {
                 std::ostringstream osModule;
-                m_pCodeGenerator->generate_allocate( *m_database, invocation, osModule );
-                pModule = m_pJITCompiler->compile( osModule.str() );
+                m_codeGenerator.generate_allocate( m_database, invocation, osModule );
+                pModule = compile( osModule.str() );
                 m_invocations.insert( std::make_pair( invocation, pModule ) );
             }
         }
@@ -310,8 +285,6 @@ public:
 
     void get_read( const char* pszUnitName, const mega::InvocationID& invocation, ReadFunction* ppFunction )
     {
-        VERIFY_RTE_MSG( m_bInitialised, "Runtime not initialised" );
-
         std::lock_guard< std::mutex > lock( m_jitMutex );
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
@@ -326,28 +299,40 @@ public:
             else
             {
                 std::ostringstream osModule;
-                m_pCodeGenerator->generate_read( *m_database, invocation, osModule );
-                pModule = m_pJITCompiler->compile( osModule.str() );
+                m_codeGenerator.generate_read( m_database, invocation, osModule );
+                pModule = compile( osModule.str() );
                 m_invocations.insert( std::make_pair( invocation, pModule ) );
             }
         }
-        // _Z23ct1ps12__eg_ImpNoParamsRKN4mega9referenceE
+        // _Z23 ct1ps12__eg_ImpNoParamsRKN4mega9referenceE
+        // _Z24ct30ps18__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z23" << invocation << "RKN4mega9referenceE";
+        os << "_Z24" << invocation << "RKN4mega9referenceE";
         *ppFunction = pModule->getRead( os.str() );
     }
 
+    Runtime( const mega::network::MegastructureInstallation& megastructureInstallation,
+             const mega::network::Project&                   project )
+        : m_jitMutex()
+        , m_jitCompiler()
+        , m_codeGenerator( megastructureInstallation, project )
+        , m_database( project.getProjectDatabase() )
+        , m_addressSpace()
+        , m_objectTypeAllocatorMapping()
+        , m_executionContextRoot()
+        , m_executionContextMemory()
+    {
+    }
+
 private:
-    std::mutex                          m_jitMutex;
-    std::unique_ptr< CodeGenerator >    m_pCodeGenerator;
-    std::unique_ptr< JITCompiler >      m_pJITCompiler;
-    ComponentManager::Ptr               m_componentManager;
-    std::unique_ptr< DatabaseInstance > m_database;
-    bool                                m_bInitialised = false;
-    AddressSpace                        m_addressSpace;
-    ObjectTypeAllocatorMap              m_objectTypeAllocatorMapping;
-    ExecutionContextRoot                m_executionContextRoot;
-    ExecutionContextMemoryArray         m_executionContextMemory;
+    std::mutex                  m_jitMutex;
+    JITCompiler                 m_jitCompiler;
+    CodeGenerator               m_codeGenerator;
+    DatabaseInstance            m_database;
+    AddressSpace                m_addressSpace;
+    ObjectTypeAllocatorMap      m_objectTypeAllocatorMapping;
+    ExecutionContextRoot        m_executionContextRoot;
+    ExecutionContextMemoryArray m_executionContextMemory;
 
     // use unordered_map
     using InvocationMap = std::map< mega::InvocationID, JITCompiler::Module::Ptr >;
@@ -360,10 +345,38 @@ private:
     FunctionPtrMap m_functionPointers;
 };
 
-Runtime& getStaticRuntime()
+static std::unique_ptr< Runtime > g_pRuntime;
+
+void initialiseStaticRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
+                              const mega::network::Project&                   project )
 {
-    static Runtime runtime;
-    return runtime;
+    try
+    {
+        g_pRuntime.reset();
+
+        if ( !project.isEmpty() )
+        {
+            if( !boost::filesystem::exists( project.getProjectDatabase() ) )
+            {
+                SPDLOG_ERROR( "Database missing at: {}", project.getProjectDatabase().string() );
+            }
+            else
+            {
+                g_pRuntime = std::make_unique< Runtime >( megastructureInstallation, project );
+            }
+        }
+    }
+    catch ( mega::io::DatabaseVersionException& ex )
+    {
+        SPDLOG_ERROR( "Database version exception: {}", project.getProjectInstallPath().string(), ex.what() );
+        throw;
+    }
+    catch ( std::exception& ex )
+    {
+        SPDLOG_ERROR( "ComponentManager failed to initialise project: {} error: {}",
+                      project.getProjectInstallPath().string(), ex.what() );
+        throw;
+    }
 }
 
 } // namespace
@@ -378,45 +391,53 @@ namespace runtime
 // routines used by jit compiled functions
 LogicalAddress allocateLogical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID )
 {
-    return getStaticRuntime().allocateLogical( executionIndex, objectTypeID );
+    return g_pRuntime->allocateLogical( executionIndex, objectTypeID );
 }
 
 PhysicalAddress logicalToPhysical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID,
                                    mega::LogicalAddress logicalAddress )
 {
-    return getStaticRuntime().logicalToPhysical( executionIndex, objectTypeID, logicalAddress );
+    return g_pRuntime->logicalToPhysical( executionIndex, objectTypeID, logicalAddress );
 }
 
 ManagedHeapMemory& getHeapMemoryManager( mega::ExecutionIndex executionIndex )
 {
-    return getStaticRuntime().getHeapMemoryManager( executionIndex );
+    return g_pRuntime->getHeapMemoryManager( executionIndex );
 }
 
 ManagedSharedMemory& getSharedMemoryManager( mega::ExecutionIndex executionIndex )
 {
-    return getStaticRuntime().getSharedMemoryManager( executionIndex );
+    return g_pRuntime->getSharedMemoryManager( executionIndex );
+}
+
+void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
+{
+    g_pRuntime->get_getter_shared( pszUnitName, objectTypeID, ppFunction );
 }
 
 // public facing runtime interface
 void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
                         const mega::network::Project&                   project )
 {
-    getStaticRuntime().reinitialise( megastructureInstallation, project );
+    initialiseStaticRuntime( megastructureInstallation, project );
 }
 
-::Root* allocateRoot( const mega::ExecutionIndex& executionIndex )
+ExecutionRoot::ExecutionRoot( mega::ExecutionIndex executionIndex )
+    : m_executionIndex( executionIndex )
+    , m_root( g_pRuntime->allocateRoot( m_executionIndex ) )
 {
-    return getStaticRuntime().allocateRoot( executionIndex );
 }
-void releaseRoot( ::Root* pRoot ) { getStaticRuntime().releaseRoot( pRoot ); }
+
+ExecutionRoot::~ExecutionRoot() { g_pRuntime->deAllocateRoot( m_executionIndex ); }
 
 void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
 {
-    getStaticRuntime().get_allocate( pszUnitName, invocationID, ppFunction );
+    g_pRuntime->get_allocate( pszUnitName, invocationID, ppFunction );
 }
+
 void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
-    getStaticRuntime().get_read( pszUnitName, invocationID, ppFunction );
+    g_pRuntime->get_read( pszUnitName, invocationID, ppFunction );
 }
 
 } // namespace runtime

@@ -81,10 +81,13 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
 Executor::~Executor()
 {
     m_receiverChannel.stop();
-    SPDLOG_INFO( "Executor shutdown" );
+    SPDLOG_TRACE( "Executor shutdown" );
 }
 
-void Executor::shutdown() {}
+void Executor::shutdown() 
+{
+    m_receiverChannel.stop();
+}
 
 network::ConversationBase::Ptr Executor::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                            const network::Header&       header,

@@ -41,18 +41,39 @@ msg TermSimNew
     request();
     response(mega::network::ConversationID simulationID);
 }
+
 msg TermSimList
 {
     request();
     response(std::vector< mega::network::ConversationID > simulationID);
 }
+
 msg TermSimReadLock
 {
     request(mega::network::ConversationID simulationID);
     response();
 }
+
 msg TermSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
+    response();
+}
+
+msg TermClearStash
+{
+    request();
+    response();
+}
+
+msg TermCapacity
+{
+    request();
+    response(std::size_t capacity);
+}
+
+msg TermShutdown
+{
+    request();
     response();
 }

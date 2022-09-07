@@ -39,7 +39,6 @@ using event_iterator = std::uint64_t;
 static constexpr ExecutionIndex MAX_SIMULATIONS = 512;
 static constexpr ObjectIndex    MAX_OBJECTS     = 4194304;
 static constexpr std::uint32_t  INVALID_ADDRESS = std::numeric_limits< std::uint32_t >::max();
-static constexpr TypeID         ROOT_TYPE_ID    = 0U;
 
 struct TypeInstance
 {

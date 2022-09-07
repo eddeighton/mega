@@ -59,3 +59,9 @@ msg RootSimWriteLockReady
     request( mega::TimeStamp timeStamp );
     response();
 }
+
+msg RootShutdown
+{
+    request();
+    response();
+}

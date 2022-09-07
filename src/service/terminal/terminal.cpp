@@ -76,15 +76,22 @@ public:
     virtual void RootSimReadLockReady( const mega::TimeStamp&      timeStamp,
                                        boost::asio::yield_context& yield_ctx ) override
     {
-        SPDLOG_INFO( "RootSimReadLockReady received: {}", timeStamp );
+        SPDLOG_TRACE( "RootSimReadLockReady received: {}", timeStamp );
         getLeafResponse( yield_ctx ).RootSimReadLockReady();
     }
 
     virtual void RootSimWriteLockReady( const mega::TimeStamp&      timeStamp,
                                         boost::asio::yield_context& yield_ctx ) override
     {
-        SPDLOG_INFO( "RootSimWriteLockReady received: {}", timeStamp );
+        SPDLOG_TRACE( "RootSimWriteLockReady received: {}", timeStamp );
         getLeafResponse( yield_ctx ).RootSimWriteLockReady();
+    }
+
+    void RootShutdown( boost::asio::yield_context& yield_ctx ) override
+    {
+        SPDLOG_TRACE( "RootShutdown received" );
+        getLeafResponse( yield_ctx ).RootShutdown();
+        boost::asio::post( [ &terminal = m_terminal ]() { terminal.shutdown(); } );
     }
 };
 
@@ -103,8 +110,8 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        //ConversationBase::RequestStack stack(
-        //    "GenericConversation", *this, m_terminal.getLeafSender().getConnectionID() );
+        // ConversationBase::RequestStack stack(
+        //     "GenericConversation", *this, m_terminal.getLeafSender().getConnectionID() );
         m_functor( *this, m_terminal.getLeafSender(), yield_ctx );
     }
 };
@@ -128,13 +135,7 @@ Terminal::~Terminal()
     m_receiverChannel.stop();
     m_io_context.run();
 }
-/*
-bool Terminal::Shutdown()
-{
-    SIMPLE_REQUEST( bool, daemon.Shutdown();
-                    boost::asio::post( [ &promise = promise ]() { promise.set_value( true ); } ); );
-}
-*/
+
 void Terminal::shutdown() { m_receiverChannel.stop(); }
 
 network::ConversationBase::Ptr Terminal::joinConversation( const network::ConnectionID& originatingConnectionID,
@@ -144,6 +145,36 @@ network::ConversationBase::Ptr Terminal::joinConversation( const network::Connec
     return network::ConversationBase::Ptr(
         new TerminalRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
+
+#define GENERIC_MSG_NO_RESULT( msg_name )                                                                \
+    {                                                                                                    \
+        std::optional< std::variant< bool, std::exception_ptr > > result;                                \
+        {                                                                                                \
+            auto func = [ &result ]( network::ConversationBase& con, network::Sender& sender,            \
+                                     boost::asio::yield_context& yield_ctx )                             \
+            {                                                                                            \
+                network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );                       \
+                try                                                                                      \
+                {                                                                                        \
+                    leaf.msg_name();                                                                     \
+                    result = true;                                                                       \
+                }                                                                                        \
+                catch ( std::exception & ex )                                                            \
+                {                                                                                        \
+                    result = std::current_exception();                                                   \
+                }                                                                                        \
+            };                                                                                           \
+            conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(              \
+                                       *this, createConversationID( getLeafSender().getConnectionID() ), \
+                                       getLeafSender().getConnectionID(), std::move( func ) ) ),         \
+                                   getLeafSender() );                                                    \
+        }                                                                                                \
+        while ( !result.has_value() )                                                                    \
+            m_io_context.run_one();                                                                      \
+                                                                                                         \
+        if ( result->index() == 1 )                                                                      \
+            std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );                  \
+    }
 
 #define GENERIC_MSG( result_type, msg_name )                                                             \
     {                                                                                                    \
@@ -225,7 +256,7 @@ bool Terminal::SetProject( const mega::network::Project& project )
     GENERIC_MSG_ARG1( bool, TermSetProject, project );
 }
 
-network::MegastructureInstallation Terminal::GetMegastructureInstallation() 
+network::MegastructureInstallation Terminal::GetMegastructureInstallation()
 {
     //
     GENERIC_MSG( mega::network::MegastructureInstallation, TermGetMegastructureInstallation );
@@ -255,6 +286,24 @@ std::vector< network::ConversationID > Terminal::SimList()
     GENERIC_MSG( std::vector< network::ConversationID >, TermSimList );
 }
 
+void Terminal::ClearStash()
+{
+    //
+    GENERIC_MSG_NO_RESULT( TermClearStash );
+}
+
+std::size_t Terminal::Capacity()
+{
+    //
+    GENERIC_MSG( std::size_t, TermCapacity );
+}
+
+void Terminal::Shutdown()
+{
+    //
+    GENERIC_MSG_NO_RESULT( TermShutdown );
+}
+
 void Terminal::testReadLock( const network::ConversationID& simID )
 {
     std::optional< std::variant< int, std::exception_ptr > > result;
@@ -266,7 +315,7 @@ void Terminal::testReadLock( const network::ConversationID& simID )
             try
             {
                 leaf.TermSimReadLock( simID );
-                SPDLOG_INFO( "Readlock success" );
+                SPDLOG_TRACE( "Readlock success" );
                 result = 0;
             }
             catch ( std::exception& ex )

@@ -58,3 +58,8 @@ msg RootSimWriteLockReady
     response();
 }
 
+msg RootShutdown
+{
+    request();
+    response();
+}

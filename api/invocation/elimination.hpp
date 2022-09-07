@@ -25,9 +25,6 @@ secondStageElimination( const std::vector< OperationsStage::Invocations::Operati
 std::vector< OperationsStage::Invocations::Operations::Operation* >
 getOperations( OperationsStage::Invocations::Instructions::Instruction* pInstruction );
 
-std::vector< OperationsStage::Invocations::Variables::Variable* >
-getVariables( OperationsStage::Invocations::Instructions::Instruction* pInstruction );
-
 } // namespace invocation
 } // namespace mega
 

@@ -37,23 +37,27 @@ int main( int argc, const char* argv[] )
     bool                    bNewSimulation                = false;
     bool                    bListSimulations              = false;
     std::string             strSimulationID;
-    bool                    bLoop = false;
-    bool                    bQuit = false;
+    bool                    bClearStash = false;
+    bool                    bCapacity = false;
+    bool                    bShutdown = false;
+    bool                    bQuit       = false;
 
     po::options_description commands( "Commands" );
 
     // clang-format off
     commands.add_options()
     ( "help,?",         po::bool_switch( &bShowHelp ),                          "Show Command Line Help"    )
-    ( "nodes,d",        po::bool_switch( &bListNodes ),                         "List network nodes"        )
+    ( "nodes,n",        po::bool_switch( &bListNodes ),                         "List network nodes"        )
     ( "pipeline,p",     po::value< boost::filesystem::path >( &pipelinePath ),  "Run a pipeline"            )
     ( "getInstall,i",   po::bool_switch( &bGetMegastructureInstallation ),      "Get the Mega Structure Installation" )
     ( "setProject,s",   po::value< boost::filesystem::path >( &projectPath ),   "Select a project"          )
     ( "getProject,g",   po::bool_switch( &bGetProject ),                        "Get current project"       )
-    ( "new,n",          po::bool_switch( &bNewSimulation ),                     "Start a new simulation"    )
+    ( "exe,e",          po::bool_switch( &bNewSimulation ),                     "Start a new executor"      )
     ( "list,l",         po::bool_switch( &bListSimulations ),                   "List simulations"          )
     ( "test,t",         po::value< std::string >( &strSimulationID ),           "Test simulation read lock" )
-    ( "loop,p",         po::bool_switch( &bLoop ),                              "Run interactively"         )
+    ( "capacity,c",     po::bool_switch( &bCapacity ),                          "Report logical address space capacity" )
+    ( "clear,r",        po::bool_switch( &bClearStash ),                        "Clear stash"               )
+    ( "shutdown,!",       po::bool_switch( &bShutdown ),                        "Shutdown mega structure"   )
     ( "quit,q",         po::bool_switch( &bQuit ),                              "Quit this host"            )
     ;
 
@@ -88,7 +92,7 @@ int main( int argc, const char* argv[] )
         }
     }
 
-    bool bRunLoop = bLoop; // capture bLoop as will be reset
+    bool bRunLoop = false;
 
     auto logThreads = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
                                                    mega::network::fromStr( strLogFileLevel ) );
@@ -119,7 +123,7 @@ int main( int argc, const char* argv[] )
                 const mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
                 SPDLOG_INFO( "Pipeline result:\n {} \n {}", result.getSuccess(), result.getMessage() );
             }
-            else if( bGetMegastructureInstallation )
+            else if ( bGetMegastructureInstallation )
             {
                 mega::network::MegastructureInstallation install = terminal.GetMegastructureInstallation();
                 if ( install.isEmpty() )
@@ -166,6 +170,22 @@ int main( int argc, const char* argv[] )
                 SPDLOG_INFO( "Attempting to read lock on {}", simID );
                 terminal.testReadLock( simID );
                 // SPDLOG_INFO( "{}", timeStamp );
+            }
+            else if( bClearStash )
+            {
+                terminal.ClearStash();
+                SPDLOG_INFO( "Cleared stash" );
+            }
+            else if( bCapacity )
+            {
+                auto result = terminal.Capacity();
+                SPDLOG_INFO( "Logical Address Space Capacity: {}", result );
+            }
+            else if( bShutdown )
+            {
+                SPDLOG_INFO( "Shutting down" );
+                terminal.Shutdown();
+                break;
             }
             else if ( bQuit )
             {

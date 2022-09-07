@@ -2,9 +2,42 @@
 // ed was here
 #include "/workspace/root/src/mega/src/api/mega/common.hpp"
 
+static const char* g_pszModuleName = "{{module_name}}";
+
+namespace mega
+{
+namespace runtime
+{
+using GetSharedFunction          = void* ( * )( mega::PhysicalAddress address );
+
+LogicalAddress allocateLogical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID );
+mega::PhysicalAddress logicalToPhysical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID, mega::LogicalAddress logicalAddress );
+void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction );
+}
+}
+
+{% for getter in getters %}
+static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter.ObjectTypeID }} = nullptr;
+{% endfor %}
+static mega::runtime::GetSharedFunction _fptr_get_shared_3 = nullptr;
+
 static int x = 321;
 
-void* {{ name }}( const mega::reference& )
+void* {{ name }}( const mega::reference& context )
 {
+{% for variable in variables %}
+    {{ variable }}{};
+{% endfor %}
+
+{% for assignment in assignments %}
+    {{ assignment }}
+{% endfor %}
+
+    // operation
+
+    mega::runtime::get_getter_shared( g_pszModuleName, 3, &_fptr_get_shared_3 );
+
+    void* pBuffer = _fptr_get_shared_3( context.physical );
+    
     return &x;
 }

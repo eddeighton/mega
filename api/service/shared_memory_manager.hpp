@@ -29,20 +29,32 @@ class SharedMemoryManager
             return os.str();
         }
 
+        struct AddressSpaceMapLifetime
+        {
+            const std::string& strName;
+            AddressSpaceMapLifetime( const std::string& strName )
+                : strName( strName )
+            {
+                boost::interprocess::shared_memory_object::remove( strName.c_str() );
+            }
+            ~AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( strName.c_str() ); }
+        };
+
     public:
         using Ptr = std::unique_ptr< SharedMemory >;
 
         SharedMemory( const network::ConversationID& conversationID )
             : m_strName( memoryName( conversationID ) )
+            , m_memoryLifetime( m_strName )
             , m_memory( boost::interprocess::create_only, m_strName.c_str(), SIZE )
         {
         }
-        ~SharedMemory() { boost::interprocess::shared_memory_object::remove( m_strName.c_str() ); }
 
         const std::string& getName() const { return m_strName; }
 
     private:
         std::string                  m_strName;
+        AddressSpaceMapLifetime      m_memoryLifetime;
         runtime::ManagedSharedMemory m_memory;
     };
 

@@ -27,17 +27,24 @@ class AddressSpace
     using AddressMapping = boost::interprocess::map< AddressStorage, AddressStorage, std::less< AddressStorage >,
                                                      AddressMappingAllocator >;
 
+    static constexpr const char* MEMORY_NAME = "MEGA_RUNTIME_ADDRESS_SPACE_MEMORY";
+
+    struct AddressSpaceMapLifetime
+    {
+        AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( MEMORY_NAME ); }
+        ~AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( MEMORY_NAME ); }
+    };
+
 public:
     using Lock = boost::interprocess::scoped_lock< boost::interprocess::named_mutex >;
 
     AddressSpace()
-        : m_sharedMemory( boost::interprocess::open_or_create, "MEGA_RUNTIME_ADDRESS_SPACE", 1024 * 1024 )
-        , m_addressSpaceMutex( boost::interprocess::open_or_create, "MEGA_RUNTIME_ADDRESS_SPACE" )
-        , m_addressMapping( *m_sharedMemory.find_or_construct< AddressMapping >( "MEGA_RUNTIME_ADDRESS_SPACE" )(
+        : m_sharedMemory( boost::interprocess::open_or_create, MEMORY_NAME, 1024 * 1024 )
+        , m_addressSpaceMutex( boost::interprocess::open_or_create, "MEGA_RUNTIME_ADDRESS_SPACE_MUTEX" )
+        , m_addressMapping( *m_sharedMemory.find_or_construct< AddressMapping >( "MEGA_RUNTIME_ADDRESS_SPACE_MAP" )(
               std::less< AddressStorage >(), AddressMappingAllocator( m_sharedMemory.get_segment_manager() ) ) )
     {
     }
-    ~AddressSpace() { boost::interprocess::shared_memory_object::remove( "MEGA_RUNTIME_ADDRESS_SPACE" ); }
 
     boost::interprocess::named_mutex& mutex() { return m_addressSpaceMutex; }
 
@@ -60,6 +67,7 @@ public:
     }
 
 private:
+    AddressSpaceMapLifetime          m_memoryLifetime;
     SharedMemoryType                 m_sharedMemory;
     boost::interprocess::named_mutex m_addressSpaceMutex;
     AddressMapping&                  m_addressMapping;

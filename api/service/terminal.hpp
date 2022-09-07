@@ -53,6 +53,9 @@ public:
     bool                                   NewInstallation( const mega::network::Project& project );
     network::ConversationID                SimNew();
     std::vector< network::ConversationID > SimList();
+    void                                   ClearStash();
+    std::size_t                            Capacity();
+    void                                   Shutdown();
 
     void testReadLock( const network::ConversationID& simID );
 

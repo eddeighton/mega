@@ -171,6 +171,24 @@ public:
         getTermResponse( yield_ctx ).TermSimWriteLock();
     }
 
+    virtual void TermClearStash( boost::asio::yield_context& yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).TermClearStash();
+        getTermResponse( yield_ctx ).TermClearStash();
+    }
+
+    virtual void TermCapacity( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).TermCapacity();
+        getTermResponse( yield_ctx ).TermCapacity( result );
+    }
+
+    virtual void TermShutdown( boost::asio::yield_context& yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).TermShutdown();
+        getTermResponse( yield_ctx ).TermShutdown();
+    }
+
     // daemon_leaf
     virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
@@ -203,7 +221,7 @@ public:
             default:
                 THROW_RTE( "Leaf: Invalid leaf type" );
         }
-        SPDLOG_INFO( "Leaf: RootListNetworkNodes end" );
+        SPDLOG_TRACE( "Leaf: RootListNetworkNodes end" );
     }
 
     virtual void RootPipelineStartJobs( const mega::pipeline::Configuration& configuration,
@@ -313,6 +331,38 @@ public:
         }
     }
 
+    virtual void RootShutdown( boost::asio::yield_context& yield_ctx  ) override
+    {
+        switch ( m_leaf.m_nodeType )
+        {
+            case network::Node::Terminal:
+            {
+                getTermRequest( yield_ctx ).RootShutdown();
+                getDaemonResponse( yield_ctx ).RootShutdown();
+            }
+            break;
+            case network::Node::Tool:
+            {
+                getToolRequest( yield_ctx ).RootShutdown();
+                getDaemonResponse( yield_ctx ).RootShutdown();
+            }
+            break;
+            case network::Node::Executor:
+            {
+                getExeRequest( yield_ctx ).RootShutdown();
+                getDaemonResponse( yield_ctx ).RootShutdown();
+            }
+            break;
+            case network::Node::Daemon:
+            case network::Node::Root:
+            case network::Node::TOTAL_NODE_TYPES:
+            default:
+                THROW_RTE( "Leaf: Invalid leaf type" );
+        }
+
+        //boost::asio::post( [ &leaf = m_leaf ]() { leaf.shutdown(); } );
+    }
+
     // network::exe_leaf::Impl
     virtual void ExePipelineReadyForWork( const network::ConversationID& rootConversationID,
                                           boost::asio::yield_context&    yield_ctx ) override
@@ -411,16 +461,16 @@ public:
         getExeResponse( yield_ctx ).ExeAcquireMemory( result );
     }
     virtual void ExeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                              const mega::TypeID&         objectTypeID,
-                              boost::asio::yield_context& yield_ctx ) override
+                                     const mega::TypeID&         objectTypeID,
+                                     boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ExeAllocateLogical( executionIndex, objectTypeID );
         getExeResponse( yield_ctx ).ExeAllocateLogical( result );
     }
 
     virtual void ExeDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                const mega::AddressStorage& logicalAddress,
-                                boost::asio::yield_context& yield_ctx ) override
+                                       const mega::AddressStorage& logicalAddress,
+                                       boost::asio::yield_context& yield_ctx ) override
     {
         getDaemonRequest( yield_ctx ).ExeDeAllocateLogical( executionIndex, logicalAddress );
         getExeResponse( yield_ctx ).ExeDeAllocateLogical();
@@ -451,19 +501,33 @@ public:
         getToolResponse( yield_ctx ).ToolAcquireMemory( result );
     }
     virtual void ToolAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                               const mega::TypeID&         objectTypeID,
-                               boost::asio::yield_context& yield_ctx ) override
+                                      const mega::TypeID&         objectTypeID,
+                                      boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ToolAllocateLogical( executionIndex, objectTypeID );
         getToolResponse( yield_ctx ).ToolAllocateLogical( result );
     }
 
     virtual void ToolDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                 const mega::AddressStorage& logicalAddress,
-                                 boost::asio::yield_context& yield_ctx ) override
+                                        const mega::AddressStorage& logicalAddress,
+                                        boost::asio::yield_context& yield_ctx ) override
     {
         getDaemonRequest( yield_ctx ).ToolDeAllocateLogical( executionIndex, logicalAddress );
         getToolResponse( yield_ctx ).ToolDeAllocateLogical();
+    }
+    virtual void ToolStash( const boost::filesystem::path& filePath,
+                            const task::DeterminantHash&   determinant,
+                            boost::asio::yield_context&    yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ToolStash( filePath, determinant );
+        getToolResponse( yield_ctx ).ToolStash();
+    }
+    virtual void ToolRestore( const boost::filesystem::path& filePath,
+                              const task::DeterminantHash&   determinant,
+                              boost::asio::yield_context&    yield_ctx ) override
+    {
+        const bool bRestored = getDaemonRequest( yield_ctx ).ToolRestore( filePath, determinant );
+        getToolResponse( yield_ctx ).ToolRestore( bRestored );
     }
 };
 

@@ -316,13 +316,17 @@ void writeConversions( nlohmann::json& stage, model::Schema::Ptr pSchema, model:
         {
             for ( model::ObjectPart::Ptr pPart : pFile->m_parts )
             {
-                model::SuperType::Ptr pSuper = pStage->getInterface( pPart->m_object.lock() )->m_superInterface.lock();
-                nlohmann::json        conversion
-                    = nlohmann::json::object( { { "type_id", pPart->m_typeID },
-                                                { "supertype", pSuper->getTypeName() },
-                                                { "file", pFile->m_strName },
-                                                { "object", pPart->m_object.lock()->getDataTypeName() } } );
-                stage[ "super_conversions" ].push_back( conversion );
+                VERIFY_RTE_MSG( pStage->isInterface( pPart->m_object.lock() ), "Stage missing interface for object" );
+                {
+                    model::SuperType::Ptr pSuper
+                        = pStage->getInterface( pPart->m_object.lock() )->m_superInterface.lock();
+                    nlohmann::json conversion
+                        = nlohmann::json::object( { { "type_id", pPart->m_typeID },
+                                                    { "supertype", pSuper->getTypeName() },
+                                                    { "file", pFile->m_strName },
+                                                    { "object", pPart->m_object.lock()->getDataTypeName() } } );
+                    stage[ "super_conversions" ].push_back( conversion );
+                }
             }
         }
     }
@@ -347,7 +351,8 @@ void writeAccessors( nlohmann::json& stage, model::Stage::Ptr pStage )
     {
         if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pAccessor->m_type ) )
         {
-            model::Object::Ptr            pObject      = pRef->m_object;
+            model::Object::Ptr pObject = pRef->m_object;
+            VERIFY_RTE_MSG( pStage->isInterface( pObject ), "Stage missing interface for accessor" );
             model::Interface::Ptr         pInterface   = pStage->getInterface( pObject );
             model::PrimaryObjectPart::Ptr pPrimaryPart = pInterface->getPrimaryObjectPart();
             model::File::Ptr              pFile        = pPrimaryPart->m_file.lock();
@@ -374,7 +379,8 @@ void writeAccessors( nlohmann::json& stage, model::Stage::Ptr pStage )
         {
             if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pArray->m_underlyingType ) )
             {
-                model::Object::Ptr            pObject      = pRef->m_object;
+                model::Object::Ptr pObject = pRef->m_object;
+                VERIFY_RTE_MSG( pStage->isInterface( pObject ), "Stage missing interface for accessor" );
                 model::Interface::Ptr         pInterface   = pStage->getInterface( pObject );
                 model::PrimaryObjectPart::Ptr pPrimaryPart = pInterface->getPrimaryObjectPart();
                 model::File::Ptr              pFile        = pPrimaryPart->m_file.lock();
@@ -647,7 +653,8 @@ nlohmann::json writeFunctionBody( model::Stage::Ptr pStage, model::Function::Ptr
         }
         else if ( model::RefType::Ptr pRef = std::dynamic_pointer_cast< model::RefType >( pType ) )
         {
-            model::Object::Ptr    pObject    = pRef->m_object;
+            model::Object::Ptr pObject = pRef->m_object;
+            VERIFY_RTE_MSG( pStage->isInterface( pObject ), "Stage missing interface for object" );
             model::Interface::Ptr pInterface = pStage->getInterface( pObject );
             osFunctionBody << "return toView( m_factory, " << strData << " );";
         }
@@ -1099,6 +1106,7 @@ void writeViewData( const boost::filesystem::path& dataDir,
                                                          { "perobject", true },
                                                          { "datafiles", nlohmann::json::array() },
                                                          { "super_conversions", nlohmann::json::array() },
+                                                         { "supertypes", nlohmann::json::array() },
                                                          { "interface_conversions", nlohmann::json::array() },
                                                          { "readwrite_files", nlohmann::json::array() },
                                                          { "many_accessors", nlohmann::json::array() },

@@ -11,18 +11,18 @@ thread_local mega::ExecutionContext* g_pExecutionContext = nullptr;
 namespace mega
 {
 
-void ExecutionContext::execution_resume( ExecutionContext* pExecutionContext )
+void ExecutionContext::resume( ExecutionContext* pExecutionContext )
 {
     VERIFY_RTE( g_pExecutionContext == nullptr );
     g_pExecutionContext = pExecutionContext;
 }
 
-void ExecutionContext::execution_suspend()
+void ExecutionContext::suspend()
 {
     g_pExecutionContext = nullptr;
 }
 
-ExecutionContext* ExecutionContext::execution_get()
+ExecutionContext* ExecutionContext::get()
 {
     return g_pExecutionContext;
 }

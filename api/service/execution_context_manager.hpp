@@ -22,7 +22,7 @@ public:
         if ( !m_allocations.full() )
         {
             mega::ExecutionIndex nextFree = m_allocations.nextFree();
-            SPDLOG_INFO( "Creating execution context: {} for conversation: {}", nextFree, conversationID );
+            SPDLOG_TRACE( "Creating execution context: {} for conversation: {}", nextFree, conversationID );
             m_allocations.allocate( nextFree );
             m_simulations.insert( { nextFree, conversationID } );
             m_conversations.insert( { conversationID, nextFree } );
@@ -40,7 +40,7 @@ public:
         if ( iFind != m_conversations.end() )
         {
             const auto address = iFind->second;
-            SPDLOG_INFO( "Releasing execution context: {} for conversation: {}", address, conversationID );
+            SPDLOG_TRACE( "Releasing execution context: {} for conversation: {}", address, conversationID );
             m_conversations.erase( iFind );
             m_allocations.free( address );
             m_simulations.erase( address );

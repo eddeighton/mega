@@ -7,6 +7,13 @@ project( mega VERSION 1.0 LANGUAGES CXX )
 #insist on ALL projects using c++ 17
 set( CMAKE_CXX_STANDARD 17 )
 
+# add_link_options("-fuse-ld=gold;LINKER:--threads,--thread-count=12,--split-stack-adjust-size=1048510")
+
+add_definitions("-Wfatal-errors")
+#add_definitions("-Werror")
+#add_definitions("-Wall")
+#add_definitions("-Wextra")
+
 ######################################
 #win32 specific settings
 IF( ${WIN32} )

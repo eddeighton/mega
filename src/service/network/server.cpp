@@ -40,7 +40,7 @@ void Server::Connection::start()
 
     m_receiver.run( m_strand, m_connectionID.value() );
 
-    SPDLOG_INFO( "New connection started: {}", m_strName );
+    SPDLOG_TRACE( "New connection started: {}", m_strName );
 }
 
 void Server::Connection::stop()

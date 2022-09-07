@@ -291,7 +291,7 @@ public:
         os << m_property->m_type->getViewType( strStageNamespace, true );
         return os.str();
     }
-    virtual ParamVector getParams( const std::string& strStageNamespace ) const { return ParamVector{}; }
+    virtual ParamVector getParams( const std::string& ) const { return ParamVector{}; }
 };
 class FunctionSetter : public Function
 {
@@ -307,7 +307,7 @@ public:
         os << "set_" << m_property->m_strName;
         return os.str();
     }
-    virtual std::string getReturnType( const std::string& strStageNamespace ) const { return "void"; }
+    virtual std::string getReturnType( const std::string& ) const { return "void"; }
     virtual ParamVector getParams( const std::string& strStageNamespace ) const
     {
         using namespace std::string_literals;
@@ -323,7 +323,7 @@ public:
     {
     }
     virtual std::string getName() const;
-    virtual std::string getReturnType( const std::string& strStageNamespace ) const { return "void"; }
+    virtual std::string getReturnType( const std::string& ) const { return "void"; }
     virtual ParamVector getParams( const std::string& strStageNamespace ) const;
 };
 

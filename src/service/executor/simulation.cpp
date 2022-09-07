@@ -2,6 +2,7 @@
 #include "service/executor/simulation.hpp"
 
 #include "mega/common.hpp"
+#include "runtime/runtime.hpp"
 #include "service/executor.hpp"
 
 #include "service/network/conversation.hpp"
@@ -44,11 +45,10 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
     }
 }
 
-ExecutionIndex Simulation::getThisExecutionIndex()
-{
-    return m_executionIndex;
-}
-std::string Simulation::acquireMemory( ExecutionIndex executionIndex )
+// mega::ExecutionContext
+ExecutionIndex  Simulation::getThisExecutionIndex() { return m_executionRoot->index(); }
+mega::reference Simulation::getRoot() { return m_executionRoot->root(); }
+std::string     Simulation::acquireMemory( ExecutionIndex executionIndex )
 {
     VERIFY_RTE( m_pYieldContext );
     return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( executionIndex );
@@ -65,18 +65,25 @@ void Simulation::deAllocateLogical( ExecutionIndex executionIndex, LogicalAddres
     getLeafRequest( *m_pYieldContext ).ExeDeAllocateLogical( executionIndex, Address{ logicalAddress } );
 }
 
+void Simulation::stash( const std::string& filePath, std::size_t determinant )
+{
+    VERIFY_RTE( m_pYieldContext );
+    getLeafRequest( *m_pYieldContext ).ExeStash( filePath, determinant );
+}
+
+bool Simulation::restore( const std::string& filePath, std::size_t determinant )
+{
+    VERIFY_RTE( m_pYieldContext );
+    return getLeafRequest( *m_pYieldContext ).ExeRestore( filePath, determinant );
+}
+
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
     {
         const std::pair< bool, mega::ExecutionIndex > result = getLeafRequest( yield_ctx ).ExeCreateExecutionContext();
         VERIFY_RTE_MSG( result.first, "Failed to acquire execution index" );
-        m_executionIndex = result.second;
-
-        std::unique_ptr< Root, void ( * )( Root* ) > pRoot(
-            mega::runtime::allocateRoot( result.second ), []( Root* pRoot ) { mega::runtime::releaseRoot( pRoot ); } );
-
-        // run simulation cycle
+        m_executionRoot = std::move( mega::runtime::ExecutionRoot( result.second ) );
 
         // process incoming requests
         SUSPEND_EXECUTION_CONTEXT();
@@ -153,21 +160,21 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
 void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_INFO( "Simulation Started: {}", getID() );
+    SPDLOG_TRACE( "Simulation Started: {}", getID() );
 
-    execution_resume( this );
+    ExecutionContext::resume( this );
 
     m_pYieldContext = &yield_ctx;
 
     runSimulation( yield_ctx );
 
-    execution_suspend();
+    ExecutionContext::suspend();
 }
 
 void Simulation::ExeSimReadLockAcquire( const mega::network::ConversationID& requestingConID,
                                         boost::asio::yield_context&          yield_ctx )
 {
-    SPDLOG_INFO( "Simulation::RootSimReadLock: {}", requestingConID );
+    SPDLOG_TRACE( "Simulation::RootSimReadLock: {}", requestingConID );
 
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );
@@ -183,7 +190,7 @@ void Simulation::ExeSimReadLockAcquire( const mega::network::ConversationID& req
 void Simulation::ExeSimReadLockRelease( const mega::network::ConversationID& requestingConID,
                                         boost::asio::yield_context&          yield_ctx )
 {
-    SPDLOG_INFO( "Simulation::RootSimReadLock: {}", requestingConID );
+    SPDLOG_TRACE( "Simulation::RootSimReadLock: {}", requestingConID );
 
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );
@@ -196,7 +203,7 @@ void Simulation::ExeSimReadLockRelease( const mega::network::ConversationID& req
 void Simulation::ExeSimWriteLockAcquire( const mega::network::ConversationID& requestingConID,
                                          boost::asio::yield_context&          yield_ctx )
 {
-    SPDLOG_INFO( "Simulation::RootSimReadLock: {}", requestingConID );
+    SPDLOG_TRACE( "Simulation::RootSimReadLock: {}", requestingConID );
 
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );
@@ -212,7 +219,7 @@ void Simulation::ExeSimWriteLockAcquire( const mega::network::ConversationID& re
 void Simulation::ExeSimWriteLockRelease( const mega::network::ConversationID& requestingConID,
                                          boost::asio::yield_context&          yield_ctx )
 {
-    SPDLOG_INFO( "Simulation::RootSimReadLock: {}", requestingConID );
+    SPDLOG_TRACE( "Simulation::RootSimReadLock: {}", requestingConID );
 
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );

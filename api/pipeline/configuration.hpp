@@ -23,7 +23,7 @@ struct ConfigurationHeader
     Version    version;
 
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int v )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& boost::serialization::make_nvp( "id", pipelineID );
         archive& boost::serialization::make_nvp( "version", version );
@@ -50,7 +50,7 @@ public:
 
     // serialisation used by network - NOT when loading from xml file
     template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
+    inline void serialize( Archive& archive, const unsigned int )
     {
         archive& m_buffer;
     }

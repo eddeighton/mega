@@ -19,8 +19,19 @@ namespace runtime
 void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
                         const mega::network::Project&                   project );
 
-::Root* allocateRoot( const mega::ExecutionIndex& executionIndex );
-void    releaseRoot( ::Root* pRoot );
+class ExecutionRoot
+{
+public:
+    ExecutionRoot( mega::ExecutionIndex executionIndex );
+    ~ExecutionRoot();
+
+    mega::ExecutionIndex index() const { return m_executionIndex; }
+    mega::reference      root() const { return m_root; }
+
+private:
+    mega::ExecutionIndex m_executionIndex;
+    mega::reference      m_root;
+};
 
 void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction );
 

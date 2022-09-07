@@ -7586,17 +7586,17 @@ namespace Operations
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocation >( loader, this ) )          , context( loader )
           , type_path( loader )
           , name_resolution( loader )
-          , root_variable( loader )
           , root_instruction( loader )
     {
     }
-    Operations_Invocation::Operations_Invocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Operations_Context >& context, const data::Ptr< data::Operations::Operations_TypePath >& type_path, const mega::OperationID& operation, const std::string& name, const std::string& context_str, const std::string& type_path_str)
+    Operations_Invocation::Operations_Invocation( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Operations::Operations_Context >& context, const data::Ptr< data::Operations::Operations_TypePath >& type_path, const mega::OperationID& operation, const std::string& name, const std::string& context_str, const std::string& type_path_str, const std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& variables)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Operations::Operations_Invocation >( loader, this ) )          , context( context )
           , type_path( type_path )
           , operation( operation )
           , name( name )
           , context_str( context_str )
           , type_path_str( type_path_str )
+          , variables( variables )
     {
     }
     bool Operations_Invocation::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -7618,7 +7618,6 @@ namespace Operations
         loader.load( return_type_str );
         loader.load( runtime_return_type_str );
         loader.load( name_resolution );
-        loader.load( root_variable );
         loader.load( root_instruction );
         loader.load( variables );
         loader.load( return_types_context );
@@ -7642,11 +7641,8 @@ namespace Operations
         storer.store( runtime_return_type_str );
         VERIFY_RTE_MSG( name_resolution.has_value(), "Operations::Operations_Invocation.name_resolution has NOT been set" );
         storer.store( name_resolution );
-        VERIFY_RTE_MSG( root_variable.has_value(), "Operations::Operations_Invocation.root_variable has NOT been set" );
-        storer.store( root_variable );
         VERIFY_RTE_MSG( root_instruction.has_value(), "Operations::Operations_Invocation.root_instruction has NOT been set" );
         storer.store( root_instruction );
-        VERIFY_RTE_MSG( variables.has_value(), "Operations::Operations_Invocation.variables has NOT been set" );
         storer.store( variables );
         VERIFY_RTE_MSG( return_types_context.has_value(), "Operations::Operations_Invocation.return_types_context has NOT been set" );
         storer.store( return_types_context );
@@ -7720,17 +7716,12 @@ namespace Operations
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "root_variable", root_variable.value() } } );
-            _part__[ "properties" ].push_back( property );
-        }
-        {
-            nlohmann::json property = nlohmann::json::object({
                 { "root_instruction", root_instruction.value() } } );
             _part__[ "properties" ].push_back( property );
         }
         {
             nlohmann::json property = nlohmann::json::object({
-                { "variables", variables.value() } } );
+                { "variables", variables } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -14055,27 +14046,6 @@ data::Ptr< data::Operations::Operations_NameRoot >& get_root_name(std::variant< 
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Operations::Invocations_Variables_Context > >& get_root_variable(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Operations::Invocations_Variables_Context > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Operations::Operations_Invocation > >)
-            {
-                data::Ptr< data::Operations::Operations_Invocation > part = 
-                    data::convert< data::Operations::Operations_Invocation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_root_variable" );
-                return part->root_variable;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to get_root_variable" );
-            }
-        }
-        , m_data );
-}
 std::optional< std::string >& get_runtime_return_type_str(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     return std::visit( 
@@ -15372,10 +15342,10 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_user_d
         }
         , m_data );
 }
-std::optional< std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > > >& get_variables(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& get_variables(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > > >&
+        []( auto& arg ) -> std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Operations::Operations_Invocation > >)
@@ -18170,10 +18140,10 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& push_back_
         }
         , m_data );
 }
-std::optional< std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > > >& push_back_variables(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& push_back_variables(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > > >&
+        []( auto& arg ) -> std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Operations::Operations_Invocation > >)
@@ -24344,27 +24314,6 @@ data::Ptr< data::Operations::Operations_NameRoot >& set_root_name(std::variant< 
         }
         , m_data );
 }
-std::optional< data::Ptr< data::Operations::Invocations_Variables_Context > >& set_root_variable(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
-{
-    return std::visit( 
-        []( auto& arg ) -> std::optional< data::Ptr< data::Operations::Invocations_Variables_Context > >&
-        {
-            using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Operations::Operations_Invocation > >)
-            {
-                data::Ptr< data::Operations::Operations_Invocation > part = 
-                    data::convert< data::Operations::Operations_Invocation >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: set_root_variable" );
-                return part->root_variable;
-            }
-            else
-            {
-                THROW_RTE( "Invalid call to set_root_variable" );
-            }
-        }
-        , m_data );
-}
 std::optional< std::string >& set_runtime_return_type_str(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     return std::visit( 
@@ -25516,10 +25465,10 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& set_user_d
         }
         , m_data );
 }
-std::optional< std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > > >& set_variables(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
+std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >& set_variables(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > > >&
+        []( auto& arg ) -> std::vector< data::Ptr< data::Operations::Invocations_Variables_Variable > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Operations::Operations_Invocation > >)

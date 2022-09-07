@@ -39,12 +39,10 @@ void SocketReceiver::onError( const boost::system::error_code& ec )
 {
     if ( ec == boost::asio::error::eof )
     {
-        // SPDLOG_INFO( "Connection: {} closed due to EOF", connectionID );
         //  This is what happens when close socket normally
     }
     else if ( ec == boost::asio::error::operation_aborted )
     {
-        // SPDLOG_INFO( "Connection: {} closed. Error: {}", connectionID, ec.what() );
         //  This is what happens when close socket normally
     }
     else if ( ec == boost::asio::error::connection_reset )
@@ -140,12 +138,10 @@ void ConcurrentChannelReceiver::onError( const boost::system::error_code& ec )
 {
     if ( ec == boost::asio::error::eof )
     {
-        // SPDLOG_INFO( "Connection: {} closed due to EOF", m_connectionID );
         //  This is what happens when close socket normally
     }
     else if ( ec == boost::asio::error::operation_aborted )
     {
-        // SPDLOG_INFO( "Connection: {} closed. Error: {}", m_connectionID, ec.what() );
         //  This is what happens when close socket normally
     }
     else if ( ec == boost::asio::experimental::error::channel_closed )

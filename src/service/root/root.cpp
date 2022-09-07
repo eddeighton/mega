@@ -251,31 +251,44 @@ public:
         pDaemon->RootSimWriteLock( simulationID );
         getStackTopDaemonResponse( yield_ctx ).TermSimWriteLock();
     }
-    /*
-    virtual void Shutdown( boost::asio::yield_context& yield_ctx ) override
+
+
+    virtual void TermClearStash( boost::asio::yield_context& yield_ctx ) override
     {
-        // response straight away - then execute shutdown
-        getStackTopDaemonResponse( yield_ctx ).Shutdown();
+        m_root.m_stash.clear();
+        getStackTopDaemonResponse( yield_ctx ).TermClearStash();
+    }
+
+    virtual void TermCapacity( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto capacity = m_root.m_logicalAddressSpace.getCapacity();
+        getStackTopDaemonResponse( yield_ctx ).TermCapacity( capacity );
+    }
+
+    virtual void TermShutdown( boost::asio::yield_context& yield_ctx ) override
+    {
+        getStackTopDaemonResponse( yield_ctx ).TermShutdown();
+
         for ( const auto& [ id, pDeamon ] : m_root.m_server.getConnections() )
         {
-            getDaemonRequest( pDeamon, yield_ctx ).ExecuteShutdown();
+            getDaemonRequest( pDeamon, yield_ctx ).RootShutdown();
         }
 
         boost::asio::post( [ &root = m_root ]() { root.shutdown(); } );
-    }*/
+    }
 
     // pipeline::Stash
     virtual void ExeGetBuildHashCode( const boost::filesystem::path& filePath,
                                       boost::asio::yield_context&    yield_ctx ) override
     {
         auto daemon = getStackTopDaemonResponse( yield_ctx );
-        daemon.ExeGetBuildHashCode( m_root.m_stash.getBuildHashCode( filePath ) );
+        daemon.ExeGetBuildHashCode( m_root.m_buildHashCodes.get( filePath ) );
     }
 
     virtual void ExeSetBuildHashCode( const boost::filesystem::path& filePath, const task::FileHash& hashCode,
                                       boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_stash.setBuildHashCode( filePath, hashCode );
+        m_root.m_buildHashCodes.set( filePath, hashCode );
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ExeSetBuildHashCode();
     }
@@ -386,6 +399,20 @@ public:
         m_root.m_logicalAddressSpace.deAllocateLogical( executionIndex, logicalAddress );
         getStackTopDaemonResponse( yield_ctx ).ToolDeAllocateLogical();
     }
+    virtual void ToolStash( const boost::filesystem::path& filePath,
+                            const task::DeterminantHash&   determinant,
+                            boost::asio::yield_context&    yield_ctx ) override
+    {
+        m_root.m_stash.stash( filePath, determinant );
+        getStackTopDaemonResponse( yield_ctx ).ToolStash();
+    }
+    virtual void ToolRestore( const boost::filesystem::path& filePath,
+                              const task::DeterminantHash&   determinant,
+                              boost::asio::yield_context&    yield_ctx ) override
+    {
+        const bool bRestored = m_root.m_stash.restore( filePath, determinant );
+        getStackTopDaemonResponse( yield_ctx ).ToolRestore( bRestored );
+    }
 };
 
 class RootPipelineConversation : public RootRequestConversation, public pipeline::Progress, public pipeline::Stash
@@ -463,7 +490,7 @@ public:
             }
         }
 
-        m_root.m_stash.resetBuildHashCodes();
+        m_root.m_buildHashCodes.reset();
 
         for ( auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
         {
@@ -477,7 +504,7 @@ public:
             SPDLOG_WARN( "Failed to find executors for pipeline: {}", configuration.getPipelineID() );
             THROW_RTE( "Root: Failed to find executors for pipeline" );
         }
-        SPDLOG_INFO( "Found {} jobs for pipeline {}", m_jobs.size(), configuration.getPipelineID() );
+        SPDLOG_TRACE( "Found {} jobs for pipeline {}", m_jobs.size(), configuration.getPipelineID() );
 
         mega::pipeline::Schedule                   schedule = pPipeline->getSchedule( *this, *this );
         std::set< mega::pipeline::TaskDescriptor > scheduledTasks, activeTasks;
@@ -551,18 +578,17 @@ public:
             auto               daemon = getStackTopDaemonResponse( yield_ctx );
             if ( bScheduleFailed )
             {
-                SPDLOG_INFO( "FAILURE: Pipeline {} failed in: {}ms", configuration.getPipelineID(),
+                SPDLOG_WARN( "FAILURE: Pipeline {} failed in: {}ms", configuration.getPipelineID(),
                              std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                 os << "Pipeline: " << configuration.getPipelineID() << " failed";
-                daemon.TermPipelineRun(
-                    network::PipelineResult( false, os.str(), m_root.m_stash.getBuildHashCodes() ) );
+                daemon.TermPipelineRun( network::PipelineResult( false, os.str(), m_root.m_buildHashCodes.get() ) );
             }
             else
             {
                 SPDLOG_INFO( "SUCCESS: Pipeline {} succeeded in: {}", configuration.getPipelineID(),
                              std::chrono::duration_cast< network::LogTime >( sw.elapsed() ) );
                 os << "Pipeline: " << configuration.getPipelineID() << " succeeded";
-                daemon.TermPipelineRun( network::PipelineResult( true, os.str(), m_root.m_stash.getBuildHashCodes() ) );
+                daemon.TermPipelineRun( network::PipelineResult( true, os.str(), m_root.m_buildHashCodes.get() ) );
             }
         }
     }
@@ -659,7 +685,7 @@ void Root::saveConfig()
 void Root::shutdown()
 {
     m_server.stop();
-    SPDLOG_INFO( "Root shutdown" );
+    SPDLOG_TRACE( "Root shutdown" );
 }
 
 network::MegastructureInstallation Root::getMegastructureInstallation()

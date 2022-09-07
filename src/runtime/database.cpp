@@ -15,6 +15,22 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )
     , m_concreteIDs( m_pSymbolTable->get_concrete_context_map() )
 {
+    // determine the root concrete type ID
+    {
+        const auto symbols = m_pSymbolTable->get_symbols();
+        auto iFind = symbols.find( "Root" );
+        VERIFY_RTE_MSG( iFind != symbols.end(), "Failed to locate Root symbol" );
+        auto pSymbol = iFind->second;
+        auto contexts = pSymbol->get_contexts();
+        VERIFY_RTE_MSG( contexts.size() > 0U, "Failed to locate Root symbol" );
+        VERIFY_RTE_MSG( contexts.size() == 1U, "Multiple Root symbols defined" );
+        auto pIContext = contexts.front();
+        auto concrete = pIContext->get_concrete();
+        VERIFY_RTE_MSG( concrete.size() > 0U, "Failed to locate Root symbol" );
+        VERIFY_RTE_MSG( concrete.size() == 1U, "Multiple Root symbols defined" );
+        auto pConcrete = concrete.front();
+        m_rootTypeID = pConcrete->get_concrete_id();
+    }
 }
 
 const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const mega::InvocationID& invocation ) const
@@ -82,18 +98,15 @@ std::size_t DatabaseInstance::getConcreteContextTotalAllocation( mega::TypeID co
     {
         return 1;
     }
-    else if ( Concrete::Event* pEvent
-                = dynamic_database_cast< Concrete::Event >( pContext ) )
+    else if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
     {
         return pEvent->get_total_size();
     }
-    else if ( Concrete::Action* pAction
-                = dynamic_database_cast< Concrete::Action >( pContext ) )
+    else if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
     {
         return pAction->get_total_size();
     }
-    else if ( Concrete::Link* pLink
-                = dynamic_database_cast< Concrete::Link >( pContext ) )
+    else if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
     {
         return pLink->get_total_size();
     }
@@ -101,6 +114,11 @@ std::size_t DatabaseInstance::getConcreteContextTotalAllocation( mega::TypeID co
     {
         return 1;
     }
+}
+
+mega::TypeID DatabaseInstance::getRootTypeID() const 
+{
+    return m_rootTypeID;
 }
 
 } // namespace runtime

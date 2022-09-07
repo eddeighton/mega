@@ -75,7 +75,7 @@ void ExecutorRequestConversation::RootPipelineStartJobs( const pipeline::Configu
         }
         else
         {
-            SPDLOG_INFO( "{}", osLog.str() );
+            SPDLOG_TRACE( "{}", osLog.str() );
         }
     }
 
@@ -120,8 +120,6 @@ void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yie
 {
     const network::ConversationID id = m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() );
 
-    
-
     Simulation::Ptr pSim = std::make_shared< Simulation >( m_executor, id );
 
     m_executor.m_simulations.insert( { pSim->getID(), pSim } );
@@ -133,7 +131,7 @@ void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yie
 void ExecutorRequestConversation::RootSimReadLock( const mega::network::ConversationID& simulationID,
                                                    boost::asio::yield_context&          yield_ctx )
 {
-    SPDLOG_INFO( "ExecutorRequestConversation::RootSimReadLock: {}", simulationID );
+    SPDLOG_TRACE( "ExecutorRequestConversation::RootSimReadLock: {}", simulationID );
 
     Executor::SimulationMap::const_iterator iFind = m_executor.m_simulations.find( simulationID );
     VERIFY_RTE_MSG( iFind != m_executor.m_simulations.end(), "Failed to find simulation: " << simulationID );
@@ -146,7 +144,7 @@ void ExecutorRequestConversation::RootSimReadLock( const mega::network::Conversa
 
     getLeafRequest( yield_ctx ).ExeSimReadLockReady( timeStamp );
 
-    SPDLOG_INFO( "ExecutorRequestConversation::RootSimReadLock got ExeSimReadLockReady response" );
+    SPDLOG_TRACE( "ExecutorRequestConversation::RootSimReadLock got ExeSimReadLockReady response" );
 
     rq.ExeSimReadLockRelease( getID() );
 
@@ -181,6 +179,12 @@ void ExecutorRequestConversation::RootSimWriteLockReady( const mega::TimeStamp& 
                                                          boost::asio::yield_context& yield_ctx )
 {
     getLeafResponse( yield_ctx ).RootSimWriteLockReady();
+}
+
+void ExecutorRequestConversation::RootShutdown( boost::asio::yield_context& yield_ctx )
+{
+    getLeafResponse( yield_ctx ).RootShutdown();
+    boost::asio::post( [ &executor = m_executor ]() { executor.shutdown(); } );
 }
 
 } // namespace service

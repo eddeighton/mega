@@ -36,7 +36,7 @@ Client::Client( boost::asio::io_context& ioContext, ConversationManager& convers
     m_endPoint     = boost::asio::connect( m_socket, endpoints );
     m_connectionID = makeConnectionID( m_socket );
 
-    SPDLOG_INFO( "Client connected to: {}", m_connectionID );
+    SPDLOG_TRACE( "Client connected to: {}", m_connectionID );
 
     m_receiver.run( ioContext, m_connectionID );
 
@@ -49,7 +49,7 @@ void Client::stop()
     m_socket.shutdown( m_socket.shutdown_receive, ec );
 }
 
-void Client::disconnected() { SPDLOG_INFO( "Client disconnected from: {}", m_connectionID ); }
+void Client::disconnected() { SPDLOG_TRACE( "Client disconnected from: {}", m_connectionID ); }
 
 Client::~Client() {}
 

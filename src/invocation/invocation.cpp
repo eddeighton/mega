@@ -706,7 +706,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     }
 
     Invocation* pInvocation = database.construct< Invocation >( Invocation::Args{
-        pContext, pTypePath, id.m_operation, osName.str(), osContextStr.str(), osTypePathStr.str() } );
+        pContext, pTypePath, id.m_operation, osName.str(), osContextStr.str(), osTypePathStr.str(), {} } );
 
     // 3. Compute name resolution
     NameResolution* pNameResolution = resolve( database, pInvocation );
@@ -717,7 +717,6 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
 
     // 5. Analyse result
     pInvocation->set_explicit_operation( determineExplicitOperationType( pInvocation ) );
-    pInvocation->set_variables( getVariables( pInvocation->get_root_instruction() ) );
 
     std::vector< Interface::IContext* >       contexts   = pInvocation->get_return_types_context();
     std::vector< Interface::DimensionTrait* > dimensions = pInvocation->get_return_types_dimension();

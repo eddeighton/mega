@@ -31,8 +31,6 @@ private:
     void compileToIR( const boost::filesystem::path& sourcePath, const boost::filesystem::path& irPath ) const;
 
 private:
-    boost::filesystem::path  m_clangPath;
-    boost::filesystem::path  m_tempDir;
     std::shared_ptr< Pimpl > m_pPimpl;
 };
 } // namespace runtime

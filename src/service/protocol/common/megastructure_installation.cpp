@@ -20,6 +20,8 @@ const bool MegastructureInstallation::isEmpty() const { return m_installationPat
 
 mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() const
 {
+    VERIFY_RTE( !isEmpty() );
+    
     const boost::filesystem::path toolChainXMLPath = m_installationPath / "etc/toolchain.xml";
 
     mega::utilities::ToolChain toolChain;

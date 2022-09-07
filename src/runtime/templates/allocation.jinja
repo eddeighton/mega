@@ -29,8 +29,8 @@ struct {{part.type}}
 struct SharedBuffer_{{ ObjectTypeID }}
 {
     using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
-    SharedBuffer_{{ ObjectTypeID }}( TSegmentManagerType* pSegmentManager ) :
-{% for part in shared_parts %}
+    SharedBuffer_{{ ObjectTypeID }}( TSegmentManagerType* pSegmentManager )
+{% for part in shared_parts %}{% if loop.is_first%}:{% endif %}
         {{part.name}}{ { {%for init in part.inits %}pSegmentManager{% if not loop.is_last%},{% endif %}{% endfor %} } }{% if not loop.is_last%},{% endif %}
 {% endfor %}
     {}
@@ -114,28 +114,29 @@ private:
     FreeList             m_freeList;
 };
 
-SharedIndexAllocator_{{ ObjectTypeID }}* g_shared_allocators_{{ ObjectTypeID }}[ mega::MAX_SIMULATIONS ] = {};
+SharedIndexAllocator_{{ ObjectTypeID }}* _g_shared_{{ ObjectTypeID }}[ mega::MAX_SIMULATIONS ] = {};
 
-SharedBuffer_{{ ObjectTypeID }}* get_shared_{{ ObjectTypeID }}( mega::PhysicalAddress address )
+// SharedBuffer_{{ ObjectTypeID }}* get_shared_{{ ObjectTypeID }}( mega::PhysicalAddress address )
+void* get_shared_{{ ObjectTypeID }}( mega::PhysicalAddress address )
 {
-    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = g_shared_allocators_{{ ObjectTypeID }}[ address.execution ];
+    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = _g_shared_{{ ObjectTypeID }}[ address.execution ];
     if( pAllocator == nullptr )
     {
         mega::runtime::ManagedSharedMemory& managedSharedMemory = mega::runtime::getSharedMemoryManager( address.execution );
         pAllocator = new SharedIndexAllocator_{{ ObjectTypeID }}( managedSharedMemory.get_segment_manager() );
-        g_shared_allocators_{{ ObjectTypeID }}[ address.execution ] = pAllocator;
+        _g_shared_{{ ObjectTypeID }}[ address.execution ] = pAllocator;
     }
     return pAllocator->get( address.object ).get();
 }
 
 mega::PhysicalAddress alloc_shared_{{ ObjectTypeID }}( mega::ExecutionIndex executionIndex )
 {
-    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = g_shared_allocators_{{ ObjectTypeID }}[ executionIndex ];
+    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = _g_shared_{{ ObjectTypeID }}[ executionIndex ];
     if( pAllocator == nullptr )
     {
         mega::runtime::ManagedSharedMemory& managedSharedMemory = mega::runtime::getSharedMemoryManager( executionIndex );
         pAllocator = new SharedIndexAllocator_{{ ObjectTypeID }}( managedSharedMemory.get_segment_manager() );
-        g_shared_allocators_{{ ObjectTypeID }}[ executionIndex ] = pAllocator;
+        _g_shared_{{ ObjectTypeID }}[ executionIndex ] = pAllocator;
     }
 
     mega::PhysicalAddress result;
@@ -150,6 +151,6 @@ mega::PhysicalAddress alloc_shared_{{ ObjectTypeID }}( mega::ExecutionIndex exec
 
 void dealloc_shared_{{ ObjectTypeID }}( mega::PhysicalAddress address )
 {
-    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = g_shared_allocators_{{ ObjectTypeID }}[ address.execution ];
+    SharedIndexAllocator_{{ ObjectTypeID }}* pAllocator = _g_shared_{{ ObjectTypeID }}[ address.execution ];
     pAllocator->deallocate( address.object );
 }

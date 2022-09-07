@@ -102,14 +102,14 @@ public:
             = m_daemon.m_leafServer.getConnection( getOriginatingEndPointID().value() );
         VERIFY_RTE( pConnection );
         pConnection->setType( type );
-        SPDLOG_INFO( "Leaf {} enroled as {}", pConnection->getName(), network::Node::toStr( type ) );
+        SPDLOG_TRACE( "Leaf {} enroled as {}", pConnection->getName(), network::Node::toStr( type ) );
         getStackTopLeafResponse( yield_ctx ).LeafEnrole();
     }
 
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getRootRequest( yield_ctx ).TermListNetworkNodes();
-        SPDLOG_INFO( "Daemon got root response" );
+        SPDLOG_TRACE( "Daemon got root response" );
         getStackTopLeafResponse( yield_ctx ).TermListNetworkNodes( result );
     }
 
@@ -177,6 +177,24 @@ public:
         else
             getRootRequest( yield_ctx ).TermSimWriteLock( simulationID );
         getStackTopLeafResponse( yield_ctx ).TermSimWriteLock();
+    }
+
+    virtual void TermClearStash( boost::asio::yield_context& yield_ctx ) override
+    {
+        getRootRequest( yield_ctx ).TermClearStash();
+        getStackTopLeafResponse( yield_ctx ).TermClearStash();
+    }
+
+    virtual void TermCapacity( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).TermCapacity();
+        getStackTopLeafResponse( yield_ctx ).TermCapacity( result );
+    }
+
+    virtual void TermShutdown( boost::asio::yield_context& yield_ctx ) override
+    {
+        getRootRequest( yield_ctx ).TermShutdown();
+        getStackTopLeafResponse( yield_ctx ).TermShutdown();
     }
 
     virtual void ExePipelineReadyForWork( const network::ConversationID& rootConversationID,
@@ -287,16 +305,16 @@ public:
     }
 
     virtual void ExeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                              const mega::TypeID&         objectTypeID,
-                              boost::asio::yield_context& yield_ctx ) override
+                                     const mega::TypeID&         objectTypeID,
+                                     boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getRootRequest( yield_ctx ).ExeAllocateLogical( executionIndex, objectTypeID );
         getStackTopLeafResponse( yield_ctx ).ExeAllocateLogical( result );
     }
 
     virtual void ExeDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                const mega::AddressStorage& logicalAddress,
-                                boost::asio::yield_context& yield_ctx ) override
+                                       const mega::AddressStorage& logicalAddress,
+                                       boost::asio::yield_context& yield_ctx ) override
     {
         getRootRequest( yield_ctx ).ExeDeAllocateLogical( executionIndex, logicalAddress );
         getStackTopLeafResponse( yield_ctx ).ExeDeAllocateLogical();
@@ -442,6 +460,18 @@ public:
         getRootResponse( yield_ctx ).RootSimWriteLockReady();
     }
 
+    virtual void RootShutdown( boost::asio::yield_context& yield_ctx  ) override
+    {
+        for ( const auto& [ id, pLeaf ] : m_daemon.m_leafServer.getConnections() )
+        {
+            network::daemon_leaf::Request_Encode rq( *this, *pLeaf, yield_ctx );
+            rq.RootShutdown();
+        }
+        getRootResponse( yield_ctx ).RootShutdown();
+
+        boost::asio::post( [ &daemon = m_daemon ]() { daemon.shutdown(); } );
+    }
+
     virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getRootRequest( yield_ctx ).ToolGetMegastructureInstallation();
@@ -469,19 +499,33 @@ public:
         getStackTopLeafResponse( yield_ctx ).ToolAcquireMemory( strMemory );
     }
     virtual void ToolAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                               const mega::TypeID&         objectTypeID,
-                               boost::asio::yield_context& yield_ctx ) override
+                                      const mega::TypeID&         objectTypeID,
+                                      boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getRootRequest( yield_ctx ).ToolAllocateLogical( executionIndex, objectTypeID );
         getStackTopLeafResponse( yield_ctx ).ToolAllocateLogical( result );
     }
 
     virtual void ToolDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                 const mega::AddressStorage& logicalAddress,
-                                 boost::asio::yield_context& yield_ctx ) override
+                                        const mega::AddressStorage& logicalAddress,
+                                        boost::asio::yield_context& yield_ctx ) override
     {
         getRootRequest( yield_ctx ).ToolDeAllocateLogical( executionIndex, logicalAddress );
         getStackTopLeafResponse( yield_ctx ).ToolDeAllocateLogical();
+    }
+    virtual void ToolStash( const boost::filesystem::path& filePath,
+                            const task::DeterminantHash&   determinant,
+                            boost::asio::yield_context&    yield_ctx ) override
+    {
+        getRootRequest( yield_ctx ).ToolStash( filePath, determinant );
+        getStackTopLeafResponse( yield_ctx ).ToolStash();
+    }
+    virtual void ToolRestore( const boost::filesystem::path& filePath,
+                              const task::DeterminantHash&   determinant,
+                              boost::asio::yield_context&    yield_ctx ) override
+    {
+        const bool bRestored = getRootRequest( yield_ctx ).ToolRestore( filePath, determinant );
+        getStackTopLeafResponse( yield_ctx ).ToolRestore( bRestored );
     }
 };
 
@@ -495,7 +539,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP
     m_leafServer.waitForConnection();
 }
 
-Daemon::~Daemon() { SPDLOG_INFO( "Daemon shutdown" ); }
+Daemon::~Daemon() { SPDLOG_TRACE( "Daemon shutdown" ); }
 
 void Daemon::shutdown()
 {

@@ -21,9 +21,10 @@ namespace mega
 {
 namespace utilities
 {
+
+#ifdef DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT
 void clang_format( std::string& strNewFileContents, std::optional< boost::filesystem::path > formatSpecPath )
 {
-#ifdef DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT
     std::vector< clang::tooling::Range > ranges;
     ranges.push_back( clang::tooling::Range( 0U, strNewFileContents.size() ) );
 
@@ -99,8 +100,13 @@ void clang_format( std::string& strNewFileContents, std::optional< boost::filesy
     {
         strNewFileContents = *pChangedCode;
     }
-#endif
 }
+#else
+void clang_format( std::string&, std::optional< boost::filesystem::path > )
+{
+    // do nothing...
+}
+#endif
 
 } // namespace utilities
 } // namespace mega

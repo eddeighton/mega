@@ -205,15 +205,5 @@ getOperations( OperationsStage::Invocations::Instructions::Instruction* pInstruc
     return operations;
 }
 
-std::vector< OperationsStage::Invocations::Variables::Variable* >
-getVariables( OperationsStage::Invocations::Instructions::Instruction* pInstruction )
-{
-    using OperationsStage::Invocations::Variables::Variable;
-
-    std::vector< Variable* > variables;
-
-    return variables;
-}
-
 } // namespace invocation
 } // namespace mega

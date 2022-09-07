@@ -10,7 +10,14 @@
 #include <boost/filesystem/file_status.hpp>
 
 // disable clang warnings
+
+#ifdef __clang__
+#elif __GNUC__
+#pragma GCC diagnostic push
+#elif _MSC_VER
 #pragma warning( push )
+#endif
+
 #include "common/clang_warnings.hpp"
 
 #include "clang/Basic/FileManager.h"
@@ -32,7 +39,12 @@
 #include "clang/Basic/DiagnosticIDs.h"
 #include "clang/Basic/DiagnosticOptions.h"
 
+#ifdef __clang__
+#elif __GNUC__
+#pragma GCC diagnostic pop
+#elif _MSC_VER
 #pragma warning( pop )
+#endif
 
 class ParserDiagnosticSystem
 {

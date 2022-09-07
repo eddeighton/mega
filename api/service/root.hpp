@@ -44,6 +44,7 @@ private:
 
 private:
     network::Server                                     m_server;
+    task::BuildHashCodes                                m_buildHashCodes;
     task::Stash                                         m_stash;
     mega::network::RootConfig                           m_config;
     std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;

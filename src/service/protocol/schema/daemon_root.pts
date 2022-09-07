@@ -62,6 +62,24 @@ msg TermSimWriteLock
     response();
 }
 
+msg TermClearStash
+{
+    request();
+    response();
+}
+
+msg TermCapacity
+{
+    request();
+    response(std::size_t capacity);
+}
+
+msg TermShutdown
+{
+    request();
+    response();
+}
+
 msg ExePipelineReadyForWork
 {
     request(network::ConversationID rootConversationID);
@@ -173,4 +191,15 @@ msg ToolDeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
     response();
+}
+
+msg ToolStash
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response();
+}
+msg ToolRestore
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response( bool bRestored );
 }
