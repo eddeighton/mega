@@ -243,6 +243,23 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
     pInvocation->set_homogeneous( bIsHomogenous );
 }
 
+void findDuplicate( OperationsStage::Invocations::Instructions::Instruction* pInstruction, const char* pszMsg )
+{
+    using namespace OperationsStage::Invocations;
+    using namespace OperationsStage::Invocations::Instructions;
+    using namespace OperationsStage::Invocations::Operations;
+
+    if ( InstructionGroup* pInstructionGroup = dynamic_database_cast< InstructionGroup >( pInstruction ) )
+    {
+        auto children = pInstructionGroup->get_children();
+        VERIFY_RTE_MSG( children.size() < 2U, "Found duplicate: " << pszMsg );
+        for ( Instruction* pChildInstruction : children )
+        {
+            findDuplicate( pChildInstruction, pszMsg );
+        }
+    }
+}
+
 void build( Database& database, Invocation* pInvocation )
 {
     switch ( pInvocation->get_operation() )
@@ -272,7 +289,9 @@ void build( Database& database, Invocation* pInvocation )
             break;
     }
 
-    switch ( firstStageElimination( pInvocation->get_root_instruction() ) )
+    const auto firstStageResult = firstStageElimination( pInvocation->get_root_instruction() );
+
+    switch ( firstStageResult )
     {
         case eSuccess:
             analyseReturnTypes( database, pInvocation );

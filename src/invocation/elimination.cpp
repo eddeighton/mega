@@ -126,7 +126,6 @@ EliminationResult elimination( OperationsStage::Invocations::Instructions::Instr
             }
             else
             {
-                children.push_back( pChildInstruction );
                 const EliminationResult nestedResult = elimination( pChildInstruction, functor );
                 switch ( nestedResult )
                 {

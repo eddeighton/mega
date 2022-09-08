@@ -120,7 +120,7 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress ) = 0;
 
-    int run_cmd( mega::pipeline::Progress& taskProgress, const std::string& strCmd )
+    int run_cmd( mega::pipeline::Progress& taskProgress, const std::string& strCmd, bool bTreatFailureAsError = true )
     {
         std::ostringstream os;
         os << common::COLOUR_BLUE_BEGIN << "MSG    : " << m_strTaskName << "\nCMD    : " << strCmd;
@@ -144,7 +144,7 @@ public:
         os << common::COLOUR_END;
         taskProgress.onProgress( os.str() );
 
-        if ( c.exit_code() )
+        if ( c.exit_code() && bTreatFailureAsError )
         {
             std::ostringstream osError;
             osError << common::COLOUR_RED_BEGIN << "FAILED : " << m_strTaskName;

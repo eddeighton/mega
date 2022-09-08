@@ -35,29 +35,28 @@ class Runtime
 {
     class ObjectTypeAllocator
     {
+        friend class Runtime;
+
     public:
         using Ptr = std::shared_ptr< ObjectTypeAllocator >;
 
         ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID )
             : m_objectTypeID( objectTypeID )
         {
-            runtime.get_allocation( m_objectTypeID, &m_pGetShared, &m_pAllocationShared, &m_pDeAllocationShared );
+            runtime.get_allocation( m_objectTypeID, *this );
         }
 
-        PhysicalAddress allocateShared( ExecutionIndex executionIndex )
-        {
-            return m_pAllocationShared( executionIndex );
-        }
-
-        void deAllocateShared( PhysicalAddress address ) { m_pDeAllocationShared( address ); }
-
-        GetSharedFunction getGetter() const { return m_pGetShared; }
+        GetHeapFunction   getHeapGetter() const { return m_pGetHeap; }
+        GetSharedFunction getSharedGetter() const { return m_pGetShared; }
+        PhysicalAddress   allocate( ExecutionIndex executionIndex ) { return m_pAllocation( executionIndex ); }
+        void              deAllocate( PhysicalAddress address ) { m_pDeAllocation( address ); }
 
     private:
-        mega::TypeID               m_objectTypeID;
-        GetSharedFunction          m_pGetShared          = nullptr;
-        AllocationSharedFunction   m_pAllocationShared   = nullptr;
-        DeAllocationSharedFunction m_pDeAllocationShared = nullptr;
+        mega::TypeID         m_objectTypeID;
+        GetHeapFunction      m_pGetHeap      = nullptr;
+        GetSharedFunction    m_pGetShared    = nullptr;
+        AllocationFunction   m_pAllocation   = nullptr;
+        DeAllocationFunction m_pDeAllocation = nullptr;
     };
     // LogicalAddress -> PhysicalAddress
     using IndexArray             = std::array< void*, mega::MAX_SIMULATIONS >;
@@ -68,19 +67,14 @@ class Runtime
     public:
         using Ptr = std::unique_ptr< ExecutionContextMemory >;
 
-        static constexpr size_t SIZE = 1024 * 1024 * 4;
-
         ExecutionContextMemory( const std::string& strName )
-            : m_heap( SIZE )
-            , m_shared( boost::interprocess::open_only, strName.c_str() )
+            : m_shared( boost::interprocess::open_only, strName.c_str() )
         {
         }
 
-        ManagedHeapMemory&   getHeap() { return m_heap; }
         ManagedSharedMemory& getShared() { return m_shared; }
 
     private:
-        ManagedHeapMemory   m_heap;
         ManagedSharedMemory m_shared;
     };
     using ExecutionContextMemoryArray = std::array< ExecutionContextMemory::Ptr, mega::MAX_SIMULATIONS >;
@@ -130,24 +124,10 @@ public:
         else
         {
             ObjectTypeAllocator::Ptr pAllocator      = getOrCreateObjectTypeAllocator( objectTypeID );
-            const PhysicalAddress    physicalAddress = pAllocator->allocateShared( executionIndex );
+            const PhysicalAddress    physicalAddress = pAllocator->allocate( executionIndex );
             m_addressSpace.insert( logicalAddress, physicalAddress );
             return physicalAddress;
         }
-    }
-
-    ManagedHeapMemory& getHeapMemoryManager( mega::ExecutionIndex executionIndex )
-    {
-        ExecutionContextMemory* pMemory = m_executionContextMemory[ executionIndex ].get();
-        if ( pMemory == nullptr )
-        {
-            ExecutionContext* pExecutionContext = ExecutionContext::get();
-            VERIFY_RTE( pExecutionContext );
-            const std::string strMemory                = pExecutionContext->acquireMemory( executionIndex );
-            m_executionContextMemory[ executionIndex ] = std::make_unique< ExecutionContextMemory >( strMemory );
-            pMemory                                    = m_executionContextMemory[ executionIndex ].get();
-        }
-        return pMemory->getHeap();
     }
 
     ManagedSharedMemory& getSharedMemoryManager( mega::ExecutionIndex executionIndex )
@@ -194,11 +174,17 @@ public:
     void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
-
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
-
         ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
-        *ppFunction                         = pAllocator->getGetter();
+        *ppFunction                         = pAllocator->getSharedGetter();
+    }
+
+    void get_getter_heap( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
+    {
+        std::lock_guard< std::mutex > lock( m_jitMutex );
+        m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
+        *ppFunction                         = pAllocator->getHeapGetter();
     }
 
     JITCompiler::Module::Ptr compile( const std::string& strCode )
@@ -209,9 +195,7 @@ public:
         return pModule;
     }
 
-    void get_allocation( mega::TypeID objectTypeID, GetSharedFunction* pGetSharedFunction,
-                         AllocationSharedFunction*   ppAllocationShared,
-                         DeAllocationSharedFunction* ppDeAllocationShared )
+    void get_allocation( mega::TypeID objectTypeID, ObjectTypeAllocator& objectTypeAllocator )
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
 
@@ -231,28 +215,36 @@ public:
             }
         }
 
+        // get_heap_3 -> _Z10get_heap_3N4mega15PhysicalAddressE
+        {
+            std::ostringstream os;
+            os << "_Z10"
+               << "get_heap_" << objectTypeID << "N4mega15PhysicalAddressE";
+            objectTypeAllocator.m_pGetHeap = pModule->getGetShared( os.str() );
+        }
+
         // get_shared_3 -> _Z12get_shared_3N4mega15PhysicalAddressE
         {
             std::ostringstream os;
             os << "_Z12"
                << "get_shared_" << objectTypeID << "N4mega15PhysicalAddressE";
-            *pGetSharedFunction = pModule->getGetShared( os.str() );
+            objectTypeAllocator.m_pGetShared = pModule->getGetShared( os.str() );
         }
 
-        // alloc_shared_3 -> _Z14alloc_shared_3t
+        // alloc_heap_3 -> _Z7alloc_3t
         {
             std::ostringstream os;
-            os << "_Z14"
-               << "alloc_shared_" << objectTypeID << "t";
-            *ppAllocationShared = pModule->getAllocationShared( os.str() );
+            os << "_Z7"
+               << "alloc_" << objectTypeID << "t";
+            objectTypeAllocator.m_pAllocation = pModule->getAllocation( os.str() );
         }
 
-        // dealloc_shared_3 -> _Z16dealloc_shared_3N4mega15PhysicalAddressE
+        // dealloc_3 -> _Z9dealloc_3N4mega15PhysicalAddressE
         {
             std::ostringstream os;
-            os << "_Z16"
-               << "dealloc_shared_" << objectTypeID << "N4mega15PhysicalAddressE";
-            *ppDeAllocationShared = pModule->getDeAllocationShared( os.str() );
+            os << "_Z9"
+               << "dealloc_" << objectTypeID << "N4mega15PhysicalAddressE";
+            objectTypeAllocator.m_pDeAllocation = pModule->getDeAllocation( os.str() );
         }
     }
 
@@ -356,7 +348,7 @@ void initialiseStaticRuntime( const mega::network::MegastructureInstallation& me
 
         if ( !project.isEmpty() )
         {
-            if( !boost::filesystem::exists( project.getProjectDatabase() ) )
+            if ( !boost::filesystem::exists( project.getProjectDatabase() ) )
             {
                 SPDLOG_ERROR( "Database missing at: {}", project.getProjectDatabase().string() );
             }
@@ -400,11 +392,6 @@ PhysicalAddress logicalToPhysical( mega::ExecutionIndex executionIndex, mega::Ty
     return g_pRuntime->logicalToPhysical( executionIndex, objectTypeID, logicalAddress );
 }
 
-ManagedHeapMemory& getHeapMemoryManager( mega::ExecutionIndex executionIndex )
-{
-    return g_pRuntime->getHeapMemoryManager( executionIndex );
-}
-
 ManagedSharedMemory& getSharedMemoryManager( mega::ExecutionIndex executionIndex )
 {
     return g_pRuntime->getSharedMemoryManager( executionIndex );
@@ -413,6 +400,11 @@ ManagedSharedMemory& getSharedMemoryManager( mega::ExecutionIndex executionIndex
 void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
 {
     g_pRuntime->get_getter_shared( pszUnitName, objectTypeID, ppFunction );
+}
+
+void get_getter_heap( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
+{
+    g_pRuntime->get_getter_heap( pszUnitName, objectTypeID, ppFunction );
 }
 
 // public facing runtime interface

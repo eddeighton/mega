@@ -24,7 +24,7 @@
 
 #include <boost/interprocess/interprocess_fwd.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/managed_heap_memory.hpp>
+//#include <boost/interprocess/managed_heap_memory.hpp>
 #include <boost/interprocess/segment_manager.hpp>
 #include <boost/interprocess/sync/mutex_family.hpp>
 #include <boost/interprocess/containers/vector.hpp>
@@ -48,7 +48,7 @@ struct DimensionTraits
     static const std::size_t Simple = std::is_trivially_copyable< T >::value;
 
     template < typename TSegmentManager >
-    static T&& init( TSegmentManager* pSegmentManager )
+    static T&& init( TSegmentManager* )
     {
         return std::move( T{} );
     }
@@ -59,9 +59,9 @@ namespace runtime
 
 using VoidPtr = boost::interprocess::offset_ptr< void, long, unsigned long >;
 
-using ManagedHeapMemory = boost::interprocess::basic_managed_heap_memory<
-    char, boost::interprocess::rbtree_best_fit< boost::interprocess::null_mutex_family, VoidPtr >,
-    boost::interprocess::iset_index >;
+//using ManagedHeapMemory = boost::interprocess::basic_managed_heap_memory<
+//    char, boost::interprocess::rbtree_best_fit< boost::interprocess::null_mutex_family, VoidPtr >,
+//    boost::interprocess::iset_index >;
 
 using ManagedSharedMemory = boost::interprocess::basic_managed_shared_memory<
     char, boost::interprocess::rbtree_best_fit< boost::interprocess::null_mutex_family, VoidPtr >,

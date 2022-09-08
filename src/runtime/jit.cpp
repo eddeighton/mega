@@ -123,19 +123,24 @@ public:
         return pResultFunction;
     }
 
+    virtual mega::runtime::GetHeapFunction getGetHeap( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::GetHeapFunction >( strSymbol );
+    }
+
     virtual mega::runtime::GetSharedFunction getGetShared( const std::string& strSymbol ) override
     {
         return getFunctionPtr< mega::runtime::GetSharedFunction >( strSymbol );
     }
     
-    virtual mega::runtime::AllocationSharedFunction getAllocationShared( const std::string& strSymbol ) override
+    virtual mega::runtime::AllocationFunction getAllocation( const std::string& strSymbol ) override
     {
-        return getFunctionPtr< mega::runtime::AllocationSharedFunction >( strSymbol );
+        return getFunctionPtr< mega::runtime::AllocationFunction >( strSymbol );
     }
 
-    virtual mega::runtime::DeAllocationSharedFunction getDeAllocationShared( const std::string& strSymbol ) override
+    virtual mega::runtime::DeAllocationFunction getDeAllocation( const std::string& strSymbol ) override
     {
-        return getFunctionPtr< mega::runtime::DeAllocationSharedFunction >( strSymbol );
+        return getFunctionPtr< mega::runtime::DeAllocationFunction >( strSymbol );
     }
 
     virtual mega::runtime::AllocateFunction getAllocate( const std::string& strSymbol ) override

@@ -7,11 +7,12 @@ namespace mega
 {
 namespace runtime
 {
-using GetSharedFunction          = void* ( * )( mega::PhysicalAddress address );
-using AllocationSharedFunction   = mega::PhysicalAddress ( * )( mega::ExecutionIndex executionIndex );
-using DeAllocationSharedFunction = void ( * )( mega::PhysicalAddress address );
-using AllocateFunction           = mega::reference ( * )( const mega::reference& );
-using ReadFunction               = void* ( * )( const mega::reference& );
+using GetHeapFunction      = void* ( * )( mega::PhysicalAddress address );
+using GetSharedFunction    = void* ( * )( mega::PhysicalAddress address );
+using AllocationFunction   = mega::PhysicalAddress ( * )( mega::ExecutionIndex executionIndex );
+using DeAllocationFunction = void ( * )( mega::PhysicalAddress address );
+using AllocateFunction     = mega::reference ( * )( const mega::reference& );
+using ReadFunction         = void* ( * )( const mega::reference& );
 
 } // namespace runtime
 } // namespace mega

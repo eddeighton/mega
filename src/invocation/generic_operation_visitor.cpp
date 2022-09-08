@@ -11,7 +11,7 @@ using namespace OperationsStage;
 using namespace OperationsStage::Invocations;
 
 template < typename TInstruction, typename... ConstructorArgs >
-TInstruction* make_ins_group( OperationsStage::Database& database, Instructions::InstructionGroup* pInstruction,
+TInstruction* make_ins_group( OperationsStage::Database& database, Instructions::InstructionGroup* pParentInstruction,
                               ConstructorArgs&&... ctorArgs )
 {
     // clang-format off
@@ -28,8 +28,11 @@ TInstruction* make_ins_group( OperationsStage::Database& database, Instructions:
         }
     );
     // clang-format on
-    if ( pInstruction )
-        pInstruction->push_back_children( pNewInstruction );
+    if ( pParentInstruction )
+    {
+        pParentInstruction->push_back_children( pNewInstruction );
+    }
+
     return pNewInstruction;
 }
 

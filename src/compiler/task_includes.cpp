@@ -152,7 +152,7 @@ public:
 
         if ( m_environment.restore( pchPath, determinant ) )
         {
-            if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
             {
                 m_environment.setBuildHashCode( pchPath );
                 cached( taskProgress );
@@ -348,7 +348,7 @@ public:
 
         if ( m_environment.restore( pchPath, determinant ) )
         {
-            if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD(), false ) )
             {
                 m_environment.setBuildHashCode( pchPath );
                 cached( taskProgress );

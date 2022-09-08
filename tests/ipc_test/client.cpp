@@ -11,11 +11,10 @@ int main( int argc, const char* argv[] )
 
     mega::runtime::ManagedSharedMemory segment( boost::interprocess::open_only, SHARED_MEMORY_NAME );
 
-    ExampleSharedBufferIndex* pBufferIndex
-        = segment.find< ExampleSharedBufferIndex >( "ExampleSharedBufferIndex" ).first;
+    ExampleBufferIndex* pBufferIndex = segment.find< ExampleBufferIndex >( "ExampleBufferIndex" ).first;
     std::cout << "Got buffer with size: " << pBufferIndex->size() << std::endl;
 
-    ExampleSharedBufferIndex::Ptr pBuffer1 = pBufferIndex->get( 0 );
+    ExampleBufferIndex::SharedPtr pBuffer1 = pBufferIndex->getShared( 0 );
 
     for ( int i = 0; i < 1000; ++i )
     {

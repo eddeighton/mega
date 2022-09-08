@@ -3,7 +3,6 @@
 #define ROOT_22_AUG_2022
 
 #include "common.hpp"
-//#include "result_type.hpp"
 
 #include <type_traits>
 

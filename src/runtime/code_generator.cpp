@@ -215,7 +215,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                 std::ostringstream osPartType;
                 std::ostringstream osPartName;
                 // osPart << "part_" << pPart->get_context()->get_concrete_id();
-                osPartType << "_Part" << pPart->get_context()->get_interface()->get_identifier();
+                osPartType << pPart->get_context()->get_interface()->get_identifier();
                 osPartName << pPart->get_context()->get_interface()->get_identifier();
 
                 const std::size_t szTotalDomainSize
@@ -289,7 +289,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                         {
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
-                            
+
                             std::ostringstream osTypeName;
                             osTypeName << "mega::Bitmask32Allocator< "
                                        << database.getLocalDomainSize(
@@ -371,10 +371,37 @@ void CodeGenerator::generate_allocate( const DatabaseInstance& database, const m
     m_pPimpl->compileToLLVMIR( osName.str(), osCPPCode.str(), os, std::nullopt );
 }
 
-using VariableMap = std::map< FinalStage::Invocations::Variables::Variable*, std::string >;
+using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
+inline std::string get( const VariableMap& varMap, const FinalStage::Invocations::Variables::Variable* pVar )
+{
+    VariableMap::const_iterator iFind = varMap.find( pVar );
+    VERIFY_RTE( iFind != varMap.end() );
+    return iFind->second;
+}
+
+static const std::string indent( "    " );
+
+using PartSet = std::set< const FinalStage::MemoryLayout::Part* >;
+
+void generateBufferFPtrCheck( bool bShared, mega::TypeID id, std::ostream& os )
+{
+    const std::string strType = bShared ? "shared" : "heap";
+    os << indent << "if( _fptr_get_" << strType << "_" << id << " == nullptr ) "
+       << "mega::runtime::get_getter_" << strType << "( g_pszModuleName, " << id << ", &_fptr_get_" << strType << "_"
+       << id << " );\n";
+}
+void generateBufferAccess( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
+                           const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
+                           std::ostream& os )
+{
+    const std::string strType = bShared ? "shared" : "heap";
+    os << indent << "return (char*)_fptr_get_" << strType << "_" << id << "( " << strInstanceVar << ".physical )"
+       << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
+       << pDimension->get_offset() << ";";
+}
 
 void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, const VariableMap& variables,
-              nlohmann::json& data )
+              PartSet& parts, nlohmann::json& data )
 {
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
@@ -386,59 +413,61 @@ void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, 
              = dynamic_database_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
         {
             std::ostringstream os;
-            os << "//ParentDerivation";
+            os << indent << "// ParentDerivation\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::ChildDerivation* pChildDerivation
                   = dynamic_database_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
         {
             std::ostringstream os;
-            os << "//ChildDerivation";
+            os << indent << "// ChildDerivation\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::EnumDerivation* pEnumDerivation
                   = dynamic_database_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
         {
             std::ostringstream os;
-            os << "//EnumDerivation";
+            os << indent << "// EnumDerivation\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::Enumeration* pEnumeration
                   = dynamic_database_cast< Instructions::Enumeration >( pInstructionGroup ) )
         {
             std::ostringstream os;
-            os << "//Enumeration";
+            os << indent << "// Enumeration\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::DimensionReferenceRead* pDimensionReferenceRead
                   = dynamic_database_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
         {
             std::ostringstream os;
-            os << "//DimensionReferenceRead";
+            os << indent << "// DimensionReferenceRead\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::MonoReference* pMonoReference
                   = dynamic_database_cast< Instructions::MonoReference >( pInstructionGroup ) )
         {
-            // pMonoReference->get_instance()
-            // pMonoReference->get_reference()
+            const Variables::Instance*  pInstance  = pMonoReference->get_instance();
+            const Variables::Reference* pReference = pMonoReference->get_reference();
 
             std::ostringstream os;
-            os << "//MonoReference";
+            os << indent << "// MonoReference\n";
+            os << indent << get( variables, pInstance ) << " = " << get( variables, pReference ) << ";";
+
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::PolyReference* pPolyReference
                   = dynamic_database_cast< Instructions::PolyReference >( pInstructionGroup ) )
         {
             std::ostringstream os;
-            os << "//PolyReference";
+            os << indent << "// PolyReference\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::PolyCase* pPolyCase
                   = dynamic_database_cast< Instructions::PolyCase >( pInstructionGroup ) )
         {
             std::ostringstream os;
-            os << "//PolyCase";
+            os << indent << "// PolyCase\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else
@@ -446,9 +475,9 @@ void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, 
             THROW_RTE( "Unknown instruction type" );
         }
 
-        for ( auto pInstruction : pInstructionGroup->get_children() )
+        for ( auto pChildInstruction : pInstructionGroup->get_children() )
         {
-            recurse( pInstruction, variables, data );
+            recurse( pChildInstruction, variables, parts, data );
         }
     }
     else if ( FinalStage::Invocations::Operations::Operation* pOperation
@@ -459,91 +488,103 @@ void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, 
         if ( Allocate* pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Allocate";
+            os << indent << "// Allocate\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Call";
+            os << indent << "// Call\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Start* pStart = dynamic_database_cast< Start >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Start";
+            os << indent << "// Start\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Stop* pStop = dynamic_database_cast< Stop >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Stop";
+            os << indent << "// Stop\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Pause* pPause = dynamic_database_cast< Pause >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Pause";
+            os << indent << "// Pause\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Resume* pResume = dynamic_database_cast< Resume >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Resume";
+            os << indent << "// Resume\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Done* pDone = dynamic_database_cast< Done >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Done";
+            os << indent << "// Done\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( WaitAction* pWaitAction = dynamic_database_cast< WaitAction >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//WaitAction";
+            os << indent << "// WaitAction\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( WaitDimension* pWaitDimension = dynamic_database_cast< WaitDimension >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//WaitDimension";
+            os << indent << "// WaitDimension\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( GetAction* pGetAction = dynamic_database_cast< GetAction >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//GetAction";
+            os << indent << "// GetAction\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( GetDimension* pGetDimension = dynamic_database_cast< GetDimension >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//GetDimension";
+            os << indent << "// GetDimension\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Read* pRead = dynamic_database_cast< Read >( pOperation ) )
         {
-            std::ostringstream os;
-            os << "//Read";
-            data[ "assignments" ].push_back( os.str() );
+            Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
+            Variables::Instance*        pInstance  = pRead->get_instance();
+            MemoryLayout::Part*         pPart      = pDimension->get_part();
+            const mega::TypeID          id         = pPart->get_context()->get_concrete_id();
+            const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
+
+            {
+                std::ostringstream os;
+                os << indent << "// Read Operation\n";
+                generateBufferFPtrCheck( bSimple, id, os );
+                generateBufferAccess( bSimple, id, pPart, get( variables, pInstance ), pDimension, os );
+                data[ "assignments" ].push_back( os.str() );
+            }
+
+            parts.insert( pDimension->get_part() );
         }
         else if ( Write* pWrite = dynamic_database_cast< Write >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Write";
+            os << indent << "// Write\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( WriteLink* pWriteLink = dynamic_database_cast< WriteLink >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//WriteLink";
+            os << indent << "// WriteLink\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Range* pRange = dynamic_database_cast< Range >( pOperation ) )
         {
             std::ostringstream os;
-            os << "//Range";
+            os << indent << "// Range\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else
@@ -567,6 +608,8 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
         osName << invocationID;
     }
 
+    PartSet parts;
+
     nlohmann::json data( { { "name", osName.str() },
                            { "module_name", osName.str() },
                            { "getters", nlohmann::json::array() },
@@ -577,7 +620,8 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
         using namespace FinalStage;
         using namespace FinalStage::Invocations;
 
-        const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocationID );
+        const FinalStage::Operations::Invocation* pInvocation  = database.getInvocation( invocationID );
+        Variables::Context*                       pRootContext = pInvocation->get_root_instruction()->get_context();
 
         VariableMap variables;
         {
@@ -587,33 +631,61 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
                 if ( Variables::Instance* pInstanceVar = dynamic_database_cast< Variables::Instance >( pVariable ) )
                 {
                     std::ostringstream osName;
-                    osName << "mega::Instance var_" << pInstanceVar->get_concrete()->get_interface()->get_identifier();
-                    osName << "_" << iVariableCounter++;
-                    data[ "variables" ].push_back( osName.str() );
+                    {
+                        osName << "var_" << pInstanceVar->get_concrete()->get_interface()->get_identifier() << "_"
+                               << iVariableCounter++;
+                    }
                     variables.insert( { pVariable, osName.str() } );
+
+                    std::ostringstream osVar;
+                    {
+                        osVar << indent << "mega::reference " << osName.str() << ";";
+                    }
+                    data[ "variables" ].push_back( osVar.str() );
                 }
                 else if ( Variables::Dimension* pDimensionVar
                           = dynamic_database_cast< Variables::Dimension >( pVariable ) )
                 {
+                    auto types = pDimensionVar->get_types();
+                    VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
+                    Concrete::Context* pContext = types.front();
+
                     std::ostringstream osName;
-                    for ( Concrete::Context* pContext : pDimensionVar->get_types() )
                     {
-                        osName << "mega::reference var_" << pContext->get_interface()->get_identifier();
-                        osName << "_" << iVariableCounter++;
+                        osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
                     }
-                    data[ "variables" ].push_back( osName.str() );
                     variables.insert( { pVariable, osName.str() } );
+
+                    std::ostringstream osVar;
+                    {
+                        osVar << indent << "mega::reference " << osName.str() << ";";
+                    }
+                    data[ "variables" ].push_back( osVar.str() );
                 }
                 else if ( Variables::Context* pContextVar = dynamic_database_cast< Variables::Context >( pVariable ) )
                 {
+                    auto types = pContextVar->get_types();
+                    VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
+                    Concrete::Context* pContext = types.front();
+
                     std::ostringstream osName;
-                    for ( Concrete::Context* pContext : pContextVar->get_types() )
                     {
-                        osName << "mega::reference var_" << pContext->get_interface()->get_identifier();
-                        osName << "_" << iVariableCounter++;
+                        osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
                     }
-                    data[ "variables" ].push_back( osName.str() );
                     variables.insert( { pVariable, osName.str() } );
+                    std::ostringstream osVar;
+                    {
+                        osVar << indent << "mega::reference " << osName.str() << ";";
+                    }
+                    data[ "variables" ].push_back( osVar.str() );
+
+                    if ( pRootContext == pContextVar )
+                    {
+                        // generate initial assignment
+                        std::ostringstream os;
+                        os << indent << osName.str() << " = context;";
+                        data[ "assignments" ].push_back( os.str() );
+                    }
                 }
                 else
                 {
@@ -624,8 +696,13 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
 
         for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            recurse( pInstruction, variables, data );
+            recurse( pInstruction, variables, parts, data );
         }
+    }
+
+    for ( auto pPart : parts )
+    {
+        data[ "getters" ].push_back( pPart->get_context()->get_concrete_id() );
     }
 
     std::ostringstream osCPPCode;

@@ -34,7 +34,6 @@ private:
 };
 
 void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction );
-
 void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction );
 
 } // namespace runtime
