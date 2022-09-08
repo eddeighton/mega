@@ -23,7 +23,8 @@ public:
     const FinalStage::Operations::Invocation* getInvocation( const mega::InvocationID& invocation ) const;
     const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
-    std::size_t                               getConcreteContextTotalAllocation( mega::TypeID concreteID ) const;
+    std::size_t                               getTotalDomainSize( mega::TypeID concreteID ) const;
+    std::size_t                               getLocalDomainSize( mega::TypeID concreteID ) const;
     mega::TypeID                              getRootTypeID() const;
 
 private:

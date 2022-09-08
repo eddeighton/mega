@@ -53,17 +53,17 @@ mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&
                                                   const mega::utilities::ToolChain&    toolChain,
                                                   const mega::pipeline::Configuration& pipelineConfig,
                                                   const std::string& strTaskName, const std::string& strSourceFile,
-                                                  const boost::filesystem::path& buildPipelineResultPath )
+                                                  const boost::filesystem::path& inputPipelineResultPath )
 {
     VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
     task::Stash          stash( stashDir );
     task::BuildHashCodes buildHashCodes;
 
     // load previous builds hash codes
-    if ( !buildPipelineResultPath.empty() )
+    if ( !inputPipelineResultPath.empty() )
     {
         mega::network::PipelineResult buildPipelineResult;
-        auto pInFileStream = boost::filesystem::createBinaryInputFileStream( buildPipelineResultPath );
+        auto pInFileStream = boost::filesystem::createBinaryInputFileStream( inputPipelineResultPath );
         boost::archive::xml_iarchive archive( *pInFileStream );
         archive&                     boost::serialization::make_nvp( "PipelineResult", buildPipelineResult );
         buildHashCodes.set( buildPipelineResult.getBuildHashCodes() );
@@ -178,7 +178,7 @@ mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path stashDir, pipelineXML, pipelineResultPath, buildPipelineResultPath, toolchainXML;
+    boost::filesystem::path stashDir, pipelineXML, outputPipelineResultPath, inputPipelineResultPath, toolchainXML;
     bool                    bRunLocally = false;
     std::string             strTaskName, strSourceFile;
 
@@ -190,12 +190,11 @@ void command( bool bHelp, const std::vector< std::string >& args )
         ( "stash_dir",          po::value< boost::filesystem::path >( &stashDir ),                  "Stash directory" )
         ( "toolchain_xml",      po::value< boost::filesystem::path >( &toolchainXML ),              "Toolchain XML file" )
         ( "configuration",      po::value< boost::filesystem::path >( &pipelineXML ),               "Pipeline Configuration XML File" )
-        ( "result",             po::value< boost::filesystem::path >( &pipelineResultPath ),        "Pipeline Result XML File" )
-        ( "build_result",       po::value< boost::filesystem::path >( &buildPipelineResultPath ),   "Pipeline Result XML File" )
+        ( "result_out",         po::value< boost::filesystem::path >( &outputPipelineResultPath ),  "Output Pipeline Result XML File" )
+        ( "result_in",          po::value< boost::filesystem::path >( &inputPipelineResultPath ),   "Input Pipeline Result XML File" )
         ( "local",              po::bool_switch( &bRunLocally ),                                    "Run locally" )
-
-        ( "task", po::value< std::string >( &strTaskName ), "Specific task to run.  Must provide source file also." )
-        ( "source", po::value< std::string >( &strSourceFile ), "Source file for specific task" )
+        ( "task",               po::value< std::string >( &strTaskName ),                           "Specific task to run.  Must provide source file also." )
+        ( "source",             po::value< std::string >( &strSourceFile ),                         "Source file for specific task" )
         ;
         // clang-format on
     }
@@ -210,7 +209,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify task" );
         VERIFY_RTE_MSG( !strTaskName.empty(), "Source file requires task specification" );
     }
-    if ( !buildPipelineResultPath.empty() )
+    if ( !inputPipelineResultPath.empty() )
     {
         VERIFY_RTE_MSG( bRunLocally, "Must run locally to specify prior build result" );
     }
@@ -245,7 +244,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             if ( bRunLocally )
             {
                 pipelineResult = runPipelineLocally(
-                    stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile, buildPipelineResultPath );
+                    stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile, inputPipelineResultPath );
             }
             else
             {
@@ -275,9 +274,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
 
         VERIFY_RTE_MSG( pipelineResult.has_value(), "Failed to get pipeline result" );
 
-        if ( pipelineResult.value().getSuccess() && !pipelineResultPath.empty() )
+        if ( pipelineResult.value().getSuccess() && !outputPipelineResultPath.empty() )
         {
-            auto pOutStream = boost::filesystem::createBinaryOutputFileStream( pipelineResultPath );
+            auto pOutStream = boost::filesystem::createBinaryOutputFileStream( outputPipelineResultPath );
             boost::archive::xml_oarchive archive( *pOutStream );
             archive&                     boost::serialization::make_nvp( "PipelineResult", pipelineResult.value() );
         }

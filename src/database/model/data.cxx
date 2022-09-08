@@ -4557,8 +4557,9 @@ namespace MemoryLayout
           , part( loader )
     {
     }
-    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const std::size_t& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( p_Concrete_Concrete_Dimensions_User )
+          , offset( offset )
           , part( part )
     {
     }
@@ -4573,11 +4574,13 @@ namespace MemoryLayout
     void Concrete_Dimensions_User::load( mega::io::Loader& loader )
     {
         loader.load( p_Concrete_Concrete_Dimensions_User );
+        loader.load( offset );
         loader.load( part );
     }
     void Concrete_Dimensions_User::store( mega::io::Storer& storer ) const
     {
         storer.store( p_Concrete_Concrete_Dimensions_User );
+        storer.store( offset );
         storer.store( part );
     }
     void Concrete_Dimensions_User::to_json( nlohmann::json& _part__ ) const
@@ -4591,6 +4594,11 @@ namespace MemoryLayout
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "offset", offset } } );
+            _part__[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "part", part } } );
@@ -4619,12 +4627,15 @@ namespace MemoryLayout
     {
         loader.load( link );
         loader.load( part );
+        loader.load( offset );
     }
     void Concrete_Dimensions_LinkReference::store( mega::io::Storer& storer ) const
     {
         storer.store( link );
         VERIFY_RTE_MSG( part.has_value(), "MemoryLayout::Concrete_Dimensions_LinkReference.part has NOT been set" );
         storer.store( part );
+        VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::Concrete_Dimensions_LinkReference.offset has NOT been set" );
+        storer.store( offset );
     }
     void Concrete_Dimensions_LinkReference::to_json( nlohmann::json& _part__ ) const
     {
@@ -4645,6 +4656,11 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "part", part.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "offset", offset.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -4738,12 +4754,15 @@ namespace MemoryLayout
     {
         loader.load( parent );
         loader.load( part );
+        loader.load( offset );
     }
     void Concrete_Dimensions_Allocation::store( mega::io::Storer& storer ) const
     {
         storer.store( parent );
         VERIFY_RTE_MSG( part.has_value(), "MemoryLayout::Concrete_Dimensions_Allocation.part has NOT been set" );
         storer.store( part );
+        VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::Concrete_Dimensions_Allocation.offset has NOT been set" );
+        storer.store( offset );
     }
     void Concrete_Dimensions_Allocation::to_json( nlohmann::json& _part__ ) const
     {
@@ -4764,6 +4783,11 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "part", part.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "offset", offset.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -5392,8 +5416,9 @@ namespace MemoryLayout
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( loader )
     {
     }
-    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >& link_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions)
-        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( context )
+    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::size_t& total_domain_size, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >& link_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions)
+        :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , total_domain_size( total_domain_size )
+          , context( context )
           , user_dimensions( user_dimensions )
           , link_dimensions( link_dimensions )
           , allocation_dimensions( allocation_dimensions )
@@ -5408,17 +5433,25 @@ namespace MemoryLayout
     }
     void MemoryLayout_Part::load( mega::io::Loader& loader )
     {
+        loader.load( total_domain_size );
         loader.load( context );
         loader.load( user_dimensions );
         loader.load( link_dimensions );
         loader.load( allocation_dimensions );
+        loader.load( size );
+        loader.load( offset );
     }
     void MemoryLayout_Part::store( mega::io::Storer& storer ) const
     {
+        storer.store( total_domain_size );
         storer.store( context );
         storer.store( user_dimensions );
         storer.store( link_dimensions );
         storer.store( allocation_dimensions );
+        VERIFY_RTE_MSG( size.has_value(), "MemoryLayout::MemoryLayout_Part.size has NOT been set" );
+        storer.store( size );
+        VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::MemoryLayout_Part.offset has NOT been set" );
+        storer.store( offset );
     }
     void MemoryLayout_Part::to_json( nlohmann::json& _part__ ) const
     {
@@ -5431,6 +5464,11 @@ namespace MemoryLayout
                 { "index", getIndex() }, 
                 { "properties", nlohmann::json::array() }
             });
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "total_domain_size", total_domain_size } } );
+            _part__[ "properties" ].push_back( property );
+        }
         {
             nlohmann::json property = nlohmann::json::object({
                 { "context", context } } );
@@ -5449,6 +5487,16 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "allocation_dimensions", allocation_dimensions } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "size", size.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "offset", offset.value() } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -12840,6 +12888,114 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
         }
         , m_data );
 }
+std::size_t& get_offset(std::variant< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::size_t&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Dimensions_User > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_User > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_User >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_offset" );
+                return part->offset;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_offset" );
+            }
+        }
+        , m_data );
+}
+std::optional< std::size_t >& get_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< std::size_t >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_offset" );
+                return part->offset;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_offset" );
+                return part->offset;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_offset" );
+            }
+        }
+        , m_data );
+}
+std::optional< std::size_t >& get_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< std::size_t >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_LinkReference >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_offset" );
+                return part->offset;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_LinkReference >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_offset" );
+                return part->offset;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_LinkReference >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_offset" );
+                return part->offset;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_offset" );
+            }
+        }
+        , m_data );
+}
+std::optional< std::size_t >& get_offset(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< std::size_t >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_offset" );
+                return part->offset;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_offset" );
+            }
+        }
+        , m_data );
+}
 mega::OperationID& get_operation(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     return std::visit( 
@@ -14159,6 +14315,27 @@ std::size_t& get_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::P
         }
         , m_data );
 }
+std::optional< std::size_t >& get_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< std::size_t >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_size" );
+                return part->size;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_size" );
+            }
+        }
+        , m_data );
+}
 std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& get_size_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
@@ -15008,6 +15185,27 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_to(std::varia
             else
             {
                 THROW_RTE( "Invalid call to get_to" );
+            }
+        }
+        , m_data );
+}
+std::size_t& get_total_domain_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::size_t&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_total_domain_size" );
+                return part->total_domain_size;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_total_domain_size" );
             }
         }
         , m_data );
@@ -23137,6 +23335,114 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
         }
         , m_data );
 }
+std::size_t& set_offset(std::variant< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::size_t&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Dimensions_User > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_User > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_User >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_offset" );
+                return part->offset;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_offset" );
+            }
+        }
+        , m_data );
+}
+std::optional< std::size_t >& set_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< std::size_t >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_offset" );
+                return part->offset;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_Allocation >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_offset" );
+                return part->offset;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_offset" );
+            }
+        }
+        , m_data );
+}
+std::optional< std::size_t >& set_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< std::size_t >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_LinkReference >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_offset" );
+                return part->offset;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_LinkReference >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_offset" );
+                return part->offset;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany > >)
+            {
+                data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > part = 
+                    data::convert< data::MemoryLayout::Concrete_Dimensions_LinkReference >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_offset" );
+                return part->offset;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_offset" );
+            }
+        }
+        , m_data );
+}
+std::optional< std::size_t >& set_offset(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< std::size_t >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_offset" );
+                return part->offset;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_offset" );
+            }
+        }
+        , m_data );
+}
 mega::OperationID& set_operation(std::variant< data::Ptr< data::Operations::Operations_Invocation > >& m_data)
 {
     return std::visit( 
@@ -24427,6 +24733,27 @@ std::size_t& set_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::P
         }
         , m_data );
 }
+std::optional< std::size_t >& set_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< std::size_t >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_size" );
+                return part->size;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_size" );
+            }
+        }
+        , m_data );
+}
 std::optional< std::optional< data::Ptr< data::Tree::Interface_SizeTrait > > >& set_size_trait(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
@@ -25160,6 +25487,27 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_to(std::varia
             else
             {
                 THROW_RTE( "Invalid call to set_to" );
+            }
+        }
+        , m_data );
+}
+std::size_t& set_total_domain_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::size_t&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_total_domain_size" );
+                return part->total_domain_size;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_total_domain_size" );
             }
         }
         , m_data );

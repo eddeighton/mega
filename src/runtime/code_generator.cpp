@@ -219,18 +219,21 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                 osPartName << pPart->get_context()->get_interface()->get_identifier();
 
                 const std::size_t szTotalDomainSize
-                    = database.getConcreteContextTotalAllocation( pPart->get_context()->get_concrete_id() );
+                    = database.getTotalDomainSize( pPart->get_context()->get_concrete_id() );
 
                 nlohmann::json part( { { "type", osPartType.str() },
                                        { "name", osPartName.str() },
-                                       { "size", szTotalDomainSize },
+                                       { "size", pPart->get_size() },
+                                       { "offset", pPart->get_offset() },
+                                       { "total_domain", szTotalDomainSize },
                                        { "inits", std::vector< int >( szTotalDomainSize, 0 ) },
                                        { "members", nlohmann::json::array() } } );
 
                 for ( auto pUserDim : pPart->get_user_dimensions() )
                 {
                     nlohmann::json member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
-                                             { "name", pUserDim->get_interface_dimension()->get_id()->get_str() } } );
+                                             { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
+                                             { "offset", pUserDim->get_offset() } } );
                     part[ "members" ].push_back( member );
                 }
                 for ( auto pLinkDim : pPart->get_link_dimensions() )
@@ -240,7 +243,9 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                     {
                         std::ostringstream osLinkName;
                         osLinkName << "link_" << pLinkMany->get_link()->get_concrete_id();
-                        nlohmann::json member( { { "type", "mega::reference" }, { "name", osLinkName.str() } } );
+                        nlohmann::json member( { { "type", "mega::reference" },
+                                                 { "name", osLinkName.str() },
+                                                 { "offset", pLinkMany->get_offset() } } );
                         part[ "members" ].push_back( member );
                     }
                     else if ( Concrete::Dimensions::LinkSingle* pLinkSingle
@@ -248,7 +253,9 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                     {
                         std::ostringstream osLinkName;
                         osLinkName << "link_" << pLinkSingle->get_link()->get_concrete_id();
-                        nlohmann::json member( { { "type", "mega::ReferenceVector" }, { "name", osLinkName.str() } } );
+                        nlohmann::json member( { { "type", "mega::ReferenceVector" },
+                                                 { "name", osLinkName.str() },
+                                                 { "offset", pLinkSingle->get_offset() } } );
                         part[ "members" ].push_back( member );
                     }
                     else
@@ -272,7 +279,9 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                         {
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
-                            nlohmann::json member( { { "type", "bool" }, { "name", osAllocName.str() } } );
+                            nlohmann::json member( { { "type", "bool" },
+                                                     { "name", osAllocName.str() },
+                                                     { "offset", pAllocator->get_offset() } } );
                             part[ "members" ].push_back( member );
                         }
                         else if ( Allocators::Range32* pAlloc
@@ -280,12 +289,15 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                         {
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
+                            
                             std::ostringstream osTypeName;
-                            osTypeName << "Bitmask32Allocator< "
-                                       << database.getConcreteContextTotalAllocation(
+                            osTypeName << "mega::Bitmask32Allocator< "
+                                       << database.getLocalDomainSize(
                                               pAlloc->get_allocated_context()->get_concrete_id() )
                                        << " >";
-                            nlohmann::json member( { { "type", osTypeName.str() }, { "name", osAllocName.str() } } );
+                            nlohmann::json member( { { "type", osTypeName.str() },
+                                                     { "name", osAllocName.str() },
+                                                     { "offset", pAllocator->get_offset() } } );
                             part[ "members" ].push_back( member );
                         }
                         else if ( Allocators::Range64* pAlloc
@@ -294,11 +306,13 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
                             std::ostringstream osTypeName;
-                            osTypeName << "Bitmask64Allocator< "
-                                       << database.getConcreteContextTotalAllocation(
+                            osTypeName << "mega::Bitmask64Allocator< "
+                                       << database.getLocalDomainSize(
                                               pAlloc->get_allocated_context()->get_concrete_id() )
                                        << " >";
-                            nlohmann::json member( { { "type", osTypeName.str() }, { "name", osAllocName.str() } } );
+                            nlohmann::json member( { { "type", osTypeName.str() },
+                                                     { "name", osAllocName.str() },
+                                                     { "offset", pAllocator->get_offset() } } );
                             part[ "members" ].push_back( member );
                         }
                         else if ( Allocators::RangeAny* pAlloc
@@ -307,11 +321,13 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
                             std::ostringstream osTypeName;
-                            osTypeName << "RingAllocator< mega::Instance, "
-                                       << database.getConcreteContextTotalAllocation(
+                            osTypeName << "mega::RingAllocator< mega::Instance, "
+                                       << database.getLocalDomainSize(
                                               pAlloc->get_allocated_context()->get_concrete_id() )
                                        << " >";
-                            nlohmann::json member( { { "type", osTypeName.str() }, { "name", osAllocName.str() } } );
+                            nlohmann::json member( { { "type", osTypeName.str() },
+                                                     { "name", osAllocName.str() },
+                                                     { "offset", pAllocator->get_offset() } } );
                             part[ "members" ].push_back( member );
                         }
                         else
