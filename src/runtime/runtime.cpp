@@ -248,7 +248,7 @@ public:
         }
     }
 
-    void get_allocate( const char* pszUnitName, const mega::InvocationID& invocation, AllocateFunction* ppFunction )
+    void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
 
@@ -256,7 +256,7 @@ public:
 
         JITCompiler::Module::Ptr pModule;
         {
-            auto iFind = m_invocations.find( invocation );
+            auto iFind = m_invocations.find( invocationID );
             if ( iFind != m_invocations.end() )
             {
                 pModule = iFind->second;
@@ -264,18 +264,18 @@ public:
             else
             {
                 std::ostringstream osModule;
-                m_codeGenerator.generate_allocate( m_database, invocation, osModule );
+                m_codeGenerator.generate_allocate( m_database, invocationID, osModule );
                 pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocation, pModule ) );
+                m_invocations.insert( std::make_pair( invocationID, pModule ) );
             }
         }
         // ct3pt3__eg_ImpNoParams -> _Z22ct3pt3__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z22" << invocation << "RKN4mega9referenceE";
+        os << "_Z22" << invocationID << "RKN4mega9referenceE";
         *ppFunction = pModule->getAllocate( os.str() );
     }
 
-    void get_read( const char* pszUnitName, const mega::InvocationID& invocation, ReadFunction* ppFunction )
+    void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction )
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
 
@@ -283,7 +283,7 @@ public:
 
         JITCompiler::Module::Ptr pModule;
         {
-            auto iFind = m_invocations.find( invocation );
+            auto iFind = m_invocations.find( invocationID );
             if ( iFind != m_invocations.end() )
             {
                 pModule = iFind->second;
@@ -291,16 +291,43 @@ public:
             else
             {
                 std::ostringstream osModule;
-                m_codeGenerator.generate_read( m_database, invocation, osModule );
+                m_codeGenerator.generate_read( m_database, invocationID, osModule );
                 pModule = compile( osModule.str() );
-                m_invocations.insert( std::make_pair( invocation, pModule ) );
+                m_invocations.insert( std::make_pair( invocationID, pModule ) );
             }
         }
         // _Z23 ct1ps12__eg_ImpNoParamsRKN4mega9referenceE
         // _Z24ct30ps18__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z24" << invocation << "RKN4mega9referenceE";
+        os << "_Z24" << invocationID << "RKN4mega9referenceE";
         *ppFunction = pModule->getRead( os.str() );
+    }
+
+    void get_write( const char* pszUnitName, const mega::InvocationID& invocationID, WriteFunction* ppFunction )
+    {
+        std::lock_guard< std::mutex > lock( m_jitMutex );
+
+        m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+
+        JITCompiler::Module::Ptr pModule;
+        {
+            auto iFind = m_invocations.find( invocationID );
+            if ( iFind != m_invocations.end() )
+            {
+                pModule = iFind->second;
+            }
+            else
+            {
+                std::ostringstream osModule;
+                m_codeGenerator.generate_write( m_database, invocationID, osModule );
+                pModule = compile( osModule.str() );
+                m_invocations.insert( std::make_pair( invocationID, pModule ) );
+            }
+        }
+        // ct30ps19__eg_ImpParams -> _Z22ct30ps19__eg_ImpParamsRKN4mega9referenceE
+        std::ostringstream os;
+        os << "_Z22" << invocationID << "RKN4mega9referenceE";
+        *ppFunction = pModule->getWrite( os.str() );
     }
 
     Runtime( const mega::network::MegastructureInstallation& megastructureInstallation,
@@ -430,6 +457,11 @@ void get_allocate( const char* pszUnitName, const mega::InvocationID& invocation
 void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction )
 {
     g_pRuntime->get_read( pszUnitName, invocationID, ppFunction );
+}
+
+void get_write( const char* pszUnitName, const mega::InvocationID& invocationID, WriteFunction* ppFunction )
+{
+    g_pRuntime->get_write( pszUnitName, invocationID, ppFunction );
 }
 
 } // namespace runtime

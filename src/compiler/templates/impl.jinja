@@ -44,6 +44,14 @@ struct __invoke_impl
         return *reinterpret_cast< {{ invocation.runtime_return_type }}* >( g_pRuntimeFunc( context.data ) );
 {% else if invocation.explicit_operation == "Write" %}
         // Write
+        static mega::runtime::WriteFunction g_pRuntimeFunc = nullptr;
+        if( nullptr == g_pRuntimeFunc )
+        {
+            mega::runtime::get_write( g_unit_name, id, &g_pRuntimeFunc );
+        }
+        mega::runtime::WriteResult result = g_pRuntimeFunc( context.data );
+        *reinterpret_cast< {{ invocation.runtime_return_type }}* >( result.pData ) = {{ invocation.runtime_return_type }}{ args... };
+        return result.context;
 {% else if invocation.explicit_operation == "Allocate" %}
         // Allocate
         static mega::runtime::AllocateFunction g_pRuntimeFunc = nullptr;

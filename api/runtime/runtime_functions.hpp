@@ -14,6 +14,13 @@ using DeAllocationFunction = void ( * )( mega::PhysicalAddress address );
 using AllocateFunction     = mega::reference ( * )( const mega::reference& );
 using ReadFunction         = void* ( * )( const mega::reference& );
 
+struct WriteResult
+{
+    void* pData;
+    mega::reference context;
+};
+using WriteFunction        = WriteResult ( * )( const mega::reference& );
+
 } // namespace runtime
 } // namespace mega
 

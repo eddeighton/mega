@@ -184,13 +184,17 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
 {
     std::vector< OperationsStage::Interface::IContext* >       contextReturnTypes;
     std::vector< OperationsStage::Interface::DimensionTrait* > dimensionReturnTypes;
+    bool bIsWriteOperation = false;
     {
         using OperationsStage::Invocations::Instructions::Instruction;
         using OperationsStage::Invocations::Operations::BasicOperation;
         using OperationsStage::Invocations::Operations::DimensionOperation;
         using OperationsStage::Invocations::Operations::Operation;
+        using OperationsStage::Invocations::Operations::Write;
         for ( Operation* pOperation : getOperations( pInvocation->get_root_instruction() ) )
         {
+            if( dynamic_database_cast< Write >( pOperation ) )
+                bIsWriteOperation = true;
             for ( auto pReturnType : pOperation->get_return_types() )
             {
                 if ( pReturnType->get_context().has_value() )
@@ -208,13 +212,16 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
     {
         if ( contextReturnTypes.size() && dimensionReturnTypes.size() )
         {
-            THROW_INVOCATION_EXCEPTION( "Mixed dimension and action invocation return types" );
+            if( !bIsWriteOperation )
+            {
+                THROW_INVOCATION_EXCEPTION( "Mixed dimension and action invocation return types" );
+            }
         }
-        else if ( contextReturnTypes.size() )
+        if ( contextReturnTypes.size() )
         {
             bIsHomogenous = contextReturnTypes.size() == 1U;
         }
-        else if ( dimensionReturnTypes.size() )
+        if ( dimensionReturnTypes.size() )
         {
             std::optional< std::string > typeOpt;
             for ( OperationsStage::Interface::DimensionTrait* pDim : dimensionReturnTypes )
@@ -799,7 +806,16 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 }
                 osReturnTypeStr << " >";
             }
-            osRuntimeReturnType << osReturnTypeStr.str();
+            if ( !dimensions.empty() )
+            {
+                VERIFY_RTE_MSG( pInvocation->get_homogeneous(), "Write operation on non-homogenous dimensions" );
+                printIContextFullType( dimensions.front()->get_parent(), osRuntimeReturnType );
+                osRuntimeReturnType << "::" << dimensions.front()->get_id()->get_str() << "::Type";
+            }
+            else
+            {
+                osRuntimeReturnType << osReturnTypeStr.str();
+            }
         }
         else if ( !dimensions.empty() )
         {

@@ -31,6 +31,7 @@ public:
         virtual mega::runtime::DeAllocationFunction getDeAllocation( const std::string& strSymbol ) = 0;
         virtual mega::runtime::AllocateFunction     getAllocate( const std::string& strSymbol )     = 0;
         virtual mega::runtime::ReadFunction         getRead( const std::string& strSymbol )         = 0;
+        virtual mega::runtime::WriteFunction        getWrite( const std::string& strSymbol )        = 0;
     };
 
     Module::Ptr compile( const std::string& strModule );

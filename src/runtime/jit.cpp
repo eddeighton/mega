@@ -132,7 +132,7 @@ public:
     {
         return getFunctionPtr< mega::runtime::GetSharedFunction >( strSymbol );
     }
-    
+
     virtual mega::runtime::AllocationFunction getAllocation( const std::string& strSymbol ) override
     {
         return getFunctionPtr< mega::runtime::AllocationFunction >( strSymbol );
@@ -151,6 +151,11 @@ public:
     virtual mega::runtime::ReadFunction getRead( const std::string& strSymbol ) override
     {
         return getFunctionPtr< mega::runtime::ReadFunction >( strSymbol );
+    }
+    
+    virtual mega::runtime::WriteFunction getWrite( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::WriteFunction >( strSymbol );
     }
 
 private:

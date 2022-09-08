@@ -370,7 +370,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
 
                     using OperationsStage::Invocations::Operations::Write;
                     Write* pWrite = m_database.construct< Write >( Write::Args{ DimensionOperation::Args{
-                        Operation::Args{ Instruction::Args{}, pInstance, { pReturnType }, {} }, pInterfaceDimension,
+                        Operation::Args{ Instruction::Args{}, pInstance, { pReturnType, pInterfaceVar }, {} }, pInterfaceDimension,
                         pConcreteDimension } } );
                     pInstruction->push_back_children( pWrite );
                 }

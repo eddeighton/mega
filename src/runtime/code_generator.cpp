@@ -118,6 +118,7 @@ class CodeGenerator::Pimpl
     ::inja::Template                               m_allocationTemplate;
     ::inja::Template                               m_allocateTemplate;
     ::inja::Template                               m_readTemplate;
+    ::inja::Template                               m_writeTemplate;
     boost::filesystem::path                        m_clangPath;
     boost::filesystem::path                        m_tempDir;
 
@@ -141,6 +142,8 @@ public:
             = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateAllocate().native() );
         m_readTemplate
             = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateRead().native() );
+        m_writeTemplate
+            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateWrite().native() );
     }
 
     void render_allocation( const nlohmann::json& data, std::ostream& os )
@@ -154,6 +157,10 @@ public:
     void render_read( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_readTemplate, data );
+    }
+    void render_write( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_writeTemplate, data );
     }
 
     void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
@@ -372,6 +379,7 @@ void CodeGenerator::generate_allocate( const DatabaseInstance& database, const m
 }
 
 using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
+
 inline std::string get( const VariableMap& varMap, const FinalStage::Invocations::Variables::Variable* pVar )
 {
     VariableMap::const_iterator iFind = varMap.find( pVar );
@@ -390,9 +398,9 @@ void generateBufferFPtrCheck( bool bShared, mega::TypeID id, std::ostream& os )
        << "mega::runtime::get_getter_" << strType << "( g_pszModuleName, " << id << ", &_fptr_get_" << strType << "_"
        << id << " );\n";
 }
-void generateBufferAccess( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
-                           const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
-                           std::ostream& os )
+void generateBufferRead( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
+                         const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
+                         std::ostream& os )
 {
     const std::string strType = bShared ? "shared" : "heap";
     os << indent << "return (char*)_fptr_get_" << strType << "_" << id << "( " << strInstanceVar << ".physical )"
@@ -400,8 +408,19 @@ void generateBufferAccess( bool bShared, mega::TypeID id, FinalStage::MemoryLayo
        << pDimension->get_offset() << ";";
 }
 
-void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, const VariableMap& variables,
-              PartSet& parts, nlohmann::json& data )
+void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
+                          const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
+                          std::ostream& os )
+{
+    const std::string strType = bShared ? "shared" : "heap";
+    os << indent << "return mega::runtime::WriteResult{ (char*)_fptr_get_" << strType << "_" << id << "( "
+       << strInstanceVar << ".physical )"
+       << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
+       << pDimension->get_offset() << ", " << strInstanceVar << "};";
+}
+
+void generateInstructions( FinalStage::Invocations::Instructions::Instruction* pInstruction,
+                           const VariableMap& variables, PartSet& parts, nlohmann::json& data )
 {
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
@@ -477,7 +496,7 @@ void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, 
 
         for ( auto pChildInstruction : pInstructionGroup->get_children() )
         {
-            recurse( pChildInstruction, variables, parts, data );
+            generateInstructions( pChildInstruction, variables, parts, data );
         }
     }
     else if ( FinalStage::Invocations::Operations::Operation* pOperation
@@ -563,7 +582,7 @@ void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, 
                 std::ostringstream os;
                 os << indent << "// Read Operation\n";
                 generateBufferFPtrCheck( bSimple, id, os );
-                generateBufferAccess( bSimple, id, pPart, get( variables, pInstance ), pDimension, os );
+                generateBufferRead( bSimple, id, pPart, get( variables, pInstance ), pDimension, os );
                 data[ "assignments" ].push_back( os.str() );
             }
 
@@ -571,9 +590,21 @@ void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, 
         }
         else if ( Write* pWrite = dynamic_database_cast< Write >( pOperation ) )
         {
-            std::ostringstream os;
-            os << indent << "// Write\n";
-            data[ "assignments" ].push_back( os.str() );
+            Concrete::Dimensions::User* pDimension = pWrite->get_concrete_dimension();
+            Variables::Instance*        pInstance  = pWrite->get_instance();
+            MemoryLayout::Part*         pPart      = pDimension->get_part();
+            const mega::TypeID          id         = pPart->get_context()->get_concrete_id();
+            const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
+
+            {
+                std::ostringstream os;
+                os << indent << "// Write Operation\n";
+                generateBufferFPtrCheck( bSimple, id, os );
+                generateBufferWrite( bSimple, id, pPart, get( variables, pInstance ), pDimension, os );
+                data[ "assignments" ].push_back( os.str() );
+            }
+
+            parts.insert( pDimension->get_part() );
         }
         else if ( WriteLink* pWriteLink = dynamic_database_cast< WriteLink >( pOperation ) )
         {
@@ -598,6 +629,85 @@ void recurse( FinalStage::Invocations::Instructions::Instruction* pInstruction, 
     }
 }
 
+VariableMap
+generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
+                   ::FinalStage::Invocations::Variables::Context*                        pRootContext,
+                   nlohmann::json&                                                       data )
+{
+    using namespace FinalStage;
+    using namespace FinalStage::Invocations;
+
+    VariableMap variables;
+
+    int iVariableCounter = 0;
+    for ( auto pVariable : invocationVariables )
+    {
+        if ( Variables::Instance* pInstanceVar = dynamic_database_cast< Variables::Instance >( pVariable ) )
+        {
+            std::ostringstream osName;
+            {
+                osName << "var_" << pInstanceVar->get_concrete()->get_interface()->get_identifier() << "_"
+                       << iVariableCounter++;
+            }
+            variables.insert( { pVariable, osName.str() } );
+
+            std::ostringstream osVar;
+            {
+                osVar << indent << "mega::reference " << osName.str() << ";";
+            }
+            data[ "variables" ].push_back( osVar.str() );
+        }
+        else if ( Variables::Dimension* pDimensionVar = dynamic_database_cast< Variables::Dimension >( pVariable ) )
+        {
+            auto types = pDimensionVar->get_types();
+            VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
+            Concrete::Context* pContext = types.front();
+
+            std::ostringstream osName;
+            {
+                osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
+            }
+            variables.insert( { pVariable, osName.str() } );
+
+            std::ostringstream osVar;
+            {
+                osVar << indent << "mega::reference " << osName.str() << ";";
+            }
+            data[ "variables" ].push_back( osVar.str() );
+        }
+        else if ( Variables::Context* pContextVar = dynamic_database_cast< Variables::Context >( pVariable ) )
+        {
+            auto types = pContextVar->get_types();
+            VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
+            Concrete::Context* pContext = types.front();
+
+            std::ostringstream osName;
+            {
+                osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
+            }
+            variables.insert( { pVariable, osName.str() } );
+            std::ostringstream osVar;
+            {
+                osVar << indent << "mega::reference " << osName.str() << ";";
+            }
+            data[ "variables" ].push_back( osVar.str() );
+
+            if ( pRootContext == pContextVar )
+            {
+                // generate initial assignment
+                std::ostringstream os;
+                os << indent << osName.str() << " = context;";
+                data[ "assignments" ].push_back( os.str() );
+            }
+        }
+        else
+        {
+            THROW_RTE( "Unknown variable type" );
+        }
+    }
+    return variables;
+}
+
 void CodeGenerator::generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                                    std::ostream& os )
 {
@@ -620,83 +730,14 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
         using namespace FinalStage;
         using namespace FinalStage::Invocations;
 
-        const FinalStage::Operations::Invocation* pInvocation  = database.getInvocation( invocationID );
-        Variables::Context*                       pRootContext = pInvocation->get_root_instruction()->get_context();
+        const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocationID );
 
-        VariableMap variables;
-        {
-            int iVariableCounter = 0;
-            for ( auto pVariable : pInvocation->get_variables() )
-            {
-                if ( Variables::Instance* pInstanceVar = dynamic_database_cast< Variables::Instance >( pVariable ) )
-                {
-                    std::ostringstream osName;
-                    {
-                        osName << "var_" << pInstanceVar->get_concrete()->get_interface()->get_identifier() << "_"
-                               << iVariableCounter++;
-                    }
-                    variables.insert( { pVariable, osName.str() } );
-
-                    std::ostringstream osVar;
-                    {
-                        osVar << indent << "mega::reference " << osName.str() << ";";
-                    }
-                    data[ "variables" ].push_back( osVar.str() );
-                }
-                else if ( Variables::Dimension* pDimensionVar
-                          = dynamic_database_cast< Variables::Dimension >( pVariable ) )
-                {
-                    auto types = pDimensionVar->get_types();
-                    VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
-                    Concrete::Context* pContext = types.front();
-
-                    std::ostringstream osName;
-                    {
-                        osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
-                    }
-                    variables.insert( { pVariable, osName.str() } );
-
-                    std::ostringstream osVar;
-                    {
-                        osVar << indent << "mega::reference " << osName.str() << ";";
-                    }
-                    data[ "variables" ].push_back( osVar.str() );
-                }
-                else if ( Variables::Context* pContextVar = dynamic_database_cast< Variables::Context >( pVariable ) )
-                {
-                    auto types = pContextVar->get_types();
-                    VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
-                    Concrete::Context* pContext = types.front();
-
-                    std::ostringstream osName;
-                    {
-                        osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
-                    }
-                    variables.insert( { pVariable, osName.str() } );
-                    std::ostringstream osVar;
-                    {
-                        osVar << indent << "mega::reference " << osName.str() << ";";
-                    }
-                    data[ "variables" ].push_back( osVar.str() );
-
-                    if ( pRootContext == pContextVar )
-                    {
-                        // generate initial assignment
-                        std::ostringstream os;
-                        os << indent << osName.str() << " = context;";
-                        data[ "assignments" ].push_back( os.str() );
-                    }
-                }
-                else
-                {
-                    THROW_RTE( "Unknown variable type" );
-                }
-            }
-        }
+        const VariableMap variables = generateVariables(
+            pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data );
 
         for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            recurse( pInstruction, variables, parts, data );
+            generateInstructions( pInstruction, variables, parts, data );
         }
     }
 
@@ -708,6 +749,51 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
     std::ostringstream osCPPCode;
     {
         m_pPimpl->render_read( data, osCPPCode );
+    }
+    m_pPimpl->compileToLLVMIR( osName.str(), osCPPCode.str(), os, std::nullopt );
+}
+
+void CodeGenerator::generate_write( const DatabaseInstance& database, const mega::InvocationID& invocationID,
+                                    std::ostream& os )
+{
+    SPDLOG_TRACE( "generate_write: {}", invocationID );
+
+    std::ostringstream osName;
+    {
+        osName << invocationID;
+    }
+
+    PartSet parts;
+
+    nlohmann::json data( { { "name", osName.str() },
+                           { "module_name", osName.str() },
+                           { "getters", nlohmann::json::array() },
+                           { "variables", nlohmann::json::array() },
+                           { "assignments", nlohmann::json::array() } } );
+
+    {
+        using namespace FinalStage;
+        using namespace FinalStage::Invocations;
+
+        const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocationID );
+
+        const VariableMap variables = generateVariables(
+            pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data );
+
+        for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
+        {
+            generateInstructions( pInstruction, variables, parts, data );
+        }
+    }
+
+    for ( auto pPart : parts )
+    {
+        data[ "getters" ].push_back( pPart->get_context()->get_concrete_id() );
+    }
+
+    std::ostringstream osCPPCode;
+    {
+        m_pPimpl->render_write( data, osCPPCode );
     }
     m_pPimpl->compileToLLVMIR( osName.str(), osCPPCode.str(), os, std::nullopt );
 }
