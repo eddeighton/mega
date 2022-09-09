@@ -10,8 +10,6 @@ if [ x"${CFG_TUPLE}" == "x" ]; then
     exit 1
 fi
 
-rm -rf ./log
-
 ./root --level info --console error &
 
 sleep 1

@@ -59,6 +59,7 @@ add_subdirectory(toolchain)
 # install scripts
 set( MEGA_SCRIPTS
     ${MEGA_ROOT_DIR}/scripts/run_service.sh 
+    ${MEGA_ROOT_DIR}/scripts/run_cleanup.sh 
 )
 
 install( FILES ${MEGA_SCRIPTS} DESTINATION bin )
