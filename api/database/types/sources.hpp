@@ -298,7 +298,7 @@ namespace mega
             }
             static const boost::filesystem::path& extension() { return EXTENSION; }
         };
-/*
+        
         class ComponentFilePath : public BuildFilePath
         {
             static boost::filesystem::path EXTENSION;
@@ -322,7 +322,7 @@ namespace mega
             }
             //static const boost::filesystem::path& extension() { return EXTENSION; }
         };
-*/
+        
 
     } // namespace io
 } // namespace mega
@@ -339,10 +339,10 @@ namespace mega
         {
             j = nlohmann::json{ { "cppFilePath", p.path().string() } };
         }
-        /*inline void to_json( nlohmann::json& j, const ComponentFilePath& p )
+        inline void to_json( nlohmann::json& j, const ComponentFilePath& p )
         {
             j = nlohmann::json{ { "componentFilePath", p.path().string() } };
-        }*/
+        }
     }
 }
 

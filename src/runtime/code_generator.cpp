@@ -3,6 +3,7 @@
 #include "database/common/environment_archive.hpp"
 
 #include "database/model/FinalStage.hxx"
+#include "mega/common.hpp"
 #include "service/network/log.hpp"
 
 #include "common/file.hpp"
@@ -410,7 +411,8 @@ void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayou
        << pDimension->get_offset() << ", " << strInstanceVar << "};";
 }
 
-void generateInstructions( FinalStage::Invocations::Instructions::Instruction* pInstruction,
+void generateInstructions( const DatabaseInstance&                             database,
+                           FinalStage::Invocations::Instructions::Instruction* pInstruction,
                            const VariableMap& variables, PartSet& parts, CallSet& calls, nlohmann::json& data )
 {
     using namespace FinalStage;
@@ -424,6 +426,25 @@ void generateInstructions( FinalStage::Invocations::Instructions::Instruction* p
         {
             std::ostringstream os;
             os << indent << "// ParentDerivation\n";
+
+            const Variables::Instance* pFrom = pParentDerivation->get_from();
+            const Variables::Instance* pTo   = pParentDerivation->get_to();
+
+            const std::string  s           = get( variables, pFrom );
+            const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
+            const std::size_t  szLocalSize = database.getLocalDomainSize( targetType );
+
+            if ( szLocalSize > 1 )
+            {
+                os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
+                   << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ".physical };";
+            }
+            else
+            {
+                os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
+                   << ".instance, " << targetType << " }, " << s << ".physical };";
+            }
+
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::ChildDerivation* pChildDerivation
@@ -431,6 +452,17 @@ void generateInstructions( FinalStage::Invocations::Instructions::Instruction* p
         {
             std::ostringstream os;
             os << indent << "// ChildDerivation\n";
+
+            const Variables::Instance* pFrom = pParentDerivation->get_from();
+            const Variables::Instance* pTo   = pParentDerivation->get_to();
+
+            const std::string  s           = get( variables, pFrom );
+            const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
+            const std::size_t  szLocalSize = database.getLocalDomainSize( targetType );
+
+            os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s << ".instance, "
+               << targetType << " }, " << s << ".physical };";
+
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Instructions::EnumDerivation* pEnumDerivation
@@ -487,7 +519,7 @@ void generateInstructions( FinalStage::Invocations::Instructions::Instruction* p
 
         for ( auto pChildInstruction : pInstructionGroup->get_children() )
         {
-            generateInstructions( pChildInstruction, variables, parts, calls, data );
+            generateInstructions( database, pChildInstruction, variables, parts, calls, data );
         }
     }
     else if ( FinalStage::Invocations::Operations::Operation* pOperation
@@ -764,7 +796,7 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
 
         for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            generateInstructions( pInstruction, variables, parts, calls, data );
+            generateInstructions( database, pInstruction, variables, parts, calls, data );
         }
     }
 

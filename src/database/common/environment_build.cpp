@@ -229,6 +229,10 @@ cppFilePath BuildEnvironment::cppFilePath_fromPath( const boost::filesystem::pat
 {
     return cppFilePath( boost::filesystem::relative( filePath, m_directories.srcDir ) );
 }
+ComponentFilePath BuildEnvironment::ComponentPath_fromPath( const boost::filesystem::path& filePath ) const
+{
+    return ComponentFilePath( boost::filesystem::relative( filePath, m_directories.buildDir ) );
+}
 
 std::unique_ptr< std::istream > BuildEnvironment::read( const BuildFilePath& filePath ) const
 {

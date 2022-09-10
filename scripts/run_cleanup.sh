@@ -68,3 +68,23 @@ function cleanup_files {
 cleanup_files "${BUILD_PATH}/${CFG_TUPLE}/mega"         "*.log"
 cleanup_files "${BUILD_PATH}/${CFG_TUPLE}/megatest"     "*.log"
 cleanup_files "${WORKSPACE_ROOT_PATH}/src"              "*.log"
+
+function cleanup_shm {
+
+    file_filter=$1
+
+    pushd /dev/shm > /dev/null
+    for file in `find . -iname "${file_filter}"`
+    do
+        if [[ -f "${file}" ]]
+        then
+            echo "Removing file: /dev/shm/${file}"
+            rm ${file}
+        fi
+    done
+    popd > /dev/null
+
+}
+
+cleanup_shm "memory_*Leaf*"
+cleanup_shm "sem.MEGA_RUNTIME_ADDRESS_SPACE_MUTEX"

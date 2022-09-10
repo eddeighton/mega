@@ -27,7 +27,7 @@ void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetS
 static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter }} = nullptr;
 {% endfor %}
 
-mega::runtime::WriteResult {{ name }}( const mega::reference& context )
+mega::runtime::WriteResult {{ name }}( mega::reference context )
 {
 {% for variable in variables %}
 {{ variable }}

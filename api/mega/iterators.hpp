@@ -140,8 +140,7 @@ private:
 public:
 
     inline __eg_MultiIterator()
-        :   iterators( { mega::reference{ 0, 0, 0 }, mega::reference{ 0, 0, 0 } } ),
-            szIndex( SIZE )
+        :   szIndex( SIZE )
     {
     }
     

@@ -43,6 +43,7 @@ public:
     Path FilePath( const ObjectFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const megaFilePath& filePath ) const { return toPath( filePath ); }
     Path FilePath( const cppFilePath& filePath ) const { return toPath( filePath ); }
+    Path FilePath( const ComponentFilePath& filePath ) const { return toPath( filePath ); }
 
     template < typename TFrom, typename TTo >
     void matchFileTime( const TFrom& from, const TTo& to ) const
@@ -79,10 +80,12 @@ public:
     GeneratedCPPSourceFilePath CPPImplementation( const cppFilePath& source ) const;
     ObjectFilePath             CPPObj( const cppFilePath& source ) const;
 
+    // note lowercase file type function names are used in generated code based on file type
     ComponentListingFilePath ComponentListingFilePath_fromPath( const Path& buildDirectory ) const;
     manifestFilePath         manifestFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     megaFilePath             megaFilePath_fromPath( const boost::filesystem::path& filePath ) const;
     cppFilePath              cppFilePath_fromPath( const boost::filesystem::path& filePath ) const;
+    ComponentFilePath        ComponentPath_fromPath( const boost::filesystem::path& filePath ) const;
 
     ////////////////////////////////////////////////////
     ////////////////////////////////////////////////////

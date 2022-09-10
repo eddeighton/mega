@@ -285,7 +285,7 @@ public:
         }
         std::ostringstream os;
         symbolPrefix( invocationID, os );
-        os << "RKN4mega9referenceE";
+        os << "N4mega9referenceE";
         *ppFunction = pModule->getAllocate( os.str() );
     }
 
@@ -312,7 +312,7 @@ public:
         }
         std::ostringstream os;
         symbolPrefix( invocationID, os );
-        os << "RKN4mega9referenceE";
+        os << "N4mega9referenceE";
         *ppFunction = pModule->getRead( os.str() );
     }
 
@@ -339,7 +339,7 @@ public:
         }
         std::ostringstream os;
         symbolPrefix( invocationID, os );
-        os << "RKN4mega9referenceE";
+        os << "N4mega9referenceE";
         *ppFunction = pModule->getWrite( os.str() );
     }
 
@@ -366,7 +366,7 @@ public:
         }
         std::ostringstream os;
         symbolPrefix( invocationID, os );
-        os << "RKN4mega9referenceE";
+        os << "N4mega9referenceE";
         *ppFunction = pModule->getCall( os.str() );
     }
 

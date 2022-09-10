@@ -25,9 +25,18 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         auto pSymbol  = iFind->second;
         auto contexts = pSymbol->get_contexts();
         VERIFY_RTE_MSG( contexts.size() > 0U, "Failed to locate Root symbol" );
-        VERIFY_RTE_MSG( contexts.size() == 1U, "Multiple Root symbols defined" );
-        auto pIContext = contexts.front();
-        auto concrete  = pIContext->get_concrete();
+
+        FinalStage::Interface::IContext* pRoot = nullptr;
+        for ( auto p : contexts )
+        {
+            if ( FinalStage::dynamic_database_cast< FinalStage::Interface::Root >( p->get_parent() ) )
+            {
+                VERIFY_RTE_MSG( !pRoot, "Multiple roots found" );
+                pRoot = p;
+            }
+        }
+        VERIFY_RTE_MSG( pRoot, "Failed to locate Root symbol" );
+        auto concrete = pRoot->get_concrete();
         VERIFY_RTE_MSG( concrete.size() > 0U, "Failed to locate Root symbol" );
         VERIFY_RTE_MSG( concrete.size() == 1U, "Multiple Root symbols defined" );
         auto pConcrete = concrete.front();

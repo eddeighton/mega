@@ -852,11 +852,21 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
             break;
             case mega::id_exp_Call:
             {
-                osReturnTypeStr << strFunctionReturnTypeOpt.value();
+                if( !strFunctionReturnTypeOpt.has_value() )
+                {
+                    osReturnTypeStr << "void";
+                }
+                else
+                {
+                    osReturnTypeStr << strFunctionReturnTypeOpt.value();
+                }
                 // define function pointer type
-                osRuntimeReturnType << strFunctionReturnTypeOpt.value() << "(*)( mega::reference";
-                for ( const std::string& strType : functionParameterTypesOpt.value() )
-                    osRuntimeReturnType << "," << strType;
+                osRuntimeReturnType << osReturnTypeStr.str() << "(*)( mega::reference";
+                if( functionParameterTypesOpt.has_value() )
+                {
+                    for ( const std::string& strType : functionParameterTypesOpt.value() )
+                        osRuntimeReturnType << "," << strType;
+                }
                 osRuntimeReturnType << ")";
             }
             break;

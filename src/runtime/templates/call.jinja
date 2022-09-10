@@ -39,7 +39,7 @@ static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter }} = nullptr;
 static mega::runtime::TypeErasedFunction _fptr_call_{{ call }} = nullptr;
 {% endfor %}
 
-mega::runtime::CallResult {{ name }}( const mega::reference& context )
+mega::runtime::CallResult {{ name }}( mega::reference context )
 {
 {% for variable in variables %}
 {{ variable }}

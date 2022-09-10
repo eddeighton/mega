@@ -120,6 +120,9 @@ public:
                             "Duplicate component name: " << componentInfo.getName() );
             componentNames.insert( componentInfo.getName() );
 
+            const mega::io::ComponentFilePath componentFilePath =
+                m_environment.ComponentPath_fromPath( componentInfo.getFilePath() );
+
             std::vector< mega::io::megaFilePath > megaSourceFiles;
             std::vector< mega::io::cppFilePath >  cppSourceFiles;
             for ( const boost::filesystem::path& filePath : componentInfo.getSourceFiles() )
@@ -154,7 +157,7 @@ public:
 
             Components::Component* pComponent
                 = database.construct< Components::Component >( Components::Component::Args(
-                    componentInfo.getComponentType(), componentInfo.getName(), componentInfo.getFileName(),
+                    componentInfo.getComponentType(), componentInfo.getName(), componentFilePath,
                     componentInfo.getSrcDir(), componentInfo.getBuildDir(), componentInfo.getCPPFlags(),
                     componentInfo.getCPPDefines(), componentInfo.getIncludeDirectories(), dependencies, megaSourceFiles,
                     cppSourceFiles ) );

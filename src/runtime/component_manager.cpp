@@ -2,6 +2,7 @@
 #include "component_manager.hpp"
 #include "database/model/FinalStage.hxx"
 
+#include "database/types/sources.hpp"
 #include "service/network/log.hpp"
 
 #include "common/string.hpp"
@@ -63,7 +64,8 @@ ComponentManager::InterfaceComponent::InterfaceComponent( const ComponentPath&  
             is >> interfaceTypeID;
             VERIFY_RTE_MSG( interfaceTypeID != 0U, "Invalid type ID decoded from symbol: " << strSymbol );
         }
-        ComponentManager::FunctionPtr pFunctionPtr = boost::dll::import_alias< TypeErasedFunction* >( m_library, strSymbol );
+        ComponentManager::FunctionPtr pFunctionPtr
+            = boost::dll::import_alias< TypeErasedFunction* >( m_library, strSymbol );
         VERIFY_RTE_MSG( functions.insert( { interfaceTypeID, pFunctionPtr } ).second,
                         "Duplicate interface symbol found for: " << strSymbol );
     }
@@ -91,8 +93,8 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concr
 
     {
         const FinalStage::Components::Component* pDBComponent = m_database.getOperationComponent( concreteTypeID );
-        const std::string&                       strComponentFileName = pDBComponent->get_file_name();
-        const boost::filesystem::path            componentPath = m_project.getProjectBin() / strComponentFileName;
+        const mega::io::ComponentFilePath&       componentBuildPath = pDBComponent->get_file_path();
+        const boost::filesystem::path componentPath = m_project.getProjectBin() / componentBuildPath.path().filename();
 
         auto iFind = m_interfaceComponents.find( componentPath );
         if ( iFind == m_interfaceComponents.end() )

@@ -166,7 +166,7 @@ public:
     {
         {
             std::ostringstream os;
-            os << std::setw( 32 ) << pszName << " " << std::setw( 55 ) << fromPath.string() << " -> " << std::setw( 55 )
+            os << std::setw( 30 ) << pszName << " " << std::setw( 35 ) << fromPath.string() << " -> " << std::setw( 85 )
                << toPath.string();
             m_strTaskName = os.str();
         }

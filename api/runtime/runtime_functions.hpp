@@ -12,22 +12,22 @@ using GetHeapFunction      = void* ( * )( mega::PhysicalAddress address );
 using GetSharedFunction    = void* ( * )( mega::PhysicalAddress address );
 using AllocationFunction   = mega::PhysicalAddress ( * )( mega::ExecutionIndex executionIndex );
 using DeAllocationFunction = void ( * )( mega::PhysicalAddress address );
-using AllocateFunction     = mega::reference ( * )( const mega::reference& );
-using ReadFunction         = void* ( * )( const mega::reference& );
+using AllocateFunction     = mega::reference ( * )( mega::reference );
+using ReadFunction         = void* ( * )( mega::reference );
 
 struct WriteResult
 {
     void*           pData;
     mega::reference context;
 };
-using WriteFunction = WriteResult ( * )( const mega::reference& );
+using WriteFunction = WriteResult ( * )( mega::reference );
 
 struct CallResult
 {
     TypeErasedFunction pFunction;
     mega::reference    context;
 };
-using CallFunction = CallResult ( * )( const mega::reference& );
+using CallFunction = CallResult ( * )( mega::reference );
 
 } // namespace runtime
 } // namespace mega

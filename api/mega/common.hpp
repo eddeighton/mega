@@ -38,7 +38,7 @@ using event_iterator = std::uint64_t;
 
 static constexpr ExecutionIndex MAX_SIMULATIONS = 512;
 static constexpr ObjectIndex    MAX_OBJECTS     = 4194304;
-static constexpr std::uint32_t  INVALID_ADDRESS = std::numeric_limits< std::uint32_t >::max();
+static constexpr AddressStorage INVALID_ADDRESS = std::numeric_limits< AddressStorage >::max();
 
 struct TypeInstance
 {
@@ -71,7 +71,7 @@ struct PhysicalAddress
     // 2 ^ 22   == 4194304
     AddressStorage execution : 9, object : 22, type : 1;
 };
-static_assert( sizeof( PhysicalAddress ) == 4U, "Invalid PhysicalAddress Size");
+static_assert( sizeof( PhysicalAddress ) == 4U, "Invalid PhysicalAddress Size" );
 
 struct LogicalAddress
 {
@@ -92,15 +92,15 @@ struct Address
         : value( INVALID_ADDRESS )
     {
     }
-    Address( const AddressStorage& value )
+    Address( AddressStorage value )
         : value( value )
     {
     }
-    Address( const LogicalAddress& logicalAddress )
+    Address( LogicalAddress logicalAddress )
         : logical( logicalAddress )
     {
     }
-    Address( const PhysicalAddress& physicalAddress )
+    Address( PhysicalAddress physicalAddress )
         : physical( physicalAddress )
     {
     }
@@ -116,6 +116,23 @@ static_assert( sizeof( Address ) == 4U, "Invalid Address Size" );
 
 struct reference : TypeInstance, Address
 {
+    reference() {}
+    reference( TypeInstance typeInstance, PhysicalAddress physicalAddres )
+        : TypeInstance( typeInstance )
+        , Address( physicalAddres )
+    {
+    }
+    reference( TypeInstance typeInstance, LogicalAddress logicalAddress )
+        : TypeInstance( typeInstance )
+        , Address( logicalAddress )
+    {
+    }
+    reference( TypeInstance typeInstance, AddressStorage address )
+        : TypeInstance( typeInstance )
+        , Address( address )
+    {
+    }
+
     inline bool operator==( const reference& cmp ) const
     {
         return ( !valid() && !cmp.valid() ) || ( TypeInstance::operator==( cmp ) && Address::operator==( cmp ) );

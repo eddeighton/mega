@@ -220,7 +220,7 @@ public:
 
         const mega::io::GeneratedHPPSourceFilePath includeFilePath
             = m_environment.Include( pComponent->get_build_dir(), m_strComponentName );
-        start( taskProgress, "Task_Include", m_strComponentName, includeFilePath.path() );
+        start( taskProgress, "Task_CPPInclude", m_strComponentName, includeFilePath.path() );
 
         /*task::DeterminantHash determinant( { m_toolChain.toolChainHash } );
 
