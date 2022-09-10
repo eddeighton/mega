@@ -37,8 +37,8 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        //ConversationBase::RequestStack stack(
-        //    "GenericConversation", *this, m_executor.getLeafSender().getConnectionID() );
+        // ConversationBase::RequestStack stack(
+        //     "GenericConversation", *this, m_executor.getLeafSender().getConnectionID() );
         m_functor( *this, m_executor.getLeafSender(), yield_ctx );
     }
 };
@@ -69,7 +69,9 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
             thisRef.m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
                 thisRef.m_megastructureInstallation.getParserPath(), "g_parserSymbol" );
 
-            mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, leaf.ExeGetProject() );
+            auto currentProject = leaf.ExeGetProject();
+            if ( !currentProject.isEmpty() && boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+                mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, currentProject );
         };
         conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(
                                    *this, createConversationID( getLeafSender().getConnectionID() ),
@@ -84,10 +86,7 @@ Executor::~Executor()
     SPDLOG_TRACE( "Executor shutdown" );
 }
 
-void Executor::shutdown() 
-{
-    m_receiverChannel.stop();
-}
+void Executor::shutdown() { m_receiverChannel.stop(); }
 
 network::ConversationBase::Ptr Executor::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                            const network::Header&       header,

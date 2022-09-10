@@ -119,6 +119,7 @@ class CodeGenerator::Pimpl
     ::inja::Template                               m_allocateTemplate;
     ::inja::Template                               m_readTemplate;
     ::inja::Template                               m_writeTemplate;
+    ::inja::Template                               m_callTemplate;
     boost::filesystem::path                        m_clangPath;
     boost::filesystem::path                        m_tempDir;
 
@@ -144,6 +145,8 @@ public:
             = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateRead().native() );
         m_writeTemplate
             = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateWrite().native() );
+        m_callTemplate
+            = m_injaEnvironment.parse_template( m_megastructureInstallation.getRuntimeTemplateCall().native() );
     }
 
     void render_allocation( const nlohmann::json& data, std::ostream& os )
@@ -161,6 +164,10 @@ public:
     void render_write( const nlohmann::json& data, std::ostream& os )
     {
         m_injaEnvironment.render_to( os, m_writeTemplate, data );
+    }
+    void render_call( const nlohmann::json& data, std::ostream& os )
+    {
+        m_injaEnvironment.render_to( os, m_callTemplate, data );
     }
 
     void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
@@ -361,23 +368,6 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
     m_pPimpl->compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
 }
 
-void CodeGenerator::generate_allocate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                                       std::ostream& os )
-{
-    SPDLOG_TRACE( "generate_allocate: {}", invocationID );
-    // const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocation );
-    // using namespace FinalStage::Invocations;
-    // Variables::Context* pRootVariable = pInvocation->get_root_variable();
-    // pInvocation->get_root_instruction()
-
-    std::ostringstream osName;
-    osName << invocationID;
-    nlohmann::json     data( { { "name", osName.str() } } );
-    std::ostringstream osCPPCode;
-    m_pPimpl->render_allocate( data, osCPPCode );
-    m_pPimpl->compileToLLVMIR( osName.str(), osCPPCode.str(), os, std::nullopt );
-}
-
 using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
 
 inline std::string get( const VariableMap& varMap, const FinalStage::Invocations::Variables::Variable* pVar )
@@ -390,6 +380,7 @@ inline std::string get( const VariableMap& varMap, const FinalStage::Invocations
 static const std::string indent( "    " );
 
 using PartSet = std::set< const FinalStage::MemoryLayout::Part* >;
+using CallSet = std::set< const FinalStage::Concrete::Context* >;
 
 void generateBufferFPtrCheck( bool bShared, mega::TypeID id, std::ostream& os )
 {
@@ -420,7 +411,7 @@ void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayou
 }
 
 void generateInstructions( FinalStage::Invocations::Instructions::Instruction* pInstruction,
-                           const VariableMap& variables, PartSet& parts, nlohmann::json& data )
+                           const VariableMap& variables, PartSet& parts, CallSet& calls, nlohmann::json& data )
 {
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
@@ -496,7 +487,7 @@ void generateInstructions( FinalStage::Invocations::Instructions::Instruction* p
 
         for ( auto pChildInstruction : pInstructionGroup->get_children() )
         {
-            generateInstructions( pChildInstruction, variables, parts, data );
+            generateInstructions( pChildInstruction, variables, parts, calls, data );
         }
     }
     else if ( FinalStage::Invocations::Operations::Operation* pOperation
@@ -508,12 +499,43 @@ void generateInstructions( FinalStage::Invocations::Instructions::Instruction* p
         {
             std::ostringstream os;
             os << indent << "// Allocate\n";
+            os << indent
+               << "const mega::LogicalAddress logicalAddress = mega::runtime::allocateLogical( "
+                  "context.physical.execution, context.typeID );\n";
+            os << indent << "mega::reference result;\n";
+            os << indent << "{\n";
+            os << indent
+               << "    result.physical = mega::runtime::logicalToPhysical( context.physical.execution, context.typeID, "
+                  "logicalAddress );\n";
+            os << indent << "    result.instance = 0;\n";
+            os << indent << "    result.typeID = context.typeID;\n";
+            os << indent << "}\n";
+            os << indent << "return result;\n";
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )
         {
+            Concrete::Context*   pConcreteTarget = pCall->get_concrete_target();
+            Variables::Instance* pInstance       = pCall->get_instance();
+
             std::ostringstream os;
-            os << indent << "// Call\n";
+            {
+                os << indent << "// Call Operation\n";
+
+                std::ostringstream osCall;
+                osCall << "_fptr_call_" << pConcreteTarget->get_concrete_id();
+
+                os << indent << "if( " << osCall.str() << " == nullptr )\n";
+                os << indent << "{\n";
+                os << indent << "    mega::runtime::get_getter_call( g_pszModuleName, "
+                   << pConcreteTarget->get_concrete_id() << ", &" << osCall.str() << " );\n";
+                os << indent << "}\n";
+                os << indent << "return mega::runtime::CallResult{" << osCall.str() << ", "
+                   << get( variables, pInstance ) << " };\n";
+            }
+
+            calls.insert( pConcreteTarget );
+
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Start* pStart = dynamic_database_cast< Start >( pOperation ) )
@@ -708,21 +730,22 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
     return variables;
 }
 
-void CodeGenerator::generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID,
-                                   std::ostream& os )
+nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
+                                        std::string& strName ) const
 {
-    SPDLOG_TRACE( "generate_read: {}", invocationID );
-
-    std::ostringstream osName;
     {
+        std::ostringstream osName;
         osName << invocationID;
+        strName = osName.str();
     }
 
     PartSet parts;
+    CallSet calls;
 
-    nlohmann::json data( { { "name", osName.str() },
-                           { "module_name", osName.str() },
+    nlohmann::json data( { { "name", strName },
+                           { "module_name", strName },
                            { "getters", nlohmann::json::array() },
+                           { "calls", nlohmann::json::array() },
                            { "variables", nlohmann::json::array() },
                            { "assignments", nlohmann::json::array() } } );
 
@@ -737,7 +760,7 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
 
         for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            generateInstructions( pInstruction, variables, parts, data );
+            generateInstructions( pInstruction, variables, parts, calls, data );
         }
     }
 
@@ -745,12 +768,41 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
     {
         data[ "getters" ].push_back( pPart->get_context()->get_concrete_id() );
     }
+    for ( auto pCall : calls )
+    {
+        data[ "calls" ].push_back( pCall->get_concrete_id() );
+    }
+    return data;
+}
+
+void CodeGenerator::generate_allocate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
+                                       std::ostream& os )
+{
+    SPDLOG_TRACE( "generate_allocate: {}", invocationID );
+
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
+
+    std::ostringstream osCPPCode;
+    {
+        m_pPimpl->render_allocate( data, osCPPCode );
+    }
+    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+}
+
+void CodeGenerator::generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID,
+                                   std::ostream& os )
+{
+    SPDLOG_TRACE( "generate_read: {}", invocationID );
+
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
     {
         m_pPimpl->render_read( data, osCPPCode );
     }
-    m_pPimpl->compileToLLVMIR( osName.str(), osCPPCode.str(), os, std::nullopt );
+    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
 void CodeGenerator::generate_write( const DatabaseInstance& database, const mega::InvocationID& invocationID,
@@ -758,44 +810,29 @@ void CodeGenerator::generate_write( const DatabaseInstance& database, const mega
 {
     SPDLOG_TRACE( "generate_write: {}", invocationID );
 
-    std::ostringstream osName;
-    {
-        osName << invocationID;
-    }
-
-    PartSet parts;
-
-    nlohmann::json data( { { "name", osName.str() },
-                           { "module_name", osName.str() },
-                           { "getters", nlohmann::json::array() },
-                           { "variables", nlohmann::json::array() },
-                           { "assignments", nlohmann::json::array() } } );
-
-    {
-        using namespace FinalStage;
-        using namespace FinalStage::Invocations;
-
-        const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocationID );
-
-        const VariableMap variables = generateVariables(
-            pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data );
-
-        for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
-        {
-            generateInstructions( pInstruction, variables, parts, data );
-        }
-    }
-
-    for ( auto pPart : parts )
-    {
-        data[ "getters" ].push_back( pPart->get_context()->get_concrete_id() );
-    }
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
 
     std::ostringstream osCPPCode;
     {
         m_pPimpl->render_write( data, osCPPCode );
     }
-    m_pPimpl->compileToLLVMIR( osName.str(), osCPPCode.str(), os, std::nullopt );
+    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
+}
+
+void CodeGenerator::generate_call( const DatabaseInstance& database, const mega::InvocationID& invocationID,
+                                   std::ostream& os )
+{
+    SPDLOG_TRACE( "generate_call: {}", invocationID );
+
+    std::string          strName;
+    const nlohmann::json data = generate( database, invocationID, strName );
+
+    std::ostringstream osCPPCode;
+    {
+        m_pPimpl->render_call( data, osCPPCode );
+    }
+    m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
 } // namespace runtime

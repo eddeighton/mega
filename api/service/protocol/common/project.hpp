@@ -21,8 +21,9 @@ public:
 
     const boost::filesystem::path& getProjectInstallPath() const { return m_projectInstallPath; }
 
-    const boost::filesystem::path getProjectDatabase() const;
-    const boost::filesystem::path getProjectTempDir() const;
+    boost::filesystem::path getProjectBin() const;
+    boost::filesystem::path getProjectDatabase() const;
+    boost::filesystem::path getProjectTempDir() const;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )

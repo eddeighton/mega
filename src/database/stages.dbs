@@ -34,6 +34,7 @@ stage InterfaceStage
 
     file Tree;
 
+    global accessor array< ref< Components::Component > >;
     persource accessor ref< Parser::ObjectSourceRoot >;
 
     persource accessor array< ref< Parser::SystemInclude > >;

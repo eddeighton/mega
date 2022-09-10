@@ -2,6 +2,8 @@
 #include "database.hpp"
 #include "database/model/FinalStage.hxx"
 
+#include "service/network/log.hpp"
+
 namespace mega
 {
 namespace runtime
@@ -67,6 +69,14 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
     THROW_RTE( "Failed to resolve invocation: " << invocation );
 }
 
+mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
+{
+    auto iFind = m_concreteIDs.find( concreteTypeID );
+    VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
+    FinalStage::Concrete::Context* pContext = iFind->second;
+    return pContext->get_interface()->get_type_id();
+}
+
 const FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectType ) const
 {
     auto iFind = m_concreteIDs.find( objectType );
@@ -84,6 +94,16 @@ const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::T
     VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << objectType );
     FinalStage::Concrete::Context* pContext = iFind->second;
     return pContext->get_component();
+}
+
+const FinalStage::Components::Component* DatabaseInstance::getOperationComponent( mega::TypeID objectType ) const
+{
+    SPDLOG_TRACE( "DatabaseInstance::getOperationComponent : {}", objectType );
+    auto iFind = m_concreteIDs.find( objectType );
+    VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << objectType );
+    FinalStage::Concrete::Context*   pContext  = iFind->second;
+    FinalStage::Interface::IContext* pIContext = pContext->get_interface();
+    return pIContext->get_component();
 }
 
 std::size_t DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const

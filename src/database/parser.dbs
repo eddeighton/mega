@@ -8,6 +8,7 @@ namespace Components
     {
         value< mega::ComponentType > type;
         value< std::string > name;
+        value< std::string > file_name;
         value< boost::filesystem::path > src_dir;
         value< boost::filesystem::path > build_dir;
         array< value< std::string > > cpp_flags;

@@ -120,10 +120,13 @@ public:
 
             nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
                                         { "body", osBody.str() },
+                                        { "typeID", pAction->get_type_id() },
                                         { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },
                                         { "types", types },
-                                        { "params", "" } } );
+                                        { "params_string", "" },
+                                        { "params", nlohmann::json::array() } } );
+                                        
             data[ "operations" ].push_back( operation );
 
             for ( IContext* pNestedContext : pAction->get_children() )
@@ -149,12 +152,26 @@ public:
                     }
                 }
             }
+
             nlohmann::json operation( { { "return_type", pFunction->get_return_type_trait()->get_str() },
                                         { "body", strBody },
+                                        { "typeID", pFunction->get_type_id() },
                                         { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },
                                         { "types", types },
-                                        { "params", pFunction->get_arguments_trait()->get_str() } } );
+                                        { "params_string", pFunction->get_arguments_trait()->get_str() },
+                                        { "params", nlohmann::json::array() } } );
+            {
+                int iParamCounter = 1;
+                for ( const std::string& strParamType : pFunction->get_arguments_trait()->get_canonical_types() )
+                {
+                    std::ostringstream osParamName;
+                    osParamName << "p_" << iParamCounter++;
+                    nlohmann::json param( { { "type", strParamType }, { "name", osParamName.str() } } );
+                    operation[ "params" ].push_back( param );
+                }
+            }
+
             data[ "operations" ].push_back( operation );
         }
         else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
@@ -192,7 +209,8 @@ public:
         task::DeterminantHash determinant(
             { m_toolChain.toolChainHash, m_environment.OperationsTemplate(),
               m_environment.getBuildHashCode( m_environment.ParserStage_Body( m_sourceFilePath ) ),
-              m_environment.getBuildHashCode( m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath ) ),
+              m_environment.getBuildHashCode(
+                  m_environment.ConcreteTypeRollout_PerSourceConcreteTable( m_sourceFilePath ) ),
               m_environment.getBuildHashCode( concreteFile ) } );
 
         if ( m_environment.restore( operationsFile, determinant ) )
@@ -270,7 +288,7 @@ public:
 
         using namespace ConcreteStage;
 
-        Database database( m_environment, m_sourceFilePath );
+        Database               database( m_environment, m_sourceFilePath );
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
         const mega::Compilation compilationCMD = mega::Compilation::make_operationsPCH_compilation(
@@ -279,7 +297,7 @@ public:
         if ( m_environment.restore( operationsPCH, determinant )
              && m_environment.restore( compilationFile, determinant ) )
         {
-            //if( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            // if( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
             {
                 m_environment.setBuildHashCode( operationsPCH );
                 m_environment.setBuildHashCode( compilationFile );

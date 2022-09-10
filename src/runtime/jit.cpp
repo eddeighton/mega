@@ -29,6 +29,11 @@
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Pass.h"
+#include "llvm/Transforms/IPO.h"
+#include "llvm/Transforms/Scalar.h"
+
 #include "llvm/IRReader/IRReader.h"
 
 #include "llvm/Target/TargetMachine.h"
@@ -47,6 +52,29 @@ JITCompiler::Module::~Module() {}
 
 class ModuleImpl : public JITCompiler::Module
 {
+    // A function object that creates a simple pass pipeline to apply to each
+    // module as it passes through the IRTransformLayer.
+    /*class MyOptimizationTransform
+    {
+    public:
+        MyOptimizationTransform()
+            : PM( std::make_unique< llvm::legacy::PassManager >() )
+        {
+            PM->add( llvm::createTailCallEliminationPass() );
+            PM->add( llvm::createFunctionInliningPass() );
+            PM->add( llvm::createIndVarSimplifyPass() );
+            PM->add( llvm::createCFGSimplificationPass() );
+        }
+        llvm::Expected< llvm::orc::ThreadSafeModule > operator()( llvm::orc::ThreadSafeModule               TSM,
+                                                                  llvm::orc::MaterializationResponsibility& R )
+        {
+            TSM.withModuleDo( [ this ]( llvm::Module& M ) { PM->run( M ); } );
+            return std::move( TSM );
+        }
+    private:
+        std::unique_ptr< llvm::legacy::PassManager > PM;
+    };*/
+
     llvm::Error createSMDiagnosticError( llvm::SMDiagnostic& Diag )
     {
         using namespace llvm;
@@ -64,8 +92,9 @@ class ModuleImpl : public JITCompiler::Module
         auto         Ctx = std::make_unique< LLVMContext >();
         SMDiagnostic Err;
         if ( auto M = parseIR( MemoryBufferRef( Source, Name ), Err, *Ctx ) )
+        {
             return orc::ThreadSafeModule( std::move( M ), std::move( Ctx ) );
-
+        }
         return createSMDiagnosticError( Err );
     }
 
@@ -75,6 +104,8 @@ public:
         , m_jit( jit )
         , m_jitDynLib( ExitOnErr( m_jit.createJITDylib( m_name ) ) )
     {
+        // m_jit.getIRTransformLayer().setTransform( MyOptimizationTransform() );
+
         m_jitDynLib.addGenerator( ExitOnErr( llvm::orc::DynamicLibrarySearchGenerator::GetForCurrentProcess(
             m_jit.getDataLayout().getGlobalPrefix() ) ) );
 
@@ -152,10 +183,15 @@ public:
     {
         return getFunctionPtr< mega::runtime::ReadFunction >( strSymbol );
     }
-    
+
     virtual mega::runtime::WriteFunction getWrite( const std::string& strSymbol ) override
     {
         return getFunctionPtr< mega::runtime::WriteFunction >( strSymbol );
+    }
+
+    virtual mega::runtime::CallFunction getCall( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::CallFunction >( strSymbol );
     }
 
 private:

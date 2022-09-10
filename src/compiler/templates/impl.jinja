@@ -59,9 +59,22 @@ struct __invoke_impl
         {
             mega::runtime::get_allocate( g_unit_name, id, &g_pRuntimeFunc );
         }
-        return {{ invocation.runtime_return_type }}( g_pRuntimeFunc( context.data ) );
+        return g_pRuntimeFunc( context.data );
 {% else if invocation.explicit_operation == "Call" %}
         // Call
+        static mega::runtime::CallFunction g_pRuntimeFunc = nullptr;
+        if( nullptr == g_pRuntimeFunc )
+        {
+            mega::runtime::get_call( g_unit_name, id, &g_pRuntimeFunc );
+        }
+        mega::runtime::CallResult result = g_pRuntimeFunc( context.data );
+        using FunctionType = {{ invocation.runtime_return_type }};
+        const FunctionType pFunction = (const FunctionType)( result.pFunction );
+{% if invocation.return_type == "void" %}
+        pFunction( result.context, args... );
+{% else %}
+        return pFunction( result.context, args... );
+{% endif %}
 {% else if invocation.explicit_operation == "Start" %}
         // Start
 {% else if invocation.explicit_operation == "Stop" %}

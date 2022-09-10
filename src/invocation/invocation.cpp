@@ -184,7 +184,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
 {
     std::vector< OperationsStage::Interface::IContext* >       contextReturnTypes;
     std::vector< OperationsStage::Interface::DimensionTrait* > dimensionReturnTypes;
-    bool bIsWriteOperation = false;
+    bool                                                       bIsWriteOperation = false;
     {
         using OperationsStage::Invocations::Instructions::Instruction;
         using OperationsStage::Invocations::Operations::BasicOperation;
@@ -193,7 +193,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
         using OperationsStage::Invocations::Operations::Write;
         for ( Operation* pOperation : getOperations( pInvocation->get_root_instruction() ) )
         {
-            if( dynamic_database_cast< Write >( pOperation ) )
+            if ( dynamic_database_cast< Write >( pOperation ) )
                 bIsWriteOperation = true;
             for ( auto pReturnType : pOperation->get_return_types() )
             {
@@ -212,7 +212,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
     {
         if ( contextReturnTypes.size() && dimensionReturnTypes.size() )
         {
-            if( !bIsWriteOperation )
+            if ( !bIsWriteOperation )
             {
                 THROW_INVOCATION_EXCEPTION( "Mixed dimension and action invocation return types" );
             }
@@ -239,10 +239,6 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
                     typeOpt = pDim->get_canonical_type();
                 }
             }
-        }
-        else
-        {
-            THROW_INVOCATION_EXCEPTION( "Invocation could not resolve target types" );
         }
     }
     pInvocation->set_return_types_context( contextReturnTypes );
@@ -460,6 +456,29 @@ void printIContextFullType( OperationsStage::Interface::IContext* pContext, std:
         {
             os << ( *i )->get_identifier() << "::";
         }
+    }
+}
+
+void printContextType( std::vector< OperationsStage::Interface::IContext* >& contexts, std::ostream& os )
+{
+    VERIFY_RTE( !contexts.empty() );
+    if ( contexts.size() == 1 )
+    {
+        printIContextFullType( contexts.front(), os );
+    }
+    else
+    {
+        os << EG_VARIANT_TYPE << "< ";
+        bool bFirst = true;
+        for ( Interface::IContext* pContext : contexts )
+        {
+            if ( bFirst )
+                bFirst = false;
+            else
+                os << ", ";
+            printIContextFullType( pContext, os );
+        }
+        os << " >";
     }
 }
 
@@ -742,12 +761,14 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     build( database, pInvocation );
 
     // 5. Analyse result
-    pInvocation->set_explicit_operation( determineExplicitOperationType( pInvocation ) );
+    const ExplicitOperationID explicitOperationID = determineExplicitOperationType( pInvocation );
+    pInvocation->set_explicit_operation( explicitOperationID );
 
     std::vector< Interface::IContext* >       contexts   = pInvocation->get_return_types_context();
     std::vector< Interface::DimensionTrait* > dimensions = pInvocation->get_return_types_dimension();
 
-    std::optional< std::string > strFunctionReturnTypeOpt;
+    std::optional< std::string >                strFunctionReturnTypeOpt;
+    std::optional< std::vector< std::string > > functionParameterTypesOpt;
     {
         bool bNonFunction = false;
         for ( Interface::IContext* pReturnContext : contexts )
@@ -766,100 +787,99 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 {
                     strFunctionReturnTypeOpt = pFunctionCall->get_return_type_trait()->get_canonical_type();
                 }
+                if ( functionParameterTypesOpt.has_value() )
+                {
+                    if ( functionParameterTypesOpt.value()
+                         != pFunctionCall->get_arguments_trait()->get_canonical_types() )
+                    {
+                        THROW_RTE( "Incompatible function parameter types" );
+                    }
+                }
+                else
+                {
+                    functionParameterTypesOpt = pFunctionCall->get_arguments_trait()->get_canonical_types();
+                }
             }
             else
             {
                 bNonFunction = true;
             }
         }
-        VERIFY_RTE_MSG( !strFunctionReturnTypeOpt.has_value() || !bNonFunction, "Invalid function return type" );
+        VERIFY_RTE_MSG( !strFunctionReturnTypeOpt.has_value() || !bNonFunction,
+                        "Invalid mix of function and non-function operations" );
     }
 
     pInvocation->set_is_function_call( strFunctionReturnTypeOpt.has_value() );
 
     std::ostringstream osReturnTypeStr, osRuntimeReturnType;
     {
-        if ( !contexts.empty() )
+        switch ( explicitOperationID )
         {
-            if ( contexts.size() == 1 )
+            case mega::id_exp_Read:
             {
-                if ( strFunctionReturnTypeOpt.has_value() )
+                VERIFY_RTE_MSG( !dimensions.empty(), "Read has no dimensions" );
+                VERIFY_RTE_MSG( pInvocation->get_homogeneous(), "Non-homogenous dimensions" );
+
+                std::ostringstream osDimensionTrait;
                 {
-                    osReturnTypeStr << strFunctionReturnTypeOpt.value();
+                    printIContextFullType( dimensions.front()->get_parent(), osDimensionTrait );
+                    osDimensionTrait << "::" << dimensions.front()->get_id()->get_str();
                 }
-                else
-                {
-                    printIContextFullType( contexts.front(), osReturnTypeStr );
-                }
+                osReturnTypeStr << osDimensionTrait.str() << "::Read";
+                osRuntimeReturnType << osDimensionTrait.str() << "::Type";
             }
-            else
+            break;
+            case mega::id_exp_Write:
             {
-                osReturnTypeStr << EG_VARIANT_TYPE << "< ";
-                bool bFirst = true;
-                for ( Interface::IContext* pContext : contexts )
-                {
-                    if ( bFirst )
-                        bFirst = false;
-                    else
-                        osReturnTypeStr << ", ";
-                    printIContextFullType( pContext, osReturnTypeStr );
-                }
-                osReturnTypeStr << " >";
-            }
-            if ( !dimensions.empty() )
-            {
+                VERIFY_RTE_MSG( !contexts.empty(), "Write has no result context" );
+                VERIFY_RTE_MSG( !dimensions.empty(), "Write has no dimensions" );
                 VERIFY_RTE_MSG( pInvocation->get_homogeneous(), "Write operation on non-homogenous dimensions" );
-                printIContextFullType( dimensions.front()->get_parent(), osRuntimeReturnType );
-                osRuntimeReturnType << "::" << dimensions.front()->get_id()->get_str() << "::Type";
-            }
-            else
-            {
-                osRuntimeReturnType << osReturnTypeStr.str();
-            }
-        }
-        else if ( !dimensions.empty() )
-        {
-            if ( pInvocation->get_homogeneous() )
-            {
-                printIContextFullType( dimensions.front()->get_parent(), osRuntimeReturnType );
-                osRuntimeReturnType << "::" << dimensions.front()->get_id()->get_str();
-                osReturnTypeStr << osRuntimeReturnType.str();
-                switch ( id.m_operation )
+
+                printContextType( contexts, osReturnTypeStr );
+                std::ostringstream osDimensionTrait;
                 {
-                    case id_Imp_NoParams:
-                        osReturnTypeStr << "::Read";
-                        osRuntimeReturnType << "::Type";
-                        break;
-                    case id_Imp_Params:
-                        osReturnTypeStr << "::Write";
-                        osRuntimeReturnType << "::Type";
-                        break;
-                    case id_Get:
-                        osReturnTypeStr << "::Read";
-                        osRuntimeReturnType << "::Type";
-                        break;
-                    case id_Start:
-                    case id_Stop:
-                    case id_Pause:
-                    case id_Resume:
-                    case id_Wait:
-                    case id_Done:
-                    case id_Range:
-                    case id_Raw:
-                    case HIGHEST_OPERATION_TYPE:
-                    default:
-                        THROW_RTE( "Invalid operation ID" );
+                    printIContextFullType( dimensions.front()->get_parent(), osDimensionTrait );
+                    osDimensionTrait << "::" << dimensions.front()->get_id()->get_str();
                 }
+                osRuntimeReturnType << osDimensionTrait.str() << "::Type";
             }
-            else
+            break;
+            case mega::id_exp_Allocate:
             {
-                THROW_RTE( "Unsupported" );
+                printContextType( contexts, osReturnTypeStr );
+                osRuntimeReturnType << "mega::reference";
             }
-        }
-        else
-        {
-            osReturnTypeStr << "void";
-            osRuntimeReturnType << "void";
+            break;
+            case mega::id_exp_Call:
+            {
+                osReturnTypeStr << strFunctionReturnTypeOpt.value();
+                // define function pointer type
+                osRuntimeReturnType << strFunctionReturnTypeOpt.value() << "(*)( mega::reference";
+                for ( const std::string& strType : functionParameterTypesOpt.value() )
+                    osRuntimeReturnType << "," << strType;
+                osRuntimeReturnType << ")";
+            }
+            break;
+            case mega::id_exp_Start:
+            case mega::id_exp_Stop:
+            case mega::id_exp_Pause:
+            case mega::id_exp_Resume:
+            case mega::id_exp_WaitAction:
+            case mega::id_exp_WaitDimension:
+            case mega::id_exp_GetAction:
+            case mega::id_exp_GetDimension:
+            case mega::id_exp_Done:
+            case mega::id_exp_Range:
+            case mega::id_exp_Raw:
+            {
+                osReturnTypeStr << "void";
+                osRuntimeReturnType << "void";
+                break;
+            }
+
+            case mega::HIGHEST_EXPLICIT_OPERATION_TYPE:
+            default:
+                THROW_RTE( "Unsupported operation type" );
         }
     }
 

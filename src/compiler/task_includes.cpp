@@ -13,6 +13,16 @@ namespace mega
 {
 namespace compiler
 {
+namespace
+{
+inline void addStandardIncludes( std::ostream& os )
+{
+    os << "#include \"mega/include.hpp\"\n";
+    os << "#include \"mega/default_traits.hpp\"\n";
+    os << "#include \"runtime/runtime_functions.hpp\"\n";
+    os << "#include \"boost/dll/alias.hpp\"\n";
+}
+} // namespace
 
 class Task_Include : public BaseTask
 {
@@ -80,9 +90,7 @@ public:
                 }
 
                 // mega library includes
-                os << "#include \"mega/include.hpp\"\n";
-                os << "#include \"mega/default_traits.hpp\"\n";
-                os << "#include \"runtime/runtime_functions.hpp\"\n";
+                addStandardIncludes( os );
 
                 {
                     std::set< mega::io::megaFilePath > uniqueFiles;
@@ -262,9 +270,7 @@ public:
                 }
 
                 // mega library includes
-                os << "#include \"mega/include.hpp\"\n";
-                os << "#include \"mega/default_traits.hpp\"\n";
-                os << "#include \"runtime/runtime_functions.hpp\"\n";
+                addStandardIncludes( os );
 
                 {
                     std::set< mega::io::megaFilePath > uniqueFiles;

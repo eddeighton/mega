@@ -14,13 +14,14 @@ namespace io
 {
 ComponentInfo::ComponentInfo() {}
 
-ComponentInfo::ComponentInfo( ComponentType componentType, const std::string& strName,
+ComponentInfo::ComponentInfo( ComponentType componentType, const std::string& strName, const std::string& strFileName,
                               const std::vector< std::string >& cppFlags, const std::vector< std::string >& cppDefines,
                               const boost::filesystem::path& srcDir, const boost::filesystem::path& buildDir,
                               const ComponentInfo::PathArray& sourceFiles,
                               const ComponentInfo::PathArray& dependencyFiles, const PathArray& includeDirectories )
     : m_componentType( componentType )
     , m_strName( strName )
+    , m_strFileName( strFileName )
     , m_cppFlags( cppFlags )
     , m_cppDefines( cppDefines )
     , m_srcDir( srcDir )

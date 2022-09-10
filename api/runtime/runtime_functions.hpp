@@ -7,6 +7,7 @@ namespace mega
 {
 namespace runtime
 {
+using TypeErasedFunction   = const void*;
 using GetHeapFunction      = void* ( * )( mega::PhysicalAddress address );
 using GetSharedFunction    = void* ( * )( mega::PhysicalAddress address );
 using AllocationFunction   = mega::PhysicalAddress ( * )( mega::ExecutionIndex executionIndex );
@@ -16,10 +17,17 @@ using ReadFunction         = void* ( * )( const mega::reference& );
 
 struct WriteResult
 {
-    void* pData;
+    void*           pData;
     mega::reference context;
 };
-using WriteFunction        = WriteResult ( * )( const mega::reference& );
+using WriteFunction = WriteResult ( * )( const mega::reference& );
+
+struct CallResult
+{
+    TypeErasedFunction pFunction;
+    mega::reference    context;
+};
+using CallFunction = CallResult ( * )( const mega::reference& );
 
 } // namespace runtime
 } // namespace mega

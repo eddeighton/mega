@@ -21,6 +21,7 @@ set( JINJA_TEMPLATES
     ${MEGA_SRC_DIR}/runtime/templates/allocate.jinja 
     ${MEGA_SRC_DIR}/runtime/templates/read.jinja 
     ${MEGA_SRC_DIR}/runtime/templates/write.jinja 
+    ${MEGA_SRC_DIR}/runtime/templates/call.jinja 
 	)
 
 set( RUNTIME_HEADERS

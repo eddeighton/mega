@@ -44,7 +44,7 @@ namespace list
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path srcDir, buildDir, componentSrcDir, componentBuildDir;
-    std::string strType, strComponentName, strCPPFlags, strCPPDefines, strIncludeDirectories, strDependencyFilePaths;
+    std::string strType, strComponentName, strComponentFileName, strCPPFlags, strCPPDefines, strIncludeDirectories, strDependencyFilePaths;
     std::vector< std::string > objectSourceFileNames;
 
     namespace po = boost::program_options;
@@ -58,6 +58,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
             ( "src_dir",        po::value< boost::filesystem::path >( &componentSrcDir ),           "Source directory" )
             ( "build_dir",      po::value< boost::filesystem::path >( &componentBuildDir ),         "Build Directory" )
             ( "name",           po::value< std::string >( &strComponentName ),                      "Component name" )
+            ( "file_name",      po::value< std::string >( &strComponentFileName ),                  "Component file name" )
             ( "cpp_flags",      po::value< std::string >( &strCPPFlags ),                           "C++ Compiler Flags" )
             ( "cpp_defines",    po::value< std::string >( &strCPPDefines ),                         "C++ Compiler Defines" )
             ( "include_dirs",   po::value< std::string >( &strIncludeDirectories ),                 "Include directories ( semicolon delimited )" )
@@ -122,7 +123,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 THROW_RTE( "Unknown component type" );
         }
 
-        const mega::io::ComponentInfo componentInfo( componentType, strComponentName, cppFlags, cppDefines,
+        const mega::io::ComponentInfo componentInfo( componentType, strComponentName, strComponentFileName, cppFlags, cppDefines,
                                                      componentSrcDir, componentBuildDir, inputSourceFiles,
                                                      dependencySourceFiles, includeDirectories );
 

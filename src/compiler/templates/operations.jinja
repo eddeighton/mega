@@ -2,17 +2,30 @@
 
 {% for operation in operations %}
 
-{% for namespace in operation.namespaces %}{% if loop.is_first%}namespace {%else%}::{% endif %}{{namespace}}{% endfor %}
 {% if operation.has_namespaces %} 
+{% for namespace in operation.namespaces %}{% if loop.is_first%}namespace {%else%}::{% endif %}{{namespace}}{% endfor %}
 { 
 {% endif %}
-    {{ operation.return_type }} 
-    {% for type in operation.types %}{{type}}::{% endfor %}operator()({{ operation.params }}) const
-    {
-        {{ operation.body }}
-    }
+{{ operation.return_type }} {% for type in operation.types %}{{type}}::{% endfor %}operator()({{ operation.params_string }}) const
+{
+    {{ operation.body }}
+}
 {% if operation.has_namespaces %} 
 } 
 {% endif %}
+
+extern "C"
+{
+{{ operation.return_type }} _mw{{ operation.typeID }}( mega::reference _ref{% for param in operation.params %}, {{param.type}} {{param.name}}{% endfor %} )
+{
+    {% for namespace in operation.namespaces %}::{{namespace}}{% endfor %}{% for type in operation.types %}::{{type}}{% endfor %}
+    ref( _ref );
+{% if operation.return_type != "void" %}
+    return 
+{% endif %}
+    ref( {% for param in operation.params %}{{param.name}}{% if not loop.is_last%}, {% endif %}{% endfor %} );
+}
+}
+BOOST_DLL_ALIAS_SECTIONED( _mw{{ operation.typeID }}, _ma{{ operation.typeID }}, mega )
 
 {% endfor %}

@@ -54,6 +54,10 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateWrite() con
 {
     return m_installationPath / "templates/write.jinja";
 }
+boost::filesystem::path MegastructureInstallation::getRuntimeTemplateCall() const
+{
+    return m_installationPath / "templates/call.jinja";
+}
 
 } // namespace network
 } // namespace mega

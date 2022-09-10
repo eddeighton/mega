@@ -14,7 +14,6 @@ mega::PhysicalAddress logicalToPhysical( mega::ExecutionIndex executionIndex, me
 mega::reference {{ name }}( const mega::reference& context )
 {
     const mega::LogicalAddress logicalAddress = mega::runtime::allocateLogical( context.physical.execution, context.typeID );
-
     mega::reference result;
     {
         result.physical = mega::runtime::logicalToPhysical( context.physical.execution, context.typeID, logicalAddress );

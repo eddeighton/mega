@@ -1,6 +1,6 @@
 
 
-cmake_minimum_required( VERSION 3.1...3.16 )
+cmake_minimum_required(VERSION 3.2)
 
 # determine toolchain locations
 set( MEGA_INSTALL_PATH ${CMAKE_INSTALL_PREFIX} )

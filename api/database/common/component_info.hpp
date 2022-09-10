@@ -21,6 +21,7 @@ public:
     ComponentInfo();
     ComponentInfo( ComponentType                     componentType,
                    const std::string&                strName,
+                   const std::string&                strFileName,
                    const std::vector< std::string >& cppFlags,
                    const std::vector< std::string >& cppDefines,
                    const boost::filesystem::path&    srcDir,
@@ -31,6 +32,7 @@ public:
 
     ComponentType                     getComponentType() const { return m_componentType; }
     const std::string&                getName() const { return m_strName; }
+    const std::string&                getFileName() const { return m_strFileName; }
     const std::vector< std::string >& getCPPFlags() const { return m_cppFlags; }
     const std::vector< std::string >& getCPPDefines() const { return m_cppDefines; }
     const boost::filesystem::path&    getSrcDir() const { return m_srcDir; }
@@ -43,7 +45,8 @@ public:
     inline void serialize( Archive& archive, const unsigned int version )
     {
         archive& boost::serialization::make_nvp( "componentType", m_componentType );
-        archive& boost::serialization::make_nvp( "strName", m_strName );
+        archive& boost::serialization::make_nvp( "name", m_strName );
+        archive& boost::serialization::make_nvp( "filename", m_strFileName );
         archive& boost::serialization::make_nvp( "flags", m_cppFlags );
         archive& boost::serialization::make_nvp( "defines", m_cppDefines );
         archive& boost::serialization::make_nvp( "srcDir", m_srcDir );
@@ -56,6 +59,7 @@ public:
 private:
     ComponentType              m_componentType;
     std::string                m_strName;
+    std::string                m_strFileName;
     std::vector< std::string > m_cppFlags;
     std::vector< std::string > m_cppDefines;
     boost::filesystem::path    m_srcDir;
