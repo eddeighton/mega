@@ -98,7 +98,7 @@ const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::T
 
 const FinalStage::Components::Component* DatabaseInstance::getOperationComponent( mega::TypeID objectType ) const
 {
-    SPDLOG_TRACE( "DatabaseInstance::getOperationComponent : {}", objectType );
+    SPDLOG_TRACE( "RUNTIME: DatabaseInstance::getOperationComponent : {}", objectType );
     auto iFind = m_concreteIDs.find( objectType );
     VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << objectType );
     FinalStage::Concrete::Context*   pContext  = iFind->second;

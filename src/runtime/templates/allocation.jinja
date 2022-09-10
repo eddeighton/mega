@@ -25,7 +25,6 @@ struct HeapPart_{{part.type}}
     {{member.type}} {{member.name}};
 {% endfor %}
 };
-static_assert( std::is_standard_layout< HeapPart_{{part.type}} >::value, "Invalid non-standard layout for HeapPart_{{part.type}}" );
 {% endfor %}
 {% for part in heap_parts %}
 static_assert( sizeof( HeapPart_{{part.type}} ) == {{ part.size }}, "Unexpected size for: HeapPart_{{part.type}}" );
@@ -40,7 +39,6 @@ struct HeapBuffer_{{ ObjectTypeID }}
     HeapPart_{{part.type}} {{part.name}}[ {{part.total_domain}} ];
 {% endfor %}
 };
-static_assert( std::is_standard_layout< HeapBuffer_{{ ObjectTypeID }} >::value, "Invalid non-standard layout for HeapBuffer_{{ ObjectTypeID }}" );
 {% for part in heap_parts %}
 static_assert( offsetof( HeapBuffer_{{ ObjectTypeID }}, {{part.name}} ) == {{ part.offset }}, "Unexpected offset for: {{part.name}}" );
 {% endfor %}
@@ -62,7 +60,6 @@ struct SharedPart_{{part.type}}
     {{member.type}} {{member.name}};
 {% endfor %}
 };
-static_assert( std::is_standard_layout< SharedPart_{{part.type}} >::value, "Invalid non-standard layout for SharedPart_{{part.type}}" );
 {% endfor %}
 {% for part in shared_parts %}
 static_assert( sizeof( SharedPart_{{part.type}} ) == {{ part.size }}, "Unexpected size for: SharedPart_{{part.type}}" );
@@ -83,7 +80,6 @@ struct SharedBuffer_{{ ObjectTypeID }}
     SharedPart_{{part.type}} {{part.name}}[ {{part.total_domain}} ];
 {% endfor %}
 };
-static_assert( std::is_standard_layout< SharedBuffer_{{ ObjectTypeID }} >::value, "Invalid non-standard layout for SharedBuffer_{{ ObjectTypeID }}" );
 {% for part in shared_parts %}
 static_assert( offsetof( SharedBuffer_{{ ObjectTypeID }}, {{part.name}} ) == {{ part.offset }}, "Unexpected offset for: {{part.name}}" );
 {% endfor %}

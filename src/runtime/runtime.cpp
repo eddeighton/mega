@@ -83,7 +83,7 @@ class Runtime
 public:
     LogicalAddress allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID )
     {
-        SPDLOG_TRACE( "allocateLogical: {}", executionIndex, objectTypeID );
+        SPDLOG_TRACE( "RUNTIME: allocateLogical: {}", executionIndex, objectTypeID );
 
         ExecutionContext* pExecutionContext = ExecutionContext::get();
         VERIFY_RTE( pExecutionContext );
@@ -92,7 +92,7 @@ public:
 
     ObjectTypeAllocator::Ptr getOrCreateObjectTypeAllocator( TypeID objectTypeID )
     {
-        SPDLOG_TRACE( "getOrCreateObjectTypeAllocator: {}", objectTypeID );
+        SPDLOG_TRACE( "RUNTIME: getOrCreateObjectTypeAllocator: {}", objectTypeID );
 
         auto jFind = m_objectTypeAllocatorMapping.find( objectTypeID );
         if ( jFind != m_objectTypeAllocatorMapping.end() )
@@ -110,7 +110,7 @@ public:
     PhysicalAddress logicalToPhysical( ExecutionIndex executionIndex, TypeID objectTypeID,
                                        LogicalAddress logicalAddress )
     {
-        SPDLOG_TRACE( "logicalToPhysical: {} {} {}", executionIndex, objectTypeID, logicalAddress );
+        SPDLOG_TRACE( "RUNTIME: logicalToPhysical: {} {} {}", executionIndex, objectTypeID, logicalAddress );
 
         AddressSpace::Lock lock( m_addressSpace.mutex() );
 
@@ -198,8 +198,22 @@ public:
     {
         auto                     startTime = std::chrono::steady_clock::now();
         JITCompiler::Module::Ptr pModule   = m_jitCompiler.compile( strCode );
-        SPDLOG_TRACE( "JIT Compilation time: {}", std::chrono::steady_clock::now() - startTime );
+        SPDLOG_TRACE( "RUNTIME: JIT Compilation time: {}", std::chrono::steady_clock::now() - startTime );
         return pModule;
+    }
+
+    void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, std::ostream& os )
+    {
+        std::ostringstream osTypeID;
+        osTypeID << prefix << objectTypeID;
+        os << "_Z" << osTypeID.str().size() << osTypeID.str();
+    }
+
+    void symbolPrefix( const mega::InvocationID& invocationID, std::ostream& os )
+    {
+        std::ostringstream osTypeID;
+        osTypeID << invocationID;
+        os << "_Z" << osTypeID.str().size() << osTypeID.str();
     }
 
     void get_allocation( mega::TypeID objectTypeID, ObjectTypeAllocator& objectTypeAllocator )
@@ -222,35 +236,28 @@ public:
             }
         }
 
-        // get_heap_3 -> _Z10get_heap_3N4mega15PhysicalAddressE
         {
             std::ostringstream os;
-            os << "_Z10"
-               << "get_heap_" << objectTypeID << "N4mega15PhysicalAddressE";
+            symbolPrefix( "get_heap_", objectTypeID, os );
+            os << "N4mega15PhysicalAddressE";
             objectTypeAllocator.m_pGetHeap = pModule->getGetShared( os.str() );
         }
-
-        // get_shared_3 -> _Z12get_shared_3N4mega15PhysicalAddressE
         {
             std::ostringstream os;
-            os << "_Z12"
-               << "get_shared_" << objectTypeID << "N4mega15PhysicalAddressE";
+            symbolPrefix( "get_shared_", objectTypeID, os );
+            os << "N4mega15PhysicalAddressE";
             objectTypeAllocator.m_pGetShared = pModule->getGetShared( os.str() );
         }
-
-        // alloc_heap_3 -> _Z7alloc_3t
         {
             std::ostringstream os;
-            os << "_Z7"
-               << "alloc_" << objectTypeID << "t";
+            symbolPrefix( "alloc_", objectTypeID, os );
+            os << "t";
             objectTypeAllocator.m_pAllocation = pModule->getAllocation( os.str() );
         }
-
-        // dealloc_3 -> _Z9dealloc_3N4mega15PhysicalAddressE
         {
             std::ostringstream os;
-            os << "_Z9"
-               << "dealloc_" << objectTypeID << "N4mega15PhysicalAddressE";
+            symbolPrefix( "dealloc_", objectTypeID, os );
+            os << "N4mega15PhysicalAddressE";
             objectTypeAllocator.m_pDeAllocation = pModule->getDeAllocation( os.str() );
         }
     }
@@ -276,9 +283,9 @@ public:
                 m_invocations.insert( std::make_pair( invocationID, pModule ) );
             }
         }
-        // ct3pt3__eg_ImpNoParams -> _Z22ct3pt3__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z22" << invocationID << "RKN4mega9referenceE";
+        symbolPrefix( invocationID, os );
+        os << "RKN4mega9referenceE";
         *ppFunction = pModule->getAllocate( os.str() );
     }
 
@@ -303,10 +310,9 @@ public:
                 m_invocations.insert( std::make_pair( invocationID, pModule ) );
             }
         }
-        // _Z23 ct1ps12__eg_ImpNoParamsRKN4mega9referenceE
-        // _Z24ct30ps18__eg_ImpNoParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z24" << invocationID << "RKN4mega9referenceE";
+        symbolPrefix( invocationID, os );
+        os << "RKN4mega9referenceE";
         *ppFunction = pModule->getRead( os.str() );
     }
 
@@ -331,9 +337,9 @@ public:
                 m_invocations.insert( std::make_pair( invocationID, pModule ) );
             }
         }
-        // ct30ps19__eg_ImpParams -> _Z22ct30ps19__eg_ImpParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z22" << invocationID << "RKN4mega9referenceE";
+        symbolPrefix( invocationID, os );
+        os << "RKN4mega9referenceE";
         *ppFunction = pModule->getWrite( os.str() );
     }
 
@@ -358,9 +364,9 @@ public:
                 m_invocations.insert( std::make_pair( invocationID, pModule ) );
             }
         }
-        // ct30ps19__eg_ImpParams -> _Z22ct30ps19__eg_ImpParamsRKN4mega9referenceE
         std::ostringstream os;
-        os << "_Z22" << invocationID << "RKN4mega9referenceE";
+        symbolPrefix( invocationID, os );
+        os << "RKN4mega9referenceE";
         *ppFunction = pModule->getCall( os.str() );
     }
 

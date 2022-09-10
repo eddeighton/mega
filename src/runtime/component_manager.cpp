@@ -20,7 +20,7 @@ namespace runtime
 
 ComponentManager::ComponentPath ComponentManager::InterfaceComponent::makeTempComponent( const ComponentPath& path )
 {
-    SPDLOG_TRACE( "InterfaceComponent::makeTempComponent : {}", path.string() );
+    SPDLOG_TRACE( "RUNTIME: InterfaceComponent::makeTempComponent : {}", path.string() );
 
     VERIFY_RTE_MSG( boost::filesystem::exists( path ), "Failed to locate component: " << path.string() );
 
@@ -36,7 +36,7 @@ ComponentManager::ComponentPath ComponentManager::InterfaceComponent::makeTempCo
     const boost::filesystem::path tempDllPath = tempDir / osTempFileName.str();
     boost::filesystem::copy( path, tempDllPath );
 
-    SPDLOG_TRACE( "ComponentManager created : {}", tempDllPath.string() );
+    SPDLOG_TRACE( "RUNTIME: ComponentManager created : {}", tempDllPath.string() );
 
     return tempDllPath;
 }
@@ -48,12 +48,12 @@ ComponentManager::InterfaceComponent::InterfaceComponent( const ComponentPath&  
     , m_libraryInfo( m_tempPath )
     , m_library( m_tempPath )
 {
-    SPDLOG_TRACE( "InterfaceComponent loaded : {}", m_path.string() );
+    SPDLOG_TRACE( "RUNTIME: InterfaceComponent loaded : {}", m_path.string() );
 
     // load all functions from mega alias section
     for ( const std::string& strSymbol : m_libraryInfo.symbols( "mega" ) )
     {
-        SPDLOG_TRACE( "InterfaceComponent symbol : {}", strSymbol );
+        SPDLOG_TRACE( "RUNTIME: InterfaceComponent symbol : {}", strSymbol );
         mega::TypeID interfaceTypeID = 0U;
         {
             // symbold is always '_ma123'
@@ -77,7 +77,7 @@ ComponentManager::ComponentManager( const mega::network::Project& project, Datab
 
 TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concreteTypeID )
 {
-    SPDLOG_TRACE( "ComponentManager getOperation : {}", concreteTypeID );
+    SPDLOG_TRACE( "RUNTIME: ComponentManager getOperation : {}", concreteTypeID );
 
     const mega::TypeID interfaceTypeID = m_database.getInterfaceTypeID( concreteTypeID );
 

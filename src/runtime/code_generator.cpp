@@ -106,7 +106,7 @@ void compile( const boost::filesystem::path& clangPath,
         runCompilation( osCmd.str() );
     }
     const auto timeDelta = std::chrono::steady_clock::now() - startTime;
-    SPDLOG_TRACE( "Clang Compilation time: {}", timeDelta );
+    SPDLOG_TRACE( "RUNTIME: Clang Compilation time: {}", timeDelta );
 }
 
 } // namespace
@@ -205,7 +205,7 @@ CodeGenerator::CodeGenerator( const mega::network::MegastructureInstallation& me
 
 void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega::TypeID objectTypeID, std::ostream& os )
 {
-    SPDLOG_TRACE( "generate_allocation: {}", objectTypeID );
+    SPDLOG_TRACE( "RUNTIME: generate_allocation: {}", objectTypeID );
 
     const FinalStage::Concrete::Object*      pObject    = database.getObject( objectTypeID );
     const FinalStage::Components::Component* pComponent = pObject->get_component();
@@ -257,7 +257,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                     {
                         std::ostringstream osLinkName;
                         osLinkName << "link_" << pLinkMany->get_link()->get_concrete_id();
-                        nlohmann::json member( { { "type", "mega::reference" },
+                        nlohmann::json member( { { "type", "mega::ReferenceVector" },
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkMany->get_offset() } } );
                         part[ "members" ].push_back( member );
@@ -267,7 +267,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                     {
                         std::ostringstream osLinkName;
                         osLinkName << "link_" << pLinkSingle->get_link()->get_concrete_id();
-                        nlohmann::json member( { { "type", "mega::ReferenceVector" },
+                        nlohmann::json member( { { "type", "mega::reference" },
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkSingle->get_offset() } } );
                         part[ "members" ].push_back( member );
@@ -497,18 +497,22 @@ void generateInstructions( FinalStage::Invocations::Instructions::Instruction* p
 
         if ( Allocate* pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
         {
+            Concrete::Context* pConcreteTarget = pAllocate->get_concrete_target();
+
             std::ostringstream os;
             os << indent << "// Allocate\n";
             os << indent
                << "const mega::LogicalAddress logicalAddress = mega::runtime::allocateLogical( "
-                  "context.physical.execution, context.typeID );\n";
+                  "context.physical.execution, "
+               << pConcreteTarget->get_concrete_id() << " );\n";
             os << indent << "mega::reference result;\n";
             os << indent << "{\n";
-            os << indent
-               << "    result.physical = mega::runtime::logicalToPhysical( context.physical.execution, context.typeID, "
+            os << indent << "    result.physical = mega::runtime::logicalToPhysical( context.physical.execution, "
+               << pConcreteTarget->get_concrete_id()
+               << ", "
                   "logicalAddress );\n";
             os << indent << "    result.instance = 0;\n";
-            os << indent << "    result.typeID = context.typeID;\n";
+            os << indent << "    result.typeID = " << pConcreteTarget->get_concrete_id() << ";\n";
             os << indent << "}\n";
             os << indent << "return result;\n";
             data[ "assignments" ].push_back( os.str() );
@@ -778,7 +782,7 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
 void CodeGenerator::generate_allocate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                                        std::ostream& os )
 {
-    SPDLOG_TRACE( "generate_allocate: {}", invocationID );
+    SPDLOG_TRACE( "RUNTIME: generate_allocate: {}", invocationID );
 
     std::string          strName;
     const nlohmann::json data = generate( database, invocationID, strName );
@@ -793,7 +797,7 @@ void CodeGenerator::generate_allocate( const DatabaseInstance& database, const m
 void CodeGenerator::generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                                    std::ostream& os )
 {
-    SPDLOG_TRACE( "generate_read: {}", invocationID );
+    SPDLOG_TRACE( "RUNTIME: generate_read: {}", invocationID );
 
     std::string          strName;
     const nlohmann::json data = generate( database, invocationID, strName );
@@ -808,7 +812,7 @@ void CodeGenerator::generate_read( const DatabaseInstance& database, const mega:
 void CodeGenerator::generate_write( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                                     std::ostream& os )
 {
-    SPDLOG_TRACE( "generate_write: {}", invocationID );
+    SPDLOG_TRACE( "RUNTIME: generate_write: {}", invocationID );
 
     std::string          strName;
     const nlohmann::json data = generate( database, invocationID, strName );
@@ -823,7 +827,7 @@ void CodeGenerator::generate_write( const DatabaseInstance& database, const mega
 void CodeGenerator::generate_call( const DatabaseInstance& database, const mega::InvocationID& invocationID,
                                    std::ostream& os )
 {
-    SPDLOG_TRACE( "generate_call: {}", invocationID );
+    SPDLOG_TRACE( "RUNTIME: generate_call: {}", invocationID );
 
     std::string          strName;
     const nlohmann::json data = generate( database, invocationID, strName );

@@ -232,6 +232,8 @@ public:
                     else if ( dynamic_database_cast< Concrete::Dimensions::LinkMany >( p ) )
                     {
                         szOffset += mega::DimensionTraits< mega::ReferenceVector >::Size;
+                        static_assert( mega::DimensionTraits< mega::ReferenceVector >::Size == 32U,
+                                       "Something is wrong with mega::DimensionTraits< mega::ReferenceVector >::Size" );
                     }
                     else
                     {
