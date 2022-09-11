@@ -46,7 +46,7 @@
 
 namespace driver
 {
-namespace pipeline
+namespace execute_pipeline
 {
 
 mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&       stashDir,
@@ -288,5 +288,5 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
     }
 }
-} // namespace pipeline
+} // namespace execute_pipeline
 } // namespace driver

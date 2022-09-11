@@ -17,20 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-//#include "database/model/interface.hpp"
-/*
-#include "command_interface/base_task.hpp"
-#include "command_interface/task_parse_ast.hpp"
-#include "command_interface/task_includes.hpp"
-#include "command_interface/task_interface.hpp"
-#include "command_interface/task_dependencies.hpp"
-#include "command_interface/task_symbols.hpp"
-#include "command_interface/task_interface_analysis.hpp"
-#include "command_interface/task_concrete.hpp"
-
-#include "database/model/manifest.hxx"
-*/
-
 #include "version/version.hpp"
 #include "pipeline/configuration.hpp"
 
@@ -56,7 +42,7 @@
 
 namespace driver
 {
-namespace interface
+namespace make_pipeline
 {
 
 void command( bool bHelp, const std::vector< std::string >& args )
@@ -65,7 +51,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     boost::filesystem::path srcDir, buildDir, installDir, templatesDir, toolchainXML, pipelineXML;
 
     namespace po = boost::program_options;
-    po::options_description commandOptions( " Compile Mega Project Interface" );
+    po::options_description commandOptions( " Make a MegaStructure Pipeline Configuration XML File" );
     {
         // clang-format off
         commandOptions.add_options()
@@ -136,5 +122,5 @@ void command( bool bHelp, const std::vector< std::string >& args )
         *pOutFile << pipelineConfig.get();
     }
 }
-} // namespace interface
+} // namespace make_pipeline
 } // namespace driver
