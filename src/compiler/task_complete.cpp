@@ -45,32 +45,34 @@ public:
         start( taskProgress, "Task_InterfaceComponent", m_strComponentName, componentFilePath.path() );
 
         task::DeterminantHash determinant{ m_toolChain.toolChainHash };
-        for ( auto megaSrc : pComponent->get_mega_source_files() )
         {
-            determinant ^= m_environment.getBuildHashCode( m_environment.ImplementationObj( megaSrc ) );
-        }
-        for ( auto cppSrc : pComponent->get_cpp_source_files() )
-        {
-            determinant ^= m_environment.getBuildHashCode( m_environment.CPPObj( cppSrc ) );
+            for ( auto megaSrc : pComponent->get_mega_source_files() )
+            {
+                determinant ^= m_environment.getBuildHashCode( m_environment.ImplementationObj( megaSrc ) );
+            }
+            for ( auto cppSrc : pComponent->get_cpp_source_files() )
+            {
+                determinant ^= m_environment.getBuildHashCode( m_environment.CPPObj( cppSrc ) );
+            }
         }
 
-        if ( m_environment.restore( componentFilePath, determinant ) )
+        /*if ( m_environment.restore( componentFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( componentFilePath );
             cached( taskProgress );
             return;
-        }
+        }*/
 
-        // stash it but then delete it!!
-        m_environment.setBuildHashCode( componentFilePath );
-        m_environment.stash( componentFilePath, determinant );
-
-        // if component has changed then delete existing one in build folder to ensure rebuilt
-        const auto actualFilePath = m_environment.FilePath( componentFilePath );
+        /*const auto actualFilePath = m_environment.FilePath( componentFilePath );
         if ( boost::filesystem::exists( actualFilePath ) )
         {
+            // stash it but then delete it!!
+            m_environment.setBuildHashCode( componentFilePath );
+            m_environment.stash( componentFilePath, determinant );
+
+            // if component has changed then delete existing one in build folder to ensure rebuilt
             boost::filesystem::remove( actualFilePath );
-        }
+        }*/
 
         succeeded( taskProgress );
     }
@@ -123,7 +125,7 @@ public:
             determinant ^= m_environment.getBuildHashCode( m_environment.CPPObj( cppSrc ) );
         }
 
-        if ( m_environment.restore( componentFilePath, determinant ) )
+        /*if ( m_environment.restore( componentFilePath, determinant ) )
         {
             m_environment.setBuildHashCode( componentFilePath );
             cached( taskProgress );
@@ -139,7 +141,7 @@ public:
         if ( boost::filesystem::exists( actualFilePath ) )
         {
             boost::filesystem::remove( actualFilePath );
-        }
+        }*/
 
         succeeded( taskProgress );
     }

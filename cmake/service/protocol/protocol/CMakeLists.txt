@@ -103,6 +103,7 @@ add_custom_command(
     )
 
 set( MEGA_PROTOCOL_COMMON_HEADERS
+    ${MEGA_API_DIR}/service/protocol/common/environment.hpp  
     ${MEGA_API_DIR}/service/protocol/common/header.hpp  
     ${MEGA_API_DIR}/service/protocol/common/node.hpp
     ${MEGA_API_DIR}/service/protocol/common/megastructure_installation.hpp

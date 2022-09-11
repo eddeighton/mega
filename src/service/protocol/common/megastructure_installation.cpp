@@ -1,8 +1,11 @@
 
 #include "service/protocol/common/megastructure_installation.hpp"
+#include "service/protocol/common/environment.hpp"
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
+
+#include <cstdlib>
 
 namespace mega
 {
@@ -16,12 +19,20 @@ MegastructureInstallation::MegastructureInstallation( const boost::filesystem::p
 {
 }
 
+MegastructureInstallation MegastructureInstallation::fromEnvironment()
+{
+    std::ostringstream os;
+    os << std::getenv( mega::environment::BUILD_PATH ) << "/" << std::getenv( mega::environment::CFG_TUPLE )
+       << "/mega/install";
+    return MegastructureInstallation( os.str() );
+}
+
 const bool MegastructureInstallation::isEmpty() const { return m_installationPath.empty(); }
 
 mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() const
 {
     VERIFY_RTE( !isEmpty() );
-    
+
     const boost::filesystem::path toolChainXMLPath = m_installationPath / "etc/toolchain.xml";
 
     mega::utilities::ToolChain toolChain;
