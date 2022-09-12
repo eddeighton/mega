@@ -23,6 +23,10 @@
 #include "common.hpp"
 #include "event.hpp"
 
+#ifdef __cpp_impl_coroutine
+#undef __cpp_impl_coroutine
+#endif
+
 #define __cpp_impl_coroutine 1
 #include <coroutine>
 

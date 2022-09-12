@@ -5,6 +5,7 @@ cmake_minimum_required( VERSION 3.1...3.16 )
 set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/allocator.hpp
     ${MEGA_API_DIR}/mega/backtrace.hpp
+    ${MEGA_API_DIR}/mega/basic_scheduler.hpp 
     ${MEGA_API_DIR}/mega/basic_scheduler.cpp 
     ${MEGA_API_DIR}/mega/clock.cpp
     ${MEGA_API_DIR}/mega/clock.hpp

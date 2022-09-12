@@ -3,6 +3,7 @@
 #define SIMULATION_22_JUNE_2022
 
 #include "mega/common.hpp"
+#include "mega/basic_scheduler.hpp"
 #include "mega/execution_context.hpp"
 #include "mega/root.hpp"
 
@@ -69,6 +70,7 @@ private:
     network::Sender::Ptr                          m_pRequestChannelSender;
     boost::asio::yield_context*                   m_pYieldContext = nullptr;
     std::optional< mega::runtime::ExecutionRoot > m_executionRoot;
+    mega::Scheduler                               m_scheduler;
 };
 
 } // namespace service

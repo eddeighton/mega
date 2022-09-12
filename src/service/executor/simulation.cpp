@@ -81,7 +81,7 @@ void Simulation::readLock( ExecutionIndex executionIndex )
 {
     VERIFY_RTE( m_pYieldContext );
 
-    //if( m_executor.m_simulations
+    // if( m_executor.m_simulations
 
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( executionIndex );
     getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
@@ -108,65 +108,72 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         VERIFY_RTE_MSG( result.first, "Failed to acquire execution index" );
         m_executionRoot = std::move( mega::runtime::ExecutionRoot( result.second ) );
 
-        // process incoming requests
-        SUSPEND_EXECUTION_CONTEXT();
+        bool bContinue = true;
+        while ( bContinue )
         {
-            do
+            // run a simulation cycle
+            m_scheduler.cycle();
+
+            // process incoming requests
+            SUSPEND_EXECUTION_CONTEXT();
             {
-                const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
-
-                std::optional< mega::network::ConversationID > requestingConversationID;
-
-                switch ( network::getMsgID( msg.msg ) )
+                do
                 {
-                    case network::exe_sim::MSG_ExeSimReadLockAcquire_Request::ID:
+                    const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
+
+                    std::optional< mega::network::ConversationID > requestingConversationID;
+
+                    switch ( network::getMsgID( msg.msg ) )
                     {
-                        requestingConversationID
-                            = network::exe_sim::MSG_ExeSimReadLockAcquire_Request::get( msg.msg ).simulationID;
-                    }
-                    break;
-                    case network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::ID:
-                    {
-                        requestingConversationID
-                            = network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::get( msg.msg ).simulationID;
-                    }
-                    break;
-                    case network::exe_sim::MSG_ExeSimLockRelease_Request::ID:
-                    {
-                        requestingConversationID
-                            = network::exe_sim::MSG_ExeSimLockRelease_Request::get( msg.msg ).simulationID;
-                    }
-                    break;
-                    default:
+                        case network::exe_sim::MSG_ExeSimReadLockAcquire_Request::ID:
+                        {
+                            requestingConversationID
+                                = network::exe_sim::MSG_ExeSimReadLockAcquire_Request::get( msg.msg ).simulationID;
+                        }
                         break;
-                }
+                        case network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::ID:
+                        {
+                            requestingConversationID
+                                = network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::get( msg.msg ).simulationID;
+                        }
+                        break;
+                        case network::exe_sim::MSG_ExeSimLockRelease_Request::ID:
+                        {
+                            requestingConversationID
+                                = network::exe_sim::MSG_ExeSimLockRelease_Request::get( msg.msg ).simulationID;
+                        }
+                        break;
+                        default:
+                            break;
+                    }
 
-                ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
-                try
-                {
-                    ASSERT( isRequest( msg.msg ) );
-                    if ( !dispatchRequest( msg.msg, yield_ctx ) )
+                    ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
+                    try
                     {
-                        SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
-                        THROW_RTE( "Failed to dispatch request message: " << msg.msg );
+                        ASSERT( isRequest( msg.msg ) );
+                        if ( !dispatchRequest( msg.msg, yield_ctx ) )
+                        {
+                            SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
+                            THROW_RTE( "Failed to dispatch request message: " << msg.msg );
+                        }
                     }
-                }
-                catch ( std::exception& ex )
-                {
-                    if ( requestingConversationID.has_value() )
+                    catch ( std::exception& ex )
                     {
-                        Conversation::Ptr pRequestCon
-                            = m_executor.findExistingConversation( requestingConversationID.value() );
-                        pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
+                        if ( requestingConversationID.has_value() )
+                        {
+                            Conversation::Ptr pRequestCon
+                                = m_executor.findExistingConversation( requestingConversationID.value() );
+                            pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
+                        }
+                        else
+                        {
+                            error( m_stack.back(), ex.what(), yield_ctx );
+                        }
                     }
-                    else
-                    {
-                        error( m_stack.back(), ex.what(), yield_ctx );
-                    }
-                }
-            } while ( !m_stack.empty() );
+                } while ( !m_stack.empty() );
+            }
+            RESUME_EXECUTION_CONTEXT();
         }
-        RESUME_EXECUTION_CONTEXT();
     }
     catch ( std::exception& ex )
     {
