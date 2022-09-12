@@ -252,7 +252,6 @@ public:
         getStackTopDaemonResponse( yield_ctx ).TermSimWriteLock();
     }
 
-
     virtual void TermClearStash( boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_stash.clear();
@@ -321,23 +320,6 @@ public:
         daemon.ExeGetProject( m_root.getProject() );
     }
 
-    virtual void ExeSimReadLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) override
-    {
-        auto pDaemon = getDaemonRequestByCon( getID(), yield_ctx );
-        VERIFY_RTE( pDaemon.has_value() );
-        pDaemon->RootSimReadLockReady( timeStamp );
-        getStackTopDaemonResponse( yield_ctx ).ExeSimReadLockReady();
-    }
-
-    virtual void ExeSimWriteLockReady( const mega::TimeStamp&      timeStamp,
-                                       boost::asio::yield_context& yield_ctx ) override
-    {
-        auto pDaemon = getDaemonRequestByCon( getID(), yield_ctx );
-        VERIFY_RTE( pDaemon.has_value() );
-        pDaemon->RootSimWriteLockReady( timeStamp );
-        getStackTopDaemonResponse( yield_ctx ).ExeSimWriteLockReady();
-    }
-
     virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
     {
         getStackTopDaemonResponse( yield_ctx )
@@ -370,6 +352,32 @@ public:
     {
         m_root.m_logicalAddressSpace.deAllocateLogical( executionIndex, logicalAddress );
         getStackTopDaemonResponse( yield_ctx ).ExeDeAllocateLogical();
+    }
+    virtual void ExeSimReadLock( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimReadLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ExeSimReadLock();
+    }
+
+    virtual void ExeSimWriteLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimWriteLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ExeSimWriteLock();
+    }
+
+    virtual void ExeSimReleaseLock( const mega::network::ConversationID& simulationID,
+                                    boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimReleaseLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ExeSimReleaseLock();
     }
 
     virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
@@ -412,6 +420,32 @@ public:
     {
         const bool bRestored = m_root.m_stash.restore( filePath, determinant );
         getStackTopDaemonResponse( yield_ctx ).ToolRestore( bRestored );
+    }
+    virtual void ToolSimReadLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimReadLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ToolSimReadLock();
+    }
+
+    virtual void ToolSimWriteLock( const mega::network::ConversationID& simulationID,
+                                   boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimWriteLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ToolSimWriteLock();
+    }
+
+    virtual void ToolSimReleaseLock( const mega::network::ConversationID& simulationID,
+                                     boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE( pDaemon.has_value() );
+        pDaemon->RootSimReleaseLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ToolSimReleaseLock();
     }
 };
 
@@ -474,8 +508,8 @@ public:
     virtual void TermPipelineRun( const pipeline::Configuration& configuration,
                                   boost::asio::yield_context&    yield_ctx ) override
     {
-        VERIFY_RTE_MSG( m_root.m_megastructureInstallationOpt.has_value(),
-            "Megastructure Installation Toolchain unspecified" );
+        VERIFY_RTE_MSG(
+            m_root.m_megastructureInstallationOpt.has_value(), "Megastructure Installation Toolchain unspecified" );
         const auto toolChain = m_root.m_megastructureInstallationOpt.value().getToolchainXML();
 
         spdlog::stopwatch             sw;
@@ -499,7 +533,8 @@ public:
         for ( auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
         {
             auto                                         daemon = getDaemonRequest( pDaemon, yield_ctx );
-            const std::vector< network::ConversationID > jobs = daemon.RootPipelineStartJobs( toolChain, configuration, getID() );
+            const std::vector< network::ConversationID > jobs
+                = daemon.RootPipelineStartJobs( toolChain, configuration, getID() );
             for ( const network::ConversationID& id : jobs )
                 m_jobs.insert( id );
         }

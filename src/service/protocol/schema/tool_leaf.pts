@@ -44,3 +44,25 @@ msg ToolRestore
     request( boost::filesystem::path filePath, task::DeterminantHash determinant );
     response( bool bRestored );
 }
+
+msg ToolGetExecutionContextID
+{
+    request(mega::ExecutionIndex executionIndex);
+    response(mega::network::ConversationID conversationID);
+}
+
+msg ToolSimReadLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ToolSimWriteLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ToolSimReleaseLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}

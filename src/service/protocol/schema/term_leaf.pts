@@ -53,8 +53,12 @@ msg TermSimReadLock
     request(mega::network::ConversationID simulationID);
     response();
 }
-
 msg TermSimWriteLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg TermSimReleaseLock
 {
     request(mega::network::ConversationID simulationID);
     response();

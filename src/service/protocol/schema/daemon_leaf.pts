@@ -47,15 +47,9 @@ msg RootSimWriteLock
     request(mega::network::ConversationID simulationID);
     response();
 }
-
-msg RootSimReadLockReady
+msg RootSimReleaseLock
 {
-    request( mega::TimeStamp timeStamp );
-    response();
-}
-msg RootSimWriteLockReady
-{
-    request( mega::TimeStamp timeStamp );
+    request(mega::network::ConversationID simulationID);
     response();
 }
 

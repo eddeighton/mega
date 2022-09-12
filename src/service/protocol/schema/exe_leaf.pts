@@ -52,17 +52,6 @@ msg ExeGetProject
 }
 
 // Simulations
-msg ExeSimReadLockReady
-{
-    request( mega::TimeStamp timeStamp );
-    response();
-}
-msg ExeSimWriteLockReady
-{
-    request( mega::TimeStamp timeStamp );
-    response();
-}
-
 msg ExeCreateExecutionContext
 {
     request();
@@ -88,5 +77,27 @@ msg ExeAllocateLogical
 msg ExeDeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
+    response();
+}
+
+msg ExeGetExecutionContextID
+{
+    request(mega::ExecutionIndex executionIndex);
+    response(mega::network::ConversationID conversationID);
+}
+
+msg ExeSimReadLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ExeSimWriteLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ExeSimReleaseLock
+{
+    request(mega::network::ConversationID simulationID);
     response();
 }

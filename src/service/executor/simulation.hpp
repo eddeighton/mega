@@ -47,12 +47,10 @@ public:
     //  network::exe_sim::Impl
     virtual void ExeSimReadLockAcquire( const mega::network::ConversationID& simulationID,
                                         boost::asio::yield_context&          yield_ctx ) override;
-    virtual void ExeSimReadLockRelease( const mega::network::ConversationID& simulationID,
-                                        boost::asio::yield_context&          yield_ctx ) override;
     virtual void ExeSimWriteLockAcquire( const mega::network::ConversationID& simulationID,
                                          boost::asio::yield_context&          yield_ctx ) override;
-    virtual void ExeSimWriteLockRelease( const mega::network::ConversationID& simulationID,
-                                         boost::asio::yield_context&          yield_ctx ) override;
+    virtual void ExeSimLockRelease( const mega::network::ConversationID& simulationID,
+                                    boost::asio::yield_context&          yield_ctx ) override;
 
     // mega::ExecutionContext
     virtual ExecutionIndex  getThisExecutionIndex() override;
@@ -62,6 +60,9 @@ public:
     virtual void            deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress ) override;
     virtual void            stash( const std::string& filePath, std::size_t determinant ) override;
     virtual bool            restore( const std::string& filePath, std::size_t determinant ) override;
+    virtual void            readLock( ExecutionIndex executionIndex ) override;
+    virtual void            writeLock( ExecutionIndex executionIndex ) override;
+    virtual void            releaseLock( ExecutionIndex executionIndex ) override;
 
 private:
     network::ConcurrentChannel                    m_requestChannel;

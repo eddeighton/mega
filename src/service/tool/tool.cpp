@@ -144,12 +144,35 @@ public:
     {
         VERIFY_RTE( m_pYieldContext );
         getToolRequest( *m_pYieldContext ).ToolStash( filePath, determinant );
-
     }
     virtual bool restore( const std::string& filePath, std::size_t determinant ) override
     {
         VERIFY_RTE( m_pYieldContext );
         return getToolRequest( *m_pYieldContext ).ToolRestore( filePath, determinant );
+    }
+
+    virtual void readLock( ExecutionIndex executionIndex ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        const network::ConversationID id
+            = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( executionIndex );
+        getToolRequest( *m_pYieldContext ).ToolSimReadLock( id );
+    }
+
+    virtual void writeLock( ExecutionIndex executionIndex ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        const network::ConversationID id
+            = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( executionIndex );
+        getToolRequest( *m_pYieldContext ).ToolSimWriteLock( id );
+    }
+
+    virtual void releaseLock( ExecutionIndex executionIndex ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        const network::ConversationID id
+            = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( executionIndex );
+        getToolRequest( *m_pYieldContext ).ToolSimReleaseLock( id );
     }
 
     boost::asio::yield_context*                   m_pYieldContext = nullptr;

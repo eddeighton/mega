@@ -4,17 +4,12 @@ msg ExeSimReadLockAcquire
     request(mega::network::ConversationID simulationID);
     response(mega::TimeStamp timestamp);
 }
-msg ExeSimReadLockRelease
-{
-    request(mega::network::ConversationID simulationID);
-    response();
-}
 msg ExeSimWriteLockAcquire
 {
     request(mega::network::ConversationID simulationID);
     response(mega::TimeStamp timestamp);
 }
-msg ExeSimWriteLockRelease
+msg ExeSimLockRelease
 {
     request(mega::network::ConversationID simulationID);
     response();

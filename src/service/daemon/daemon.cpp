@@ -253,35 +253,6 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeGetProject( result );
     }
 
-    virtual void ExeSimReadLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) override
-    {
-        auto leafRequest = leafRequestByCon( getID(), yield_ctx );
-        if ( leafRequest.has_value() )
-        {
-            leafRequest->RootSimReadLockReady( timeStamp );
-        }
-        else
-        {
-            getRootRequest( yield_ctx ).ExeSimReadLockReady( timeStamp );
-        }
-        getStackTopLeafResponse( yield_ctx ).ExeSimReadLockReady();
-    }
-
-    virtual void ExeSimWriteLockReady( const mega::TimeStamp&      timeStamp,
-                                       boost::asio::yield_context& yield_ctx ) override
-    {
-        auto leafRequest = leafRequestByCon( getID(), yield_ctx );
-        if ( leafRequest.has_value() )
-        {
-            leafRequest->RootSimWriteLockReady( timeStamp );
-        }
-        else
-        {
-            getRootRequest( yield_ctx ).ExeSimWriteLockReady( timeStamp );
-        }
-        getStackTopLeafResponse( yield_ctx ).ExeSimWriteLockReady();
-    }
-
     virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getRootRequest( yield_ctx ).ExeCreateExecutionContext();
@@ -320,6 +291,45 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeDeAllocateLogical();
     }
 
+    virtual void ExeGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
+                                           boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( executionIndex );
+        getStackTopLeafResponse( yield_ctx ).ExeGetExecutionContextID( result );
+    }
+
+    virtual void ExeSimReadLock( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto leaf = leafRequestByCon( simulationID, yield_ctx );
+        if ( leaf.has_value() )
+            leaf->RootSimReadLock( simulationID );
+        else
+            getRootRequest( yield_ctx ).ExeSimReadLock( simulationID );
+        getStackTopLeafResponse( yield_ctx ).ExeSimReadLock();
+    }
+
+    virtual void ExeSimWriteLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto leaf = leafRequestByCon( simulationID, yield_ctx );
+        if ( leaf.has_value() )
+            leaf->RootSimWriteLock( simulationID );
+        else
+            getRootRequest( yield_ctx ).ExeSimWriteLock( simulationID );
+        getStackTopLeafResponse( yield_ctx ).ExeSimWriteLock();
+    }
+
+    virtual void ExeSimReleaseLock( const mega::network::ConversationID& simulationID,
+                                    boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto leaf = leafRequestByCon( simulationID, yield_ctx );
+        if ( leaf.has_value() )
+            leaf->RootSimReleaseLock( simulationID );
+        else
+            getRootRequest( yield_ctx ).ExeSimReleaseLock( simulationID );
+        getStackTopLeafResponse( yield_ctx ).ExeSimReleaseLock();
+    }
     // root_daemon
     virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
@@ -445,20 +455,12 @@ public:
         getRootResponse( yield_ctx ).RootSimWriteLock();
     }
 
-    virtual void RootSimReadLockReady( const mega::TimeStamp&      timeStamp,
-                                       boost::asio::yield_context& yield_ctx ) override
+    virtual void RootSimReleaseLock( const mega::network::ConversationID& simulationID,
+                                     boost::asio::yield_context&          yield_ctx ) override
     {
         auto leafRequest = leafRequestByCon( getID(), yield_ctx );
-        leafRequest->RootSimReadLockReady( timeStamp );
-        getRootResponse( yield_ctx ).RootSimReadLockReady();
-    }
-
-    virtual void RootSimWriteLockReady( const mega::TimeStamp&      timeStamp,
-                                        boost::asio::yield_context& yield_ctx ) override
-    {
-        auto leafRequest = leafRequestByCon( getID(), yield_ctx );
-        leafRequest->RootSimWriteLockReady( timeStamp );
-        getRootResponse( yield_ctx ).RootSimWriteLockReady();
+        leafRequest->RootSimReleaseLock( simulationID );
+        getRootResponse( yield_ctx ).RootSimReleaseLock();
     }
 
     virtual void RootShutdown( boost::asio::yield_context& yield_ctx ) override
@@ -527,6 +529,55 @@ public:
     {
         const bool bRestored = getRootRequest( yield_ctx ).ToolRestore( filePath, determinant );
         getStackTopLeafResponse( yield_ctx ).ToolRestore( bRestored );
+    }
+
+    virtual void ToolGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
+                                            boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( executionIndex );
+        getStackTopLeafResponse( yield_ctx ).ToolGetExecutionContextID( result );
+    }
+    virtual void ToolSimReadLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto leafRequest = leafRequestByCon( simulationID, yield_ctx );
+        if ( leafRequest.has_value() )
+        {
+            leafRequest->RootSimReadLock( simulationID );
+        }
+        else
+        {
+            getRootRequest( yield_ctx ).ToolSimReadLock( simulationID );
+        }
+        getStackTopLeafResponse( yield_ctx ).ToolSimReadLock();
+    }
+    virtual void ToolSimWriteLock( const mega::network::ConversationID& simulationID,
+                                   boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto leafRequest = leafRequestByCon( simulationID, yield_ctx );
+        if ( leafRequest.has_value() )
+        {
+            leafRequest->RootSimWriteLock( simulationID );
+        }
+        else
+        {
+            getRootRequest( yield_ctx ).ToolSimWriteLock( simulationID );
+        }
+        getStackTopLeafResponse( yield_ctx ).ToolSimWriteLock();
+    }
+    virtual void ToolSimReleaseLock( const mega::network::ConversationID& simulationID,
+                                     boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto leafRequest = leafRequestByCon( simulationID, yield_ctx );
+        if ( leafRequest.has_value() )
+        {
+            leafRequest->RootSimReleaseLock( simulationID );
+        }
+        else
+        {
+            getRootRequest( yield_ctx ).ToolSimReleaseLock( simulationID );
+        }
+        getStackTopLeafResponse( yield_ctx ).ToolSimReleaseLock();
     }
 };
 

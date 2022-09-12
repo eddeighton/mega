@@ -114,6 +114,15 @@ public:
 
         AddressSpace::Lock lock( m_addressSpace.mutex() );
 
+        ExecutionContext* pExecutionContext = ExecutionContext::get();
+        VERIFY_RTE( pExecutionContext );
+        if ( pExecutionContext->getThisExecutionIndex() != executionIndex )
+
+        {
+            // request write lock
+            pExecutionContext->writeLock( executionIndex );
+        }
+
         auto resultOpt = m_addressSpace.find( logicalAddress );
         if ( resultOpt.has_value() )
         {

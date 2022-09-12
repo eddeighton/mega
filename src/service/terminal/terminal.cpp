@@ -73,19 +73,6 @@ public:
     {
         getLeafResponse( yield_ctx ).RootListNetworkNodes( { m_terminal.getProcessName() } );
     }
-    virtual void RootSimReadLockReady( const mega::TimeStamp&      timeStamp,
-                                       boost::asio::yield_context& yield_ctx ) override
-    {
-        SPDLOG_TRACE( "RootSimReadLockReady received: {}", timeStamp );
-        getLeafResponse( yield_ctx ).RootSimReadLockReady();
-    }
-
-    virtual void RootSimWriteLockReady( const mega::TimeStamp&      timeStamp,
-                                        boost::asio::yield_context& yield_ctx ) override
-    {
-        SPDLOG_TRACE( "RootSimWriteLockReady received: {}", timeStamp );
-        getLeafResponse( yield_ctx ).RootSimWriteLockReady();
-    }
 
     void RootShutdown( boost::asio::yield_context& yield_ctx ) override
     {
@@ -304,7 +291,7 @@ void Terminal::Shutdown()
     GENERIC_MSG_NO_RESULT( TermShutdown );
 }
 
-void Terminal::testReadLock( const network::ConversationID& simID )
+void Terminal::testLock( const network::ConversationID& simID )
 {
     std::optional< std::variant< int, std::exception_ptr > > result;
     {
@@ -315,6 +302,8 @@ void Terminal::testReadLock( const network::ConversationID& simID )
             try
             {
                 leaf.TermSimReadLock( simID );
+                leaf.TermSimWriteLock( simID );
+                leaf.TermSimReleaseLock( simID );
                 SPDLOG_TRACE( "Readlock success" );
                 result = 0;
             }

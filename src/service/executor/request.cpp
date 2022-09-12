@@ -141,14 +141,6 @@ void ExecutorRequestConversation::RootSimReadLock( const mega::network::Conversa
     network::exe_sim::Request_Encode rq( *this, pSimulation->getRequestSender(), yield_ctx );
     const mega::TimeStamp            timeStamp = rq.ExeSimReadLockAcquire( getID() );
 
-    // NOTE: could potentially call RootSimReadLockReady directly here if conversation in same executor
-
-    getLeafRequest( yield_ctx ).ExeSimReadLockReady( timeStamp );
-
-    SPDLOG_TRACE( "ExecutorRequestConversation::RootSimReadLock got ExeSimReadLockReady response" );
-
-    rq.ExeSimReadLockRelease( getID() );
-
     getLeafResponse( yield_ctx ).RootSimReadLock();
 }
 
@@ -162,24 +154,20 @@ void ExecutorRequestConversation::RootSimWriteLock( const mega::network::Convers
     network::exe_sim::Request_Encode rq( *this, pSimulation->getRequestSender(), yield_ctx );
     const mega::TimeStamp            timeStamp = rq.ExeSimWriteLockAcquire( getID() );
 
-    // NOTE: could potentially call RootSimReadLockReady directly here if conversation in same executor
-    getLeafRequest( yield_ctx ).ExeSimWriteLockReady( timeStamp );
-
-    rq.ExeSimWriteLockRelease( getID() );
-
     getLeafResponse( yield_ctx ).RootSimWriteLock();
 }
 
-void ExecutorRequestConversation::RootSimReadLockReady( const mega::TimeStamp&      timeStamp,
+void ExecutorRequestConversation::RootSimReleaseLock( const mega::network::ConversationID& simulationID,
                                                         boost::asio::yield_context& yield_ctx )
 {
-    getLeafResponse( yield_ctx ).RootSimReadLockReady();
-}
+    Executor::SimulationMap::const_iterator iFind = m_executor.m_simulations.find( simulationID );
+    VERIFY_RTE_MSG( iFind != m_executor.m_simulations.end(), "Failed to find simulation: " << simulationID );
+    Simulation::Ptr pSimulation = iFind->second;
 
-void ExecutorRequestConversation::RootSimWriteLockReady( const mega::TimeStamp&      timeStamp,
-                                                         boost::asio::yield_context& yield_ctx )
-{
-    getLeafResponse( yield_ctx ).RootSimWriteLockReady();
+    network::exe_sim::Request_Encode rq( *this, pSimulation->getRequestSender(), yield_ctx );
+    rq.ExeSimLockRelease( getID() );
+
+    getLeafResponse( yield_ctx ).RootSimReleaseLock();
 }
 
 void ExecutorRequestConversation::RootShutdown( boost::asio::yield_context& yield_ctx )

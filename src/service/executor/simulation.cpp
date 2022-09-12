@@ -77,6 +77,29 @@ bool Simulation::restore( const std::string& filePath, std::size_t determinant )
     return getLeafRequest( *m_pYieldContext ).ExeRestore( filePath, determinant );
 }
 
+void Simulation::readLock( ExecutionIndex executionIndex )
+{
+    VERIFY_RTE( m_pYieldContext );
+
+    //if( m_executor.m_simulations
+
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( executionIndex );
+    getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
+}
+
+void Simulation::writeLock( ExecutionIndex executionIndex )
+{
+    VERIFY_RTE( m_pYieldContext );
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( executionIndex );
+    getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id );
+}
+void Simulation::releaseLock( ExecutionIndex executionIndex )
+{
+    VERIFY_RTE( m_pYieldContext );
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( executionIndex );
+    getLeafRequest( *m_pYieldContext ).ExeSimReleaseLock( id );
+}
+
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
@@ -108,16 +131,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                             = network::exe_sim::MSG_ExeSimWriteLockAcquire_Request::get( msg.msg ).simulationID;
                     }
                     break;
-                    case network::exe_sim::MSG_ExeSimReadLockRelease_Request::ID:
+                    case network::exe_sim::MSG_ExeSimLockRelease_Request::ID:
                     {
                         requestingConversationID
-                            = network::exe_sim::MSG_ExeSimReadLockRelease_Request::get( msg.msg ).simulationID;
-                    }
-                    break;
-                    case network::exe_sim::MSG_ExeSimWriteLockRelease_Request::ID:
-                    {
-                        requestingConversationID
-                            = network::exe_sim::MSG_ExeSimWriteLockRelease_Request::get( msg.msg ).simulationID;
+                            = network::exe_sim::MSG_ExeSimLockRelease_Request::get( msg.msg ).simulationID;
                     }
                     break;
                     default:
@@ -187,19 +204,6 @@ void Simulation::ExeSimReadLockAcquire( const mega::network::ConversationID& req
     response.ExeSimReadLockAcquire( timeStamp );
 }
 
-void Simulation::ExeSimReadLockRelease( const mega::network::ConversationID& requestingConID,
-                                        boost::asio::yield_context&          yield_ctx )
-{
-    SPDLOG_TRACE( "Simulation::RootSimReadLock: {}", requestingConID );
-
-    Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
-    VERIFY_RTE( pRequestCon );
-
-    network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
-
-    response.ExeSimReadLockRelease();
-}
-
 void Simulation::ExeSimWriteLockAcquire( const mega::network::ConversationID& requestingConID,
                                          boost::asio::yield_context&          yield_ctx )
 {
@@ -216,8 +220,8 @@ void Simulation::ExeSimWriteLockAcquire( const mega::network::ConversationID& re
     response.ExeSimWriteLockAcquire( timeStamp );
 }
 
-void Simulation::ExeSimWriteLockRelease( const mega::network::ConversationID& requestingConID,
-                                         boost::asio::yield_context&          yield_ctx )
+void Simulation::ExeSimLockRelease( const mega::network::ConversationID& requestingConID,
+                                    boost::asio::yield_context&          yield_ctx )
 {
     SPDLOG_TRACE( "Simulation::RootSimReadLock: {}", requestingConID );
 
@@ -225,8 +229,7 @@ void Simulation::ExeSimWriteLockRelease( const mega::network::ConversationID& re
     VERIFY_RTE( pRequestCon );
 
     network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
-
-    response.ExeSimWriteLockRelease();
+    response.ExeSimLockRelease();
 }
 
 } // namespace service

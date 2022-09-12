@@ -21,6 +21,9 @@ public:
     virtual void            deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress ) = 0;
     virtual void            stash( const std::string& filePath, std::size_t determinant )                     = 0;
     virtual bool            restore( const std::string& filePath, std::size_t determinant )                   = 0;
+    virtual void            readLock( ExecutionIndex executionIndex )                                         = 0;
+    virtual void            writeLock( ExecutionIndex executionIndex )                                        = 0;
+    virtual void            releaseLock( ExecutionIndex executionIndex )                                      = 0;
 };
 
 #define SUSPEND_EXECUTION_CONTEXT()                                  \

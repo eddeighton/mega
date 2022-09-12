@@ -265,71 +265,11 @@ public:
         getDaemonResponse( yield_ctx ).RootSimReadLock();
     }
 
-    virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
-                                   boost::asio::yield_context&          yield_ctx ) override
+    virtual void RootSimReleaseLock( const mega::network::ConversationID& simulationID,
+                                     boost::asio::yield_context&          yield_ctx ) override
     {
-        getExeRequest( yield_ctx ).RootSimWriteLock( simulationID );
-        getDaemonResponse( yield_ctx ).RootSimWriteLock();
-    }
-
-    virtual void RootSimReadLockReady( const mega::TimeStamp&      timeStamp,
-                                       boost::asio::yield_context& yield_ctx ) override
-    {
-        switch ( m_leaf.m_nodeType )
-        {
-            case network::Node::Terminal:
-            {
-                getTermRequest( yield_ctx ).RootSimReadLockReady( timeStamp );
-                getDaemonResponse( yield_ctx ).RootSimReadLockReady();
-            }
-            break;
-            case network::Node::Tool:
-            {
-                THROW_RTE( "Not implemented" );
-            }
-            break;
-            case network::Node::Executor:
-            {
-                getExeRequest( yield_ctx ).RootSimReadLockReady( timeStamp );
-                getDaemonResponse( yield_ctx ).RootSimReadLockReady();
-            }
-            break;
-            case network::Node::Daemon:
-            case network::Node::Root:
-            case network::Node::TOTAL_NODE_TYPES:
-            default:
-                THROW_RTE( "Leaf: Invalid leaf type" );
-        }
-    }
-
-    virtual void RootSimWriteLockReady( const mega::TimeStamp&      timeStamp,
-                                        boost::asio::yield_context& yield_ctx ) override
-    {
-        switch ( m_leaf.m_nodeType )
-        {
-            case network::Node::Terminal:
-            {
-                getTermRequest( yield_ctx ).RootSimWriteLockReady( timeStamp );
-                getDaemonResponse( yield_ctx ).RootSimWriteLockReady();
-            }
-            break;
-            case network::Node::Tool:
-            {
-                THROW_RTE( "Not implemented" );
-            }
-            break;
-            case network::Node::Executor:
-            {
-                getExeRequest( yield_ctx ).RootSimWriteLockReady( timeStamp );
-                getDaemonResponse( yield_ctx ).RootSimWriteLockReady();
-            }
-            break;
-            case network::Node::Daemon:
-            case network::Node::Root:
-            case network::Node::TOTAL_NODE_TYPES:
-            default:
-                THROW_RTE( "Leaf: Invalid leaf type" );
-        }
+        getExeRequest( yield_ctx ).RootSimReleaseLock( simulationID );
+        getDaemonResponse( yield_ctx ).RootSimReleaseLock();
     }
 
     virtual void RootShutdown( boost::asio::yield_context& yield_ctx ) override
@@ -421,28 +361,6 @@ public:
         getExeResponse( yield_ctx ).ExeGetProject( result );
     }
 
-    virtual void ExeSimReadLockReady( const mega::TimeStamp& timeStamp, boost::asio::yield_context& yield_ctx ) override
-    {
-        // is request initiated on this leaf?
-        if ( m_leaf.m_conversationIDs.count( getID() ) )
-        {
-            // getExeRequest( yield_ctx ).ExeSimReadLockReady( timeStamp );
-            THROW_RTE( "Not implemented" );
-        }
-        else
-        {
-            getDaemonRequest( yield_ctx ).ExeSimReadLockReady( timeStamp );
-            getExeResponse( yield_ctx ).ExeSimReadLockReady();
-        }
-    }
-
-    virtual void ExeSimWriteLockReady( const mega::TimeStamp&      timeStamp,
-                                       boost::asio::yield_context& yield_ctx ) override
-    {
-        getDaemonRequest( yield_ctx ).ExeSimWriteLockReady( timeStamp );
-        getExeResponse( yield_ctx ).ExeSimWriteLockReady();
-    }
-
     virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ExeCreateExecutionContext();
@@ -475,6 +393,34 @@ public:
     {
         getDaemonRequest( yield_ctx ).ExeDeAllocateLogical( executionIndex, logicalAddress );
         getExeResponse( yield_ctx ).ExeDeAllocateLogical();
+    }
+
+    virtual void ExeGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
+                                           boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ExeGetExecutionContextID( executionIndex );
+        getExeResponse( yield_ctx ).ExeGetExecutionContextID( result );
+    }
+
+    virtual void ExeSimReadLock( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ExeSimReadLock( simulationID );
+        getExeResponse( yield_ctx ).ExeSimReadLock();
+    }
+
+    virtual void ExeSimWriteLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ExeSimWriteLock( simulationID );
+        getExeResponse( yield_ctx ).ExeSimWriteLock();
+    }
+
+    virtual void ExeSimReleaseLock( const mega::network::ConversationID& simulationID,
+                                    boost::asio::yield_context&          yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ExeSimReleaseLock( simulationID );
+        getExeResponse( yield_ctx ).ExeSimReleaseLock();
     }
 
     virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
@@ -529,6 +475,33 @@ public:
     {
         const bool bRestored = getDaemonRequest( yield_ctx ).ToolRestore( filePath, determinant );
         getToolResponse( yield_ctx ).ToolRestore( bRestored );
+    }
+
+    virtual void ToolGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
+                                            boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ToolGetExecutionContextID( executionIndex );
+        getToolResponse( yield_ctx ).ToolGetExecutionContextID( result );
+    }
+    virtual void ToolSimReadLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ToolSimReadLock( simulationID );
+        getToolResponse( yield_ctx ).ToolSimReadLock();
+    }
+
+    virtual void ToolSimWriteLock( const mega::network::ConversationID& simulationID,
+                                   boost::asio::yield_context&          yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ToolSimWriteLock( simulationID );
+        getToolResponse( yield_ctx ).ToolSimWriteLock();
+    }
+
+    virtual void ToolSimReleaseLock( const mega::network::ConversationID& simulationID,
+                                     boost::asio::yield_context&          yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).ToolSimReleaseLock( simulationID );
+        getToolResponse( yield_ctx ).ToolSimReleaseLock();
     }
 };
 

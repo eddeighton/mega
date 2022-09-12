@@ -61,6 +61,11 @@ msg TermSimWriteLock
     request(mega::network::ConversationID simulationID);
     response();
 }
+msg TermSimReleaseLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
 
 msg TermClearStash
 {
@@ -131,17 +136,6 @@ msg ExeGetProject
 }
 
 // Simulations
-msg ExeSimReadLockReady
-{
-    request( mega::TimeStamp timeStamp );
-    response();
-}
-msg ExeSimWriteLockReady
-{
-    request( mega::TimeStamp timeStamp );
-    response();
-}
-
 msg ExeCreateExecutionContext
 {
     request();
@@ -167,6 +161,27 @@ msg ExeAllocateLogical
 msg ExeDeAllocateLogical
 {
     request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
+    response();
+}
+msg ExeGetExecutionContextID
+{
+    request(mega::ExecutionIndex executionIndex);
+    response(mega::network::ConversationID conversationID);
+}
+
+msg ExeSimReadLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ExeSimWriteLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ExeSimReleaseLock
+{
+    request(mega::network::ConversationID simulationID);
     response();
 }
 
@@ -214,4 +229,25 @@ msg ToolRestore
 {
     request( boost::filesystem::path filePath, task::DeterminantHash determinant );
     response( bool bRestored );
+}
+msg ToolGetExecutionContextID
+{
+    request(mega::ExecutionIndex executionIndex);
+    response(mega::network::ConversationID conversationID);
+}
+
+msg ToolSimReadLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ToolSimWriteLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
+msg ToolSimReleaseLock
+{
+    request(mega::network::ConversationID simulationID);
+    response();
 }

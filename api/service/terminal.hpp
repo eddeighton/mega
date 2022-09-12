@@ -57,7 +57,7 @@ public:
     std::size_t                            Capacity();
     void                                   Shutdown();
 
-    void testReadLock( const network::ConversationID& simID );
+    void testLock( const network::ConversationID& simID );
 
     network::Sender& getLeafSender() { return m_leaf; }
 
