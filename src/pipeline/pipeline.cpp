@@ -124,7 +124,8 @@ Pipeline::~Pipeline() {}
 
 DependencyProvider::~DependencyProvider() {}
 
-Pipeline::Ptr Registry::getPipeline( const Configuration& configuration, std::ostream& osLog )
+Pipeline::Ptr Registry::getPipeline( const mega::utilities::ToolChain& toolChain, const Configuration& configuration,
+                                     std::ostream& osLog )
 {
     try
     {
@@ -147,7 +148,7 @@ Pipeline::Ptr Registry::getPipeline( const Configuration& configuration, std::os
         Pipeline::Ptr pPipeline
             = boost::dll::import_symbol< mega::pipeline::Pipeline >( pipelineLibrary, "mega_pipeline" );
 
-        pPipeline->initialise( configuration, osLog );
+        pPipeline->initialise( toolChain, configuration, osLog );
 
         return pPipeline;
     }

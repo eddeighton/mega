@@ -10,7 +10,7 @@ msg RootListNetworkNodes
 
 msg RootPipelineStartJobs
 {
-    request(mega::pipeline::Configuration configuration, network::ConversationID rootConversationID);
+    request(mega::utilities::ToolChain toolChain,mega::pipeline::Configuration configuration, network::ConversationID rootConversationID);
     response(std::vector< network::ConversationID > jobs);
 }
 

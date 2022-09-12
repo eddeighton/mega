@@ -6,6 +6,8 @@
 #include "stash.hpp"
 #include "configuration.hpp"
 
+#include "utilities/tool_chain_hash.hpp"
+
 #include "version/version.hpp"
 
 #include "boost/config.hpp"
@@ -44,9 +46,9 @@ class Schedule
 public:
     Schedule( const Dependencies& dependencies );
 
-    TaskDescriptor::Vector getReady() const;
+    TaskDescriptor::Vector          getReady() const;
     std::optional< TaskDescriptor > getTask( const std::string& strTaskName, const std::string& strSourceFile ) const;
-    bool isComplete() const { return m_dependencies.getTasks() == m_complete; }
+    bool                            isComplete() const { return m_dependencies.getTasks() == m_complete; }
 
     void complete( const TaskDescriptor& task ) { m_complete.insert( task ); }
 
@@ -89,20 +91,25 @@ class BOOST_SYMBOL_VISIBLE Pipeline
 protected:
     Pipeline();
 
+    virtual void initialise( const mega::utilities::ToolChain& toolChain, const Configuration& configuration,
+                             std::ostream& osLog )
+        = 0;
 public:
     using Ptr = boost::shared_ptr< Pipeline >;
 
     virtual ~Pipeline();
 
-    virtual void     initialise( const Configuration& configuration, std::ostream& osLog )   = 0;
-    virtual Schedule getSchedule( Progress& progress, Stash& stash )                         = 0;
-    virtual void     execute( const TaskDescriptor& task, Progress& progress, Stash& stash, DependencyProvider& dependencies ) = 0;
+    virtual Schedule getSchedule( Progress& progress, Stash& stash ) = 0;
+    virtual void     execute( const TaskDescriptor& task, Progress& progress, Stash& stash,
+                              DependencyProvider& dependencies )
+        = 0;
 };
 
 class Registry
 {
 public:
-    static Pipeline::Ptr getPipeline( const Configuration& configuration, std::ostream& osLog );
+    static Pipeline::Ptr getPipeline( const mega::utilities::ToolChain& toolChain, const Configuration& configuration,
+                                      std::ostream& osLog );
 };
 } // namespace pipeline
 } // namespace mega

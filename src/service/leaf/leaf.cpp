@@ -224,11 +224,12 @@ public:
         SPDLOG_TRACE( "Leaf: RootListNetworkNodes end" );
     }
 
-    virtual void RootPipelineStartJobs( const mega::pipeline::Configuration& configuration,
+    virtual void RootPipelineStartJobs( const mega::utilities::ToolChain&    toolChain,
+                                        const mega::pipeline::Configuration& configuration,
                                         const network::ConversationID&       rootConversationID,
                                         boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getExeRequest( yield_ctx ).RootPipelineStartJobs( configuration, rootConversationID );
+        auto result = getExeRequest( yield_ctx ).RootPipelineStartJobs( toolChain, configuration, rootConversationID );
         getDaemonResponse( yield_ctx ).RootPipelineStartJobs( result );
     }
 
@@ -331,7 +332,7 @@ public:
         }
     }
 
-    virtual void RootShutdown( boost::asio::yield_context& yield_ctx  ) override
+    virtual void RootShutdown( boost::asio::yield_context& yield_ctx ) override
     {
         switch ( m_leaf.m_nodeType )
         {
@@ -360,7 +361,7 @@ public:
                 THROW_RTE( "Leaf: Invalid leaf type" );
         }
 
-        //boost::asio::post( [ &leaf = m_leaf ]() { leaf.shutdown(); } );
+        // boost::asio::post( [ &leaf = m_leaf ]() { leaf.shutdown(); } );
     }
 
     // network::exe_leaf::Impl

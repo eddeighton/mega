@@ -18,15 +18,18 @@ namespace utilities
 struct ToolChain
 {
     ToolChain();
-    ToolChain( const boost::filesystem::path& parserDll,
+    ToolChain( const std::string&             strClangCompilerVersion,
+               std::size_t                    databaseVersion,
+               const boost::filesystem::path& parserDll,
                const boost::filesystem::path& megaCompiler,
                const boost::filesystem::path& clangCompiler,
                const boost::filesystem::path& clangPlugin,
                const boost::filesystem::path& databaseDll );
 
     boost::filesystem::path parserDllPath, megaCompilerPath, clangCompilerPath, clangPluginPath, databasePath;
-    task::FileHash          parserDllHash, megaCompilerHash, clangPluginHash, databaseHash;
+    task::FileHash          parserDllHash, megaCompilerHash, clangPluginHash;
     std::string             strClangCompilerVersion;
+    common::Hash            databaseVersion;
     common::Hash            clangCompilerHash;
     task::DeterminantHash   toolChainHash;
 
@@ -56,11 +59,11 @@ struct ToolChain
 
         archive& boost::serialization::make_nvp( "clangVersion", strClangCompilerVersion );
 
+        saveHashCode( archive, "databaseVersion", databaseVersion );
         saveHashCode( archive, "parserDllHash", parserDllHash );
         saveHashCode( archive, "megaCompilerHash", megaCompilerHash );
         saveHashCode( archive, "clangCompilerHash", clangCompilerHash );
         saveHashCode( archive, "clangPluginHash", clangPluginHash );
-        saveHashCode( archive, "databaseHash", databaseHash );
 
         saveHashCode( archive, "toolChainHash", toolChainHash );
     }
@@ -76,11 +79,11 @@ struct ToolChain
 
         archive& boost::serialization::make_nvp( "clangVersion", strClangCompilerVersion );
 
+        loadHashCode( archive, "databaseVersion", databaseVersion );
         loadHashCode( archive, "parserDllHash", parserDllHash );
         loadHashCode( archive, "megaCompilerHash", megaCompilerHash );
         loadHashCode( archive, "clangCompilerHash", clangCompilerHash );
         loadHashCode( archive, "clangPluginHash", clangPluginHash );
-        loadHashCode( archive, "databaseHash", databaseHash );
 
         loadHashCode( archive, "toolChainHash", toolChainHash );
     }

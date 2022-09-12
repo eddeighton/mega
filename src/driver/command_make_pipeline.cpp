@@ -111,9 +111,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 buildDir,
                 installDir,
                 templatesDir
-            },
-
-            toolChain
+            }
         };
         // clang-format on
 

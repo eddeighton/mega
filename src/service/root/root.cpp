@@ -474,11 +474,15 @@ public:
     virtual void TermPipelineRun( const pipeline::Configuration& configuration,
                                   boost::asio::yield_context&    yield_ctx ) override
     {
+        VERIFY_RTE_MSG( m_root.m_megastructureInstallationOpt.has_value(),
+            "Megastructure Installation Toolchain unspecified" );
+        const auto toolChain = m_root.m_megastructureInstallationOpt.value().getToolchainXML();
+
         spdlog::stopwatch             sw;
         mega::pipeline::Pipeline::Ptr pPipeline;
         {
             std::ostringstream osLog;
-            pPipeline = pipeline::Registry::getPipeline( configuration, osLog );
+            pPipeline = pipeline::Registry::getPipeline( toolChain, configuration, osLog );
             if ( !pPipeline )
             {
                 SPDLOG_ERROR( "Failed to load pipeline: {}", configuration.getPipelineID() );
@@ -495,7 +499,7 @@ public:
         for ( auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
         {
             auto                                         daemon = getDaemonRequest( pDaemon, yield_ctx );
-            const std::vector< network::ConversationID > jobs = daemon.RootPipelineStartJobs( configuration, getID() );
+            const std::vector< network::ConversationID > jobs = daemon.RootPipelineStartJobs( toolChain, configuration, getID() );
             for ( const network::ConversationID& id : jobs )
                 m_jobs.insert( id );
         }

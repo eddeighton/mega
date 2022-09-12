@@ -8,38 +8,12 @@ namespace mega
 namespace utilities
 {
 
-namespace
-{
-std::string getClangVersion( const boost::filesystem::path& path_clangCompiler )
-{
-    namespace bp = boost::process;
-
-    std::ostringstream osResult;
-
-    std::ostringstream osCmd;
-    osCmd << path_clangCompiler.native() << " --version";
-
-    bp::ipstream errStream, outStream; // reading pipe-stream
-    bp::child    c( osCmd.str(), bp::std_out > outStream, bp::std_err > errStream );
-
-    std::string strOutputLine;
-    while ( c.running() && std::getline( outStream, strOutputLine ) )
-    {
-        if ( !strOutputLine.empty() )
-        {
-            osResult << strOutputLine;
-        }
-    }
-
-    c.wait();
-
-    return osResult.str();
-}
-} // namespace
-
 ToolChain::ToolChain() {}
 
-ToolChain::ToolChain( const boost::filesystem::path& path_parserDll,
+ToolChain::ToolChain( const std::string& strClangCompilerVersion,
+                      std::size_t        szDatabaseVersion,
+
+                      const boost::filesystem::path& path_parserDll,
                       const boost::filesystem::path& path_megaCompiler,
                       const boost::filesystem::path& path_clangCompiler,
                       const boost::filesystem::path& path_clangPlugin,
@@ -54,12 +28,13 @@ ToolChain::ToolChain( const boost::filesystem::path& path_parserDll,
     , parserDllHash( path_parserDll )
     , megaCompilerHash( path_megaCompiler )
     , clangPluginHash( path_clangPlugin )
-    , databaseHash( path_databaseDll )
 
-    , strClangCompilerVersion( getClangVersion( path_clangCompiler ) )
+    , strClangCompilerVersion( strClangCompilerVersion )
     , clangCompilerHash( strClangCompilerVersion )
 
-    , toolChainHash( parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseHash )
+    , databaseVersion( szDatabaseVersion )
+
+    , toolChainHash( parserDllHash, megaCompilerHash, clangCompilerHash, clangPluginHash, databaseVersion )
 {
 }
 

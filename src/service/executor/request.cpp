@@ -60,14 +60,15 @@ void ExecutorRequestConversation::RootListNetworkNodes( boost::asio::yield_conte
     getLeafResponse( yield_ctx ).RootListNetworkNodes( result );
 }
 
-void ExecutorRequestConversation::RootPipelineStartJobs( const pipeline::Configuration& configuration,
-                                                         const network::ConversationID& rootConversationID,
-                                                         boost::asio::yield_context&    yield_ctx )
+void ExecutorRequestConversation::RootPipelineStartJobs( const mega::utilities::ToolChain& toolChain,
+                                                         const pipeline::Configuration&    configuration,
+                                                         const network::ConversationID&    rootConversationID,
+                                                         boost::asio::yield_context&       yield_ctx )
 {
     mega::pipeline::Pipeline::Ptr pPipeline;
     {
         std::ostringstream osLog;
-        pPipeline = pipeline::Registry::getPipeline( configuration, osLog );
+        pPipeline = pipeline::Registry::getPipeline( toolChain, configuration, osLog );
         if ( !pPipeline )
         {
             SPDLOG_ERROR( "Executor: Failed to load pipeline: {}", configuration.getPipelineID() );

@@ -334,7 +334,8 @@ public:
         getRootResponse( yield_ctx ).RootListNetworkNodes( result );
     }
 
-    virtual void RootPipelineStartJobs( const mega::pipeline::Configuration& configuration,
+    virtual void RootPipelineStartJobs( const mega::utilities::ToolChain&    toolChain,
+                                        const mega::pipeline::Configuration& configuration,
                                         const network::ConversationID&       rootConversationID,
                                         boost::asio::yield_context&          yield_ctx ) override
     {
@@ -344,7 +345,7 @@ public:
             if ( pConnection->getTypeOpt().value() == network::Node::Executor )
             {
                 network::daemon_leaf::Request_Encode rq( *this, *pConnection, yield_ctx );
-                auto jobs = rq.RootPipelineStartJobs( configuration, rootConversationID );
+                auto jobs = rq.RootPipelineStartJobs( toolChain, configuration, rootConversationID );
                 std::copy( jobs.begin(), jobs.end(), std::back_inserter( allJobs ) );
             }
         }
@@ -460,7 +461,7 @@ public:
         getRootResponse( yield_ctx ).RootSimWriteLockReady();
     }
 
-    virtual void RootShutdown( boost::asio::yield_context& yield_ctx  ) override
+    virtual void RootShutdown( boost::asio::yield_context& yield_ctx ) override
     {
         for ( const auto& [ id, pLeaf ] : m_daemon.m_leafServer.getConnections() )
         {

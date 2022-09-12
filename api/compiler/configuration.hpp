@@ -42,7 +42,6 @@ struct Configuration
     std::string                            projectName;
     std::vector< boost::filesystem::path > componentInfoPaths;
     Directories                            directories;
-    utilities::ToolChain                   toolChain;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -52,7 +51,6 @@ struct Configuration
         archive& boost::serialization::make_nvp( "projectName", projectName );
         archive& boost::serialization::make_nvp( "componentInfoPaths", componentInfoPaths );
         archive& boost::serialization::make_nvp( "directories", directories );
-        archive& boost::serialization::make_nvp( "toolChain", toolChain );
     }
 };
 

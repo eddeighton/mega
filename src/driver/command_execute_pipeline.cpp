@@ -70,7 +70,7 @@ mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&
     }
 
     std::ostringstream            osLog;
-    mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( pipelineConfig, osLog );
+    mega::pipeline::Pipeline::Ptr pPipeline = mega::pipeline::Registry::getPipeline( toolChain, pipelineConfig, osLog );
     SPDLOG_TRACE( "{}", osLog.str() );
 
     mega::network::PipelineResult pipelineResult( true, "", buildHashCodes.get() );

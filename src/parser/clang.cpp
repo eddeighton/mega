@@ -22,7 +22,6 @@ public:
     void HandleDiagnostic( clang::DiagnosticsEngine::Level DiagLevel, const clang::Diagnostic& Info ) override
     {
         llvm::SmallString< 100 > msg;
-        // llvm::SmallVectorImpl<char> msg( 256 );
         switch ( DiagLevel )
         {
             case clang::DiagnosticsEngine::Ignored:

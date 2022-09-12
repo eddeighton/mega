@@ -34,7 +34,8 @@ public:
     network::leaf_exe::Response_Encode getLeafResponse( boost::asio::yield_context& yield_ctx );
 
     virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override;
-    virtual void RootPipelineStartJobs( const mega::pipeline::Configuration& configuration,
+    virtual void RootPipelineStartJobs( const mega::utilities::ToolChain&    toolChain,
+                                        const mega::pipeline::Configuration& configuration,
                                         const network::ConversationID&       rootConversationID,
                                         boost::asio::yield_context&          yield_ctx ) override;
     virtual void RootProjectUpdated( const mega::network::Project& project,

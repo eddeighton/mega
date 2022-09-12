@@ -229,6 +229,18 @@ int main( int argc, const char* argv[] )
                 {
                     determinant ^= sourceFilePath;
                 }
+                // add all templates in injaFolderPath
+                {
+                    for ( boost::filesystem::directory_iterator i( injaFolderPath ), iEnd; i != iEnd; ++i )
+                    {
+                        const auto filePath = i->path();
+                        if ( boost::filesystem::is_regular_file( filePath ) )
+                        {
+                            VERIFY_RTE( boost::filesystem::extension( filePath ) == ".jinja" );
+                            determinant ^= filePath;
+                        }
+                    }
+                }
 
                 const db::schema::Schema schema = loadSchema( inputSourceFiles );
                 OutputFiles              outputFiles;

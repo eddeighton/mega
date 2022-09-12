@@ -1,0 +1,21 @@
+cmake_minimum_required( VERSION 3.4...3.16 )
+
+message( "Generating ToolChain.xml" )
+
+find_path(LLVM_CONFIGURATION_PATH NAMES "llvm/install" PATHS "${CMAKE_INSTALL_PREFIX}/../../" REQUIRED NO_DEFAULT_PATH)
+find_file(SCRIPT_CLANG_COMPILER NAMES clang++ PATHS ${LLVM_CONFIGURATION_PATH}/llvm/install/bin REQUIRED NO_DEFAULT_PATH)
+
+execute_process( 
+	COMMAND mega --tool_chain_hash
+	
+		--clang_compiler "${SCRIPT_CLANG_COMPILER}"
+		--parser_dll "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:parser>"
+		--mega_compiler "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:compiler>"
+		--clang_plugin "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:clang_plugin>"
+		--database_dll "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:database>"
+	
+		--output_xml "${CMAKE_INSTALL_PREFIX}/etc/toolchain.xml"
+
+		WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}
+	)
+

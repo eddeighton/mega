@@ -154,17 +154,20 @@ Task decode( const pipeline::TaskDescriptor& taskDescriptor )
 class CompilerPipeline : public pipeline::Pipeline
 {
     std::optional< compiler::Configuration > m_configuration;
+    std::optional< mega::utilities::ToolChain > m_toolChain;
 
 public:
     CompilerPipeline() {}
 
     // pipeline::Pipeline
     virtual pipeline::Schedule getSchedule( pipeline::Progress& progress, pipeline::Stash& stash ) override;
-    virtual void               execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
-                                        pipeline::Stash& stash, pipeline::DependencyProvider& dependencies ) override;
+    virtual void execute( const pipeline::TaskDescriptor& pipelineTask,
+                          pipeline::Progress& progress, pipeline::Stash& stash,
+                          pipeline::DependencyProvider& dependencies ) override;
 
-    virtual void initialise( const pipeline::Configuration& pipelineConfig, std::ostream& osLog ) override
+    virtual void initialise( const mega::utilities::ToolChain& toolChain, const pipeline::Configuration& pipelineConfig, std::ostream& osLog ) override
     {
+        m_toolChain = toolChain;
         m_configuration = fromPipelineConfiguration( pipelineConfig );
 
         // check the version is latest
@@ -392,14 +395,16 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
                                 pipeline::Stash& stash, pipeline::DependencyProvider& dependencies )
 {
+    VERIFY_RTE( m_toolChain.has_value() );
     VERIFY_RTE( m_configuration.has_value() );
+    
     Configuration& config = m_configuration.value();
 
     const Task task = decode( pipelineTask );
 
     mega::io::StashEnvironment environment( stash, config.directories );
 
-    mega::compiler::TaskArguments taskArguments( environment, config.toolChain, dependencies.getParser() );
+    mega::compiler::TaskArguments taskArguments( environment, m_toolChain.value(), dependencies.getParser() );
 
     mega::compiler::BaseTask::Ptr pTask;
 

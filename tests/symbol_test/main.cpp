@@ -139,10 +139,8 @@ void testone()
         boost::dll::shared_library m_library;
     };*/
 
-int main( int argc, const char* argv[] )
+void testtwo()
 {
-    // testone();
-
     using FunctionType = class std::basic_string< char > ( * )( mega::reference, int, int );
     mega::reference ref;
 
@@ -161,13 +159,12 @@ int main( int argc, const char* argv[] )
     }
 
     {
-        boost::shared_ptr< void > pSymbolDirect
-            = boost::dll::import_symbol< void* >( library, "_mw32" );
+        boost::shared_ptr< void > pSymbolDirect = boost::dll::import_symbol< void* >( library, "_mw32" );
         VERIFY_RTE_MSG( pSymbolDirect, "Failed to load symbol void" );
         std::cout << "Symbol void: " << std::hex << pSymbolDirect << std::endl;
 
         FunctionType pFunctionPtr = reinterpret_cast< FunctionType >( pSymbolDirect.get() );
-        std::string strResult = pFunctionPtr( ref, 1, 2 );
+        std::string  strResult    = pFunctionPtr( ref, 1, 2 );
         std::cout << "Function returned: " << strResult << std::endl;
     }
 
@@ -184,9 +181,29 @@ int main( int argc, const char* argv[] )
         std::cout << "Symbol Alias: " << std::hex << pSymbol.get() << std::endl;
 
         FunctionType pFunctionPtr = reinterpret_cast< FunctionType >( pSymbol.get() );
-        std::string strResult = pFunctionPtr( ref, 1, 2 );
+        std::string  strResult    = pFunctionPtr( ref, 1, 2 );
         std::cout << "Function returned: " << strResult << std::endl;
     }
+}
+
+int main( int argc, const char* argv[] )
+{
+    // objcopy --add-section hello2=./helloworld.txt editor
+
+    // ld -r -b binary ./helloworld.txt -o helloworld.o
+    // objcopy --add-section hello=helloworld.o symbol_test
+    // objdump -s -j hello symbol_test | tail -3 | xxd -r
+
+    auto pBegin
+        = boost::dll::import_symbol< const char* >( boost::dll::program_location(), "_binary___helloworld_txt_start" );
+    auto pEnd
+        = boost::dll::import_symbol< const char* >( boost::dll::program_location(), "_binary___helloworld_txt_end" );
+    auto pSize
+        = boost::dll::import_symbol< const char* >( boost::dll::program_location(), "_binary___helloworld_txt_size" );
+
+    VERIFY_RTE_MSG( ( pEnd.get() - pBegin.get() ) < 10000, "Invalid data section pointers found" );
+
+    std::cout << "Found symbols" << std::endl;
 
     return 0;
 }
