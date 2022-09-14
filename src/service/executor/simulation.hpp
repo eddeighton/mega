@@ -33,6 +33,7 @@ public:
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
+    void simulationDeadline();
     void runSimulation( boost::asio::yield_context& yield_ctx );
 
     network::Sender& getRequestSender()
@@ -69,6 +70,7 @@ private:
     network::ConcurrentChannel                    m_requestChannel;
     network::Sender::Ptr                          m_pRequestChannelSender;
     boost::asio::yield_context*                   m_pYieldContext = nullptr;
+    std::optional< mega::ExecutionIndex >         m_executionIndex;
     std::optional< mega::runtime::ExecutionRoot > m_executionRoot;
     mega::Scheduler                               m_scheduler;
 };

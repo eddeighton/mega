@@ -117,7 +117,6 @@ public:
         ExecutionContext* pExecutionContext = ExecutionContext::get();
         VERIFY_RTE( pExecutionContext );
         if ( pExecutionContext->getThisExecutionIndex() != executionIndex )
-
         {
             // request write lock
             pExecutionContext->writeLock( executionIndex );
@@ -155,9 +154,20 @@ public:
 
     mega::reference allocateRoot( const mega::ExecutionIndex& executionIndex )
     {
-        const TypeID          rootTypeID          = m_database.getRootTypeID();
-        const LogicalAddress  rootLogicalAddress  = allocateLogical( executionIndex, rootTypeID );
+        SPDLOG_TRACE( "RUNTIME: allocateRoot: {}", executionIndex );
+
+        const TypeID rootTypeID = m_database.getRootTypeID();
+
+        ExecutionContext* pExecutionContext = ExecutionContext::get();
+        VERIFY_RTE( pExecutionContext );
+        const mega::ExecutionIndex thisIndex = pExecutionContext->getThisExecutionIndex();
+        VERIFY_RTE( thisIndex == executionIndex );
+
+        const LogicalAddress rootLogicalAddress = allocateLogical( executionIndex, rootTypeID );
+        VERIFY_RTE( thisIndex == pExecutionContext->getThisExecutionIndex() );
+
         const PhysicalAddress rootPhysicalAddress = logicalToPhysical( executionIndex, rootTypeID, rootLogicalAddress );
+        VERIFY_RTE( thisIndex == pExecutionContext->getThisExecutionIndex() );
 
         mega::reference ref;
         {
@@ -454,6 +464,8 @@ void initialiseStaticRuntime( const mega::network::MegastructureInstallation& me
     }
 }
 
+bool isStaticRuntimeInitialised() { return g_pRuntime.get(); }
+
 } // namespace
 } // namespace runtime
 } // namespace mega
@@ -501,14 +513,14 @@ void initialiseRuntime( const mega::network::MegastructureInstallation& megastru
 {
     initialiseStaticRuntime( megastructureInstallation, project );
 }
+bool isRuntimeInitialised() { return isStaticRuntimeInitialised(); }
 
 ExecutionRoot::ExecutionRoot( mega::ExecutionIndex executionIndex )
-    : m_executionIndex( executionIndex )
-    , m_root( g_pRuntime->allocateRoot( m_executionIndex ) )
+    : m_root( g_pRuntime->allocateRoot( executionIndex ) )
 {
 }
 
-ExecutionRoot::~ExecutionRoot() { g_pRuntime->deAllocateRoot( m_executionIndex ); }
+ExecutionRoot::~ExecutionRoot() { g_pRuntime->deAllocateRoot( m_root.physical.execution ); }
 
 void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
 {

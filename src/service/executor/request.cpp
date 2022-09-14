@@ -101,6 +101,8 @@ void ExecutorRequestConversation::RootPipelineStartJobs( const mega::utilities::
 void ExecutorRequestConversation::RootProjectUpdated( const mega::network::Project& project,
                                                       boost::asio::yield_context&   yield_ctx )
 {
+    // terminate all simulations
+    
     mega::runtime::initialiseRuntime( m_executor.m_megastructureInstallation, project );
     getLeafResponse( yield_ctx ).RootProjectUpdated();
 }
@@ -119,6 +121,8 @@ void ExecutorRequestConversation::RootSimList( boost::asio::yield_context& yield
 
 void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yield_ctx )
 {
+    VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );
+
     const network::ConversationID id = m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() );
 
     Simulation::Ptr pSim = std::make_shared< Simulation >( m_executor, id );
@@ -132,6 +136,7 @@ void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yie
 void ExecutorRequestConversation::RootSimReadLock( const mega::network::ConversationID& simulationID,
                                                    boost::asio::yield_context&          yield_ctx )
 {
+    VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );
     SPDLOG_TRACE( "ExecutorRequestConversation::RootSimReadLock: {}", simulationID );
 
     Executor::SimulationMap::const_iterator iFind = m_executor.m_simulations.find( simulationID );
@@ -147,6 +152,7 @@ void ExecutorRequestConversation::RootSimReadLock( const mega::network::Conversa
 void ExecutorRequestConversation::RootSimWriteLock( const mega::network::ConversationID& simulationID,
                                                     boost::asio::yield_context&          yield_ctx )
 {
+    VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );
     Executor::SimulationMap::const_iterator iFind = m_executor.m_simulations.find( simulationID );
     VERIFY_RTE_MSG( iFind != m_executor.m_simulations.end(), "Failed to find simulation: " << simulationID );
     Simulation::Ptr pSimulation = iFind->second;
@@ -158,8 +164,9 @@ void ExecutorRequestConversation::RootSimWriteLock( const mega::network::Convers
 }
 
 void ExecutorRequestConversation::RootSimReleaseLock( const mega::network::ConversationID& simulationID,
-                                                        boost::asio::yield_context& yield_ctx )
+                                                      boost::asio::yield_context&          yield_ctx )
 {
+    VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );
     Executor::SimulationMap::const_iterator iFind = m_executor.m_simulations.find( simulationID );
     VERIFY_RTE_MSG( iFind != m_executor.m_simulations.end(), "Failed to find simulation: " << simulationID );
     Simulation::Ptr pSimulation = iFind->second;

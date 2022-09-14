@@ -59,7 +59,7 @@ int main( int argc, const char* argv[] )
         auto logThreads = mega::network::configureLog( logFolder, "root", mega::network::fromStr( strConsoleLogLevel ),
                                            mega::network::fromStr( strLogFileLevel ) );
 
-        boost::asio::io_context ioContext;
+        boost::asio::io_context ioContext( 1 );
 
         mega::service::Root root( ioContext );
 

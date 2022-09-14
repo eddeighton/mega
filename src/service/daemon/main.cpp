@@ -63,7 +63,7 @@ int main( int argc, const char* argv[] )
             = mega::network::configureLog( logFolder, "daemon", mega::network::fromStr( strConsoleLogLevel ),
                                            mega::network::fromStr( strLogFileLevel ) );
 
-        boost::asio::io_context ioContext;
+        boost::asio::io_context ioContext( 1 );
 
         mega::service::Daemon daemon( ioContext, strIP );
 

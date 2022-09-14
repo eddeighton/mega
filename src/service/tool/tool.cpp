@@ -103,25 +103,32 @@ public:
     void run( boost::asio::yield_context& yield_ctx )
     {
         ExecutionContext::resume( this );
-
         m_pYieldContext = &yield_ctx;
+        
+        // note the runtime will query getThisExecutionIndex while creating the root
+        {
+            const std::pair< bool, mega::ExecutionIndex > result = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
+            VERIFY_RTE_MSG( result.first, "Failed to acquire execution context" );
+            m_executionIndex = result.second;
+        }
 
-        const std::pair< bool, mega::ExecutionIndex > result = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
-        VERIFY_RTE_MSG( result.first, "Failed to acquire execution context" );
-        SPDLOG_TRACE( "Acquired execution context: {}", result.second );
-        m_executionRoot = std::move( mega::runtime::ExecutionRoot( result.second ) );
+        SPDLOG_TRACE( "Acquired execution context: {}", m_executionIndex.value() );
+        m_executionRoot = mega::runtime::ExecutionRoot( m_executionIndex.value() );
 
-        m_functor( yield_ctx );
+        {
+            m_functor( yield_ctx );
+        }
 
         m_pYieldContext = nullptr;
-
         ExecutionContext::suspend();
     }
 
     // mega::ExecutionContext
-    virtual ExecutionIndex getThisExecutionIndex() override { return m_executionRoot->index(); }
-    mega::reference        getRoot() override { return m_executionRoot->root(); }
-    virtual std::string    acquireMemory( ExecutionIndex executionIndex ) override
+    virtual ExecutionIndex getThisExecutionIndex() override { return m_executionIndex.value(); }
+
+    mega::reference getRoot() override { return m_executionRoot->root(); }
+
+    virtual std::string acquireMemory( ExecutionIndex executionIndex ) override
     {
         VERIFY_RTE( m_pYieldContext );
         SPDLOG_TRACE( "acquireMemory called with: {}", executionIndex );
@@ -153,6 +160,7 @@ public:
 
     virtual void readLock( ExecutionIndex executionIndex ) override
     {
+        SPDLOG_TRACE( "readLock from: {} to: {}", m_executionIndex.value(), executionIndex );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id
             = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( executionIndex );
@@ -161,6 +169,7 @@ public:
 
     virtual void writeLock( ExecutionIndex executionIndex ) override
     {
+        SPDLOG_TRACE( "writeLock from: {} to: {}", m_executionIndex.value(), executionIndex );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id
             = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( executionIndex );
@@ -169,6 +178,7 @@ public:
 
     virtual void releaseLock( ExecutionIndex executionIndex ) override
     {
+        SPDLOG_TRACE( "releaseLock from: {} to: {}", m_executionIndex.value(), executionIndex );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id
             = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( executionIndex );
@@ -176,6 +186,7 @@ public:
     }
 
     boost::asio::yield_context*                   m_pYieldContext = nullptr;
+    std::optional< mega::ExecutionIndex >         m_executionIndex;
     std::optional< mega::runtime::ExecutionRoot > m_executionRoot;
 };
 

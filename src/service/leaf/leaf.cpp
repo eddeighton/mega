@@ -265,6 +265,13 @@ public:
         getDaemonResponse( yield_ctx ).RootSimReadLock();
     }
 
+    virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
+                                  boost::asio::yield_context&          yield_ctx ) override
+    {
+        getExeRequest( yield_ctx ).RootSimWriteLock( simulationID );
+        getDaemonResponse( yield_ctx ).RootSimWriteLock();
+    }
+
     virtual void RootSimReleaseLock( const mega::network::ConversationID& simulationID,
                                      boost::asio::yield_context&          yield_ctx ) override
     {
@@ -527,6 +534,7 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType )
     : network::ConversationManager( network::makeProcessName( network::Node::Leaf ), m_io_context )
     , m_pSender( std::move( pSender ) )
     , m_nodeType( nodeType )
+    , m_io_context( 1 ) // single threaded concurrency hint
     , m_receiverChannel( m_io_context, *this )
     , m_client( m_io_context, *this, "localhost", mega::network::MegaDaemonServiceName() )
     , m_work_guard( m_io_context.get_executor() )

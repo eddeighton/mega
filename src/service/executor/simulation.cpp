@@ -46,9 +46,11 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
 }
 
 // mega::ExecutionContext
-ExecutionIndex  Simulation::getThisExecutionIndex() { return m_executionRoot->index(); }
+ExecutionIndex Simulation::getThisExecutionIndex() { return m_executionIndex.value(); }
+
 mega::reference Simulation::getRoot() { return m_executionRoot->root(); }
-std::string     Simulation::acquireMemory( ExecutionIndex executionIndex )
+
+std::string Simulation::acquireMemory( ExecutionIndex executionIndex )
 {
     VERIFY_RTE( m_pYieldContext );
     return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( executionIndex );
@@ -100,17 +102,30 @@ void Simulation::releaseLock( ExecutionIndex executionIndex )
     getLeafRequest( *m_pYieldContext ).ExeSimReleaseLock( id );
 }
 
+void Simulation::simulationDeadline() {}
+
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
     {
-        const std::pair< bool, mega::ExecutionIndex > result = getLeafRequest( yield_ctx ).ExeCreateExecutionContext();
-        VERIFY_RTE_MSG( result.first, "Failed to acquire execution index" );
-        m_executionRoot = std::move( mega::runtime::ExecutionRoot( result.second ) );
+        {
+            const std::pair< bool, mega::ExecutionIndex > result
+                = getLeafRequest( yield_ctx ).ExeCreateExecutionContext();
+            VERIFY_RTE_MSG( result.first, "Failed to acquire execution index" );
+            m_executionIndex = result.second;
+        }
+
+        m_executionRoot = mega::runtime::ExecutionRoot( m_executionIndex.value() );
+
+        // start deadline timer
+        boost::asio::steady_timer timer( m_executor.m_io_context );
 
         bool bContinue = true;
         while ( bContinue )
         {
+            timer.expires_from_now( std::chrono::milliseconds( 15 ) );
+            timer.async_wait( yield_ctx );
+
             // run a simulation cycle
             m_scheduler.cycle();
 
@@ -119,6 +134,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 do
                 {
+                    // needs timed wait...
+
                     const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
 
                     std::optional< mega::network::ConversationID > requestingConversationID;
@@ -146,28 +163,29 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         default:
                             break;
                     }
-
-                    ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
-                    try
                     {
-                        ASSERT( isRequest( msg.msg ) );
-                        if ( !dispatchRequest( msg.msg, yield_ctx ) )
+                        ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
+                        try
                         {
-                            SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
-                            THROW_RTE( "Failed to dispatch request message: " << msg.msg );
+                            ASSERT( isRequest( msg.msg ) );
+                            if ( !dispatchRequest( msg.msg, yield_ctx ) )
+                            {
+                                SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
+                                THROW_RTE( "Failed to dispatch request message: " << msg.msg );
+                            }
                         }
-                    }
-                    catch ( std::exception& ex )
-                    {
-                        if ( requestingConversationID.has_value() )
+                        catch ( std::exception& ex )
                         {
-                            Conversation::Ptr pRequestCon
-                                = m_executor.findExistingConversation( requestingConversationID.value() );
-                            pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
-                        }
-                        else
-                        {
-                            error( m_stack.back(), ex.what(), yield_ctx );
+                            if ( requestingConversationID.has_value() )
+                            {
+                                Conversation::Ptr pRequestCon
+                                    = m_executor.findExistingConversation( requestingConversationID.value() );
+                                pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
+                            }
+                            else
+                            {
+                                error( m_stack.back(), ex.what(), yield_ctx );
+                            }
                         }
                     }
                 } while ( !m_stack.empty() );
