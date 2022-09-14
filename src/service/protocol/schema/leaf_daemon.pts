@@ -2,7 +2,7 @@
 msg LeafEnrole
 {
     request(mega::network::Node::Type type);
-    response();
+    response(MPEStorage mpe);
 }
 
 msg TermListNetworkNodes
@@ -138,34 +138,34 @@ msg ExeGetProject
 // Simulations
 msg ExeCreateExecutionContext
 {
-    request();
-    response(std::pair< bool, mega::ExecutionIndex > result);
+    request(mega::MPEStorage mpe);
+    response(mega::MPEStorage mpe);
 }
 
 msg ExeReleaseExecutionContext
 {
-    request(mega::ExecutionIndex index);
+    request(mega::MPEStorage index);
     response();
 }
 
 msg ExeAcquireMemory
 {
-    request(mega::ExecutionIndex executionIndex);
+    request(mega::MPEStorage mpe);
     response(std::string strMemoryName);
 }
-msg ExeAllocateLogical
+msg ExeAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
-    response(mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::TypeID objectTypeID);
+    response(mega::AddressStorage networkAddress);
 }
-msg ExeDeAllocateLogical
+msg ExeDeAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::AddressStorage networkAddress);
     response();
 }
 msg ExeGetExecutionContextID
 {
-    request(mega::ExecutionIndex executionIndex);
+    request(mega::MPEStorage mpe);
     response(mega::network::ConversationID conversationID);
 }
 
@@ -194,29 +194,29 @@ msg ToolGetMegastructureInstallation
 
 msg ToolCreateExecutionContext
 {
-    request();
-    response(std::pair< bool, mega::ExecutionIndex > result);
+    request(mega::MPEStorage mpe);
+    response(mega::MPEStorage mpe);
 }
 
 msg ToolReleaseExecutionContext
 {
-    request(mega::ExecutionIndex index);
+    request(mega::MPEStorage index);
     response();
 }
 
 msg ToolAcquireMemory
 {
-    request(mega::ExecutionIndex executionIndex);
+    request(mega::MPEStorage mpe);
     response(std::string strMemoryName);
 }
-msg ToolAllocateLogical
+msg ToolAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
-    response(mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::TypeID objectTypeID);
+    response(mega::AddressStorage networkAddress);
 }
-msg ToolDeAllocateLogical
+msg ToolDeAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::AddressStorage networkAddress);
     response();
 }
 
@@ -232,7 +232,7 @@ msg ToolRestore
 }
 msg ToolGetExecutionContextID
 {
-    request(mega::ExecutionIndex executionIndex);
+    request(mega::MPEStorage mpe);
     response(mega::network::ConversationID conversationID);
 }
 

@@ -55,34 +55,34 @@ msg ExeGetProject
 msg ExeCreateExecutionContext
 {
     request();
-    response(std::pair< bool, mega::ExecutionIndex > result);
+    response(mega::MPEStorage result);
 }
 
 msg ExeReleaseExecutionContext
 {
-    request(mega::ExecutionIndex index);
+    request(mega::MPEStorage index);
     response();
 }
 
 msg ExeAcquireMemory
 {
-    request(mega::ExecutionIndex executionIndex);
+    request(mega::MPEStorage mpe);
     response(std::string strMemoryName);
 }
-msg ExeAllocateLogical
+msg ExeAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
-    response(mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::TypeID objectTypeID);
+    response(mega::AddressStorage networkAddress);
 }
-msg ExeDeAllocateLogical
+msg ExeDeAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::AddressStorage networkAddress);
     response();
 }
 
 msg ExeGetExecutionContextID
 {
-    request(mega::ExecutionIndex executionIndex);
+    request(mega::MPEStorage mpe);
     response(mega::network::ConversationID conversationID);
 }
 

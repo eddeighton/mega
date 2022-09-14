@@ -1,7 +1,19 @@
 
+msg DaemonEnrole
+{
+    request();
+    response(MPEStorage mpe);
+}
+
+msg DaemonLeafEnrole
+{
+    request(MPEStorage mpe);
+    response(MPEStorage mpe);
+}
+
 msg DaemonGetExecutionContextID
 {
-    request(mega::ExecutionIndex executionIndex);
+    request(mega::MPEStorage mpe);
     response(mega::network::ConversationID conversationID);
 }
 
@@ -136,24 +148,24 @@ msg ExeGetProject
 // Simulations
 msg ExeCreateExecutionContext
 {
-    request();
-    response(std::pair< bool, mega::ExecutionIndex > result);
+    request(mega::MPEStorage mpe);
+    response(mega::MPEStorage result);
 }
 
 msg ExeReleaseExecutionContext
 {
-    request(mega::ExecutionIndex index);
+    request(mega::MPEStorage mpe);
     response();
 }
 
-msg ExeAllocateLogical
+msg ExeAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
-    response(mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::TypeID objectTypeID);
+    response(mega::AddressStorage networkAddress);
 }
-msg ExeDeAllocateLogical
+msg ExeDeAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::AddressStorage networkAddress);
     response();
 }
 
@@ -182,24 +194,24 @@ msg ToolGetMegastructureInstallation
 
 msg ToolCreateExecutionContext
 {
-    request();
-    response( std::pair< bool, mega::ExecutionIndex > result); 
+    request(mega::MPEStorage mpe);
+    response(mega::MPEStorage result); 
 }
 
 msg ToolReleaseExecutionContext
 {
-    request(mega::ExecutionIndex index);
+    request(mega::MPEStorage mpe);
     response();
 }
 
-msg ToolAllocateLogical
+msg ToolAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID);
-    response(mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::TypeID objectTypeID);
+    response(mega::AddressStorage networkAddress);
 }
-msg ToolDeAllocateLogical
+msg ToolDeAllocateNetworkAddress
 {
-    request(mega::ExecutionIndex executionIndex, mega::AddressStorage logicalAddress);
+    request(mega::MPEStorage mpe, mega::AddressStorage networkAddress);
     response();
 }
 

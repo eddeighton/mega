@@ -165,7 +165,6 @@ public:
     
     inline RingAllocator()
     {
-        static_assert( Size > sizeof( std::int64_t ) * 8 );
         m_head = 0U;
         m_tail = 0U;
         m_full = 0U;

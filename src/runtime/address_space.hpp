@@ -22,9 +22,9 @@ namespace runtime
 class AddressSpace
 {
     using SharedMemoryType        = boost::interprocess::managed_shared_memory;
-    using AddressMappingAllocator = boost::interprocess::allocator< std::pair< const AddressStorage, AddressStorage >,
+    using AddressMappingAllocator = boost::interprocess::allocator< std::pair< const NetworkAddress, MachineAddress >,
                                                                     SharedMemoryType::segment_manager >;
-    using AddressMapping = boost::interprocess::map< AddressStorage, AddressStorage, std::less< AddressStorage >,
+    using AddressMapping = boost::interprocess::map< NetworkAddress, MachineAddress, std::less< NetworkAddress >,
                                                      AddressMappingAllocator >;
 
     static constexpr const char* MEMORY_NAME = "MEGA_RUNTIME_ADDRESS_SPACE_MEMORY";
@@ -48,22 +48,22 @@ public:
 
     boost::interprocess::named_mutex& mutex() { return m_addressSpaceMutex; }
 
-    std::optional< PhysicalAddress > find( LogicalAddress logicalAddress ) const
+    std::optional< MachineAddress > find( NetworkAddress networkAddress ) const
     {
-        std::optional< PhysicalAddress > result;
+        std::optional< MachineAddress > result;
 
-        auto iFind = m_addressMapping.find( Address( logicalAddress ) );
+        auto iFind = m_addressMapping.find( networkAddress );
         if ( iFind != m_addressMapping.end() )
         {
-            return Address{ iFind->second }.physical;
+            return iFind->second;
         }
 
         return result;
     }
 
-    void insert( LogicalAddress logicalAddress, PhysicalAddress physicalAddress )
+    void insert( NetworkAddress networkAddress, MachineAddress machineAddress )
     {
-        m_addressMapping.insert( { Address( logicalAddress ), Address( physicalAddress ) } );
+        m_addressMapping.insert( { networkAddress, machineAddress } );
     }
 
 private:

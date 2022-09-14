@@ -21,8 +21,7 @@
 #define EG_COMMON_22_04_2019
 
 #include <cstdint>
-#include <limits>
-#include <string>
+//#include <limits>
 
 namespace mega
 {
@@ -31,121 +30,182 @@ using Instance       = std::uint16_t;
 using SymbolID       = std::int16_t;
 using TypeID         = std::int16_t;
 using TimeStamp      = std::uint32_t;
-using AddressStorage = std::uint32_t;
-using ExecutionIndex = std::uint16_t;
-using ObjectIndex    = std::uint32_t;
 using event_iterator = std::uint64_t;
-
-static constexpr ExecutionIndex MAX_SIMULATIONS = 512;
-static constexpr ObjectIndex    MAX_OBJECTS     = 4194304;
-static constexpr AddressStorage INVALID_ADDRESS = std::numeric_limits< AddressStorage >::max();
 
 struct TypeInstance
 {
     Instance instance = 0U;
-    TypeID   typeID   = 0;
+    TypeID   type     = 0;
+
+    TypeInstance() {}
+    TypeInstance( Instance instance, TypeID type )
+        : instance( instance )
+        , type( type )
+    {
+    }
 
     inline bool operator==( const TypeInstance& cmp ) const
     {
-        return ( instance == cmp.instance ) && ( typeID == cmp.typeID );
+        return ( instance == cmp.instance ) && ( type == cmp.type );
     }
     inline bool operator!=( const TypeInstance& cmp ) const { return !( *this == cmp ); }
     inline bool operator<( const TypeInstance& cmp ) const
     {
         return ( instance != cmp.instance ) ? ( instance < cmp.instance )
-               : ( typeID != cmp.typeID )   ? ( typeID < cmp.typeID )
+               : ( type != cmp.type )       ? ( type < cmp.type )
                                             : false;
     }
+
+    inline bool is_valid() const { return type != 0; }
 };
 static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
 
-enum AddressType
-{
-    LOGICAL_ADDRESS  = 0,
-    PHYSICAL_ADDRESS = 1
-};
+using AddressStorage                         = std::uint64_t; // recheck numeric_limits if change
+static constexpr AddressStorage NULL_ADDRESS = 0x0;           // std::numeric_limits< AddressStorage >::max();
 
-struct PhysicalAddress
-{
-    // 2 ^ 9    == 512
-    // 2 ^ 22   == 4194304
-    AddressStorage execution : 9, object : 22, type : 1;
-};
-static_assert( sizeof( PhysicalAddress ) == 4U, "Invalid PhysicalAddress Size" );
+using ProcessAddress = void*;
+using NetworkAddress = std::uint64_t;
 
-struct LogicalAddress
-{
-    // 2 ^ 31   == 2147483648
-    AddressStorage address : 31, type : 1;
-};
-static_assert( sizeof( LogicalAddress ) == 4U, "Invalid LogicalAddress Size" );
-
-struct Address
+struct NetworkOrProcessAddress
 {
     union
     {
-        AddressStorage  value;
-        LogicalAddress  logical;
-        PhysicalAddress physical;
+        AddressStorage nop_storage;
+        ProcessAddress pointer;
+        NetworkAddress network;
     };
-    Address()
-        : value( INVALID_ADDRESS )
+    inline NetworkOrProcessAddress()
+        : nop_storage( NULL_ADDRESS )
     {
     }
-    Address( AddressStorage value )
-        : value( value )
+    inline NetworkOrProcessAddress( ProcessAddress processAddress )
+        : pointer( processAddress )
     {
     }
-    Address( LogicalAddress logicalAddress )
-        : logical( logicalAddress )
-    {
-    }
-    Address( PhysicalAddress physicalAddress )
-        : physical( physicalAddress )
+    inline NetworkOrProcessAddress( NetworkAddress networkAddress )
+        : network( networkAddress )
     {
     }
 
-    inline bool        valid() const { return value != INVALID_ADDRESS; }
-    inline AddressType getType() const { return static_cast< AddressType >( logical.type ); }
-    inline             operator AddressStorage() const { return value; }
-    inline bool        operator==( const Address& cmp ) const { return ( value == cmp.value ); }
-    inline bool        operator!=( const Address& cmp ) const { return !( *this == cmp ); }
-    inline bool        operator<( const Address& cmp ) const { return value < cmp.value; }
+    inline bool is_null() const { return nop_storage == NULL_ADDRESS; }
+    inline      operator AddressStorage() const { return nop_storage; }
+    inline bool operator==( const NetworkOrProcessAddress& cmp ) const { return ( nop_storage == cmp.nop_storage ); }
+    inline bool operator!=( const NetworkOrProcessAddress& cmp ) const { return !( *this == cmp ); }
+    inline bool operator<( const NetworkOrProcessAddress& cmp ) const { return nop_storage < cmp.nop_storage; }
 };
-static_assert( sizeof( Address ) == 4U, "Invalid Address Size" );
+static_assert( sizeof( NetworkOrProcessAddress ) == 8U, "Invalid NetworkAddress Size" );
 
-struct reference : TypeInstance, Address
+using MachineID  = std::uint8_t;
+using ProcessID  = std::uint8_t;
+using ExecutorID = std::uint16_t;
+using ObjectID   = std::uint16_t;
+
+static constexpr MachineID  MAX_MACHINES             = 8;
+static constexpr ProcessID  MAX_PROCESS_PER_MACHINE  = 16;
+static constexpr ExecutorID MAX_EXECUTOR_PER_PROCESS = 256;
+static constexpr auto       MAX_OBJECTS_PER_EXECUTOR = 65536;
+
+static constexpr auto TOTAL_MACHINES  = MAX_MACHINES;                                                      // 8
+static constexpr auto TOTAL_PROCESSES = MAX_MACHINES * MAX_PROCESS_PER_MACHINE;                            // 128
+static constexpr auto TOTAL_EXECUTORS = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * MAX_EXECUTOR_PER_PROCESS; // 32768
+// static constexpr auto TOTAL_OBJECTS
+//     = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * MAX_EXECUTOR_PER_PROCESS * MAX_OBJECTS_PER_EXECUTOR;
+
+using MPEStorage = std::uint16_t;
+
+enum AddressType : MPEStorage
 {
-    reference() {}
-    reference( TypeInstance typeInstance, PhysicalAddress physicalAddres )
-        : TypeInstance( typeInstance )
-        , Address( physicalAddres )
+    NETWORK_ADDRESS = 0,
+    MACHINE_ADDRESS = 1
+};
+
+struct MachineProcessExecutor
+{
+    union
     {
+        MPEStorage mpe_storage;
+        MPEStorage executor : 8, process : 4, machine : 3, address_type : 1;
+    };
+    inline bool operator==( const MachineProcessExecutor& cmp ) const { return ( mpe_storage == cmp.mpe_storage ); }
+    inline bool operator!=( const MachineProcessExecutor& cmp ) const { return !( *this == cmp ); }
+    inline bool operator<( const MachineProcessExecutor& cmp ) const { return mpe_storage < cmp.mpe_storage; }
+
+    inline bool is_network() const { return address_type == NETWORK_ADDRESS; }
+    inline bool is_machine() const { return address_type == MACHINE_ADDRESS; }
+};
+static_assert( sizeof( MachineProcessExecutor ) == 2U, "Invalid MachineAddress Size" );
+
+struct ObjectAddress
+{
+    ObjectID    object;
+    inline bool operator==( const ObjectAddress& cmp ) const { return ( object == cmp.object ); }
+    inline bool operator!=( const ObjectAddress& cmp ) const { return !( *this == cmp ); }
+    inline bool operator<( const ObjectAddress& cmp ) const { return object < cmp.object; }
+};
+static_assert( sizeof( ObjectAddress ) == 2U, "Invalid ObjectAddress Size" );
+
+struct MachineAddress : ObjectAddress, MachineProcessExecutor
+{
+    inline bool operator==( const MachineAddress& cmp ) const
+    {
+        return ObjectAddress::operator==( cmp ) && MachineProcessExecutor::operator==( cmp );
     }
-    reference( TypeInstance typeInstance, LogicalAddress logicalAddress )
-        : TypeInstance( typeInstance )
-        , Address( logicalAddress )
+    inline bool operator!=( const MachineAddress& cmp ) const { return !( *this == cmp ); }
+    inline bool operator<( const MachineAddress& cmp ) const
     {
+        return ObjectAddress::operator!=( cmp ) ? ObjectAddress::         operator<( cmp )
+                                                : MachineProcessExecutor::operator<( cmp );
     }
-    reference( TypeInstance typeInstance, AddressStorage address )
+};
+static_assert( sizeof( MachineAddress ) == 4U, "Invalid MachineAddress Size" );
+
+struct reference : TypeInstance, MachineAddress, NetworkOrProcessAddress
+{
+    inline reference() {}
+    inline reference( TypeInstance typeInstance, MachineAddress machineAddress )
         : TypeInstance( typeInstance )
-        , Address( address )
+        , MachineAddress( machineAddress )
     {
+        address_type = MACHINE_ADDRESS;
+    }
+    inline reference( TypeInstance typeInstance, MachineAddress machineAddress, ProcessAddress process )
+        : TypeInstance( typeInstance )
+        , MachineAddress( machineAddress )
+        , NetworkOrProcessAddress( process )
+    {
+        address_type = MACHINE_ADDRESS;
+    }
+    inline reference( TypeInstance typeInstance, NetworkAddress networkAddress )
+        : TypeInstance( typeInstance )
+        , NetworkOrProcessAddress( networkAddress )
+    {
+        address_type = NETWORK_ADDRESS;
     }
 
     inline bool operator==( const reference& cmp ) const
     {
-        return ( !valid() && !cmp.valid() ) || ( TypeInstance::operator==( cmp ) && Address::operator==( cmp ) );
+        return ( address_type == cmp.address_type ) && TypeInstance::operator==( cmp )
+                   && ( ( ( address_type == MACHINE_ADDRESS ) && MachineAddress::operator==( cmp ) )
+                        || ( ( address_type == NETWORK_ADDRESS ) && NetworkOrProcessAddress::operator==( cmp ) ) )
+               || false;
     }
     inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
     inline bool operator<( const reference& cmp ) const
     {
-        return TypeInstance::operator!=( cmp ) ? TypeInstance::operator<( cmp )
-               : Address::operator!=( cmp )    ? Address::operator<( cmp )
-                                               : false;
+        return TypeInstance::operator!=( cmp )     ? TypeInstance::operator<( cmp )
+               : MachineAddress::operator!=( cmp ) ? MachineAddress::         operator<( cmp )
+                                                   : NetworkOrProcessAddress::operator<( cmp );
+    }
+
+    inline bool is_valid() const
+    {
+        if ( address_type == NETWORK_ADDRESS )
+            return !NetworkOrProcessAddress::is_null();
+        else
+            return TypeInstance::is_valid();
     }
 };
-static_assert( sizeof( reference ) == 8U, "Invalid reference Size" );
+static_assert( sizeof( reference ) == 16U, "Invalid reference Size" );
 
 enum ActionState
 {
@@ -173,7 +233,7 @@ inline const char* getActionState( ActionState state )
 
 enum OperationID : TypeID
 {
-    id_Imp_NoParams = std::numeric_limits< TypeID >::min(),
+    id_Imp_NoParams = -32768, // std::numeric_limits< TypeID >::min(),
     id_Imp_Params,
     id_Start,
     id_Stop,
@@ -207,7 +267,7 @@ enum ExplicitOperationID : TypeID
     HIGHEST_EXPLICIT_OPERATION_TYPE
 };
 
-static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - std::numeric_limits< TypeID >::min();
+static const TypeID TOTAL_OPERATION_TYPES = HIGHEST_OPERATION_TYPE - -32768; // std::numeric_limits< TypeID >::min();
 
 inline bool isOperationImplicit( OperationID operationType )
 {

@@ -65,6 +65,10 @@ void runCompilation( const std::string& strCmd )
             osError << common::COLOUR_END;
         }
     }
+    if( iCompilationResult != 0 )
+    {
+        SPDLOG_ERROR( "Error compilation invocation: {}", osError.str() );
+    }
     VERIFY_RTE_MSG( iCompilationResult == 0, "Error compilation invocation: " << osError.str() );
 }
 
@@ -213,11 +217,9 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
 
     std::ostringstream osObjectTypeID;
     osObjectTypeID << objectTypeID;
-    nlohmann::json data( { { "ObjectTypeID", osObjectTypeID.str() },
-                           { "shared_parts", nlohmann::json::array() },
-                           { "heap_parts", nlohmann::json::array() } } );
-
-    {
+    nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() } } );
+    
+    /*{
         using namespace FinalStage;
         for ( auto pBuffer : pObject->get_buffers() )
         {
@@ -362,7 +364,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                     data[ "heap_parts" ].push_back( part );
             }
         }
-    }
+    }*/
 
     std::ostringstream osCPPCode;
     m_pPimpl->render_allocation( data, osCPPCode );
@@ -395,7 +397,7 @@ void generateBufferRead( bool bShared, mega::TypeID id, FinalStage::MemoryLayout
                          std::ostream& os )
 {
     const std::string strType = bShared ? "shared" : "heap";
-    os << indent << "return (char*)_fptr_get_" << strType << "_" << id << "( " << strInstanceVar << ".physical )"
+    os << indent << "return (char*)_fptr_get_" << strType << "_" << id << "( " << strInstanceVar << ".object )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
        << pDimension->get_offset() << ";";
 }
@@ -406,7 +408,7 @@ void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayou
 {
     const std::string strType = bShared ? "shared" : "heap";
     os << indent << "return mega::runtime::WriteResult{ (char*)_fptr_get_" << strType << "_" << id << "( "
-       << strInstanceVar << ".physical )"
+       << strInstanceVar << ".object )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
        << pDimension->get_offset() << ", " << strInstanceVar << "};";
 }
@@ -437,12 +439,12 @@ void generateInstructions( const DatabaseInstance&                             d
             if ( szLocalSize > 1 )
             {
                 os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ".physical };";
+                   << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ".mpe_storage, " << s << ".pointer };";
             }
             else
             {
                 os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance, " << targetType << " }, " << s << ".physical };";
+                   << ".instance, " << targetType << " }, " << s << ".mpe_storage, " << s << ".pointer };";
             }
 
             data[ "assignments" ].push_back( os.str() );
@@ -461,7 +463,7 @@ void generateInstructions( const DatabaseInstance&                             d
             const std::size_t  szLocalSize = database.getLocalDomainSize( targetType );
 
             os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s << ".instance, "
-               << targetType << " }, " << s << ".physical };";
+               << targetType << " }, " << s << ".mpe_storage, " << s << ".process };";
 
             data[ "assignments" ].push_back( os.str() );
         }
@@ -534,19 +536,21 @@ void generateInstructions( const DatabaseInstance&                             d
             std::ostringstream os;
             os << indent << "// Allocate\n";
             os << indent
-               << "const mega::LogicalAddress logicalAddress = mega::runtime::allocateLogical( "
-                  "context.physical.execution, "
+               << "const mega::NetworkAddress networkAddress = mega::runtime::allocateNetworkAddress( "
+                  "context.mpe_storage, "
                << pConcreteTarget->get_concrete_id() << " );\n";
+
             os << indent << "mega::reference result;\n";
             os << indent << "{\n";
-            os << indent << "    result.physical = mega::runtime::logicalToPhysical( context.physical.execution, "
+            os << indent << "    result = mega::runtime::networkToMachine( context.mpe_storage, "
                << pConcreteTarget->get_concrete_id()
                << ", "
-                  "logicalAddress );\n";
+                  "networkAddress );\n";
             os << indent << "    result.instance = 0;\n";
             os << indent << "    result.typeID = " << pConcreteTarget->get_concrete_id() << ";\n";
             os << indent << "}\n";
             os << indent << "return result;\n";
+            
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )

@@ -69,6 +69,7 @@ private:
     std::thread                                      m_io_thread;
 
     std::set< network::ConversationID > m_conversationIDs;
+    mega::MachineProcessExecutor m_mpe;
 };
 
 } // namespace service

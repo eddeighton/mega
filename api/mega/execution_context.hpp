@@ -3,6 +3,8 @@
 
 #include "mega/common.hpp"
 
+#include <string>
+
 namespace mega
 {
 
@@ -14,16 +16,16 @@ public:
     static ExecutionContext* get();
 
 public:
-    virtual ExecutionIndex  getThisExecutionIndex()                                                           = 0;
-    virtual mega::reference getRoot()                                                                         = 0;
-    virtual std::string     acquireMemory( ExecutionIndex executionIndex )                                    = 0;
-    virtual LogicalAddress  allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID )             = 0;
-    virtual void            deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress ) = 0;
-    virtual void            stash( const std::string& filePath, std::size_t determinant )                     = 0;
-    virtual bool            restore( const std::string& filePath, std::size_t determinant )                   = 0;
-    virtual void            readLock( ExecutionIndex executionIndex )                                         = 0;
-    virtual void            writeLock( ExecutionIndex executionIndex )                                        = 0;
-    virtual void            releaseLock( ExecutionIndex executionIndex )                                      = 0;
+    virtual MPEStorage      getThisMPE()                                                              = 0;
+    virtual mega::reference getRoot()                                                                 = 0;
+    virtual std::string     acquireMemory( MPEStorage mpe )                                           = 0;
+    virtual NetworkAddress  allocateNetworkAddress( MPEStorage mpe, TypeID objectTypeID )             = 0;
+    virtual void            deAllocateNetworkAddress( MPEStorage mpe, NetworkAddress networkAddress ) = 0;
+    virtual void            stash( const std::string& filePath, std::size_t determinant )             = 0;
+    virtual bool            restore( const std::string& filePath, std::size_t determinant )           = 0;
+    virtual void            readLock( MPEStorage mpe )                                                = 0;
+    virtual void            writeLock( MPEStorage mpe )                                               = 0;
+    virtual void            releaseLock( MPEStorage mpe )                                             = 0;
 };
 
 #define SUSPEND_EXECUTION_CONTEXT()                                  \

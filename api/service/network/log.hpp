@@ -181,48 +181,74 @@ struct formatter< mega::TypeInstance >
     template < typename FormatContext >
     auto format( const mega::TypeInstance& typeInstance, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "{}.{}", typeInstance.typeID, typeInstance.instance );
+        return format_to( ctx.out(), "{}.{}", typeInstance.type, typeInstance.instance );
     }
 };
 
 template <>
-struct formatter< mega::LogicalAddress >
+struct formatter< mega::NetworkAddress >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::LogicalAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    auto format( const mega::NetworkAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "logical:{}", address.address );
+        return format_to( ctx.out(), "network_address:{}", address );
     }
 };
 
 template <>
-struct formatter< mega::PhysicalAddress >
+struct formatter< mega::ProcessAddress >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::PhysicalAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    auto format( const mega::ProcessAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "physical:{}.{}", address.execution, address.object );
+        return format_to( ctx.out(), "pointer:{}", address );
     }
 };
 
 template <>
-struct formatter< mega::Address >
+struct formatter< mega::NetworkOrProcessAddress >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::Address& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    auto format( const mega::NetworkOrProcessAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        switch ( address.getType() )
-        {
-            case mega::LOGICAL_ADDRESS:
-                return format_to( ctx.out(), "{}", address.logical );
-            case mega::PHYSICAL_ADDRESS:
-                return format_to( ctx.out(), "{}", address.physical );
-            default:
-                THROW_RTE( "Unknown address type" );
-        }
+        return format_to( ctx.out(), "nop:{}", address.nop_storage );
+    }
+};
+template <>
+struct formatter< mega::MachineProcessExecutor >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::MachineProcessExecutor& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        return format_to(
+            ctx.out(), "mpe:{}.{}.{}.{}", address.machine, address.process, address.executor, address.address_type );
+    }
+};
+
+template <>
+struct formatter< mega::ObjectAddress >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::ObjectAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        return format_to( ctx.out(), "object:{}", address.object );
+    }
+};
+
+template <>
+struct formatter< mega::MachineAddress >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::MachineAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        return format_to(
+            ctx.out(), "mpe:{}.{}", static_cast< const mega::MachineProcessExecutor& >( address ), address.object );
     }
 };
 
@@ -233,8 +259,9 @@ struct formatter< mega::reference >
     template < typename FormatContext >
     auto format( const mega::reference& ref, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "{}.{}", static_cast< const mega::Address& >( ref ),
-                          static_cast< const mega::TypeInstance& >( ref ) );
+        return format_to( ctx.out(), "{}.{}.{}", static_cast< const mega::TypeInstance& >( ref ),
+                          static_cast< const mega::MachineAddress& >( ref ),
+                          static_cast< const mega::NetworkOrProcessAddress& >( ref ) );
     }
 };
 

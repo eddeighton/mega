@@ -266,7 +266,7 @@ public:
     }
 
     virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
-                                  boost::asio::yield_context&          yield_ctx ) override
+                                   boost::asio::yield_context&          yield_ctx ) override
     {
         getExeRequest( yield_ctx ).RootSimWriteLock( simulationID );
         getDaemonResponse( yield_ctx ).RootSimWriteLock();
@@ -370,42 +370,40 @@ public:
 
     virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeCreateExecutionContext();
+        auto result = getDaemonRequest( yield_ctx ).ExeCreateExecutionContext( m_leaf.m_mpe.mpe_storage );
         getExeResponse( yield_ctx ).ExeCreateExecutionContext( result );
     }
 
-    virtual void ExeReleaseExecutionContext( const mega::ExecutionIndex& index,
+    virtual void ExeReleaseExecutionContext( const mega::MPEStorage&     index,
                                              boost::asio::yield_context& yield_ctx ) override
     {
         getDaemonRequest( yield_ctx ).ExeReleaseExecutionContext( index );
         getExeResponse( yield_ctx ).ExeReleaseExecutionContext();
     }
-    virtual void ExeAcquireMemory( const mega::ExecutionIndex& executionIndex,
-                                   boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeAcquireMemory( const mega::MPEStorage& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeAcquireMemory( executionIndex );
+        auto result = getDaemonRequest( yield_ctx ).ExeAcquireMemory( mpe );
         getExeResponse( yield_ctx ).ExeAcquireMemory( result );
     }
-    virtual void ExeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                     const mega::TypeID&         objectTypeID,
-                                     boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                            const mega::TypeID&         objectTypeID,
+                                            boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeAllocateLogical( executionIndex, objectTypeID );
-        getExeResponse( yield_ctx ).ExeAllocateLogical( result );
+        auto result = getDaemonRequest( yield_ctx ).ExeAllocateNetworkAddress( mpe, objectTypeID );
+        getExeResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
-    virtual void ExeDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                       const mega::AddressStorage& logicalAddress,
-                                       boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeDeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                              const mega::AddressStorage& networkAddress,
+                                              boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ExeDeAllocateLogical( executionIndex, logicalAddress );
-        getExeResponse( yield_ctx ).ExeDeAllocateLogical();
+        getDaemonRequest( yield_ctx ).ExeDeAllocateNetworkAddress( mpe, networkAddress );
+        getExeResponse( yield_ctx ).ExeDeAllocateNetworkAddress();
     }
 
-    virtual void ExeGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
-                                           boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeGetExecutionContextID( const mega::MPEStorage& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeGetExecutionContextID( executionIndex );
+        auto result = getDaemonRequest( yield_ctx ).ExeGetExecutionContextID( mpe );
         getExeResponse( yield_ctx ).ExeGetExecutionContextID( result );
     }
 
@@ -438,36 +436,35 @@ public:
 
     virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolCreateExecutionContext();
+        auto result = getDaemonRequest( yield_ctx ).ToolCreateExecutionContext( m_leaf.m_mpe.mpe_storage );
         getToolResponse( yield_ctx ).ToolCreateExecutionContext( result );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::ExecutionIndex& index,
+    virtual void ToolReleaseExecutionContext( const mega::MPEStorage&     index,
                                               boost::asio::yield_context& yield_ctx ) override
     {
         getDaemonRequest( yield_ctx ).ToolReleaseExecutionContext( index );
         getToolResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
-    virtual void ToolAcquireMemory( const mega::ExecutionIndex& executionIndex,
-                                    boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolAcquireMemory( const mega::MPEStorage& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolAcquireMemory( executionIndex );
+        auto result = getDaemonRequest( yield_ctx ).ToolAcquireMemory( mpe );
         getToolResponse( yield_ctx ).ToolAcquireMemory( result );
     }
-    virtual void ToolAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                      const mega::TypeID&         objectTypeID,
-                                      boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                             const mega::TypeID&         objectTypeID,
+                                             boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolAllocateLogical( executionIndex, objectTypeID );
-        getToolResponse( yield_ctx ).ToolAllocateLogical( result );
+        auto result = getDaemonRequest( yield_ctx ).ToolAllocateNetworkAddress( mpe, objectTypeID );
+        getToolResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
-    virtual void ToolDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                        const mega::AddressStorage& logicalAddress,
-                                        boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolDeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                               const mega::AddressStorage& networkAddress,
+                                               boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ToolDeAllocateLogical( executionIndex, logicalAddress );
-        getToolResponse( yield_ctx ).ToolDeAllocateLogical();
+        getDaemonRequest( yield_ctx ).ToolDeAllocateNetworkAddress( mpe, networkAddress );
+        getToolResponse( yield_ctx ).ToolDeAllocateNetworkAddress();
     }
     virtual void ToolStash( const boost::filesystem::path& filePath,
                             const task::DeterminantHash&   determinant,
@@ -484,10 +481,10 @@ public:
         getToolResponse( yield_ctx ).ToolRestore( bRestored );
     }
 
-    virtual void ToolGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
+    virtual void ToolGetExecutionContextID( const mega::MPEStorage&     mpe,
                                             boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolGetExecutionContextID( executionIndex );
+        auto result = getDaemonRequest( yield_ctx ).ToolGetExecutionContextID( mpe );
         getToolResponse( yield_ctx ).ToolGetExecutionContextID( result );
     }
     virtual void ToolSimReadLock( const mega::network::ConversationID& simulationID,
@@ -525,7 +522,7 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        getDaemonRequest( yield_ctx ).LeafEnrole( m_leaf.getType() );
+        m_leaf.m_mpe.mpe_storage = getDaemonRequest( yield_ctx ).LeafEnrole( m_leaf.getType() );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };

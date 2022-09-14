@@ -16,6 +16,7 @@ namespace service
 class Daemon : public network::ConversationManager
 {
     friend class DaemonRequestConversation;
+    friend class DaemonEnrole;
 
 public:
     Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP );
@@ -31,9 +32,10 @@ public:
     virtual void conversationEnd( const network::Header& header, const network::ReceivedMsg& msg );
 
 private:
-    network::Client     m_rootClient;
-    network::Server     m_leafServer;
-    SharedMemoryManager m_sharedMemoryManager;
+    network::Client              m_rootClient;
+    network::Server              m_leafServer;
+    SharedMemoryManager          m_sharedMemoryManager;
+    mega::MachineProcessExecutor m_mpe;
 };
 } // namespace service
 } // namespace mega

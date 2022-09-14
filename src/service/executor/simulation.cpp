@@ -46,25 +46,25 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
 }
 
 // mega::ExecutionContext
-ExecutionIndex Simulation::getThisExecutionIndex() { return m_executionIndex.value(); }
+MPEStorage Simulation::getThisMPE() { return m_executionIndex.value(); }
 
 mega::reference Simulation::getRoot() { return m_executionRoot->root(); }
 
-std::string Simulation::acquireMemory( ExecutionIndex executionIndex )
+std::string Simulation::acquireMemory( MPEStorage mpe )
 {
     VERIFY_RTE( m_pYieldContext );
-    return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( executionIndex );
+    return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( mpe );
 }
-LogicalAddress Simulation::allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID )
+NetworkAddress Simulation::allocateNetworkAddress( MPEStorage mpe, TypeID objectTypeID )
 {
     VERIFY_RTE( m_pYieldContext );
-    return LogicalAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocateLogical( executionIndex, objectTypeID ) };
+    return NetworkAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocateNetworkAddress( mpe, objectTypeID ) };
 }
 
-void Simulation::deAllocateLogical( ExecutionIndex executionIndex, LogicalAddress logicalAddress )
+void Simulation::deAllocateNetworkAddress( MPEStorage mpe, NetworkAddress networkAddress )
 {
     VERIFY_RTE( m_pYieldContext );
-    getLeafRequest( *m_pYieldContext ).ExeDeAllocateLogical( executionIndex, Address{ logicalAddress } );
+    getLeafRequest( *m_pYieldContext ).ExeDeAllocateNetworkAddress( mpe, networkAddress );
 }
 
 void Simulation::stash( const std::string& filePath, std::size_t determinant )
@@ -79,26 +79,26 @@ bool Simulation::restore( const std::string& filePath, std::size_t determinant )
     return getLeafRequest( *m_pYieldContext ).ExeRestore( filePath, determinant );
 }
 
-void Simulation::readLock( ExecutionIndex executionIndex )
+void Simulation::readLock( MPEStorage mpe )
 {
     VERIFY_RTE( m_pYieldContext );
 
     // if( m_executor.m_simulations
 
-    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( executionIndex );
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
     getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
 }
 
-void Simulation::writeLock( ExecutionIndex executionIndex )
+void Simulation::writeLock( MPEStorage mpe )
 {
     VERIFY_RTE( m_pYieldContext );
-    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( executionIndex );
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
     getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id );
 }
-void Simulation::releaseLock( ExecutionIndex executionIndex )
+void Simulation::releaseLock( MPEStorage mpe )
 {
     VERIFY_RTE( m_pYieldContext );
-    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( executionIndex );
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
     getLeafRequest( *m_pYieldContext ).ExeSimReleaseLock( id );
 }
 
@@ -108,13 +108,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
     {
-        {
-            const std::pair< bool, mega::ExecutionIndex > result
-                = getLeafRequest( yield_ctx ).ExeCreateExecutionContext();
-            VERIFY_RTE_MSG( result.first, "Failed to acquire execution index" );
-            m_executionIndex = result.second;
-        }
-
+        m_executionIndex = getLeafRequest( yield_ctx ).ExeCreateExecutionContext();
         m_executionRoot = mega::runtime::ExecutionRoot( m_executionIndex.value() );
 
         // start deadline timer

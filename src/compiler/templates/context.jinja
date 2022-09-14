@@ -2,7 +2,7 @@ struct [[clang::eg_type( {{ typeid }} )]]{{ name }}
 {
     enum : mega::TypeID { ID = {{ typeid }} };
     mega::reference data;
-    inline {{ name }}() { data.value = mega::INVALID_ADDRESS; };
+    inline {{ name }}() {};
     inline {{ name }}( mega::reference reference ) : data( reference ) {}
     inline operator ::mega::ReferenceState() const             { return ::mega::Null; }
     inline bool operator==( ::mega::ReferenceState cmp ) const { return false; }

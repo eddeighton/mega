@@ -103,7 +103,12 @@ public:
         VERIFY_RTE( pConnection );
         pConnection->setType( type );
         SPDLOG_TRACE( "Leaf {} enroled as {}", pConnection->getName(), network::Node::toStr( type ) );
-        getStackTopLeafResponse( yield_ctx ).LeafEnrole();
+
+        // auto result = getRootRequest( yield_ctx ).LeafEnrole( );
+
+        THROW_RTE( "TODO" );
+        MachineProcessExecutor mpe;
+        getStackTopLeafResponse( yield_ctx ).LeafEnrole( mpe.mpe_storage );
     }
 
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
@@ -253,48 +258,46 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeGetProject( result );
     }
 
-    virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeCreateExecutionContext( const mega::MPEStorage&     mpe,
+                                            boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ExeCreateExecutionContext();
+        auto result = getRootRequest( yield_ctx ).ExeCreateExecutionContext( mpe );
         getStackTopLeafResponse( yield_ctx ).ExeCreateExecutionContext( result );
     }
 
-    virtual void ExeReleaseExecutionContext( const mega::ExecutionIndex& index,
+    virtual void ExeReleaseExecutionContext( const mega::MPEStorage&     index,
                                              boost::asio::yield_context& yield_ctx ) override
     {
         getRootRequest( yield_ctx ).ExeReleaseExecutionContext( index );
         getStackTopLeafResponse( yield_ctx ).ExeReleaseExecutionContext();
     }
 
-    virtual void ExeAcquireMemory( const mega::ExecutionIndex& executionIndex,
-                                   boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeAcquireMemory( const mega::MPEStorage& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        const network::ConversationID conversationID
-            = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( executionIndex );
-        const std::string strMemory = m_daemon.m_sharedMemoryManager.acquire( conversationID );
+        const network::ConversationID conversationID = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( mpe );
+        const std::string             strMemory      = m_daemon.m_sharedMemoryManager.acquire( conversationID );
         getStackTopLeafResponse( yield_ctx ).ExeAcquireMemory( strMemory );
     }
 
-    virtual void ExeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                     const mega::TypeID&         objectTypeID,
-                                     boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                            const mega::TypeID&         objectTypeID,
+                                            boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ExeAllocateLogical( executionIndex, objectTypeID );
-        getStackTopLeafResponse( yield_ctx ).ExeAllocateLogical( result );
+        auto result = getRootRequest( yield_ctx ).ExeAllocateNetworkAddress( mpe, objectTypeID );
+        getStackTopLeafResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
-    virtual void ExeDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                       const mega::AddressStorage& logicalAddress,
-                                       boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeDeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                              const mega::AddressStorage& networkAddress,
+                                              boost::asio::yield_context& yield_ctx ) override
     {
-        getRootRequest( yield_ctx ).ExeDeAllocateLogical( executionIndex, logicalAddress );
-        getStackTopLeafResponse( yield_ctx ).ExeDeAllocateLogical();
+        getRootRequest( yield_ctx ).ExeDeAllocateNetworkAddress( mpe, networkAddress );
+        getStackTopLeafResponse( yield_ctx ).ExeDeAllocateNetworkAddress();
     }
 
-    virtual void ExeGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
-                                           boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeGetExecutionContextID( const mega::MPEStorage& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( executionIndex );
+        auto result = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( mpe );
         getStackTopLeafResponse( yield_ctx ).ExeGetExecutionContextID( result );
     }
 
@@ -480,41 +483,40 @@ public:
         auto result = getRootRequest( yield_ctx ).ToolGetMegastructureInstallation();
         getStackTopLeafResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
     }
-    virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolCreateExecutionContext( const mega::MPEStorage&     mpe,
+                                             boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ToolCreateExecutionContext();
+        auto result = getRootRequest( yield_ctx ).ToolCreateExecutionContext( mpe );
         getStackTopLeafResponse( yield_ctx ).ToolCreateExecutionContext( result );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::ExecutionIndex& index,
+    virtual void ToolReleaseExecutionContext( const mega::MPEStorage&     index,
                                               boost::asio::yield_context& yield_ctx ) override
     {
         getRootRequest( yield_ctx ).ToolReleaseExecutionContext( index );
         getStackTopLeafResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
 
-    virtual void ToolAcquireMemory( const mega::ExecutionIndex& executionIndex,
-                                    boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolAcquireMemory( const mega::MPEStorage& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        const network::ConversationID conversationID
-            = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( executionIndex );
-        const std::string strMemory = m_daemon.m_sharedMemoryManager.acquire( conversationID );
+        const network::ConversationID conversationID = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( mpe );
+        const std::string             strMemory      = m_daemon.m_sharedMemoryManager.acquire( conversationID );
         getStackTopLeafResponse( yield_ctx ).ToolAcquireMemory( strMemory );
     }
-    virtual void ToolAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                      const mega::TypeID&         objectTypeID,
-                                      boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                             const mega::TypeID&         objectTypeID,
+                                             boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ToolAllocateLogical( executionIndex, objectTypeID );
-        getStackTopLeafResponse( yield_ctx ).ToolAllocateLogical( result );
+        auto result = getRootRequest( yield_ctx ).ToolAllocateNetworkAddress( mpe, objectTypeID );
+        getStackTopLeafResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
-    virtual void ToolDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                        const mega::AddressStorage& logicalAddress,
-                                        boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolDeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                               const mega::AddressStorage& networkAddress,
+                                               boost::asio::yield_context& yield_ctx ) override
     {
-        getRootRequest( yield_ctx ).ToolDeAllocateLogical( executionIndex, logicalAddress );
-        getStackTopLeafResponse( yield_ctx ).ToolDeAllocateLogical();
+        getRootRequest( yield_ctx ).ToolDeAllocateNetworkAddress( mpe, networkAddress );
+        getStackTopLeafResponse( yield_ctx ).ToolDeAllocateNetworkAddress();
     }
     virtual void ToolStash( const boost::filesystem::path& filePath,
                             const task::DeterminantHash&   determinant,
@@ -531,10 +533,10 @@ public:
         getStackTopLeafResponse( yield_ctx ).ToolRestore( bRestored );
     }
 
-    virtual void ToolGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
+    virtual void ToolGetExecutionContextID( const mega::MPEStorage&     mpe,
                                             boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( executionIndex );
+        auto result = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( mpe );
         getStackTopLeafResponse( yield_ctx ).ToolGetExecutionContextID( result );
     }
     virtual void ToolSimReadLock( const mega::network::ConversationID& simulationID,
@@ -582,6 +584,28 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////
+class DaemonEnrole : public DaemonRequestConversation
+{
+    std::promise< void >& m_promise;
+
+public:
+    DaemonEnrole( Daemon& daemon, const network::ConnectionID& originatingConnectionID, std::promise< void >& promise )
+        : DaemonRequestConversation(
+            daemon, daemon.createConversationID( originatingConnectionID ), originatingConnectionID )
+        , m_promise( promise )
+    {
+    }
+
+    void run( boost::asio::yield_context& yield_ctx )
+    {
+        SPDLOG_TRACE( "DaemonEnrole" );
+        m_daemon.m_mpe.mpe_storage = getRootRequest( yield_ctx ).DaemonEnrole();
+        SPDLOG_TRACE( "Daemon enroled with mpe: {}", m_daemon.m_mpe );
+        boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
+    }
+};
+
+////////////////////////////////////////////////////////////////
 // Daemon
 Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP )
     : network::ConversationManager( network::makeProcessName( network::Node::Daemon ), ioContext )
@@ -589,6 +613,21 @@ Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP
     , m_leafServer( ioContext, *this, network::MegaDaemonPort() )
 {
     m_leafServer.waitForConnection();
+
+    // immediately enrole
+    {
+        std::promise< void >            promise;
+        std::future< void >             future = promise.get_future();
+        std::shared_ptr< DaemonEnrole > pEnrole
+            = std::make_shared< DaemonEnrole >( *this, m_rootClient.getConnectionID(), promise );
+        conversationInitiated( pEnrole, m_rootClient );
+
+        using namespace std::chrono_literals;
+        while( std::future_status::timeout == future.wait_for( 0s ) )
+        {
+            ioContext.run_one();
+        }
+    }
 }
 
 Daemon::~Daemon() { SPDLOG_TRACE( "Daemon shutdown" ); }

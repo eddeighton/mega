@@ -7,11 +7,12 @@
 #include "service/network/server.hpp"
 #include "service/network/conversation_manager.hpp"
 
-#include "boost/asio/io_context.hpp"
-
-#include "common/stash.hpp"
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/root_config.hpp"
+
+#include "common/stash.hpp"
+
+#include "boost/asio/io_context.hpp"
 
 namespace mega
 {

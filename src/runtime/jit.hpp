@@ -25,10 +25,13 @@ public:
     public:
         using Ptr = std::shared_ptr< Module >;
 
+        virtual mega::runtime::SetAllocatorFunction getSetAllocator( const std::string& strSymbol ) = 0;
         virtual mega::runtime::GetHeapFunction      getGetHeap( const std::string& strSymbol )      = 0;
         virtual mega::runtime::GetSharedFunction    getGetShared( const std::string& strSymbol )    = 0;
-        virtual mega::runtime::AllocationFunction   getAllocation( const std::string& strSymbol )   = 0;
-        virtual mega::runtime::DeAllocationFunction getDeAllocation( const std::string& strSymbol ) = 0;
+        virtual mega::runtime::SharedCtorFunction   getSharedCtor( const std::string& strSymbol )   = 0;
+        virtual mega::runtime::SharedDtorFunction   getSharedDtor( const std::string& strSymbol )   = 0;
+        virtual mega::runtime::HeapCtorFunction     getHeapCtor( const std::string& strSymbol )     = 0;
+        virtual mega::runtime::HeapDtorFunction     getHeapDtor( const std::string& strSymbol )     = 0;
         virtual mega::runtime::AllocateFunction     getAllocate( const std::string& strSymbol )     = 0;
         virtual mega::runtime::ReadFunction         getRead( const std::string& strSymbol )         = 0;
         virtual mega::runtime::WriteFunction        getWrite( const std::string& strSymbol )        = 0;

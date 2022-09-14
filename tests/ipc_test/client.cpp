@@ -7,7 +7,7 @@
 
 int main( int argc, const char* argv[] )
 {
-    std::cout << "Page size: " << boost::interprocess::mapped_region::get_page_size() << std::endl;
+    /*std::cout << "Page size: " << boost::interprocess::mapped_region::get_page_size() << std::endl;
 
     mega::runtime::ManagedSharedMemory segment( boost::interprocess::open_only, SHARED_MEMORY_NAME );
 
@@ -19,7 +19,7 @@ int main( int argc, const char* argv[] )
     for ( int i = 0; i < 1000; ++i )
     {
         pBuffer1->Plug->link_5.push_back( mega::reference{} );
-    }
+    }*/
 
     return 0;
 }

@@ -1,7 +1,7 @@
 
 #ifndef COMMON_SEPT_1_2022
 #define COMMON_SEPT_1_2022
-
+/*
 #include "mega/default_traits.hpp"
 #include "mega/shared_allocator.hpp"
 
@@ -62,5 +62,5 @@ struct SharedBuffer_3
 
 using ExampleBufferIndex
     = mega::IndexedBufferAllocator< mega::runtime::ManagedSharedMemory, SharedBuffer_3, HeapBuffer_3 >;
-
+*/
 #endif // COMMON_SEPT_1_2022

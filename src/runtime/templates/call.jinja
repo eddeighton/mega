@@ -1,35 +1,9 @@
 
 // ed was here
 #include "/workspace/root/src/mega/src/api/mega/common.hpp"
+#include "/workspace/root/src/mega/src/api/mega/runtime_functions.hpp"
 
 static const char* g_pszModuleName = "{{module_name}}";
-
-namespace mega
-{
-namespace runtime
-{
-using TypeErasedFunction   = const void*;
-using GetHeapFunction   = void* ( * )( mega::PhysicalAddress address );
-using GetSharedFunction = void* ( * )( mega::PhysicalAddress address );
-
-struct WriteResult
-{
-    void* pData;
-    mega::reference context;
-};
-struct CallResult
-{
-    TypeErasedFunction pFunction;
-    mega::reference context;
-};
-
-LogicalAddress allocateLogical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID );
-mega::PhysicalAddress logicalToPhysical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID, mega::LogicalAddress logicalAddress );
-void get_getter_heap( const char* pszUnitName, mega::TypeID objectTypeID, GetHeapFunction* ppFunction );
-void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction );
-void get_getter_call( const char* pszUnitName, mega::TypeID objectTypeID, TypeErasedFunction* ppFunction );
-}
-}
 
 {% for getter in getters %}
 static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter }} = nullptr;

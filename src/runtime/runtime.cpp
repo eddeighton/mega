@@ -12,9 +12,9 @@
 #include "service/network/log.hpp"
 
 #include "mega/common.hpp"
-#include "mega/execution_context.hpp"
-#include "mega/root.hpp"
 #include "mega/default_traits.hpp"
+#include "mega/shared_allocator.hpp"
+#include "mega/execution_context.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -33,33 +33,100 @@ namespace
 
 class Runtime
 {
-    class ObjectTypeAllocator
+    class ObjectTypeAllocator : public Allocator
     {
         friend class Runtime;
 
     public:
-        using Ptr = std::shared_ptr< ObjectTypeAllocator >;
+        using Ptr         = std::shared_ptr< ObjectTypeAllocator >;
+        using IndexPtr    = std::shared_ptr< IndexedBufferAllocator >;
+        using IndexPtrMap = std::unordered_map< MPEStorage, IndexPtr >;
 
         ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID )
-            : m_objectTypeID( objectTypeID )
+            : m_runtime( runtime )
+            , m_objectTypeID( objectTypeID )
         {
             runtime.get_allocation( m_objectTypeID, *this );
+            m_pSetAllocator( this );
         }
 
-        GetHeapFunction   getHeapGetter() const { return m_pGetHeap; }
-        GetSharedFunction getSharedGetter() const { return m_pGetShared; }
-        PhysicalAddress   allocate( ExecutionIndex executionIndex ) { return m_pAllocation( executionIndex ); }
-        void              deAllocate( PhysicalAddress address ) { m_pDeAllocation( address ); }
+        IndexPtr getIndex( MPEStorage mpe )
+        {
+            IndexPtr pAllocator;
+            {
+                auto iFind = m_index.find( mpe );
+                if ( iFind != m_index.end() )
+                {
+                    pAllocator = iFind->second;
+                }
+                else
+                {
+                    mega::runtime::ManagedSharedMemory& managedSharedMemory = m_runtime.getSharedMemoryManager( mpe );
+                    pAllocator
+                        = std::make_shared< IndexedBufferAllocator >( managedSharedMemory.get_segment_manager() );
+                    m_index.insert( { mpe, pAllocator } );
+                }
+            }
+            return pAllocator;
+        }
+
+        reference get( MachineAddress machineAddress )
+        {
+            VERIFY_RTE( machineAddress.is_machine() );
+            void* pShared = getIndex( machineAddress.mpe_storage )->getShared( machineAddress.object ).get();
+            return reference( TypeInstance( 0, m_objectTypeID ), machineAddress, pShared );
+        }
+
+        reference allocate( MPEStorage mpeStorage )
+        {
+            VERIFY_RTE( MachineProcessExecutor{ mpeStorage }.is_machine() );
+            const IndexedBufferAllocator::AllocationResult result
+                = getIndex( mpeStorage )->allocate( m_szSizeShared, m_szSizeHeap );
+            m_pSharedCtor( result.pShared );
+            m_pHeapCtor( result.pHeap );
+            return reference( TypeInstance( 0, m_objectTypeID ),
+                              MachineAddress{ result.object, MachineProcessExecutor{ mpeStorage } }, result.pShared );
+        }
+
+        void deAllocate( MachineAddress machineAddress )
+        {
+            auto pIndex = getIndex( machineAddress.mpe_storage );
+            m_pSharedDtor( pIndex->getShared( machineAddress.object ).get() );
+            m_pHeapDtor( pIndex->getHeap( machineAddress.object ) );
+            pIndex->deallocate( machineAddress.object );
+        }
+
+        // Allocator
+        virtual void* get_shared( mega::MachineAddress machineAddress )
+        {
+            auto pIndex = getIndex( machineAddress.mpe_storage );
+            return pIndex->getShared( machineAddress.object ).get();
+        }
+
+        virtual void* get_heap( mega::MachineAddress machineAddress )
+        {
+            auto pIndex = getIndex( machineAddress.mpe_storage );
+            return pIndex->getHeap( machineAddress.object );
+        }
+
+        GetHeapFunction   getHeapGetter() { return m_pHeapGetter; }
+        GetSharedFunction getSharedGetter() { return m_pSharedGetter; }
 
     private:
-        mega::TypeID         m_objectTypeID;
-        GetHeapFunction      m_pGetHeap      = nullptr;
-        GetSharedFunction    m_pGetShared    = nullptr;
-        AllocationFunction   m_pAllocation   = nullptr;
-        DeAllocationFunction m_pDeAllocation = nullptr;
+        Runtime&     m_runtime;
+        mega::TypeID m_objectTypeID;
+        std::size_t  m_szSizeShared, m_szSizeHeap;
+        IndexPtrMap  m_index;
+
+        SetAllocatorFunction m_pSetAllocator = nullptr;
+        SharedCtorFunction   m_pSharedCtor   = nullptr;
+        SharedDtorFunction   m_pSharedDtor   = nullptr;
+        HeapCtorFunction     m_pHeapCtor     = nullptr;
+        HeapDtorFunction     m_pHeapDtor     = nullptr;
+        GetHeapFunction      m_pHeapGetter   = nullptr;
+        GetSharedFunction    m_pSharedGetter = nullptr;
     };
-    // LogicalAddress -> PhysicalAddress
-    using IndexArray             = std::array< void*, mega::MAX_SIMULATIONS >;
+    // NetworkAddress -> MachineAddress
     using ObjectTypeAllocatorMap = std::unordered_map< TypeID, ObjectTypeAllocator::Ptr >;
 
     class ExecutionContextMemory
@@ -72,22 +139,43 @@ class Runtime
         {
         }
 
-        ManagedSharedMemory& getShared() { return m_shared; }
+        ::mega::runtime::ManagedSharedMemory& getShared() { return m_shared; }
 
     private:
-        ManagedSharedMemory m_shared;
+        ::mega::runtime::ManagedSharedMemory m_shared;
     };
-    using ExecutionContextMemoryArray = std::array< ExecutionContextMemory::Ptr, mega::MAX_SIMULATIONS >;
-    using ExecutionContextRoot        = std::array< mega::reference, mega::MAX_SIMULATIONS >;
+
+    ManagedSharedMemory& getSharedMemoryManager( mega::MPEStorage mpe )
+    {
+        auto iFind = m_executionContextMemory.find( mpe );
+        if ( iFind != m_executionContextMemory.end() )
+        {
+            return iFind->second->getShared();
+        }
+        else
+        {
+            ExecutionContext* pExecutionContext = ExecutionContext::get();
+            VERIFY_RTE( pExecutionContext );
+            const std::string                         strMemory = pExecutionContext->acquireMemory( mpe );
+            std::unique_ptr< ExecutionContextMemory > pMemoryPtr
+                = std::make_unique< ExecutionContextMemory >( strMemory );
+            ExecutionContextMemory* pMemory = pMemoryPtr.get();
+            m_executionContextMemory.insert( { mpe, std::move( pMemoryPtr ) } );
+            return pMemory->getShared();
+        }
+    }
+
+    using ExecutionContextMemoryMap = std::unordered_map< MPEStorage, ExecutionContextMemory::Ptr >;
+    using ExecutionContextRoot      = std::unordered_map< MPEStorage, mega::reference >;
 
 public:
-    LogicalAddress allocateLogical( ExecutionIndex executionIndex, TypeID objectTypeID )
+    NetworkAddress allocateNetworkAddress( MPEStorage mpe, TypeID objectTypeID )
     {
-        SPDLOG_TRACE( "RUNTIME: allocateLogical: {}", executionIndex, objectTypeID );
+        SPDLOG_TRACE( "RUNTIME: allocateNetworkAddress: {} {}", mpe, objectTypeID );
 
         ExecutionContext* pExecutionContext = ExecutionContext::get();
         VERIFY_RTE( pExecutionContext );
-        return pExecutionContext->allocateLogical( executionIndex, objectTypeID );
+        return pExecutionContext->allocateNetworkAddress( mpe, objectTypeID );
     }
 
     ObjectTypeAllocator::Ptr getOrCreateObjectTypeAllocator( TypeID objectTypeID )
@@ -107,87 +195,56 @@ public:
         }
     }
 
-    PhysicalAddress logicalToPhysical( ExecutionIndex executionIndex, TypeID objectTypeID,
-                                       LogicalAddress logicalAddress )
+    reference networkToMachine( MPEStorage mpe, TypeID objectTypeID, NetworkAddress networkAddress )
     {
-        SPDLOG_TRACE( "RUNTIME: logicalToPhysical: {} {} {}", executionIndex, objectTypeID, logicalAddress );
+        SPDLOG_TRACE( "RUNTIME: networkToMachine: {} {} {}", mpe, objectTypeID, networkAddress );
 
         AddressSpace::Lock lock( m_addressSpace.mutex() );
 
         ExecutionContext* pExecutionContext = ExecutionContext::get();
         VERIFY_RTE( pExecutionContext );
-        if ( pExecutionContext->getThisExecutionIndex() != executionIndex )
+        if ( pExecutionContext->getThisMPE() != mpe )
         {
             // request write lock
-            pExecutionContext->writeLock( executionIndex );
+            pExecutionContext->writeLock( mpe );
         }
 
-        auto resultOpt = m_addressSpace.find( logicalAddress );
+        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
+
+        auto resultOpt = m_addressSpace.find( networkAddress );
         if ( resultOpt.has_value() )
         {
             // ensure the object type allocator is established
-            getOrCreateObjectTypeAllocator( objectTypeID );
-            return resultOpt.value();
+            return pAllocator->get( resultOpt.value() );
         }
         else
         {
-            ObjectTypeAllocator::Ptr pAllocator      = getOrCreateObjectTypeAllocator( objectTypeID );
-            const PhysicalAddress    physicalAddress = pAllocator->allocate( executionIndex );
-            m_addressSpace.insert( logicalAddress, physicalAddress );
-            return physicalAddress;
+            const reference ref = pAllocator->allocate( mpe );
+            m_addressSpace.insert( networkAddress, static_cast< const MachineAddress& >( ref ) );
+            return ref;
         }
     }
 
-    ManagedSharedMemory& getSharedMemoryManager( mega::ExecutionIndex executionIndex )
+    mega::reference allocateRoot( const mega::MPEStorage& mpe )
     {
-        ExecutionContextMemory* pMemory = m_executionContextMemory[ executionIndex ].get();
-        if ( pMemory == nullptr )
-        {
-            ExecutionContext* pExecutionContext = ExecutionContext::get();
-            VERIFY_RTE( pExecutionContext );
-            const std::string strMemory                = pExecutionContext->acquireMemory( executionIndex );
-            m_executionContextMemory[ executionIndex ] = std::make_unique< ExecutionContextMemory >( strMemory );
-            pMemory                                    = m_executionContextMemory[ executionIndex ].get();
-        }
-        return pMemory->getShared();
-    }
+        SPDLOG_TRACE( "RUNTIME: allocateRoot: {}", mpe );
 
-    mega::reference allocateRoot( const mega::ExecutionIndex& executionIndex )
-    {
-        SPDLOG_TRACE( "RUNTIME: allocateRoot: {}", executionIndex );
-
-        const TypeID rootTypeID = m_database.getRootTypeID();
-
-        ExecutionContext* pExecutionContext = ExecutionContext::get();
-        VERIFY_RTE( pExecutionContext );
-        const mega::ExecutionIndex thisIndex = pExecutionContext->getThisExecutionIndex();
-        VERIFY_RTE( thisIndex == executionIndex );
-
-        const LogicalAddress rootLogicalAddress = allocateLogical( executionIndex, rootTypeID );
-        VERIFY_RTE( thisIndex == pExecutionContext->getThisExecutionIndex() );
-
-        const PhysicalAddress rootPhysicalAddress = logicalToPhysical( executionIndex, rootTypeID, rootLogicalAddress );
-        VERIFY_RTE( thisIndex == pExecutionContext->getThisExecutionIndex() );
-
-        mega::reference ref;
-        {
-            ref.physical = rootPhysicalAddress;
-            ref.typeID   = rootTypeID;
-            ref.instance = 0;
-        }
-
-        m_executionContextRoot[ executionIndex ] = ref;
+        const TypeID         rootType           = m_database.getRootTypeID();
+        const NetworkAddress rootNetworkAddress = allocateNetworkAddress( mpe, rootType );
+        const reference      ref                = networkToMachine( mpe, rootType, rootNetworkAddress );
+        VERIFY_RTE( ref.mpe_storage == mpe );
+        m_executionContextRoot.insert( { mpe, ref } );
 
         return ref;
     }
 
-    void deAllocateRoot( const mega::ExecutionIndex& executionIndex )
+    void deAllocateRoot( const mega::MPEStorage& mpe )
     {
-        const mega::reference ref = m_executionContextRoot[ executionIndex ];
-        VERIFY_RTE( ref.value != mega::INVALID_ADDRESS );
+        const mega::reference ref = m_executionContextRoot[ mpe ];
+        VERIFY_RTE( ref.address_type != mega::MACHINE_ADDRESS );
 
-        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( ref.typeID );
-        // pAllocator->deAllocateShared( ref.physical );
+        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( ref.type );
+        THROW_RTE( "Not implemented" );
     }
 
     void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
@@ -257,27 +314,45 @@ public:
 
         {
             std::ostringstream os;
+            symbolPrefix( "set_allocator_", objectTypeID, os );
+            os << "PN4mega7runtime9AllocatorE";
+            objectTypeAllocator.m_pSetAllocator = pModule->getSetAllocator( os.str() );
+        }
+        {
+            std::ostringstream os;
             symbolPrefix( "get_heap_", objectTypeID, os );
-            os << "N4mega15PhysicalAddressE";
-            objectTypeAllocator.m_pGetHeap = pModule->getGetShared( os.str() );
+            os << "N4mega14MachineAddressE";
+            objectTypeAllocator.m_pHeapGetter = pModule->getGetHeap( os.str() );
         }
         {
             std::ostringstream os;
             symbolPrefix( "get_shared_", objectTypeID, os );
-            os << "N4mega15PhysicalAddressE";
-            objectTypeAllocator.m_pGetShared = pModule->getGetShared( os.str() );
+            os << "N4mega14MachineAddressE";
+            objectTypeAllocator.m_pSharedGetter = pModule->getGetShared( os.str() );
         }
         {
             std::ostringstream os;
-            symbolPrefix( "alloc_", objectTypeID, os );
-            os << "t";
-            objectTypeAllocator.m_pAllocation = pModule->getAllocation( os.str() );
+            symbolPrefix( "shared_ctor_", objectTypeID, os );
+            os << "Pv";
+            objectTypeAllocator.m_pSharedCtor = pModule->getSharedCtor( os.str() );
         }
         {
             std::ostringstream os;
-            symbolPrefix( "dealloc_", objectTypeID, os );
-            os << "N4mega15PhysicalAddressE";
-            objectTypeAllocator.m_pDeAllocation = pModule->getDeAllocation( os.str() );
+            symbolPrefix( "shared_dtor_", objectTypeID, os );
+            os << "Pv";
+            objectTypeAllocator.m_pSharedDtor = pModule->getSharedDtor( os.str() );
+        }
+        {
+            std::ostringstream os;
+            symbolPrefix( "heap_ctor_", objectTypeID, os );
+            os << "Pv";
+            objectTypeAllocator.m_pHeapCtor = pModule->getHeapCtor( os.str() );
+        }
+        {
+            std::ostringstream os;
+            symbolPrefix( "heap_dtor_", objectTypeID, os );
+            os << "Pv";
+            objectTypeAllocator.m_pHeapDtor = pModule->getHeapDtor( os.str() );
         }
     }
 
@@ -417,7 +492,7 @@ private:
     AddressSpace                                   m_addressSpace;
     ObjectTypeAllocatorMap                         m_objectTypeAllocatorMapping;
     ExecutionContextRoot                           m_executionContextRoot;
-    ExecutionContextMemoryArray                    m_executionContextMemory;
+    ExecutionContextMemoryMap                      m_executionContextMemory;
 
     // use unordered_map
     using InvocationMap = std::map< mega::InvocationID, JITCompiler::Module::Ptr >;
@@ -476,20 +551,14 @@ namespace runtime
 {
 
 // routines used by jit compiled functions
-LogicalAddress allocateLogical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID )
+NetworkAddress allocateNetworkAddress( mega::MPEStorage mpe, mega::TypeID objectTypeID )
 {
-    return g_pRuntime->allocateLogical( executionIndex, objectTypeID );
+    return g_pRuntime->allocateNetworkAddress( mpe, objectTypeID );
 }
 
-PhysicalAddress logicalToPhysical( mega::ExecutionIndex executionIndex, mega::TypeID objectTypeID,
-                                   mega::LogicalAddress logicalAddress )
+reference networkToMachine( mega::MPEStorage mpe, mega::TypeID objectTypeID, mega::NetworkAddress networkAddress )
 {
-    return g_pRuntime->logicalToPhysical( executionIndex, objectTypeID, logicalAddress );
-}
-
-ManagedSharedMemory& getSharedMemoryManager( mega::ExecutionIndex executionIndex )
-{
-    return g_pRuntime->getSharedMemoryManager( executionIndex );
+    return g_pRuntime->networkToMachine( mpe, objectTypeID, networkAddress );
 }
 
 void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
@@ -515,12 +584,12 @@ void initialiseRuntime( const mega::network::MegastructureInstallation& megastru
 }
 bool isRuntimeInitialised() { return isStaticRuntimeInitialised(); }
 
-ExecutionRoot::ExecutionRoot( mega::ExecutionIndex executionIndex )
-    : m_root( g_pRuntime->allocateRoot( executionIndex ) )
+ExecutionRoot::ExecutionRoot( mega::MPEStorage mpe )
+    : m_root( g_pRuntime->allocateRoot( mpe ) )
 {
 }
 
-ExecutionRoot::~ExecutionRoot() { g_pRuntime->deAllocateRoot( m_root.physical.execution ); }
+ExecutionRoot::~ExecutionRoot() { g_pRuntime->deAllocateRoot( m_root.mpe_storage ); }
 
 void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
 {

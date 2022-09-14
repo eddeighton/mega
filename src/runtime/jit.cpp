@@ -164,14 +164,25 @@ public:
         return getFunctionPtr< mega::runtime::GetSharedFunction >( strSymbol );
     }
 
-    virtual mega::runtime::AllocationFunction getAllocation( const std::string& strSymbol ) override
+    virtual mega::runtime::SetAllocatorFunction getSetAllocator( const std::string& strSymbol ) override
     {
-        return getFunctionPtr< mega::runtime::AllocationFunction >( strSymbol );
+        return getFunctionPtr< mega::runtime::SetAllocatorFunction >( strSymbol );
     }
-
-    virtual mega::runtime::DeAllocationFunction getDeAllocation( const std::string& strSymbol ) override
+    virtual mega::runtime::SharedCtorFunction getSharedCtor( const std::string& strSymbol ) override
     {
-        return getFunctionPtr< mega::runtime::DeAllocationFunction >( strSymbol );
+        return getFunctionPtr< mega::runtime::SharedCtorFunction >( strSymbol );
+    }
+    virtual mega::runtime::SharedDtorFunction getSharedDtor( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::SharedDtorFunction >( strSymbol );
+    }
+    virtual mega::runtime::HeapCtorFunction getHeapCtor( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::HeapCtorFunction >( strSymbol );
+    }
+    virtual mega::runtime::HeapDtorFunction getHeapDtor( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::HeapDtorFunction >( strSymbol );
     }
 
     virtual mega::runtime::AllocateFunction getAllocate( const std::string& strSymbol ) override

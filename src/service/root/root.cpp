@@ -3,7 +3,6 @@
 
 #include "mega/common.hpp"
 #include "mega/execution_context.hpp"
-#include "pipeline/task.hpp"
 
 #include "service/network/conversation.hpp"
 #include "service/network/network.hpp"
@@ -17,21 +16,26 @@
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
 
+#include "pipeline/task.hpp"
+#include "pipeline/pipeline.hpp"
+
+#include "utilities/serialization_helpers.hpp"
+
 #include "version/version.hpp"
 
-#include "pipeline/pipeline.hpp"
+#include <common/file.hpp>
 
 #include "spdlog/fmt/chrono.h"
 #include "spdlog/stopwatch.h"
 
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/dll/runtime_symbol_info.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/process/environment.hpp>
-#include <boost/system/detail/error_code.hpp>
+#include "boost/archive/xml_iarchive.hpp"
+#include "boost/archive/xml_oarchive.hpp"
+#include "boost/dll/runtime_symbol_info.hpp"
+#include "boost/filesystem/operations.hpp"
+#include "boost/process/environment.hpp"
+#include "boost/system/detail/error_code.hpp"
 #include "boost/asio/experimental/concurrent_channel.hpp"
 
-#include <common/file.hpp>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -106,10 +110,22 @@ public:
     }
 
     // network::daemon_root::Impl
-    virtual void DaemonGetExecutionContextID( const mega::ExecutionIndex& executionIndex,
+    virtual void DaemonEnrole( boost::asio::yield_context& yield_ctx ) override
+    {
+        mega::MachineProcessExecutor mpe = m_root.m_executionContextManager.newDaemon();
+        getStackTopDaemonResponse( yield_ctx ).DaemonEnrole( mpe.mpe_storage );
+    }
+
+    virtual void DaemonLeafEnrole( const mega::MPEStorage& storage, boost::asio::yield_context& yield_ctx ) override
+    {
+        const mega::MachineProcessExecutor mpe = m_root.m_executionContextManager.newLeaf( storage );
+        getStackTopDaemonResponse( yield_ctx ).DaemonLeafEnrole( mpe.mpe_storage );
+    }
+
+    virtual void DaemonGetExecutionContextID( const mega::MPEStorage&     mpe,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        const network::ConversationID& conversationID = m_root.m_executionContextManager.get( executionIndex );
+        const network::ConversationID& conversationID = m_root.m_executionContextManager.get( mpe );
         getStackTopDaemonResponse( yield_ctx ).DaemonGetExecutionContextID( conversationID );
     }
 
@@ -320,13 +336,14 @@ public:
         daemon.ExeGetProject( m_root.getProject() );
     }
 
-    virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeCreateExecutionContext( const mega::MPEStorage&     mpe,
+                                            boost::asio::yield_context& yield_ctx ) override
     {
-        getStackTopDaemonResponse( yield_ctx )
-            .ExeCreateExecutionContext( m_root.m_executionContextManager.create( getID() ) );
+        auto result = m_root.m_executionContextManager.newExecutor( mpe, getID() );
+        getStackTopDaemonResponse( yield_ctx ).ExeCreateExecutionContext( result.mpe_storage );
     }
 
-    virtual void ExeReleaseExecutionContext( const mega::ExecutionIndex& index,
+    virtual void ExeReleaseExecutionContext( const mega::MPEStorage&     index,
                                              boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_executionContextManager.release( index );
@@ -338,20 +355,20 @@ public:
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ToolGetMegastructureInstallation( m_root.getMegastructureInstallation() );
     }
-    virtual void ExeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                     const mega::TypeID&         objectTypeID,
-                                     boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                            const mega::TypeID&         objectTypeID,
+                                            boost::asio::yield_context& yield_ctx ) override
     {
-        const Address result = m_root.m_logicalAddressSpace.allocateLogical( executionIndex, objectTypeID );
-        getStackTopDaemonResponse( yield_ctx ).ExeAllocateLogical( result.value );
+        const NetworkAddress result = m_root.m_logicalAddressSpace.allocateNetworkAddress( mpe, objectTypeID );
+        getStackTopDaemonResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
-    virtual void ExeDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                       const mega::AddressStorage& logicalAddress,
-                                       boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeDeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                              const mega::AddressStorage& networkAddress,
+                                              boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_logicalAddressSpace.deAllocateLogical( executionIndex, logicalAddress );
-        getStackTopDaemonResponse( yield_ctx ).ExeDeAllocateLogical();
+        m_root.m_logicalAddressSpace.deAllocateNetworkAddress( mpe, networkAddress );
+        getStackTopDaemonResponse( yield_ctx ).ExeDeAllocateNetworkAddress();
     }
     virtual void ExeSimReadLock( const mega::network::ConversationID& simulationID,
                                  boost::asio::yield_context&          yield_ctx ) override
@@ -380,32 +397,33 @@ public:
         getStackTopDaemonResponse( yield_ctx ).ExeSimReleaseLock();
     }
 
-    virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolCreateExecutionContext( const mega::MPEStorage&     mpe,
+                                             boost::asio::yield_context& yield_ctx ) override
     {
-        getStackTopDaemonResponse( yield_ctx )
-            .ToolCreateExecutionContext( m_root.m_executionContextManager.create( getID() ) );
+        auto result = m_root.m_executionContextManager.newExecutor( mpe, getID() );
+        getStackTopDaemonResponse( yield_ctx ).ToolCreateExecutionContext( result.mpe_storage );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::ExecutionIndex& index,
+    virtual void ToolReleaseExecutionContext( const mega::MPEStorage&     index,
                                               boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_executionContextManager.release( index );
         getStackTopDaemonResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
-    virtual void ToolAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                      const mega::TypeID&         objectTypeID,
-                                      boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                             const mega::TypeID&         objectTypeID,
+                                             boost::asio::yield_context& yield_ctx ) override
     {
-        const Address result = m_root.m_logicalAddressSpace.allocateLogical( executionIndex, objectTypeID );
-        getStackTopDaemonResponse( yield_ctx ).ToolAllocateLogical( result );
+        const NetworkAddress result = m_root.m_logicalAddressSpace.allocateNetworkAddress( mpe, objectTypeID );
+        getStackTopDaemonResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
-    virtual void ToolDeAllocateLogical( const mega::ExecutionIndex& executionIndex,
-                                        const mega::AddressStorage& logicalAddress,
-                                        boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolDeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+                                               const mega::AddressStorage& networkAddress,
+                                               boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_logicalAddressSpace.deAllocateLogical( executionIndex, logicalAddress );
-        getStackTopDaemonResponse( yield_ctx ).ToolDeAllocateLogical();
+        m_root.m_logicalAddressSpace.deAllocateNetworkAddress( mpe, networkAddress );
+        getStackTopDaemonResponse( yield_ctx ).ToolDeAllocateNetworkAddress();
     }
     virtual void ToolStash( const boost::filesystem::path& filePath,
                             const task::DeterminantHash&   determinant,
@@ -704,21 +722,28 @@ Root::Root( boost::asio::io_context& ioContext )
 
 void Root::loadConfig()
 {
-    const auto configFile = boost::filesystem::current_path() / "config.xml";
+    const boost::filesystem::path configFile = boost::filesystem::current_path() / "config.xml";
     if ( boost::filesystem::exists( configFile ) )
     {
-        auto                         pFileStream = boost::filesystem::createBinaryInputFileStream( configFile );
-        boost::archive::xml_iarchive xml( *pFileStream );
-        xml&                         boost::serialization::make_nvp( "config", m_config );
+        std::unique_ptr< boost::filesystem::ifstream > pFileStream
+            = boost::filesystem::createBinaryInputFileStream( configFile );
+        {
+            boost::archive::xml_iarchive xml( *pFileStream );
+            xml&                         boost::serialization::make_nvp( "config", m_config );
+        }
     }
 }
 
 void Root::saveConfig()
 {
-    const auto                   configFile  = boost::filesystem::current_path() / "config.xml";
-    auto                         pFileStream = boost::filesystem::createNewFileStream( configFile );
-    boost::archive::xml_oarchive xml( *pFileStream );
-    xml&                         boost::serialization::make_nvp( "config", m_config );
+    const boost::filesystem::path configFile = boost::filesystem::current_path() / "config.xml";
+
+    std::unique_ptr< boost::filesystem::ofstream > pFileStream
+        = boost::filesystem::createBinaryOutputFileStream( configFile );
+    {
+        boost::archive::xml_oarchive xml( *pFileStream );
+        xml&                         boost::serialization::make_nvp( "config", m_config );
+    }
 }
 
 void Root::shutdown()

@@ -4,6 +4,7 @@
 #include "common/assert_verify.hpp"
 
 #include <algorithm>
+#include <limits>
 
 namespace mega
 {

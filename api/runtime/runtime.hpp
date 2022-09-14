@@ -23,13 +23,13 @@ bool isRuntimeInitialised();
 class ExecutionRoot
 {
 public:
-    ExecutionRoot( mega::ExecutionIndex executionIndex );
+    ExecutionRoot( mega::MPEStorage mpe );
     ~ExecutionRoot();
 
-    mega::reference      root() const { return m_root; }
+    mega::reference root() const { return m_root; }
 
 private:
-    mega::reference      m_root;
+    mega::reference m_root;
 };
 
 void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction );

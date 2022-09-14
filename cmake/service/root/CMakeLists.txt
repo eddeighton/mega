@@ -32,6 +32,10 @@ set_target_properties( root PROPERTIES FOLDER driver )
 
 link_boost( root program_options )
 link_boost( root filesystem )
+link_boost( root iostreams )
+link_boost( root serialization )
+link_boost( root system )
+link_boost( root atomic )
 link_spdlog( root )
 link_common( root )
 

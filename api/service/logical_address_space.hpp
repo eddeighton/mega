@@ -17,13 +17,13 @@ namespace service
 
 class LogicalAddressSpace
 {
-    using FreeList            = std::deque< AddressStorage >;
-    using LogicalOwnershipMap = std::unordered_map< mega::AddressStorage, mega::ExecutionIndex >;
+    using FreeList            = std::deque< NetworkAddress >;
+    using LogicalOwnershipMap = std::unordered_map< mega::NetworkAddress, mega::MPEStorage >;
 
 public:
-    Address allocateLogical( const mega::ExecutionIndex executionIndex, const mega::TypeID objectTypeID )
+    NetworkAddress allocateNetworkAddress( const mega::MPEStorage mpe, const mega::TypeID objectTypeID )
     {
-        AddressStorage nextFree;
+        NetworkAddress nextFree;
         {
             if ( !m_freeList.empty() )
             {
@@ -32,45 +32,37 @@ public:
             }
             else
             {
-                VERIFY_RTE_MSG( m_capacity < MAX_OBJECTS, "Total capacity reached in logical address space" );
                 nextFree = m_capacity;
                 ++m_capacity;
             }
         }
 
-        m_ownership.insert( { nextFree, executionIndex } );
-
-        LogicalAddress logicalAddress;
-        {
-            logicalAddress.address = nextFree;
-            logicalAddress.type    = LOGICAL_ADDRESS;
-        }
-
-        return Address{ logicalAddress };
+        m_ownership.insert( { nextFree, mpe } );
+        return nextFree;
     }
 
-    void deAllocateLogical( const mega::ExecutionIndex executionIndex, const mega::AddressStorage logicalAddress )
+    void deAllocateNetworkAddress( const mega::MPEStorage mpe, const mega::NetworkAddress networkAddress )
     {
-        auto iFind = m_ownership.find( logicalAddress );
+        auto iFind = m_ownership.find( networkAddress );
         VERIFY_RTE( iFind != m_ownership.end() );
         m_ownership.erase( iFind );
-        m_freeList.push_back( logicalAddress );
+        m_freeList.push_back( networkAddress );
     }
 
-    mega::ExecutionIndex getOwnership( const mega::AddressStorage logicalAddress ) const
+    mega::MPEStorage getOwnership( const mega::NetworkAddress networkAddress ) const
     {
-        auto iFind = m_ownership.find( logicalAddress );
+        auto iFind = m_ownership.find( networkAddress );
         if ( iFind != m_ownership.end() )
         {
             return iFind->second;
         }
         else
         {
-            return MAX_SIMULATIONS;
+            return TOTAL_EXECUTORS - 1U;
         }
     }
 
-    AddressStorage getCapacity() const { return m_capacity; }
+    NetworkAddress getCapacity() const { return m_capacity; }
 
     void defrag()
     {
@@ -83,7 +75,7 @@ public:
     }
 
 private:
-    AddressStorage      m_capacity = 0U;
+    NetworkAddress      m_capacity = 1U; // start at 1
     FreeList            m_freeList;
     LogicalOwnershipMap m_ownership;
 };

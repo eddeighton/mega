@@ -11,7 +11,7 @@
 
 int main( int argc, const char* argv[] )
 {
-    std::cout << "Page size: " << boost::interprocess::mapped_region::get_page_size() << std::endl;
+    /*std::cout << "Page size: " << boost::interprocess::mapped_region::get_page_size() << std::endl;
 
     struct shm_remove
     {
@@ -66,7 +66,7 @@ int main( int argc, const char* argv[] )
     catch ( boost::interprocess::bad_alloc& ex )
     {
         std::cout << "bad allocation: " << ex.what() << std::endl;
-    }
+    }*/
 
     return 0;
 }

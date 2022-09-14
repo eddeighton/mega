@@ -38,8 +38,8 @@ int main( int argc, const char* argv[] )
     bool                    bListSimulations              = false;
     std::string             strSimulationID;
     bool                    bClearStash = false;
-    bool                    bCapacity = false;
-    bool                    bShutdown = false;
+    bool                    bCapacity   = false;
+    bool                    bShutdown   = false;
     bool                    bQuit       = false;
 
     po::options_description commands( "Commands" );
@@ -171,17 +171,17 @@ int main( int argc, const char* argv[] )
                 terminal.testLock( simID );
                 // SPDLOG_INFO( "{}", timeStamp );
             }
-            else if( bClearStash )
+            else if ( bClearStash )
             {
                 terminal.ClearStash();
                 SPDLOG_INFO( "Cleared stash" );
             }
-            else if( bCapacity )
+            else if ( bCapacity )
             {
                 auto result = terminal.Capacity();
                 SPDLOG_INFO( "Logical Address Space Capacity: {}", result );
             }
-            else if( bShutdown )
+            else if ( bShutdown )
             {
                 SPDLOG_INFO( "Shutting down" );
                 terminal.Shutdown();

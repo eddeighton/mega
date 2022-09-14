@@ -1,143 +1,37 @@
 
-#include "mega/common.hpp"
-#include "mega/allocator.hpp"
-#include "mega/default_traits.hpp"
-#include "mega/shared_allocator.hpp"
+#include "/workspace/root/src/mega/src/api/mega/common.hpp"
+#include "/workspace/root/src/mega/src/api/runtime/runtime_functions.hpp"
 
-namespace mega
+
+void shared_ctor_{{ objectTypeID }}( void* pBuffer )
 {
-namespace runtime
-{
-ManagedSharedMemory& getSharedMemoryManager( mega::ExecutionIndex executionIndex );
-}
 }
 
-#pragma pack(push, 1)
-
-////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////
-/// Heap Data Types
-
-{% for part in heap_parts %}
-struct HeapPart_{{part.type}}
+void shared_dtor_{{ objectTypeID }}( void* pBuffer )
 {
-{% for member in part.members %}
-    {{member.type}} {{member.name}};
-{% endfor %}
-};
-{% endfor %}
-{% for part in heap_parts %}
-static_assert( sizeof( HeapPart_{{part.type}} ) == {{ part.size }}, "Unexpected size for: HeapPart_{{part.type}}" );
-{% for member in part.members %}
-static_assert( offsetof( HeapPart_{{part.type}}, {{member.name}} ) == {{ member.offset }}, "Unexpected offset for: {{member.name}}" );
-{% endfor %}
-{% endfor %}
-
-struct HeapBuffer_{{ ObjectTypeID }}
-{
-{% for part in heap_parts %}
-    HeapPart_{{part.type}} {{part.name}}[ {{part.total_domain}} ];
-{% endfor %}
-};
-{% for part in heap_parts %}
-static_assert( offsetof( HeapBuffer_{{ ObjectTypeID }}, {{part.name}} ) == {{ part.offset }}, "Unexpected offset for: {{part.name}}" );
-{% endfor %}
-
-////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////
-/// Shared Data Types
-
-{% for part in shared_parts %}
-struct SharedPart_{{part.type}}
-{
-    using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
-    SharedPart_{{part.type}}( TSegmentManagerType* pSegmentManager ) :
-{% for member in part.members %}
-        {{member.name}}( mega::DimensionTraits< {{ member.type }} >::init( pSegmentManager ) ){% if not loop.is_last%},{% endif %}
-{% endfor %}
-    {}
-{% for member in part.members %}
-    {{member.type}} {{member.name}};
-{% endfor %}
-};
-{% endfor %}
-{% for part in shared_parts %}
-static_assert( sizeof( SharedPart_{{part.type}} ) == {{ part.size }}, "Unexpected size for: SharedPart_{{part.type}}" );
-{% for member in part.members %}
-static_assert( offsetof( SharedPart_{{part.type}}, {{member.name}} ) == {{ member.offset }}, "Unexpected offset for: {{member.name}}" );
-{% endfor %}
-{% endfor %}
-
-struct SharedBuffer_{{ ObjectTypeID }}
-{
-    using TSegmentManagerType = mega::runtime::ManagedSharedMemory::segment_manager;
-    SharedBuffer_{{ ObjectTypeID }}( TSegmentManagerType* pSegmentManager )
-{% for part in shared_parts %}{% if loop.is_first%}:{% endif %}
-        {{part.name}}{ {%for init in part.inits %}SharedPart_{{part.type}}{pSegmentManager}{% if not loop.is_last%},{% endif %}{% endfor %} }{% if not loop.is_last%},{% endif %}
-{% endfor %}
-    {}
-{% for part in shared_parts %}
-    SharedPart_{{part.type}} {{part.name}}[ {{part.total_domain}} ];
-{% endfor %}
-};
-{% for part in shared_parts %}
-static_assert( offsetof( SharedBuffer_{{ ObjectTypeID }}, {{part.name}} ) == {{ part.offset }}, "Unexpected offset for: {{part.name}}" );
-{% endfor %}
-
-#pragma pack(pop)
-
-using IndexAllocator_{{ ObjectTypeID }}
-    = mega::IndexedBufferAllocator< mega::runtime::ManagedSharedMemory, SharedBuffer_{{ ObjectTypeID }}, HeapBuffer_{{ ObjectTypeID }} >;
-
-IndexAllocator_{{ ObjectTypeID }}* _allocator_{{ ObjectTypeID }}[ mega::MAX_SIMULATIONS ] = {};
-
-// SharedBuffer_{{ ObjectTypeID }}* get_shared_{{ ObjectTypeID }}( mega::PhysicalAddress address )
-void* get_shared_{{ ObjectTypeID }}( mega::PhysicalAddress address )
-{
-    IndexAllocator_{{ ObjectTypeID }}* pAllocator = _allocator_{{ ObjectTypeID }}[ address.execution ];
-    if( pAllocator == nullptr )
-    {
-        mega::runtime::ManagedSharedMemory& managedSharedMemory = mega::runtime::getSharedMemoryManager( address.execution );
-        pAllocator = new IndexAllocator_{{ ObjectTypeID }}( managedSharedMemory.get_segment_manager() );
-        _allocator_{{ ObjectTypeID }}[ address.execution ] = pAllocator;
-    }
-    return pAllocator->getShared( address.object ).get();
 }
 
-void* get_heap_{{ ObjectTypeID }}( mega::PhysicalAddress address )
+void heap_ctor_{{ objectTypeID }}( void* pBuffer )
 {
-    IndexAllocator_{{ ObjectTypeID }}* pAllocator = _allocator_{{ ObjectTypeID }}[ address.execution ];
-    if( pAllocator == nullptr )
-    {
-        mega::runtime::ManagedSharedMemory& managedSharedMemory = mega::runtime::getSharedMemoryManager( address.execution );
-        pAllocator = new IndexAllocator_{{ ObjectTypeID }}( managedSharedMemory.get_segment_manager() );
-        _allocator_{{ ObjectTypeID }}[ address.execution ] = pAllocator;
-    }
-    return pAllocator->getHeap( address.object );
 }
 
-mega::PhysicalAddress alloc_{{ ObjectTypeID }}( mega::ExecutionIndex executionIndex )
+void heap_dtor_{{ objectTypeID }}( void* pBuffer )
 {
-    IndexAllocator_{{ ObjectTypeID }}* pAllocator = _allocator_{{ ObjectTypeID }}[ executionIndex ];
-    if( pAllocator == nullptr )
-    {
-        mega::runtime::ManagedSharedMemory& managedSharedMemory = mega::runtime::getSharedMemoryManager( executionIndex );
-        pAllocator = new IndexAllocator_{{ ObjectTypeID }}( managedSharedMemory.get_segment_manager() );
-        _allocator_{{ ObjectTypeID }}[ executionIndex ] = pAllocator;
-    }
-
-    mega::PhysicalAddress result;
-    {
-        result.type      = mega::PHYSICAL_ADDRESS;
-        result.execution = executionIndex;
-        result.object    = pAllocator->allocate();
-    }
-
-    return result;
 }
 
-void dealloc_{{ ObjectTypeID }}( mega::PhysicalAddress address )
+static mega::runtime::Allocator* __g_allocator = nullptr;
+
+void set_allocator_{{ objectTypeID }}( mega::runtime::Allocator* pAllocator )
 {
-    IndexAllocator_{{ ObjectTypeID }}* pAllocator = _allocator_{{ ObjectTypeID }}[ address.execution ];
-    pAllocator->deallocate( address.object );
+    __g_allocator = pAllocator;
+}
+
+void* get_shared_{{ objectTypeID }}( mega::MachineAddress address )
+{
+    return __g_allocator->get_shared( address );
+}
+
+void* get_heap_{{ objectTypeID }}( mega::MachineAddress address )
+{
+    return __g_allocator->get_heap( address );
 }

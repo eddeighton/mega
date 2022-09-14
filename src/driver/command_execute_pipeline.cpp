@@ -17,32 +17,32 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "pipeline/configuration.hpp"
-
-#include "pipeline/stash.hpp"
 #include "service/terminal.hpp"
 
+#include "pipeline/configuration.hpp"
+#include "pipeline/stash.hpp"
 #include "pipeline/pipeline.hpp"
 
-#include "utilities/cmake.hpp"
-
 #include "parser/parser.hpp"
+
+#include "utilities/cmake.hpp"
+#include "utilities/tool_chain_hash.hpp"
+
+#include "common/assert_verify.hpp"
+#include "common/file.hpp"
+#include "common/stash.hpp"
+
+#include "spdlog/spdlog.h"
 
 #include "boost/program_options.hpp"
 #include "boost/filesystem/path.hpp"
 #include "boost/filesystem/operations.hpp"
 #include "boost/program_options/value_semantic.hpp"
 #include "boost/dll.hpp"
+#include "boost/archive/xml_iarchive.hpp"
+#include "boost/archive/xml_oarchive.hpp"
 
-#include "common/assert_verify.hpp"
-#include "common/file.hpp"
-#include "common/stash.hpp"
-#include "utilities/tool_chain_hash.hpp"
-
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
 #include <iostream>
-#include <spdlog/spdlog.h>
 
 namespace driver
 {
