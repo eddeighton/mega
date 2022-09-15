@@ -2,6 +2,7 @@
 #ifndef SHARED_MEMORY_MANAGER_3_SEPT_2022
 #define SHARED_MEMORY_MANAGER_3_SEPT_2022
 
+#include "mega/common.hpp"
 #include "mega/default_traits.hpp"
 
 #include "service/protocol/common/header.hpp"

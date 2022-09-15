@@ -57,6 +57,13 @@ struct TypeInstance
     }
 
     inline bool is_valid() const { return type != 0; }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& instance;
+        archive& type;
+    }
 };
 static_assert( sizeof( TypeInstance ) == 4U, "Invalid TypeInstance Size" );
 
@@ -87,6 +94,12 @@ struct NetworkOrProcessAddress
     {
     }
 
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& nop_storage;
+    }
+
     inline bool is_null() const { return nop_storage == NULL_ADDRESS; }
     inline      operator AddressStorage() const { return nop_storage; }
     inline bool operator==( const NetworkOrProcessAddress& cmp ) const { return ( nop_storage == cmp.nop_storage ); }
@@ -108,32 +121,65 @@ static constexpr auto       MAX_OBJECTS_PER_EXECUTOR = 65536;
 static constexpr auto TOTAL_MACHINES  = MAX_MACHINES;                                                      // 8
 static constexpr auto TOTAL_PROCESSES = MAX_MACHINES * MAX_PROCESS_PER_MACHINE;                            // 128
 static constexpr auto TOTAL_EXECUTORS = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * MAX_EXECUTOR_PER_PROCESS; // 32768
-// static constexpr auto TOTAL_OBJECTS
-//     = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * MAX_EXECUTOR_PER_PROCESS * MAX_OBJECTS_PER_EXECUTOR;
 
-using MPEStorage = std::uint16_t;
-
-enum AddressType : MPEStorage
+class MPE
 {
-    NETWORK_ADDRESS = 0,
-    MACHINE_ADDRESS = 1
-};
+    using MPEStorageType = std::uint16_t;
 
-struct MachineProcessExecutor
-{
+    enum AddressType : MPEStorageType
+    {
+        NETWORK_ADDRESS = 0,
+        MACHINE_ADDRESS = 1
+    };
+    struct MachineProcessExecutor
+    {
+        MPEStorageType executor : 8, process : 4, machine : 3, address_type : 1;
+    };
+    static_assert( sizeof( MachineProcessExecutor ) == 2U, "Invalid MachineAddress Size" );
+
     union
     {
-        MPEStorage mpe_storage;
-        MPEStorage executor : 8, process : 4, machine : 3, address_type : 1;
+        MachineProcessExecutor mpe;
+        MPEStorageType         mpe_storage;
     };
-    inline bool operator==( const MachineProcessExecutor& cmp ) const { return ( mpe_storage == cmp.mpe_storage ); }
-    inline bool operator!=( const MachineProcessExecutor& cmp ) const { return !( *this == cmp ); }
-    inline bool operator<( const MachineProcessExecutor& cmp ) const { return mpe_storage < cmp.mpe_storage; }
 
-    inline bool is_network() const { return address_type == NETWORK_ADDRESS; }
-    inline bool is_machine() const { return address_type == MACHINE_ADDRESS; }
+    // inline                operator MPEStorageType() const { return mpe_storage; }
+    // inline MPEStorageType getStorage() const { return mpe_storage; }
+public:
+    struct Hash
+    {
+        inline std::size_t operator()( const MPE& mpe ) const noexcept { return mpe.mpe_storage; }
+    };
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& mpe_storage;
+    }
+
+    MPE() {}
+    MPE( MachineID machineID, ProcessID processID, ExecutorID executorID )
+        : mpe{ executorID, processID, machineID, MACHINE_ADDRESS }
+    {
+    }
+    
+    inline MachineID  getMachineID() const { return mpe.machine; }
+    inline ProcessID  getProcessID() const { return mpe.process; }
+    inline ExecutorID getExecutorID() const { return mpe.executor; }
+    inline bool       isNetwork() const { return mpe.address_type == NETWORK_ADDRESS; }
+    inline bool       isMachine() const { return mpe.address_type == MACHINE_ADDRESS; }
+
+    inline bool operator==( const MPE& cmp ) const { return mpe_storage == cmp.mpe_storage; }
+    inline bool operator!=( const MPE& cmp ) const { return !( *this == cmp ); }
+    inline bool operator<( const MPE& cmp ) const { return mpe_storage < cmp.mpe_storage; }
+
+    void setMachineID( MachineID machineID ) { mpe.machine = machineID; }
+    void setProcessID( ProcessID processID ) { mpe.process = processID; }
+    void setExecutorID( ExecutorID executorID ) { mpe.executor = executorID; }
+    void setIsNetwork() { mpe.address_type = NETWORK_ADDRESS; }
+    void setIsMachine() { mpe.address_type = MACHINE_ADDRESS; }
 };
-static_assert( sizeof( MachineProcessExecutor ) == 2U, "Invalid MachineAddress Size" );
+static_assert( sizeof( MPE ) == 2U, "Invalid MPE Size" );
 
 struct ObjectAddress
 {
@@ -141,20 +187,25 @@ struct ObjectAddress
     inline bool operator==( const ObjectAddress& cmp ) const { return ( object == cmp.object ); }
     inline bool operator!=( const ObjectAddress& cmp ) const { return !( *this == cmp ); }
     inline bool operator<( const ObjectAddress& cmp ) const { return object < cmp.object; }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& object;
+    }
 };
 static_assert( sizeof( ObjectAddress ) == 2U, "Invalid ObjectAddress Size" );
 
-struct MachineAddress : ObjectAddress, MachineProcessExecutor
+struct MachineAddress : ObjectAddress, MPE
 {
     inline bool operator==( const MachineAddress& cmp ) const
     {
-        return ObjectAddress::operator==( cmp ) && MachineProcessExecutor::operator==( cmp );
+        return ObjectAddress::operator==( cmp ) && MPE::operator==( cmp );
     }
     inline bool operator!=( const MachineAddress& cmp ) const { return !( *this == cmp ); }
     inline bool operator<( const MachineAddress& cmp ) const
     {
-        return ObjectAddress::operator!=( cmp ) ? ObjectAddress::         operator<( cmp )
-                                                : MachineProcessExecutor::operator<( cmp );
+        return ObjectAddress::operator!=( cmp ) ? ObjectAddress::operator<( cmp ) : MPE::operator<( cmp );
     }
 };
 static_assert( sizeof( MachineAddress ) == 4U, "Invalid MachineAddress Size" );
@@ -166,43 +217,69 @@ struct reference : TypeInstance, MachineAddress, NetworkOrProcessAddress
         : TypeInstance( typeInstance )
         , MachineAddress( machineAddress )
     {
-        address_type = MACHINE_ADDRESS;
+        setIsMachine();
     }
     inline reference( TypeInstance typeInstance, MachineAddress machineAddress, ProcessAddress process )
         : TypeInstance( typeInstance )
         , MachineAddress( machineAddress )
         , NetworkOrProcessAddress( process )
     {
-        address_type = MACHINE_ADDRESS;
+        setIsMachine();
     }
     inline reference( TypeInstance typeInstance, NetworkAddress networkAddress )
         : TypeInstance( typeInstance )
         , NetworkOrProcessAddress( networkAddress )
     {
-        address_type = NETWORK_ADDRESS;
+        setIsNetwork();
     }
 
     inline bool operator==( const reference& cmp ) const
     {
-        return ( address_type == cmp.address_type ) && TypeInstance::operator==( cmp )
-                   && ( ( ( address_type == MACHINE_ADDRESS ) && MachineAddress::operator==( cmp ) )
-                        || ( ( address_type == NETWORK_ADDRESS ) && NetworkOrProcessAddress::operator==( cmp ) ) )
-               || false;
+        if ( isMachine() && cmp.isMachine() )
+        {
+            return TypeInstance::operator==( cmp ) && MPE::operator==( cmp );
+        }
+        else if ( isNetwork() && cmp.isNetwork() )
+        {
+            return TypeInstance::operator==( cmp ) && NetworkOrProcessAddress::operator==( cmp );
+        }
+        else
+        {
+            return false;
+        }
     }
     inline bool operator!=( const reference& cmp ) const { return !( *this == cmp ); }
     inline bool operator<( const reference& cmp ) const
     {
-        return TypeInstance::operator!=( cmp )     ? TypeInstance::operator<( cmp )
-               : MachineAddress::operator!=( cmp ) ? MachineAddress::         operator<( cmp )
-                                                   : NetworkOrProcessAddress::operator<( cmp );
+        if ( isMachine() && cmp.isMachine() )
+        {
+            return MPE::operator!=( cmp ) ? MPE::operator<( cmp ) : TypeInstance::operator<( cmp );
+        }
+        else if ( isNetwork() && cmp.isNetwork() )
+        {
+            return NetworkOrProcessAddress::operator!=( cmp ) ? NetworkOrProcessAddress::operator<( cmp )
+                                                              : TypeInstance::           operator<( cmp );
+        }
+        else
+        {
+            return isMachine();
+        }
     }
 
     inline bool is_valid() const
     {
-        if ( address_type == NETWORK_ADDRESS )
+        if ( isNetwork() )
             return !NetworkOrProcessAddress::is_null();
         else
             return TypeInstance::is_valid();
+    }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& static_cast< TypeInstance& >( *this );
+        archive& static_cast< MachineAddress& >( *this );
+        archive& static_cast< NetworkOrProcessAddress& >( *this );
     }
 };
 static_assert( sizeof( reference ) == 16U, "Invalid reference Size" );

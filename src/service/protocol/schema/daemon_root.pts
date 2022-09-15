@@ -2,18 +2,23 @@
 msg DaemonEnrole
 {
     request();
-    response(MPEStorage mpe);
+    response(MPE mpe);
 }
 
 msg DaemonLeafEnrole
 {
-    request(MPEStorage mpe);
-    response(MPEStorage mpe);
+    request(MPE mpe);
+    response(MPE mpe);
+}
+msg DaemonLeafDisconnect
+{
+    request(MPE mpe);
+    response();
 }
 
 msg DaemonGetExecutionContextID
 {
-    request(mega::MPEStorage mpe);
+    request(mega::MPE mpe);
     response(mega::network::ConversationID conversationID);
 }
 
@@ -148,24 +153,24 @@ msg ExeGetProject
 // Simulations
 msg ExeCreateExecutionContext
 {
-    request(mega::MPEStorage mpe);
-    response(mega::MPEStorage result);
+    request(mega::MPE mpe);
+    response(mega::MPE result);
 }
 
 msg ExeReleaseExecutionContext
 {
-    request(mega::MPEStorage mpe);
+    request(mega::MPE mpe);
     response();
 }
 
 msg ExeAllocateNetworkAddress
 {
-    request(mega::MPEStorage mpe, mega::TypeID objectTypeID);
+    request(mega::MPE mpe, mega::TypeID objectTypeID);
     response(mega::AddressStorage networkAddress);
 }
 msg ExeDeAllocateNetworkAddress
 {
-    request(mega::MPEStorage mpe, mega::AddressStorage networkAddress);
+    request(mega::MPE mpe, mega::AddressStorage networkAddress);
     response();
 }
 
@@ -194,24 +199,24 @@ msg ToolGetMegastructureInstallation
 
 msg ToolCreateExecutionContext
 {
-    request(mega::MPEStorage mpe);
-    response(mega::MPEStorage result); 
+    request(mega::MPE mpe);
+    response(mega::MPE result); 
 }
 
 msg ToolReleaseExecutionContext
 {
-    request(mega::MPEStorage mpe);
+    request(mega::MPE mpe);
     response();
 }
 
 msg ToolAllocateNetworkAddress
 {
-    request(mega::MPEStorage mpe, mega::TypeID objectTypeID);
+    request(mega::MPE mpe, mega::TypeID objectTypeID);
     response(mega::AddressStorage networkAddress);
 }
 msg ToolDeAllocateNetworkAddress
 {
-    request(mega::MPEStorage mpe, mega::AddressStorage networkAddress);
+    request(mega::MPE mpe, mega::AddressStorage networkAddress);
     response();
 }
 

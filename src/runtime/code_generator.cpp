@@ -439,12 +439,12 @@ void generateInstructions( const DatabaseInstance&                             d
             if ( szLocalSize > 1 )
             {
                 os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ".mpe_storage, " << s << ".pointer };";
+                   << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ", " << s << ".pointer };";
             }
             else
             {
                 os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance, " << targetType << " }, " << s << ".mpe_storage, " << s << ".pointer };";
+                   << ".instance, " << targetType << " }, " << s << ", " << s << ".pointer };";
             }
 
             data[ "assignments" ].push_back( os.str() );
@@ -463,7 +463,7 @@ void generateInstructions( const DatabaseInstance&                             d
             const std::size_t  szLocalSize = database.getLocalDomainSize( targetType );
 
             os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s << ".instance, "
-               << targetType << " }, " << s << ".mpe_storage, " << s << ".process };";
+               << targetType << " }, " << s << ", " << s << ".process };";
 
             data[ "assignments" ].push_back( os.str() );
         }
@@ -537,12 +537,12 @@ void generateInstructions( const DatabaseInstance&                             d
             os << indent << "// Allocate\n";
             os << indent
                << "const mega::NetworkAddress networkAddress = mega::runtime::allocateNetworkAddress( "
-                  "context.mpe_storage, "
+                  "context, "
                << pConcreteTarget->get_concrete_id() << " );\n";
 
             os << indent << "mega::reference result;\n";
             os << indent << "{\n";
-            os << indent << "    result = mega::runtime::networkToMachine( context.mpe_storage, "
+            os << indent << "    result = mega::runtime::networkToMachine( context, "
                << pConcreteTarget->get_concrete_id()
                << ", "
                   "networkAddress );\n";

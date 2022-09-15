@@ -23,7 +23,7 @@ bool isRuntimeInitialised();
 class ExecutionRoot
 {
 public:
-    ExecutionRoot( mega::MPEStorage mpe );
+    ExecutionRoot( mega::MPE mpe );
     ~ExecutionRoot();
 
     mega::reference root() const { return m_root; }

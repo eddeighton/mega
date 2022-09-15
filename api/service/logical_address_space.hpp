@@ -18,10 +18,10 @@ namespace service
 class LogicalAddressSpace
 {
     using FreeList            = std::deque< NetworkAddress >;
-    using LogicalOwnershipMap = std::unordered_map< mega::NetworkAddress, mega::MPEStorage >;
+    using LogicalOwnershipMap = std::unordered_map< mega::NetworkAddress, mega::MPE >;
 
 public:
-    NetworkAddress allocateNetworkAddress( const mega::MPEStorage mpe, const mega::TypeID objectTypeID )
+    NetworkAddress allocateNetworkAddress( const mega::MPE mpe, const mega::TypeID objectTypeID )
     {
         NetworkAddress nextFree;
         {
@@ -41,7 +41,7 @@ public:
         return nextFree;
     }
 
-    void deAllocateNetworkAddress( const mega::MPEStorage mpe, const mega::NetworkAddress networkAddress )
+    void deAllocateNetworkAddress( const mega::MPE mpe, const mega::NetworkAddress networkAddress )
     {
         auto iFind = m_ownership.find( networkAddress );
         VERIFY_RTE( iFind != m_ownership.end() );
@@ -49,7 +49,7 @@ public:
         m_freeList.push_back( networkAddress );
     }
 
-    mega::MPEStorage getOwnership( const mega::NetworkAddress networkAddress ) const
+    mega::MPE getOwnership( const mega::NetworkAddress networkAddress ) const
     {
         auto iFind = m_ownership.find( networkAddress );
         if ( iFind != m_ownership.end() )
@@ -58,7 +58,8 @@ public:
         }
         else
         {
-            return TOTAL_EXECUTORS - 1U;
+            THROW_RTE( "Failed to locate owner of network address: " << networkAddress );
+            // return  mega::MPE{};
         }
     }
 

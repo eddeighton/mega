@@ -2,6 +2,8 @@
 #ifndef HEADER_25_MAY_2022
 #define HEADER_25_MAY_2022
 
+#include "common/hash.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -45,6 +47,15 @@ public:
         archive& m_id;
         archive& m_connectionID;
     }
+
+    struct Hash
+    {
+        inline std::size_t operator()( const ConversationID& id ) const noexcept 
+        { 
+            const common::Hash hash{ id.m_id, id.m_connectionID };
+            return hash.get(); 
+        }
+    };
 
 private:
     ID           getID() const { return m_id; }

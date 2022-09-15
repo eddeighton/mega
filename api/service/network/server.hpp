@@ -14,6 +14,7 @@
 #include <string>
 #include <memory>
 #include <set>
+#include <functional>
 
 namespace mega
 {
@@ -25,6 +26,8 @@ public:
     class Connection : public std::enable_shared_from_this< Connection >, public Sender
     {
         friend class Server;
+
+        using DisconnectCallback = std::function< void() >;
 
     public:
         using Ptr    = std::shared_ptr< Connection >;
@@ -54,6 +57,13 @@ public:
             m_pSender->sendErrorResponse( conversationID, strErrorMsg, yield_ctx );
         }
 
+        template < typename TFunctor >
+        void setDisconnectCallback( TFunctor&& functor )
+        {
+            VERIFY_RTE_MSG( !m_disconnectCallback.has_value(), "Duplicate disconnect callback set" );
+            m_disconnectCallback = functor;
+        }
+
     protected:
         const ConnectionID&           getSocketConnectionID() const { return m_connectionID.value(); }
         Strand&                       getStrand() { return m_strand; }
@@ -63,15 +73,16 @@ public:
         void                          disconnected();
 
     private:
-        Server&                       m_server;
-        Strand                        m_strand;
-        boost::asio::ip::tcp::socket  m_socket;
-        SocketReceiver                m_receiver;
-        std::optional< ConnectionID > m_connectionID;
-        std::string                   m_strName;
-        Sender::Ptr                   m_pSender;
-        std::optional< Node::Type >   m_typeOpt;
-        std::set< ConversationID >    m_conversations;
+        Server&                             m_server;
+        Strand                              m_strand;
+        boost::asio::ip::tcp::socket        m_socket;
+        SocketReceiver                      m_receiver;
+        std::optional< ConnectionID >       m_connectionID;
+        std::string                         m_strName;
+        Sender::Ptr                         m_pSender;
+        std::optional< Node::Type >         m_typeOpt;
+        std::set< ConversationID >          m_conversations;
+        std::optional< DisconnectCallback > m_disconnectCallback;
     };
 
     using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
@@ -88,6 +99,14 @@ public:
     void waitForConnection();
     void onConnect( Connection::Ptr pNewConnection, const boost::system::error_code& ec );
     void onDisconnected( Connection::Ptr pConnection );
+
+    template < typename TFunctor >
+    void setDisconnectCallback( const ConnectionID& connectionID, TFunctor&& functor )
+    {
+        auto iFind = m_connections.find( connectionID );
+        VERIFY_RTE( iFind != m_connections.end() );
+        iFind->second->setDisconnectCallback( std::move( functor ) );
+    }
 
 private:
     boost::asio::io_context&       m_ioContext;

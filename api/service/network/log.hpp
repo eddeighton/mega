@@ -217,15 +217,16 @@ struct formatter< mega::NetworkOrProcessAddress >
         return format_to( ctx.out(), "nop:{}", address.nop_storage );
     }
 };
+
 template <>
-struct formatter< mega::MachineProcessExecutor >
+struct formatter< mega::MPE >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::MachineProcessExecutor& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    auto format( const mega::MPE& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to(
-            ctx.out(), "mpe:{}.{}.{}.{}", address.machine, address.process, address.executor, address.address_type );
+        return format_to( ctx.out(), "mpe:{}.{}.{}.{}", address.getMachineID(), address.getProcessID(),
+                          address.getExecutorID(), address.isNetwork() );
     }
 };
 
@@ -247,8 +248,7 @@ struct formatter< mega::MachineAddress >
     template < typename FormatContext >
     auto format( const mega::MachineAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to(
-            ctx.out(), "mpe:{}.{}", static_cast< const mega::MachineProcessExecutor& >( address ), address.object );
+        return format_to( ctx.out(), "mpe:{}.{}", static_cast< const mega::MPE& >( address ), address.object );
     }
 };
 

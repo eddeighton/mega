@@ -9,28 +9,28 @@ msg ToolGetMegastructureInstallation
 msg ToolCreateExecutionContext
 {
     request();
-    response(mega::MPEStorage result);
+    response(mega::MPE result);
 }
 
 msg ToolReleaseExecutionContext
 {
-    request(mega::MPEStorage index);
+    request(mega::MPE index);
     response();
 }
 
 msg ToolAcquireMemory
 {
-    request(mega::MPEStorage mpe);
+    request(mega::MPE mpe);
     response(std::string strMemoryName);
 }
 msg ToolAllocateNetworkAddress
 {
-    request(mega::MPEStorage mpe, mega::TypeID objectTypeID);
+    request(mega::MPE mpe, mega::TypeID objectTypeID);
     response(mega::AddressStorage networkAddress);
 }
 msg ToolDeAllocateNetworkAddress
 {
-    request(mega::MPEStorage mpe, mega::AddressStorage networkAddress);
+    request(mega::MPE mpe, mega::AddressStorage networkAddress);
     response();
 }
 
@@ -47,7 +47,7 @@ msg ToolRestore
 
 msg ToolGetExecutionContextID
 {
-    request(mega::MPEStorage mpe);
+    request(mega::MPE mpe);
     response(mega::network::ConversationID conversationID);
 }
 

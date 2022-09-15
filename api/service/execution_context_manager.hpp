@@ -8,7 +8,7 @@
 #include "service/network/log.hpp"
 
 #include <set>
-#include <map>
+#include <unordered_map>
 #include <tuple>
 
 namespace mega
@@ -24,69 +24,63 @@ class ExecutionContextManager
     using ExecutorAllocator = mega::RingAllocator< mega::ExecutorID, mega::MAX_EXECUTOR_PER_PROCESS >;
 
 public:
-    MachineProcessExecutor newDaemon()
+    MPE newDaemon()
     {
         if ( m_machines.full() )
         {
             THROW_RTE( "Maximum machine capacity reached" );
         }
 
-        MachineProcessExecutor mpe;
-        {
-            mpe.executor     = 0U;
-            mpe.process      = 0U;
-            mpe.machine      = m_machines.nextFree();
-            mpe.address_type = MACHINE_ADDRESS;
-        }
-        m_machines.allocate( mpe.machine );
-
-        SPDLOG_TRACE( "ExecutionContextManager: newDaemon: {}", mpe );
-
+        const MPE mpe( m_machines.allocate(), 0U, 0U );
+        SPDLOG_TRACE( "ECM: newDaemon: {}", mpe );
         return mpe;
     }
-    MachineProcessExecutor newLeaf( MPEStorage storage )
+
+    void daemonDisconnect( MPE mpe )
     {
-        MachineProcessExecutor mpe{ storage };
-        ProcessAllocator&      alloc = m_processes[ mpe.machine ];
+        MachineID m = mpe.getMachineID();
+
+        m_machines.free( m );
+        m_processes[ m ].reset();
+        for ( ExecutorAllocator& alloc : m_executors[ m ] )
+        {
+            alloc.reset();
+        }
+        SPDLOG_TRACE( "ECM: daemonDisconnect: {}", mpe );
+    }
+
+    MPE newLeaf( MPE daemonMPE )
+    {
+        ProcessAllocator& alloc = m_processes[ daemonMPE.getMachineID() ];
         if ( alloc.full() )
         {
             THROW_RTE( "Maximum machine capacity reached" );
         }
 
-        {
-            mpe.executor = 0U;
-            mpe.process  = alloc.nextFree();
-            // mpe.machine      = mpe.machine;
-            mpe.address_type = MACHINE_ADDRESS;
-        }
-        alloc.allocate( mpe.process );
-
-        SPDLOG_TRACE( "ExecutionContextManager: newLeaf: {}", mpe );
-
+        const MPE mpe( daemonMPE.getMachineID(), alloc.allocate(), 0U );
+        SPDLOG_TRACE( "ECM: newLeaf: {}", mpe );
         return mpe;
     }
 
-    MachineProcessExecutor newExecutor( MPEStorage storage, const network::ConversationID& conversationID )
+    void leafDisconnected( MPE mpe )
     {
-        MachineProcessExecutor mpe{ storage };
-        ExecutorAllocator&     alloc = m_executors[ mpe.machine ][ mpe.process ];
+        m_processes[ mpe.getMachineID() ].free( mpe.getProcessID() );
+        m_executors[ mpe.getMachineID() ][ mpe.getProcessID() ].reset();
+        SPDLOG_TRACE( "ECM: leafDisconnected: {}", mpe );
+    }
+
+    MPE newExecutor( MPE leafMPE, const network::ConversationID& conversationID )
+    {
+        ExecutorAllocator& alloc = m_executors[ leafMPE.getMachineID() ][ leafMPE.getProcessID() ];
         if ( alloc.full() )
         {
             THROW_RTE( "Maximum machine capacity reached" );
         }
+        const MPE mpe( leafMPE.getMachineID(), leafMPE.getProcessID(), alloc.allocate() );
+        SPDLOG_TRACE( "ECM: newExecutor: {}", mpe );
 
-        {
-            mpe.executor = alloc.nextFree();
-            // mpe.process      = mpe.process;
-            // mpe.machine      = mpe.machine;
-            mpe.address_type = MACHINE_ADDRESS;
-        }
-        alloc.allocate( mpe.executor );
-
-        SPDLOG_TRACE( "ExecutionContextManager: newExecutor: {}", mpe );
-
-        m_simulations.insert( { mpe.mpe_storage, conversationID } );
-        m_conversations.insert( { conversationID, mpe.mpe_storage } );
+        m_simulations.insert( { mpe, conversationID } );
+        m_conversations.insert( { conversationID, mpe } );
 
         return mpe;
     }
@@ -104,17 +98,17 @@ public:
         }*/
     }
 
-    void release( mega::MPEStorage address )
+    void release( mega::MPE address )
     {
         // m_allocations.free( address );
         // m_simulations.erase( address );
     }
 
-    const network::ConversationID& get( mega::MPEStorage mpe ) const
+    const network::ConversationID& get( mega::MPE mpe ) const
     {
-        auto iFind = m_simulations.find( mpe );
-        VERIFY_RTE_MSG( iFind != m_simulations.end(), "Failed to locate execution index: " << mpe );
-        // return iFind->second;
+        // auto iFind = m_simulations.find( mpe );
+        // VERIFY_RTE_MSG( iFind != m_simulations.end(), "Failed to locate execution index: " << mpe );
+        //  return iFind->second;
         THROW_RTE( "not implemented" );
     }
 
@@ -123,8 +117,8 @@ private:
     ProcessAllocator  m_processes[ mega::MAX_MACHINES ];
     ExecutorAllocator m_executors[ mega::MAX_MACHINES ][ mega::MAX_PROCESS_PER_MACHINE ];
 
-    std::map< mega::MPEStorage, network::ConversationID > m_simulations;
-    std::map< network::ConversationID, mega::MPEStorage > m_conversations;
+    std::unordered_map< mega::MPE, network::ConversationID, mega::MPE::Hash >               m_simulations;
+    std::unordered_map< network::ConversationID, mega::MPE, network::ConversationID::Hash > m_conversations;
 };
 } // namespace service
 } // namespace mega

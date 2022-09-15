@@ -119,24 +119,24 @@ public:
     }
 
     // mega::ExecutionContext
-    virtual MPEStorage getThisMPE() override { return m_executionIndex.value(); }
+    virtual MPE getThisMPE() override { return m_executionIndex.value(); }
 
     mega::reference getRoot() override { return m_executionRoot->root(); }
 
-    virtual std::string acquireMemory( MPEStorage mpe ) override
+    virtual std::string acquireMemory( MPE mpe ) override
     {
         VERIFY_RTE( m_pYieldContext );
         SPDLOG_TRACE( "acquireMemory called with: {}", mpe );
         return getToolRequest( *m_pYieldContext ).ToolAcquireMemory( mpe );
     }
 
-    virtual NetworkAddress allocateNetworkAddress( MPEStorage mpe, TypeID objectTypeID ) override
+    virtual NetworkAddress allocateNetworkAddress( MPE mpe, TypeID objectTypeID ) override
     {
         VERIFY_RTE( m_pYieldContext );
         SPDLOG_TRACE( "allocateNetworkAddress called with: {} {}", mpe, objectTypeID );
         return NetworkAddress{ getToolRequest( *m_pYieldContext ).ToolAllocateNetworkAddress( mpe, objectTypeID ) };
     }
-    virtual void deAllocateNetworkAddress( MPEStorage mpe, NetworkAddress networkAddress ) override
+    virtual void deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress ) override
     {
         VERIFY_RTE( m_pYieldContext );
         SPDLOG_TRACE( "deAllocate called with: {} {}", mpe, networkAddress );
@@ -154,7 +154,7 @@ public:
         return getToolRequest( *m_pYieldContext ).ToolRestore( filePath, determinant );
     }
 
-    virtual void readLock( MPEStorage mpe ) override
+    virtual void readLock( MPE mpe ) override
     {
         SPDLOG_TRACE( "readLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
@@ -162,7 +162,7 @@ public:
         getToolRequest( *m_pYieldContext ).ToolSimReadLock( id );
     }
 
-    virtual void writeLock( MPEStorage mpe ) override
+    virtual void writeLock( MPE mpe ) override
     {
         SPDLOG_TRACE( "writeLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
@@ -170,7 +170,7 @@ public:
         getToolRequest( *m_pYieldContext ).ToolSimWriteLock( id );
     }
 
-    virtual void releaseLock( MPEStorage mpe ) override
+    virtual void releaseLock( MPE mpe ) override
     {
         SPDLOG_TRACE( "releaseLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
@@ -179,7 +179,7 @@ public:
     }
 
     boost::asio::yield_context*                   m_pYieldContext = nullptr;
-    std::optional< mega::MPEStorage >             m_executionIndex;
+    std::optional< mega::MPE >             m_executionIndex;
     std::optional< mega::runtime::ExecutionRoot > m_executionRoot;
 };
 

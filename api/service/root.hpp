@@ -43,6 +43,8 @@ private:
     void loadConfig();
     void saveConfig();
 
+    void onDaemonDisconnect( mega::MPE mpe );
+
 private:
     network::Server                                     m_server;
     task::BuildHashCodes                                m_buildHashCodes;

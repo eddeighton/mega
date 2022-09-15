@@ -46,22 +46,22 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
 }
 
 // mega::ExecutionContext
-MPEStorage Simulation::getThisMPE() { return m_executionIndex.value(); }
+MPE Simulation::getThisMPE() { return m_executionIndex.value(); }
 
 mega::reference Simulation::getRoot() { return m_executionRoot->root(); }
 
-std::string Simulation::acquireMemory( MPEStorage mpe )
+std::string Simulation::acquireMemory( MPE mpe )
 {
     VERIFY_RTE( m_pYieldContext );
     return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( mpe );
 }
-NetworkAddress Simulation::allocateNetworkAddress( MPEStorage mpe, TypeID objectTypeID )
+NetworkAddress Simulation::allocateNetworkAddress( MPE mpe, TypeID objectTypeID )
 {
     VERIFY_RTE( m_pYieldContext );
     return NetworkAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocateNetworkAddress( mpe, objectTypeID ) };
 }
 
-void Simulation::deAllocateNetworkAddress( MPEStorage mpe, NetworkAddress networkAddress )
+void Simulation::deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress )
 {
     VERIFY_RTE( m_pYieldContext );
     getLeafRequest( *m_pYieldContext ).ExeDeAllocateNetworkAddress( mpe, networkAddress );
@@ -79,7 +79,7 @@ bool Simulation::restore( const std::string& filePath, std::size_t determinant )
     return getLeafRequest( *m_pYieldContext ).ExeRestore( filePath, determinant );
 }
 
-void Simulation::readLock( MPEStorage mpe )
+void Simulation::readLock( MPE mpe )
 {
     VERIFY_RTE( m_pYieldContext );
 
@@ -89,13 +89,13 @@ void Simulation::readLock( MPEStorage mpe )
     getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
 }
 
-void Simulation::writeLock( MPEStorage mpe )
+void Simulation::writeLock( MPE mpe )
 {
     VERIFY_RTE( m_pYieldContext );
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
     getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id );
 }
-void Simulation::releaseLock( MPEStorage mpe )
+void Simulation::releaseLock( MPE mpe )
 {
     VERIFY_RTE( m_pYieldContext );
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );

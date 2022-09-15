@@ -56,6 +56,10 @@ void Server::Connection::disconnected()
         boost::system::error_code ec;
         m_socket.close( ec );
     }
+    if( m_disconnectCallback.has_value() )
+    {
+        (*m_disconnectCallback)();
+    }
     m_server.onDisconnected( shared_from_this() );
 }
 

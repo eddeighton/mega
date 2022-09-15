@@ -27,6 +27,8 @@
 #include "common.hpp"
 #include "clock.hpp"
 
+#include "boost/circular_buffer.hpp"
+
 #ifdef __gnu_linux__
 #include <string.h>
 #endif
@@ -159,72 +161,50 @@ template< typename TInstanceType, TInstanceType _Size >
 class RingAllocator
 {
     friend struct mega::DimensionTraits< mega::RingAllocator< TInstanceType, _Size > >;
+
+    using FreeList = boost::circular_buffer< TInstanceType >;
 public:
     using InstanceType = TInstanceType;
     static const TInstanceType Size = _Size;
     
     inline RingAllocator()
+        :   m_free( Size )
     {
-        m_head = 0U;
-        m_tail = 0U;
-        m_full = 0U;
-        for( InstanceType sz = 0; sz != Size; ++sz )
-        {
-            m_ring[ sz ] = sz;
-        }
-    }
-    
-    inline InstanceType nextFree() const
-    {
-        if( !m_full )
-        {
-            TInstanceType szHead = m_head;
-            if( szHead == Size - 1 )
-                szHead = 0U;
-            else
-                ++szHead;
-            
-            return m_ring[ szHead ];
-        }
-        return Size;
+        reset();
     }
 
-    inline void allocate( InstanceType instance )
+    inline void reset()
     {
-        if( m_head == Size - 1 )
-            m_head = 0U;
-        else
-            ++m_head;
-        if( m_head == m_tail )
-            m_full = true;
-    }
-    
-    inline void free( InstanceType instance )
-    {
-        if( m_full )
-            m_full = false;
-        
-        if( m_tail == Size - 1 )
-            m_tail = 0U;
-        else
-            ++m_tail;
-        
-        m_ring[ m_tail ] = instance;
+        m_free.clear();
+        for( InstanceType sz = 0; sz != Size; ++sz )
+        {
+            m_free.push_back( sz );
+        }
     }
     
     inline bool empty() const
     {
-        return !m_full && ( m_head == m_tail );
+        return m_free.full();
     }
     inline bool full() const
     {
-        return m_full;
+        return m_free.empty();
     }
+
+    inline InstanceType allocate()
+    {
+        InstanceType result = m_free.front();
+        m_free.pop_front();
+        return result;
+    }
+
+    inline void free( InstanceType instance )
+    {
+        m_free.push_front( instance );
+    }
+
 private:
-    TInstanceType m_head, m_tail;
-    bool m_full;
-    std::array< InstanceType, Size > m_ring;
-    
+    FreeList m_free;
 };
 
 }

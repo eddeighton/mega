@@ -35,19 +35,18 @@ struct CallResult
 };
 using CallFunction = CallResult ( * )( reference );
 
-NetworkAddress allocateNetworkAddress( MPEStorage mpe, TypeID objectTypeID );
-reference      networkToMachine( MPEStorage mpe, TypeID objectTypeID, NetworkAddress networkAddress );
+NetworkAddress allocateNetworkAddress( MPE mpe, TypeID objectTypeID );
+reference      networkToMachine( MPE mpe, TypeID objectTypeID, NetworkAddress networkAddress );
 void           get_getter_heap( const char* pszUnitName, TypeID objectTypeID, GetHeapFunction* ppFunction );
 void           get_getter_shared( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
 void           get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
 
-
 struct Allocator
 {
     virtual void* get_shared( mega::MachineAddress address ) = 0;
-    virtual void* get_heap( mega::MachineAddress address ) = 0;
+    virtual void* get_heap( mega::MachineAddress address )   = 0;
 };
-using SetAllocatorFunction = void (*)( Allocator* );
+using SetAllocatorFunction = void ( * )( Allocator* );
 
 } // namespace runtime
 } // namespace mega

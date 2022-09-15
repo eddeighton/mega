@@ -112,18 +112,28 @@ public:
     // network::daemon_root::Impl
     virtual void DaemonEnrole( boost::asio::yield_context& yield_ctx ) override
     {
-        mega::MachineProcessExecutor mpe = m_root.m_executionContextManager.newDaemon();
-        getStackTopDaemonResponse( yield_ctx ).DaemonEnrole( mpe.mpe_storage );
+        const mega::MPE mpe = m_root.m_executionContextManager.newDaemon();
+
+        // register callback for disconnect
+        m_root.m_server.setDisconnectCallback(
+            getOriginatingEndPointID().value(), [ mpe, &root = m_root ]() { root.onDaemonDisconnect( mpe ); } );
+
+        getStackTopDaemonResponse( yield_ctx ).DaemonEnrole( mpe );
     }
 
-    virtual void DaemonLeafEnrole( const mega::MPEStorage& storage, boost::asio::yield_context& yield_ctx ) override
+    virtual void DaemonLeafEnrole( const mega::MPE& daemonMPE, boost::asio::yield_context& yield_ctx ) override
     {
-        const mega::MachineProcessExecutor mpe = m_root.m_executionContextManager.newLeaf( storage );
-        getStackTopDaemonResponse( yield_ctx ).DaemonLeafEnrole( mpe.mpe_storage );
+        const mega::MPE leafMPE = m_root.m_executionContextManager.newLeaf( daemonMPE );
+        getStackTopDaemonResponse( yield_ctx ).DaemonLeafEnrole( leafMPE );
     }
 
-    virtual void DaemonGetExecutionContextID( const mega::MPEStorage&     mpe,
-                                              boost::asio::yield_context& yield_ctx ) override
+    virtual void DaemonLeafDisconnect( const mega::MPE& leafMPE, boost::asio::yield_context& yield_ctx ) override
+    {
+        m_root.m_executionContextManager.leafDisconnected( leafMPE );
+        getStackTopDaemonResponse( yield_ctx ).DaemonLeafDisconnect();
+    }
+
+    virtual void DaemonGetExecutionContextID( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
         const network::ConversationID& conversationID = m_root.m_executionContextManager.get( mpe );
         getStackTopDaemonResponse( yield_ctx ).DaemonGetExecutionContextID( conversationID );
@@ -336,15 +346,13 @@ public:
         daemon.ExeGetProject( m_root.getProject() );
     }
 
-    virtual void ExeCreateExecutionContext( const mega::MPEStorage&     mpe,
-                                            boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeCreateExecutionContext( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
         auto result = m_root.m_executionContextManager.newExecutor( mpe, getID() );
-        getStackTopDaemonResponse( yield_ctx ).ExeCreateExecutionContext( result.mpe_storage );
+        getStackTopDaemonResponse( yield_ctx ).ExeCreateExecutionContext( result );
     }
 
-    virtual void ExeReleaseExecutionContext( const mega::MPEStorage&     index,
-                                             boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeReleaseExecutionContext( const mega::MPE& index, boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_executionContextManager.release( index );
         getStackTopDaemonResponse( yield_ctx ).ExeReleaseExecutionContext();
@@ -355,7 +363,7 @@ public:
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ToolGetMegastructureInstallation( m_root.getMegastructureInstallation() );
     }
-    virtual void ExeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+    virtual void ExeAllocateNetworkAddress( const mega::MPE&            mpe,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
     {
@@ -363,7 +371,7 @@ public:
         getStackTopDaemonResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
-    virtual void ExeDeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+    virtual void ExeDeAllocateNetworkAddress( const mega::MPE&            mpe,
                                               const mega::AddressStorage& networkAddress,
                                               boost::asio::yield_context& yield_ctx ) override
     {
@@ -397,20 +405,18 @@ public:
         getStackTopDaemonResponse( yield_ctx ).ExeSimReleaseLock();
     }
 
-    virtual void ToolCreateExecutionContext( const mega::MPEStorage&     mpe,
-                                             boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolCreateExecutionContext( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
         auto result = m_root.m_executionContextManager.newExecutor( mpe, getID() );
-        getStackTopDaemonResponse( yield_ctx ).ToolCreateExecutionContext( result.mpe_storage );
+        getStackTopDaemonResponse( yield_ctx ).ToolCreateExecutionContext( result );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::MPEStorage&     index,
-                                              boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolReleaseExecutionContext( const mega::MPE& index, boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_executionContextManager.release( index );
         getStackTopDaemonResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
-    virtual void ToolAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+    virtual void ToolAllocateNetworkAddress( const mega::MPE&            mpe,
                                              const mega::TypeID&         objectTypeID,
                                              boost::asio::yield_context& yield_ctx ) override
     {
@@ -418,7 +424,7 @@ public:
         getStackTopDaemonResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
-    virtual void ToolDeAllocateNetworkAddress( const mega::MPEStorage&     mpe,
+    virtual void ToolDeAllocateNetworkAddress( const mega::MPE&            mpe,
                                                const mega::AddressStorage& networkAddress,
                                                boost::asio::yield_context& yield_ctx ) override
     {
@@ -746,6 +752,8 @@ void Root::saveConfig()
     }
 }
 
+void Root::onDaemonDisconnect( mega::MPE mpe ) { m_executionContextManager.daemonDisconnect( mpe ); }
+
 void Root::shutdown()
 {
     m_server.stop();
@@ -784,6 +792,7 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
                 new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
     }
 }
+
 void Root::conversationNew( const network::Header& header, const network::ReceivedMsg& msg )
 {
     auto pCon = m_server.getConnection( msg.connectionID );

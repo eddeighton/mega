@@ -23,6 +23,7 @@ set( MEGA_UNIT_TESTS
 	${MEGA_TEST_DIR}/pipeline_tests.cpp
 	${MEGA_TEST_DIR}/compiler_pipeline_tests.cpp
 	${MEGA_TEST_DIR}/asio_tests.cpp
+	${MEGA_TEST_DIR}/allocator_tests.cpp
 	
 	)
 

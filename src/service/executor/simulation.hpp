@@ -55,22 +55,22 @@ public:
                                     boost::asio::yield_context&          yield_ctx ) override;
 
     // mega::ExecutionContext
-    virtual MPEStorage      getThisMPE() override;
+    virtual MPE             getThisMPE() override;
     virtual mega::reference getRoot() override;
-    virtual std::string     acquireMemory( MPEStorage mpe ) override;
-    virtual NetworkAddress  allocateNetworkAddress( MPEStorage mpe, TypeID objectTypeID ) override;
-    virtual void            deAllocateNetworkAddress( MPEStorage mpe, NetworkAddress networkAddress ) override;
+    virtual std::string     acquireMemory( MPE mpe ) override;
+    virtual NetworkAddress  allocateNetworkAddress( MPE mpe, TypeID objectTypeID ) override;
+    virtual void            deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress ) override;
     virtual void            stash( const std::string& filePath, std::size_t determinant ) override;
     virtual bool            restore( const std::string& filePath, std::size_t determinant ) override;
-    virtual void            readLock( MPEStorage mpe ) override;
-    virtual void            writeLock( MPEStorage mpe ) override;
-    virtual void            releaseLock( MPEStorage mpe ) override;
+    virtual void            readLock( MPE mpe ) override;
+    virtual void            writeLock( MPE mpe ) override;
+    virtual void            releaseLock( MPE mpe ) override;
 
 private:
     network::ConcurrentChannel                    m_requestChannel;
     network::Sender::Ptr                          m_pRequestChannelSender;
     boost::asio::yield_context*                   m_pYieldContext = nullptr;
-    std::optional< mega::MPEStorage >             m_executionIndex;
+    std::optional< mega::MPE >                    m_executionIndex;
     std::optional< mega::runtime::ExecutionRoot > m_executionRoot;
     mega::Scheduler                               m_scheduler;
 };
