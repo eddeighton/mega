@@ -46,6 +46,11 @@ msg TermSimNew
     request();
     response(mega::network::ConversationID simulationID);
 }
+msg TermSimDestroy
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
 msg TermSimList
 {
     request();
@@ -142,12 +147,6 @@ msg ExeCreateExecutionContext
     response(mega::MPE mpe);
 }
 
-msg ExeReleaseExecutionContext
-{
-    request(mega::MPE index);
-    response();
-}
-
 msg ExeAcquireMemory
 {
     request(mega::MPE mpe);
@@ -196,12 +195,6 @@ msg ToolCreateExecutionContext
 {
     request(mega::MPE mpe);
     response(mega::MPE mpe);
-}
-
-msg ToolReleaseExecutionContext
-{
-    request(mega::MPE index);
-    response();
 }
 
 msg ToolAcquireMemory

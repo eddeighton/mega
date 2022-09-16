@@ -64,7 +64,7 @@ enum MainCommand
 
 int main( int argc, const char* argv[] )
 {
-    boost::timer::cpu_timer timer;
+    //boost::timer::cpu_timer timer;
 
     boost::filesystem::path logDir             = boost::filesystem::current_path();
     std::string             strConsoleLogLevel = "info";

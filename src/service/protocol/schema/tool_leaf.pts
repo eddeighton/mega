@@ -12,12 +12,6 @@ msg ToolCreateExecutionContext
     response(mega::MPE result);
 }
 
-msg ToolReleaseExecutionContext
-{
-    request(mega::MPE index);
-    response();
-}
-
 msg ToolAcquireMemory
 {
     request(mega::MPE mpe);

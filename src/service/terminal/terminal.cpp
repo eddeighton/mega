@@ -194,6 +194,36 @@ network::ConversationBase::Ptr Terminal::joinConversation( const network::Connec
             return std::get< result_type >( result.value() );                                            \
     }
 
+#define GENERIC_MSG_ARG1_NORESULT( msg_name, arg1 )                                                      \
+    {                                                                                                    \
+        std::optional< std::variant< bool, std::exception_ptr > > result;                                \
+        {                                                                                                \
+            auto func = [ &result, &arg1 ]( network::ConversationBase& con, network::Sender& sender,     \
+                                            boost::asio::yield_context& yield_ctx )                      \
+            {                                                                                            \
+                network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );                       \
+                try                                                                                      \
+                {                                                                                        \
+                    leaf.msg_name( arg1 );                                                               \
+                    result = true;                                                                       \
+                }                                                                                        \
+                catch ( std::exception & ex )                                                            \
+                {                                                                                        \
+                    result = std::current_exception();                                                   \
+                }                                                                                        \
+            };                                                                                           \
+            conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(              \
+                                       *this, createConversationID( getLeafSender().getConnectionID() ), \
+                                       getLeafSender().getConnectionID(), std::move( func ) ) ),         \
+                                   getLeafSender() );                                                    \
+        }                                                                                                \
+        while ( !result.has_value() )                                                                    \
+            m_io_context.run_one();                                                                      \
+                                                                                                         \
+        if ( result->index() == 1 )                                                                      \
+            std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );                  \
+    }
+
 #define GENERIC_MSG_ARG1( result_type, msg_name, arg1 )                                                  \
     {                                                                                                    \
         std::optional< std::variant< result_type, std::exception_ptr > > result;                         \
@@ -265,6 +295,12 @@ network::ConversationID Terminal::SimNew()
 {
     //
     GENERIC_MSG( network::ConversationID, TermSimNew );
+}
+
+void Terminal::SimDestroy( const network::ConversationID& simID )
+{
+    //
+    GENERIC_MSG_ARG1_NORESULT( TermSimDestroy, simID );
 }
 
 std::vector< network::ConversationID > Terminal::SimList()

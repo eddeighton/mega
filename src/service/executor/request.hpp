@@ -42,6 +42,8 @@ public:
                                      boost::asio::yield_context&   yield_ctx ) override;
     virtual void RootSimList( boost::asio::yield_context& yield_ctx ) override;
     virtual void RootSimCreate( boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimDestroy( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override;
     virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override;
     virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,

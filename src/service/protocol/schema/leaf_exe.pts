@@ -37,7 +37,11 @@ msg RootSimCreate
     request();
     response( mega::network::ConversationID newSimulationID );
 }
-
+msg RootSimDestroy
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
 msg RootSimReadLock
 {
     request(mega::network::ConversationID simulationID);

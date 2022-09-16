@@ -102,12 +102,12 @@ public:
             = m_daemon.m_leafServer.getConnection( getOriginatingEndPointID().value() );
         VERIFY_RTE( pConnection );
         pConnection->setType( type );
-        SPDLOG_TRACE( "Leaf {} enroled as {}", pConnection->getName(), network::Node::toStr( type ) );
+        // SPDLOG_TRACE( "Leaf {} enroled as {}", pConnection->getName(), network::Node::toStr( type ) );
 
         const mega::MPE leafMPE = getRootRequest( yield_ctx ).DaemonLeafEnrole( m_daemon.m_mpe );
 
-        m_daemon.m_leafServer.setDisconnectCallback(
-            getOriginatingEndPointID().value(), [ leafMPE, &daemon = m_daemon ]() { daemon.onLeafDisconnect( leafMPE ); } );
+        pConnection->setMPE( leafMPE );
+        pConnection->setDisconnectCallback( [ leafMPE, &daemon = m_daemon ]() { daemon.onLeafDisconnect( leafMPE ); } );
 
         getStackTopLeafResponse( yield_ctx ).LeafEnrole( leafMPE );
     }
@@ -115,7 +115,7 @@ public:
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getRootRequest( yield_ctx ).TermListNetworkNodes();
-        SPDLOG_TRACE( "Daemon got root response" );
+        // SPDLOG_TRACE( "Daemon got root response" );
         getStackTopLeafResponse( yield_ctx ).TermListNetworkNodes( result );
     }
 
@@ -155,6 +155,13 @@ public:
     {
         auto result = getRootRequest( yield_ctx ).TermSimNew();
         getStackTopLeafResponse( yield_ctx ).TermSimNew( result );
+    }
+
+    virtual void TermSimDestroy( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override
+    {
+        getRootRequest( yield_ctx ).TermSimDestroy( simulationID );
+        getStackTopLeafResponse( yield_ctx ).TermSimDestroy();
     }
 
     virtual void TermSimList( boost::asio::yield_context& yield_ctx ) override
@@ -259,16 +266,11 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeGetProject( result );
     }
 
-    virtual void ExeCreateExecutionContext( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeCreateExecutionContext( const mega::MPE& leafMPE, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ExeCreateExecutionContext( mpe );
+        const mega::MPE daemonLeafMPE( m_daemon.m_mpe.getMachineID(), leafMPE.getProcessID(), 0U );
+        auto            result = getRootRequest( yield_ctx ).ExeCreateExecutionContext( daemonLeafMPE );
         getStackTopLeafResponse( yield_ctx ).ExeCreateExecutionContext( result );
-    }
-
-    virtual void ExeReleaseExecutionContext( const mega::MPE& index, boost::asio::yield_context& yield_ctx ) override
-    {
-        getRootRequest( yield_ctx ).ExeReleaseExecutionContext( index );
-        getStackTopLeafResponse( yield_ctx ).ExeReleaseExecutionContext();
     }
 
     virtual void ExeAcquireMemory( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
@@ -439,6 +441,15 @@ public:
         getRootResponse( yield_ctx ).RootSimCreate( simID );
     }
 
+    virtual void RootSimDestroy( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto leafRequest = leafRequestByCon( simulationID, yield_ctx );
+        VERIFY_RTE_MSG( leafRequest.has_value(), "Failed to locate simulation: " << simulationID );
+        leafRequest->RootSimDestroy( simulationID );
+        getRootResponse( yield_ctx ).RootSimDestroy();
+    }
+
     virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
@@ -482,16 +493,11 @@ public:
         auto result = getRootRequest( yield_ctx ).ToolGetMegastructureInstallation();
         getStackTopLeafResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
     }
-    virtual void ToolCreateExecutionContext( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolCreateExecutionContext( const mega::MPE& leafMPE, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ToolCreateExecutionContext( mpe );
+        const mega::MPE daemonLeafMPE( m_daemon.m_mpe.getMachineID(), leafMPE.getProcessID(), 0U );
+        auto            result = getRootRequest( yield_ctx ).ToolCreateExecutionContext( daemonLeafMPE );
         getStackTopLeafResponse( yield_ctx ).ToolCreateExecutionContext( result );
-    }
-
-    virtual void ToolReleaseExecutionContext( const mega::MPE& index, boost::asio::yield_context& yield_ctx ) override
-    {
-        getRootRequest( yield_ctx ).ToolReleaseExecutionContext( index );
-        getStackTopLeafResponse( yield_ctx ).ToolReleaseExecutionContext();
     }
 
     virtual void ToolAcquireMemory( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
@@ -594,9 +600,9 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        SPDLOG_TRACE( "DaemonEnrole" );
+        // SPDLOG_TRACE( "DaemonEnrole" );
         m_daemon.m_mpe = getRootRequest( yield_ctx ).DaemonEnrole();
-        SPDLOG_TRACE( "Daemon enroled with mpe: {}", m_daemon.m_mpe );
+        // SPDLOG_TRACE( "Daemon enroled with mpe: {}", m_daemon.m_mpe );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };
@@ -626,7 +632,11 @@ Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP
     }
 }
 
-Daemon::~Daemon() { SPDLOG_TRACE( "Daemon shutdown" ); }
+Daemon::~Daemon() 
+{ 
+    //
+    // SPDLOG_TRACE( "Daemon shutdown" ); 
+}
 
 void Daemon::onLeafDisconnect( mega::MPE mpe )
 {

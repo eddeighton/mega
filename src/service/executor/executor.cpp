@@ -96,5 +96,20 @@ network::ConversationBase::Ptr Executor::joinConversation( const network::Connec
         new ExecutorRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 
+void Executor::simulationInitiated( std::shared_ptr< Simulation > pSimulation )
+{
+    m_simulations.insert( { pSimulation->getID(), pSimulation } );
+    network::ConversationManager::conversationInitiated( pSimulation, getLeafSender() );
+}
+
+void Executor::conversationCompleted( network::ConversationBase::Ptr pConversation )
+{
+    if ( Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( pConversation ) )
+    {
+        m_simulations.erase( pSim->getID() );
+    }
+    network::ConversationManager::conversationCompleted( pConversation );
+}
+
 } // namespace service
 } // namespace mega

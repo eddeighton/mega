@@ -19,229 +19,169 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <bitset>
+
+namespace terminal
+{
+#define COMMAND( cmd, desc )                                                   \
+    namespace cmd                                                              \
+    {                                                                          \
+    extern void command( bool bHelp, const std::vector< std::string >& args ); \
+    }
+#include "commands.hxx"
+#undef COMMAND
+
+} // namespace terminal
+
+enum MainCommand
+{
+#define COMMAND( cmd, desc ) eCmd_##cmd,
+#include "commands.hxx"
+#undef COMMAND
+    TOTAL_MAIN_COMMANDS
+};
 
 int main( int argc, const char* argv[] )
 {
-    std::optional< std::string > optionalHostName;
-    boost::filesystem::path      logFolder          = boost::filesystem::current_path() / "log";
-    std::string                  strConsoleLogLevel = "info", strLogFileLevel = "debug";
+    boost::filesystem::path logDir             = boost::filesystem::current_path();
+    std::string             strConsoleLogLevel = "info";
+    std::string             strLogFileLevel    = "debug";
+    bool                    bWait              = false;
 
-    namespace po = boost::program_options;
-
-    bool                    bShowHelp  = false;
-    bool                    bListNodes = false;
-    boost::filesystem::path pipelinePath;
-    boost::filesystem::path projectPath;
-    bool                    bGetMegastructureInstallation = false;
-    bool                    bGetProject                   = false;
-    bool                    bNewSimulation                = false;
-    bool                    bListSimulations              = false;
-    std::string             strSimulationID;
-    bool                    bClearStash = false;
-    bool                    bCapacity   = false;
-    bool                    bShutdown   = false;
-    bool                    bQuit       = false;
-
-    po::options_description commands( "Commands" );
-
-    // clang-format off
-    commands.add_options()
-    ( "help,?",         po::bool_switch( &bShowHelp ),                          "Show Command Line Help"    )
-    ( "nodes,n",        po::bool_switch( &bListNodes ),                         "List network nodes"        )
-    ( "pipeline,p",     po::value< boost::filesystem::path >( &pipelinePath ),  "Run a pipeline"            )
-    ( "getInstall,i",   po::bool_switch( &bGetMegastructureInstallation ),      "Get the Mega Structure Installation" )
-    ( "setProject,s",   po::value< boost::filesystem::path >( &projectPath ),   "Select a project via its installation path" )
-    ( "getProject,g",   po::bool_switch( &bGetProject ),                        "Get current project"       )
-    ( "exe,e",          po::bool_switch( &bNewSimulation ),                     "Start a new executor"      )
-    ( "list,l",         po::bool_switch( &bListSimulations ),                   "List simulations"          )
-    ( "test,t",         po::value< std::string >( &strSimulationID ),           "Test simulation read lock" )
-    ( "capacity,c",     po::bool_switch( &bCapacity ),                          "Report logical address space capacity" )
-    ( "clear,r",        po::bool_switch( &bClearStash ),                        "Clear stash"               )
-    ( "shutdown,!",       po::bool_switch( &bShutdown ),                        "Shutdown mega structure"   )
-    ( "quit,q",         po::bool_switch( &bQuit ),                              "Quit this host"            )
-    ;
+    std::bitset< TOTAL_MAIN_COMMANDS > cmds;
+    MainCommand                        mainCmd = TOTAL_MAIN_COMMANDS;
 
     {
-        po::options_description options( "General" );
+        std::vector< std::string > commandArgs;
 
-        // clang-format off
-        std::string strHostName;
-        options.add_options()
-        ( "name",       po::value< std::string >( &strHostName ),               "Host name" )
-        ( "log",        po::value< boost::filesystem::path >( &logFolder ),     "Logging folder" )
-        ( "console",    po::value< std::string >( &strConsoleLogLevel ),        "Console logging level" )
-        ( "level",      po::value< std::string >( &strLogFileLevel ),           "Log file logging level" )
-        ;
-        // clang-format on
+        namespace po = boost::program_options;
+        po::variables_map vm;
+        bool              bGeneralWait = false;
+
+#define COMMAND( cmd, desc ) bool bCmd_##cmd = false;
+#include "commands.hxx"
+#undef COMMAND
+
+        po::options_description genericOptions( " General" );
+        {
+            // clang-format off
+            genericOptions.add_options()
+            ( "help",                                                           "Produce general or command help message" )
+            ( "log_dir",    po::value< boost::filesystem::path >( &logDir ),    "Log directory" )
+            ( "console",    po::value< std::string >( &strConsoleLogLevel ),    "Console logging level" )
+            ( "level",      po::value< std::string >( &strLogFileLevel ),       "Log file logging level" )
+            ( "wait",       po::bool_switch( &bGeneralWait ),                   "Wait at startup for attaching a debugger" );
+            // clang-format on
+        }
+
+        po::options_description commandOptions( " Commands" );
+        {
+            commandOptions.add_options()
+#define COMMAND( cmd, desc ) ( #cmd, po::bool_switch( &bCmd_##cmd ), desc )
+#include "commands.hxx"
+#undef COMMAND
+                ;
+        }
+
+        if ( cmds.count() > 1 )
+        {
+            spdlog::info( "Invalid command combination. Type '--help' for options" );
+            return 1;
+        }
+
+        po::options_description commandHiddenOptions( "" );
+        {
+            commandHiddenOptions.add_options()( "args", po::value< std::vector< std::string > >( &commandArgs ) );
+        }
+
+        po::options_description visibleOptions( "Allowed options" );
+        visibleOptions.add( genericOptions ).add( commandOptions );
+
+        po::options_description allOptions( "all" );
+        allOptions.add( genericOptions ).add( commandOptions ).add( commandHiddenOptions );
+
+        po::positional_options_description p;
+        p.add( "args", -1 );
 
         po::parsed_options parsedOptions
-            = po::command_line_parser( argc, argv ).options( options.add( commands ) ).run();
-
-        po::variables_map vm;
+            = po::command_line_parser( argc, argv ).options( allOptions ).positional( p ).allow_unregistered().run();
         po::store( parsedOptions, vm );
         po::notify( vm );
 
-        if ( bShowHelp )
+        auto logThreads = mega::network::configureLog( logDir, "terminal", mega::network::fromStr( strConsoleLogLevel ),
+                                                       mega::network::fromStr( strLogFileLevel ) );
+
+        try
         {
-            std::cout << options << "\n";
-            return 0;
-        }
-        if ( !strHostName.empty() )
-        {
-            optionalHostName.emplace( std::move( strHostName ) );
-        }
+            if ( bGeneralWait )
+            {
+                spdlog::info( "Waiting for input..." );
+                char c;
+                std::cin >> c;
+            }
+
+#define COMMAND( cmd, desc )                                                                   \
+    if ( bCmd_##cmd )                                                                          \
+    {                                                                                          \
+        cmds.set( eCmd_##cmd );                                                                \
+        VERIFY_RTE_MSG( mainCmd == TOTAL_MAIN_COMMANDS, "Duplicate main commands specified" ); \
+        mainCmd = eCmd_##cmd;                                                                  \
     }
+#include "commands.hxx"
+#undef COMMAND
 
-    bool bRunLoop = false;
+            const bool bShowHelp = vm.count( "help" );
 
-    auto logThreads = mega::network::configureLog( logFolder, "terminal", mega::network::fromStr( strConsoleLogLevel ),
-                                                   mega::network::fromStr( strLogFileLevel ) );
+            std::vector< std::string > commandArguments
+                = po::collect_unrecognized( parsedOptions.options, po::include_positional );
 
-    try
-    {
-        mega::service::Terminal terminal( optionalHostName );
+            switch ( mainCmd )
+            {
+#define COMMAND( cmd, desc )                                   \
+    case eCmd_##cmd:                                           \
+        terminal::cmd::command( bShowHelp, commandArguments ); \
+        break;
+#include "commands.hxx"
+#undef COMMAND
 
-        // clang-format on
-        while ( terminal.running() )
-        {
-            if ( bShowHelp )
-            {
-                std::cout << commands << std::endl;
-            }
-            else if ( bListNodes )
-            {
-                auto result = terminal.ListNetworkNodes();
-                for ( const std::string& str : result )
-                {
-                    SPDLOG_INFO( "{}", str );
-                }
-            }
-            else if ( !pipelinePath.empty() )
-            {
-                mega::pipeline::Configuration pipelineConfig;
-                boost::filesystem::loadAsciiFile( pipelinePath, pipelineConfig.data() );
-                const mega::network::PipelineResult result = terminal.PipelineRun( pipelineConfig );
-                SPDLOG_INFO( "Pipeline result:\n {} \n {}", result.getSuccess(), result.getMessage() );
-            }
-            else if ( bGetMegastructureInstallation )
-            {
-                mega::network::MegastructureInstallation install = terminal.GetMegastructureInstallation();
-                if ( install.isEmpty() )
-                    SPDLOG_INFO( "No Mega Structure Installation" );
-                else
-                    SPDLOG_INFO( "Megastructure Installation: {}", install.getInstallationPath().string() );
-            }
-            else if ( bGetProject )
-            {
-                mega::network::Project project = terminal.GetProject();
-                if ( project.isEmpty() )
-                    SPDLOG_INFO( "No active project" );
-                else
-                    SPDLOG_INFO( "Active project: {}", project.getProjectInstallPath().string() );
-            }
-            else if ( !projectPath.empty() )
-            {
-                mega::network::Project project( projectPath );
-                if ( terminal.SetProject( project ) )
-                    SPDLOG_INFO( "Project set to: {}", project.getProjectInstallPath().string() );
-                else
-                    SPDLOG_INFO( "Set project failed" );
-            }
-            else if ( bNewSimulation )
-            {
-                const mega::network::ConversationID simulationID = terminal.SimNew();
-                SPDLOG_INFO( "New simulation: {}", simulationID );
-            }
-            else if ( bListSimulations )
-            {
-                const std::vector< mega::network::ConversationID > simulationIds = terminal.SimList();
-                for ( const mega::network::ConversationID& simID : simulationIds )
-                {
-                    SPDLOG_INFO( "{}", simID );
-                }
-            }
-            else if ( !strSimulationID.empty() )
-            {
-                mega::network::ConversationID simID;
-                {
-                    std::istringstream is( strSimulationID );
-                    is >> simID;
-                }
-                SPDLOG_INFO( "Attempting to read lock on {}", simID );
-                terminal.testLock( simID );
-                // SPDLOG_INFO( "{}", timeStamp );
-            }
-            else if ( bClearStash )
-            {
-                terminal.ClearStash();
-                SPDLOG_INFO( "Cleared stash" );
-            }
-            else if ( bCapacity )
-            {
-                auto result = terminal.Capacity();
-                SPDLOG_INFO( "Logical Address Space Capacity: {}", result );
-            }
-            else if ( bShutdown )
-            {
-                SPDLOG_INFO( "Shutting down" );
-                terminal.Shutdown();
-                break;
-            }
-            else if ( bQuit )
-            {
-                break;
-            }
-            else
-            {
-                std::cout << commands << std::endl;
-                bRunLoop = true;
-            }
-
-            if ( !bRunLoop )
-                break;
-
-            projectPath.clear();
-            pipelinePath.clear();
-            strSimulationID.clear();
-
-            {
-                std::ostringstream os;
-                {
-                    std::string strLine;
-                    while ( strLine.empty() )
+                case TOTAL_MAIN_COMMANDS:
+                default:
+                    if ( vm.count( "help" ) )
                     {
-                        std::getline( std::cin, strLine );
-                    }
-                    if ( strLine.front() != '-' )
-                    {
-                        if ( strLine.length() == 1 )
-                            os << '-' << strLine;
-                        else
-                            os << "--" << strLine;
+                        std::cout << visibleOptions << "\n";
                     }
                     else
-                        os << strLine;
-                }
-                {
-                    po::parsed_options parsedOptions
-                        = po::command_line_parser( common::simpleTokenise( os.str(), " " ) ).options( commands ).run();
-                    po::variables_map vm;
-                    po::store( parsedOptions, vm );
-                    po::notify( vm );
-                }
+                    {
+                        spdlog::info( "Invalid command. Type '--help' for options" );
+                        return 1;
+                    }
             }
+            return 0;
+        }
+        catch ( boost::program_options::error& e )
+        {
+            spdlog::error( "Invalid input. {}. Type '--help' for options", e.what() );
+            return 1;
+        }
+        catch ( boost::archive::archive_exception& ex )
+        {
+            spdlog::error( "Archive Exception: {} {}", ex.code, ex.what() );
+            return 1;
+        }
+        catch ( std::exception& e )
+        {
+            spdlog::error( "Exception: {}", e.what() );
+            return 1;
+        }
+        catch ( ... )
+        {
+            spdlog::error( "Unknown error" );
+            return 1;
         }
     }
-    catch ( std::exception& ex )
-    {
-        SPDLOG_ERROR( "Exception: {}", ex.what() );
-        return -1;
-    }
-    catch ( ... )
-    {
-        SPDLOG_ERROR( "Unknown exception" );
-        return -1;
-    }
+
+    // ensure standard output is flushed
+    std::cout.flush();
 
     return 0;
 }

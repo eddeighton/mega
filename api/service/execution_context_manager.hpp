@@ -87,29 +87,33 @@ public:
 
     void release( const network::ConversationID& conversationID )
     {
-        /*auto iFind = m_conversations.find( conversationID );
+        // called after graceful close of conversation
+        auto iFind = m_conversations.find( conversationID );
         if ( iFind != m_conversations.end() )
         {
-            const auto address = iFind->second;
-            SPDLOG_TRACE( "Releasing execution context: {} for conversation: {}", address, conversationID );
+            mega::MPE mpe = iFind->second;
             m_conversations.erase( iFind );
-            m_allocations.free( address );
-            m_simulations.erase( address );
-        }*/
-    }
-
-    void release( mega::MPE address )
-    {
-        // m_allocations.free( address );
-        // m_simulations.erase( address );
+            {
+                auto jFind = m_simulations.find( mpe );
+                VERIFY_RTE( jFind != m_simulations.end() );
+                m_simulations.erase( jFind );
+            }
+            m_executors[ mpe.getMachineID() ][ mpe.getProcessID() ].free( mpe.getExecutorID() );
+        }
     }
 
     const network::ConversationID& get( mega::MPE mpe ) const
     {
-        // auto iFind = m_simulations.find( mpe );
-        // VERIFY_RTE_MSG( iFind != m_simulations.end(), "Failed to locate execution index: " << mpe );
-        //  return iFind->second;
-        THROW_RTE( "not implemented" );
+        auto iFind = m_simulations.find( mpe );
+        VERIFY_RTE_MSG( iFind != m_simulations.end(), "Could not find mpe" );
+        return iFind->second;
+    }
+
+    mega::MPE get( const network::ConversationID& simID ) const
+    {
+        auto iFind = m_conversations.find( simID );
+        VERIFY_RTE_MSG( iFind != m_conversations.end(), "Could not find simID: " << simID );
+        return iFind->second;
     }
 
 private:

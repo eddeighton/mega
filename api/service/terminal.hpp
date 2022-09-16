@@ -52,6 +52,7 @@ public:
     mega::network::Project                 GetProject();
     bool                                   NewInstallation( const mega::network::Project& project );
     network::ConversationID                SimNew();
+    void                                   SimDestroy( const network::ConversationID& simID );
     std::vector< network::ConversationID > SimList();
     void                                   ClearStash();
     std::size_t                            Capacity();

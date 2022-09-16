@@ -71,12 +71,12 @@ void ExecutorRequestConversation::RootPipelineStartJobs( const mega::utilities::
         pPipeline = pipeline::Registry::getPipeline( toolChain, configuration, osLog );
         if ( !pPipeline )
         {
-            SPDLOG_ERROR( "Executor: Failed to load pipeline: {}", configuration.getPipelineID() );
+            SPDLOG_ERROR( "PIPELINE: Executor: Failed to load pipeline: {}", configuration.getPipelineID() );
             THROW_RTE( "Executor: Failed to load pipeline: " << configuration.get() );
         }
         else
         {
-            SPDLOG_TRACE( "{}", osLog.str() );
+            SPDLOG_TRACE( "PIPELINE: {}", osLog.str() );
         }
     }
 
@@ -102,7 +102,7 @@ void ExecutorRequestConversation::RootProjectUpdated( const mega::network::Proje
                                                       boost::asio::yield_context&   yield_ctx )
 {
     // terminate all simulations
-    
+
     mega::runtime::initialiseRuntime( m_executor.m_megastructureInstallation, project );
     getLeafResponse( yield_ctx ).RootProjectUpdated();
 }
@@ -127,10 +127,26 @@ void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yie
 
     Simulation::Ptr pSim = std::make_shared< Simulation >( m_executor, id );
 
-    m_executor.m_simulations.insert( { pSim->getID(), pSim } );
-    m_executor.conversationInitiated( pSim, m_executor.getLeafSender() );
+    m_executor.simulationInitiated( pSim );
 
     getLeafResponse( yield_ctx ).RootSimCreate( pSim->getID() );
+}
+
+void ExecutorRequestConversation::RootSimDestroy( const mega::network::ConversationID& simulationID,
+                                                  boost::asio::yield_context&          yield_ctx )
+{
+    VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );
+
+    {
+        Executor::SimulationMap::const_iterator iFind = m_executor.m_simulations.find( simulationID );
+        VERIFY_RTE_MSG( iFind != m_executor.m_simulations.end(), "Failed to find simulation: " << simulationID );
+        Simulation::Ptr pSimulation = iFind->second;
+
+        network::exe_sim::Request_Encode rq( *this, pSimulation->getRequestSender(), yield_ctx );
+        rq.ExeSimDestroy( getID() );
+    }
+
+    getLeafResponse( yield_ctx ).RootSimDestroy();
 }
 
 void ExecutorRequestConversation::RootSimReadLock( const mega::network::ConversationID& simulationID,

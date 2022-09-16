@@ -177,6 +177,7 @@ namespace MemoryLayout
     object Buffer -> MemoryStage::MemoryLayout
     {
         array< ref< Part > > parts;
+        value< std::size_t > size;
     }
 
     object NonSimpleBuffer : Buffer -> MemoryStage::MemoryLayout

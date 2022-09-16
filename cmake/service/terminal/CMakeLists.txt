@@ -15,6 +15,8 @@ set( TERMINAL_SOURCE_DIR ${MEGA_SRC_DIR}/service/terminal )
 
 set( TERMINAL_SOURCE 
     ${TERMINAL_SOURCE_DIR}/main.cpp 
+    ${TERMINAL_SOURCE_DIR}/command_project.cpp 
+    ${TERMINAL_SOURCE_DIR}/command_sim.cpp 
     )
 
 add_executable( terminal ${TERMINAL_SOURCE}  )

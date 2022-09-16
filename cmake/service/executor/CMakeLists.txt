@@ -31,6 +31,7 @@ set( EXECUTOR_LIB_SRC
     ${EXECUTOR_SRC_DIR}/simulation.hpp
     ${EXECUTOR_SRC_DIR}/simulation.cpp
     ${EXECUTOR_SRC_DIR}/executor.cpp
+    ${EXECUTOR_SRC_DIR}/state_machine.hpp
     ${MEGA_API_DIR}/mega/basic_scheduler.cpp
 )
 

@@ -37,10 +37,12 @@ public:
         ~Connection();
 
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
+        const std::optional< mega::MPE >&  getMPEOpt() const { return m_mpeOpt; }
         const std::string&                 getName() const { return m_strName; }
         const std::set< ConversationID >&  getConversations() const { return m_conversations; }
 
         void setType( Node::Type type ) { m_typeOpt = type; }
+        void setMPE( mega::MPE mpe ) { m_mpeOpt = mpe; }
         void conversationNew( const ConversationID& id ) { m_conversations.insert( id ); }
         void conversationEnd( const ConversationID& id ) { m_conversations.erase( id ); }
 
@@ -83,6 +85,7 @@ public:
         std::optional< Node::Type >         m_typeOpt;
         std::set< ConversationID >          m_conversations;
         std::optional< DisconnectCallback > m_disconnectCallback;
+        std::optional< mega::MPE >          m_mpeOpt;
     };
 
     using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
@@ -99,14 +102,6 @@ public:
     void waitForConnection();
     void onConnect( Connection::Ptr pNewConnection, const boost::system::error_code& ec );
     void onDisconnected( Connection::Ptr pConnection );
-
-    template < typename TFunctor >
-    void setDisconnectCallback( const ConnectionID& connectionID, TFunctor&& functor )
-    {
-        auto iFind = m_connections.find( connectionID );
-        VERIFY_RTE( iFind != m_connections.end() );
-        iFind->second->setDisconnectCallback( std::move( functor ) );
-    }
 
 private:
     boost::asio::io_context&       m_ioContext;

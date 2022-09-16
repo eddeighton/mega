@@ -63,6 +63,11 @@ msg TermSimNew
     request();
     response(mega::network::ConversationID simulationID);
 }
+msg TermSimDestroy
+{
+    request(mega::network::ConversationID simulationID);
+    response();
+}
 msg TermSimList
 {
     request();
@@ -157,12 +162,6 @@ msg ExeCreateExecutionContext
     response(mega::MPE result);
 }
 
-msg ExeReleaseExecutionContext
-{
-    request(mega::MPE mpe);
-    response();
-}
-
 msg ExeAllocateNetworkAddress
 {
     request(mega::MPE mpe, mega::TypeID objectTypeID);
@@ -201,12 +200,6 @@ msg ToolCreateExecutionContext
 {
     request(mega::MPE mpe);
     response(mega::MPE result); 
-}
-
-msg ToolReleaseExecutionContext
-{
-    request(mega::MPE mpe);
-    response();
 }
 
 msg ToolAllocateNetworkAddress

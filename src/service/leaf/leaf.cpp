@@ -151,6 +151,13 @@ public:
         getTermResponse( yield_ctx ).TermSimNew( result );
     }
 
+    virtual void TermSimDestroy( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).TermSimDestroy( simulationID );
+        getTermResponse( yield_ctx ).TermSimDestroy();
+    }
+
     virtual void TermSimList( boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).TermSimList();
@@ -256,6 +263,13 @@ public:
     {
         auto result = getExeRequest( yield_ctx ).RootSimCreate();
         getDaemonResponse( yield_ctx ).RootSimCreate( result );
+    }
+
+    virtual void RootSimDestroy( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override
+    {
+        getExeRequest( yield_ctx ).RootSimDestroy( simulationID );
+        getDaemonResponse( yield_ctx ).RootSimDestroy();
     }
 
     virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
@@ -374,18 +388,12 @@ public:
         getExeResponse( yield_ctx ).ExeCreateExecutionContext( result );
     }
 
-    virtual void ExeReleaseExecutionContext( const mega::MPE&     index,
-                                             boost::asio::yield_context& yield_ctx ) override
-    {
-        getDaemonRequest( yield_ctx ).ExeReleaseExecutionContext( index );
-        getExeResponse( yield_ctx ).ExeReleaseExecutionContext();
-    }
     virtual void ExeAcquireMemory( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ExeAcquireMemory( mpe );
         getExeResponse( yield_ctx ).ExeAcquireMemory( result );
     }
-    virtual void ExeAllocateNetworkAddress( const mega::MPE&     mpe,
+    virtual void ExeAllocateNetworkAddress( const mega::MPE&            mpe,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
     {
@@ -393,7 +401,7 @@ public:
         getExeResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
-    virtual void ExeDeAllocateNetworkAddress( const mega::MPE&     mpe,
+    virtual void ExeDeAllocateNetworkAddress( const mega::MPE&            mpe,
                                               const mega::AddressStorage& networkAddress,
                                               boost::asio::yield_context& yield_ctx ) override
     {
@@ -440,18 +448,12 @@ public:
         getToolResponse( yield_ctx ).ToolCreateExecutionContext( result );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::MPE&     index,
-                                              boost::asio::yield_context& yield_ctx ) override
-    {
-        getDaemonRequest( yield_ctx ).ToolReleaseExecutionContext( index );
-        getToolResponse( yield_ctx ).ToolReleaseExecutionContext();
-    }
     virtual void ToolAcquireMemory( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ToolAcquireMemory( mpe );
         getToolResponse( yield_ctx ).ToolAcquireMemory( result );
     }
-    virtual void ToolAllocateNetworkAddress( const mega::MPE&     mpe,
+    virtual void ToolAllocateNetworkAddress( const mega::MPE&            mpe,
                                              const mega::TypeID&         objectTypeID,
                                              boost::asio::yield_context& yield_ctx ) override
     {
@@ -459,7 +461,7 @@ public:
         getToolResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
-    virtual void ToolDeAllocateNetworkAddress( const mega::MPE&     mpe,
+    virtual void ToolDeAllocateNetworkAddress( const mega::MPE&            mpe,
                                                const mega::AddressStorage& networkAddress,
                                                boost::asio::yield_context& yield_ctx ) override
     {
@@ -481,8 +483,7 @@ public:
         getToolResponse( yield_ctx ).ToolRestore( bRestored );
     }
 
-    virtual void ToolGetExecutionContextID( const mega::MPE&     mpe,
-                                            boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolGetExecutionContextID( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ToolGetExecutionContextID( mpe );
         getToolResponse( yield_ctx ).ToolGetExecutionContextID( result );

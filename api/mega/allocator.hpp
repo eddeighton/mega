@@ -39,27 +39,28 @@
 
 namespace mega
 {
-    
-template< typename T >
+
+template < typename T >
 struct DimensionTraits;
-    
-template< std::size_t _Size >
+
+template < std::size_t _Size >
 class Bitmask32Allocator
 {
     friend struct mega::DimensionTraits< mega::Bitmask32Allocator< _Size > >;
+
 public:
     static const std::size_t Size = _Size;
-    
+
     inline Bitmask32Allocator()
     {
-        static_assert( Size <= ( sizeof( std::uint32_t ) * 8 ) );        
+        static_assert( Size <= ( sizeof( std::uint32_t ) * 8 ) );
         m_bitset.set();
     }
-    
+
     inline Instance nextFree() const
     {
         unsigned long index;
-        if( _BitScanForward( &index, m_bitset.to_ulong() ) )
+        if ( _BitScanForward( &index, m_bitset.to_ulong() ) )
         {
             return index;
         }
@@ -69,42 +70,32 @@ public:
         }
     }
 
-    inline void allocate( Instance instance )
-    {
-        m_bitset.reset( instance );
-    }
-    
-    inline void free( Instance instance )
-    {
-        m_bitset.set( instance );
-    }
-    
-    inline bool empty() const
-    {
-        return m_bitset.all();
-    }
-    inline bool full() const
-    {
-        return m_bitset.none();
-    }
+    inline void allocate( Instance instance ) { m_bitset.reset( instance ); }
+
+    inline void free( Instance instance ) { m_bitset.set( instance ); }
+
+    inline bool empty() const { return m_bitset.all(); }
+    inline bool full() const { return m_bitset.none(); }
+
 private:
     std::bitset< Size > m_bitset;
 };
 
-template< std::size_t _Size >
+template < std::size_t _Size >
 class Bitmask64Allocator
 {
     friend struct mega::DimensionTraits< mega::Bitmask64Allocator< _Size > >;
+
 public:
     static const std::size_t Size = _Size;
-    
+
     inline Bitmask64Allocator()
     {
-        static_assert( Size >   sizeof( std::uint32_t ) * 8 );
-        static_assert( Size <=  sizeof( std::uint64_t ) * 8 );
+        static_assert( Size > sizeof( std::uint32_t ) * 8 );
+        static_assert( Size <= sizeof( std::uint64_t ) * 8 );
         m_bitset.set();
     }
-    
+
     inline Instance nextFree() const
     {
         const std::uint64_t mask = m_bitset.to_ullong();
@@ -112,17 +103,17 @@ public:
 #ifdef __gnu_linux__
         return ffsll( mask );
 #endif
-        
+
 #ifdef _WIN32
         unsigned long index;
-        
-        if( _BitScanForward( &index, mask ) )
+
+        if ( _BitScanForward( &index, mask ) )
         {
             return index;
         }
         else
         {
-            if( _BitScanForward( &index, mask >> 32 ) )
+            if ( _BitScanForward( &index, mask >> 32 ) )
             {
                 return index + 32U;
             }
@@ -134,41 +125,30 @@ public:
 #endif
     }
 
-    inline void allocate( Instance instance )
-    {
-        m_bitset.reset( instance );
-    }
-    
-    inline void free( Instance instance )
-    {
-        m_bitset.set( instance );
-    }
-    
-    inline bool empty() const
-    {
-        return m_bitset.all();
-    }
-    inline bool full() const
-    {
-        return m_bitset.none();
-    }
+    inline void allocate( Instance instance ) { m_bitset.reset( instance ); }
+
+    inline void free( Instance instance ) { m_bitset.set( instance ); }
+
+    inline bool empty() const { return m_bitset.all(); }
+    inline bool full() const { return m_bitset.none(); }
+
 private:
     std::bitset< Size > m_bitset;
 };
-    
 
-template< typename TInstanceType, TInstanceType _Size >
+template < typename TInstanceType, TInstanceType _Size >
 class RingAllocator
 {
     friend struct mega::DimensionTraits< mega::RingAllocator< TInstanceType, _Size > >;
 
     using FreeList = boost::circular_buffer< TInstanceType >;
+
 public:
-    using InstanceType = TInstanceType;
+    using InstanceType              = TInstanceType;
     static const TInstanceType Size = _Size;
-    
+
     inline RingAllocator()
-        :   m_free( Size )
+        : m_free( Size )
     {
         reset();
     }
@@ -176,20 +156,14 @@ public:
     inline void reset()
     {
         m_free.clear();
-        for( InstanceType sz = 0; sz != Size; ++sz )
+        for ( InstanceType sz = 0; sz != Size; ++sz )
         {
             m_free.push_back( sz );
         }
     }
-    
-    inline bool empty() const
-    {
-        return m_free.full();
-    }
-    inline bool full() const
-    {
-        return m_free.empty();
-    }
+
+    inline bool empty() const { return m_free.full(); }
+    inline bool full() const { return m_free.empty(); }
 
     inline InstanceType allocate()
     {
@@ -198,15 +172,15 @@ public:
         return result;
     }
 
-    inline void free( InstanceType instance )
-    {
-        m_free.push_front( instance );
+    inline void free( InstanceType instance ) 
+    { 
+        m_free.push_front( instance ); 
     }
 
 private:
     FreeList m_free;
 };
 
-}
+} // namespace mega
 
-#endif //EG_ALLOCATORS_GUARD_20_JULY_2020
+#endif // EG_ALLOCATORS_GUARD_20_JULY_2020

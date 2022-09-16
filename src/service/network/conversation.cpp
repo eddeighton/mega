@@ -24,7 +24,7 @@ ConversationBase::RequestStack::RequestStack( const char* pszMsg, ConversationBa
 ConversationBase::RequestStack::~RequestStack()
 {
     const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
-    SPDLOG_DEBUG( "{} {} {} {}", conversation.getProcessName(), conversation.getID(), m_pszMsg, timeDelta );
+    // SPDLOG_DEBUG( "{} {} {} {}", conversation.getProcessName(), conversation.getID(), m_pszMsg, timeDelta );
     conversation.requestCompleted();
 }
 

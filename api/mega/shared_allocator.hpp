@@ -44,26 +44,37 @@ public:
     };
     AllocationResult allocate( std::size_t szShared, std::size_t szHeap )
     {
-        SharedPtr pShared{ m_pSegmentManager->allocate( szShared ) };
-        HeapPtr   pHeap{ new char[ szHeap ] };
+        SharedPtr pShared;
+        if ( szShared )
+        {
+            pShared = m_pSegmentManager->allocate( szShared );
+            std::memset( pShared.get(), 0, szShared );
+        }
+
+        HeapPtr pHeap;
+        if ( szHeap )
+        {
+            pHeap = HeapPtr{ new char[ szHeap ] };
+            std::memset( pHeap.get(), 0, szHeap );
+        }
 
         try
         {
-            if ( !m_freeList.empty() )
+            ObjectID object;
             {
-                Index index              = m_freeList.back();
-                m_sharedBuffers[ index ] = pShared;
-                m_heapBuffers[ index ]   = std::move( pHeap );
-                m_freeList.pop_back();
-                return AllocationResult{ pShared.get(), pHeap.get(), index };
+                if ( !m_freeList.empty() )
+                {
+                    object = m_freeList.back();
+                    m_freeList.pop_back();
+                }
+                else
+                {
+                    object = static_cast< ObjectID >( m_sharedBuffers.size() );
+                }
             }
-            else
-            {
-                const ObjectID object = static_cast< ObjectID >( m_sharedBuffers.size() );
-                m_sharedBuffers.push_back( pShared );
-                m_heapBuffers.push_back( std::move( pHeap ) );
-                return AllocationResult{ pShared.get(), pHeap.get(), object };
-            }
+            m_sharedBuffers.push_back( pShared );
+            m_heapBuffers.push_back( std::move( pHeap ) );
+            return AllocationResult{ pShared.get(), pHeap.get(), object };
         }
         catch ( boost::container::out_of_range& ex )
         {
@@ -79,14 +90,17 @@ public:
 
     void deallocate( Index index )
     {
-        m_freeList.push_back( index );
-        m_pSegmentManager->deallocate( m_sharedBuffers[ index ].get() );
+        SharedPtr pShared        = m_sharedBuffers[ index ];
+        m_sharedBuffers[ index ] = nullptr;
+        m_pSegmentManager->deallocate( pShared.get() );
+        
         m_heapBuffers[ index ].reset();
+        m_freeList.push_back( index );
     }
 
-    SharedPtr   getShared( Index index ) const { return m_sharedBuffers[ index ]; }
-    void*       getHeap( Index index ) const { return m_heapBuffers[ index ].get(); }
-    std::size_t size() const { return m_sharedBuffers.size() - m_freeList.size(); }
+    inline SharedPtr   getShared( Index index ) const { return m_sharedBuffers[ index ]; }
+    inline void*       getHeap( Index index ) const { return m_heapBuffers[ index ].get(); }
+    inline std::size_t size() const { return m_sharedBuffers.size() - m_freeList.size(); }
 
 private:
     TSegmentManagerType* m_pSegmentManager;

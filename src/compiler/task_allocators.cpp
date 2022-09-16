@@ -541,7 +541,7 @@ public:
                 }
 
                 MemoryLayout::SimpleBuffer* pSimpleBuffer = database.construct< MemoryLayout::SimpleBuffer >(
-                    MemoryLayout::SimpleBuffer::Args{ MemoryLayout::Buffer::Args{ parts.simpleParts } } );
+                    MemoryLayout::SimpleBuffer::Args{ MemoryLayout::Buffer::Args{ parts.simpleParts, szOffset } } );
                 objectBuffers.push_back( pSimpleBuffer );
             }
             if ( !parts.nonSimpleParts.empty() )
@@ -554,7 +554,7 @@ public:
                 }
 
                 MemoryLayout::NonSimpleBuffer* pNonSimpleBuffer = database.construct< MemoryLayout::NonSimpleBuffer >(
-                    MemoryLayout::NonSimpleBuffer::Args{ MemoryLayout::Buffer::Args{ parts.nonSimpleParts } } );
+                    MemoryLayout::NonSimpleBuffer::Args{ MemoryLayout::Buffer::Args{ parts.nonSimpleParts, szOffset } } );
                 objectBuffers.push_back( pNonSimpleBuffer );
             }
             if ( !parts.gpuParts.empty() )
@@ -567,7 +567,7 @@ public:
                 }
 
                 MemoryLayout::GPUBuffer* pGPUBuffer = database.construct< MemoryLayout::GPUBuffer >(
-                    MemoryLayout::GPUBuffer::Args{ MemoryLayout::Buffer::Args{ parts.gpuParts } } );
+                    MemoryLayout::GPUBuffer::Args{ MemoryLayout::Buffer::Args{ parts.gpuParts, szOffset } } );
                 objectBuffers.push_back( pGPUBuffer );
             }
 

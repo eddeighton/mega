@@ -45,7 +45,29 @@ class Runtime
         ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID )
             : m_runtime( runtime )
             , m_objectTypeID( objectTypeID )
+            , m_szSizeShared( 0U )
+            , m_szSizeHeap( 0U )
         {
+            const FinalStage::Concrete::Object* pObject = runtime.m_database.getObject( m_objectTypeID );
+            using namespace FinalStage;
+            for ( auto pBuffer : pObject->get_buffers() )
+            {
+                if ( dynamic_database_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+                {
+                    VERIFY_RTE( m_szSizeShared == 0U );
+                    m_szSizeShared = pBuffer->get_size();
+                }
+                else if ( dynamic_database_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
+                {
+                    VERIFY_RTE( m_szSizeHeap == 0U );
+                    m_szSizeHeap = pBuffer->get_size();
+                }
+                else
+                {
+                    THROW_RTE( "Unsupported buffer type" );
+                }
+            }
+
             runtime.get_allocation( m_objectTypeID, *this );
             m_pSetAllocator( this );
         }
@@ -84,8 +106,7 @@ class Runtime
                 = getIndex( mpe )->allocate( m_szSizeShared, m_szSizeHeap );
             m_pSharedCtor( result.pShared );
             m_pHeapCtor( result.pHeap );
-            return reference( TypeInstance( 0, m_objectTypeID ),
-                              MachineAddress{ result.object, mpe }, result.pShared );
+            return reference( TypeInstance( 0, m_objectTypeID ), MachineAddress{ result.object, mpe }, result.pShared );
         }
 
         void deAllocate( MachineAddress machineAddress )
@@ -206,7 +227,7 @@ public:
         if ( pExecutionContext->getThisMPE() != mpe )
         {
             // request write lock
-            pExecutionContext->writeLock( mpe );
+            //pExecutionContext->writeLock( mpe );
         }
 
         ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
@@ -235,16 +256,18 @@ public:
         VERIFY_RTE( mpe == ref );
         m_executionContextRoot.insert( { mpe, ref } );
 
+        SPDLOG_TRACE( "RUNTIME: allocateRoot: {}", ref );
         return ref;
     }
 
     void deAllocateRoot( const mega::MPE& mpe )
     {
+        SPDLOG_TRACE( "RUNTIME: deAllocateRoot: {}", mpe );
+
         const mega::reference ref = m_executionContextRoot[ mpe ];
         VERIFY_RTE( ref.isMachine() );
-
         ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( ref.type );
-        THROW_RTE( "Not implemented" );
+        pAllocator->deAllocate( ref );
     }
 
     void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
@@ -295,6 +318,8 @@ public:
     void get_allocation( mega::TypeID objectTypeID, ObjectTypeAllocator& objectTypeAllocator )
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
+
+        SPDLOG_TRACE( "RUNTIME: get_allocation: {}", objectTypeID );
 
         JITCompiler::Module::Ptr pModule;
         {
@@ -360,6 +385,8 @@ public:
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
 
+        SPDLOG_TRACE( "RUNTIME: get_allocate: {} {}", pszUnitName, invocationID );
+
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
         JITCompiler::Module::Ptr pModule;
@@ -386,6 +413,8 @@ public:
     void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction )
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
+
+        SPDLOG_TRACE( "RUNTIME: get_read: {} {}", pszUnitName, invocationID );
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -414,6 +443,8 @@ public:
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
 
+        SPDLOG_TRACE( "RUNTIME: get_write: {} {}", pszUnitName, invocationID );
+
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
         JITCompiler::Module::Ptr pModule;
@@ -440,6 +471,8 @@ public:
     void get_call( const char* pszUnitName, const mega::InvocationID& invocationID, CallFunction* ppFunction )
     {
         std::lock_guard< std::mutex > lock( m_jitMutex );
+
+        SPDLOG_TRACE( "RUNTIME: get_call: {} {}", pszUnitName, invocationID );
 
         m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
 
@@ -485,14 +518,17 @@ private:
     const mega::network::MegastructureInstallation m_megastructureInstallation;
     const mega::network::Project                   m_project;
     std::mutex                                     m_jitMutex;
+    
     JITCompiler                                    m_jitCompiler;
     CodeGenerator                                  m_codeGenerator;
     DatabaseInstance                               m_database;
     ComponentManager                               m_componentManager;
     AddressSpace                                   m_addressSpace;
+
+    // these three are order dependent - m_executionContextMemory owns the shared memory
+    ExecutionContextMemoryMap                      m_executionContextMemory;
     ObjectTypeAllocatorMap                         m_objectTypeAllocatorMapping;
     ExecutionContextRoot                           m_executionContextRoot;
-    ExecutionContextMemoryMap                      m_executionContextMemory;
 
     // use unordered_map
     using InvocationMap = std::map< mega::InvocationID, JITCompiler::Module::Ptr >;
@@ -529,7 +565,6 @@ void initialiseStaticRuntime( const mega::network::MegastructureInstallation& me
     catch ( mega::io::DatabaseVersionException& ex )
     {
         SPDLOG_ERROR( "Database version exception: {}", project.getProjectInstallPath().string(), ex.what() );
-        throw;
     }
     catch ( std::exception& ex )
     {

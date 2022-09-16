@@ -77,7 +77,7 @@ void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversa
 #endif*/
     );
     // clang-format on
-    SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
+    // SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
 }
 
 void ConversationManager::conversationJoined( ConversationBase::Ptr pConversation )
@@ -100,7 +100,7 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
 #endif*/
     );
     // clang-format on
-    SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
+    // SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
 }
 
 void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversation )
@@ -111,7 +111,7 @@ void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversa
         VERIFY_RTE( iFind != m_conversations.end() );
         m_conversations.erase( iFind );
     }
-    SPDLOG_DEBUG( "ConversationBase Completed id: {}", pConversation->getID() );
+    // SPDLOG_DEBUG( "ConversationBase Completed id: {}", pConversation->getID() );
 }
 
 ConversationBase::Ptr ConversationManager::findExistingConversation( const ConversationID& conversationID ) const
@@ -132,12 +132,12 @@ void ConversationManager::dispatch( const Header& header, const ReceivedMsg& msg
 {
     if ( header.getMessageID() == MSG_Conversation_New::ID )
     {
-        SPDLOG_TRACE( "Conversation initiated: {}", header.getConversationID() );
+        // SPDLOG_TRACE( "Conversation initiated: {}", header.getConversationID() );
         conversationNew( header, msg );
     }
     else if ( header.getMessageID() == MSG_Conversation_End::ID )
     {
-        SPDLOG_TRACE( "Conversation ended: {}", header.getConversationID() );
+        // SPDLOG_TRACE( "Conversation ended: {}", header.getConversationID() );
         conversationEnd( header, msg );
     }
     else
@@ -147,15 +147,15 @@ void ConversationManager::dispatch( const Header& header, const ReceivedMsg& msg
         {
             pConversation = joinConversation( msg.connectionID, header, msg.msg );
             conversationJoined( pConversation );
-            SPDLOG_TRACE( "Received msg {}. Started new conversation {}.",
-                          getMsgNameFromID( header.getMessageID() ),
-                          pConversation->getID() );
+            // SPDLOG_TRACE( "Received msg {}. Started new conversation {}.",
+            //               getMsgNameFromID( header.getMessageID() ),
+            //               pConversation->getID() );
         }
         else
         {
-            SPDLOG_TRACE( "Received msg: {}. Resumed existing conversation: {}.",
-                          getMsgNameFromID( header.getMessageID() ),
-                          pConversation->getID() );
+            // SPDLOG_TRACE( "Received msg: {}. Resumed existing conversation: {}.",
+            //               getMsgNameFromID( header.getMessageID() ),
+            //               pConversation->getID() );
         }
 
         pConversation->send( msg );

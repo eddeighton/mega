@@ -248,7 +248,7 @@ struct formatter< mega::MachineAddress >
     template < typename FormatContext >
     auto format( const mega::MachineAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "mpe:{}.{}", static_cast< const mega::MPE& >( address ), address.object );
+        return format_to( ctx.out(), "{}.{}", address.object, static_cast< const mega::MPE& >( address ) );
     }
 };
 

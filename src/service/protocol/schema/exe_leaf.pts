@@ -58,12 +58,6 @@ msg ExeCreateExecutionContext
     response(mega::MPE result);
 }
 
-msg ExeReleaseExecutionContext
-{
-    request(mega::MPE index);
-    response();
-}
-
 msg ExeAcquireMemory
 {
     request(mega::MPE mpe);

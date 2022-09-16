@@ -112,30 +112,32 @@ public:
     // network::daemon_root::Impl
     virtual void DaemonEnrole( boost::asio::yield_context& yield_ctx ) override
     {
-        const mega::MPE mpe = m_root.m_executionContextManager.newDaemon();
+        const mega::MPE mpe = m_root.m_ecm.newDaemon();
 
-        // register callback for disconnect
-        m_root.m_server.setDisconnectCallback(
-            getOriginatingEndPointID().value(), [ mpe, &root = m_root ]() { root.onDaemonDisconnect( mpe ); } );
+        network::Server::Connection::Ptr pConnection
+            = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
+
+        pConnection->setMPE( mpe );
+        pConnection->setDisconnectCallback( [ mpe, &root = m_root ]() { root.onDaemonDisconnect( mpe ); } );
 
         getStackTopDaemonResponse( yield_ctx ).DaemonEnrole( mpe );
     }
 
     virtual void DaemonLeafEnrole( const mega::MPE& daemonMPE, boost::asio::yield_context& yield_ctx ) override
     {
-        const mega::MPE leafMPE = m_root.m_executionContextManager.newLeaf( daemonMPE );
+        const mega::MPE leafMPE = m_root.m_ecm.newLeaf( daemonMPE );
         getStackTopDaemonResponse( yield_ctx ).DaemonLeafEnrole( leafMPE );
     }
 
     virtual void DaemonLeafDisconnect( const mega::MPE& leafMPE, boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_executionContextManager.leafDisconnected( leafMPE );
+        m_root.m_ecm.leafDisconnected( leafMPE );
         getStackTopDaemonResponse( yield_ctx ).DaemonLeafDisconnect();
     }
 
     virtual void DaemonGetExecutionContextID( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        const network::ConversationID& conversationID = m_root.m_executionContextManager.get( mpe );
+        const network::ConversationID& conversationID = m_root.m_ecm.get( mpe );
         getStackTopDaemonResponse( yield_ctx ).DaemonGetExecutionContextID( conversationID );
     }
 
@@ -242,8 +244,33 @@ public:
             }
         }
 
-        auto daemon = getStackTopDaemonResponse( yield_ctx );
-        daemon.TermSimNew( simID );
+        getStackTopDaemonResponse( yield_ctx ).TermSimNew( simID );
+    }
+
+    virtual void TermSimDestroy( const mega::network::ConversationID& simulationID,
+                                 boost::asio::yield_context&          yield_ctx ) override
+    {
+        const mega::MPE mpe = m_root.m_ecm.get( simulationID );
+
+        network::Server::Connection::Ptr pOwningDaemon;
+        {
+            for ( const auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
+            {
+                if ( pDaemon->getMPEOpt().has_value() )
+                {
+                    if ( pDaemon->getMPEOpt().value().getMachineID() == mpe.getMachineID() )
+                    {
+                        pOwningDaemon = pDaemon;
+                        break;
+                    }
+                }
+            }
+        }
+        VERIFY_RTE_MSG( pOwningDaemon, "Failed to locate daemon owning simulationID: " << simulationID );
+
+        getDaemonRequest( pOwningDaemon, yield_ctx ).RootSimDestroy( simulationID );
+
+        getStackTopDaemonResponse( yield_ctx ).TermSimDestroy();
     }
 
     virtual void TermSimList( boost::asio::yield_context& yield_ctx ) override
@@ -348,14 +375,8 @@ public:
 
     virtual void ExeCreateExecutionContext( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = m_root.m_executionContextManager.newExecutor( mpe, getID() );
+        auto result = m_root.m_ecm.newExecutor( mpe, getID() );
         getStackTopDaemonResponse( yield_ctx ).ExeCreateExecutionContext( result );
-    }
-
-    virtual void ExeReleaseExecutionContext( const mega::MPE& index, boost::asio::yield_context& yield_ctx ) override
-    {
-        m_root.m_executionContextManager.release( index );
-        getStackTopDaemonResponse( yield_ctx ).ExeReleaseExecutionContext();
     }
 
     virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
@@ -407,15 +428,10 @@ public:
 
     virtual void ToolCreateExecutionContext( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = m_root.m_executionContextManager.newExecutor( mpe, getID() );
+        auto result = m_root.m_ecm.newExecutor( mpe, getID() );
         getStackTopDaemonResponse( yield_ctx ).ToolCreateExecutionContext( result );
     }
 
-    virtual void ToolReleaseExecutionContext( const mega::MPE& index, boost::asio::yield_context& yield_ctx ) override
-    {
-        m_root.m_executionContextManager.release( index );
-        getStackTopDaemonResponse( yield_ctx ).ToolReleaseExecutionContext();
-    }
     virtual void ToolAllocateNetworkAddress( const mega::MPE&            mpe,
                                              const mega::TypeID&         objectTypeID,
                                              boost::asio::yield_context& yield_ctx ) override
@@ -532,6 +548,8 @@ public:
     virtual void TermPipelineRun( const pipeline::Configuration& configuration,
                                   boost::asio::yield_context&    yield_ctx ) override
     {
+        if ( !m_root.m_megastructureInstallationOpt.has_value() )
+            m_root.m_megastructureInstallationOpt = m_root.getMegastructureInstallation();
         VERIFY_RTE_MSG(
             m_root.m_megastructureInstallationOpt.has_value(), "Megastructure Installation Toolchain unspecified" );
         const auto toolChain = m_root.m_megastructureInstallationOpt.value().getToolchainXML();
@@ -752,12 +770,12 @@ void Root::saveConfig()
     }
 }
 
-void Root::onDaemonDisconnect( mega::MPE mpe ) { m_executionContextManager.daemonDisconnect( mpe ); }
+void Root::onDaemonDisconnect( mega::MPE mpe ) { m_ecm.daemonDisconnect( mpe ); }
 
 void Root::shutdown()
 {
     m_server.stop();
-    SPDLOG_TRACE( "Root shutdown" );
+    // SPDLOG_TRACE( "Root shutdown" );
 }
 
 network::MegastructureInstallation Root::getMegastructureInstallation()
@@ -798,7 +816,7 @@ void Root::conversationNew( const network::Header& header, const network::Receiv
     auto pCon = m_server.getConnection( msg.connectionID );
     VERIFY_RTE( pCon );
     pCon->conversationNew( header.getConversationID() );
-    SPDLOG_TRACE( "Root::conversationNew: {} {}", header.getConversationID(), msg.msg );
+    // SPDLOG_TRACE( "Root::conversationNew: {} {}", header.getConversationID(), msg.msg );
 }
 
 void Root::conversationEnd( const network::Header& header, const network::ReceivedMsg& msg )
@@ -806,9 +824,9 @@ void Root::conversationEnd( const network::Header& header, const network::Receiv
     auto pCon = m_server.getConnection( msg.connectionID );
     VERIFY_RTE( pCon );
     pCon->conversationEnd( header.getConversationID() );
-    SPDLOG_TRACE( "Root::conversationEnd: {} {}", header.getConversationID(), msg.msg );
+    // SPDLOG_TRACE( "Root::conversationEnd: {} {}", header.getConversationID(), msg.msg );
 
-    m_executionContextManager.release( header.getConversationID() );
+    m_ecm.release( header.getConversationID() );
 }
 
 } // namespace service

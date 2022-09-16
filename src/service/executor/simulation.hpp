@@ -13,6 +13,8 @@
 
 #include "service/protocol/model/exe_sim.hxx"
 
+#include "state_machine.hpp"
+
 namespace mega
 {
 namespace service
@@ -33,20 +35,19 @@ public:
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
-    void simulationDeadline();
-    void runSimulation( boost::asio::yield_context& yield_ctx );
-
     network::Sender& getRequestSender()
     {
         if ( !m_pRequestChannelSender )
         {
             m_pRequestChannelSender
-                = network::make_current_channel_sender( m_requestChannel, network::ConnectionID{ "test" } );
+                = network::make_current_channel_sender( m_requestChannel, network::ConnectionID{ "sim" } );
         }
         return *m_pRequestChannelSender;
     }
 
     //  network::exe_sim::Impl
+    virtual void ExeSimDestroy( const mega::network::ConversationID& simulationID,
+                                boost::asio::yield_context&          yield_ctx ) override;
     virtual void ExeSimReadLockAcquire( const mega::network::ConversationID& simulationID,
                                         boost::asio::yield_context&          yield_ctx ) override;
     virtual void ExeSimWriteLockAcquire( const mega::network::ConversationID& simulationID,
@@ -67,12 +68,26 @@ public:
     virtual void            releaseLock( MPE mpe ) override;
 
 private:
-    network::ConcurrentChannel                    m_requestChannel;
-    network::Sender::Ptr                          m_pRequestChannelSender;
-    boost::asio::yield_context*                   m_pYieldContext = nullptr;
-    std::optional< mega::MPE >                    m_executionIndex;
-    std::optional< mega::runtime::ExecutionRoot > m_executionRoot;
-    mega::Scheduler                               m_scheduler;
+    void issueClock();
+    void clock();
+    void runSimulation( boost::asio::yield_context& yield_ctx );
+    void runCycle( boost::asio::yield_context& yield_ctx );
+    void acknowledgeMessage( const network::ChannelMsg&                            msg,
+                             const std::optional< mega::network::ConversationID >& requestingID,
+                             boost::asio::yield_context&                           yield_ctx );
+
+    auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
+
+private:
+    network::ConcurrentChannel                           m_requestChannel;
+    network::Sender::Ptr                                 m_pRequestChannelSender;
+    boost::asio::yield_context*                          m_pYieldContext = nullptr;
+    std::optional< mega::MPE >                           m_executionIndex;
+    std::shared_ptr< mega::runtime::ExecutionRoot >      m_pExecutionRoot;
+    mega::Scheduler                                      m_scheduler;
+    SimulationStateMachine                               m_stateMachine;
+    boost::asio::steady_timer                            m_timer;
+    std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
 };
 
 } // namespace service

@@ -48,6 +48,9 @@ public:
 
     network::Sender& getLeafSender() { return m_leaf; }
 
+    void         simulationInitiated( std::shared_ptr< Simulation > pSimulation );
+    virtual void conversationCompleted( network::ConversationBase::Ptr pConversation );
+
 private:
     boost::asio::io_context&                 m_io_context;
     int                                      m_numThreads;

@@ -65,7 +65,7 @@ void runCompilation( const std::string& strCmd )
             osError << common::COLOUR_END;
         }
     }
-    if( iCompilationResult != 0 )
+    if ( iCompilationResult != 0 )
     {
         SPDLOG_ERROR( "Error compilation invocation: {}", osError.str() );
     }
@@ -218,7 +218,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
     std::ostringstream osObjectTypeID;
     osObjectTypeID << objectTypeID;
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() } } );
-    
+
     /*{
         using namespace FinalStage;
         for ( auto pBuffer : pObject->get_buffers() )
@@ -397,7 +397,7 @@ void generateBufferRead( bool bShared, mega::TypeID id, FinalStage::MemoryLayout
                          std::ostream& os )
 {
     const std::string strType = bShared ? "shared" : "heap";
-    os << indent << "return (char*)_fptr_get_" << strType << "_" << id << "( " << strInstanceVar << ".object )"
+    os << indent << "return (char*)_fptr_get_" << strType << "_" << id << "( " << strInstanceVar << " )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
        << pDimension->get_offset() << ";";
 }
@@ -408,7 +408,7 @@ void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayou
 {
     const std::string strType = bShared ? "shared" : "heap";
     os << indent << "return mega::runtime::WriteResult{ (char*)_fptr_get_" << strType << "_" << id << "( "
-       << strInstanceVar << ".object )"
+       << strInstanceVar << " )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
        << pDimension->get_offset() << ", " << strInstanceVar << "};";
 }
@@ -540,17 +540,10 @@ void generateInstructions( const DatabaseInstance&                             d
                   "context, "
                << pConcreteTarget->get_concrete_id() << " );\n";
 
-            os << indent << "mega::reference result;\n";
-            os << indent << "{\n";
-            os << indent << "    result = mega::runtime::networkToMachine( context, "
-               << pConcreteTarget->get_concrete_id()
-               << ", "
-                  "networkAddress );\n";
-            os << indent << "    result.instance = 0;\n";
-            os << indent << "    result.typeID = " << pConcreteTarget->get_concrete_id() << ";\n";
-            os << indent << "}\n";
+            os << indent << "mega::reference result = mega::runtime::networkToMachine( context, "
+               << pConcreteTarget->get_concrete_id() << ", networkAddress );\n";
             os << indent << "return result;\n";
-            
+
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )

@@ -51,7 +51,7 @@ private:
     task::Stash                                         m_stash;
     mega::network::RootConfig                           m_config;
     std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
-    ExecutionContextManager                             m_executionContextManager;
+    ExecutionContextManager                             m_ecm;
     LogicalAddressSpace                                 m_logicalAddressSpace;
 };
 

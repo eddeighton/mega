@@ -28,7 +28,7 @@ public:
     ConversationID                createConversationID( const ConnectionID& connectionID ) const;
     void                          conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender );
     void                          conversationJoined( ConversationBase::Ptr pConversation );
-    void                          conversationCompleted( ConversationBase::Ptr pConversation );
+    virtual void                  conversationCompleted( ConversationBase::Ptr pConversation );
 
     ConversationBase::Ptr findExistingConversation( const network::ConversationID& conversationID ) const;
 

@@ -107,11 +107,14 @@ public:
 
         // note the runtime will query getThisMPE while creating the root
         m_executionIndex = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
-        SPDLOG_TRACE( "Acquired execution context: {}", m_executionIndex.value() );
-        m_executionRoot = mega::runtime::ExecutionRoot( m_executionIndex.value() );
-
+        SPDLOG_TRACE( "TOOL: Acquired execution context: {}", m_executionIndex.value() );
         {
-            m_functor( yield_ctx );
+            m_pExecutionRoot = std::make_shared< mega::runtime::ExecutionRoot >( m_executionIndex.value() );
+            {
+                SPDLOG_TRACE( "TOOL: running function" );
+                m_functor( yield_ctx );
+                SPDLOG_TRACE( "TOOL: function completed" );
+            }
         }
 
         m_pYieldContext = nullptr;
@@ -121,27 +124,26 @@ public:
     // mega::ExecutionContext
     virtual MPE getThisMPE() override { return m_executionIndex.value(); }
 
-    mega::reference getRoot() override { return m_executionRoot->root(); }
+    mega::reference getRoot() override { return m_pExecutionRoot->root(); }
 
     virtual std::string acquireMemory( MPE mpe ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        SPDLOG_TRACE( "acquireMemory called with: {}", mpe );
+        // SPDLOG_TRACE( "acquireMemory called with: {}", mpe );
         return getToolRequest( *m_pYieldContext ).ToolAcquireMemory( mpe );
     }
 
     virtual NetworkAddress allocateNetworkAddress( MPE mpe, TypeID objectTypeID ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        SPDLOG_TRACE( "allocateNetworkAddress called with: {} {}", mpe, objectTypeID );
+        // SPDLOG_TRACE( "allocateNetworkAddress called with: {} {}", mpe, objectTypeID );
         return NetworkAddress{ getToolRequest( *m_pYieldContext ).ToolAllocateNetworkAddress( mpe, objectTypeID ) };
     }
     virtual void deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        SPDLOG_TRACE( "deAllocate called with: {} {}", mpe, networkAddress );
-        getToolRequest( *m_pYieldContext )
-            .ToolDeAllocateNetworkAddress( mpe, networkAddress );
+        // SPDLOG_TRACE( "deAllocate called with: {} {}", mpe, networkAddress );
+        getToolRequest( *m_pYieldContext ).ToolDeAllocateNetworkAddress( mpe, networkAddress );
     }
     virtual void stash( const std::string& filePath, std::size_t determinant ) override
     {
@@ -156,7 +158,7 @@ public:
 
     virtual void readLock( MPE mpe ) override
     {
-        SPDLOG_TRACE( "readLock from: {} to: {}", m_executionIndex.value(), mpe );
+        // SPDLOG_TRACE( "readLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
         getToolRequest( *m_pYieldContext ).ToolSimReadLock( id );
@@ -164,7 +166,7 @@ public:
 
     virtual void writeLock( MPE mpe ) override
     {
-        SPDLOG_TRACE( "writeLock from: {} to: {}", m_executionIndex.value(), mpe );
+        // SPDLOG_TRACE( "writeLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
         getToolRequest( *m_pYieldContext ).ToolSimWriteLock( id );
@@ -172,15 +174,15 @@ public:
 
     virtual void releaseLock( MPE mpe ) override
     {
-        SPDLOG_TRACE( "releaseLock from: {} to: {}", m_executionIndex.value(), mpe );
+        // SPDLOG_TRACE( "releaseLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
         getToolRequest( *m_pYieldContext ).ToolSimReleaseLock( id );
     }
 
-    boost::asio::yield_context*                   m_pYieldContext = nullptr;
-    std::optional< mega::MPE >             m_executionIndex;
-    std::optional< mega::runtime::ExecutionRoot > m_executionRoot;
+    boost::asio::yield_context*                     m_pYieldContext = nullptr;
+    std::optional< mega::MPE >                      m_executionIndex;
+    std::shared_ptr< mega::runtime::ExecutionRoot > m_pExecutionRoot;
 };
 
 Tool::Tool()
