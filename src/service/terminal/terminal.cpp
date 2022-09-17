@@ -255,6 +255,67 @@ network::ConversationBase::Ptr Terminal::joinConversation( const network::Connec
             return std::get< result_type >( result.value() );                                            \
     }
 
+#define GENERIC_MSG_ARG2_NORESULT( msg_name, arg1, arg2 )                                                   \
+    {                                                                                                       \
+        std::optional< std::variant< bool, std::exception_ptr > > result;                                   \
+        {                                                                                                   \
+            auto func = [ &result, &arg1, &arg2 ]( network::ConversationBase& con, network::Sender& sender, \
+                                                   boost::asio::yield_context& yield_ctx )                  \
+            {                                                                                               \
+                network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );                          \
+                try                                                                                         \
+                {                                                                                           \
+                    leaf.msg_name( arg1, arg2 );                                                            \
+                    result = true;                                                                          \
+                }                                                                                           \
+                catch ( std::exception & ex )                                                               \
+                {                                                                                           \
+                    result = std::current_exception();                                                      \
+                }                                                                                           \
+            };                                                                                              \
+            conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(                 \
+                                       *this, createConversationID( getLeafSender().getConnectionID() ),    \
+                                       getLeafSender().getConnectionID(), std::move( func ) ) ),            \
+                                   getLeafSender() );                                                       \
+        }                                                                                                   \
+        while ( !result.has_value() )                                                                       \
+            m_io_context.run_one();                                                                         \
+                                                                                                            \
+        if ( result->index() == 1 )                                                                         \
+            std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );                     \
+    }
+
+#define GENERIC_MSG_ARG2( result_type, msg_name, arg1, arg2 )                                               \
+    {                                                                                                       \
+        std::optional< std::variant< result_type, std::exception_ptr > > result;                            \
+        {                                                                                                   \
+            auto func = [ &result, &arg1, &arg2 ]( network::ConversationBase& con, network::Sender& sender, \
+                                                   boost::asio::yield_context& yield_ctx )                  \
+            {                                                                                               \
+                network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );                          \
+                try                                                                                         \
+                {                                                                                           \
+                    result = leaf.msg_name( arg1, arg2 );                                                   \
+                }                                                                                           \
+                catch ( std::exception & ex )                                                               \
+                {                                                                                           \
+                    result = std::current_exception();                                                      \
+                }                                                                                           \
+            };                                                                                              \
+            conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(                 \
+                                       *this, createConversationID( getLeafSender().getConnectionID() ),    \
+                                       getLeafSender().getConnectionID(), std::move( func ) ) ),            \
+                                   getLeafSender() );                                                       \
+        }                                                                                                   \
+        while ( !result.has_value() )                                                                       \
+            m_io_context.run_one();                                                                         \
+                                                                                                            \
+        if ( result->index() == 1 )                                                                         \
+            std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );                     \
+        else                                                                                                \
+            return std::get< result_type >( result.value() );                                               \
+    }
+
 std::vector< std::string > Terminal::ListNetworkNodes()
 {
     //
@@ -303,6 +364,21 @@ void Terminal::SimDestroy( const network::ConversationID& simID )
     GENERIC_MSG_ARG1_NORESULT( TermSimDestroy, simID );
 }
 
+bool Terminal::SimRead( const network::ConversationID& owningID, const network::ConversationID& simID )
+{
+    //
+    GENERIC_MSG_ARG2( bool, TermSimReadLock, owningID, simID );
+}
+bool Terminal::SimWrite( const network::ConversationID& owningID, const network::ConversationID& simID )
+{
+    //
+    GENERIC_MSG_ARG2( bool, TermSimWriteLock, owningID, simID );
+}
+void Terminal::SimRelease( const network::ConversationID& owningID, const network::ConversationID& simID )
+{
+    //
+    GENERIC_MSG_ARG2_NORESULT( TermSimReleaseLock, owningID, simID );
+}
 std::vector< network::ConversationID > Terminal::SimList()
 {
     //
@@ -325,39 +401,6 @@ void Terminal::Shutdown()
 {
     //
     GENERIC_MSG_NO_RESULT( TermShutdown );
-}
-
-void Terminal::testLock( const network::ConversationID& simID )
-{
-    std::optional< std::variant< int, std::exception_ptr > > result;
-    {
-        auto func = [ &result, &simID ](
-                        network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
-        {
-            network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
-            try
-            {
-                const bool bResult1 = leaf.TermSimReadLock( simID );
-                const bool bResult2 = leaf.TermSimWriteLock( simID );
-                leaf.TermSimReleaseLock( simID );
-                SPDLOG_TRACE( "Readlock success" );
-                result = 0;
-            }
-            catch ( std::exception& ex )
-            {
-                result = std::current_exception();
-            }
-        };
-        conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(
-                                   *this, createConversationID( getLeafSender().getConnectionID() ),
-                                   getLeafSender().getConnectionID(), std::move( func ) ) ),
-                               getLeafSender() );
-    }
-    while ( !result.has_value() )
-        m_io_context.run_one();
-
-    if ( result->index() == 1 )
-        std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );
 }
 
 } // namespace service

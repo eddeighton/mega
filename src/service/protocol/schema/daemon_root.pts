@@ -75,17 +75,17 @@ msg TermSimList
 }
 msg TermSimReadLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response(bool bSuccess);
 }
 msg TermSimWriteLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response(bool bSuccess);
 }
 msg TermSimReleaseLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response();
 }
 
@@ -226,16 +226,16 @@ msg ToolRestore
 
 msg ToolSimReadLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response(bool bSuccess);
 }
 msg ToolSimWriteLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response(bool bSuccess);
 }
 msg ToolSimReleaseLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response();
 }

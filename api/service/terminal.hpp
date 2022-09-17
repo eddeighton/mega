@@ -54,11 +54,12 @@ public:
     network::ConversationID                SimNew();
     void                                   SimDestroy( const network::ConversationID& simID );
     std::vector< network::ConversationID > SimList();
-    void                                   ClearStash();
-    std::size_t                            Capacity();
-    void                                   Shutdown();
-
-    void testLock( const network::ConversationID& simID );
+    bool        SimRead( const network::ConversationID& owningID, const network::ConversationID& simID );
+    bool        SimWrite( const network::ConversationID& owningID, const network::ConversationID& simID );
+    void        SimRelease( const network::ConversationID& owningID, const network::ConversationID& simID );
+    void        ClearStash();
+    std::size_t Capacity();
+    void        Shutdown();
 
     network::Sender& getLeafSender() { return m_leaf; }
 

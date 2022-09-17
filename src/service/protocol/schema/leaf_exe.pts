@@ -44,17 +44,17 @@ msg RootSimDestroy
 }
 msg RootSimReadLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response(bool bSuccess);
 }
 msg RootSimWriteLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response(bool bSuccess);
 }
 msg RootSimReleaseLock
 {
-    request(mega::network::ConversationID simulationID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response();
 }
 

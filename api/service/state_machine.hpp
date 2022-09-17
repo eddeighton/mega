@@ -66,11 +66,11 @@ public:
         switch ( getMsgID( msg.msg ) )
         {
             case Read::ID:
-                return Read::get( msg.msg ).requestID;
+                return Read::get( msg.msg ).owningID;
             case Write::ID:
-                return Write::get( msg.msg ).requestID;
+                return Write::get( msg.msg ).owningID;
             case Release::ID:
-                return Release::get( msg.msg ).requestID;
+                return Release::get( msg.msg ).owningID;
             case Destroy::ID:
                 return Destroy::get( msg.msg ).requestID;
             case Clock::ID:
@@ -205,7 +205,7 @@ public:
                         }
                         else
                         {
-                            THROW_RTE( "Invalid release" );
+                            THROW_RTE( "Invalid release: " << id );
                         }
                     }
                     break;
@@ -215,6 +215,48 @@ public:
                 }
             }
             m_msgQueue.clear();
+        }
+
+        // see if can promote read to write
+        if ( m_activeReads.size() == 1U )
+        {
+            MsgVector other2;
+            std::swap( other2, other );
+            for ( const network::ChannelMsg& msg : other2 )
+            {
+                switch ( getMsgID( msg.msg ) )
+                {
+                    case Write::ID:
+                    {
+                        bool bPromoted = false;
+                        if ( m_state == READ )
+                        {
+                            const ID& idRead = *m_activeReads.begin();
+                            const ID& id     = getSimID( msg );
+                            if ( idRead == id )
+                            {
+                                m_state = WRITE;
+                                m_activeReads.clear();
+                                m_activeWrite = id;
+                                m_acks.push_back( { msg, id } );
+                                bPromoted = true;
+                            }
+                        }
+                        if ( !bPromoted )
+                        {
+                            other.push_back( msg );
+                        }
+                    }
+                    break;
+                    default:
+                        other.push_back( msg );
+                        break;
+                }
+            }
+        }
+        else if ( m_activeReads.empty() )
+        {
+            // direct transition to write?
         }
 
         for ( const network::ChannelMsg& msg : other )
@@ -231,7 +273,7 @@ public:
                     THROW_RTE( "Unreachable" );
                     break;
                 case Clock::ID:
-                    if ( m_activeReads.empty() && m_state != TERM )
+                    if ( m_activeReads.empty() && m_state == READ )
                     {
                         m_state      = SIM;
                         bClockTicked = true;
@@ -256,12 +298,43 @@ public:
         using namespace mega::network;
 
         bool bClockTicked = false;
-        // NOTE: only process one write at a time and queue all other messages
-        // determine if active write lock is released
+
+        // filter duplicate writes
         MsgVector other;
         {
             // add new reads and process release
             for ( const ChannelMsg& msg : m_msgQueue )
+            {
+                switch ( getMsgID( msg.msg ) )
+                {
+                    case Write::ID:
+                    {
+                        const ID& id = getSimID( msg );
+                        if ( m_activeWrite.value() == id )
+                        {
+                            m_acks.push_back( { msg, id } );
+                        }
+                        else
+                        {
+                            other.push_back( msg );
+                        }
+                    }
+                    break;
+                    default:
+                        other.push_back( msg );
+                        break;
+                }
+            }
+            m_msgQueue.clear();
+        }
+
+        // NOTE: only process one write at a time and queue all other messages
+        // determine if active write lock is released
+        {
+            // add new reads and process release
+            MsgVector other2;
+            std::swap( other, other2 );
+            for ( const ChannelMsg& msg : other2 )
             {
                 switch ( getMsgID( msg.msg ) )
                 {
@@ -284,7 +357,6 @@ public:
                         break;
                 }
             }
-            m_msgQueue.clear();
         }
 
         // stay in the WRITE state until clock tick

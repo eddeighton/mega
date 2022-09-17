@@ -164,18 +164,28 @@ public:
         getTermResponse( yield_ctx ).TermSimList( result );
     }
 
-    virtual void TermSimReadLock( const mega::network::ConversationID& simulationID,
+    virtual void TermSimReadLock( const mega::network::ConversationID& owningID,
+                                  const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSimReadLock( simulationID );
+        auto result = getDaemonRequest( yield_ctx ).TermSimReadLock( owningID, simulationID );
         getTermResponse( yield_ctx ).TermSimReadLock( result );
     }
 
-    virtual void TermSimWriteLock( const mega::network::ConversationID& simulationID,
+    virtual void TermSimWriteLock( const mega::network::ConversationID& owningID,
+                                   const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSimWriteLock( simulationID );
+        auto result = getDaemonRequest( yield_ctx ).TermSimWriteLock( owningID, simulationID );
         getTermResponse( yield_ctx ).TermSimWriteLock( result );
+    }
+
+    virtual void TermSimReleaseLock( const mega::network::ConversationID& owningID,
+                                     const mega::network::ConversationID& simulationID,
+                                     boost::asio::yield_context&          yield_ctx ) override
+    {
+        getDaemonRequest( yield_ctx ).TermSimReleaseLock( owningID, simulationID );
+        getTermResponse( yield_ctx ).TermSimReleaseLock();
     }
 
     virtual void TermClearStash( boost::asio::yield_context& yield_ctx ) override
@@ -272,24 +282,27 @@ public:
         getDaemonResponse( yield_ctx ).RootSimDestroy();
     }
 
-    virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
+    virtual void RootSimReadLock( const mega::network::ConversationID& owningID,
+                                  const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getExeRequest( yield_ctx ).RootSimReadLock( simulationID );
+        auto result = getExeRequest( yield_ctx ).RootSimReadLock( owningID, simulationID );
         getDaemonResponse( yield_ctx ).RootSimReadLock( result );
     }
 
-    virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
+    virtual void RootSimWriteLock( const mega::network::ConversationID& owningID,
+                                   const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getExeRequest( yield_ctx ).RootSimWriteLock( simulationID );
+        auto result = getExeRequest( yield_ctx ).RootSimWriteLock( owningID, simulationID );
         getDaemonResponse( yield_ctx ).RootSimWriteLock( result );
     }
 
-    virtual void RootSimReleaseLock( const mega::network::ConversationID& simulationID,
+    virtual void RootSimReleaseLock( const mega::network::ConversationID& owningID,
+                                     const mega::network::ConversationID& simulationID,
                                      boost::asio::yield_context&          yield_ctx ) override
     {
-        getExeRequest( yield_ctx ).RootSimReleaseLock( simulationID );
+        getExeRequest( yield_ctx ).RootSimReleaseLock( owningID, simulationID );
         getDaemonResponse( yield_ctx ).RootSimReleaseLock();
     }
 
@@ -488,24 +501,24 @@ public:
         auto result = getDaemonRequest( yield_ctx ).ToolGetExecutionContextID( mpe );
         getToolResponse( yield_ctx ).ToolGetExecutionContextID( result );
     }
-    virtual void ToolSimReadLock( const mega::network::ConversationID& simulationID,
+    virtual void ToolSimReadLock( const mega::network::ConversationID& owningID,const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolSimReadLock( simulationID );
+        auto result = getDaemonRequest( yield_ctx ).ToolSimReadLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimReadLock( result );
     }
 
-    virtual void ToolSimWriteLock( const mega::network::ConversationID& simulationID,
+    virtual void ToolSimWriteLock( const mega::network::ConversationID& owningID,const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolSimWriteLock( simulationID );
+        auto result = getDaemonRequest( yield_ctx ).ToolSimWriteLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimWriteLock( result );
     }
 
-    virtual void ToolSimReleaseLock( const mega::network::ConversationID& simulationID,
+    virtual void ToolSimReleaseLock( const mega::network::ConversationID& owningID,const mega::network::ConversationID& simulationID,
                                      boost::asio::yield_context&          yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ToolSimReleaseLock( simulationID );
+        getDaemonRequest( yield_ctx ).ToolSimReleaseLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimReleaseLock();
     }
 };

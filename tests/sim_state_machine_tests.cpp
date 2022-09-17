@@ -137,45 +137,6 @@ TEST( SimStateMachine, BasicReadBlocksClock )
     }
 }
 
-TEST( SimStateMachine, BasicReadBlocksManyClock )
-{
-    SM sm;
-    ASSERT_TRUE( sm.acks().empty() );
-
-    // read request puts into read state with single ack
-    {
-        sm.onMsg( { makeRead( id1 ) } );
-        ASSERT_EQ( sm.getState(), SM::READ );
-        ASSERT_EQ( sm.acks().size(), 1U );
-    }
-    // remains in read state
-    {
-        sm.onMsg( { makeClock( id2 ) } );
-        ASSERT_EQ( sm.getState(), SM::READ );
-        ASSERT_TRUE( sm.acks().empty() );
-    }
-    // remains in read state
-    {
-        sm.onMsg( { makeClock( id2 ) } );
-        ASSERT_EQ( sm.getState(), SM::READ );
-        ASSERT_TRUE( sm.acks().empty() );
-    }
-    // once read is released returns to wait
-    {
-        sm.onMsg( { makeRelease( id1 ) } );
-        ASSERT_EQ( sm.getState(), SM::SIM );
-        ASSERT_EQ( sm.acks().size(), 1U );
-    }
-    // no more acks
-    {
-        sm.onMsg( {} );
-        ASSERT_EQ( sm.getState(), SM::WAIT );
-        ASSERT_TRUE( sm.acks().empty() );
-    }
-}
-
-
-
 TEST( SimStateMachine, BasicWrite )
 {
     SM sm;
@@ -326,6 +287,110 @@ TEST( SimStateMachine, BasicTerm )
     {
         sm.onMsg( {} );
         ASSERT_EQ( sm.getState(), SM::TERM );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+}
+
+TEST( SimStateMachine, BasicPromote )
+{
+    SM sm;
+    ASSERT_TRUE( sm.acks().empty() );
+
+    // read
+    {
+        sm.onMsg( { makeRead( id1 ) } );
+        ASSERT_EQ( sm.getState(), SM::READ );
+        ASSERT_EQ( sm.acks().size(), 1U );
+    }
+    // clock has to wait
+    {
+        sm.onMsg( { makeClock( id2 ) } );
+        ASSERT_EQ( sm.getState(), SM::READ );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+    // now waits in read
+    {
+        sm.onMsg( {} );
+        ASSERT_EQ( sm.getState(), SM::READ );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+    // now promote to write
+    {
+        sm.onMsg( { makeWrite( id1 ) } );
+        ASSERT_EQ( sm.getState(), SM::WRITE );
+        ASSERT_EQ( sm.acks().size(), 1U );
+    }
+    // now waits in write
+    {
+        sm.onMsg( {} );
+        ASSERT_EQ( sm.getState(), SM::WRITE );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+    // now release and get clock tick
+    {
+        sm.onMsg( { makeRelease( id1 ) } );
+        ASSERT_EQ( sm.getState(), SM::SIM );
+        ASSERT_EQ( sm.acks().size(), 1U );
+    }
+    // now waits
+    {
+        sm.onMsg( {} );
+        ASSERT_EQ( sm.getState(), SM::WAIT );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+}
+
+TEST( SimStateMachine, IgnoreDuplicateReadsAndWrites )
+{
+    SM sm;
+    ASSERT_TRUE( sm.acks().empty() );
+
+    // read
+    {
+        sm.onMsg( { makeRead( id1 ) } );
+        ASSERT_EQ( sm.getState(), SM::READ );
+        ASSERT_EQ( sm.acks().size(), 1U );
+    }
+    // clock has to wait
+    {
+        sm.onMsg( { makeClock( id2 ) } );
+        ASSERT_EQ( sm.getState(), SM::READ );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+    // now waits in read
+    {
+        sm.onMsg( {} );
+        ASSERT_EQ( sm.getState(), SM::READ );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+    // now promote to write
+    {
+        sm.onMsg( { makeWrite( id1 ) } );
+        ASSERT_EQ( sm.getState(), SM::WRITE );
+        ASSERT_EQ( sm.acks().size(), 1U );
+    }
+    // ignors reads and writes 
+    {
+        sm.onMsg( { makeRead( id1 ), makeRead( id1 ), makeRead( id1 ), makeWrite( id1 ), makeWrite( id1 ) } );
+        ASSERT_EQ( sm.getState(), SM::WRITE );
+        ASSERT_EQ( sm.acks().size(), 5U );
+    }
+    // now waits in write
+    {
+        sm.onMsg( {} );
+        ASSERT_EQ( sm.getState(), SM::WRITE );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+    // now release and get clock tick
+    {
+        sm.onMsg( { makeRelease( id1 ) } );
+        ASSERT_EQ( sm.getState(), SM::SIM );
+        ASSERT_EQ( sm.acks().size(), 1U );
+    }
+    // now waits
+    {
+        sm.onMsg( {} );
+        ASSERT_EQ( sm.getState(), SM::WAIT );
         ASSERT_TRUE( sm.acks().empty() );
     }
 }

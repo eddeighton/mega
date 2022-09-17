@@ -47,11 +47,14 @@ public:
     //  network::exe_sim::Impl
     virtual void ExeSimDestroy( const mega::network::ConversationID& simulationID,
                                 boost::asio::yield_context&          yield_ctx ) override;
-    virtual void ExeSimReadLockAcquire( const mega::network::ConversationID& simulationID,
+    virtual void ExeSimReadLockAcquire( const mega::network::ConversationID& owningID,
+                                        const mega::network::ConversationID& simulationID,
                                         boost::asio::yield_context&          yield_ctx ) override;
-    virtual void ExeSimWriteLockAcquire( const mega::network::ConversationID& simulationID,
+    virtual void ExeSimWriteLockAcquire( const mega::network::ConversationID& owningID,
+                                         const mega::network::ConversationID& simulationID,
                                          boost::asio::yield_context&          yield_ctx ) override;
-    virtual void ExeSimLockRelease( const mega::network::ConversationID& simulationID,
+    virtual void ExeSimLockRelease( const mega::network::ConversationID& owningID,
+                                    const mega::network::ConversationID& simulationID,
                                     boost::asio::yield_context&          yield_ctx ) override;
 
     // mega::ExecutionContext

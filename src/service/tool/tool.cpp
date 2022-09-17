@@ -161,7 +161,7 @@ public:
         // SPDLOG_TRACE( "readLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
-        return getToolRequest( *m_pYieldContext ).ToolSimReadLock( id );
+        return getToolRequest( *m_pYieldContext ).ToolSimReadLock( getID(), id );
     }
 
     virtual bool writeLock( MPE mpe ) override
@@ -169,7 +169,7 @@ public:
         // SPDLOG_TRACE( "writeLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
-        return getToolRequest( *m_pYieldContext ).ToolSimWriteLock( id );
+        return getToolRequest( *m_pYieldContext ).ToolSimWriteLock( getID(), id );
     }
 
     virtual void releaseLock( MPE mpe ) override
@@ -177,7 +177,7 @@ public:
         // SPDLOG_TRACE( "releaseLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
-        getToolRequest( *m_pYieldContext ).ToolSimReleaseLock( id );
+        getToolRequest( *m_pYieldContext ).ToolSimReleaseLock( getID(), id );
     }
 
     boost::asio::yield_context*                     m_pYieldContext = nullptr;

@@ -34,7 +34,7 @@ namespace sim
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     bool        bCreate = false, bList = false;
-    std::string strList, strDestroy, strRead, strWrite, strRelease, strSuspend, strResume, strStop, strStart;
+    std::string strList, strDestroy, strID, strRead, strWrite, strRelease, strSuspend, strResume, strStop, strStart;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Generate graph json data" );
@@ -44,14 +44,15 @@ void command( bool bHelp, const std::vector< std::string >& args )
             ( "create",     po::bool_switch( &bCreate ),    "Create" )
             ( "list",       po::bool_switch( &bList ) ,     "List" )
             ( "destroy",    po::value( &strDestroy ) ,      "Destroy" )
+            ( "id",         po::value( &strID ) ,           "ID to use with lock commands" )
             ( "read",       po::value( &strRead ) ,         "Obtain read lock" )
-            ( "write",      po::value( &strRead ) ,         "Obtain write lock" )
-            ( "release",    po::value( &strRead ) ,         "Release locks" )
+            ( "write",      po::value( &strWrite ) ,        "Obtain write lock" )
+            ( "release",    po::value( &strRelease ) ,      "Release locks" )
 
-            ( "suspend",    po::value( &strRead ) ,         "Suspend scheduler" )
-            ( "resume",     po::value( &strRead ) ,         "Resume scheduler" )
-            ( "stop",       po::value( &strRead ) ,         "Stop scheduler" )
-            ( "start",      po::value( &strRead ) ,         "Start scheduler" )
+            ( "suspend",    po::value( &strSuspend ) ,      "Suspend scheduler" )
+            ( "resume",     po::value( &strResume ) ,       "Resume scheduler" )
+            ( "stop",       po::value( &strStop ) ,         "Stop scheduler" )
+            ( "start",      po::value( &strStart ) ,        "Start scheduler" )
             ;
         // clang-format on
     }
@@ -93,12 +94,50 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
         else if ( !strRead.empty() )
         {
+            mega::network::ConversationID owningID;
+            {
+                std::istringstream is( strID );
+                is >> owningID;
+            }
+            mega::network::ConversationID simID;
+            {
+                std::istringstream is( strRead );
+                is >> simID;
+            }
+            mega::service::Terminal terminal;
+            const bool              bResult = terminal.SimRead( owningID, simID );
+            std::cout << std::boolalpha << bResult << std::endl;
         }
         else if ( !strWrite.empty() )
         {
+            mega::network::ConversationID owningID;
+            {
+                std::istringstream is( strID );
+                is >> owningID;
+            }
+            mega::network::ConversationID simID;
+            {
+                std::istringstream is( strWrite );
+                is >> simID;
+            }
+            mega::service::Terminal terminal;
+            const bool              bResult = terminal.SimWrite( owningID, simID );
+            std::cout << std::boolalpha << bResult << std::endl;
         }
         else if ( !strRelease.empty() )
         {
+            mega::network::ConversationID owningID;
+            {
+                std::istringstream is( strID );
+                is >> owningID;
+            }
+            mega::network::ConversationID simID;
+            {
+                std::istringstream is( strRelease );
+                is >> simID;
+            }
+            mega::service::Terminal terminal;
+            terminal.SimRelease( owningID, simID );
         }
         else if ( !strSuspend.empty() )
         {

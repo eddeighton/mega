@@ -44,11 +44,14 @@ public:
     virtual void RootSimCreate( boost::asio::yield_context& yield_ctx ) override;
     virtual void RootSimDestroy( const mega::network::ConversationID& simulationID,
                                  boost::asio::yield_context&          yield_ctx ) override;
-    virtual void RootSimReadLock( const mega::network::ConversationID& simulationID,
+    virtual void RootSimReadLock( const mega::network::ConversationID& owningID,
+                                  const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override;
-    virtual void RootSimWriteLock( const mega::network::ConversationID& simulationID,
+    virtual void RootSimWriteLock( const mega::network::ConversationID& owningID,
+                                   const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override;
-    virtual void RootSimReleaseLock( const mega::network::ConversationID& simulationID,
+    virtual void RootSimReleaseLock( const mega::network::ConversationID& owningID,
+                                     const mega::network::ConversationID& simulationID,
                                      boost::asio::yield_context&          yield_ctx ) override;
     virtual void RootShutdown( boost::asio::yield_context& yield_ctx ) override;
 };

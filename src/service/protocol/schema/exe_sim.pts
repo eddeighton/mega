@@ -7,17 +7,17 @@ msg ExeSimDestroy
 }
 msg ExeSimReadLockAcquire
 {
-    request(mega::network::ConversationID requestID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
     response(bool bSuccess);
 }
 msg ExeSimWriteLockAcquire
 {
-    request(mega::network::ConversationID requestID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
     response(bool bSuccess);
 }
 msg ExeSimLockRelease
 {
-    request(mega::network::ConversationID requestID);
+    request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
     response();
 }
 msg ExeExeClock
