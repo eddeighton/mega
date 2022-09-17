@@ -337,8 +337,8 @@ void Terminal::testLock( const network::ConversationID& simID )
             network::term_leaf::Request_Encode leaf( con, sender, yield_ctx );
             try
             {
-                leaf.TermSimReadLock( simID );
-                leaf.TermSimWriteLock( simID );
+                const bool bResult1 = leaf.TermSimReadLock( simID );
+                const bool bResult2 = leaf.TermSimWriteLock( simID );
                 leaf.TermSimReleaseLock( simID );
                 SPDLOG_TRACE( "Readlock success" );
                 result = 0;

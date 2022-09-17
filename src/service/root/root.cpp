@@ -292,8 +292,8 @@ public:
     {
         auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
         VERIFY_RTE( pDaemon.has_value() );
-        pDaemon->RootSimReadLock( simulationID );
-        getStackTopDaemonResponse( yield_ctx ).TermSimReadLock();
+        auto result = pDaemon->RootSimReadLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).TermSimReadLock( result );
     }
 
     virtual void TermSimWriteLock( const mega::network::ConversationID& simulationID,
@@ -301,8 +301,8 @@ public:
     {
         auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
         VERIFY_RTE( pDaemon.has_value() );
-        pDaemon->RootSimWriteLock( simulationID );
-        getStackTopDaemonResponse( yield_ctx ).TermSimWriteLock();
+        auto result = pDaemon->RootSimWriteLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).TermSimWriteLock( result );
     }
 
     virtual void TermClearStash( boost::asio::yield_context& yield_ctx ) override
@@ -404,8 +404,8 @@ public:
     {
         auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
         VERIFY_RTE( pDaemon.has_value() );
-        pDaemon->RootSimReadLock( simulationID );
-        getStackTopDaemonResponse( yield_ctx ).ExeSimReadLock();
+        auto result = pDaemon->RootSimReadLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ExeSimReadLock( result );
     }
 
     virtual void ExeSimWriteLock( const mega::network::ConversationID& simulationID,
@@ -413,8 +413,8 @@ public:
     {
         auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
         VERIFY_RTE( pDaemon.has_value() );
-        pDaemon->RootSimWriteLock( simulationID );
-        getStackTopDaemonResponse( yield_ctx ).ExeSimWriteLock();
+        auto result = pDaemon->RootSimWriteLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ExeSimWriteLock( result );
     }
 
     virtual void ExeSimReleaseLock( const mega::network::ConversationID& simulationID,
@@ -466,8 +466,8 @@ public:
     {
         auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
         VERIFY_RTE( pDaemon.has_value() );
-        pDaemon->RootSimReadLock( simulationID );
-        getStackTopDaemonResponse( yield_ctx ).ToolSimReadLock();
+        auto result = pDaemon->RootSimReadLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ToolSimReadLock( result );
     }
 
     virtual void ToolSimWriteLock( const mega::network::ConversationID& simulationID,
@@ -475,8 +475,8 @@ public:
     {
         auto pDaemon = getDaemonRequestByCon( simulationID, yield_ctx );
         VERIFY_RTE( pDaemon.has_value() );
-        pDaemon->RootSimWriteLock( simulationID );
-        getStackTopDaemonResponse( yield_ctx ).ToolSimWriteLock();
+        auto result = pDaemon->RootSimWriteLock( simulationID );
+        getStackTopDaemonResponse( yield_ctx ).ToolSimWriteLock( result );
     }
 
     virtual void ToolSimReleaseLock( const mega::network::ConversationID& simulationID,

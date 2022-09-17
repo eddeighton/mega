@@ -42,12 +42,8 @@ ConversationID ConversationManager::createConversationID( const ConnectionID& co
     return ConversationID( ++m_nextConversationID, connectionID );
 }
 
-void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender )
+void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pConversation, Sender& parentSender )
 {
-    {
-        WriteLock lock( m_mutex );
-        m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
-    }
     // clang-format off
     boost::asio::spawn
     (
@@ -60,11 +56,7 @@ void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversa
                     auto msg = network::MSG_Conversation_New::make( network::MSG_Conversation_New{} );
                     parentSender.send( pConversation->getID(), msg, yield_ctx );
                 }
-
-                //yield_ctx.coro.lock();
-
-                pConversation->run( yield_ctx ); 
-
+                pConversation->run( yield_ctx );
                 {
                     auto msg = network::MSG_Conversation_End::make( network::MSG_Conversation_End{} );
                     parentSender.send( pConversation->getID(), msg, yield_ctx );
@@ -78,6 +70,15 @@ void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversa
     );
     // clang-format on
     // SPDLOG_TRACE( "ConversationBase Started id: {}", pConversation->getID() );
+}
+
+void ConversationManager::conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender )
+{
+    {
+        WriteLock lock( m_mutex );
+        m_conversations.insert( std::make_pair( pConversation->getID(), pConversation ) );
+    }
+    spawnInitiatedConversation( pConversation, parentSender );
 }
 
 void ConversationManager::conversationJoined( ConversationBase::Ptr pConversation )

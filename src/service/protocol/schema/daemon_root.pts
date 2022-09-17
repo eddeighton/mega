@@ -76,12 +76,12 @@ msg TermSimList
 msg TermSimReadLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg TermSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg TermSimReleaseLock
 {
@@ -176,12 +176,12 @@ msg ExeDeAllocateNetworkAddress
 msg ExeSimReadLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg ExeSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg ExeSimReleaseLock
 {
@@ -227,12 +227,12 @@ msg ToolRestore
 msg ToolSimReadLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg ToolSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg ToolSimReleaseLock
 {

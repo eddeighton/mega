@@ -156,20 +156,20 @@ public:
         return getToolRequest( *m_pYieldContext ).ToolRestore( filePath, determinant );
     }
 
-    virtual void readLock( MPE mpe ) override
+    virtual bool readLock( MPE mpe ) override
     {
         // SPDLOG_TRACE( "readLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
-        getToolRequest( *m_pYieldContext ).ToolSimReadLock( id );
+        return getToolRequest( *m_pYieldContext ).ToolSimReadLock( id );
     }
 
-    virtual void writeLock( MPE mpe ) override
+    virtual bool writeLock( MPE mpe ) override
     {
         // SPDLOG_TRACE( "writeLock from: {} to: {}", m_executionIndex.value(), mpe );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
-        getToolRequest( *m_pYieldContext ).ToolSimWriteLock( id );
+        return getToolRequest( *m_pYieldContext ).ToolSimWriteLock( id );
     }
 
     virtual void releaseLock( MPE mpe ) override

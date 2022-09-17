@@ -21,7 +21,10 @@ set( EXECUTOR_SRC_DIR ${MEGA_SRC_DIR}/service/executor )
 ####################################################################
 ####################################################################
 
-set( EXECUTOR_LIB_API ${MEGA_API_DIR}/service/executor.hpp )
+set( EXECUTOR_LIB_API 
+    ${MEGA_API_DIR}/service/executor.hpp 
+    ${MEGA_API_DIR}/service/state_machine.hpp 
+    )
 
 set( EXECUTOR_LIB_SRC 
     ${EXECUTOR_SRC_DIR}/request.hpp
@@ -31,7 +34,6 @@ set( EXECUTOR_LIB_SRC
     ${EXECUTOR_SRC_DIR}/simulation.hpp
     ${EXECUTOR_SRC_DIR}/simulation.cpp
     ${EXECUTOR_SRC_DIR}/executor.cpp
-    ${EXECUTOR_SRC_DIR}/state_machine.hpp
     ${MEGA_API_DIR}/mega/basic_scheduler.cpp
 )
 

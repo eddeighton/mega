@@ -8,12 +8,12 @@ msg ExeSimDestroy
 msg ExeSimReadLockAcquire
 {
     request(mega::network::ConversationID requestID);
-    response(mega::TimeStamp timestamp);
+    response(bool bSuccess);
 }
 msg ExeSimWriteLockAcquire
 {
     request(mega::network::ConversationID requestID);
-    response(mega::TimeStamp timestamp);
+    response(bool bSuccess);
 }
 msg ExeSimLockRelease
 {

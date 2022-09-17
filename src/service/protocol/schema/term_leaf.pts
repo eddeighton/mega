@@ -54,12 +54,12 @@ msg TermSimList
 msg TermSimReadLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg TermSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg TermSimReleaseLock
 {

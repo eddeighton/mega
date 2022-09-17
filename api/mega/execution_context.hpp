@@ -23,8 +23,8 @@ public:
     virtual void            deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress ) = 0;
     virtual void            stash( const std::string& filePath, std::size_t determinant )      = 0;
     virtual bool            restore( const std::string& filePath, std::size_t determinant )    = 0;
-    virtual void            readLock( MPE mpe )                                                = 0;
-    virtual void            writeLock( MPE mpe )                                               = 0;
+    virtual bool            readLock( MPE mpe )                                                = 0;
+    virtual bool            writeLock( MPE mpe )                                               = 0;
     virtual void            releaseLock( MPE mpe )                                             = 0;
 };
 

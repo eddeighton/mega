@@ -2,18 +2,17 @@
 #ifndef SIMULATION_22_JUNE_2022
 #define SIMULATION_22_JUNE_2022
 
+#include "request.hpp"
+
+#include "service/state_machine.hpp"
+#include "service/network/sender.hpp"
+#include "service/protocol/common/header.hpp"
+#include "service/protocol/model/exe_sim.hxx"
+
 #include "mega/common.hpp"
 #include "mega/basic_scheduler.hpp"
 #include "mega/execution_context.hpp"
 #include "mega/root.hpp"
-
-#include "request.hpp"
-#include "service/network/sender.hpp"
-#include "service/protocol/common/header.hpp"
-
-#include "service/protocol/model/exe_sim.hxx"
-
-#include "state_machine.hpp"
 
 namespace mega
 {
@@ -63,8 +62,8 @@ public:
     virtual void            deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress ) override;
     virtual void            stash( const std::string& filePath, std::size_t determinant ) override;
     virtual bool            restore( const std::string& filePath, std::size_t determinant ) override;
-    virtual void            readLock( MPE mpe ) override;
-    virtual void            writeLock( MPE mpe ) override;
+    virtual bool            readLock( MPE mpe ) override;
+    virtual bool            writeLock( MPE mpe ) override;
     virtual void            releaseLock( MPE mpe ) override;
 
 private:

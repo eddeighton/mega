@@ -48,12 +48,12 @@ msg ToolGetExecutionContextID
 msg ToolSimReadLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg ToolSimWriteLock
 {
     request(mega::network::ConversationID simulationID);
-    response();
+    response(bool bSuccess);
 }
 msg ToolSimReleaseLock
 {

@@ -79,22 +79,23 @@ bool Simulation::restore( const std::string& filePath, std::size_t determinant )
     return getLeafRequest( *m_pYieldContext ).ExeRestore( filePath, determinant );
 }
 
-void Simulation::readLock( MPE mpe )
+bool Simulation::readLock( MPE mpe )
 {
     VERIFY_RTE( m_pYieldContext );
 
     // if( m_executor.m_simulations
 
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
-    getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
+    return getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
 }
 
-void Simulation::writeLock( MPE mpe )
+bool Simulation::writeLock( MPE mpe )
 {
     VERIFY_RTE( m_pYieldContext );
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
-    getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id );
+    return getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id );
 }
+
 void Simulation::releaseLock( MPE mpe )
 {
     VERIFY_RTE( m_pYieldContext );
@@ -146,11 +147,9 @@ void Simulation::clock()
     SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
     // send the clock tick msg
     using namespace network::exe_sim;
-
     const network::Message    msg = MSG_ExeExeClock_Request::make( MSG_ExeExeClock_Request{} );
     const network::ChannelMsg channelMsg{
         network::Header{ static_cast< network::MessageID >( getMsgID( msg ) ), getID() }, msg };
-
     boost::system::error_code ec;
     m_requestChannel.async_send( ec, channelMsg, []( boost::system::error_code ec ) {} );
 }
@@ -158,10 +157,7 @@ void Simulation::clock()
 void Simulation::runCycle( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM: runCycle {}", getID() );
-
     issueClock();
-
-    // run a simulation cycle
     m_scheduler.cycle();
 }
 
@@ -261,13 +257,9 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM: run: {}", getID() );
-
     ExecutionContext::resume( this );
-
     m_pYieldContext = &yield_ctx;
-
     runSimulation( yield_ctx );
-
     ExecutionContext::suspend();
 }
 
@@ -275,10 +267,8 @@ void Simulation::ExeSimDestroy( const mega::network::ConversationID& requestingC
                                 boost::asio::yield_context&          yield_ctx )
 {
     SPDLOG_TRACE( "SIM: Simulation::ExeSimDestroy: {}", requestingConID );
-
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );
-
     network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
     response.ExeSimDestroy();
 }
@@ -287,40 +277,28 @@ void Simulation::ExeSimReadLockAcquire( const mega::network::ConversationID& req
                                         boost::asio::yield_context&          yield_ctx )
 {
     SPDLOG_TRACE( "SIM: Simulation::ExeSimReadLockAcquire: {}", requestingConID );
-
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );
-
     network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
-
-    mega::TimeStamp timeStamp = 123;
-    response.ExeSimReadLockAcquire( timeStamp );
+    response.ExeSimReadLockAcquire( m_stateMachine.isTerminating() );
 }
 
 void Simulation::ExeSimWriteLockAcquire( const mega::network::ConversationID& requestingConID,
                                          boost::asio::yield_context&          yield_ctx )
 {
     SPDLOG_TRACE( "SIM: Simulation::ExeSimWriteLockAcquire: {}", requestingConID );
-
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );
-
-    // THROW_RTE( "Test exception from Simulation::RootSimReadLock" );
-
     network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
-
-    mega::TimeStamp timeStamp = 123;
-    response.ExeSimWriteLockAcquire( timeStamp );
+    response.ExeSimWriteLockAcquire( m_stateMachine.isTerminating() );
 }
 
 void Simulation::ExeSimLockRelease( const mega::network::ConversationID& requestingConID,
                                     boost::asio::yield_context&          yield_ctx )
 {
     SPDLOG_TRACE( "SIM: Simulation::ExeSimLockRelease: {}", requestingConID );
-
     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
     VERIFY_RTE( pRequestCon );
-
     network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
     response.ExeSimLockRelease();
 }

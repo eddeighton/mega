@@ -37,13 +37,13 @@ public:
         = 0;
     virtual void conversationNew( const Header& header, const ReceivedMsg& msg );
     virtual void conversationEnd( const Header& header, const ReceivedMsg& msg );
-
     virtual void dispatch( const Header& header, const ReceivedMsg& msg );
 
 protected:
-    boost::asio::io_context& m_ioContext;
+    void spawnInitiatedConversation( ConversationBase::Ptr pConversation, Sender& parentSender );
 
-private:
+protected:
+    boost::asio::io_context&  m_ioContext;
     std::string               m_strProcessName;
     ConversationPtrMap        m_conversations;
     mutable std::shared_mutex m_mutex;

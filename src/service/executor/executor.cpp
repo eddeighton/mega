@@ -96,16 +96,35 @@ network::ConversationBase::Ptr Executor::joinConversation( const network::Connec
         new ExecutorRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 
+std::shared_ptr< Simulation > Executor::getSimulation( const mega::network::ConversationID& simulationID ) const
+{
+    ReadLock lock( m_mutex );
+    auto     iFind = m_simulations.find( simulationID );
+    if ( iFind != m_simulations.end() )
+        return iFind->second;
+    else
+        return Simulation::Ptr{};
+}
+
 void Executor::simulationInitiated( std::shared_ptr< Simulation > pSimulation )
 {
+    WriteLock lock( m_mutex );
     m_simulations.insert( { pSimulation->getID(), pSimulation } );
-    network::ConversationManager::conversationInitiated( pSimulation, getLeafSender() );
+    m_conversations.insert( std::make_pair( pSimulation->getID(), pSimulation ) );
+    spawnInitiatedConversation( pSimulation, getLeafSender() );
+}
+
+void Executor::simulationTerminating( std::shared_ptr< Simulation > pSimulation )
+{
+    WriteLock lock( m_mutex );
+    m_simulations.erase( pSimulation->getID() );
 }
 
 void Executor::conversationCompleted( network::ConversationBase::Ptr pConversation )
 {
     if ( Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( pConversation ) )
     {
+        WriteLock lock( m_mutex );
         m_simulations.erase( pSim->getID() );
     }
     network::ConversationManager::conversationCompleted( pConversation );
