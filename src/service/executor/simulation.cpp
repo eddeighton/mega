@@ -82,9 +82,6 @@ bool Simulation::restore( const std::string& filePath, std::size_t determinant )
 bool Simulation::readLock( MPE mpe )
 {
     VERIFY_RTE( m_pYieldContext );
-
-    // if( m_executor.m_simulations
-
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
     return getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
 }
@@ -107,11 +104,11 @@ void Simulation::acknowledgeMessage( const network::ChannelMsg&                 
                                      const std::optional< mega::network::ConversationID >& requestingID,
                                      boost::asio::yield_context&                           yield_ctx )
 {
-    do
     {
         ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
         try
         {
+            SPDLOG_TRACE( "SIM: acknowledgeMessage {}", getMsgName( msg.msg ) );
             ASSERT( isRequest( msg.msg ) );
             if ( !dispatchRequest( msg.msg, yield_ctx ) )
             {
@@ -131,7 +128,8 @@ void Simulation::acknowledgeMessage( const network::ChannelMsg&                 
                 error( m_stack.back(), ex.what(), yield_ctx );
             }
         }
-    } while ( !m_stack.empty() );
+    }
+    VERIFY_RTE_MSG( m_stack.size() == 1, "Unexpected stack size after acknowledgeMessage" );
 }
 
 void Simulation::issueClock()
@@ -154,13 +152,6 @@ void Simulation::clock()
     m_requestChannel.async_send( ec, channelMsg, []( boost::system::error_code ec ) {} );
 }
 
-void Simulation::runCycle( boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "SIM: runCycle {}", getID() );
-    issueClock();
-    m_scheduler.cycle();
-}
-
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
@@ -169,16 +160,26 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         m_pExecutionRoot = std::make_shared< mega::runtime::ExecutionRoot >( m_executionIndex.value() );
         SPDLOG_TRACE( "SIM: root acquired {}", getID() );
 
+        // issue first clock tick
+        issueClock();
+        bool bRegistedAsTerminating = false;
+
         SimulationStateMachine::MsgVector msgs;
-        bool                              bContinue = true;
-        while ( bContinue )
+        while ( !m_stateMachine.isTerminated() )
         {
+            if ( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
+            {
+                Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( shared_from_this() );
+                m_executor.simulationTerminating( pSim );
+                bRegistedAsTerminating = true;
+            }
+
             switch ( m_stateMachine.getState() )
             {
                 case SimulationStateMachine::SIM:
                 {
                     SPDLOG_TRACE( "SIM: SIM {}", getID() );
-                    runCycle( yield_ctx );
+                    m_scheduler.cycle();
                 }
                 break;
                 case SimulationStateMachine::READ:
@@ -188,6 +189,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         acknowledgeMessage( msg.first, msg.second, yield_ctx );
                     }
+                    m_stateMachine.resetAcks();
                 }
                 break;
                 case SimulationStateMachine::WRITE:
@@ -197,6 +199,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         acknowledgeMessage( msg.first, msg.second, yield_ctx );
                     }
+                    m_stateMachine.resetAcks();
                 }
                 break;
                 case SimulationStateMachine::TERM:
@@ -206,7 +209,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                     {
                         acknowledgeMessage( msg.first, msg.second, yield_ctx );
                     }
-                    bContinue = false;
+                    m_stateMachine.resetAcks();
                 }
                 break;
                 case SimulationStateMachine::WAIT:
@@ -218,33 +221,38 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             }
 
             // process a message
-            if ( bContinue )
+            SUSPEND_EXECUTION_CONTEXT();
+
             {
-                SUSPEND_EXECUTION_CONTEXT();
-
-                {
-                    const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
-                    msgs.push_back( msg );
-                }
-                while ( m_requestChannel.try_receive(
-                    [ &msgs ]( boost::system::error_code ec, const network::ChannelMsg& msg )
-                    {
-                        if ( !ec )
-                        {
-                            msgs.push_back( msg );
-                        }
-                        else
-                        {
-                            /// TODO.
-                        }
-                    } ) )
-                    ;
-
-                RESUME_EXECUTION_CONTEXT();
-                SPDLOG_TRACE( "SIM: Msgs {}", msgs.size() );
-                m_stateMachine.onMsg( msgs );
-                msgs.clear();
+                const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
+                msgs.push_back( msg );
             }
+            while ( m_requestChannel.try_receive(
+                [ &msgs ]( boost::system::error_code ec, const network::ChannelMsg& msg )
+                {
+                    if ( !ec )
+                    {
+                        msgs.push_back( msg );
+                    }
+                    else
+                    {
+                        /// TODO.
+                    }
+                } ) )
+                ;
+
+            RESUME_EXECUTION_CONTEXT();
+            SPDLOG_TRACE( "SIM: Msgs {}", msgs.size() );
+
+            // returns whether there was clock tick
+            if ( m_stateMachine.onMsg( msgs ) )
+            {
+                if ( !m_stateMachine.isTerminated() )
+                {
+                    issueClock();
+                }
+            }
+            msgs.clear();
         }
     }
     catch ( std::exception& ex )

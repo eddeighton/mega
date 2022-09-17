@@ -46,9 +46,14 @@ private:
     std::optional< ID > m_activeWrite;
 
 public:
-    State            getState() const { return m_state; }
-    bool             isTerminating() const { return m_state == TERM; }
+    State getState() const { return m_state; }
+    bool  isTerminating() const { return m_state == TERM; }
+    bool  isTerminated() const
+    {
+        return ( m_state == TERM ) && m_activeReads.empty() && ( !m_activeWrite.has_value() ) && m_acks.empty();
+    }
     const AckVector& acks() const { return m_acks; }
+    void             resetAcks() { m_acks.clear(); }
 
     using Read    = mega::network::exe_sim::MSG_ExeSimReadLockAcquire_Request;
     using Write   = mega::network::exe_sim::MSG_ExeSimWriteLockAcquire_Request;
@@ -74,11 +79,12 @@ public:
         }
     }
 
-    void onWait()
+    bool onWait()
     {
         using namespace mega::network;
 
-        m_state = WAIT;
+        bool bClockTicked = false;
+        m_state           = WAIT;
         MsgVector reads;
         MsgVector other;
         for ( const ChannelMsg& msg : m_msgQueue )
@@ -117,7 +123,7 @@ public:
                         break;
                     case Write::ID:
                     {
-                        if ( m_state == WAIT )
+                        if ( m_state == WAIT && m_state != TERM )
                         {
                             const ID& id = getSimID( msg );
                             m_acks.push_back( { msg, id } );
@@ -136,14 +142,12 @@ public:
                         THROW_RTE( "SIM: Invalid release request" );
                     }
                     break;
-                    case Destroy::ID:
-                        THROW_RTE( "NOT IMPLEMENTED" );
-                        break;
                     case Clock::ID:
                     {
                         if ( m_state == WAIT )
                         {
-                            m_state = SIM;
+                            m_state      = SIM;
+                            bClockTicked = true;
                         }
                         else if ( m_state != SIM )
                         {
@@ -155,6 +159,8 @@ public:
                         }
                     }
                     break;
+                    case Destroy::ID:
+                        THROW_RTE( "Unreachable" );
                     default:
                         THROW_RTE( "Unreachable" );
                 }
@@ -164,11 +170,14 @@ public:
         {
             m_state = WAIT;
         }
+        return bClockTicked;
     }
 
-    void onRead()
+    bool onRead()
     {
         using namespace mega::network;
+
+        bool bClockTicked = false;
 
         // first process ALL release locks and determine if remaining read locks active
         MsgVector other;
@@ -221,30 +230,32 @@ public:
                 case Release::ID:
                     THROW_RTE( "Unreachable" );
                     break;
-                case Destroy::ID:
-                    THROW_RTE( "NOT IMPLEMENTED" );
-                    break;
                 case Clock::ID:
-                    if ( m_activeReads.empty() )
+                    if ( m_activeReads.empty() && m_state != TERM )
                     {
-                        m_state = SIM;
+                        m_state      = SIM;
+                        bClockTicked = true;
                     }
                     else
                     {
                         m_msgQueue.push_back( msg );
                     }
                     break;
+                case Destroy::ID:
+                    THROW_RTE( "Unreachable" );
                 default:
                     THROW_RTE( "Unreachable" );
                     break;
             }
         }
+        return bClockTicked;
     }
 
-    void onWrite()
+    bool onWrite()
     {
         using namespace mega::network;
 
+        bool bClockTicked = false;
         // NOTE: only process one write at a time and queue all other messages
         // determine if active write lock is released
         MsgVector other;
@@ -317,48 +328,119 @@ public:
                 case Release::ID:
                     THROW_RTE( "Unreachable" );
                     break;
-                case Destroy::ID:
-                    THROW_RTE( "NOT IMPLEMENTED" );
-                    break;
                 case Clock::ID:
                     if ( !m_activeWrite.has_value() )
                     {
-                        m_state = SIM;
+                        m_state      = SIM;
+                        bClockTicked = true;
                     }
                     else
                     {
                         m_msgQueue.push_back( msg );
                     }
                     break;
+                case Destroy::ID:
+                    THROW_RTE( "Unreachable" );
                 default:
                     THROW_RTE( "Unreachable" );
                     break;
             }
         }
+        return bClockTicked;
     }
 
-    void onMsg( const MsgVector& msgs )
+    bool onTerm()
     {
         using namespace mega::network;
 
-        m_acks.clear();
+        bool bClockTicked = false;
+
+        // stay in the WRITE state until clock tick
+        for ( const network::ChannelMsg& msg : m_msgQueue )
+        {
+            switch ( getMsgID( msg.msg ) )
+            {
+                case Read::ID:
+                {
+                    const ID& id = getSimID( msg );
+                    m_acks.push_back( { msg, id } );
+                }
+                break;
+                case Write::ID:
+                {
+                    const ID& id = getSimID( msg );
+                    m_acks.push_back( { msg, id } );
+                }
+                break;
+                case Release::ID:
+                {
+                    const ID& id    = getSimID( msg );
+                    auto      iFind = m_activeReads.find( id );
+                    if ( iFind != m_activeReads.end() )
+                    {
+                        m_activeReads.erase( iFind );
+                        m_acks.push_back( { msg, id } );
+                    }
+                    else if ( m_activeWrite.has_value() && ( m_activeWrite.value() == id ) )
+                    {
+                        m_activeWrite.reset();
+                        m_acks.push_back( { msg, id } );
+                    }
+                    else
+                    {
+                        THROW_RTE( "Invalid release" );
+                    }
+                }
+                break;
+                case Clock::ID:
+                {
+                    bClockTicked = true;
+                }
+                break;
+                case Destroy::ID:
+                {
+                    const ID& id = getSimID( msg );
+                    m_acks.push_back( { msg, id } );
+                }
+                break;
+                default:
+                    THROW_RTE( "Unreachable" );
+                    break;
+            }
+        }
+        m_msgQueue.clear();
+        return bClockTicked;
+    }
+
+    // returns true if clock ticked
+    bool onMsg( const MsgVector& msgs )
+    {
+        using namespace mega::network;
+
+        for ( const ChannelMsg& msg : msgs )
+        {
+            switch ( getMsgID( msg.msg ) )
+            {
+                case Destroy::ID:
+                    m_state = TERM;
+                    break;
+            }
+        }
+
+        resetAcks();
         std::copy( msgs.begin(), msgs.end(), std::back_inserter( m_msgQueue ) );
 
         switch ( m_state )
         {
             case SIM:
             case WAIT:
-                onWait();
-                break;
+                return onWait();
             case READ:
-                onRead();
-                break;
+                return onRead();
             case WRITE:
-                onWrite();
-                break;
+                return onWrite();
             case TERM:
-                THROW_RTE( "Unreachable" );
-                break;
+                return onTerm();
             default:
                 THROW_RTE( "Unknown state" );
         }

@@ -70,7 +70,6 @@ private:
     void issueClock();
     void clock();
     void runSimulation( boost::asio::yield_context& yield_ctx );
-    void runCycle( boost::asio::yield_context& yield_ctx );
     void acknowledgeMessage( const network::ChannelMsg&                            msg,
                              const std::optional< mega::network::ConversationID >& requestingID,
                              boost::asio::yield_context&                           yield_ctx );

@@ -101,7 +101,9 @@ std::shared_ptr< Simulation > Executor::getSimulation( const mega::network::Conv
     ReadLock lock( m_mutex );
     auto     iFind = m_simulations.find( simulationID );
     if ( iFind != m_simulations.end() )
+    {
         return iFind->second;
+    }
     else
         return Simulation::Ptr{};
 }

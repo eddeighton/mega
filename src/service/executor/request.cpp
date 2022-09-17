@@ -131,7 +131,9 @@ void ExecutorRequestConversation::RootSimDestroy( const mega::network::Conversat
     if( Simulation::Ptr pSim = m_executor.getSimulation( simulationID ) )
     {
         network::exe_sim::Request_Encode rq( *this, pSim->getRequestSender(), yield_ctx );
+        SPDLOG_TRACE( "SIM: ExecutorRequestConversation::RootSimDestroy requested" );
         rq.ExeSimDestroy( getID() );
+        SPDLOG_TRACE( "SIM: ExecutorRequestConversation::RootSimDestroy responded" );
     }
     getLeafResponse( yield_ctx ).RootSimDestroy();
 }

@@ -310,3 +310,22 @@ TEST( SimStateMachine, WriteBlocksRead )
         ASSERT_TRUE( sm.acks().empty() );
     }
 }
+
+TEST( SimStateMachine, BasicTerm )
+{
+    SM sm;
+    ASSERT_TRUE( sm.acks().empty() );
+
+    // write request puts into write state with single ack
+    {
+        sm.onMsg( { makeDestroy( id1 ) } );
+        ASSERT_EQ( sm.getState(), SM::TERM );
+        ASSERT_EQ( sm.acks().size(), 1U );
+    }
+    // now waits in term
+    {
+        sm.onMsg( {} );
+        ASSERT_EQ( sm.getState(), SM::TERM );
+        ASSERT_TRUE( sm.acks().empty() );
+    }
+}
