@@ -1,8 +1,7 @@
 #ifndef OBJECT_INFO_30_MAR_2022
 #define OBJECT_INFO_30_MAR_2022
 
-#include <cstdint>
-#include <type_traits>
+#include "mega/native_types.hpp"
 
 namespace mega
 {
@@ -14,19 +13,19 @@ class Storer;
 class ObjectInfo
 {
 public:
-    using Type = std::int32_t;
+    using Type = mega::I32;
     enum : Type
     {
         NO_TYPE = ( Type )-1
     };
 
-    using Index = std::int32_t;
+    using Index = mega::I32;
     enum : Index
     {
         NO_INDEX = ( Index )-1
     };
 
-    using FileID = std::int32_t;
+    using FileID = mega::I32;
     enum : FileID
     {
         NO_FILE = ( FileID )-1

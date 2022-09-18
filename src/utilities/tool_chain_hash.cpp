@@ -11,7 +11,7 @@ namespace utilities
 ToolChain::ToolChain() {}
 
 ToolChain::ToolChain( const std::string& strClangCompilerVersion,
-                      std::size_t        szDatabaseVersion,
+                      mega::U64        szDatabaseVersion,
 
                       const boost::filesystem::path& path_parserDll,
                       const boost::filesystem::path& path_megaCompiler,

@@ -44,8 +44,8 @@ struct DimensionTraits
     using Read                      = const T&;
     using Write                     = T;
     using Get                       = T&;
-    static const std::size_t Size   = sizeof( T );
-    static const std::size_t Simple = std::is_trivially_copyable< T >::value;
+    static const mega::U64 Size   = sizeof( T );
+    static const mega::U64 Simple = std::is_trivially_copyable< T >::value;
 
     template < typename TSegmentManager >
     static T&& init( TSegmentManager* )
@@ -83,8 +83,8 @@ struct DimensionTraits< ReferenceVector >
     using Write = ReferenceVector;
     using Get   = ReferenceVector&;
 
-    static const std::size_t Size   = sizeof( ReferenceVector );
-    static const std::size_t Simple = true;
+    static const mega::U64 Size   = sizeof( ReferenceVector );
+    static const mega::U64 Simple = true;
 
     static inline ReferenceVector init( mega::runtime::ManagedSharedMemory::segment_manager* pSegmentManager )
     {

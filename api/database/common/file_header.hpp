@@ -17,14 +17,14 @@ public:
     {
     }
 
-    FileHeader( std::size_t versionHashCode, std::size_t manifestHashCode )
+    FileHeader( mega::U64 versionHashCode, mega::U64 manifestHashCode )
         : m_versionHashCode( versionHashCode )
         , m_manifestHashCode( manifestHashCode )
     {
     }
 
-    std::size_t getVersion() const { return m_versionHashCode; }
-    std::size_t getManifestHashCode() const { return m_manifestHashCode; }
+    mega::U64 getVersion() const { return m_versionHashCode; }
+    mega::U64 getManifestHashCode() const { return m_manifestHashCode; }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -34,8 +34,8 @@ public:
     }
 
 private:
-    std::size_t m_versionHashCode;
-    std::size_t m_manifestHashCode;
+    mega::U64 m_versionHashCode;
+    mega::U64 m_manifestHashCode;
 };
 
 } // namespace io

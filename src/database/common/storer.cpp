@@ -48,7 +48,7 @@ Storer::Storer( const FileSystem& fileSystem, const CompilationFilePath& filePat
     , m_archive( *m_pFileStream, m_objectInfos )
 {
     {
-        std::size_t manifestHash = 0U;
+        mega::U64 manifestHash = 0U;
         FileHeader  fileHeader( Environment::getVersion(), manifestHash );
         m_archive&  fileHeader;
     }

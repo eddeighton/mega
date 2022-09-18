@@ -109,7 +109,7 @@ struct formatter< mega::network::LogTime >
     template < typename FormatContext >
     auto format( const mega::network::LogTime& logTime, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        using DurationType = std::chrono::duration< std::int64_t, std::ratio< 1, 1'000'000'000 > >;
+        using DurationType = std::chrono::duration< mega::I64, std::ratio< 1, 1'000'000'000 > >;
         auto c             = std::chrono::duration_cast< DurationType >( logTime ).count();
         return format_to(
             ctx.out(), "{}s.{:03}ms.{:03}us",
@@ -219,14 +219,14 @@ struct formatter< mega::NetworkOrProcessAddress >
 };
 
 template <>
-struct formatter< mega::MPE >
+struct formatter< mega::MPO >
 {
     constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
     template < typename FormatContext >
-    auto format( const mega::MPE& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    auto format( const mega::MPO& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "mpe:{}.{}.{}.{}", address.getMachineID(), address.getProcessID(),
-                          address.getExecutorID(), address.isNetwork() );
+        return format_to( ctx.out(), "mpo:{}.{}.{}.{}", address.getMachineID(), address.getProcessID(),
+                          address.getOwnerID(), address.isNetwork() );
     }
 };
 
@@ -248,7 +248,7 @@ struct formatter< mega::MachineAddress >
     template < typename FormatContext >
     auto format( const mega::MachineAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
-        return format_to( ctx.out(), "{}.{}", address.object, static_cast< const mega::MPE& >( address ) );
+        return format_to( ctx.out(), "{}.{}", address.object, static_cast< const mega::MPO& >( address ) );
     }
 };
 

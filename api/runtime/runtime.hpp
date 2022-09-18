@@ -4,7 +4,7 @@
 #include "runtime/runtime_functions.hpp"
 
 #include "mega/common.hpp"
-#include "mega/execution_context.hpp"
+#include "mega/mpo_context.hpp"
 #include "mega/root.hpp"
 #include "mega/invocation_id.hpp"
 
@@ -20,11 +20,11 @@ void initialiseRuntime( const mega::network::MegastructureInstallation& megastru
                         const mega::network::Project&                   project );
 bool isRuntimeInitialised();
 
-class ExecutionRoot
+class MPORoot
 {
 public:
-    ExecutionRoot( mega::MPE mpe );
-    ~ExecutionRoot();
+    MPORoot( mega::MPO mpo );
+    ~MPORoot();
 
     mega::reference root() const { return m_root; }
 

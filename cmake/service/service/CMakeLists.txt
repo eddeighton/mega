@@ -11,7 +11,7 @@ include( ${WORKSPACE_ROOT_PATH}/thirdparty/spdlog/spdlog_include.cmake )
 include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( MEGA_SERVICE_API 
-    ${MEGA_API_DIR}/service/execution_context_manager.hpp
+    ${MEGA_API_DIR}/service/mpo_manager.hpp
     ${MEGA_API_DIR}/service/terminal.hpp
     ${MEGA_API_DIR}/service/daemon.hpp
     ${MEGA_API_DIR}/service/root.hpp

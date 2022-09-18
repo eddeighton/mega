@@ -206,7 +206,7 @@ namespace AST
     Parser_ScopedIdentifier::Parser_ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ScopedIdentifier >( loader, this ) )    {
     }
-    Parser_ScopedIdentifier::Parser_ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_Identifier > >& ids, const std::string& source_file, const std::size_t& line_number)
+    Parser_ScopedIdentifier::Parser_ScopedIdentifier( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::AST::Parser_Identifier > >& ids, const std::string& source_file, const mega::U64& line_number)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::AST::Parser_ScopedIdentifier >( loader, this ) )          , ids( ids )
           , source_file( source_file )
           , line_number( line_number )
@@ -2530,7 +2530,7 @@ namespace DPGraph
     Dependencies_SourceFileDependencies::Dependencies_SourceFileDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies >( loader, this ) )    {
     }
-    Dependencies_SourceFileDependencies::Dependencies_SourceFileDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& globs, const std::vector< boost::filesystem::path >& resolution)
+    Dependencies_SourceFileDependencies::Dependencies_SourceFileDependencies( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& globs, const std::vector< boost::filesystem::path >& resolution)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
           , globs( globs )
@@ -2696,7 +2696,7 @@ namespace SymbolTable
     Symbols_Symbol::Symbols_Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_Symbol >( loader, this ) )    {
     }
-    Symbols_Symbol::Symbols_Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& symbol, const std::int32_t& id, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& contexts, const std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > >& dimensions)
+    Symbols_Symbol::Symbols_Symbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::string& symbol, const mega::I32& id, const std::vector< data::Ptr< data::Tree::Interface_IContext > >& contexts, const std::vector< data::Ptr< data::Tree::Interface_DimensionTrait > >& dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_Symbol >( loader, this ) )          , symbol( symbol )
           , id( id )
           , contexts( contexts )
@@ -2762,7 +2762,7 @@ namespace SymbolTable
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, this ) )          , p_ConcreteTable_Symbols_SymbolSet( loader )
     {
     }
-    Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& context_symbols, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& dimension_symbols, const std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >& context_type_ids, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >& dimension_type_ids)
+    Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::map< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& context_symbols, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::SymbolTable::Symbols_Symbol > >& dimension_symbols, const std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >& context_type_ids, const std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >& dimension_type_ids)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolSet >( loader, this ) )          , p_ConcreteTable_Symbols_SymbolSet( loader )
           , symbols( symbols )
           , source_file( source_file )
@@ -2853,7 +2853,7 @@ namespace SymbolTable
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, this ) )          , p_ConcreteTable_Symbols_SymbolTable( loader )
     {
     }
-    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const std::map< std::int32_t, data::Ptr< data::Tree::Interface_IContext > >& context_type_ids, const std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& dimension_type_ids, const std::map< std::int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbol_id_map)
+    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::map< mega::io::megaFilePath, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& symbol_sets, const std::map< std::string, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols, const std::map< mega::I32, data::Ptr< data::Tree::Interface_IContext > >& context_type_ids, const std::map< mega::I32, data::Ptr< data::Tree::Interface_DimensionTrait > >& dimension_type_ids, const std::map< mega::I32, data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbol_id_map)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::SymbolTable::Symbols_SymbolTable >( loader, this ) )          , p_ConcreteTable_Symbols_SymbolTable( loader )
           , symbol_sets( symbol_sets )
           , symbols( symbols )
@@ -2931,7 +2931,7 @@ namespace PerSourceSymbols
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( loader )
     {
     }
-    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::int32_t& symbol)
+    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const mega::I32& symbol)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait )
           , symbol( symbol )
     {
@@ -2985,7 +2985,7 @@ namespace PerSourceSymbols
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_IContext( loader )
     {
     }
-    Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const std::int32_t& symbol)
+    Interface_IContext::Interface_IContext( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_IContext > p_Tree_Interface_IContext, const mega::I32& symbol)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_IContext( p_Tree_Interface_IContext )
           , symbol( symbol )
     {
@@ -3042,7 +3042,7 @@ namespace Clang
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( loader )
     {
     }
-    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::string& canonical_type, const std::size_t& size, const bool& simple, const std::vector< data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols)
+    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::string& canonical_type, const mega::U64& size, const bool& simple, const std::vector< data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait )
           , canonical_type( canonical_type )
           , size( size )
@@ -3250,7 +3250,7 @@ namespace Clang
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_SizeTrait( loader )
     {
     }
-    Interface_SizeTrait::Interface_SizeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_SizeTrait > p_Tree_Interface_SizeTrait, const std::size_t& size)
+    Interface_SizeTrait::Interface_SizeTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_SizeTrait > p_Tree_Interface_SizeTrait, const mega::U64& size)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_SizeTrait( p_Tree_Interface_SizeTrait )
           , size( size )
     {
@@ -3899,7 +3899,7 @@ namespace ConcreteTable
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol >( loader, this ) )          , context( loader )
     {
     }
-    Symbols_ConcreteSymbol::Symbols_ConcreteSymbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< std::int32_t >& id_sequence, const std::int32_t& id, const data::Ptr< data::Concrete::Concrete_Context >& context)
+    Symbols_ConcreteSymbol::Symbols_ConcreteSymbol( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< mega::I32 >& id_sequence, const mega::I32& id, const data::Ptr< data::Concrete::Concrete_Context >& context)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol >( loader, this ) )          , id_sequence( id_sequence )
           , id( id )
           , context( context )
@@ -3957,7 +3957,7 @@ namespace ConcreteTable
         :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolSet( loader )
     {
     }
-    Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolSet > p_SymbolTable_Symbols_SymbolSet, const std::size_t& concrete_hash_code, const std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbols, const std::map< data::Ptr< data::Concrete::Concrete_Context >, int32_t >& context_concrete_ids)
+    Symbols_SymbolSet::Symbols_SymbolSet( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolSet > p_SymbolTable_Symbols_SymbolSet, const mega::U64& concrete_hash_code, const std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbols, const std::map< data::Ptr< data::Concrete::Concrete_Context >, int32_t >& context_concrete_ids)
         :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolSet( p_SymbolTable_Symbols_SymbolSet )
           , concrete_hash_code( concrete_hash_code )
           , concrete_symbols( concrete_symbols )
@@ -4019,7 +4019,7 @@ namespace ConcreteTable
         :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolTable( loader )
     {
     }
-    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolTable > p_SymbolTable_Symbols_SymbolTable, const std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbol_ids, const std::map< std::int32_t, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbols, const std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >& concrete_context_map)
+    Symbols_SymbolTable::Symbols_SymbolTable( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< SymbolTable::Symbols_SymbolTable > p_SymbolTable_Symbols_SymbolTable, const std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbol_ids, const std::map< mega::I32, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& concrete_symbols, const std::map< mega::I32, data::Ptr< data::Concrete::Concrete_Context > >& concrete_context_map)
         :   mega::io::Object( objectInfo )          , p_SymbolTable_Symbols_SymbolTable( p_SymbolTable_Symbols_SymbolTable )
           , concrete_symbol_ids( concrete_symbol_ids )
           , concrete_symbols( concrete_symbols )
@@ -4084,7 +4084,7 @@ namespace PerSourceConcreteTable
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( loader )
     {
     }
-    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const std::int32_t& concrete_id)
+    Concrete_Context::Concrete_Context( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Context > p_Concrete_Concrete_Context, const mega::I32& concrete_id)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Context( p_Concrete_Concrete_Context )
           , concrete_id( concrete_id )
     {
@@ -4132,7 +4132,7 @@ namespace Derivations
     Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )    {
     }
-    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions)
+    Derivation_ObjectMapping::Derivation_ObjectMapping( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::multimap< data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Concrete::Concrete_Context > >& inheritance_contexts, const std::multimap< data::Ptr< data::Tree::Interface_DimensionTrait >, data::Ptr< data::Concrete::Concrete_Dimensions_User > >& inheritance_dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Derivations::Derivation_ObjectMapping >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
           , inheritance_contexts( inheritance_contexts )
@@ -4421,7 +4421,7 @@ namespace Model
     HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )    {
     }
-    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const std::size_t& hash_code, const std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
+    HyperGraph_Relations::HyperGraph_Relations( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::io::megaFilePath& source_file, const mega::U64& hash_code, const std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::HyperGraph_Relation > >& relations)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::Model::HyperGraph_Relations >( loader, this ) )          , source_file( source_file )
           , hash_code( hash_code )
           , relations( relations )
@@ -4574,7 +4574,7 @@ namespace MemoryLayout
           , part( loader )
     {
     }
-    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const std::size_t& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
+    Concrete_Dimensions_User::Concrete_Dimensions_User( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Dimensions_User > p_Concrete_Concrete_Dimensions_User, const mega::U64& offset, const data::Ptr< data::MemoryLayout::MemoryLayout_Part >& part)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Dimensions_User( p_Concrete_Concrete_Dimensions_User )
           , offset( offset )
           , part( part )
@@ -4916,7 +4916,7 @@ namespace MemoryLayout
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Action( loader )
     {
     }
-    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Action > p_Concrete_Concrete_Action, const std::size_t& local_size, const std::size_t& total_size)
+    Concrete_Action::Concrete_Action( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Action > p_Concrete_Concrete_Action, const mega::U64& local_size, const mega::U64& total_size)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Action( p_Concrete_Concrete_Action )
           , local_size( local_size )
           , total_size( total_size )
@@ -4970,7 +4970,7 @@ namespace MemoryLayout
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Event( loader )
     {
     }
-    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Event > p_Concrete_Concrete_Event, const std::size_t& local_size, const std::size_t& total_size)
+    Concrete_Event::Concrete_Event( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Event > p_Concrete_Concrete_Event, const mega::U64& local_size, const mega::U64& total_size)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Event( p_Concrete_Concrete_Event )
           , local_size( local_size )
           , total_size( total_size )
@@ -5071,7 +5071,7 @@ namespace MemoryLayout
           , link_reference( loader )
     {
     }
-    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Link > p_Concrete_Concrete_Link, const std::size_t& total_size, const data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >& link_reference)
+    Concrete_Link::Concrete_Link( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Link > p_Concrete_Concrete_Link, const mega::U64& total_size, const data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >& link_reference)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Link( p_Concrete_Concrete_Link )
           , total_size( total_size )
           , link_reference( link_reference )
@@ -5125,7 +5125,7 @@ namespace MemoryLayout
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Buffer( loader )
     {
     }
-    Concrete_Buffer::Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Buffer > p_Concrete_Concrete_Buffer, const std::size_t& total_size)
+    Concrete_Buffer::Concrete_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Concrete::Concrete_Buffer > p_Concrete_Concrete_Buffer, const mega::U64& total_size)
         :   mega::io::Object( objectInfo )          , p_Concrete_Concrete_Buffer( p_Concrete_Concrete_Buffer )
           , total_size( total_size )
     {
@@ -5433,7 +5433,7 @@ namespace MemoryLayout
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , context( loader )
     {
     }
-    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::size_t& total_domain_size, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >& link_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions)
+    MemoryLayout_Part::MemoryLayout_Part( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const mega::U64& total_domain_size, const data::Ptr< data::Concrete::Concrete_Context >& context, const std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& user_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >& link_dimensions, const std::vector< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >& allocation_dimensions)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Part >( loader, this ) )          , total_domain_size( total_domain_size )
           , context( context )
           , user_dimensions( user_dimensions )
@@ -5522,7 +5522,7 @@ namespace MemoryLayout
     MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )    {
     }
-    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts, const std::size_t& size)
+    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts, const mega::U64& size)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , parts( parts )
           , size( size )
     {
@@ -9359,10 +9359,10 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& get_concrete(std::
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >& get_concrete_context_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Concrete::Concrete_Context > >& get_concrete_context_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -9441,10 +9441,10 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& get_concrete_dimension(st
         }
         , m_data );
 }
-std::size_t& get_concrete_hash_code(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
+mega::U64& get_concrete_hash_code(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >)
@@ -9462,10 +9462,10 @@ std::size_t& get_concrete_hash_code(std::variant< data::Ptr< data::SymbolTable::
         }
         , m_data );
 }
-std::int32_t& get_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+mega::I32& get_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Context > >)
@@ -9539,10 +9539,10 @@ std::int32_t& get_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_
         }
         , m_data );
 }
-std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& get_concrete_symbol_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& get_concrete_symbol_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -9560,10 +9560,10 @@ std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_C
         }
         , m_data );
 }
-std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& get_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
+std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& get_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >)
@@ -9581,10 +9581,10 @@ std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_C
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& get_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& get_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -9913,10 +9913,10 @@ std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >& get_context_ty
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Tree::Interface_IContext > >& get_context_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Tree::Interface_IContext > >& get_context_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Tree::Interface_IContext > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Tree::Interface_IContext > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -10496,10 +10496,10 @@ std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >& get_dime
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& get_dimension_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Tree::Interface_DimensionTrait > >& get_dimension_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Tree::Interface_DimensionTrait > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -10624,7 +10624,15 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_dimens
         []( auto& arg ) -> std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >&
         {
             using T = std::decay_t< decltype( arg ) >;
-            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
+            if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Namespace > >)
+            {
+                data::Ptr< data::Concrete::Concrete_Namespace > part = 
+                    data::convert< data::Concrete::Concrete_Namespace >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_dimensions" );
+                return part->dimensions;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
             {
                 data::Ptr< data::Concrete::Concrete_Action > part = 
                     data::convert< data::Concrete::Concrete_Action >( arg );
@@ -10652,14 +10660,6 @@ std::vector< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& get_dimens
             {
                 data::Ptr< data::Concrete::Concrete_Buffer > part = 
                     data::convert< data::Concrete::Concrete_Buffer >( arg );
-                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
-                    "Invalid data reference in: get_dimensions" );
-                return part->dimensions;
-            }
-            else if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Namespace > >)
-            {
-                data::Ptr< data::Concrete::Concrete_Namespace > part = 
-                    data::convert< data::Concrete::Concrete_Namespace >( arg );
                 VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
                     "Invalid data reference in: get_dimensions" );
                 return part->dimensions;
@@ -10918,10 +10918,10 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& get_globs(std::var
         }
         , m_data );
 }
-std::size_t& get_hash_code(std::variant< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& m_data)
+mega::U64& get_hash_code(std::variant< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >)
@@ -10939,10 +10939,10 @@ std::size_t& get_hash_code(std::variant< data::Ptr< data::DPGraph::Dependencies_
         }
         , m_data );
 }
-std::size_t& get_hash_code(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
+mega::U64& get_hash_code(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_ObjectMapping > >)
@@ -10960,10 +10960,10 @@ std::size_t& get_hash_code(std::variant< data::Ptr< data::Derivations::Derivatio
         }
         , m_data );
 }
-std::size_t& get_hash_code(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+mega::U64& get_hash_code(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relations > >)
@@ -10981,10 +10981,10 @@ std::size_t& get_hash_code(std::variant< data::Ptr< data::Model::HyperGraph_Rela
         }
         , m_data );
 }
-std::size_t& get_hash_code(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
+mega::U64& get_hash_code(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >)
@@ -11195,10 +11195,10 @@ data::Ptr< data::AST::Parser_ScopedIdentifier >& get_id(std::variant< data::Ptr<
         }
         , m_data );
 }
-std::int32_t& get_id(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& m_data)
+mega::I32& get_id(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >)
@@ -11216,10 +11216,10 @@ std::int32_t& get_id(std::variant< data::Ptr< data::ConcreteTable::Symbols_Concr
         }
         , m_data );
 }
-std::int32_t& get_id(std::variant< data::Ptr< data::SymbolTable::Symbols_Symbol > >& m_data)
+mega::I32& get_id(std::variant< data::Ptr< data::SymbolTable::Symbols_Symbol > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_Symbol > >)
@@ -11237,10 +11237,10 @@ std::int32_t& get_id(std::variant< data::Ptr< data::SymbolTable::Symbols_Symbol 
         }
         , m_data );
 }
-std::vector< std::int32_t >& get_id_sequence(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& m_data)
+std::vector< mega::I32 >& get_id_sequence(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::vector< std::int32_t >&
+        []( auto& arg ) -> std::vector< mega::I32 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >)
@@ -12509,10 +12509,10 @@ bool& get_is_reference(std::variant< data::Ptr< data::Operations::Operations_Nam
         }
         , m_data );
 }
-std::size_t& get_line_number(std::variant< data::Ptr< data::AST::Parser_ScopedIdentifier > >& m_data)
+mega::U64& get_line_number(std::variant< data::Ptr< data::AST::Parser_ScopedIdentifier > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_ScopedIdentifier > >)
@@ -12730,10 +12730,10 @@ std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >& get_link_trait(st
         }
         , m_data );
 }
-std::size_t& get_local_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+mega::U64& get_local_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
@@ -13027,10 +13027,10 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
         }
         , m_data );
 }
-std::size_t& get_offset(std::variant< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& m_data)
+mega::U64& get_offset(std::variant< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Dimensions_User > >)
@@ -13048,10 +13048,10 @@ std::size_t& get_offset(std::variant< data::Ptr< data::Concrete::Concrete_Dimens
         }
         , m_data );
 }
-std::optional< std::size_t >& get_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& m_data)
+std::optional< mega::U64 >& get_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::size_t >&
+        []( auto& arg ) -> std::optional< mega::U64 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >)
@@ -13077,10 +13077,10 @@ std::optional< std::size_t >& get_offset(std::variant< data::Ptr< data::MemoryLa
         }
         , m_data );
 }
-std::optional< std::size_t >& get_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany > >& m_data)
+std::optional< mega::U64 >& get_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::size_t >&
+        []( auto& arg ) -> std::optional< mega::U64 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >)
@@ -13114,10 +13114,10 @@ std::optional< std::size_t >& get_offset(std::variant< data::Ptr< data::MemoryLa
         }
         , m_data );
 }
-std::optional< std::size_t >& get_offset(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+std::optional< mega::U64 >& get_offset(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::size_t >&
+        []( auto& arg ) -> std::optional< mega::U64 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
@@ -14412,10 +14412,10 @@ data::Ptr< data::AST::Parser_Size >& get_size(std::variant< data::Ptr< data::AST
         }
         , m_data );
 }
-std::size_t& get_size(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+mega::U64& get_size(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
@@ -14433,10 +14433,10 @@ std::size_t& get_size(std::variant< data::Ptr< data::AST::Parser_Dimension >, da
         }
         , m_data );
 }
-std::size_t& get_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::Ptr< data::Tree::Interface_SizeTrait > >& m_data)
+mega::U64& get_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::Ptr< data::Tree::Interface_SizeTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_SizeTrait > >)
@@ -14454,10 +14454,10 @@ std::size_t& get_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::P
         }
         , m_data );
 }
-std::size_t& get_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >& m_data)
+mega::U64& get_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >)
@@ -14499,10 +14499,10 @@ std::size_t& get_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_
         }
         , m_data );
 }
-std::optional< std::size_t >& get_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+std::optional< mega::U64 >& get_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::size_t >&
+        []( auto& arg ) -> std::optional< mega::U64 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
@@ -15017,10 +15017,10 @@ std::vector< std::string >& get_strings(std::variant< data::Ptr< data::AST::Pars
         }
         , m_data );
 }
-std::int32_t& get_symbol(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+mega::I32& get_symbol(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
@@ -15059,10 +15059,10 @@ std::string& get_symbol(std::variant< data::Ptr< data::SymbolTable::Symbols_Symb
         }
         , m_data );
 }
-std::int32_t& get_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+mega::I32& get_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_IContext > >)
@@ -15152,10 +15152,10 @@ std::int32_t& get_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextG
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >& get_symbol_id_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::SymbolTable::Symbols_Symbol > >& get_symbol_id_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::SymbolTable::Symbols_Symbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -15373,10 +15373,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& get_to(std::varia
         }
         , m_data );
 }
-std::size_t& get_total_domain_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+mega::U64& get_total_domain_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
@@ -15394,10 +15394,10 @@ std::size_t& get_total_domain_size(std::variant< data::Ptr< data::MemoryLayout::
         }
         , m_data );
 }
-std::size_t& get_total_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+mega::U64& get_total_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
@@ -15510,10 +15510,10 @@ mega::ComponentType& get_type(std::variant< data::Ptr< data::Components::Compone
         }
         , m_data );
 }
-std::optional< std::int32_t >& get_type_id(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+std::optional< mega::I32 >& get_type_id(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::int32_t >&
+        []( auto& arg ) -> std::optional< mega::I32 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
@@ -15531,10 +15531,10 @@ std::optional< std::int32_t >& get_type_id(std::variant< data::Ptr< data::AST::P
         }
         , m_data );
 }
-std::optional< std::int32_t >& get_type_id(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< mega::I32 >& get_type_id(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::int32_t >&
+        []( auto& arg ) -> std::optional< mega::I32 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_IContext > >)
@@ -15787,10 +15787,10 @@ std::vector< data::Ptr< data::Operations::Operations_ElementVector > >& get_vect
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >& insert_concrete_context_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Concrete::Concrete_Context > >& insert_concrete_context_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -15808,10 +15808,10 @@ std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >& insert_
         }
         , m_data );
 }
-std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& insert_concrete_symbol_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& insert_concrete_symbol_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -15829,10 +15829,10 @@ std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_C
         }
         , m_data );
 }
-std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& insert_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
+std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& insert_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >)
@@ -15850,10 +15850,10 @@ std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_C
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& insert_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& insert_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -15934,10 +15934,10 @@ std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >& insert_context
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Tree::Interface_IContext > >& insert_context_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Tree::Interface_IContext > >& insert_context_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Tree::Interface_IContext > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Tree::Interface_IContext > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -16018,10 +16018,10 @@ std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >& insert_d
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& insert_dimension_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Tree::Interface_DimensionTrait > >& insert_dimension_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Tree::Interface_DimensionTrait > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -16186,10 +16186,10 @@ std::map< data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Model::Hyper
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >& insert_symbol_id_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::SymbolTable::Symbols_Symbol > >& insert_symbol_id_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::SymbolTable::Symbols_Symbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -20052,10 +20052,10 @@ std::vector< data::Ptr< data::Concrete::Concrete_Context > >& set_concrete(std::
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >& set_concrete_context_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Concrete::Concrete_Context > >& set_concrete_context_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Concrete::Concrete_Context > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Concrete::Concrete_Context > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -20134,10 +20134,10 @@ data::Ptr< data::Concrete::Concrete_Dimensions_User >& set_concrete_dimension(st
         }
         , m_data );
 }
-std::size_t& set_concrete_hash_code(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
+mega::U64& set_concrete_hash_code(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >)
@@ -20155,10 +20155,10 @@ std::size_t& set_concrete_hash_code(std::variant< data::Ptr< data::SymbolTable::
         }
         , m_data );
 }
-std::int32_t& set_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+mega::I32& set_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Context > >)
@@ -20232,10 +20232,10 @@ std::int32_t& set_concrete_id(std::variant< data::Ptr< data::Concrete::Concrete_
         }
         , m_data );
 }
-std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& set_concrete_symbol_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& set_concrete_symbol_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -20253,10 +20253,10 @@ std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_C
         }
         , m_data );
 }
-std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& set_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
+std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& set_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< std::vector< mega::I32 >, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >)
@@ -20274,10 +20274,10 @@ std::map< std::vector< std::int32_t >, data::Ptr< data::ConcreteTable::Symbols_C
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& set_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& set_concrete_symbols(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -20606,10 +20606,10 @@ std::map< data::Ptr< data::Tree::Interface_IContext >, int32_t >& set_context_ty
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Tree::Interface_IContext > >& set_context_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Tree::Interface_IContext > >& set_context_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Tree::Interface_IContext > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Tree::Interface_IContext > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -21160,10 +21160,10 @@ std::map< data::Ptr< data::Tree::Interface_DimensionTrait >, int32_t >& set_dime
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >& set_dimension_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::Tree::Interface_DimensionTrait > >& set_dimension_type_ids(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::Tree::Interface_DimensionTrait > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::Tree::Interface_DimensionTrait > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -21582,10 +21582,10 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_Glob > >& set_globs(std::var
         }
         , m_data );
 }
-std::size_t& set_hash_code(std::variant< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& m_data)
+mega::U64& set_hash_code(std::variant< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >)
@@ -21603,10 +21603,10 @@ std::size_t& set_hash_code(std::variant< data::Ptr< data::DPGraph::Dependencies_
         }
         , m_data );
 }
-std::size_t& set_hash_code(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
+mega::U64& set_hash_code(std::variant< data::Ptr< data::Derivations::Derivation_ObjectMapping > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Derivations::Derivation_ObjectMapping > >)
@@ -21624,10 +21624,10 @@ std::size_t& set_hash_code(std::variant< data::Ptr< data::Derivations::Derivatio
         }
         , m_data );
 }
-std::size_t& set_hash_code(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
+mega::U64& set_hash_code(std::variant< data::Ptr< data::Model::HyperGraph_Relations > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Model::HyperGraph_Relations > >)
@@ -21645,10 +21645,10 @@ std::size_t& set_hash_code(std::variant< data::Ptr< data::Model::HyperGraph_Rela
         }
         , m_data );
 }
-std::size_t& set_hash_code(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
+mega::U64& set_hash_code(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolSet > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolSet > >)
@@ -21830,10 +21830,10 @@ data::Ptr< data::AST::Parser_ScopedIdentifier >& set_id(std::variant< data::Ptr<
         }
         , m_data );
 }
-std::int32_t& set_id(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& m_data)
+mega::I32& set_id(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >)
@@ -21851,10 +21851,10 @@ std::int32_t& set_id(std::variant< data::Ptr< data::ConcreteTable::Symbols_Concr
         }
         , m_data );
 }
-std::int32_t& set_id(std::variant< data::Ptr< data::SymbolTable::Symbols_Symbol > >& m_data)
+mega::I32& set_id(std::variant< data::Ptr< data::SymbolTable::Symbols_Symbol > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_Symbol > >)
@@ -21872,10 +21872,10 @@ std::int32_t& set_id(std::variant< data::Ptr< data::SymbolTable::Symbols_Symbol 
         }
         , m_data );
 }
-std::vector< std::int32_t >& set_id_sequence(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& m_data)
+std::vector< mega::I32 >& set_id_sequence(std::variant< data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::vector< std::int32_t >&
+        []( auto& arg ) -> std::vector< mega::I32 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::ConcreteTable::Symbols_ConcreteSymbol > >)
@@ -23115,10 +23115,10 @@ bool& set_is_reference(std::variant< data::Ptr< data::Operations::Operations_Nam
         }
         , m_data );
 }
-std::size_t& set_line_number(std::variant< data::Ptr< data::AST::Parser_ScopedIdentifier > >& m_data)
+mega::U64& set_line_number(std::variant< data::Ptr< data::AST::Parser_ScopedIdentifier > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::AST::Parser_ScopedIdentifier > >)
@@ -23336,10 +23336,10 @@ std::optional< data::Ptr< data::Tree::Interface_LinkTrait > >& set_link_trait(st
         }
         , m_data );
 }
-std::size_t& set_local_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+mega::U64& set_local_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
@@ -23633,10 +23633,10 @@ std::vector< data::Ptr< data::DPGraph::Dependencies_SourceFileDependencies > >& 
         }
         , m_data );
 }
-std::size_t& set_offset(std::variant< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& m_data)
+mega::U64& set_offset(std::variant< data::Ptr< data::Concrete::Concrete_Dimensions_User > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Dimensions_User > >)
@@ -23654,10 +23654,10 @@ std::size_t& set_offset(std::variant< data::Ptr< data::Concrete::Concrete_Dimens
         }
         , m_data );
 }
-std::optional< std::size_t >& set_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& m_data)
+std::optional< mega::U64 >& set_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocator > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::size_t >&
+        []( auto& arg ) -> std::optional< mega::U64 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_Allocation > >)
@@ -23683,10 +23683,10 @@ std::optional< std::size_t >& set_offset(std::variant< data::Ptr< data::MemoryLa
         }
         , m_data );
 }
-std::optional< std::size_t >& set_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany > >& m_data)
+std::optional< mega::U64 >& set_offset(std::variant< data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkSingle >, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkMany > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::size_t >&
+        []( auto& arg ) -> std::optional< mega::U64 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::Concrete_Dimensions_LinkReference > >)
@@ -23720,10 +23720,10 @@ std::optional< std::size_t >& set_offset(std::variant< data::Ptr< data::MemoryLa
         }
         , m_data );
 }
-std::optional< std::size_t >& set_offset(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+std::optional< mega::U64 >& set_offset(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::size_t >&
+        []( auto& arg ) -> std::optional< mega::U64 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
@@ -24989,10 +24989,10 @@ data::Ptr< data::AST::Parser_Size >& set_size(std::variant< data::Ptr< data::AST
         }
         , m_data );
 }
-std::size_t& set_size(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+mega::U64& set_size(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
@@ -25010,10 +25010,10 @@ std::size_t& set_size(std::variant< data::Ptr< data::AST::Parser_Dimension >, da
         }
         , m_data );
 }
-std::size_t& set_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::Ptr< data::Tree::Interface_SizeTrait > >& m_data)
+mega::U64& set_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::Ptr< data::Tree::Interface_SizeTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_SizeTrait > >)
@@ -25031,10 +25031,10 @@ std::size_t& set_size(std::variant< data::Ptr< data::AST::Parser_Size >, data::P
         }
         , m_data );
 }
-std::size_t& set_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >& m_data)
+mega::U64& set_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >)
@@ -25076,10 +25076,10 @@ std::size_t& set_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_
         }
         , m_data );
 }
-std::optional< std::size_t >& set_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+std::optional< mega::U64 >& set_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::size_t >&
+        []( auto& arg ) -> std::optional< mega::U64 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
@@ -25478,10 +25478,10 @@ std::vector< std::string >& set_strings(std::variant< data::Ptr< data::AST::Pars
         }
         , m_data );
 }
-std::int32_t& set_symbol(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+mega::I32& set_symbol(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
@@ -25520,10 +25520,10 @@ std::string& set_symbol(std::variant< data::Ptr< data::SymbolTable::Symbols_Symb
         }
         , m_data );
 }
-std::int32_t& set_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+mega::I32& set_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::int32_t&
+        []( auto& arg ) -> mega::I32&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_IContext > >)
@@ -25613,10 +25613,10 @@ std::int32_t& set_symbol(std::variant< data::Ptr< data::Tree::Interface_ContextG
         }
         , m_data );
 }
-std::map< std::int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >& set_symbol_id_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
+std::map< mega::I32, data::Ptr< data::SymbolTable::Symbols_Symbol > >& set_symbol_id_map(std::variant< data::Ptr< data::SymbolTable::Symbols_SymbolTable > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::map< std::int32_t, data::Ptr< data::SymbolTable::Symbols_Symbol > >&
+        []( auto& arg ) -> std::map< mega::I32, data::Ptr< data::SymbolTable::Symbols_Symbol > >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::SymbolTable::Symbols_SymbolTable > >)
@@ -25834,10 +25834,10 @@ data::Ptr< data::Operations::Invocations_Variables_Instance >& set_to(std::varia
         }
         , m_data );
 }
-std::size_t& set_total_domain_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+mega::U64& set_total_domain_size(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
@@ -25855,10 +25855,10 @@ std::size_t& set_total_domain_size(std::variant< data::Ptr< data::MemoryLayout::
         }
         , m_data );
 }
-std::size_t& set_total_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
+mega::U64& set_total_size(std::variant< data::Ptr< data::Concrete::Concrete_ContextGroup >, data::Ptr< data::Concrete::Concrete_Context >, data::Ptr< data::Concrete::Concrete_Namespace >, data::Ptr< data::Concrete::Concrete_Action >, data::Ptr< data::Concrete::Concrete_Event >, data::Ptr< data::Concrete::Concrete_Function >, data::Ptr< data::Concrete::Concrete_Object >, data::Ptr< data::Concrete::Concrete_Link >, data::Ptr< data::Concrete::Concrete_Buffer >, data::Ptr< data::Concrete::Concrete_Root > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::size_t&
+        []( auto& arg ) -> mega::U64&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Concrete::Concrete_Action > >)
@@ -25942,10 +25942,10 @@ mega::ComponentType& set_type(std::variant< data::Ptr< data::Components::Compone
         }
         , m_data );
 }
-std::optional< std::int32_t >& set_type_id(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+std::optional< mega::I32 >& set_type_id(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::int32_t >&
+        []( auto& arg ) -> std::optional< mega::I32 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
@@ -25963,10 +25963,10 @@ std::optional< std::int32_t >& set_type_id(std::variant< data::Ptr< data::AST::P
         }
         , m_data );
 }
-std::optional< std::int32_t >& set_type_id(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
+std::optional< mega::I32 >& set_type_id(std::variant< data::Ptr< data::Tree::Interface_ContextGroup >, data::Ptr< data::Tree::Interface_Root >, data::Ptr< data::Tree::Interface_IContext >, data::Ptr< data::Tree::Interface_Namespace >, data::Ptr< data::Tree::Interface_Abstract >, data::Ptr< data::Tree::Interface_Action >, data::Ptr< data::Tree::Interface_Event >, data::Ptr< data::Tree::Interface_Function >, data::Ptr< data::Tree::Interface_Object >, data::Ptr< data::Tree::Interface_Link >, data::Ptr< data::Tree::Interface_LinkInterface >, data::Ptr< data::Tree::Interface_Buffer > >& m_data)
 {
     return std::visit( 
-        []( auto& arg ) -> std::optional< std::int32_t >&
+        []( auto& arg ) -> std::optional< mega::I32 >&
         {
             using T = std::decay_t< decltype( arg ) >;
             if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_IContext > >)

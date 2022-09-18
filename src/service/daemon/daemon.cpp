@@ -104,12 +104,12 @@ public:
         pConnection->setType( type );
         // SPDLOG_TRACE( "Leaf {} enroled as {}", pConnection->getName(), network::Node::toStr( type ) );
 
-        const mega::MPE leafMPE = getRootRequest( yield_ctx ).DaemonLeafEnrole( m_daemon.m_mpe );
+        const mega::MPO leafMPO = getRootRequest( yield_ctx ).DaemonLeafEnrole( m_daemon.m_mpo );
 
-        pConnection->setMPE( leafMPE );
-        pConnection->setDisconnectCallback( [ leafMPE, &daemon = m_daemon ]() { daemon.onLeafDisconnect( leafMPE ); } );
+        pConnection->setMPO( leafMPO );
+        pConnection->setDisconnectCallback( [ leafMPO, &daemon = m_daemon ]() { daemon.onLeafDisconnect( leafMPO ); } );
 
-        getStackTopLeafResponse( yield_ctx ).LeafEnrole( leafMPE );
+        getStackTopLeafResponse( yield_ctx ).LeafEnrole( leafMPO );
     }
 
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
@@ -282,40 +282,40 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeGetProject( result );
     }
 
-    virtual void ExeCreateExecutionContext( const mega::MPE& leafMPE, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeCreateMPO( const mega::MPO& leafMPO, boost::asio::yield_context& yield_ctx ) override
     {
-        const mega::MPE daemonLeafMPE( m_daemon.m_mpe.getMachineID(), leafMPE.getProcessID(), 0U );
-        auto            result = getRootRequest( yield_ctx ).ExeCreateExecutionContext( daemonLeafMPE );
-        getStackTopLeafResponse( yield_ctx ).ExeCreateExecutionContext( result );
+        const mega::MPO daemonLeafMPO( m_daemon.m_mpo.getMachineID(), leafMPO.getProcessID(), 0U );
+        auto            result = getRootRequest( yield_ctx ).ExeCreateMPO( daemonLeafMPO );
+        getStackTopLeafResponse( yield_ctx ).ExeCreateMPO( result );
     }
 
-    virtual void ExeAcquireMemory( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeAcquireMemory( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        const network::ConversationID conversationID = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( mpe );
+        const network::ConversationID conversationID = getRootRequest( yield_ctx ).DaemonGetMPOContextID( mpo );
         const std::string             strMemory      = m_daemon.m_sharedMemoryManager.acquire( conversationID );
         getStackTopLeafResponse( yield_ctx ).ExeAcquireMemory( strMemory );
     }
 
-    virtual void ExeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ExeAllocateNetworkAddress( const mega::MPO&            mpo,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ExeAllocateNetworkAddress( mpe, objectTypeID );
+        auto result = getRootRequest( yield_ctx ).ExeAllocateNetworkAddress( mpo, objectTypeID );
         getStackTopLeafResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
-    virtual void ExeDeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ExeDeAllocateNetworkAddress( const mega::MPO&            mpo,
                                               const mega::AddressStorage& networkAddress,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        getRootRequest( yield_ctx ).ExeDeAllocateNetworkAddress( mpe, networkAddress );
+        getRootRequest( yield_ctx ).ExeDeAllocateNetworkAddress( mpo, networkAddress );
         getStackTopLeafResponse( yield_ctx ).ExeDeAllocateNetworkAddress();
     }
 
-    virtual void ExeGetExecutionContextID( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeGetMPOContextID( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( mpe );
-        getStackTopLeafResponse( yield_ctx ).ExeGetExecutionContextID( result );
+        auto result = getRootRequest( yield_ctx ).DaemonGetMPOContextID( mpo );
+        getStackTopLeafResponse( yield_ctx ).ExeGetMPOContextID( result );
     }
 
     virtual void ExeSimReadLock( const mega::network::ConversationID& simulationID,
@@ -430,7 +430,7 @@ public:
         {
             network::Server::Connection::Ptr pLowestLeaf;
             {
-                std::size_t szLowest = std::numeric_limits< std::size_t >::max();
+                mega::U64 szLowest = std::numeric_limits< mega::U64 >::max();
                 for ( const auto& [ id, pLeaf ] : m_daemon.m_leafServer.getConnections() )
                 {
                     if ( pLeaf->getTypeOpt().value() == network::Node::Executor )
@@ -514,32 +514,32 @@ public:
         auto result = getRootRequest( yield_ctx ).ToolGetMegastructureInstallation();
         getStackTopLeafResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
     }
-    virtual void ToolCreateExecutionContext( const mega::MPE& leafMPE, boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolCreateMPO( const mega::MPO& leafMPO, boost::asio::yield_context& yield_ctx ) override
     {
-        const mega::MPE daemonLeafMPE( m_daemon.m_mpe.getMachineID(), leafMPE.getProcessID(), 0U );
-        auto            result = getRootRequest( yield_ctx ).ToolCreateExecutionContext( daemonLeafMPE );
-        getStackTopLeafResponse( yield_ctx ).ToolCreateExecutionContext( result );
+        const mega::MPO daemonLeafMPO( m_daemon.m_mpo.getMachineID(), leafMPO.getProcessID(), 0U );
+        auto            result = getRootRequest( yield_ctx ).ToolCreateMPO( daemonLeafMPO );
+        getStackTopLeafResponse( yield_ctx ).ToolCreateMPO( result );
     }
 
-    virtual void ToolAcquireMemory( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolAcquireMemory( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        const network::ConversationID conversationID = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( mpe );
+        const network::ConversationID conversationID = getRootRequest( yield_ctx ).DaemonGetMPOContextID( mpo );
         const std::string             strMemory      = m_daemon.m_sharedMemoryManager.acquire( conversationID );
         getStackTopLeafResponse( yield_ctx ).ToolAcquireMemory( strMemory );
     }
-    virtual void ToolAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ToolAllocateNetworkAddress( const mega::MPO&            mpo,
                                              const mega::TypeID&         objectTypeID,
                                              boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).ToolAllocateNetworkAddress( mpe, objectTypeID );
+        auto result = getRootRequest( yield_ctx ).ToolAllocateNetworkAddress( mpo, objectTypeID );
         getStackTopLeafResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
-    virtual void ToolDeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ToolDeAllocateNetworkAddress( const mega::MPO&            mpo,
                                                const mega::AddressStorage& networkAddress,
                                                boost::asio::yield_context& yield_ctx ) override
     {
-        getRootRequest( yield_ctx ).ToolDeAllocateNetworkAddress( mpe, networkAddress );
+        getRootRequest( yield_ctx ).ToolDeAllocateNetworkAddress( mpo, networkAddress );
         getStackTopLeafResponse( yield_ctx ).ToolDeAllocateNetworkAddress();
     }
     virtual void ToolStash( const boost::filesystem::path& filePath,
@@ -557,10 +557,10 @@ public:
         getStackTopLeafResponse( yield_ctx ).ToolRestore( bRestored );
     }
 
-    virtual void ToolGetExecutionContextID( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolGetMPOContextID( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getRootRequest( yield_ctx ).DaemonGetExecutionContextID( mpe );
-        getStackTopLeafResponse( yield_ctx ).ToolGetExecutionContextID( result );
+        auto result = getRootRequest( yield_ctx ).DaemonGetMPOContextID( mpo );
+        getStackTopLeafResponse( yield_ctx ).ToolGetMPOContextID( result );
     }
     virtual void ToolSimReadLock( const mega::network::ConversationID& owningID,
                                   const mega::network::ConversationID& simulationID,
@@ -627,8 +627,8 @@ public:
     void run( boost::asio::yield_context& yield_ctx )
     {
         // SPDLOG_TRACE( "DaemonEnrole" );
-        m_daemon.m_mpe = getRootRequest( yield_ctx ).DaemonEnrole();
-        // SPDLOG_TRACE( "Daemon enroled with mpe: {}", m_daemon.m_mpe );
+        m_daemon.m_mpo = getRootRequest( yield_ctx ).DaemonEnrole();
+        // SPDLOG_TRACE( "Daemon enroled with mpo: {}", m_daemon.m_mpo );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };
@@ -664,26 +664,26 @@ Daemon::~Daemon()
     // SPDLOG_TRACE( "Daemon shutdown" );
 }
 
-void Daemon::onLeafDisconnect( mega::MPE mpe )
+void Daemon::onLeafDisconnect( mega::MPO mpo )
 {
     class DaemonLeafDisconnect : public DaemonRequestConversation
     {
-        mega::MPE m_leafMPE;
+        mega::MPO m_leafMPO;
 
     public:
-        DaemonLeafDisconnect( Daemon& daemon, const network::ConnectionID& originatingConnectionID, mega::MPE leafMPE )
+        DaemonLeafDisconnect( Daemon& daemon, const network::ConnectionID& originatingConnectionID, mega::MPO leafMPO )
             : DaemonRequestConversation(
                 daemon, daemon.createConversationID( originatingConnectionID ), originatingConnectionID )
-            , m_leafMPE( leafMPE )
+            , m_leafMPO( leafMPO )
         {
         }
         void run( boost::asio::yield_context& yield_ctx )
         {
-            getRootRequest( yield_ctx ).DaemonLeafDisconnect( m_leafMPE );
+            getRootRequest( yield_ctx ).DaemonLeafDisconnect( m_leafMPO );
         }
     };
     conversationInitiated(
-        std::make_shared< DaemonLeafDisconnect >( *this, m_rootClient.getConnectionID(), mpe ), m_rootClient );
+        std::make_shared< DaemonLeafDisconnect >( *this, m_rootClient.getConnectionID(), mpo ), m_rootClient );
 }
 
 void Daemon::shutdown()

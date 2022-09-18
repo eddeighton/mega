@@ -4,8 +4,8 @@
 
 #include "common/hash.hpp"
 
-#include <cstddef>
-#include <cstdint>
+#include "mega/native_types.hpp"
+
 #include <string>
 #include <ostream>
 #include <istream>
@@ -15,7 +15,7 @@ namespace mega
 namespace network
 {
 
-using MessageSize  = std::uint32_t;
+using MessageSize  = mega::U32;
 using ConnectionID = std::string;
 
 /// ConversationID
@@ -28,7 +28,7 @@ class ConversationID
     friend bool operator<( const ConversationID& left, const ConversationID& right );
     friend std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID );
 public:
-    using ID = std::uint16_t;
+    using ID = mega::U16;
 
     ConversationID()
         : m_id( 0U )
@@ -50,7 +50,7 @@ public:
 
     struct Hash
     {
-        inline std::size_t operator()( const ConversationID& id ) const noexcept 
+        inline mega::U64 operator()( const ConversationID& id ) const noexcept 
         { 
             const common::Hash hash{ id.m_id, id.m_connectionID };
             return hash.get(); 
@@ -79,7 +79,7 @@ inline bool operator<( const ConversationID& left, const ConversationID& right )
 std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID );
 std::istream& operator>>( std::istream& is, ConversationID& conversationID );
 
-using MessageID = std::uint32_t;
+using MessageID = mega::U32;
 
 class Header
 {

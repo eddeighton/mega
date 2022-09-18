@@ -94,14 +94,14 @@ struct SuperFactory
     using SuperTypePtr = std::unique_ptr< SuperTypeBase >;
     struct ObjectInfoHash
     {
-        std::size_t operator()( const mega::io::ObjectInfo& objectInfo ) const
+        mega::U64 operator()( const mega::io::ObjectInfo& objectInfo ) const
         {
             return common::Hash( objectInfo.getType(), objectInfo.getFileID(), objectInfo.getIndex() ).get();
         }
     };
     struct ObjectInfoEquality
     {
-        std::size_t operator()( const mega::io::ObjectInfo& left, const mega::io::ObjectInfo& right ) const
+        mega::U64 operator()( const mega::io::ObjectInfo& left, const mega::io::ObjectInfo& right ) const
         {
             return  left.getType()      == right.getType() &&
                     left.getFileID()    == right.getFileID() &&

@@ -23,10 +23,10 @@ namespace compiler
 {
 
 template < typename TContext >
-inline std::size_t getSizeTraitSize( const TContext* pInterfaceContext )
+inline mega::U64 getSizeTraitSize( const TContext* pInterfaceContext )
 {
     using namespace MemoryStage;
-    std::size_t                            allocationSize = 1U;
+    mega::U64                            allocationSize = 1U;
     std::optional< Interface::SizeTrait* > sizeTraitOpt   = pInterfaceContext->get_size_trait();
     if ( sizeTraitOpt.has_value() )
     {
@@ -48,13 +48,13 @@ public:
     }
 
     void createallocators( MemoryStage::Database& database, MemoryStage::Concrete::Context* pParentContext,
-                           MemoryStage::Concrete::Context* pContext, std::size_t szTotalSize,
+                           MemoryStage::Concrete::Context* pContext, mega::U64 szTotalSize,
                            std::vector< MemoryStage::Concrete::Dimensions::Allocator* >& allocatorDimensions )
     {
         using namespace MemoryStage;
         using namespace MemoryStage::Concrete;
 
-        std::size_t szDomainSize = 0U;
+        mega::U64 szDomainSize = 0U;
         if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
         {
         }
@@ -186,7 +186,7 @@ public:
 
             bool empty() const { return user.empty() && link.empty() && alloc.empty(); }
 
-            std::size_t getLocalDomainSize( MemoryStage::Concrete::Context* pContext ) const
+            mega::U64 getLocalDomainSize( MemoryStage::Concrete::Context* pContext ) const
             {
                 using namespace MemoryStage;
 
@@ -212,9 +212,9 @@ public:
                 }
             }
 
-            std::size_t setParts( MemoryStage::Database& database, MemoryLayout::Part* pPart )
+            mega::U64 setParts( MemoryStage::Database& database, MemoryLayout::Part* pPart )
             {
-                std::size_t szOffset = 0U;
+                mega::U64 szOffset = 0U;
                 for ( auto p : user )
                 {
                     database.construct< Concrete::Dimensions::User >(
@@ -263,7 +263,7 @@ public:
                               = dynamic_database_cast< Allocators::Range32 >( pAllocationDimension->get_allocator() ) )
                     {
                         // pAlloc->get_allocated_context()
-                        const std::size_t szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                        const mega::U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
 
                         // clang-format off
                         switch( szLocalDomainSize )
@@ -306,7 +306,7 @@ public:
                     else if ( Allocators::Range64* pAlloc
                               = dynamic_database_cast< Allocators::Range64 >( pAllocationDimension->get_allocator() ) )
                     {
-                        const std::size_t szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                        const mega::U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
 
                         // clang-format off
                         switch( szLocalDomainSize )
@@ -351,7 +351,7 @@ public:
                     else if ( Allocators::RangeAny* pAlloc
                               = dynamic_database_cast< Allocators::RangeAny >( pAllocationDimension->get_allocator() ) )
                     {
-                        const std::size_t szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                        const mega::U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
 
                         // clang-format off
                         switch( szLocalDomainSize )
@@ -432,7 +432,7 @@ public:
         };
         PartDimensions simple, nonSimple, gpu;
 
-        std::size_t szTotalDomainSize;
+        mega::U64 szTotalDomainSize;
         {
             if constexpr ( std::is_same< TContextType, Concrete::Object >::value )
             {
@@ -488,7 +488,7 @@ public:
         {
             MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
                 MemoryLayout::Part::Args{ szTotalDomainSize, pContext, simple.user, simple.link, simple.alloc } );
-            const std::size_t szSize = simple.setParts( database, pContextPart );
+            const mega::U64 szSize = simple.setParts( database, pContextPart );
             pContextPart->set_size( szSize );
             pParts->simpleParts.push_back( pContextPart );
         }
@@ -496,7 +496,7 @@ public:
         {
             MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >( MemoryLayout::Part::Args{
                 szTotalDomainSize, pContext, nonSimple.user, nonSimple.link, nonSimple.alloc } );
-            const std::size_t   szSize       = nonSimple.setParts( database, pContextPart );
+            const mega::U64   szSize       = nonSimple.setParts( database, pContextPart );
             pContextPart->set_size( szSize );
             pParts->nonSimpleParts.push_back( pContextPart );
         }
@@ -504,7 +504,7 @@ public:
         {
             MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
                 MemoryLayout::Part::Args{ szTotalDomainSize, pContext, gpu.user, gpu.link, gpu.alloc } );
-            const std::size_t szSize = gpu.setParts( database, pContextPart );
+            const mega::U64 szSize = gpu.setParts( database, pContextPart );
             pContextPart->set_size( szSize );
             pParts->gpuParts.push_back( pContextPart );
         }
@@ -533,7 +533,7 @@ public:
             std::vector< MemoryLayout::Buffer* > objectBuffers;
             if ( !parts.simpleParts.empty() )
             {
-                std::size_t szOffset = 0U;
+                mega::U64 szOffset = 0U;
                 for ( auto p : parts.simpleParts )
                 {
                     p->set_offset( szOffset );
@@ -546,7 +546,7 @@ public:
             }
             if ( !parts.nonSimpleParts.empty() )
             {
-                std::size_t szOffset = 0U;
+                mega::U64 szOffset = 0U;
                 for ( auto p : parts.nonSimpleParts )
                 {
                     p->set_offset( szOffset );
@@ -559,7 +559,7 @@ public:
             }
             if ( !parts.gpuParts.empty() )
             {
-                std::size_t szOffset = 0U;
+                mega::U64 szOffset = 0U;
                 for ( auto p : parts.gpuParts )
                 {
                     p->set_offset( szOffset );

@@ -7,13 +7,9 @@
 #pragma warning( disable : 4275 ) // non dll-interface class 'testing::TestPartResultReporterInterface'
 #endif
 
-#include <stdexcept>
-#include <list>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <iterator>
-#include <memory>
+#include "mega/native_types.hpp"
+
+#include <gtest/gtest.h>
 
 #include <boost/tokenizer.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -23,7 +19,13 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <gtest/gtest.h>
+#include <stdexcept>
+#include <list>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <iterator>
+#include <memory>
 
 #ifdef _WIN32
 #pragma warning( pop )
@@ -213,7 +215,7 @@ namespace EDUTS
             std::cerr.rdbuf( m_pCerrBuffer );
         }
 
-        std::size_t run()
+        mega::U64 run()
         {
             initGoogleTestOptions( m_options );
 
@@ -303,7 +305,7 @@ namespace EDUTS
         std::ostringstream    m_coutStream, m_cerrStream;
         std::string           m_strFileName, m_htmlFileName;
         const UnitTestOptions m_options;
-        std::size_t           m_iResult;
+        mega::U64           m_iResult;
     };
 
 } // namespace EDUTS

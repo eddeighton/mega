@@ -8,7 +8,7 @@ namespace Concrete
             ref< Concrete::Context > parent;
             ref< Interface::DimensionTrait > interface_dimension;
 
-            value< std::size_t > offset -> MemoryStage::MemoryLayout;
+            value< mega::U64 > offset -> MemoryStage::MemoryLayout;
             ref< MemoryLayout::Part > part -> MemoryStage::MemoryLayout;
         }
 
@@ -17,7 +17,7 @@ namespace Concrete
         {
             ref< Link > link;
             late< ref< MemoryLayout::Part > > part;
-            late< value< std::size_t > > offset;
+            late< value< mega::U64 > > offset;
         }
         object LinkSingle : LinkReference -> MemoryStage::MemoryLayout
         {
@@ -31,7 +31,7 @@ namespace Concrete
         {
             ref< Concrete::Context > parent;
             late< ref< MemoryLayout::Part > > part;
-            late< value< std::size_t > > offset;
+            late< value< mega::U64 > > offset;
         }
 
         object Allocator : Allocation -> MemoryStage::MemoryLayout
@@ -52,7 +52,7 @@ namespace Concrete
         ref< Interface::IContext > interface;
         array< ref< Interface::IContext > > inheritance;
         
-        value< std::int32_t > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
+        value< mega::I32 > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
 
         // MemoryStage::MemoryLayout
         ref< Allocators::Allocator > allocator -> MemoryStage::MemoryLayout;
@@ -71,8 +71,8 @@ namespace Concrete
         ref< Interface::Action > interface_action;
         array< ref< Dimensions::User > > dimensions;
 
-        value< std::size_t > local_size -> MemoryStage::MemoryLayout;
-        value< std::size_t > total_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Event : Context -> ConcreteStage::Concrete
@@ -80,8 +80,8 @@ namespace Concrete
         ref< Interface::Event > interface_event;
         array< ref< Dimensions::User > > dimensions;
 
-        value< std::size_t > local_size -> MemoryStage::MemoryLayout;
-        value< std::size_t > total_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > local_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Function : Context -> ConcreteStage::Concrete
@@ -100,7 +100,7 @@ namespace Concrete
     {
         ref< Interface::Link > link;
 
-        value< std::size_t > total_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
         ref< Dimensions::LinkReference > link_reference -> MemoryStage::MemoryLayout;
     }
 
@@ -109,7 +109,7 @@ namespace Concrete
         ref< Interface::Buffer > interface_buffer;
         array< ref< Dimensions::User > > dimensions;
 
-        value< std::size_t > total_size -> MemoryStage::MemoryLayout;
+        value< mega::U64 > total_size -> MemoryStage::MemoryLayout;
     }
 
     object Root : ContextGroup -> ConcreteStage::Concrete

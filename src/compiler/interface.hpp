@@ -125,13 +125,13 @@ public:
                 }
                 {
                     std::ostringstream osTrait;
-                    osTrait << "static const std::size_t " << mega::EG_TRAITS_SIZE << " = mega::DimensionTraits< "
+                    osTrait << "static const mega::U64 " << mega::EG_TRAITS_SIZE << " = mega::DimensionTraits< "
                             << strType << " >::Size";
                     trait_struct[ "traits" ].push_back( osTrait.str() );
                 }
                 {
                     std::ostringstream osTrait;
-                    osTrait << "static const std::size_t " << mega::EG_TRAITS_SIMPLE << " = mega::DimensionTraits< "
+                    osTrait << "static const mega::U64 " << mega::EG_TRAITS_SIMPLE << " = mega::DimensionTraits< "
                             << strType << " >::Simple";
                     trait_struct[ "traits" ].push_back( osTrait.str() );
                 }
@@ -172,7 +172,7 @@ public:
 
         {
             std::ostringstream osTrait;
-            osTrait << "static const std::size_t " << mega::EG_TRAITS_SIZE << " = " << pSizeTrait->get_str();
+            osTrait << "static const mega::U64 " << mega::EG_TRAITS_SIZE << " = " << pSizeTrait->get_str();
             trait_struct[ "traits" ].push_back( osTrait.str() );
         }
 

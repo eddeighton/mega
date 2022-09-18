@@ -34,12 +34,12 @@ public:
     virtual void conversationEnd( const network::Header& header, const network::ReceivedMsg& msg );
 
 private:
-    void onLeafDisconnect( mega::MPE mpe );
+    void onLeafDisconnect( mega::MPO mpo );
 
     network::Client     m_rootClient;
     network::Server     m_leafServer;
     SharedMemoryManager m_sharedMemoryManager;
-    mega::MPE           m_mpe;
+    mega::MPO           m_mpo;
 };
 
 } // namespace service

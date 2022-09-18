@@ -56,7 +56,7 @@ public:
     {
     }
 
-    std::size_t getTotalObjects() const { return m_objects.size(); }
+    mega::U64 getTotalObjects() const { return m_objects.size(); }
     Object*     getObject( ObjectInfo::Index objectIndex ) const
     {
         VERIFY_RTE( objectIndex >= 0 );

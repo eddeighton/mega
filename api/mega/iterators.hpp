@@ -30,20 +30,20 @@ namespace mega
 {
     union RingBufferAllocator
     {
-        std::uint64_t data;
+        mega::U64 data;
         struct
         {
-            std::uint32_t head : 31;
-            std::uint32_t full : 1;
-            std::uint32_t tail : 31;
-            std::uint32_t protection : 1;
+            mega::U64 head : 31;
+            mega::U64 full : 1;
+            mega::U64 tail : 31;
+            mega::U64 protection : 1;
         };
      
         RingBufferAllocator()
             :   data( 0UL ) 
         {
         }
-        RingBufferAllocator( std::uint64_t value ) 
+        RingBufferAllocator( mega::U64 value ) 
             :   data( value ) 
         { 
         }
@@ -221,7 +221,7 @@ namespace mega
     }
     
     template< typename RangeType >
-    inline std::size_t count( const RangeType& range )
+    inline mega::U64 count( const RangeType& range )
     {
         return std::distance( range.begin(), range.end() );
     }

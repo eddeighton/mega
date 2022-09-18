@@ -382,7 +382,7 @@ bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, std::vect
     }
 }
 
-std::optional< std::size_t > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
+std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
                                           const SourceLocation& loc, const std::string& strConstantName )
 {
     IdentifierInfo& identifierInfo = pASTContext->Idents.get( strConstantName );
@@ -402,7 +402,7 @@ std::optional< std::size_t > getConstant( ASTContext* pASTContext, Sema* pSema, 
             }
         }
     }
-    return std::optional< std::size_t >();
+    return std::optional< ::mega::U64 >();
 }
 
 QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
@@ -489,7 +489,7 @@ QualType getIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext
 }
 
 QualType getMultiIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                                    const clang::QualType& interfaceType, std::size_t szTargetTypes,
+                                    const clang::QualType& interfaceType, ::mega::U64 szTargetTypes,
                                     const char* pszIteratorTypeName )
 {
     QualType iteratorType

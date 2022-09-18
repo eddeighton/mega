@@ -21,7 +21,7 @@ using namespace OperationsStage::Operations;
 
 struct SymbolMaps
 {
-    using SymbolIDMap  = std::map< std::int32_t, OperationsStage::Symbols::Symbol* >;
+    using SymbolIDMap  = std::map< mega::I32, OperationsStage::Symbols::Symbol* >;
     using IContextMap  = const std::map< int32_t, Interface::IContext* >;
     using DimensionMap = std::map< int32_t, Interface::DimensionTrait* >;
 

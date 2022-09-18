@@ -58,7 +58,7 @@ public:
     bool        SimWrite( const network::ConversationID& owningID, const network::ConversationID& simID );
     void        SimRelease( const network::ConversationID& owningID, const network::ConversationID& simID );
     void        ClearStash();
-    std::size_t Capacity();
+    mega::U64 Capacity();
     void        Shutdown();
 
     network::Sender& getLeafSender() { return m_leaf; }

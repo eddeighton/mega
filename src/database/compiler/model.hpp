@@ -3,6 +3,8 @@
 
 #include "grammar.hpp"
 
+#include "mega/native_types.hpp"
+
 #include "common/assert_verify.hpp"
 #include "common/hash.hpp"
 
@@ -16,7 +18,7 @@ namespace db
 {
 namespace model
 {
-using Counter = std::size_t;
+using Counter = mega::U64;
 
 class CountedObject
 {
@@ -125,7 +127,7 @@ public:
     std::weak_ptr< Object >      m_object;
     std::weak_ptr< File >        m_file;
     std::vector< Property::Ptr > m_properties;
-    std::size_t                  m_typeID;
+    mega::U64                  m_typeID;
 
     std::string getDataType( const std::string& strDelimiter ) const;
     std::string getPointerName() const;

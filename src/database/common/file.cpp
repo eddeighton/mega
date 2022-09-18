@@ -14,10 +14,10 @@ namespace io
 
 void File::preload( Loader& loader )
 {
-    std::size_t szNumObjects = 0U;
+    mega::U64 szNumObjects = 0U;
     loader.load( szNumObjects );
     m_objects.resize( szNumObjects );
-    for ( std::size_t sz = 0U; sz < szNumObjects; ++sz )
+    for ( mega::U64 sz = 0U; sz < szNumObjects; ++sz )
     {
         ObjectInfo objectInfo;
         loader.load( objectInfo );

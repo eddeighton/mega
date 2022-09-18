@@ -2,7 +2,7 @@
 #include "service/tool.hpp"
 
 #include "mega/common.hpp"
-#include "mega/execution_context.hpp"
+#include "mega/mpo_context.hpp"
 #include "mega/root.hpp"
 
 #include "runtime/runtime.hpp"
@@ -88,7 +88,7 @@ public:
 };
 
 template < typename TConversationFunctor >
-class GenericConversation : public ToolRequestConversation, public mega::ExecutionContext
+class GenericConversation : public ToolRequestConversation, public mega::MPOContext
 {
     TConversationFunctor m_functor;
 
@@ -102,14 +102,14 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        ExecutionContext::resume( this );
+        MPOContext::resume( this );
         m_pYieldContext = &yield_ctx;
 
-        // note the runtime will query getThisMPE while creating the root
-        m_executionIndex = getToolRequest( yield_ctx ).ToolCreateExecutionContext();
-        SPDLOG_TRACE( "TOOL: Acquired execution context: {}", m_executionIndex.value() );
+        // note the runtime will query getThisMPO while creating the root
+        m_mpo = getToolRequest( yield_ctx ).ToolCreateMPO();
+        SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", m_mpo.value() );
         {
-            m_pExecutionRoot = std::make_shared< mega::runtime::ExecutionRoot >( m_executionIndex.value() );
+            m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_mpo.value() );
             {
                 SPDLOG_TRACE( "TOOL: running function" );
                 m_functor( yield_ctx );
@@ -118,71 +118,71 @@ public:
         }
 
         m_pYieldContext = nullptr;
-        ExecutionContext::suspend();
+        MPOContext::suspend();
     }
 
-    // mega::ExecutionContext
-    virtual MPE getThisMPE() override { return m_executionIndex.value(); }
+    // mega::MPOContext
+    virtual MPO getThisMPO() override { return m_mpo.value(); }
 
     mega::reference getRoot() override { return m_pExecutionRoot->root(); }
 
-    virtual std::string acquireMemory( MPE mpe ) override
+    virtual std::string acquireMemory( MPO mpo ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // SPDLOG_TRACE( "acquireMemory called with: {}", mpe );
-        return getToolRequest( *m_pYieldContext ).ToolAcquireMemory( mpe );
+        // SPDLOG_TRACE( "acquireMemory called with: {}", mpo );
+        return getToolRequest( *m_pYieldContext ).ToolAcquireMemory( mpo );
     }
 
-    virtual NetworkAddress allocateNetworkAddress( MPE mpe, TypeID objectTypeID ) override
+    virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // SPDLOG_TRACE( "allocateNetworkAddress called with: {} {}", mpe, objectTypeID );
-        return NetworkAddress{ getToolRequest( *m_pYieldContext ).ToolAllocateNetworkAddress( mpe, objectTypeID ) };
+        // SPDLOG_TRACE( "allocateNetworkAddress called with: {} {}", mpo, objectTypeID );
+        return NetworkAddress{ getToolRequest( *m_pYieldContext ).ToolAllocateNetworkAddress( mpo, objectTypeID ) };
     }
-    virtual void deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress ) override
+    virtual void deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // SPDLOG_TRACE( "deAllocate called with: {} {}", mpe, networkAddress );
-        getToolRequest( *m_pYieldContext ).ToolDeAllocateNetworkAddress( mpe, networkAddress );
+        // SPDLOG_TRACE( "deAllocate called with: {} {}", mpo, networkAddress );
+        getToolRequest( *m_pYieldContext ).ToolDeAllocateNetworkAddress( mpo, networkAddress );
     }
-    virtual void stash( const std::string& filePath, std::size_t determinant ) override
+    virtual void stash( const std::string& filePath, mega::U64 determinant ) override
     {
         VERIFY_RTE( m_pYieldContext );
         getToolRequest( *m_pYieldContext ).ToolStash( filePath, determinant );
     }
-    virtual bool restore( const std::string& filePath, std::size_t determinant ) override
+    virtual bool restore( const std::string& filePath, mega::U64 determinant ) override
     {
         VERIFY_RTE( m_pYieldContext );
         return getToolRequest( *m_pYieldContext ).ToolRestore( filePath, determinant );
     }
 
-    virtual bool readLock( MPE mpe ) override
+    virtual bool readLock( MPO mpo ) override
     {
-        // SPDLOG_TRACE( "readLock from: {} to: {}", m_executionIndex.value(), mpe );
+        // SPDLOG_TRACE( "readLock from: {} to: {}", m_mpo.value(), mpo );
         VERIFY_RTE( m_pYieldContext );
-        const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
+        const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
         return getToolRequest( *m_pYieldContext ).ToolSimReadLock( getID(), id );
     }
 
-    virtual bool writeLock( MPE mpe ) override
+    virtual bool writeLock( MPO mpo ) override
     {
-        // SPDLOG_TRACE( "writeLock from: {} to: {}", m_executionIndex.value(), mpe );
+        // SPDLOG_TRACE( "writeLock from: {} to: {}", m_mpo.value(), mpo );
         VERIFY_RTE( m_pYieldContext );
-        const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
+        const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
         return getToolRequest( *m_pYieldContext ).ToolSimWriteLock( getID(), id );
     }
 
-    virtual void releaseLock( MPE mpe ) override
+    virtual void releaseLock( MPO mpo ) override
     {
-        // SPDLOG_TRACE( "releaseLock from: {} to: {}", m_executionIndex.value(), mpe );
+        // SPDLOG_TRACE( "releaseLock from: {} to: {}", m_mpo.value(), mpo );
         VERIFY_RTE( m_pYieldContext );
-        const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetExecutionContextID( mpe );
+        const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
         getToolRequest( *m_pYieldContext ).ToolSimReleaseLock( getID(), id );
     }
 
-    boost::asio::yield_context*                     m_pYieldContext = nullptr;
-    std::optional< mega::MPE >                      m_executionIndex;
-    std::shared_ptr< mega::runtime::ExecutionRoot > m_pExecutionRoot;
+    boost::asio::yield_context*               m_pYieldContext = nullptr;
+    std::optional< mega::MPO >                m_mpo;
+    std::shared_ptr< mega::runtime::MPORoot > m_pExecutionRoot;
 };
 
 Tool::Tool()

@@ -16,7 +16,7 @@ using HeapCtorFunction   = void ( * )( void* );
 using SharedDtorFunction = void ( * )( void* );
 using HeapDtorFunction   = void ( * )( void* );
 
-using AllocationFunction   = MachineAddress ( * )( ExecutorID mpe );
+using AllocationFunction   = MachineAddress ( * )( OwnerID mpo );
 using DeAllocationFunction = void ( * )( MachineAddress address );
 using AllocateFunction     = reference ( * )( reference );
 using ReadFunction         = void* ( * )( reference );
@@ -35,8 +35,8 @@ struct CallResult
 };
 using CallFunction = CallResult ( * )( reference );
 
-NetworkAddress allocateNetworkAddress( MPE mpe, TypeID objectTypeID );
-reference      networkToMachine( MPE mpe, TypeID objectTypeID, NetworkAddress networkAddress );
+NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID );
+reference      networkToMachine( MPO mpo, TypeID objectTypeID, NetworkAddress networkAddress );
 void           get_getter_heap( const char* pszUnitName, TypeID objectTypeID, GetHeapFunction* ppFunction );
 void           get_getter_shared( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
 void           get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );

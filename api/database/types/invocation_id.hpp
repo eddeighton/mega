@@ -1,7 +1,6 @@
 #ifndef INVOCATION_ID_7_JUNE_2022
 #define INVOCATION_ID_7_JUNE_2022
 
-#include "mega/common.hpp"
 #include "mega/invocation_id.hpp"
 
 #include "nlohmann/json.hpp"

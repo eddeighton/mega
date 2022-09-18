@@ -66,7 +66,7 @@ public:
 
         boost::system::error_code ec;
         {
-            const std::size_t szBytesWritten
+            const mega::U64 szBytesWritten
                 = boost::asio::async_write( m_socket, boost::asio::buffer( buffer ), yield_ctx[ ec ] ); //
             if ( !ec )
             {

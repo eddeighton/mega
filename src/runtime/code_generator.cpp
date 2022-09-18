@@ -72,11 +72,10 @@ void runCompilation( const std::string& strCmd )
     VERIFY_RTE_MSG( iCompilationResult == 0, "Error compilation invocation: " << osError.str() );
 }
 
-void compile( const boost::filesystem::path& clangPath,
-              const boost::filesystem::path& inputCPPFilePath,
-              const boost::filesystem::path& outputIRFilePath,
-              std::optional< const FinalStage::Components::Component* >
-                  pComponent )
+void compile( const boost::filesystem::path& clangPath, const boost::filesystem::path& inputCPPFilePath,
+              const boost::filesystem::path&                            outputIRFilePath,
+              std::optional< const FinalStage::Components::Component* > pComponent,
+              const mega::network::MegastructureInstallation&           megastructureInstallation )
 {
     auto startTime = std::chrono::steady_clock::now();
     {
@@ -105,6 +104,11 @@ void compile( const boost::filesystem::path& clangPath,
             {
                 osCmd << "-I " << includeDir.native() << " ";
             }
+        }
+        else
+        {
+            // add megastructure include directory
+            osCmd << "-I " << megastructureInstallation.getMegaIncludePath() << " ";
         }
 
         osCmd << "-o " << outputIRFilePath.native() << " -c " << inputCPPFilePath.native();
@@ -178,13 +182,13 @@ public:
     void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
                           std::optional< const FinalStage::Components::Component* > pComponent )
     {
-        ExecutionContext* pExecutionContext = ExecutionContext::get();
-        VERIFY_RTE( pExecutionContext );
+        MPOContext* pMPOContext = MPOContext::get();
+        VERIFY_RTE( pMPOContext );
 
         const boost::filesystem::path irFilePath = m_tempDir / ( strName + ".ir" );
 
         const task::DeterminantHash determinant{ strCPPCode };
-        if ( pExecutionContext->restore( irFilePath.native(), determinant.get() ) )
+        if ( pMPOContext->restore( irFilePath.native(), determinant.get() ) )
         {
             boost::filesystem::loadAsciiFile( irFilePath, osIR );
         }
@@ -195,8 +199,8 @@ public:
                 auto pFStream = boost::filesystem::createNewFileStream( inputCPPFilePath );
                 *pFStream << strCPPCode;
             }
-            compile( m_clangPath, inputCPPFilePath, irFilePath, pComponent );
-            pExecutionContext->stash( irFilePath.native(), determinant.get() );
+            compile( m_clangPath, inputCPPFilePath, irFilePath, pComponent, m_megastructureInstallation );
+            pMPOContext->stash( irFilePath.native(), determinant.get() );
             boost::filesystem::loadAsciiFile( irFilePath, osIR );
         }
     }
@@ -235,7 +239,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                 osPartType << pPart->get_context()->get_interface()->get_identifier();
                 osPartName << pPart->get_context()->get_interface()->get_identifier();
 
-                const std::size_t szTotalDomainSize
+                const mega::U64 szTotalDomainSize
                     = database.getTotalDomainSize( pPart->get_context()->get_concrete_id() );
 
                 nlohmann::json part( { { "type", osPartType.str() },
@@ -434,7 +438,7 @@ void generateInstructions( const DatabaseInstance&                             d
 
             const std::string  s           = get( variables, pFrom );
             const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
-            const std::size_t  szLocalSize = database.getLocalDomainSize( targetType );
+            const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
 
             if ( szLocalSize > 1 )
             {
@@ -460,7 +464,7 @@ void generateInstructions( const DatabaseInstance&                             d
 
             const std::string  s           = get( variables, pFrom );
             const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
-            const std::size_t  szLocalSize = database.getLocalDomainSize( targetType );
+            const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
 
             os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s << ".instance, "
                << targetType << " }, " << s << ", " << s << ".process };";

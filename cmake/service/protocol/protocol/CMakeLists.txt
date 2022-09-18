@@ -125,7 +125,7 @@ add_library( protocol
                     ${MEGA_PROTOCOL_COMMON_SOURCE}
 					${MEGA_PROTOCOL_GENERATED_HEADERS}
 					${MEGA_PROTOCOL_GENERATED_SOURCES}
-                    ${MEGA_API_DIR}/mega/execution_context.cpp
+                    ${MEGA_API_DIR}/mega/mpo_context.cpp
 				)
 
 target_link_libraries( protocol utilities )

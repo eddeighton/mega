@@ -103,16 +103,16 @@ inline ReturnReason sleep_until( std::chrono::duration< Rep, Period > const& tim
     return ReturnReason( std::chrono::steady_clock::now() + timeout_duration );
 }
 
-inline ReturnReason sleep_until( float fDuration )
+inline ReturnReason sleep_until( F32 fDuration )
 {
-    auto floatDuration   = std::chrono::duration< float, std::ratio< 1 > >( fDuration );
+    auto floatDuration   = std::chrono::duration< F32, std::ratio< 1 > >( fDuration );
     auto intMilliseconds = std::chrono::duration_cast< std::chrono::milliseconds >( floatDuration );
     return sleep_until( intMilliseconds );
 }
 
-inline ReturnReason sleep_until( double dbDuration )
+inline ReturnReason sleep_until( F64 dbDuration )
 {
-    auto doubleDuration  = std::chrono::duration< double, std::ratio< 1 > >( dbDuration );
+    auto doubleDuration  = std::chrono::duration< F64, std::ratio< 1 > >( dbDuration );
     auto intMilliseconds = std::chrono::duration_cast< std::chrono::milliseconds >( doubleDuration );
     return sleep_until( intMilliseconds );
 }

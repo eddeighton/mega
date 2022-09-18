@@ -60,7 +60,7 @@ struct TableOfContents
 {
     struct File
     {
-        using PositionType = std::size_t;
+        using PositionType = mega::U64;
 
         File::PositionType m_start, m_length;
         std::string        m_id;
@@ -115,7 +115,7 @@ struct ReadArchive::Pimpl
     {
         std::unique_ptr< MappedSourceType > m_pSource;
 
-        StreamImpl( std::unique_ptr< MappedSourceType > pSource, std::size_t szOffset )
+        StreamImpl( std::unique_ptr< MappedSourceType > pSource, mega::U64 szOffset )
             : boost::iostreams::stream< MappedSourceType >( *pSource )
             , m_pSource( std::move( pSource ) )
         {
@@ -126,19 +126,19 @@ struct ReadArchive::Pimpl
                                                                const TableOfContents::File&   file )
         {
             std::unique_ptr< MappedSourceType > pMappedFile;
-            std::size_t                         szOffset = 0U;
+            mega::U64                         szOffset = 0U;
             try
             {
-                const std::size_t szAlignment = MappedSourceType::alignment();
+                const mega::U64 szAlignment = MappedSourceType::alignment();
 
                 // ensure the mapping starts at alignment boundary
-                const std::size_t szStart = file.m_start - file.m_start % szAlignment;
+                const mega::U64 szStart = file.m_start - file.m_start % szAlignment;
 
                 // record the addition offset from szStart where the embeded file starts
                 szOffset = file.m_start - szStart;
 
                 // also ensure the length accounts for the offset
-                const std::size_t szLength = file.m_length + szOffset;
+                const mega::U64 szLength = file.m_length + szOffset;
 
                 pMappedFile = std::make_unique< MappedSourceType >( filePath, szLength, szStart );
             }
@@ -262,7 +262,7 @@ void ReadArchive::compile_archive( const boost::filesystem::path& filePath, cons
         file.m_start = StreamPos()( ofStream );
         {
             const boost::filesystem::path  filePath   = srcDir / file.m_id;
-            const std::size_t              szFileSize = boost::filesystem::file_size( filePath );
+            const mega::U64              szFileSize = boost::filesystem::file_size( filePath );
             ReadArchive::Pimpl::SourceType fileSource( filePath.native() );
             ReadArchive::Pimpl::StreamType istream( fileSource );
             boost::iostreams::eds_copy( istream, ofStream, szFileSize );
@@ -275,7 +275,7 @@ void ReadArchive::compile_archive( const boost::filesystem::path& filePath, cons
         file.m_start = StreamPos()( ofStream );
         {
             const boost::filesystem::path  filePath   = buildDir / file.m_id;
-            const std::size_t              szFileSize = boost::filesystem::file_size( filePath );
+            const mega::U64              szFileSize = boost::filesystem::file_size( filePath );
             ReadArchive::Pimpl::SourceType fileSource( filePath.native() );
             ReadArchive::Pimpl::StreamType istream( fileSource );
             boost::iostreams::eds_copy( istream, ofStream, szFileSize );

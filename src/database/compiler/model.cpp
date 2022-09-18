@@ -601,7 +601,7 @@ Object::Ptr findType( const NameResolution& nameRes, Namespace::Ptr pNamespace,
 {
     Object::Ptr pResult;
 
-    const std::size_t szDist = std::distance( i, iEnd );
+    const mega::U64 szDist = std::distance( i, iEnd );
     if ( szDist == 1U )
     {
         for ( Object::Ptr pObject : pNamespace->m_objects )
@@ -651,7 +651,7 @@ Object::Ptr findType( Schema::Ptr pSchema, const NameResolution& nameRes )
     // search all global namespaces
     if ( !pResult )
     {
-        const std::size_t szDist = std::distance( nameRes.id.begin(), nameRes.id.end() );
+        const mega::U64 szDist = std::distance( nameRes.id.begin(), nameRes.id.end() );
         if ( szDist > 1U )
         {
             for ( Namespace::Ptr pNamespace : pSchema->m_namespaces )

@@ -2,7 +2,7 @@
 #include "service/root.hpp"
 
 #include "mega/common.hpp"
-#include "mega/execution_context.hpp"
+#include "mega/mpo_context.hpp"
 
 #include "service/network/conversation.hpp"
 #include "service/network/network.hpp"
@@ -112,33 +112,33 @@ public:
     // network::daemon_root::Impl
     virtual void DaemonEnrole( boost::asio::yield_context& yield_ctx ) override
     {
-        const mega::MPE mpe = m_root.m_ecm.newDaemon();
+        const mega::MPO mpo = m_root.m_mpoManager.newDaemon();
 
         network::Server::Connection::Ptr pConnection
             = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
 
-        pConnection->setMPE( mpe );
-        pConnection->setDisconnectCallback( [ mpe, &root = m_root ]() { root.onDaemonDisconnect( mpe ); } );
+        pConnection->setMPO( mpo );
+        pConnection->setDisconnectCallback( [ mpo, &root = m_root ]() { root.onDaemonDisconnect( mpo ); } );
 
-        getStackTopDaemonResponse( yield_ctx ).DaemonEnrole( mpe );
+        getStackTopDaemonResponse( yield_ctx ).DaemonEnrole( mpo );
     }
 
-    virtual void DaemonLeafEnrole( const mega::MPE& daemonMPE, boost::asio::yield_context& yield_ctx ) override
+    virtual void DaemonLeafEnrole( const mega::MPO& daemonMPO, boost::asio::yield_context& yield_ctx ) override
     {
-        const mega::MPE leafMPE = m_root.m_ecm.newLeaf( daemonMPE );
-        getStackTopDaemonResponse( yield_ctx ).DaemonLeafEnrole( leafMPE );
+        const mega::MPO leafMPO = m_root.m_mpoManager.newLeaf( daemonMPO );
+        getStackTopDaemonResponse( yield_ctx ).DaemonLeafEnrole( leafMPO );
     }
 
-    virtual void DaemonLeafDisconnect( const mega::MPE& leafMPE, boost::asio::yield_context& yield_ctx ) override
+    virtual void DaemonLeafDisconnect( const mega::MPO& leafMPO, boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_ecm.leafDisconnected( leafMPE );
+        m_root.m_mpoManager.leafDisconnected( leafMPO );
         getStackTopDaemonResponse( yield_ctx ).DaemonLeafDisconnect();
     }
 
-    virtual void DaemonGetExecutionContextID( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void DaemonGetMPOContextID( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        const network::ConversationID& conversationID = m_root.m_ecm.get( mpe );
-        getStackTopDaemonResponse( yield_ctx ).DaemonGetExecutionContextID( conversationID );
+        const network::ConversationID& conversationID = m_root.m_mpoManager.get( mpo );
+        getStackTopDaemonResponse( yield_ctx ).DaemonGetMPOContextID( conversationID );
     }
 
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
@@ -223,7 +223,7 @@ public:
         {
             network::Server::Connection::Ptr pLowestDaemon;
             {
-                std::size_t szLowest = std::numeric_limits< std::size_t >::max();
+                mega::U64 szLowest = std::numeric_limits< mega::U64 >::max();
                 for ( const auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
                 {
                     auto simIDs = getDaemonRequest( pDaemon, yield_ctx ).RootSimList();
@@ -250,15 +250,15 @@ public:
     virtual void TermSimDestroy( const mega::network::ConversationID& simulationID,
                                  boost::asio::yield_context&          yield_ctx ) override
     {
-        const mega::MPE mpe = m_root.m_ecm.get( simulationID );
+        const mega::MPO mpo = m_root.m_mpoManager.get( simulationID );
 
         network::Server::Connection::Ptr pOwningDaemon;
         {
             for ( const auto& [ id, pDaemon ] : m_root.m_server.getConnections() )
             {
-                if ( pDaemon->getMPEOpt().has_value() )
+                if ( pDaemon->getMPOOpt().has_value() )
                 {
-                    if ( pDaemon->getMPEOpt().value().getMachineID() == mpe.getMachineID() )
+                    if ( pDaemon->getMPOOpt().value().getMachineID() == mpo.getMachineID() )
                     {
                         pOwningDaemon = pDaemon;
                         break;
@@ -385,10 +385,10 @@ public:
         daemon.ExeGetProject( m_root.getProject() );
     }
 
-    virtual void ExeCreateExecutionContext( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeCreateMPO( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = m_root.m_ecm.newExecutor( mpe, getID() );
-        getStackTopDaemonResponse( yield_ctx ).ExeCreateExecutionContext( result );
+        auto result = m_root.m_mpoManager.newOwner( mpo, getID() );
+        getStackTopDaemonResponse( yield_ctx ).ExeCreateMPO( result );
     }
 
     virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
@@ -396,19 +396,19 @@ public:
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ToolGetMegastructureInstallation( m_root.getMegastructureInstallation() );
     }
-    virtual void ExeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ExeAllocateNetworkAddress( const mega::MPO&            mpo,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
     {
-        const NetworkAddress result = m_root.m_logicalAddressSpace.allocateNetworkAddress( mpe, objectTypeID );
+        const NetworkAddress result = m_root.m_logicalAddressSpace.allocateNetworkAddress( mpo, objectTypeID );
         getStackTopDaemonResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
-    virtual void ExeDeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ExeDeAllocateNetworkAddress( const mega::MPO&            mpo,
                                               const mega::AddressStorage& networkAddress,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_logicalAddressSpace.deAllocateNetworkAddress( mpe, networkAddress );
+        m_root.m_logicalAddressSpace.deAllocateNetworkAddress( mpo, networkAddress );
         getStackTopDaemonResponse( yield_ctx ).ExeDeAllocateNetworkAddress();
     }
     virtual void ExeSimReadLock( const mega::network::ConversationID& simulationID,
@@ -438,25 +438,25 @@ public:
         getStackTopDaemonResponse( yield_ctx ).ExeSimReleaseLock();
     }
 
-    virtual void ToolCreateExecutionContext( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolCreateMPO( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = m_root.m_ecm.newExecutor( mpe, getID() );
-        getStackTopDaemonResponse( yield_ctx ).ToolCreateExecutionContext( result );
+        auto result = m_root.m_mpoManager.newOwner( mpo, getID() );
+        getStackTopDaemonResponse( yield_ctx ).ToolCreateMPO( result );
     }
 
-    virtual void ToolAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ToolAllocateNetworkAddress( const mega::MPO&            mpo,
                                              const mega::TypeID&         objectTypeID,
                                              boost::asio::yield_context& yield_ctx ) override
     {
-        const NetworkAddress result = m_root.m_logicalAddressSpace.allocateNetworkAddress( mpe, objectTypeID );
+        const NetworkAddress result = m_root.m_logicalAddressSpace.allocateNetworkAddress( mpo, objectTypeID );
         getStackTopDaemonResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
-    virtual void ToolDeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ToolDeAllocateNetworkAddress( const mega::MPO&            mpo,
                                                const mega::AddressStorage& networkAddress,
                                                boost::asio::yield_context& yield_ctx ) override
     {
-        m_root.m_logicalAddressSpace.deAllocateNetworkAddress( mpe, networkAddress );
+        m_root.m_logicalAddressSpace.deAllocateNetworkAddress( mpo, networkAddress );
         getStackTopDaemonResponse( yield_ctx ).ToolDeAllocateNetworkAddress();
     }
     virtual void ToolStash( const boost::filesystem::path& filePath,
@@ -522,7 +522,7 @@ class RootPipelineConversation : public RootRequestConversation, public pipeline
         = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, TaskCompletion ) >;
     TaskCompletionChannel m_taskComplete;
 
-    static constexpr std::uint32_t CHANNEL_SIZE = 256;
+    static constexpr mega::U32 CHANNEL_SIZE = 256;
 
 public:
     RootPipelineConversation( Root&                          root,
@@ -785,7 +785,7 @@ void Root::saveConfig()
     }
 }
 
-void Root::onDaemonDisconnect( mega::MPE mpe ) { m_ecm.daemonDisconnect( mpe ); }
+void Root::onDaemonDisconnect( mega::MPO mpo ) { m_mpoManager.daemonDisconnect( mpo ); }
 
 void Root::shutdown()
 {
@@ -841,7 +841,7 @@ void Root::conversationEnd( const network::Header& header, const network::Receiv
     pCon->conversationEnd( header.getConversationID() );
     // SPDLOG_TRACE( "Root::conversationEnd: {} {}", header.getConversationID(), msg.msg );
 
-    m_ecm.release( header.getConversationID() );
+    m_mpoManager.release( header.getConversationID() );
 }
 
 } // namespace service

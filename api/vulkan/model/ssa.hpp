@@ -2,12 +2,13 @@
 #ifndef SSA_25_JULY_2022
 #define SSA_25_JULY_2022
 
+#include "mega/native_types.hpp"
+
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_enums.hpp>
 #include <vulkan/vulkan_handles.hpp>
 #include <vulkan/vulkan_structs.hpp>
 
-#include <cstdint>
 #include <type_traits>
 #include <optional>
 #include <vector>
@@ -24,7 +25,7 @@ public:
 
     using Ptr      = Variable*;
     using PtrArray = std::vector< Ptr >;
-    std::uint32_t id;
+    mega::U32 id;
     PtrArray      parameters;
 };
 

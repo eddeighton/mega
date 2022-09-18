@@ -25,8 +25,8 @@
 struct clock
 {
     static mega::TimeStamp cycle( mega::TypeID type );
-    static float ct();
-    static float dt();
+    static mega::F32 ct();
+    static mega::F32 dt();
     static void next(); //for use by host
 };
 

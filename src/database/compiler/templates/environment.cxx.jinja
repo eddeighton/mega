@@ -13,7 +13,7 @@
 
 extern "C"
 {
-const std::size_t _db_version_ = {{ schema_version }};
+const mega::U64 _db_version_ = {{ schema_version }};
 }
 BOOST_DLL_ALIAS_SECTIONED( _db_version_, MEGA_DATABASE_VERSION, mega )
 
@@ -21,7 +21,7 @@ namespace mega
 {
 namespace io
 {
-    std::size_t Environment::getVersion()
+    mega::U64 Environment::getVersion()
     {
         return _db_version_;
     }

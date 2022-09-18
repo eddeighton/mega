@@ -62,9 +62,9 @@ private:
 
     struct ReferenceHash
     {
-        inline std::size_t operator()( const mega::reference& ref ) const
+        inline mega::U64 operator()( const mega::reference& ref ) const
         {
-            return *reinterpret_cast< const std::size_t* >( &ref );
+            return *reinterpret_cast< const mega::U64* >( &ref );
         }
     };
 

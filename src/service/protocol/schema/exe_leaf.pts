@@ -52,31 +52,31 @@ msg ExeGetProject
 }
 
 // Simulations
-msg ExeCreateExecutionContext
+msg ExeCreateMPO
 {
     request();
-    response(mega::MPE result);
+    response(mega::MPO result);
 }
 
 msg ExeAcquireMemory
 {
-    request(mega::MPE mpe);
+    request(mega::MPO mpo);
     response(std::string strMemoryName);
 }
 msg ExeAllocateNetworkAddress
 {
-    request(mega::MPE mpe, mega::TypeID objectTypeID);
+    request(mega::MPO mpo, mega::TypeID objectTypeID);
     response(mega::AddressStorage networkAddress);
 }
 msg ExeDeAllocateNetworkAddress
 {
-    request(mega::MPE mpe, mega::AddressStorage networkAddress);
+    request(mega::MPO mpo, mega::AddressStorage networkAddress);
     response();
 }
 
-msg ExeGetExecutionContextID
+msg ExeGetMPOContextID
 {
-    request(mega::MPE mpe);
+    request(mega::MPO mpo);
     response(mega::network::ConversationID conversationID);
 }
 

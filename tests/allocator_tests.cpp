@@ -9,8 +9,8 @@
 
 TEST( Allocator, RingReturnsZeroFirst )
 {
-    static constexpr std::size_t CAPACITY = 16;
-    using AllocatorType                   = mega::RingAllocator< std::size_t, CAPACITY >;
+    static constexpr mega::U64 CAPACITY = 16;
+    using AllocatorType                   = mega::RingAllocator< mega::U64, CAPACITY >;
 
     AllocatorType alloc;
     ASSERT_TRUE( alloc.empty() );
@@ -20,8 +20,8 @@ TEST( Allocator, RingReturnsZeroFirst )
 
 TEST( Allocator, Ring )
 {
-    static constexpr std::size_t CAPACITY = 16;
-    using AllocatorType                   = mega::RingAllocator< std::size_t, CAPACITY >;
+    static constexpr mega::U64 CAPACITY = 16;
+    using AllocatorType                   = mega::RingAllocator< mega::U64, CAPACITY >;
 
     AllocatorType alloc;
     ASSERT_TRUE( alloc.empty() );
@@ -29,16 +29,16 @@ TEST( Allocator, Ring )
     std::random_device randomDevice;
     std::mt19937       randNumGen( randomDevice() );
 
-    std::set< std::size_t > allocated;
+    std::set< mega::U64 > allocated;
     for ( int i = 0; i < CAPACITY; ++i )
     {
-        std::size_t s = alloc.allocate();
+        mega::U64 s = alloc.allocate();
 
         ASSERT_TRUE( allocated.insert( s ).second );
     }
     ASSERT_TRUE( alloc.full() );
 
-    std::vector< std::size_t > shuffled( allocated.begin(), allocated.end() );
+    std::vector< mega::U64 > shuffled( allocated.begin(), allocated.end() );
     std::shuffle( shuffled.begin(), shuffled.end(), randNumGen );
 
     for ( int i : shuffled )
@@ -52,8 +52,8 @@ TEST( Allocator, Ring )
 
 TEST( Allocator, Ring2 )
 {
-    static constexpr std::size_t CAPACITY = 64;
-    using AllocatorType                   = mega::RingAllocator< std::size_t, CAPACITY >;
+    static constexpr mega::U64 CAPACITY = 64;
+    using AllocatorType                   = mega::RingAllocator< mega::U64, CAPACITY >;
 
     AllocatorType alloc;
     ASSERT_TRUE( alloc.empty() );
@@ -61,7 +61,7 @@ TEST( Allocator, Ring2 )
     std::random_device randomDevice;
     std::mt19937       randNumGen( randomDevice() );
 
-    std::set< std::size_t > allocated;
+    std::set< mega::U64 > allocated;
 
     for ( int j = 0; j < 5; ++j )
     {
@@ -69,20 +69,20 @@ TEST( Allocator, Ring2 )
         {
             for ( int i = 0; ( i < CAPACITY / 2 ) && !alloc.full(); ++i )
             {
-                std::size_t s = alloc.allocate();
+                mega::U64 s = alloc.allocate();
                 ASSERT_TRUE( allocated.insert( s ).second );
             }
         }
 
         // remove half
         {
-            std::vector< std::size_t > shuffled( allocated.begin(), allocated.end() );
+            std::vector< mega::U64 > shuffled( allocated.begin(), allocated.end() );
             std::shuffle( shuffled.begin(), shuffled.end(), randNumGen );
 
             for ( int i = 0; i < CAPACITY / 2; ++i )
             {
                 ASSERT_TRUE( !alloc.empty() );
-                std::size_t v = shuffled[ i ];
+                mega::U64 v = shuffled[ i ];
                 alloc.free( v );
                 allocated.erase( v );
             }

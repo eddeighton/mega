@@ -76,10 +76,10 @@ public:
         }
 
         using SymbolSetMap      = std::map< mega::io::megaFilePath, ConcreteTypeAnalysis::Symbols::SymbolSet* >;
-        using SymbolIDPath      = std::vector< std::int32_t >;
+        using SymbolIDPath      = std::vector< mega::I32 >;
         using IDPathToSymbolMap = std::map< SymbolIDPath, ConcreteTypeAnalysis::Symbols::ConcreteSymbol* >;
-        using IDToSymbolMap     = std::map< std::int32_t, ::ConcreteTypeAnalysis::Symbols::ConcreteSymbol* >;
-        using IDToContextMap    = std::map< std::int32_t, ::ConcreteTypeAnalysis::Concrete::Context* >;
+        using IDToSymbolMap     = std::map< mega::I32, ::ConcreteTypeAnalysis::Symbols::ConcreteSymbol* >;
+        using IDToContextMap    = std::map< mega::I32, ::ConcreteTypeAnalysis::Concrete::Context* >;
 
         ConcreteTypeAnalysis::Symbols::ConcreteSymbol*
         findOrCreateSymbol( ConcreteTypeAnalysis::Database&          database,
@@ -128,7 +128,7 @@ public:
             using namespace ConcreteTypeAnalysis;
             using namespace ConcreteTypeAnalysis::Symbols;
 
-            std::set< std::int32_t > symbolLabels;
+            std::set< mega::I32 > symbolLabels;
             {
                 for ( IDPathToSymbolMap::iterator i = globalIDPathToSymbolMap.begin();
                       i != globalIDPathToSymbolMap.end();
@@ -143,8 +143,8 @@ public:
                 }
             }
 
-            std::set< std::int32_t >::iterator labelIter   = symbolLabels.begin();
-            std::int32_t                       szNextLabel = 1;
+            std::set< mega::I32 >::iterator labelIter   = symbolLabels.begin();
+            mega::I32                       szNextLabel = 1;
             for ( IDPathToSymbolMap::iterator i = globalIDPathToSymbolMap.begin(); i != globalIDPathToSymbolMap.end();
                   ++i )
             {

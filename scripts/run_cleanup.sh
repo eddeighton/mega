@@ -36,15 +36,15 @@ cleanup_folder "${BUILD_PATH}/${CFG_TUPLE}/mega/install/bin/stash"
 
 # log folders
 cleanup_folder "${BUILD_PATH}/${CFG_TUPLE}/mega/install/bin/log"
-cleanup_folder "${BUILD_PATH}/${CFG_TUPLE}/megatest/install/bin/log"
+cleanup_folder "${BUILD_PATH}/${CFG_TUPLE}/basic/install/bin/log"
 cleanup_folder "${WORKSPACE_ROOT_PATH}/log"
 cleanup_folder "${WORKSPACE_ROOT_PATH}/src/mega/log"
-cleanup_folder "${WORKSPACE_ROOT_PATH}/src/megatest/log"
+cleanup_folder "${WORKSPACE_ROOT_PATH}/src/basic/log"
 
 # temporary file folders
 cleanup_folder "/tmp/mega_registry"
 cleanup_folder "/tmp/megaenv"
-cleanup_folder "${BUILD_PATH}/${CFG_TUPLE}/megatest/install/tmp"
+cleanup_folder "${BUILD_PATH}/${CFG_TUPLE}/basic/install/tmp"
 
 
 function cleanup_files {
@@ -66,7 +66,7 @@ function cleanup_files {
 }
 
 cleanup_files "${BUILD_PATH}/${CFG_TUPLE}/mega"         "*.log"
-cleanup_files "${BUILD_PATH}/${CFG_TUPLE}/megatest"     "*.log"
+cleanup_files "${BUILD_PATH}/${CFG_TUPLE}/basic"     "*.log"
 cleanup_files "${WORKSPACE_ROOT_PATH}/src"              "*.log"
 
 function cleanup_shm {

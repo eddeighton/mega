@@ -7,13 +7,13 @@ namespace Interface
     {
         ref< IContext > parent;
         
-        value< std::int32_t > symbol -> SymbolRollout::PerSourceSymbols;
-        late< value< std::int32_t > > type_id -> SymbolRollout::PerSourceSymbols;
+        value< mega::I32 > symbol -> SymbolRollout::PerSourceSymbols;
+        late< value< mega::I32 > > type_id -> SymbolRollout::PerSourceSymbols;
         
         array< ref< Concrete::Dimensions::User > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
 
         value< std::string >             canonical_type  -> InterfaceAnalysisStage::Clang;
-        value< std::size_t >             size            -> InterfaceAnalysisStage::Clang;
+        value< mega::U64 >               size            -> InterfaceAnalysisStage::Clang;
         value< bool >                    simple          -> InterfaceAnalysisStage::Clang;
         array< ref< Symbols::Symbol > >  symbols         -> InterfaceAnalysisStage::Clang;
     }
@@ -40,7 +40,7 @@ namespace Interface
 
     object SizeTrait : Parser::Size -> InterfaceStage::Tree
     {
-        value< std::size_t > size -> InterfaceAnalysisStage::Clang;
+        value< mega::U64 > size -> InterfaceAnalysisStage::Clang;
     }
 
     // basic context types
@@ -59,8 +59,8 @@ namespace Interface
         value< std::string > identifier;
         ref< ContextGroup > parent;
         ref< Components::Component > component;
-        value< std::int32_t > symbol -> SymbolRollout::PerSourceSymbols;
-        late< value< std::int32_t > > type_id -> SymbolRollout::PerSourceSymbols;
+        value< mega::I32 > symbol -> SymbolRollout::PerSourceSymbols;
+        late< value< mega::I32 > > type_id -> SymbolRollout::PerSourceSymbols;
         array< ref< Concrete::Context > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
     }
 

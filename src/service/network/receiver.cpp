@@ -56,11 +56,11 @@ void SocketReceiver::onError( const boost::system::error_code& ec )
 
 void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
 {
-    static const std::size_t MessageSizeSize = sizeof( network::MessageSize );
+    static const mega::U64 MessageSizeSize = sizeof( network::MessageSize );
     using ReceiveBuffer                      = std::vector< char >;
     ReceiveBuffer                       buffer( 1024 );
     boost::system::error_code           ec;
-    std::size_t                         szBytesTransferred = 0U;
+    mega::U64                         szBytesTransferred = 0U;
     std::array< char, MessageSizeSize > buf;
     Header                              header;
 

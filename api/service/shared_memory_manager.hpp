@@ -21,7 +21,7 @@ class SharedMemoryManager
 {
     class SharedMemory
     {
-        static constexpr std::size_t SIZE = 1024 * 1024 * 4;
+        static constexpr mega::U64 SIZE = 1024 * 1024 * 4;
 
         std::string memoryName( const network::ConversationID& conversationID ) const
         {

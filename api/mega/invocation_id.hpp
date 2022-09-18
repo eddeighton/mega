@@ -41,7 +41,7 @@ public:
     {
     }
 
-    template < std::size_t Size >
+    template < mega::U64 Size >
     InvocationID( mega::TypeID context, const std::array< mega::TypeID, Size >& typePath, mega::TypeID operation )
         : m_context{ context }
         , m_type_path( typePath.begin(), typePath.end() )

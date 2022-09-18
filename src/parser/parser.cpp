@@ -81,7 +81,7 @@ public:
     ScopedIdentifier* parse_scopedIdentifier( Database& database )
     {
         const std::string strFileName  = sm.getFilename( Tok.getLocation() ).str();
-        const std::size_t szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
+        const mega::U64 szLineNumber = sm.getSpellingLineNumber( Tok.getLocation() );
 
         // const std::string strLocation = Tok.getLocation().printToString( sm );
 

@@ -86,7 +86,7 @@ struct RawEvent
     const char*          type;
     mega::AddressStorage address;
     const void*          value;
-    std::size_t          size;
+    mega::U64          size;
 };
 
 struct events
@@ -94,7 +94,7 @@ struct events
     static mega::event_iterator getIterator();
     static bool                 get( mega::event_iterator& iterator, Event& event );
     static bool                 get( mega::event_iterator& iterator, RawEvent& event );
-    static void put( const char* type, mega::AddressStorage address, const void* value, std::size_t size );
+    static void put( const char* type, mega::AddressStorage address, const void* value, mega::U64 size );
     static bool update(); // just updates the shared memory iterator but also returns if new events
 };
 

@@ -11,7 +11,7 @@
 
 #include "mega/common.hpp"
 #include "mega/basic_scheduler.hpp"
-#include "mega/execution_context.hpp"
+#include "mega/mpo_context.hpp"
 #include "mega/root.hpp"
 
 namespace mega
@@ -20,7 +20,7 @@ namespace service
 {
 class Executor;
 
-class Simulation : public ExecutorRequestConversation, public network::exe_sim::Impl, public mega::ExecutionContext
+class Simulation : public ExecutorRequestConversation, public network::exe_sim::Impl, public mega::MPOContext
 {
 public:
     using Ptr = std::shared_ptr< Simulation >;
@@ -57,17 +57,17 @@ public:
                                     const mega::network::ConversationID& simulationID,
                                     boost::asio::yield_context&          yield_ctx ) override;
 
-    // mega::ExecutionContext
-    virtual MPE             getThisMPE() override;
+    // mega::MPOContext
+    virtual MPO             getThisMPO() override;
     virtual mega::reference getRoot() override;
-    virtual std::string     acquireMemory( MPE mpe ) override;
-    virtual NetworkAddress  allocateNetworkAddress( MPE mpe, TypeID objectTypeID ) override;
-    virtual void            deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress ) override;
-    virtual void            stash( const std::string& filePath, std::size_t determinant ) override;
-    virtual bool            restore( const std::string& filePath, std::size_t determinant ) override;
-    virtual bool            readLock( MPE mpe ) override;
-    virtual bool            writeLock( MPE mpe ) override;
-    virtual void            releaseLock( MPE mpe ) override;
+    virtual std::string     acquireMemory( MPO mpo ) override;
+    virtual NetworkAddress  allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override;
+    virtual void            deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override;
+    virtual void            stash( const std::string& filePath, mega::U64 determinant ) override;
+    virtual bool            restore( const std::string& filePath, mega::U64 determinant ) override;
+    virtual bool            readLock( MPO mpo ) override;
+    virtual bool            writeLock( MPO mpo ) override;
+    virtual void            releaseLock( MPO mpo ) override;
 
 private:
     void issueClock();
@@ -83,8 +83,8 @@ private:
     network::ConcurrentChannel                           m_requestChannel;
     network::Sender::Ptr                                 m_pRequestChannelSender;
     boost::asio::yield_context*                          m_pYieldContext = nullptr;
-    std::optional< mega::MPE >                           m_executionIndex;
-    std::shared_ptr< mega::runtime::ExecutionRoot >      m_pExecutionRoot;
+    std::optional< mega::MPO >                           m_mpo;
+    std::shared_ptr< mega::runtime::MPORoot >            m_pExecutionRoot;
     mega::Scheduler                                      m_scheduler;
     SimulationStateMachine                               m_stateMachine;
     boost::asio::steady_timer                            m_timer;

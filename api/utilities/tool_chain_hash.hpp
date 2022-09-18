@@ -4,6 +4,8 @@
 
 #include "utilities/serialization_helpers.hpp"
 
+#include "mega/native_types.hpp"
+
 #include "boost/serialization/nvp.hpp"
 #include "boost/serialization/split_member.hpp"
 #include "boost/filesystem/path.hpp"
@@ -19,7 +21,7 @@ struct ToolChain
 {
     ToolChain();
     ToolChain( const std::string&             strClangCompilerVersion,
-               std::size_t                    databaseVersion,
+               mega::U64                      databaseVersion,
                const boost::filesystem::path& parserDll,
                const boost::filesystem::path& megaCompiler,
                const boost::filesystem::path& clangCompiler,

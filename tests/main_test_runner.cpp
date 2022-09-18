@@ -60,7 +60,7 @@ int inner_main(int argc, char* argv[])
         std::cin >> c;
     }
 
-    std::size_t szResult = 0U;
+    mega::U64 szResult = 0U;
 
     iRepeats = std::max< int >( 1, iRepeats );
 

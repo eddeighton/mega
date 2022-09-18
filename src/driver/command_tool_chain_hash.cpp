@@ -77,10 +77,10 @@ std::string getClangVersion( const boost::filesystem::path& path_clangCompiler )
     return runCmd( osCmd.str() );
 }
 
-std::size_t getDatabaseVersion( const boost::filesystem::path& path_database )
+mega::U64 getDatabaseVersion( const boost::filesystem::path& path_database )
 {
-    boost::shared_ptr< const std::size_t > pSymbolDirect
-        = boost::dll::import_alias< const std::size_t >( path_database, "MEGA_DATABASE_VERSION" );
+    boost::shared_ptr< const mega::U64 > pSymbolDirect
+        = boost::dll::import_alias< const mega::U64 >( path_database, "MEGA_DATABASE_VERSION" );
     return *pSymbolDirect;
 }
 
@@ -128,7 +128,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         std::ostringstream os;
         {
             const std::string strClangVersion   = getClangVersion( clangCompiler );
-            const std::size_t szDatabaseVersion = getDatabaseVersion( databaseDll );
+            const mega::U64 szDatabaseVersion = getDatabaseVersion( databaseDll );
 
             const mega::utilities::ToolChain toolChain(
                 strClangVersion, szDatabaseVersion, parserDll, megaCompiler, clangCompiler, clangPlugin, databaseDll );

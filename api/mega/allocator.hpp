@@ -24,7 +24,8 @@
 #include <bitset>
 #include <cstddef>
 
-#include "common.hpp"
+#include "native_types.hpp"
+#include "reference.hpp"
 #include "clock.hpp"
 
 #include "boost/circular_buffer.hpp"
@@ -43,17 +44,17 @@ namespace mega
 template < typename T >
 struct DimensionTraits;
 
-template < std::size_t _Size >
+template < mega::U64 _Size >
 class Bitmask32Allocator
 {
     friend struct mega::DimensionTraits< mega::Bitmask32Allocator< _Size > >;
 
 public:
-    static const std::size_t Size = _Size;
+    static const mega::U64 Size = _Size;
 
     inline Bitmask32Allocator()
     {
-        static_assert( Size <= ( sizeof( std::uint32_t ) * 8 ) );
+        static_assert( Size <= ( sizeof( mega::U32 ) * 8 ) );
         m_bitset.set();
     }
 
@@ -81,24 +82,24 @@ private:
     std::bitset< Size > m_bitset;
 };
 
-template < std::size_t _Size >
+template < mega::U64 _Size >
 class Bitmask64Allocator
 {
     friend struct mega::DimensionTraits< mega::Bitmask64Allocator< _Size > >;
 
 public:
-    static const std::size_t Size = _Size;
+    static const mega::U64 Size = _Size;
 
     inline Bitmask64Allocator()
     {
-        static_assert( Size > sizeof( std::uint32_t ) * 8 );
-        static_assert( Size <= sizeof( std::uint64_t ) * 8 );
+        static_assert( Size > sizeof( mega::U32 ) * 8 );
+        static_assert( Size <= sizeof( mega::U64 ) * 8 );
         m_bitset.set();
     }
 
     inline Instance nextFree() const
     {
-        const std::uint64_t mask = m_bitset.to_ullong();
+        const mega::U64 mask = m_bitset.to_ullong();
 
 #ifdef __gnu_linux__
         return ffsll( mask );

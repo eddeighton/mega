@@ -17,7 +17,7 @@
 #include "service/protocol/model/leaf_tool.hxx"
 
 #include "mega/common.hpp"
-#include "mega/execution_context.hpp"
+#include "mega/mpo_context.hpp"
 
 #include "common/requireSemicolon.hpp"
 
@@ -265,12 +265,14 @@ public:
     }
     virtual void RootSimList( boost::asio::yield_context& yield_ctx ) override
     {
+        VERIFY_RTE_MSG( m_leaf.m_nodeType == network::Node::Executor, "RootSimList on non-executor" );
         auto result = getExeRequest( yield_ctx ).RootSimList();
         getDaemonResponse( yield_ctx ).RootSimList( result );
     }
 
     virtual void RootSimCreate( boost::asio::yield_context& yield_ctx ) override
     {
+        VERIFY_RTE_MSG( m_leaf.m_nodeType == network::Node::Executor, "RootSimCreate on non-executor" );
         auto result = getExeRequest( yield_ctx ).RootSimCreate();
         getDaemonResponse( yield_ctx ).RootSimCreate( result );
     }
@@ -278,6 +280,7 @@ public:
     virtual void RootSimDestroy( const mega::network::ConversationID& simulationID,
                                  boost::asio::yield_context&          yield_ctx ) override
     {
+        VERIFY_RTE_MSG( m_leaf.m_nodeType == network::Node::Executor, "RootSimDestroy on non-executor" );
         getExeRequest( yield_ctx ).RootSimDestroy( simulationID );
         getDaemonResponse( yield_ctx ).RootSimDestroy();
     }
@@ -286,6 +289,7 @@ public:
                                   const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
+        VERIFY_RTE_MSG( m_leaf.m_nodeType == network::Node::Executor, "RootSimReadLock on non-executor" );
         auto result = getExeRequest( yield_ctx ).RootSimReadLock( owningID, simulationID );
         getDaemonResponse( yield_ctx ).RootSimReadLock( result );
     }
@@ -294,6 +298,7 @@ public:
                                    const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
+        VERIFY_RTE_MSG( m_leaf.m_nodeType == network::Node::Executor, "RootSimWriteLock on non-executor" );
         auto result = getExeRequest( yield_ctx ).RootSimWriteLock( owningID, simulationID );
         getDaemonResponse( yield_ctx ).RootSimWriteLock( result );
     }
@@ -302,6 +307,7 @@ public:
                                      const mega::network::ConversationID& simulationID,
                                      boost::asio::yield_context&          yield_ctx ) override
     {
+        VERIFY_RTE_MSG( m_leaf.m_nodeType == network::Node::Executor, "RootSimReleaseLock on non-executor" );
         getExeRequest( yield_ctx ).RootSimReleaseLock( owningID, simulationID );
         getDaemonResponse( yield_ctx ).RootSimReleaseLock();
     }
@@ -395,37 +401,37 @@ public:
         getExeResponse( yield_ctx ).ExeGetProject( result );
     }
 
-    virtual void ExeCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeCreateMPO( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeCreateExecutionContext( m_leaf.m_mpe );
-        getExeResponse( yield_ctx ).ExeCreateExecutionContext( result );
+        auto result = getDaemonRequest( yield_ctx ).ExeCreateMPO( m_leaf.m_mpo );
+        getExeResponse( yield_ctx ).ExeCreateMPO( result );
     }
 
-    virtual void ExeAcquireMemory( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeAcquireMemory( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeAcquireMemory( mpe );
+        auto result = getDaemonRequest( yield_ctx ).ExeAcquireMemory( mpo );
         getExeResponse( yield_ctx ).ExeAcquireMemory( result );
     }
-    virtual void ExeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ExeAllocateNetworkAddress( const mega::MPO&            mpo,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeAllocateNetworkAddress( mpe, objectTypeID );
+        auto result = getDaemonRequest( yield_ctx ).ExeAllocateNetworkAddress( mpo, objectTypeID );
         getExeResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
-    virtual void ExeDeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ExeDeAllocateNetworkAddress( const mega::MPO&            mpo,
                                               const mega::AddressStorage& networkAddress,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ExeDeAllocateNetworkAddress( mpe, networkAddress );
+        getDaemonRequest( yield_ctx ).ExeDeAllocateNetworkAddress( mpo, networkAddress );
         getExeResponse( yield_ctx ).ExeDeAllocateNetworkAddress();
     }
 
-    virtual void ExeGetExecutionContextID( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ExeGetMPOContextID( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeGetExecutionContextID( mpe );
-        getExeResponse( yield_ctx ).ExeGetExecutionContextID( result );
+        auto result = getDaemonRequest( yield_ctx ).ExeGetMPOContextID( mpo );
+        getExeResponse( yield_ctx ).ExeGetMPOContextID( result );
     }
 
     virtual void ExeSimReadLock( const mega::network::ConversationID& simulationID,
@@ -455,30 +461,30 @@ public:
         getToolResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
     }
 
-    virtual void ToolCreateExecutionContext( boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolCreateMPO( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolCreateExecutionContext( m_leaf.m_mpe );
-        getToolResponse( yield_ctx ).ToolCreateExecutionContext( result );
+        auto result = getDaemonRequest( yield_ctx ).ToolCreateMPO( m_leaf.m_mpo );
+        getToolResponse( yield_ctx ).ToolCreateMPO( result );
     }
 
-    virtual void ToolAcquireMemory( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolAcquireMemory( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolAcquireMemory( mpe );
+        auto result = getDaemonRequest( yield_ctx ).ToolAcquireMemory( mpo );
         getToolResponse( yield_ctx ).ToolAcquireMemory( result );
     }
-    virtual void ToolAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ToolAllocateNetworkAddress( const mega::MPO&            mpo,
                                              const mega::TypeID&         objectTypeID,
                                              boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolAllocateNetworkAddress( mpe, objectTypeID );
+        auto result = getDaemonRequest( yield_ctx ).ToolAllocateNetworkAddress( mpo, objectTypeID );
         getToolResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
-    virtual void ToolDeAllocateNetworkAddress( const mega::MPE&            mpe,
+    virtual void ToolDeAllocateNetworkAddress( const mega::MPO&            mpo,
                                                const mega::AddressStorage& networkAddress,
                                                boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ToolDeAllocateNetworkAddress( mpe, networkAddress );
+        getDaemonRequest( yield_ctx ).ToolDeAllocateNetworkAddress( mpo, networkAddress );
         getToolResponse( yield_ctx ).ToolDeAllocateNetworkAddress();
     }
     virtual void ToolStash( const boost::filesystem::path& filePath,
@@ -496,10 +502,10 @@ public:
         getToolResponse( yield_ctx ).ToolRestore( bRestored );
     }
 
-    virtual void ToolGetExecutionContextID( const mega::MPE& mpe, boost::asio::yield_context& yield_ctx ) override
+    virtual void ToolGetMPOContextID( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolGetExecutionContextID( mpe );
-        getToolResponse( yield_ctx ).ToolGetExecutionContextID( result );
+        auto result = getDaemonRequest( yield_ctx ).ToolGetMPOContextID( mpo );
+        getToolResponse( yield_ctx ).ToolGetMPOContextID( result );
     }
     virtual void ToolSimReadLock( const mega::network::ConversationID& owningID,const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
@@ -536,7 +542,7 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx )
     {
-        m_leaf.m_mpe = getDaemonRequest( yield_ctx ).LeafEnrole( m_leaf.getType() );
+        m_leaf.m_mpo = getDaemonRequest( yield_ctx ).LeafEnrole( m_leaf.getType() );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };

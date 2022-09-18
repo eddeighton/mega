@@ -25,8 +25,8 @@ public:
     const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getOperationComponent( mega::TypeID objectType ) const;
-    std::size_t                               getTotalDomainSize( mega::TypeID concreteID ) const;
-    std::size_t                               getLocalDomainSize( mega::TypeID concreteID ) const;
+    mega::U64                               getTotalDomainSize( mega::TypeID concreteID ) const;
+    mega::U64                               getLocalDomainSize( mega::TypeID concreteID ) const;
     mega::TypeID                              getRootTypeID() const;
 
 private:
@@ -35,7 +35,7 @@ private:
     FinalStage::Database                                     m_database;
     std::vector< FinalStage::Components::Component* >        m_components;
     FinalStage::Symbols::SymbolTable*                        m_pSymbolTable;
-    std::map< std::int32_t, FinalStage::Concrete::Context* > m_concreteIDs;
+    std::map< mega::I32, FinalStage::Concrete::Context* > m_concreteIDs;
     mega::TypeID                                             m_rootTypeID;
 };
 

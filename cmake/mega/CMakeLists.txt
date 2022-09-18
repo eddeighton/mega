@@ -9,12 +9,14 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/basic_scheduler.cpp 
     ${MEGA_API_DIR}/mega/clock.cpp
     ${MEGA_API_DIR}/mega/clock.hpp
+    ${MEGA_API_DIR}/mega/common.hpp 
     ${MEGA_API_DIR}/mega/common_strings.hpp 
-    ${MEGA_API_DIR}/mega/common.hpp
+    ${MEGA_API_DIR}/mega/native_types.hpp
+    ${MEGA_API_DIR}/mega/reference.hpp
     ${MEGA_API_DIR}/mega/coroutine.hpp
     ${MEGA_API_DIR}/mega/default_traits.hpp
     ${MEGA_API_DIR}/mega/eg_common_strings.hpp
-    ${MEGA_API_DIR}/mega/execution_context.hpp
+    ${MEGA_API_DIR}/mega/mpo_context.hpp
     ${MEGA_API_DIR}/mega/event_log.cpp
     ${MEGA_API_DIR}/mega/event.hpp
     ${MEGA_API_DIR}/mega/include.hpp
@@ -22,8 +24,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/invocation_id.hpp
     ${MEGA_API_DIR}/mega/macros.hpp
     ${MEGA_API_DIR}/mega/operations.hpp
-    ${MEGA_API_DIR}/mega/resource.cpp
-    ${MEGA_API_DIR}/mega/resource.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
     ${MEGA_API_DIR}/mega/shared_allocator.hpp
     ${MEGA_API_DIR}/mega/root.hpp

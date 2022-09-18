@@ -37,12 +37,12 @@ public:
         ~Connection();
 
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
-        const std::optional< mega::MPE >&  getMPEOpt() const { return m_mpeOpt; }
+        const std::optional< mega::MPO >&  getMPOOpt() const { return m_mpoOpt; }
         const std::string&                 getName() const { return m_strName; }
         const std::set< ConversationID >&  getConversations() const { return m_conversations; }
 
         void setType( Node::Type type ) { m_typeOpt = type; }
-        void setMPE( mega::MPE mpe ) { m_mpeOpt = mpe; }
+        void setMPO( mega::MPO mpo ) { m_mpoOpt = mpo; }
         void conversationNew( const ConversationID& id ) { m_conversations.insert( id ); }
         void conversationEnd( const ConversationID& id ) { m_conversations.erase( id ); }
 
@@ -85,7 +85,7 @@ public:
         std::optional< Node::Type >         m_typeOpt;
         std::set< ConversationID >          m_conversations;
         std::optional< DisconnectCallback > m_disconnectCallback;
-        std::optional< mega::MPE >          m_mpeOpt;
+        std::optional< mega::MPO >          m_mpoOpt;
     };
 
     using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;

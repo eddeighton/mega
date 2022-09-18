@@ -144,7 +144,7 @@ void testtwo()
     using FunctionType = class std::basic_string< char > ( * )( mega::reference, int, int );
     mega::reference ref;
 
-    boost::dll::fs::path       path( "/build/linux_gcc_shared_debug/megatest/install/bin/libTestInterface.so" );
+    boost::dll::fs::path       path( "/build/linux_gcc_shared_debug/basic/install/bin/libTestInterface.so" );
     boost::dll::library_info   libraryInfo( path );
     boost::dll::shared_library library( path );
 

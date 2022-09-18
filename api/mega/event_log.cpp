@@ -34,7 +34,7 @@ bool events::get( mega::event_iterator& iterator, Event& event )
     const char* type;
     mega::AddressStorage address;
     const void* value;
-    std::size_t size;
+    mega::U64 size;
     while( g_eventLogServer->read( iterator, type, address, value, size ) )
     {
         if( 0U == strcmp( type, "stop" ) )
@@ -51,7 +51,7 @@ bool events::get( mega::event_iterator& iterator, RawEvent& event )
     return g_eventLogServer->read( iterator, event.type, event.address, event.value, event.size );
 }
 
-void events::put( const char* type, mega::AddressStorage address, const void* value, std::size_t size )
+void events::put( const char* type, mega::AddressStorage address, const void* value, mega::U64 size )
 {
     g_eventLogServer->write( type, strlen( type ), address, value, size );
 }

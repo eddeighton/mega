@@ -49,6 +49,13 @@ mega::utilities::ToolChain MegastructureInstallation::getToolchainXML() const
 
 boost::filesystem::path MegastructureInstallation::getParserPath() const { return getToolchainXML().parserDllPath; }
 boost::filesystem::path MegastructureInstallation::getClangPath() const { return getToolchainXML().clangCompilerPath; }
+
+boost::filesystem::path MegastructureInstallation::getMegaIncludePath() const
+{
+    VERIFY_RTE( !isEmpty() );
+    return m_installationPath / "include";
+}
+
 boost::filesystem::path MegastructureInstallation::getRuntimeTemplateAllocation() const
 {
     return m_installationPath / "templates/allocation.jinja";

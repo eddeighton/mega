@@ -177,12 +177,12 @@ public:
                 }
 
                 // determine the size
-                std::size_t szSize = 0U;
-                if ( std::optional< std::size_t > sizeOpt
+                ::mega::U64 szSize = 0U;
+                if ( std::optional< ::mega::U64 > sizeOpt
                      = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
                                     ::mega::EG_TRAITS_SIZE ) )
                 {
-                    szSize = static_cast< std::size_t >( sizeOpt.value() );
+                    szSize = static_cast< ::mega::U64 >( sizeOpt.value() );
                 }
                 else
                 {
@@ -191,7 +191,7 @@ public:
 
                 // determine if the type is simple
                 bool bIsSimple = true;
-                if ( std::optional< std::size_t > sizeOpt
+                if ( std::optional< ::mega::U64 > sizeOpt
                      = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
                                     ::mega::EG_TRAITS_SIMPLE ) )
                 {
@@ -221,7 +221,7 @@ public:
             = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, ::mega::EG_SIZE_PREFIX_TRAIT_TYPE );
         if ( dimensionResult.pDeclContext )
         {
-            if ( std::optional< std::size_t > sizeOpt
+            if ( std::optional< ::mega::U64 > sizeOpt
                  = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, loc, ::mega::EG_TRAITS_SIZE ) )
             {
                 m_database.construct< Interface::SizeTrait >(

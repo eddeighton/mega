@@ -21,6 +21,8 @@
 #ifndef EG_STANDARD_STUFF
 #define EG_STANDARD_STUFF
 
+#include "native_types.hpp"
+#include "reference.hpp"
 #include "common.hpp"
 #include "result_type.hpp"
 #include "coroutine.hpp"

@@ -42,7 +42,7 @@ public:
         void* pHeap;
         Index object;
     };
-    AllocationResult allocate( std::size_t szShared, std::size_t szHeap )
+    AllocationResult allocate( mega::U64 szShared, mega::U64 szHeap )
     {
         SharedPtr pShared;
         if ( szShared )
@@ -100,7 +100,7 @@ public:
 
     inline SharedPtr   getShared( Index index ) const { return m_sharedBuffers[ index ]; }
     inline void*       getHeap( Index index ) const { return m_heapBuffers[ index ].get(); }
-    inline std::size_t size() const { return m_sharedBuffers.size() - m_freeList.size(); }
+    inline U64 size() const { return m_sharedBuffers.size() - m_freeList.size(); }
 
 private:
     TSegmentManagerType* m_pSegmentManager;

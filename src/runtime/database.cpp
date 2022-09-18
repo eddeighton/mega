@@ -115,7 +115,7 @@ const FinalStage::Components::Component* DatabaseInstance::getOperationComponent
     return pIContext->get_component();
 }
 
-std::size_t DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
+mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
 {
     using namespace FinalStage;
 
@@ -149,7 +149,7 @@ std::size_t DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) cons
     }
 }
 
-std::size_t DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
+mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
 {
     using namespace FinalStage;
 

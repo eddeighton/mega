@@ -76,7 +76,7 @@ msg TermClearStash
 msg TermCapacity
 {
     request();
-    response(std::size_t capacity);
+    response(mega::U64 capacity);
 }
 
 msg TermShutdown

@@ -52,7 +52,7 @@ bool getContextSymbolIDs( ASTContext* pASTContext, QualType contextType, std::ve
 
 bool getTypePathSymbolIDs( ASTContext* pASTContext, QualType typePath, std::vector< mega::SymbolID >& typePathTypes );
 
-std::optional< std::size_t > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
+std::optional< ::mega::U64 > getConstant( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext,
                                           const SourceLocation& loc, const std::string& strConstantName );
 
 QualType getVariantType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
@@ -65,7 +65,7 @@ QualType getIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext
                                const clang::QualType& interfaceType, const char* pszIteratorTypeName );
 
 QualType getMultiIteratorRangeType( ASTContext* pASTContext, Sema* pSema, DeclContext* pDeclContext, SourceLocation loc,
-                                    const clang::QualType& interfaceType, std::size_t szTargetTypes,
+                                    const clang::QualType& interfaceType, ::mega::U64 szTargetTypes,
                                     const char* pszIteratorTypeName );
 
 QualType getVoidType( ASTContext* pASTContext );

@@ -1,7 +1,7 @@
 #ifndef ROOT_26_MAY_2022
 #define ROOT_26_MAY_2022
 
-#include "execution_context_manager.hpp"
+#include "mpo_manager.hpp"
 #include "logical_address_space.hpp"
 
 #include "service/network/server.hpp"
@@ -43,7 +43,7 @@ private:
     void loadConfig();
     void saveConfig();
 
-    void onDaemonDisconnect( mega::MPE mpe );
+    void onDaemonDisconnect( mega::MPO mpo );
 
 private:
     network::Server                                     m_server;
@@ -51,7 +51,7 @@ private:
     task::Stash                                         m_stash;
     mega::network::RootConfig                           m_config;
     std::optional< network::MegastructureInstallation > m_megastructureInstallationOpt;
-    ExecutionContextManager                             m_ecm;
+    MPOManager                                          m_mpoManager;
     LogicalAddressSpace                                 m_logicalAddressSpace;
 };
 

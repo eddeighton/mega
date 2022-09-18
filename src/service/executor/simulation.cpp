@@ -11,8 +11,6 @@
 #include "service/protocol/model/exe_sim.hxx"
 #include "service/protocol/model/messages.hxx"
 
-#include <boost/asio/execution_context.hpp>
-
 namespace mega
 {
 namespace service
@@ -45,58 +43,58 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
     }
 }
 
-// mega::ExecutionContext
-MPE Simulation::getThisMPE() { return m_executionIndex.value(); }
+// mega::MPOContext
+MPO Simulation::getThisMPO() { return m_mpo.value(); }
 
 mega::reference Simulation::getRoot() { return m_pExecutionRoot->root(); }
 
-std::string Simulation::acquireMemory( MPE mpe )
+std::string Simulation::acquireMemory( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
-    return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( mpe );
+    return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( mpo );
 }
-NetworkAddress Simulation::allocateNetworkAddress( MPE mpe, TypeID objectTypeID )
+NetworkAddress Simulation::allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
 {
     VERIFY_RTE( m_pYieldContext );
-    return NetworkAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocateNetworkAddress( mpe, objectTypeID ) };
-}
-
-void Simulation::deAllocateNetworkAddress( MPE mpe, NetworkAddress networkAddress )
-{
-    VERIFY_RTE( m_pYieldContext );
-    getLeafRequest( *m_pYieldContext ).ExeDeAllocateNetworkAddress( mpe, networkAddress );
+    return NetworkAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocateNetworkAddress( mpo, objectTypeID ) };
 }
 
-void Simulation::stash( const std::string& filePath, std::size_t determinant )
+void Simulation::deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress )
+{
+    VERIFY_RTE( m_pYieldContext );
+    getLeafRequest( *m_pYieldContext ).ExeDeAllocateNetworkAddress( mpo, networkAddress );
+}
+
+void Simulation::stash( const std::string& filePath, mega::U64 determinant )
 {
     VERIFY_RTE( m_pYieldContext );
     getLeafRequest( *m_pYieldContext ).ExeStash( filePath, determinant );
 }
 
-bool Simulation::restore( const std::string& filePath, std::size_t determinant )
+bool Simulation::restore( const std::string& filePath, mega::U64 determinant )
 {
     VERIFY_RTE( m_pYieldContext );
     return getLeafRequest( *m_pYieldContext ).ExeRestore( filePath, determinant );
 }
 
-bool Simulation::readLock( MPE mpe )
+bool Simulation::readLock( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
-    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
     return getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
 }
 
-bool Simulation::writeLock( MPE mpe )
+bool Simulation::writeLock( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
-    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
     return getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id );
 }
 
-void Simulation::releaseLock( MPE mpe )
+void Simulation::releaseLock( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
-    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetExecutionContextID( mpe );
+    const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
     getLeafRequest( *m_pYieldContext ).ExeSimReleaseLock( id );
 }
 
@@ -156,8 +154,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
     {
-        m_executionIndex = getLeafRequest( yield_ctx ).ExeCreateExecutionContext();
-        m_pExecutionRoot = std::make_shared< mega::runtime::ExecutionRoot >( m_executionIndex.value() );
+        m_mpo = getLeafRequest( yield_ctx ).ExeCreateMPO();
+        m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_mpo.value() );
         // SPDLOG_TRACE( "SIM: root acquired {}", getID() );
 
         // issue first clock tick
@@ -211,7 +209,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             }
 
             // process a message
-            SUSPEND_EXECUTION_CONTEXT();
+            SUSPEND_MPO_CONTEXT();
 
             {
                 const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
@@ -231,7 +229,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 } ) )
                 ;
 
-            RESUME_EXECUTION_CONTEXT();
+            RESUME_MPO_CONTEXT();
             // SPDLOG_TRACE( "SIM: Msgs {}", msgs.size() );
 
             // returns whether there was clock tick
@@ -255,10 +253,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "SIM: run: {}", getID() );
-    ExecutionContext::resume( this );
+    MPOContext::resume( this );
     m_pYieldContext = &yield_ctx;
     runSimulation( yield_ctx );
-    ExecutionContext::suspend();
+    MPOContext::suspend();
 }
 
 void Simulation::ExeSimDestroy( const mega::network::ConversationID& requestingConID,

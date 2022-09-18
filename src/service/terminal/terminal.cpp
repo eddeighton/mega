@@ -391,10 +391,10 @@ void Terminal::ClearStash()
     GENERIC_MSG_NO_RESULT( TermClearStash );
 }
 
-std::size_t Terminal::Capacity()
+mega::U64 Terminal::Capacity()
 {
     //
-    GENERIC_MSG( std::size_t, TermCapacity );
+    GENERIC_MSG( mega::U64, TermCapacity );
 }
 
 void Terminal::Shutdown()
