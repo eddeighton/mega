@@ -2,9 +2,9 @@
 #define RUNTIME_18_JUNE_2022
 
 #include "runtime/runtime_functions.hpp"
+#include "runtime/mpo_context.hpp"
 
 #include "mega/common.hpp"
-#include "mega/mpo_context.hpp"
 #include "mega/root.hpp"
 #include "mega/invocation_id.hpp"
 
@@ -31,6 +31,7 @@ public:
 private:
     mega::reference m_root;
 };
+reference get_root( mega::MPO mpo );
 
 void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction );
 void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction );

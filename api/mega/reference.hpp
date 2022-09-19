@@ -12,6 +12,9 @@ using TypeID         = I16;
 using TimeStamp      = U32;
 using event_iterator = U64;
 
+static constexpr char ROOT_TYPE_NAME[] = "Root";
+static constexpr TypeID ROOT_TYPE_ID = 1;
+
 struct TypeInstance
 {
     Instance instance = 0U;

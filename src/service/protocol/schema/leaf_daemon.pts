@@ -228,7 +228,11 @@ msg ToolGetMPOContextID
     request(mega::MPO mpo);
     response(mega::network::ConversationID conversationID);
 }
-
+msg ToolGetMPO
+{
+    request(mega::network::ConversationID conversationID);
+    response(mega::MPO mpo);
+}
 msg ToolSimReadLock
 {
     request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
@@ -243,4 +247,9 @@ msg ToolSimReleaseLock
 {
     request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response();
+}
+msg ToolSimList
+{
+    request();
+    response(std::vector< mega::network::ConversationID > simulationID);
 }

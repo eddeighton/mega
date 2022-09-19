@@ -20,7 +20,7 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     // determine the root concrete type ID
     {
         const auto symbols = m_pSymbolTable->get_symbols();
-        auto       iFind   = symbols.find( "Root" );
+        auto       iFind   = symbols.find( ROOT_TYPE_NAME );
         VERIFY_RTE_MSG( iFind != symbols.end(), "Failed to locate Root symbol" );
         auto pSymbol  = iFind->second;
         auto contexts = pSymbol->get_contexts();
@@ -41,6 +41,7 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         VERIFY_RTE_MSG( concrete.size() == 1U, "Multiple Root symbols defined" );
         auto pConcrete = concrete.front();
         m_rootTypeID   = pConcrete->get_concrete_id();
+        VERIFY_RTE_MSG( m_rootTypeID == 1, "Concrete Root Type ID is NOT one!" );
     }
 }
 

@@ -17,7 +17,8 @@
 #include "service/protocol/model/leaf_tool.hxx"
 
 #include "mega/common.hpp"
-#include "mega/mpo_context.hpp"
+
+#include "runtime/mpo_context.hpp"
 
 #include "common/requireSemicolon.hpp"
 
@@ -507,25 +508,39 @@ public:
         auto result = getDaemonRequest( yield_ctx ).ToolGetMPOContextID( mpo );
         getToolResponse( yield_ctx ).ToolGetMPOContextID( result );
     }
-    virtual void ToolSimReadLock( const mega::network::ConversationID& owningID,const mega::network::ConversationID& simulationID,
+    virtual void ToolGetMPO( const mega::network::ConversationID& conversationID,
+                             boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ToolGetMPO( conversationID );
+        getToolResponse( yield_ctx ).ToolGetMPO( result );
+    }
+    virtual void ToolSimReadLock( const mega::network::ConversationID& owningID,
+                                  const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ToolSimReadLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimReadLock( result );
     }
 
-    virtual void ToolSimWriteLock( const mega::network::ConversationID& owningID,const mega::network::ConversationID& simulationID,
+    virtual void ToolSimWriteLock( const mega::network::ConversationID& owningID,
+                                   const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
         auto result = getDaemonRequest( yield_ctx ).ToolSimWriteLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimWriteLock( result );
     }
 
-    virtual void ToolSimReleaseLock( const mega::network::ConversationID& owningID,const mega::network::ConversationID& simulationID,
+    virtual void ToolSimReleaseLock( const mega::network::ConversationID& owningID,
+                                     const mega::network::ConversationID& simulationID,
                                      boost::asio::yield_context&          yield_ctx ) override
     {
         getDaemonRequest( yield_ctx ).ToolSimReleaseLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimReleaseLock();
+    }
+    virtual void ToolSimList( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ToolSimList();
+        getToolResponse( yield_ctx ).ToolSimList( result );
     }
 };
 

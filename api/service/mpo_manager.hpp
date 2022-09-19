@@ -16,20 +16,20 @@ namespace service
 {
 class MPOManager
 {
-    using MachineAllocator  = mega::RingAllocator< mega::MachineID, mega::MAX_MACHINES >;
-    using ProcessAllocator  = mega::RingAllocator< mega::ProcessID, mega::MAX_PROCESS_PER_MACHINE >;
-    using OwnerAllocator    = mega::RingAllocator< mega::OwnerID, mega::MAX_OWNER_PER_PROCESS >;
+    using MachineAllocator = mega::RingAllocator< mega::MachineID, mega::MAX_MACHINES >;
+    using ProcessAllocator = mega::RingAllocator< mega::ProcessID, mega::MAX_PROCESS_PER_MACHINE >;
+    using OwnerAllocator   = mega::RingAllocator< mega::OwnerID, mega::MAX_OWNER_PER_PROCESS >;
 
 public:
     MPO newDaemon()
     {
         if ( m_machines.full() )
         {
-            THROW_RTE( "Maximum machine capacity reached" );
+            THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
         }
 
         const MPO mpo( m_machines.allocate(), 0U, 0U );
-        SPDLOG_TRACE( "ECM: newDaemon: {}", mpo );
+        SPDLOG_TRACE( "MPOMGR: newDaemon: {}", mpo );
         return mpo;
     }
 
@@ -43,7 +43,7 @@ public:
         {
             alloc.reset();
         }
-        SPDLOG_TRACE( "ECM: daemonDisconnect: {}", mpo );
+        SPDLOG_TRACE( "MPOMGR: daemonDisconnect: {}", mpo );
     }
 
     MPO newLeaf( MPO daemonMPO )
@@ -51,11 +51,11 @@ public:
         ProcessAllocator& alloc = m_processes[ daemonMPO.getMachineID() ];
         if ( alloc.full() )
         {
-            THROW_RTE( "Maximum machine capacity reached" );
+            THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
         }
 
         const MPO mpo( daemonMPO.getMachineID(), alloc.allocate(), 0U );
-        SPDLOG_TRACE( "ECM: newLeaf: {}", mpo );
+        SPDLOG_TRACE( "MPOMGR: newLeaf: {}", mpo );
         return mpo;
     }
 
@@ -63,7 +63,7 @@ public:
     {
         m_processes[ mpo.getMachineID() ].free( mpo.getProcessID() );
         m_owners[ mpo.getMachineID() ][ mpo.getProcessID() ].reset();
-        SPDLOG_TRACE( "ECM: leafDisconnected: {}", mpo );
+        SPDLOG_TRACE( "MPOMGR: leafDisconnected: {}", mpo );
     }
 
     MPO newOwner( MPO leafMPO, const network::ConversationID& conversationID )
@@ -71,10 +71,10 @@ public:
         OwnerAllocator& alloc = m_owners[ leafMPO.getMachineID() ][ leafMPO.getProcessID() ];
         if ( alloc.full() )
         {
-            THROW_RTE( "Maximum machine capacity reached" );
+            THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
         }
         const MPO mpo( leafMPO.getMachineID(), leafMPO.getProcessID(), alloc.allocate() );
-        SPDLOG_TRACE( "ECM: newOwner: {}", mpo );
+        SPDLOG_TRACE( "MPOMgr: newOwner: {} {}", mpo, conversationID );
 
         m_simulations.insert( { mpo, conversationID } );
         m_conversations.insert( { conversationID, mpo } );
@@ -102,14 +102,14 @@ public:
     const network::ConversationID& get( mega::MPO mpo ) const
     {
         auto iFind = m_simulations.find( mpo );
-        VERIFY_RTE_MSG( iFind != m_simulations.end(), "Could not find mpo" );
+        VERIFY_RTE_MSG( iFind != m_simulations.end(), "MPOMgr: Could not find mpo" );
         return iFind->second;
     }
 
     mega::MPO get( const network::ConversationID& simID ) const
     {
         auto iFind = m_conversations.find( simID );
-        VERIFY_RTE_MSG( iFind != m_conversations.end(), "Could not find simID: " << simID );
+        VERIFY_RTE_MSG( iFind != m_conversations.end(), "MPOMgr: Could not find simID: " << simID );
         return iFind->second;
     }
 

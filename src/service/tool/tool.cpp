@@ -2,11 +2,12 @@
 #include "service/tool.hpp"
 
 #include "mega/common.hpp"
-#include "mega/mpo_context.hpp"
 #include "mega/root.hpp"
 
 #include "runtime/runtime.hpp"
+#include "runtime/mpo_context.hpp"
 
+#include "service/lock_tracker.hpp"
 #include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/network.hpp"
@@ -121,10 +122,40 @@ public:
         MPOContext::suspend();
     }
 
-    // mega::MPOContext
-    virtual MPO getThisMPO() override { return m_mpo.value(); }
+    virtual SimIDVector getSimulationIDs() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getToolRequest( *m_pYieldContext ).ToolSimList();
+    }
+
+    virtual SimID createSimulation() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        SimID result;
+        return result;
+    }
+
+    virtual mega::reference getRoot( const SimID& simID ) override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        mega::reference result;
+
+        auto toolRequest = getToolRequest( *m_pYieldContext );
+        //if( toolRequest.ToolSimReadLock( getID(), simID ) )
+        {
+            const MPO mpo = toolRequest.ToolGetMPO( simID );
+            return runtime::get_root( mpo );
+        }
+        //else
+        //{
+        //    THROW_RTE( "Failed to acquire read lock on simID: " << simID );
+        //}
+    }
 
     mega::reference getRoot() override { return m_pExecutionRoot->root(); }
+
+    // mega::MPOContext
+    virtual MPO getThisMPO() override { return m_mpo.value(); }
 
     virtual std::string acquireMemory( MPO mpo ) override
     {
@@ -161,7 +192,16 @@ public:
         // SPDLOG_TRACE( "readLock from: {} to: {}", m_mpo.value(), mpo );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
-        return getToolRequest( *m_pYieldContext ).ToolSimReadLock( getID(), id );
+
+        if ( getToolRequest( *m_pYieldContext ).ToolSimReadLock( getID(), id ) )
+        {
+            m_lockTracker.onRead( mpo );
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     virtual bool writeLock( MPO mpo ) override
@@ -169,7 +209,15 @@ public:
         // SPDLOG_TRACE( "writeLock from: {} to: {}", m_mpo.value(), mpo );
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
-        return getToolRequest( *m_pYieldContext ).ToolSimWriteLock( getID(), id );
+        if ( getToolRequest( *m_pYieldContext ).ToolSimWriteLock( getID(), id ) )
+        {
+            m_lockTracker.onWrite( mpo );
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     virtual void releaseLock( MPO mpo ) override
@@ -178,11 +226,13 @@ public:
         VERIFY_RTE( m_pYieldContext );
         const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
         getToolRequest( *m_pYieldContext ).ToolSimReleaseLock( getID(), id );
+        m_lockTracker.onRelease( mpo );
     }
 
     boost::asio::yield_context*               m_pYieldContext = nullptr;
     std::optional< mega::MPO >                m_mpo;
     std::shared_ptr< mega::runtime::MPORoot > m_pExecutionRoot;
+    LockTracker                               m_lockTracker;
 };
 
 Tool::Tool()

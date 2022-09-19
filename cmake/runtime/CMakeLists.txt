@@ -27,6 +27,7 @@ set( JINJA_TEMPLATES
 set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/runtime/runtime_functions.hpp
     ${MEGA_API_DIR}/runtime/runtime.hpp
+    ${MEGA_API_DIR}/runtime/mpo_context.hpp
 )
 
 set( RUNTIME_SOURCE

@@ -562,6 +562,12 @@ public:
         auto result = getRootRequest( yield_ctx ).DaemonGetMPOContextID( mpo );
         getStackTopLeafResponse( yield_ctx ).ToolGetMPOContextID( result );
     }
+    virtual void ToolGetMPO( const mega::network::ConversationID& conversationID,
+                             boost::asio::yield_context&          yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).DaemonGetMPO( conversationID );
+        getStackTopLeafResponse( yield_ctx ).ToolGetMPO( result );
+    }
     virtual void ToolSimReadLock( const mega::network::ConversationID& owningID,
                                   const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
@@ -608,6 +614,11 @@ public:
             getRootRequest( yield_ctx ).ToolSimReleaseLock( owningID, simulationID );
         }
         getStackTopLeafResponse( yield_ctx ).ToolSimReleaseLock();
+    }
+    virtual void ToolSimList( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ToolSimList();
+        getStackTopLeafResponse( yield_ctx ).ToolSimList( result );
     }
 };
 

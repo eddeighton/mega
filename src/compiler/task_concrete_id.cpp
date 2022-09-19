@@ -128,6 +128,8 @@ public:
             using namespace ConcreteTypeAnalysis;
             using namespace ConcreteTypeAnalysis::Symbols;
 
+            bool bFoundRoot = false;
+
             std::set< mega::I32 > symbolLabels;
             {
                 for ( IDPathToSymbolMap::iterator i = globalIDPathToSymbolMap.begin();
@@ -135,6 +137,20 @@ public:
                       ++i )
                 {
                     ConcreteSymbol* pSymbol = i->second;
+
+                    // pSymbol->get_context()->get_interface()
+                    //  if the symbol is the root then set to 1
+                    if ( dynamic_database_cast< Interface::Root >(
+                             pSymbol->get_context()->get_interface()->get_parent() ) )
+                    {
+                        if ( pSymbol->get_context()->get_interface()->get_identifier() == ROOT_TYPE_NAME )
+                        {
+                            VERIFY_RTE_MSG( !bFoundRoot, "Found duplicate Roots" );
+                            pSymbol->set_id( mega::ROOT_TYPE_ID );
+                            bFoundRoot = true;
+                        }
+                    }
+
                     if ( pSymbol->get_id() != 0 ) // zero means not set
                     {
                         VERIFY_RTE( !symbolLabels.count( pSymbol->get_id() ) );
@@ -142,9 +158,10 @@ public:
                     }
                 }
             }
+            VERIFY_RTE_MSG( bFoundRoot, "Failed to find Root symbol" );
 
             std::set< mega::I32 >::iterator labelIter   = symbolLabels.begin();
-            mega::I32                       szNextLabel = 1;
+            mega::I32                       szNextLabel = 2;
             for ( IDPathToSymbolMap::iterator i = globalIDPathToSymbolMap.begin(); i != globalIDPathToSymbolMap.end();
                   ++i )
             {

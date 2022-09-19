@@ -4,6 +4,7 @@
 
 #include "request.hpp"
 
+#include "service/lock_tracker.hpp"
 #include "service/state_machine.hpp"
 #include "service/network/sender.hpp"
 #include "service/protocol/common/header.hpp"
@@ -11,7 +12,6 @@
 
 #include "mega/common.hpp"
 #include "mega/basic_scheduler.hpp"
-#include "mega/mpo_context.hpp"
 #include "mega/root.hpp"
 
 namespace mega
@@ -57,21 +57,27 @@ public:
                                     const mega::network::ConversationID& simulationID,
                                     boost::asio::yield_context&          yield_ctx ) override;
 
-    // mega::MPOContext
-    virtual MPO             getThisMPO() override;
+    // mega::MPOContext - native code interface
+    virtual SimIDVector     getSimulationIDs() override;
+    virtual SimID           createSimulation() override;
+    virtual mega::reference getRoot( const SimID& simID ) override;
     virtual mega::reference getRoot() override;
-    virtual std::string     acquireMemory( MPO mpo ) override;
-    virtual NetworkAddress  allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override;
-    virtual void            deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override;
-    virtual void            stash( const std::string& filePath, mega::U64 determinant ) override;
-    virtual bool            restore( const std::string& filePath, mega::U64 determinant ) override;
-    virtual bool            readLock( MPO mpo ) override;
-    virtual bool            writeLock( MPO mpo ) override;
-    virtual void            releaseLock( MPO mpo ) override;
+
+    // mega::MPOContext - runtime internal interface
+    virtual MPO            getThisMPO() override;
+    virtual std::string    acquireMemory( MPO mpo ) override;
+    virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override;
+    virtual void           deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override;
+    virtual void           stash( const std::string& filePath, mega::U64 determinant ) override;
+    virtual bool           restore( const std::string& filePath, mega::U64 determinant ) override;
+    virtual bool           readLock( MPO mpo ) override;
+    virtual bool           writeLock( MPO mpo ) override;
+    virtual void           releaseLock( MPO mpo ) override;
 
 private:
     void issueClock();
     void clock();
+    void cycle();
     void runSimulation( boost::asio::yield_context& yield_ctx );
     void acknowledgeMessage( const network::ChannelMsg&                            msg,
                              const std::optional< mega::network::ConversationID >& requestingID,
@@ -89,6 +95,7 @@ private:
     SimulationStateMachine                               m_stateMachine;
     boost::asio::steady_timer                            m_timer;
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
+    LockTracker                                          m_lockTracker;
 };
 
 } // namespace service

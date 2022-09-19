@@ -2,7 +2,10 @@
 #include "service/executor/simulation.hpp"
 
 #include "mega/common.hpp"
+
 #include "runtime/runtime.hpp"
+#include "runtime/mpo_context.hpp"
+
 #include "service/executor.hpp"
 
 #include "service/network/conversation.hpp"
@@ -43,10 +46,13 @@ void Simulation::error( const network::ConnectionID& connectionID, const std::st
     }
 }
 
+Simulation::SimIDVector Simulation::getSimulationIDs() { THROW_RTE( "Unsupported getSimulationIDs from simulation" ); }
+Simulation::SimID       Simulation::createSimulation() { THROW_RTE( "Unsupported createSimulation from simulation" ); }
+mega::reference Simulation::getRoot( const SimID& simID ) { THROW_RTE( "Unsupported getRoot from simulation" ); }
+mega::reference Simulation::getRoot() { return m_pExecutionRoot->root(); }
+
 // mega::MPOContext
 MPO Simulation::getThisMPO() { return m_mpo.value(); }
-
-mega::reference Simulation::getRoot() { return m_pExecutionRoot->root(); }
 
 std::string Simulation::acquireMemory( MPO mpo )
 {
@@ -81,14 +87,30 @@ bool Simulation::readLock( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
-    return getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id );
+    if ( getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id ) )
+    {
+        m_lockTracker.onRead( mpo );
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 bool Simulation::writeLock( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
-    return getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id );
+    if ( getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id ) )
+    {
+        m_lockTracker.onWrite( mpo );
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void Simulation::releaseLock( MPO mpo )
@@ -96,6 +118,7 @@ void Simulation::releaseLock( MPO mpo )
     VERIFY_RTE( m_pYieldContext );
     const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
     getLeafRequest( *m_pYieldContext ).ExeSimReleaseLock( id );
+    m_lockTracker.onRelease( mpo );
 }
 
 void Simulation::acknowledgeMessage( const network::ChannelMsg&                            msg,
@@ -140,7 +163,7 @@ void Simulation::issueClock()
 
 void Simulation::clock()
 {
-    SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
+    //SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
     // send the clock tick msg
     using namespace network::exe_sim;
     const network::Message    msg = MSG_ExeExeClock_Request::make( MSG_ExeExeClock_Request{} );
@@ -150,13 +173,20 @@ void Simulation::clock()
     m_requestChannel.async_send( ec, channelMsg, []( boost::system::error_code ec ) {} );
 }
 
+void Simulation::cycle()
+{
+    m_scheduler.cycle();
+
+    // submit all transactions...
+}
+
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
     {
-        m_mpo = getLeafRequest( yield_ctx ).ExeCreateMPO();
+        m_mpo            = getLeafRequest( yield_ctx ).ExeCreateMPO();
         m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_mpo.value() );
-        // SPDLOG_TRACE( "SIM: root acquired {}", getID() );
+        SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
         // issue first clock tick
         issueClock();
@@ -182,8 +212,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case SimulationStateMachine::SIM:
                 {
-                    SPDLOG_TRACE( "SIM: SIM {}", getID() );
-                    m_scheduler.cycle();
+                    //SPDLOG_TRACE( "SIM: SIM {}", getID() );
+                    cycle();
                 }
                 break;
                 case SimulationStateMachine::READ:

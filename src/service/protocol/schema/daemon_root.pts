@@ -21,6 +21,11 @@ msg DaemonGetMPOContextID
     request(mega::MPO mpo);
     response(mega::network::ConversationID conversationID);
 }
+msg DaemonGetMPO
+{
+    request(mega::network::ConversationID conversationID);
+    response(mega::MPO mpo);
+}
 
 msg TermListNetworkNodes
 {
@@ -238,4 +243,9 @@ msg ToolSimReleaseLock
 {
     request(mega::network::ConversationID owningID,mega::network::ConversationID simulationID);
     response();
+}
+msg ToolSimList
+{
+    request();
+    response(std::vector< mega::network::ConversationID > simulationID);
 }

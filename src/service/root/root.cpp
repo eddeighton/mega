@@ -2,7 +2,8 @@
 #include "service/root.hpp"
 
 #include "mega/common.hpp"
-#include "mega/mpo_context.hpp"
+
+#include "runtime/mpo_context.hpp"
 
 #include "service/network/conversation.hpp"
 #include "service/network/network.hpp"
@@ -49,6 +50,19 @@ class RootRequestConversation : public network::InThreadConversation, public net
 {
 protected:
     Root& m_root;
+
+    std::vector< network::ConversationID > getSimulationIDs( boost::asio::yield_context& yield_ctx )
+    {
+        std::vector< network::ConversationID > simulationIDs;
+        {
+            for ( const auto& [ id, pDeamon ] : m_root.m_server.getConnections() )
+            {
+                auto simIDs = getDaemonRequest( pDeamon, yield_ctx ).RootSimList();
+                std::copy( simIDs.begin(), simIDs.end(), std::back_inserter( simulationIDs ) );
+            }
+        }
+        return simulationIDs;
+    }
 
 public:
     RootRequestConversation( Root&                          root,
@@ -139,6 +153,12 @@ public:
     {
         const network::ConversationID& conversationID = m_root.m_mpoManager.get( mpo );
         getStackTopDaemonResponse( yield_ctx ).DaemonGetMPOContextID( conversationID );
+    }
+    virtual void DaemonGetMPO( const mega::network::ConversationID& conversationID,
+                               boost::asio::yield_context&          yield_ctx ) override
+    {
+        const mega::MPO mpo = m_root.m_mpoManager.get( conversationID );
+        getStackTopDaemonResponse( yield_ctx ).DaemonGetMPO( mpo );
     }
 
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
@@ -275,16 +295,8 @@ public:
 
     virtual void TermSimList( boost::asio::yield_context& yield_ctx ) override
     {
-        std::vector< network::ConversationID > simulationIDs;
-
-        for ( const auto& [ id, pDeamon ] : m_root.m_server.getConnections() )
-        {
-            auto simIDs = getDaemonRequest( pDeamon, yield_ctx ).RootSimList();
-            std::copy( simIDs.begin(), simIDs.end(), std::back_inserter( simulationIDs ) );
-        }
-
-        auto daemon = getStackTopDaemonResponse( yield_ctx );
-        daemon.TermSimList( simulationIDs );
+        auto result = getSimulationIDs( yield_ctx );
+        getStackTopDaemonResponse( yield_ctx ).TermSimList( result );
     }
 
     virtual void TermSimReadLock( const mega::network::ConversationID& owningID,
@@ -501,6 +513,11 @@ public:
         VERIFY_RTE( pDaemon.has_value() );
         pDaemon->RootSimReleaseLock( owningID, simulationID );
         getStackTopDaemonResponse( yield_ctx ).ToolSimReleaseLock();
+    }
+    virtual void ToolSimList( boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getSimulationIDs( yield_ctx );
+        getStackTopDaemonResponse( yield_ctx ).ToolSimList( result );
     }
 };
 

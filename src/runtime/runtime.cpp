@@ -1,6 +1,7 @@
 
 
 #include "runtime/runtime.hpp"
+#include "runtime/mpo_context.hpp"
 
 #include "address_space.hpp"
 #include "jit.hpp"
@@ -14,7 +15,6 @@
 #include "mega/common.hpp"
 #include "mega/default_traits.hpp"
 #include "mega/shared_allocator.hpp"
-#include "mega/mpo_context.hpp"
 
 #include "common/assert_verify.hpp"
 
@@ -136,7 +136,7 @@ class Runtime
     private:
         Runtime&     m_runtime;
         mega::TypeID m_objectTypeID;
-        mega::U64  m_szSizeShared, m_szSizeHeap;
+        mega::U64    m_szSizeShared, m_szSizeHeap;
         IndexPtrMap  m_index;
 
         SetAllocatorFunction m_pSetAllocator = nullptr;
@@ -177,10 +177,9 @@ class Runtime
         {
             MPOContext* pMPOContext = MPOContext::get();
             VERIFY_RTE( pMPOContext );
-            const std::string                         strMemory = pMPOContext->acquireMemory( mpo );
-            std::unique_ptr< MPOContextMemory > pMemoryPtr
-                = std::make_unique< MPOContextMemory >( strMemory );
-            MPOContextMemory* pMemory = pMemoryPtr.get();
+            const std::string                   strMemory  = pMPOContext->acquireMemory( mpo );
+            std::unique_ptr< MPOContextMemory > pMemoryPtr = std::make_unique< MPOContextMemory >( strMemory );
+            MPOContextMemory*                   pMemory    = pMemoryPtr.get();
             m_executionContextMemory.insert( { mpo, std::move( pMemoryPtr ) } );
             return pMemory->getShared();
         }
@@ -227,7 +226,10 @@ public:
         if ( pMPOContext->getThisMPO() != mpo )
         {
             // request write lock
-            //pMPOContext->writeLock( mpo );
+            if ( !pMPOContext->writeLock( mpo ) )
+            {
+                // TODO - write lock refused - probably due to error
+            }
         }
 
         ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
@@ -246,18 +248,47 @@ public:
         }
     }
 
-    mega::reference allocateRoot( const mega::MPO& mpo )
+    mega::reference getRoot( const mega::MPO& mpo )
     {
-        SPDLOG_TRACE( "RUNTIME: allocateRoot: {}", mpo );
+        SPDLOG_TRACE( "RUNTIME: getRoot: {}", mpo );
 
-        const TypeID         rootType           = m_database.getRootTypeID();
-        const NetworkAddress rootNetworkAddress = allocateNetworkAddress( mpo, rootType );
-        const reference      ref                = networkToMachine( mpo, rootType, rootNetworkAddress );
-        VERIFY_RTE( mpo == ref );
-        m_executionContextRoot.insert( { mpo, ref } );
+        auto iFind = m_executionContextRoot.find( mpo );
+        if ( iFind != m_executionContextRoot.end() )
+        {
+            return iFind->second;
+        }
+        else
+        {
+            MPOContext* pMPOContext = MPOContext::get();
+            VERIFY_RTE( pMPOContext );
 
-        SPDLOG_TRACE( "RUNTIME: allocateRoot: {}", ref );
-        return ref;
+            const MPO thisMPO = pMPOContext->getThisMPO();
+
+            SPDLOG_TRACE( "RUNTIME: getRoot: {} from {}", mpo, thisMPO );
+
+            if ( thisMPO.getMachineID() != mpo.getMachineID() )
+            {
+                // root is on different machine so request it
+                reference ref;
+                return ref;
+            }
+            else if ( thisMPO.getProcessID() != mpo.getProcessID() )
+            {
+                // root in different process so should be in shared memory
+                reference ref;
+                return ref;
+            }
+            else
+            {
+                // root belongs to this process so its not created yet so create it
+                const TypeID         rootType           = m_database.getRootTypeID();
+                const NetworkAddress rootNetworkAddress = allocateNetworkAddress( mpo, rootType );
+                const reference      ref                = networkToMachine( mpo, rootType, rootNetworkAddress );
+                VERIFY_RTE( mpo == ref );
+                m_executionContextRoot.insert( { mpo, ref } );
+                return ref;
+            }
+        }
     }
 
     void deAllocateRoot( const mega::MPO& mpo )
@@ -518,17 +549,17 @@ private:
     const mega::network::MegastructureInstallation m_megastructureInstallation;
     const mega::network::Project                   m_project;
     std::mutex                                     m_jitMutex;
-    
-    JITCompiler                                    m_jitCompiler;
-    CodeGenerator                                  m_codeGenerator;
-    DatabaseInstance                               m_database;
-    ComponentManager                               m_componentManager;
-    AddressSpace                                   m_addressSpace;
+
+    JITCompiler      m_jitCompiler;
+    CodeGenerator    m_codeGenerator;
+    DatabaseInstance m_database;
+    ComponentManager m_componentManager;
+    AddressSpace     m_addressSpace;
 
     // these three are order dependent - m_executionContextMemory owns the shared memory
-    MPOContextMemoryMap                      m_executionContextMemory;
-    ObjectTypeAllocatorMap                         m_objectTypeAllocatorMapping;
-    MPOContextRoot                           m_executionContextRoot;
+    MPOContextMemoryMap    m_executionContextMemory;
+    ObjectTypeAllocatorMap m_objectTypeAllocatorMapping;
+    MPOContextRoot         m_executionContextRoot;
 
     // use unordered_map
     using InvocationMap = std::map< mega::InvocationID, JITCompiler::Module::Ptr >;
@@ -620,11 +651,13 @@ void initialiseRuntime( const mega::network::MegastructureInstallation& megastru
 bool isRuntimeInitialised() { return isStaticRuntimeInitialised(); }
 
 MPORoot::MPORoot( mega::MPO mpo )
-    : m_root( g_pRuntime->allocateRoot( mpo ) )
+    : m_root( g_pRuntime->getRoot( mpo ) )
 {
 }
 
 MPORoot::~MPORoot() { g_pRuntime->deAllocateRoot( m_root ); }
+
+reference get_root( mega::MPO mpo ) { return g_pRuntime->getRoot( mpo ); }
 
 void get_allocate( const char* pszUnitName, const mega::InvocationID& invocationID, AllocateFunction* ppFunction )
 {
