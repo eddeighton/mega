@@ -396,6 +396,11 @@ void generateBufferFPtrCheck( bool bShared, mega::TypeID id, std::ostream& os )
        << "mega::runtime::get_getter_" << strType << "( g_pszModuleName, " << id << ", &_fptr_get_" << strType << "_"
        << id << " );\n";
 }
+void generateReferenceCheck( bool bShared, mega::TypeID id, const std::string& strInstanceVar, std::ostream& os )
+{
+    os << indent << "if( " << strInstanceVar << ".isNetwork() ) " << strInstanceVar << " = mega::runtime::networkToMachine( " << id
+       << ", " << strInstanceVar << ".network );\n";
+}
 void generateBufferRead( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
                          const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
                          std::ostream& os )
@@ -403,7 +408,7 @@ void generateBufferRead( bool bShared, mega::TypeID id, FinalStage::MemoryLayout
     const std::string strType = bShared ? "shared" : "heap";
     os << indent << "return (char*)_fptr_get_" << strType << "_" << id << "( " << strInstanceVar << " )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
-       << pDimension->get_offset() << ";";
+       << pDimension->get_offset() << ";\n";
 }
 
 void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
@@ -535,16 +540,20 @@ void generateInstructions( const DatabaseInstance&                             d
 
         if ( Allocate* pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
         {
-            Concrete::Context* pConcreteTarget = pAllocate->get_concrete_target();
+            Variables::Instance* pInstance       = pAllocate->get_instance();
+            Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
 
             std::ostringstream os;
             os << indent << "// Allocate\n";
+            generateReferenceCheck(
+                false, pInstance->get_concrete()->get_concrete_id(), get( variables, pInstance ), os );
+
             os << indent
                << "const mega::NetworkAddress networkAddress = mega::runtime::allocateNetworkAddress( "
                   "context, "
                << pConcreteTarget->get_concrete_id() << " );\n";
 
-            os << indent << "mega::reference result = mega::runtime::networkToMachine( context, "
+            os << indent << "mega::reference result = mega::runtime::allocateMachineAddress( context, "
                << pConcreteTarget->get_concrete_id() << ", networkAddress );\n";
             os << indent << "return result;\n";
 
@@ -558,6 +567,8 @@ void generateInstructions( const DatabaseInstance&                             d
             std::ostringstream os;
             {
                 os << indent << "// Call Operation\n";
+                generateReferenceCheck(
+                    false, pInstance->get_concrete()->get_concrete_id(), get( variables, pInstance ), os );
 
                 std::ostringstream osCall;
                 osCall << "_fptr_call_" << pConcreteTarget->get_concrete_id();
@@ -641,6 +652,7 @@ void generateInstructions( const DatabaseInstance&                             d
                 std::ostringstream os;
                 os << indent << "// Read Operation\n";
                 generateBufferFPtrCheck( bSimple, id, os );
+                generateReferenceCheck( bSimple, id, get( variables, pInstance ), os );
                 generateBufferRead( bSimple, id, pPart, get( variables, pInstance ), pDimension, os );
                 data[ "assignments" ].push_back( os.str() );
             }
@@ -659,6 +671,7 @@ void generateInstructions( const DatabaseInstance&                             d
                 std::ostringstream os;
                 os << indent << "// Write Operation\n";
                 generateBufferFPtrCheck( bSimple, id, os );
+                generateReferenceCheck( bSimple, id, get( variables, pInstance ), os );
                 generateBufferWrite( bSimple, id, pPart, get( variables, pInstance ), pDimension, os );
                 data[ "assignments" ].push_back( os.str() );
             }

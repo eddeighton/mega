@@ -63,6 +63,16 @@ msg ExeAcquireMemory
     request(mega::MPO mpo);
     response(std::string strMemoryName);
 }
+msg ExeGetRootNetworkAddress
+{
+    request(mega::MPO mpo);
+    response(mega::AddressStorage networkAddress);
+}
+msg ExeGetNetworkAddressMPO
+{
+    request(mega::AddressStorage networkAddress);
+    response(mega::MPO mpo);
+}
 msg ExeAllocateNetworkAddress
 {
     request(mega::MPO mpo, mega::TypeID objectTypeID);

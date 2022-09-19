@@ -26,7 +26,7 @@ set( JINJA_TEMPLATES
 
 set( RUNTIME_HEADERS
     ${MEGA_API_DIR}/runtime/runtime_functions.hpp
-    ${MEGA_API_DIR}/runtime/runtime.hpp
+    ${MEGA_API_DIR}/runtime/runtime_api.hpp
     ${MEGA_API_DIR}/runtime/mpo_context.hpp
 )
 
@@ -37,7 +37,12 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/code_generator.cpp
     ${MEGA_SRC_DIR}/runtime/database.hpp
     ${MEGA_SRC_DIR}/runtime/database.cpp
+    ${MEGA_SRC_DIR}/runtime/runtime.hpp
     ${MEGA_SRC_DIR}/runtime/runtime.cpp
+    ${MEGA_SRC_DIR}/runtime/object_allocator.hpp
+    ${MEGA_SRC_DIR}/runtime/object_allocator.cpp
+    ${MEGA_SRC_DIR}/runtime/runtime_api.cpp
+    ${MEGA_SRC_DIR}/runtime/symbol_utils.hpp
 )
 
 add_library( runtime

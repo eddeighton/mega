@@ -166,7 +166,16 @@ msg ExeCreateMPO
     request(mega::MPO mpo);
     response(mega::MPO result);
 }
-
+msg ExeGetRootNetworkAddress
+{
+    request(mega::MPO mpo);
+    response(mega::AddressStorage networkAddress);
+}
+msg ExeGetNetworkAddressMPO
+{
+    request(mega::AddressStorage networkAddress);
+    response(mega::MPO mpo);
+}
 msg ExeAllocateNetworkAddress
 {
     request(mega::MPO mpo, mega::TypeID objectTypeID);
@@ -207,6 +216,16 @@ msg ToolCreateMPO
     response(mega::MPO result); 
 }
 
+msg ToolGetRootNetworkAddress
+{
+    request(mega::MPO mpo);
+    response(mega::AddressStorage networkAddress);
+}
+msg ToolGetNetworkAddressMPO
+{
+    request(mega::AddressStorage networkAddress);
+    response(mega::MPO mpo);
+}
 msg ToolAllocateNetworkAddress
 {
     request(mega::MPO mpo, mega::TypeID objectTypeID);

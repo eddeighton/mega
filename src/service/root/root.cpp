@@ -408,6 +408,17 @@ public:
         auto daemon = getStackTopDaemonResponse( yield_ctx );
         daemon.ToolGetMegastructureInstallation( m_root.getMegastructureInstallation() );
     }
+    virtual void ExeGetRootNetworkAddress( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    {
+        const auto result = m_root.m_logicalAddressSpace.getRootNetworkAddress( mpo );
+        getStackTopDaemonResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
+    }
+    virtual void ExeGetNetworkAddressMPO( const mega::AddressStorage& networkAddress,
+                                          boost::asio::yield_context& yield_ctx ) override
+    {
+        const auto result = m_root.m_logicalAddressSpace.getNetworkAddressMPO( networkAddress );
+        getStackTopDaemonResponse( yield_ctx ).ExeGetNetworkAddressMPO( result );
+    }
     virtual void ExeAllocateNetworkAddress( const mega::MPO&            mpo,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
@@ -456,6 +467,17 @@ public:
         getStackTopDaemonResponse( yield_ctx ).ToolCreateMPO( result );
     }
 
+    virtual void ToolGetRootNetworkAddress( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = m_root.m_logicalAddressSpace.getRootNetworkAddress( mpo );
+        getStackTopDaemonResponse( yield_ctx ).ToolGetRootNetworkAddress( result );
+    }
+    virtual void ToolGetNetworkAddressMPO( const mega::AddressStorage& networkAddress,
+                                           boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = m_root.m_logicalAddressSpace.getNetworkAddressMPO( networkAddress );
+        getStackTopDaemonResponse( yield_ctx ).ToolGetNetworkAddressMPO( result );
+    }
     virtual void ToolAllocateNetworkAddress( const mega::MPO&            mpo,
                                              const mega::TypeID&         objectTypeID,
                                              boost::asio::yield_context& yield_ctx ) override

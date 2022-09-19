@@ -40,8 +40,7 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         VERIFY_RTE_MSG( concrete.size() > 0U, "Failed to locate Root symbol" );
         VERIFY_RTE_MSG( concrete.size() == 1U, "Multiple Root symbols defined" );
         auto pConcrete = concrete.front();
-        m_rootTypeID   = pConcrete->get_concrete_id();
-        VERIFY_RTE_MSG( m_rootTypeID == 1, "Concrete Root Type ID is NOT one!" );
+        VERIFY_RTE_MSG( pConcrete->get_concrete_id() == 1, "Concrete Root Type ID is NOT one!" );
     }
 }
 
@@ -179,8 +178,6 @@ mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
         return 1;
     }
 }
-
-mega::TypeID DatabaseInstance::getRootTypeID() const { return m_rootTypeID; }
 
 } // namespace runtime
 } // namespace mega

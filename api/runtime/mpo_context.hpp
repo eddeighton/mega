@@ -32,6 +32,8 @@ public:
     // runtime internal interface
     virtual MPO            getThisMPO()                                                       = 0;
     virtual std::string    acquireMemory( MPO mpo )                                           = 0;
+    virtual MPO            getNetworkAddressMPO( NetworkAddress networkAddress )              = 0;
+    virtual NetworkAddress getRootNetworkAddress( MPO mpo )                                   = 0;
     virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID )             = 0;
     virtual void           deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) = 0;
     virtual void           stash( const std::string& filePath, mega::U64 determinant )        = 0;

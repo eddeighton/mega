@@ -36,7 +36,9 @@ struct CallResult
 using CallFunction = CallResult ( * )( reference );
 
 NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID );
-reference      networkToMachine( MPO mpo, TypeID objectTypeID, NetworkAddress networkAddress );
+reference      allocateMachineAddress( MPO mpo, TypeID objectTypeID, NetworkAddress networkAddress );
+reference      networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress );
+
 void           get_getter_heap( const char* pszUnitName, TypeID objectTypeID, GetHeapFunction* ppFunction );
 void           get_getter_shared( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
 void           get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );

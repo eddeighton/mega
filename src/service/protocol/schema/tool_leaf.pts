@@ -17,6 +17,16 @@ msg ToolAcquireMemory
     request(mega::MPO mpo);
     response(std::string strMemoryName);
 }
+msg ToolGetRootNetworkAddress
+{
+    request(mega::MPO mpo);
+    response(mega::AddressStorage networkAddress);
+}
+msg ToolGetNetworkAddressMPO
+{
+    request(mega::AddressStorage networkAddress);
+    response(mega::MPO mpo);
+}
 msg ToolAllocateNetworkAddress
 {
     request(mega::MPO mpo, mega::TypeID objectTypeID);

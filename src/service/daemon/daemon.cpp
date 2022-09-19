@@ -296,6 +296,17 @@ public:
         getStackTopLeafResponse( yield_ctx ).ExeAcquireMemory( strMemory );
     }
 
+    virtual void ExeGetRootNetworkAddress( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ExeGetRootNetworkAddress( mpo );
+        getStackTopLeafResponse( yield_ctx ).ExeGetRootNetworkAddress( result );
+    }
+    virtual void ExeGetNetworkAddressMPO( const mega::AddressStorage& networkAddress,
+                                          boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ExeGetNetworkAddressMPO( networkAddress );
+        getStackTopLeafResponse( yield_ctx ).ExeGetNetworkAddressMPO( result );
+    }
     virtual void ExeAllocateNetworkAddress( const mega::MPO&            mpo,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
@@ -526,6 +537,17 @@ public:
         const network::ConversationID conversationID = getRootRequest( yield_ctx ).DaemonGetMPOContextID( mpo );
         const std::string             strMemory      = m_daemon.m_sharedMemoryManager.acquire( conversationID );
         getStackTopLeafResponse( yield_ctx ).ToolAcquireMemory( strMemory );
+    }
+    virtual void ToolGetRootNetworkAddress( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ToolGetRootNetworkAddress( mpo );
+        getStackTopLeafResponse( yield_ctx ).ToolGetRootNetworkAddress( result );
+    }
+    virtual void ToolGetNetworkAddressMPO( const mega::AddressStorage& networkAddress,
+                                           boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getRootRequest( yield_ctx ).ToolGetNetworkAddressMPO( networkAddress );
+        getStackTopLeafResponse( yield_ctx ).ToolGetNetworkAddressMPO( result );
     }
     virtual void ToolAllocateNetworkAddress( const mega::MPO&            mpo,
                                              const mega::TypeID&         objectTypeID,

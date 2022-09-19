@@ -61,9 +61,9 @@ public:
         return result;
     }
 
-    void insert( NetworkAddress networkAddress, MachineAddress machineAddress )
+    bool insert( NetworkAddress networkAddress, MachineAddress machineAddress )
     {
-        m_addressMapping.insert( { networkAddress, machineAddress } );
+        return m_addressMapping.insert( { networkAddress, machineAddress } ).second;
     }
 
 private:

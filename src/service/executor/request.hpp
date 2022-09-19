@@ -8,7 +8,7 @@
 #include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/exe_leaf.hxx"
 
-#include "runtime/runtime.hpp"
+#include "runtime/runtime_api.hpp"
 
 namespace mega
 {

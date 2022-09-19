@@ -66,6 +66,8 @@ public:
     // mega::MPOContext - runtime internal interface
     virtual MPO            getThisMPO() override;
     virtual std::string    acquireMemory( MPO mpo ) override;
+    virtual MPO            getNetworkAddressMPO( NetworkAddress networkAddress ) override;
+    virtual NetworkAddress getRootNetworkAddress( MPO mpo ) override;
     virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override;
     virtual void           deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override;
     virtual void           stash( const std::string& filePath, mega::U64 determinant ) override;

@@ -3,7 +3,7 @@
 
 #include "mega/common.hpp"
 
-#include "runtime/runtime.hpp"
+#include "runtime/runtime_api.hpp"
 #include "runtime/mpo_context.hpp"
 
 #include "service/executor.hpp"
@@ -58,6 +58,16 @@ std::string Simulation::acquireMemory( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
     return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( mpo );
+}
+MPO Simulation::getNetworkAddressMPO( NetworkAddress networkAddress )
+{
+    VERIFY_RTE( m_pYieldContext );
+    return getLeafRequest( *m_pYieldContext ).ExeGetNetworkAddressMPO( networkAddress );
+}
+NetworkAddress Simulation::getRootNetworkAddress( MPO mpo )
+{
+    VERIFY_RTE( m_pYieldContext );
+    return NetworkAddress{ getLeafRequest( *m_pYieldContext ).ExeGetRootNetworkAddress( mpo ) };
 }
 NetworkAddress Simulation::allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
 {
@@ -163,8 +173,8 @@ void Simulation::issueClock()
 
 void Simulation::clock()
 {
-    //SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
-    // send the clock tick msg
+    // SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
+    //  send the clock tick msg
     using namespace network::exe_sim;
     const network::Message    msg = MSG_ExeExeClock_Request::make( MSG_ExeExeClock_Request{} );
     const network::ChannelMsg channelMsg{
@@ -212,7 +222,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case SimulationStateMachine::SIM:
                 {
-                    //SPDLOG_TRACE( "SIM: SIM {}", getID() );
+                    // SPDLOG_TRACE( "SIM: SIM {}", getID() );
                     cycle();
                 }
                 break;

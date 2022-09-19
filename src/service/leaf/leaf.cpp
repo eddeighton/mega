@@ -413,6 +413,17 @@ public:
         auto result = getDaemonRequest( yield_ctx ).ExeAcquireMemory( mpo );
         getExeResponse( yield_ctx ).ExeAcquireMemory( result );
     }
+    virtual void ExeGetRootNetworkAddress( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ExeGetRootNetworkAddress( mpo );
+        getExeResponse( yield_ctx ).ExeGetRootNetworkAddress( result );
+    }
+    virtual void ExeGetNetworkAddressMPO( const mega::AddressStorage& networkAddress,
+                                          boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ExeGetNetworkAddressMPO( networkAddress );
+        getExeResponse( yield_ctx ).ExeGetNetworkAddressMPO( result );
+    }
     virtual void ExeAllocateNetworkAddress( const mega::MPO&            mpo,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
@@ -472,6 +483,17 @@ public:
     {
         auto result = getDaemonRequest( yield_ctx ).ToolAcquireMemory( mpo );
         getToolResponse( yield_ctx ).ToolAcquireMemory( result );
+    }
+    virtual void ToolGetRootNetworkAddress( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ToolGetRootNetworkAddress( mpo );
+        getToolResponse( yield_ctx ).ToolGetRootNetworkAddress( result );
+    }
+    virtual void ToolGetNetworkAddressMPO( const mega::AddressStorage& networkAddress,
+                                           boost::asio::yield_context& yield_ctx ) override
+    {
+        auto result = getDaemonRequest( yield_ctx ).ToolGetNetworkAddressMPO( networkAddress );
+        getToolResponse( yield_ctx ).ToolGetNetworkAddressMPO( result );
     }
     virtual void ToolAllocateNetworkAddress( const mega::MPO&            mpo,
                                              const mega::TypeID&         objectTypeID,

@@ -1,7 +1,7 @@
 #ifndef CODE_GENERATOR_16_AUG_2022
 #define CODE_GENERATOR_16_AUG_2022
 
-#include "runtime/runtime.hpp"
+#include "runtime/runtime_api.hpp"
 
 #include "database.hpp"
 

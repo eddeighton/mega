@@ -4,7 +4,7 @@
 #include "mega/common.hpp"
 #include "mega/root.hpp"
 
-#include "runtime/runtime.hpp"
+#include "runtime/runtime_api.hpp"
 #include "runtime/mpo_context.hpp"
 
 #include "service/lock_tracker.hpp"
@@ -164,6 +164,18 @@ public:
         return getToolRequest( *m_pYieldContext ).ToolAcquireMemory( mpo );
     }
 
+    virtual MPO getNetworkAddressMPO( NetworkAddress networkAddress )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        // SPDLOG_TRACE( "getNetworkAddressMPO called with: {}", networkAddress );
+        return getToolRequest( *m_pYieldContext ).ToolGetNetworkAddressMPO( networkAddress ) ;
+    }
+    virtual NetworkAddress getRootNetworkAddress( MPO mpo )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        // SPDLOG_TRACE( "getRootNetworkAddress called with: {} {}", mpo, objectTypeID );
+        return NetworkAddress{ getToolRequest( *m_pYieldContext ).ToolGetRootNetworkAddress( mpo ) };
+    }
     virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override
     {
         VERIFY_RTE( m_pYieldContext );
