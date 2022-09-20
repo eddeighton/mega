@@ -371,9 +371,7 @@ public:
         PartVector simpleParts, nonSimpleParts, gpuParts;
     };
 
-    template < typename TContextType >
-    void createParts( MemoryStage::Database& database, TContextType* pContext, Parts* pParts );
-
+    void createParts( MemoryStage::Database& database, MemoryStage::Concrete::Context* pContext, Parts* pParts );
     void createBuffers( MemoryStage::Database& database, MemoryStage::Concrete::Context* pParentContext,
                         MemoryStage::Concrete::Context* pContext, Parts* pParts );
 
@@ -572,220 +570,261 @@ static U64 padToAlignment( U64 alignment, U64 offset )
     }
 }
 
-template < typename TContextType >
-void Task_Allocators::createParts( MemoryStage::Database& database, TContextType* pContext, Parts* pParts )
+using namespace MemoryStage;
+using namespace MemoryStage::Concrete;
+
+struct SizeAlignment
+{
+    U64 size = 0U, alignment = 1U;
+};
+
+struct PartDimensions
+{
+    std::vector< Concrete::Dimensions::User* >          user;
+    std::vector< Concrete::Dimensions::LinkReference* > link;
+    std::vector< Concrete::Dimensions::Allocation* >    alloc;
+
+    bool empty() const { return user.empty() && link.empty() && alloc.empty(); }
+
+    U64 getLocalDomainSize( MemoryStage::Concrete::Context* pContext ) const
+    {
+        using namespace MemoryStage;
+
+        if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
+        {
+            return 1;
+        }
+        else if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
+        {
+            return pEvent->get_local_size();
+        }
+        else if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
+        {
+            return pAction->get_local_size();
+        }
+        else if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
+        {
+            return 1;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+
+    SizeAlignment calculatePartLayout( MemoryStage::Database& database, MemoryLayout::Part* pPart )
+    {
+        SizeAlignment result;
+        for ( auto p : user )
+        {
+            const U64 szAlign = p->get_interface_dimension()->get_alignment();
+            const U64 szSize  = p->get_interface_dimension()->get_size();
+            result.alignment  = std::max( result.alignment, szAlign );
+            result.size       = padToAlignment( szAlign, result.size );
+            database.construct< Concrete::Dimensions::User >(
+                Concrete::Dimensions::User::Args{ p, result.size, pPart } );
+            result.size += szSize;
+        }
+        for ( auto p : link )
+        {
+            p->set_part( pPart );
+
+            if ( dynamic_database_cast< Concrete::Dimensions::LinkSingle >( p ) )
+            {
+                const U64 szAlign = alignof( mega::reference );
+                const U64 szSize  = sizeof( mega::reference );
+                result.alignment  = std::max( result.alignment, szAlign );
+                result.size       = padToAlignment( szAlign, result.size );
+                p->set_offset( result.size );
+                result.size += szSize;
+            }
+            else if ( dynamic_database_cast< Concrete::Dimensions::LinkMany >( p ) )
+            {
+                const U64 szAlign = mega::DimensionTraits< mega::ReferenceVector >::Alignment;
+                const U64 szSize  = mega::DimensionTraits< mega::ReferenceVector >::Size;
+                result.alignment  = std::max( result.alignment, szAlign );
+                result.size       = padToAlignment( szAlign, result.size );
+                p->set_offset( result.size );
+                result.size += szSize;
+                static_assert( mega::DimensionTraits< mega::ReferenceVector >::Size == 32U,
+                               "Something is wrong with mega::DimensionTraits< mega::ReferenceVector >::Size" );
+            }
+            else
+            {
+                THROW_RTE( "Unknown link reference type" );
+            }
+        }
+        for ( Concrete::Dimensions::Allocation* p : alloc )
+        {
+            p->set_part( pPart );
+
+            Concrete::Dimensions::Allocator* pAllocationDimension
+                = dynamic_database_cast< Concrete::Dimensions::Allocator >( p );
+            VERIFY_RTE( pAllocationDimension );
+
+            if ( Allocators::Nothing* pAlloc
+                 = dynamic_database_cast< Allocators::Nothing >( pAllocationDimension->get_allocator() ) )
+            {
+                THROW_RTE( "Unreachable" );
+            }
+            else if ( Allocators::Singleton* pAlloc
+                      = dynamic_database_cast< Allocators::Singleton >( pAllocationDimension->get_allocator() ) )
+            {
+                const U64 szAlign = alignof( bool );
+                const U64 szSize  = sizeof( bool );
+                result.alignment  = std::max( result.alignment, szAlign );
+                result.size       = padToAlignment( szAlign, result.size );
+                p->set_offset( result.size );
+                result.size += szSize;
+            }
+            else if ( Allocators::Range32* pAlloc
+                      = dynamic_database_cast< Allocators::Range32 >( pAllocationDimension->get_allocator() ) )
+            {
+                const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                const U64 szSize            = getBitmask32AllocatorSize( szLocalDomainSize );
+                const U64 szAlign           = getBitmask32AllocatorAlignment( szLocalDomainSize );
+                result.alignment            = std::max( result.alignment, szAlign );
+                result.size                 = padToAlignment( szAlign, result.size );
+                p->set_offset( result.size );
+                result.size += szSize;
+            }
+            else if ( Allocators::Range64* pAlloc
+                      = dynamic_database_cast< Allocators::Range64 >( pAllocationDimension->get_allocator() ) )
+            {
+                const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                const U64 szSize            = getBitmask64AllocatorSize( szLocalDomainSize );
+                const U64 szAlign           = getBitmask64AllocatorAlignment( szLocalDomainSize );
+                result.alignment            = std::max( result.alignment, szAlign );
+                result.size                 = padToAlignment( szAlign, result.size );
+                p->set_offset( result.size );
+                result.size += szSize;
+            }
+            else if ( Allocators::RangeAny* pAlloc
+                      = dynamic_database_cast< Allocators::RangeAny >( pAllocationDimension->get_allocator() ) )
+            {
+                const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
+                const U64 szSize            = getRingAllocatorSize( szLocalDomainSize );
+                const U64 szAlign           = getRingAllocatorAlignment( szLocalDomainSize );
+                result.alignment            = std::max( result.alignment, szAlign );
+                result.size                 = padToAlignment( szAlign, result.size );
+                p->set_offset( result.size );
+                result.size += szSize;
+            }
+            else
+            {
+                THROW_RTE( "Unknown allocator type" );
+            }
+        }
+
+        // ensure the entire part is padded to its own alignment to allow array of the part
+        result.size = padToAlignment( result.alignment, result.size );
+        return result;
+    }
+
+    MemoryLayout::Part* createPart( MemoryStage::Database& database, MemoryStage::Concrete::Context* pContext,
+                                    U64 szTotalDomainSize )
+    {
+        MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
+            MemoryLayout::Part::Args{ szTotalDomainSize, pContext, user, link, alloc } );
+        const SizeAlignment sizeAlignment = calculatePartLayout( database, pContextPart );
+        pContextPart->set_size( sizeAlignment.size );
+        pContextPart->set_alignment( sizeAlignment.alignment );
+        return pContextPart;
+    }
+};
+
+void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Context* pContext, Parts* pParts )
 {
     using namespace MemoryStage;
     using namespace MemoryStage::Concrete;
 
-    struct SizeAlignment
-    {
-        U64 size = 0U, alignment = 1U;
-    };
-
-    struct PartDimensions
-    {
-        std::vector< Concrete::Dimensions::User* >          user;
-        std::vector< Concrete::Dimensions::LinkReference* > link;
-        std::vector< Concrete::Dimensions::Allocation* >    alloc;
-
-        bool empty() const { return user.empty() && link.empty() && alloc.empty(); }
-
-        U64 getLocalDomainSize( MemoryStage::Concrete::Context* pContext ) const
-        {
-            using namespace MemoryStage;
-
-            if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
-            {
-                return 1;
-            }
-            else if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
-            {
-                return pEvent->get_local_size();
-            }
-            else if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
-            {
-                return pAction->get_local_size();
-            }
-            else if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
-            {
-                return 1;
-            }
-            else
-            {
-                return 1;
-            }
-        }
-
-        SizeAlignment calculatePartLayout( MemoryStage::Database& database, MemoryLayout::Part* pPart )
-        {
-            SizeAlignment result;
-            for ( auto p : user )
-            {
-                const U64 szAlign = p->get_interface_dimension()->get_alignment();
-                const U64 szSize  = p->get_interface_dimension()->get_size();
-                result.alignment  = std::max( result.alignment, szAlign );
-                result.size       = padToAlignment( szAlign, result.size );
-                database.construct< Concrete::Dimensions::User >(
-                    Concrete::Dimensions::User::Args{ p, result.size, pPart } );
-                result.size += szSize;
-            }
-            for ( auto p : link )
-            {
-                p->set_part( pPart );
-
-                if ( dynamic_database_cast< Concrete::Dimensions::LinkSingle >( p ) )
-                {
-                    const U64 szAlign = alignof( mega::reference );
-                    const U64 szSize  = sizeof( mega::reference );
-                    result.alignment  = std::max( result.alignment, szAlign );
-                    result.size       = padToAlignment( szAlign, result.size );
-                    p->set_offset( result.size );
-                    result.size += szSize;
-                }
-                else if ( dynamic_database_cast< Concrete::Dimensions::LinkMany >( p ) )
-                {
-                    const U64 szAlign = mega::DimensionTraits< mega::ReferenceVector >::Alignment;
-                    const U64 szSize  = mega::DimensionTraits< mega::ReferenceVector >::Size;
-                    result.alignment  = std::max( result.alignment, szAlign );
-                    result.size       = padToAlignment( szAlign, result.size );
-                    p->set_offset( result.size );
-                    result.size += szSize;
-                    static_assert( mega::DimensionTraits< mega::ReferenceVector >::Size == 32U,
-                                   "Something is wrong with mega::DimensionTraits< mega::ReferenceVector >::Size" );
-                }
-                else
-                {
-                    THROW_RTE( "Unknown link reference type" );
-                }
-            }
-            for ( Concrete::Dimensions::Allocation* p : alloc )
-            {
-                p->set_part( pPart );
-
-                Concrete::Dimensions::Allocator* pAllocationDimension
-                    = dynamic_database_cast< Concrete::Dimensions::Allocator >( p );
-                VERIFY_RTE( pAllocationDimension );
-
-                if ( Allocators::Nothing* pAlloc
-                     = dynamic_database_cast< Allocators::Nothing >( pAllocationDimension->get_allocator() ) )
-                {
-                    THROW_RTE( "Unreachable" );
-                }
-                else if ( Allocators::Singleton* pAlloc
-                          = dynamic_database_cast< Allocators::Singleton >( pAllocationDimension->get_allocator() ) )
-                {
-                    const U64 szAlign = alignof( bool );
-                    const U64 szSize  = sizeof( bool );
-                    result.alignment  = std::max( result.alignment, szAlign );
-                    result.size       = padToAlignment( szAlign, result.size );
-                    p->set_offset( result.size );
-                    result.size += szSize;
-                }
-                else if ( Allocators::Range32* pAlloc
-                          = dynamic_database_cast< Allocators::Range32 >( pAllocationDimension->get_allocator() ) )
-                {
-                    const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
-                    const U64 szSize            = getBitmask32AllocatorSize( szLocalDomainSize );
-                    const U64 szAlign           = getBitmask32AllocatorAlignment( szLocalDomainSize );
-                    result.alignment            = std::max( result.alignment, szAlign );
-                    result.size                 = padToAlignment( szAlign, result.size );
-                    p->set_offset( result.size );
-                    result.size += szSize;
-                }
-                else if ( Allocators::Range64* pAlloc
-                          = dynamic_database_cast< Allocators::Range64 >( pAllocationDimension->get_allocator() ) )
-                {
-                    const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
-                    const U64 szSize            = getBitmask64AllocatorSize( szLocalDomainSize );
-                    const U64 szAlign           = getBitmask64AllocatorAlignment( szLocalDomainSize );
-                    result.alignment            = std::max( result.alignment, szAlign );
-                    result.size                 = padToAlignment( szAlign, result.size );
-                    p->set_offset( result.size );
-                    result.size += szSize;
-                }
-                else if ( Allocators::RangeAny* pAlloc
-                          = dynamic_database_cast< Allocators::RangeAny >( pAllocationDimension->get_allocator() ) )
-                {
-                    const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
-                    const U64 szSize            = getRingAllocatorSize( szLocalDomainSize );
-                    const U64 szAlign           = getRingAllocatorAlignment( szLocalDomainSize );
-                    result.alignment            = std::max( result.alignment, szAlign );
-                    result.size                 = padToAlignment( szAlign, result.size );
-                    p->set_offset( result.size );
-                    result.size += szSize;
-                }
-                else
-                {
-                    THROW_RTE( "Unknown allocator type" );
-                }
-            }
-            return result;
-        }
-
-        MemoryLayout::Part* createPart( MemoryStage::Database& database, MemoryStage::Concrete::Context* pContext,
-                                        U64 szTotalDomainSize )
-        {
-            MemoryLayout::Part* pContextPart = database.construct< MemoryLayout::Part >(
-                MemoryLayout::Part::Args{ szTotalDomainSize, pContext, user, link, alloc } );
-            const SizeAlignment sizeAlignment = calculatePartLayout( database, pContextPart );
-            pContextPart->set_size( sizeAlignment.size );
-            pContextPart->set_alignment( sizeAlignment.alignment );
-            return pContextPart;
-        }
-    };
     PartDimensions simple, nonSimple, gpu;
 
     U64 szTotalDomainSize;
     {
-        if constexpr ( std::is_same< TContextType, Concrete::Object >::value )
+        if ( Concrete::Namespace* pNamespace = dynamic_database_cast< Concrete::Namespace >( pContext ) )
         {
             szTotalDomainSize = 1U;
+            for ( Concrete::Dimensions::User* pDim : pNamespace->get_dimensions() )
+            {
+                if ( pDim->get_interface_dimension()->get_simple() )
+                {
+                    simple.user.push_back( pDim );
+                }
+                else
+                {
+                    nonSimple.user.push_back( pDim );
+                }
+            }
         }
-        if constexpr ( std::is_same< TContextType, Concrete::Event >::value )
+        else if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
         {
-            szTotalDomainSize = pContext->get_total_size();
+            szTotalDomainSize = 1U;
+            for ( Concrete::Dimensions::User* pDim : pObject->get_dimensions() )
+            {
+                if ( pDim->get_interface_dimension()->get_simple() )
+                {
+                    simple.user.push_back( pDim );
+                }
+                else
+                {
+                    nonSimple.user.push_back( pDim );
+                }
+            }
         }
-        if constexpr ( std::is_same< TContextType, Concrete::Action >::value )
+        else if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
         {
-            szTotalDomainSize = pContext->get_total_size();
+            szTotalDomainSize = pAction->get_total_size();
+            for ( Concrete::Dimensions::User* pDim : pAction->get_dimensions() )
+            {
+                if ( pDim->get_interface_dimension()->get_simple() )
+                {
+                    simple.user.push_back( pDim );
+                }
+                else
+                {
+                    nonSimple.user.push_back( pDim );
+                }
+            }
         }
-        if constexpr ( std::is_same< TContextType, Concrete::Link >::value )
+        else if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
         {
-            szTotalDomainSize = pContext->get_total_size();
+            szTotalDomainSize = pEvent->get_total_size();
+
+            for ( Concrete::Dimensions::User* pDim : pEvent->get_dimensions() )
+            {
+                if ( pDim->get_interface_dimension()->get_simple() )
+                {
+                    simple.user.push_back( pDim );
+                }
+                else
+                {
+                    nonSimple.user.push_back( pDim );
+                }
+            }
         }
-        if constexpr ( std::is_same< TContextType, Concrete::Buffer >::value )
+        else if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
         {
-            szTotalDomainSize = pContext->get_total_size();
+            szTotalDomainSize = pLink->get_total_size();
+            simple.link.push_back( pLink->get_link_reference() );
+        }
+        else if ( Concrete::Buffer* pBuffer = dynamic_database_cast< Concrete::Buffer >( pContext ) )
+        {
+            szTotalDomainSize = pBuffer->get_total_size();
+        }
+        else if ( Concrete::Function* pFunction = dynamic_database_cast< Concrete::Function >( pContext ) )
+        {
+            szTotalDomainSize = 1U;
         }
         else
         {
-            szTotalDomainSize = 1U;
+            THROW_RTE( "Unknown context type" );
         }
     }
 
     for ( Concrete::Dimensions::Allocation* pAllocation : pContext->get_allocation_dimensions() )
     {
         simple.alloc.push_back( pAllocation );
-    }
-
-    if constexpr ( std::is_same< TContextType, Concrete::Link >::value )
-    {
-        simple.link.push_back( pContext->get_link_reference() );
-    }
-    else
-    {
-        for ( Concrete::Dimensions::User* pDim : pContext->get_dimensions() )
-        {
-            if ( pDim->get_interface_dimension()->get_simple() )
-            {
-                simple.user.push_back( pDim );
-            }
-            else
-            {
-                nonSimple.user.push_back( pDim );
-            }
-        }
     }
 
     if ( !simple.empty() )

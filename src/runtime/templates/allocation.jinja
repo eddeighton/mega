@@ -6,21 +6,20 @@
 namespace mega
 {
 {% for allocator in allocators %}
-    void new_{{allocator}}(void*);
+    void new_{{allocator}}(void*,void*);
 {% endfor %}
 {% for deallocator in deallocators %}
     void delete_{{deallocator}}(void*);
 {% endfor %}
 }
 
-void shared_ctor_{{ objectTypeID }}( void* pBuffer )
+void shared_ctor_{{ objectTypeID }}( void* pBuffer, void* pMemory )
 {
-    char* pIter = (char*)pBuffer;
 {% for part in shared_parts %}
-    for( char* pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::new_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+        mega::new_{{member.mangle}}( pIter + {{ member.offset }}, pMemory ); // {{ member.type }} {{ member.name }}
 {% endfor %}
     }
 {% endfor %}
@@ -28,9 +27,8 @@ void shared_ctor_{{ objectTypeID }}( void* pBuffer )
 
 void shared_dtor_{{ objectTypeID }}( void* pBuffer )
 {
-    char* pIter = (char*)pBuffer;
 {% for part in shared_parts %}
-    for( char* pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
         mega::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
@@ -41,12 +39,11 @@ void shared_dtor_{{ objectTypeID }}( void* pBuffer )
 
 void heap_ctor_{{ objectTypeID }}( void* pBuffer )
 {
-    char* pIter = (char*)pBuffer;
 {% for part in heap_parts %}
-    for( char* pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
-        mega::new_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+        mega::new_{{member.mangle}}( pIter + {{ member.offset }}, 0 ); // {{ member.type }} {{ member.name }}
 {% endfor %}
     }
 {% endfor %}
@@ -54,9 +51,8 @@ void heap_ctor_{{ objectTypeID }}( void* pBuffer )
 
 void heap_dtor_{{ objectTypeID }}( void* pBuffer )
 {
-    char* pIter = (char*)pBuffer;
 {% for part in heap_parts %}
-    for( char* pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    for( char* pIter = (char*)pBuffer + {{ part.offset }}, *pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
     {
 {% for member in part.members %}
         mega::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}

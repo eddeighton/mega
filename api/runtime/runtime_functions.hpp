@@ -11,7 +11,7 @@ using TypeErasedFunction = const void*;
 using GetHeapFunction    = void* ( * )( MachineAddress address );
 using GetSharedFunction  = void* ( * )( MachineAddress address );
 
-using SharedCtorFunction = void ( * )( void* );
+using SharedCtorFunction = void ( * )( void*, void* );
 using HeapCtorFunction   = void ( * )( void* );
 using SharedDtorFunction = void ( * )( void* );
 using HeapDtorFunction   = void ( * )( void* );

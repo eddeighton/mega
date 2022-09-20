@@ -25,7 +25,7 @@ public:
     const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getOperationComponent( mega::TypeID objectType ) const;
-    mega::U64                                 getTotalDomainSize( mega::TypeID concreteID ) const;
+    //mega::U64                                 getTotalDomainSize( mega::TypeID concreteID ) const;
     mega::U64                                 getLocalDomainSize( mega::TypeID concreteID ) const;
 
 private:

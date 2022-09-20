@@ -23,6 +23,26 @@ Runtime::Runtime( const mega::network::MegastructureInstallation& megastructureI
     VERIFY_RTE_MSG( !m_project.isEmpty(), "Empty project" );
 }
 
+ManagedSharedMemory& Runtime::getSharedMemoryManager( mega::MPO mpo )
+{
+    auto iFind = m_executionContextMemory.find( mpo );
+    if ( iFind != m_executionContextMemory.end() )
+    {
+        return *iFind->second;
+    }
+    else
+    {
+        MPOContext* pMPOContext = MPOContext::get();
+        VERIFY_RTE( pMPOContext );
+        const std::string  strMemoryName = pMPOContext->acquireMemory( mpo );
+        MPOSharedMemoryPtr pMemoryPtr
+            = std::make_unique< MPOSharedMemory >( boost::interprocess::open_only, strMemoryName.c_str() );
+        MPOSharedMemory* pMemory = pMemoryPtr.get();
+        m_executionContextMemory.insert( { mpo, std::move( pMemoryPtr ) } );
+        return *pMemory;
+    }
+}
+
 NetworkAddress Runtime::allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
 {
     SPDLOG_TRACE( "RUNTIME: allocateNetworkAddress: {} {}", mpo, objectTypeID );
@@ -66,7 +86,7 @@ reference Runtime::allocateMachineAddress( MPO mpo, TypeID objectTypeID, Network
         }
     }
 
-    AddressSpace::Lock lock( m_addressSpace.mutex() );
+    // AddressSpace::Lock lock( m_addressSpace.mutex() );
 
     ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
 
@@ -81,21 +101,19 @@ reference Runtime::allocateMachineAddress( MPO mpo, TypeID objectTypeID, Network
     {
     }
 
-    VERIFY_RTE( m_addressSpace.insert( networkAddress, static_cast< const MachineAddress& >( ref ) ) );
+    VERIFY_RTE( m_addressSpace.insert( networkAddress, ref ) );
     return ref;
 }
 
 reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress )
 {
-    AddressSpace::Lock lock( m_addressSpace.mutex() );
-
-    ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
+    // AddressSpace::Lock lock( m_addressSpace.mutex() );
 
     auto resultOpt = m_addressSpace.find( networkAddress );
     if ( resultOpt.has_value() )
     {
         // ensure the object type allocator is established
-        return pAllocator->get( resultOpt.value() );
+        return resultOpt.value();
     }
     else
     {
@@ -115,6 +133,7 @@ reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress network
             }
         }
 
+        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
         const reference ref = pAllocator->allocate( mpo );
 
         if ( thisMPO.getMachineID() != mpo.getMachineID() )
@@ -125,7 +144,7 @@ reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress network
         {
         }
 
-        VERIFY_RTE( m_addressSpace.insert( networkAddress, static_cast< const MachineAddress& >( ref ) ) );
+        VERIFY_RTE( m_addressSpace.insert( networkAddress, ref ) );
         return ref;
     }
 }
@@ -167,10 +186,10 @@ void Runtime::deAllocateRoot( const mega::MPO& mpo )
 {
     SPDLOG_TRACE( "RUNTIME: deAllocateRoot: {}", mpo );
     auto iFind = m_executionContextRoot.find( mpo );
-    if( iFind != m_executionContextRoot.end() )
+    if ( iFind != m_executionContextRoot.end() )
     {
         mega::reference& ref = iFind->second;
-        if( ref.isNetwork() )
+        if ( ref.isNetwork() )
             ref = networkToMachine( ref.type, ref.network );
         ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( ref.type );
         pAllocator->deAllocate( ref );

@@ -24,7 +24,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/macros.hpp
     ${MEGA_API_DIR}/mega/operations.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
-    ${MEGA_API_DIR}/mega/shared_allocator.hpp
     ${MEGA_API_DIR}/mega/root.hpp
     ${MEGA_API_DIR}/mega/scheduler.hpp
     ${MEGA_API_DIR}/mega/type_path.hpp

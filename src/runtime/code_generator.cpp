@@ -1,6 +1,7 @@
 
 #include "code_generator.hpp"
 #include "database/common/environment_archive.hpp"
+#include "symbol_utils.hpp"
 
 #include "database/model/FinalStage.hxx"
 #include "mega/common.hpp"
@@ -212,59 +213,6 @@ CodeGenerator::CodeGenerator( const mega::network::MegastructureInstallation& me
     : m_pPimpl( std::make_shared< Pimpl >( megastructureInstallation, project ) )
 {
 }
-
-std::string megaMangle( const std::string& strCanonicalTypeName )
-{
-    std::ostringstream os;
-    for ( auto c : strCanonicalTypeName )
-    {
-        if ( std::isspace( c ) )
-            continue;
-        else if ( std::isalnum( c ) )
-            os << c;
-        else
-        {
-            switch ( c )
-            {
-                case ':':
-                    os << '0';
-                    break;
-                case '(':
-                    os << '1';
-                    break;
-                case ')':
-                    os << '2';
-                    break;
-                case '<':
-                    os << '3';
-                    break;
-                case '>':
-                    os << '4';
-                    break;
-                case '[':
-                    os << '5';
-                    break;
-                case ']':
-                    os << '6';
-                    break;
-                case '.':
-                    os << '7';
-                    break;
-                case '*':
-                    os << '8';
-                    break;
-                case '&':
-                    os << '9';
-                    break;
-                    break;
-                default:
-                    THROW_RTE( "Unexpected character in typename: " << strCanonicalTypeName );
-            }
-        }
-    }
-    return os.str();
-}
-
 void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega::TypeID objectTypeID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_allocation: {}", objectTypeID );
@@ -297,14 +245,11 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                 osPartType << pPart->get_context()->get_interface()->get_identifier();
                 osPartName << pPart->get_context()->get_interface()->get_identifier();
 
-                const mega::U64 szTotalDomainSize
-                    = database.getTotalDomainSize( pPart->get_context()->get_concrete_id() );
-
                 nlohmann::json part( { { "type", osPartType.str() },
                                        { "name", osPartName.str() },
                                        { "size", pPart->get_size() },
                                        { "offset", pPart->get_offset() },
-                                       { "total_domain", szTotalDomainSize },
+                                       { "total_domain", pPart->get_total_domain_size() },
                                        { "members", nlohmann::json::array() } } );
 
                 for ( auto pUserDim : pPart->get_user_dimensions() )
@@ -501,7 +446,8 @@ void generateBufferRead( bool bShared, mega::TypeID id, FinalStage::MemoryLayout
                          std::ostream& os )
 {
     const std::string strType = bShared ? "shared" : "heap";
-    os << indent << "return (char*)_fptr_get_" << strType << "_" << id << "( " << strInstanceVar << " )"
+    os << indent << "return reinterpret_cast< char* >(_fptr_get_" << strType << "_" << id << "( " << strInstanceVar
+       << " ) )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
        << pDimension->get_offset() << ";\n";
 }
@@ -511,8 +457,8 @@ void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayou
                           std::ostream& os )
 {
     const std::string strType = bShared ? "shared" : "heap";
-    os << indent << "return mega::runtime::WriteResult{ (char*)_fptr_get_" << strType << "_" << id << "( "
-       << strInstanceVar << " )"
+    os << indent << "return mega::runtime::WriteResult{ reinterpret_cast< char* >( _fptr_get_" << strType << "_" << id
+       << "( " << strInstanceVar << " ) )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
        << pDimension->get_offset() << ", " << strInstanceVar << "};";
 }

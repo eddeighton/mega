@@ -41,27 +41,7 @@ class Runtime
 
     using MPOSharedMemory    = mega::runtime::ManagedSharedMemory;
     using MPOSharedMemoryPtr = std::unique_ptr< MPOSharedMemory >;
-    static MPOSharedMemoryPtr makeMPOMemory( const std::string& strName )
-    {
-        return std::make_unique< MPOSharedMemory >( boost::interprocess::open_only, strName.c_str() );
-    }
-    ManagedSharedMemory& getSharedMemoryManager( mega::MPO mpo )
-    {
-        auto iFind = m_executionContextMemory.find( mpo );
-        if ( iFind != m_executionContextMemory.end() )
-        {
-            return *iFind->second;
-        }
-        else
-        {
-            MPOContext* pMPOContext = MPOContext::get();
-            VERIFY_RTE( pMPOContext );
-            MPOSharedMemoryPtr pMemoryPtr = makeMPOMemory( pMPOContext->acquireMemory( mpo ) );
-            MPOSharedMemory*   pMemory    = pMemoryPtr.get();
-            m_executionContextMemory.insert( { mpo, std::move( pMemoryPtr ) } );
-            return *pMemory;
-        }
-    }
+    ManagedSharedMemory& getSharedMemoryManager( mega::MPO mpo );
 
     using MPOContextMemoryMap = std::unordered_map< MPO, MPOSharedMemoryPtr, MPO::Hash >;
     using MPOContextRoot      = std::unordered_map< MPO, mega::reference, MPO::Hash >;

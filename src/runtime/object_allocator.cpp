@@ -5,6 +5,8 @@
 #include "database.hpp"
 #include "symbol_utils.hpp"
 
+#include "service/network/log.hpp"
+
 namespace mega
 {
 namespace runtime
@@ -15,24 +17,31 @@ ObjectTypeAllocator::ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID 
     , m_objectTypeID( objectTypeID )
     , m_szSizeShared( 0U )
     , m_szSizeHeap( 0U )
+    , m_szAlignShared( 1U )
+    , m_szAlignHeap( 1U )
 {
-    const FinalStage::Concrete::Object* pObject = m_runtime.m_database.getObject( m_objectTypeID );
-    using namespace FinalStage;
-    for ( auto pBuffer : pObject->get_buffers() )
+    SPDLOG_TRACE( "ObjectTypeAllocator::ctor for {}", m_objectTypeID );
     {
-        if ( dynamic_database_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+        using namespace FinalStage;
+        const Concrete::Object* pObject = m_runtime.m_database.getObject( m_objectTypeID );
+        for ( auto pBuffer : pObject->get_buffers() )
         {
-            VERIFY_RTE( m_szSizeShared == 0U );
-            m_szSizeShared = pBuffer->get_size();
-        }
-        else if ( dynamic_database_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
-        {
-            VERIFY_RTE( m_szSizeHeap == 0U );
-            m_szSizeHeap = pBuffer->get_size();
-        }
-        else
-        {
-            THROW_RTE( "Unsupported buffer type" );
+            if ( dynamic_database_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+            {
+                VERIFY_RTE( m_szSizeShared == 0U );
+                m_szSizeShared  = pBuffer->get_size();
+                m_szAlignShared = pBuffer->get_alignment();
+            }
+            else if ( dynamic_database_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
+            {
+                VERIFY_RTE( m_szSizeHeap == 0U );
+                m_szSizeHeap  = pBuffer->get_size();
+                m_szAlignHeap = pBuffer->get_alignment();
+            }
+            else
+            {
+                THROW_RTE( "Unsupported buffer type" );
+            }
         }
     }
 
@@ -59,7 +68,7 @@ ObjectTypeAllocator::ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID 
         {
             std::ostringstream os;
             symbolPrefix( "shared_ctor_", objectTypeID, os );
-            os << "Pv";
+            os << "PvS_";
             m_pSharedCtor = pModule->getSharedCtor( os.str() );
         }
         {
@@ -91,12 +100,13 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
         auto iFind = m_index.find( mpo );
         if ( iFind != m_index.end() )
         {
+            SPDLOG_TRACE( "ObjectTypeAllocator::getIndex cached {} {}", m_objectTypeID, mpo );
             pAllocator = iFind->second;
         }
         else
         {
-            mega::runtime::ManagedSharedMemory& managedSharedMemory = m_runtime.getSharedMemoryManager( mpo );
-            pAllocator = std::make_shared< IndexedBufferAllocator >( managedSharedMemory.get_segment_manager() );
+            SPDLOG_TRACE( "ObjectTypeAllocator::getIndex created {} {}", m_objectTypeID, mpo );
+            pAllocator = std::make_shared< IndexedBufferAllocator >( m_runtime.getSharedMemoryManager( mpo ) );
             m_index.insert( { mpo, pAllocator } );
         }
     }
@@ -105,39 +115,65 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
 
 reference ObjectTypeAllocator::get( MachineAddress machineAddress )
 {
+    SPDLOG_TRACE( "ObjectTypeAllocator::get {} {}", m_objectTypeID, machineAddress );
     VERIFY_RTE( machineAddress.isMachine() );
-    void* pShared = getIndex( machineAddress )->getShared( machineAddress.object ).get();
+    auto  pIndex  = getIndex( machineAddress );
+    void* pShared = pIndex->getShared( machineAddress.object );
     return reference( TypeInstance( 0, m_objectTypeID ), machineAddress, pShared );
 }
 
 reference ObjectTypeAllocator::allocate( MPO mpo )
 {
+    SPDLOG_TRACE( "ObjectTypeAllocator::allocate {} {}", m_objectTypeID, mpo );
     VERIFY_RTE( mpo.isMachine() );
-    const IndexedBufferAllocator::AllocationResult result = getIndex( mpo )->allocate( m_szSizeShared, m_szSizeHeap );
-    m_pSharedCtor( result.pShared );
+
+    auto pIndex = getIndex( mpo );
+
+    const IndexedBufferAllocator::AllocationResult result
+        = pIndex->allocate( m_szSizeShared, m_szAlignShared, m_szSizeHeap, m_szAlignHeap );
+
+    VERIFY_RTE( result.pShared );
+    m_pSharedCtor( result.pShared, pIndex->getSegmentManager() );
+
+    VERIFY_RTE( result.pHeap );
     m_pHeapCtor( result.pHeap );
+
     return reference( TypeInstance( 0, m_objectTypeID ), MachineAddress{ result.object, mpo }, result.pShared );
 }
 
 void ObjectTypeAllocator::deAllocate( MachineAddress machineAddress )
 {
+    SPDLOG_TRACE( "ObjectTypeAllocator::deAllocate {} {}", m_objectTypeID, machineAddress );
     auto pIndex = getIndex( machineAddress );
-    m_pSharedDtor( pIndex->getShared( machineAddress.object ).get() );
-    m_pHeapDtor( pIndex->getHeap( machineAddress.object ) );
+
+    {
+        void* pAddress = pIndex->getShared( machineAddress.object );
+        VERIFY_RTE( pAddress );
+        m_pSharedDtor( pAddress );
+    }
+    {
+        void* pHeap = pIndex->getHeap( machineAddress.object );
+        VERIFY_RTE( pHeap );
+        m_pHeapDtor( pHeap );
+    }
     pIndex->deallocate( machineAddress.object );
 }
 
 // Allocator
 void* ObjectTypeAllocator::get_shared( mega::MachineAddress machineAddress )
 {
-    auto pIndex = getIndex( machineAddress );
-    return pIndex->getShared( machineAddress.object ).get();
+    auto  pIndex   = getIndex( machineAddress );
+    void* pAddress = pIndex->getShared( machineAddress.object );
+    SPDLOG_TRACE( "ObjectTypeAllocator::get_shared {} {} {}", m_objectTypeID, machineAddress, pAddress );
+    return pAddress;
 }
 
 void* ObjectTypeAllocator::get_heap( mega::MachineAddress machineAddress )
 {
-    auto pIndex = getIndex( machineAddress );
-    return pIndex->getHeap( machineAddress.object );
+    auto  pIndex   = getIndex( machineAddress );
+    void* pAddress = pIndex->getHeap( machineAddress.object );
+    SPDLOG_TRACE( "ObjectTypeAllocator::get_heap {} {} {}", m_objectTypeID, machineAddress, pAddress );
+    return pAddress;
 }
 
 GetHeapFunction   ObjectTypeAllocator::getHeapGetter() { return m_pHeapGetter; }

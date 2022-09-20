@@ -531,12 +531,31 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Buffer* pBuffer, nlohman
     return osName.str();
 }
 
-std::string createMemoryNode( FinalStage::MemoryLayout::Part* pPart, nlohmann::json& data )
+std::string graphVizEscape( const std::string& str )
+{
+    std::ostringstream os;
+    for( auto c : str )
+    {
+        switch( c )
+        {
+            case '<': os << "\\<"; break;
+            case '>': os << "\\>"; break;
+            case '|': os << "\\|"; break;
+            case ':': os << "\\:"; break;
+            default:
+                os << c;
+                break;
+        }
+    }
+    return os.str();
+}
+
+std::string createMemoryNode( const std::string& strBufferName, FinalStage::MemoryLayout::Part* pPart, nlohmann::json& data )
 {
     using namespace FinalStage;
 
     std::ostringstream osName;
-    osName << "part_" << getContextFullTypeName( pPart->get_context() );
+    osName << strBufferName << "part_" << getContextFullTypeName( pPart->get_context() );
 
     std::ostringstream os;
     os << "Part: " << getContextFullTypeName( pPart->get_context() );
@@ -551,7 +570,9 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Part* pPart, nlohmann::j
         nlohmann::json property;
         PROP( property, p->get_interface_dimension()->get_id()->get_str(),
               " type_id " << p->get_interface_dimension()->get_type_id() << " type "
-                          << p->get_interface_dimension()->get_type() << " offset " << p->get_offset() );
+                          << graphVizEscape( p->get_interface_dimension()->get_type() ) << " offset " << p->get_offset() << " size "
+                          << p->get_interface_dimension()->get_size() << " alignment "
+                          << p->get_interface_dimension()->get_alignment() );
         node[ "properties" ].push_back( property );
     }
     for ( auto p : pPart->get_allocation_dimensions() )
@@ -657,7 +678,7 @@ void generateMemoryGraphViz( std::ostream& os, mega::io::Environment& environmen
 
                 for ( MemoryLayout::Part* pPart : pBuffer->get_parts() )
                 {
-                    const std::string strPart = createMemoryNode( pPart, data );
+                    const std::string strPart = createMemoryNode( strBuffer, pPart, data );
                     data[ "edges" ].push_back( nlohmann::json::object(
                         { { "from", strBuffer }, { "to", strPart }, { "colour", "00FF00" } } ) );
                 }

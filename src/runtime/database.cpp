@@ -114,7 +114,7 @@ const FinalStage::Components::Component* DatabaseInstance::getOperationComponent
     FinalStage::Interface::IContext* pIContext = pContext->get_interface();
     return pIContext->get_component();
 }
-
+/*
 mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
 {
     using namespace FinalStage;
@@ -148,7 +148,7 @@ mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
         return 1;
     }
 }
-
+*/
 mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
 {
     using namespace FinalStage;

@@ -3,7 +3,7 @@
 
 #include "runtime/runtime_functions.hpp"
 
-#include "mega/shared_allocator.hpp"
+#include "shared_allocator.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -40,6 +40,7 @@ private:
     Runtime&     m_runtime;
     mega::TypeID m_objectTypeID;
     mega::U64    m_szSizeShared, m_szSizeHeap;
+    mega::U64    m_szAlignShared, m_szAlignHeap;
     IndexPtrMap  m_index;
 
     SetAllocatorFunction m_pSetAllocator = nullptr;
