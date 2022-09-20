@@ -100,13 +100,14 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
         auto iFind = m_index.find( mpo );
         if ( iFind != m_index.end() )
         {
-            SPDLOG_TRACE( "ObjectTypeAllocator::getIndex cached {} {}", m_objectTypeID, mpo );
+            //SPDLOG_TRACE( "ObjectTypeAllocator::getIndex cached {} {}", m_objectTypeID, mpo );
             pAllocator = iFind->second;
         }
         else
         {
-            SPDLOG_TRACE( "ObjectTypeAllocator::getIndex created {} {}", m_objectTypeID, mpo );
-            pAllocator = std::make_shared< IndexedBufferAllocator >( m_runtime.getSharedMemoryManager( mpo ) );
+            //SPDLOG_TRACE( "ObjectTypeAllocator::getIndex created {} {}", m_objectTypeID, mpo );
+            pAllocator
+                = std::make_shared< IndexedBufferAllocator >( m_objectTypeID, m_runtime.getSharedMemoryManager( mpo ) );
             m_index.insert( { mpo, pAllocator } );
         }
     }
@@ -115,7 +116,7 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
 
 reference ObjectTypeAllocator::get( MachineAddress machineAddress )
 {
-    SPDLOG_TRACE( "ObjectTypeAllocator::get {} {}", m_objectTypeID, machineAddress );
+    //SPDLOG_TRACE( "ObjectTypeAllocator::get {} {}", m_objectTypeID, machineAddress );
     VERIFY_RTE( machineAddress.isMachine() );
     auto  pIndex  = getIndex( machineAddress );
     void* pShared = pIndex->getShared( machineAddress.object );
@@ -124,7 +125,7 @@ reference ObjectTypeAllocator::get( MachineAddress machineAddress )
 
 reference ObjectTypeAllocator::allocate( MPO mpo )
 {
-    SPDLOG_TRACE( "ObjectTypeAllocator::allocate {} {}", m_objectTypeID, mpo );
+    //SPDLOG_TRACE( "ObjectTypeAllocator::allocate {} {}", m_objectTypeID, mpo );
     VERIFY_RTE( mpo.isMachine() );
 
     auto pIndex = getIndex( mpo );
@@ -132,28 +133,29 @@ reference ObjectTypeAllocator::allocate( MPO mpo )
     const IndexedBufferAllocator::AllocationResult result
         = pIndex->allocate( m_szSizeShared, m_szAlignShared, m_szSizeHeap, m_szAlignHeap );
 
-    VERIFY_RTE( result.pShared );
-    m_pSharedCtor( result.pShared, pIndex->getSegmentManager() );
-
-    VERIFY_RTE( result.pHeap );
-    m_pHeapCtor( result.pHeap );
+    if ( result.pShared )
+    {
+        m_pSharedCtor( result.pShared, pIndex->getSegmentManager() );
+    }
+    if ( result.pHeap )
+    {
+        m_pHeapCtor( result.pHeap );
+    }
 
     return reference( TypeInstance( 0, m_objectTypeID ), MachineAddress{ result.object, mpo }, result.pShared );
 }
 
 void ObjectTypeAllocator::deAllocate( MachineAddress machineAddress )
 {
-    SPDLOG_TRACE( "ObjectTypeAllocator::deAllocate {} {}", m_objectTypeID, machineAddress );
+    //SPDLOG_TRACE( "ObjectTypeAllocator::deAllocate {} {}", m_objectTypeID, machineAddress );
     auto pIndex = getIndex( machineAddress );
 
+    if ( void* pAddress = pIndex->getShared( machineAddress.object ) )
     {
-        void* pAddress = pIndex->getShared( machineAddress.object );
-        VERIFY_RTE( pAddress );
         m_pSharedDtor( pAddress );
     }
+    if ( void* pHeap = pIndex->getHeap( machineAddress.object ) )
     {
-        void* pHeap = pIndex->getHeap( machineAddress.object );
-        VERIFY_RTE( pHeap );
         m_pHeapDtor( pHeap );
     }
     pIndex->deallocate( machineAddress.object );
@@ -164,7 +166,7 @@ void* ObjectTypeAllocator::get_shared( mega::MachineAddress machineAddress )
 {
     auto  pIndex   = getIndex( machineAddress );
     void* pAddress = pIndex->getShared( machineAddress.object );
-    SPDLOG_TRACE( "ObjectTypeAllocator::get_shared {} {} {}", m_objectTypeID, machineAddress, pAddress );
+    //SPDLOG_TRACE( "ObjectTypeAllocator::get_shared {} {} {}", m_objectTypeID, machineAddress, pAddress );
     return pAddress;
 }
 
@@ -172,7 +174,7 @@ void* ObjectTypeAllocator::get_heap( mega::MachineAddress machineAddress )
 {
     auto  pIndex   = getIndex( machineAddress );
     void* pAddress = pIndex->getHeap( machineAddress.object );
-    SPDLOG_TRACE( "ObjectTypeAllocator::get_heap {} {} {}", m_objectTypeID, machineAddress, pAddress );
+    //SPDLOG_TRACE( "ObjectTypeAllocator::get_heap {} {} {}", m_objectTypeID, machineAddress, pAddress );
     return pAddress;
 }
 

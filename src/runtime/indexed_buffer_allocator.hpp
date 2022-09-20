@@ -28,13 +28,15 @@ private:
     using SharedBufferVector = boost::interprocess::vector< SharedPtr, SharedPtrAllocator >;
     using IndexAllocator     = boost::interprocess::allocator< Index, TSegmentManagerType >;
     using FreeList           = boost::interprocess::vector< Index, IndexAllocator >;
+    using IndexPtr           = boost::interprocess::offset_ptr< SharedBufferVector >;
+    using FreeListPtr        = boost::interprocess::offset_ptr< FreeList >;
     using HeapBufferVector   = std::vector< HeapPtr >;
 
     IndexedBufferAllocator( const IndexedBufferAllocator& )            = delete;
     IndexedBufferAllocator& operator=( const IndexedBufferAllocator& ) = delete;
 
 public:
-    IndexedBufferAllocator( ManagedSharedMemory& sharedMemory );
+    IndexedBufferAllocator( TypeID objectTypeID, ManagedSharedMemory& sharedMemory );
     ~IndexedBufferAllocator();
 
     struct AllocationResult
@@ -52,8 +54,9 @@ public:
 
 private:
     TSegmentManagerType* m_pSegmentManager;
-    SharedBufferVector   m_sharedBuffers;
-    FreeList             m_freeList;
+    std::string          m_strSharedName;
+    IndexPtr             m_pSharedIndex;
+    FreeListPtr          m_pFreeList;
     HeapBufferVector     m_heapBuffers;
 };
 

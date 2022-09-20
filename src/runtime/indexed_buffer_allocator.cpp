@@ -1,23 +1,40 @@
 
-#include "shared_allocator.hpp"
+#include "indexed_buffer_allocator.hpp"
 
 #include "service/network/log.hpp"
+
+#include <sstream>
 
 namespace mega
 {
 namespace runtime
 {
+namespace
+{
+std::string generateSharedName( TypeID objectTypeID )
+{
+    std::ostringstream os;
+    os << objectTypeID;
+    return os.str();
+}
+} // namespace
 
-IndexedBufferAllocator::IndexedBufferAllocator( ManagedSharedMemory& sharedMemory )
+IndexedBufferAllocator::IndexedBufferAllocator( TypeID objectTypeID, ManagedSharedMemory& sharedMemory )
     : m_pSegmentManager( sharedMemory.get_segment_manager() )
-    // sharedMemory.find_or_construct< SharedBufferVector >()
-    , m_sharedBuffers( SharedPtrAllocator{ m_pSegmentManager } )
-    , m_freeList( IndexAllocator{ m_pSegmentManager } )
+    , m_strSharedName( generateSharedName( objectTypeID ) )
+    , m_pSharedIndex( sharedMemory.find_or_construct< SharedBufferVector >( m_strSharedName.c_str() )(
+          SharedPtrAllocator{ m_pSegmentManager } ) )
+    , m_pFreeList(
+          sharedMemory.find_or_construct< FreeList >( m_strSharedName.c_str() )( IndexAllocator{ m_pSegmentManager } ) )
+
 {
     SPDLOG_TRACE( "IndexedBufferAllocator" );
 }
 
-IndexedBufferAllocator::~IndexedBufferAllocator() {}
+IndexedBufferAllocator::~IndexedBufferAllocator() 
+{
+    //
+}
 
 IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega::U64 szSharedSize,
                                                                            mega::U64 szSharedAlign,
@@ -48,17 +65,17 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
     {
         AllocationResult result{ pShared.get(), pHeap.get(), 0U };
         {
-            if ( !m_freeList.empty() )
+            if ( !m_pFreeList->empty() )
             {
-                result.object = m_freeList.back();
-                m_freeList.pop_back();
-                m_sharedBuffers[ result.object ] = pShared;
-                m_heapBuffers[ result.object ]   = std::move( pHeap );
+                result.object = m_pFreeList->back();
+                m_pFreeList->pop_back();
+                m_pSharedIndex->at( result.object ) = pShared;
+                m_heapBuffers[ result.object ]      = std::move( pHeap );
             }
             else
             {
-                result.object = static_cast< ObjectID >( m_sharedBuffers.size() );
-                m_sharedBuffers.push_back( pShared );
+                result.object = static_cast< ObjectID >( m_pSharedIndex->size() );
+                m_pSharedIndex->push_back( pShared );
                 m_heapBuffers.push_back( std::move( pHeap ) );
             }
         }
@@ -81,16 +98,16 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
 void IndexedBufferAllocator::deallocate( Index index )
 {
     // SPDLOG_TRACE( "IndexedBufferAllocator::allocate {}", index );
-    SharedPtr pShared        = m_sharedBuffers[ index ];
-    m_sharedBuffers[ index ] = nullptr;
+    SharedPtr pShared           = m_pSharedIndex->at( index );
+    m_pSharedIndex->at( index ) = nullptr;
     m_pSegmentManager->deallocate( pShared.get() );
     m_heapBuffers[ index ].reset();
-    m_freeList.push_back( index );
+    m_pFreeList->push_back( index );
 }
 
 void* IndexedBufferAllocator::getShared( Index index ) const
 {
-    void* pAddress = m_sharedBuffers[ index ].get();
+    void* pAddress = m_pSharedIndex->at( index ).get();
     // SPDLOG_TRACE( "IndexedBufferAllocator::getShared {} {} {}", (void*)this, index, pAddress );
     return pAddress;
 }

@@ -3,7 +3,7 @@
 
 #include "runtime/runtime_functions.hpp"
 
-#include "shared_allocator.hpp"
+#include "indexed_buffer_allocator.hpp"
 
 #include <memory>
 #include <unordered_map>
