@@ -3042,10 +3042,11 @@ namespace Clang
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( loader )
     {
     }
-    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::string& canonical_type, const mega::U64& size, const bool& simple, const std::vector< data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols)
+    Interface_DimensionTrait::Interface_DimensionTrait( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, Ptr< Tree::Interface_DimensionTrait > p_Tree_Interface_DimensionTrait, const std::string& canonical_type, const mega::U64& size, const mega::U64& alignment, const bool& simple, const std::vector< data::Ptr< data::SymbolTable::Symbols_Symbol > >& symbols)
         :   mega::io::Object( objectInfo )          , p_Tree_Interface_DimensionTrait( p_Tree_Interface_DimensionTrait )
           , canonical_type( canonical_type )
           , size( size )
+          , alignment( alignment )
           , simple( simple )
           , symbols( symbols )
     {
@@ -3063,6 +3064,7 @@ namespace Clang
         loader.load( p_Tree_Interface_DimensionTrait );
         loader.load( canonical_type );
         loader.load( size );
+        loader.load( alignment );
         loader.load( simple );
         loader.load( symbols );
     }
@@ -3071,6 +3073,7 @@ namespace Clang
         storer.store( p_Tree_Interface_DimensionTrait );
         storer.store( canonical_type );
         storer.store( size );
+        storer.store( alignment );
         storer.store( simple );
         storer.store( symbols );
     }
@@ -3093,6 +3096,11 @@ namespace Clang
         {
             nlohmann::json property = nlohmann::json::object({
                 { "size", size } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "alignment", alignment } } );
             _part__[ "properties" ].push_back( property );
         }
         {
@@ -5456,6 +5464,7 @@ namespace MemoryLayout
         loader.load( link_dimensions );
         loader.load( allocation_dimensions );
         loader.load( size );
+        loader.load( alignment );
         loader.load( offset );
     }
     void MemoryLayout_Part::store( mega::io::Storer& storer ) const
@@ -5467,6 +5476,8 @@ namespace MemoryLayout
         storer.store( allocation_dimensions );
         VERIFY_RTE_MSG( size.has_value(), "MemoryLayout::MemoryLayout_Part.size has NOT been set" );
         storer.store( size );
+        VERIFY_RTE_MSG( alignment.has_value(), "MemoryLayout::MemoryLayout_Part.alignment has NOT been set" );
+        storer.store( alignment );
         VERIFY_RTE_MSG( offset.has_value(), "MemoryLayout::MemoryLayout_Part.offset has NOT been set" );
         storer.store( offset );
     }
@@ -5513,6 +5524,11 @@ namespace MemoryLayout
         }
         {
             nlohmann::json property = nlohmann::json::object({
+                { "alignment", alignment.value() } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
                 { "offset", offset.value() } } );
             _part__[ "properties" ].push_back( property );
         }
@@ -5522,9 +5538,10 @@ namespace MemoryLayout
     MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo )
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )    {
     }
-    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts, const mega::U64& size)
+    MemoryLayout_Buffer::MemoryLayout_Buffer( ObjectPartLoader& loader, const mega::io::ObjectInfo& objectInfo, const std::vector< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& parts, const mega::U64& size, const mega::U64& alignment)
         :   mega::io::Object( objectInfo ), m_inheritance( data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >( loader, this ) )          , parts( parts )
           , size( size )
+          , alignment( alignment )
     {
     }
     bool MemoryLayout_Buffer::test_inheritance_pointer( ObjectPartLoader &loader ) const
@@ -5538,11 +5555,13 @@ namespace MemoryLayout
     {
         loader.load( parts );
         loader.load( size );
+        loader.load( alignment );
     }
     void MemoryLayout_Buffer::store( mega::io::Storer& storer ) const
     {
         storer.store( parts );
         storer.store( size );
+        storer.store( alignment );
     }
     void MemoryLayout_Buffer::to_json( nlohmann::json& _part__ ) const
     {
@@ -5563,6 +5582,11 @@ namespace MemoryLayout
         {
             nlohmann::json property = nlohmann::json::object({
                 { "size", size } } );
+            _part__[ "properties" ].push_back( property );
+        }
+        {
+            nlohmann::json property = nlohmann::json::object({
+                { "alignment", alignment } } );
             _part__[ "properties" ].push_back( property );
         }
     }
@@ -7901,6 +7925,93 @@ std::vector< data::Ptr< data::AST::Parser_ActionDef > >& get_action_defs(std::va
             else
             {
                 THROW_RTE( "Invalid call to get_action_defs" );
+            }
+        }
+        , m_data );
+}
+mega::U64& get_alignment(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> mega::U64&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
+            {
+                data::Ptr< data::Clang::Interface_DimensionTrait > part = 
+                    data::convert< data::Clang::Interface_DimensionTrait >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_alignment" );
+                return part->alignment;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_alignment" );
+            }
+        }
+        , m_data );
+}
+mega::U64& get_alignment(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> mega::U64&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_alignment" );
+                return part->alignment;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_alignment" );
+                return part->alignment;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_alignment" );
+                return part->alignment;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_alignment" );
+                return part->alignment;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_alignment" );
+            }
+        }
+        , m_data );
+}
+std::optional< mega::U64 >& get_alignment(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< mega::U64 >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: get_alignment" );
+                return part->alignment;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to get_alignment" );
             }
         }
         , m_data );
@@ -18623,6 +18734,93 @@ std::vector< data::Ptr< data::AST::Parser_ActionDef > >& set_action_defs(std::va
             else
             {
                 THROW_RTE( "Invalid call to set_action_defs" );
+            }
+        }
+        , m_data );
+}
+mega::U64& set_alignment(std::variant< data::Ptr< data::AST::Parser_Dimension >, data::Ptr< data::Tree::Interface_DimensionTrait > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> mega::U64&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::Tree::Interface_DimensionTrait > >)
+            {
+                data::Ptr< data::Clang::Interface_DimensionTrait > part = 
+                    data::convert< data::Clang::Interface_DimensionTrait >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_alignment" );
+                return part->alignment;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_alignment" );
+            }
+        }
+        , m_data );
+}
+mega::U64& set_alignment(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Buffer >, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer >, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> mega::U64&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_alignment" );
+                return part->alignment;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_NonSimpleBuffer > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_alignment" );
+                return part->alignment;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_SimpleBuffer > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_alignment" );
+                return part->alignment;
+            }
+            else if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_GPUBuffer > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Buffer > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Buffer >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_alignment" );
+                return part->alignment;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_alignment" );
+            }
+        }
+        , m_data );
+}
+std::optional< mega::U64 >& set_alignment(std::variant< data::Ptr< data::MemoryLayout::MemoryLayout_Part > >& m_data)
+{
+    return std::visit( 
+        []( auto& arg ) -> std::optional< mega::U64 >&
+        {
+            using T = std::decay_t< decltype( arg ) >;
+            if constexpr( std::is_same_v< T, data::Ptr< data::MemoryLayout::MemoryLayout_Part > >)
+            {
+                data::Ptr< data::MemoryLayout::MemoryLayout_Part > part = 
+                    data::convert< data::MemoryLayout::MemoryLayout_Part >( arg );
+                VERIFY_RTE_MSG( part.getObjectInfo().getIndex() != mega::io::ObjectInfo::NO_INDEX,
+                    "Invalid data reference in: set_alignment" );
+                return part->alignment;
+            }
+            else
+            {
+                THROW_RTE( "Invalid call to set_alignment" );
             }
         }
         , m_data );

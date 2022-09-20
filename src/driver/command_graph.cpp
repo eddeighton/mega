@@ -33,6 +33,7 @@
 #include "common/scheduler.hpp"
 #include "common/assert_verify.hpp"
 #include "common/stash.hpp"
+#include "common/requireSemicolon.hpp"
 
 #include "nlohmann/json.hpp"
 
@@ -49,6 +50,34 @@ namespace driver
 {
 namespace graph
 {
+// label = "{{ node.label }}({{ node.concrete_id }},{{ node.type_id }},{{ node.symbol }})
+// {% for base in node.bases %}{% if loop.is_first%} : {% else %}, {% endif %}{{ base.label }}({{ base.type_id }},{{
+// base.symbol }}){% endfor %}
+// {% for property in node.properties %}|{{ property.name }}({{ property.type_id }},{{ property.symbol }}): {{
+// property.value }}{% endfor %}"
+
+// label = "{{ node.label }}{% for property in node.properties %}|{{ property.name }}: {{ property.value }}{% endfor %}"
+
+nlohmann::json make_node( const std::string& strName, const std::string& strLabel )
+{
+    nlohmann::json node = nlohmann::json::object(
+        { { "name", strName }, { "label", strLabel }, { "properties", nlohmann::json::array() } } );
+    return node;
+}
+
+#define NODE( node, name, label )                                                    \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _osLabel; _osLabel << label; \
+                                     node = make_node( name, _osLabel.str() ); )
+
+nlohmann::json make_property( const std::string& strName, const std::string& strValue )
+{
+    nlohmann::json property = nlohmann::json::object( { { "name", strName }, { "value", strValue } } );
+    return property;
+}
+
+#define PROP( node, name, value )                                                    \
+    DO_STUFF_AND_REQUIRE_SEMI_COLON( std::ostringstream _osValue; _osValue << value; \
+                                     node = make_property( name, _osValue.str() ); )
 
 const std::string& getIdentifier( FinalStage::Interface::IContext* pContext ) { return pContext->get_identifier(); }
 const std::string& getIdentifier( FinalStage::Concrete::Context* pContext )
@@ -97,10 +126,10 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interfa
     using namespace FinalStage::Interface;
     for ( DimensionTrait* pDimension : dimensions )
     {
-        nlohmann::json property = nlohmann::json::object( { { "name", pDimension->get_id()->get_str() },
-                                                            { "type_id", pDimension->get_type_id() },
-                                                            { "symbol", pDimension->get_symbol() },
-                                                            { "value", pDimension->get_type() } } );
+        nlohmann::json property;
+        PROP( property, pDimension->get_id()->get_str(),
+              "type_id " << pDimension->get_type_id() << "symbol " << pDimension->get_symbol() << "type "
+                         << pDimension->get_type() );
         node[ "properties" ].push_back( property );
     }
 }
@@ -112,11 +141,11 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Concret
     using namespace FinalStage::Concrete::Dimensions;
     for ( User* pDimension : dimensions )
     {
-        nlohmann::json property
-            = nlohmann::json::object( { { "name", pDimension->get_interface_dimension()->get_id()->get_str() },
-                                        { "type_id", pDimension->get_interface_dimension()->get_type_id() },
-                                        { "symbol", pDimension->get_interface_dimension()->get_symbol() },
-                                        { "value", pDimension->get_interface_dimension()->get_type() } } );
+        nlohmann::json property;
+        PROP( property, pDimension->get_interface_dimension()->get_id()->get_str(),
+              "type_id " << pDimension->get_interface_dimension()->get_type_id() << "symbol "
+                         << pDimension->get_interface_dimension()->get_symbol() << "type "
+                         << pDimension->get_interface_dimension()->get_type() );
         node[ "properties" ].push_back( property );
     }
 }
@@ -131,10 +160,11 @@ void addInheritance( const std::optional< ::FinalStage::Interface::InheritanceTr
     {
         for ( IContext* pInherited : inheritance.value()->get_contexts() )
         {
-            nlohmann::json base = nlohmann::json::object( { { "label", pInherited->get_identifier() },
-                                                            { "type_id", pInherited->get_type_id() },
-                                                            { "symbol", pInherited->get_symbol() } } );
-            node[ "bases" ].push_back( base );
+            nlohmann::json property;
+            PROP( property, "Inherited",
+                  "id " << pInherited->get_identifier() << "type_id " << pInherited->get_type_id() << "symbol "
+                        << pInherited->get_symbol() );
+            node[ "properties" ].push_back( property );
         }
     }
 }
@@ -146,14 +176,18 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
 
     std::ostringstream os;
 
-    nlohmann::json node
-        = nlohmann::json::object( { { "name", getContextFullTypeName< FinalStage::Interface::IContext >( pContext ) },
-                                    { "label", "" },
-                                    { "concrete_id", "" },
-                                    { "type_id", pContext->get_type_id() },
-                                    { "symbol", pContext->get_symbol() },
-                                    { "bases", nlohmann::json::array() },
-                                    { "properties", nlohmann::json::array() } } );
+    nlohmann::json node;
+    NODE( node, getContextFullTypeName< FinalStage::Interface::IContext >( pContext ), "" );
+
+    // nlohmann::json node
+    //     = nlohmann::json::object( { { "name", getContextFullTypeName< FinalStage::Interface::IContext >( pContext )
+    //     },
+    //                                 { "label", "" },
+    //                                 { "concrete_id", "" },
+    //                                 { "type_id", pContext->get_type_id() },
+    //                                 { "symbol", pContext->get_symbol() },
+    //                                 { "bases", nlohmann::json::array() },
+    //                                 { "properties", nlohmann::json::array() } } );
 
     if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
     {
@@ -185,17 +219,13 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     {
         os << "Function: " << getIdentifier( pContext );
         node[ "label" ] = os.str();
-        nlohmann::json arguments
-            = nlohmann::json::object( { { "name", "arguments" },
-                                        { "type_id", "" },
-                                        { "symbol", "" },
-                                        { "value", pFunction->get_arguments_trait()->get_str() } } );
+
+        nlohmann::json arguments;
+        PROP( arguments, "arguments", pFunction->get_arguments_trait()->get_str() );
         node[ "properties" ].push_back( arguments );
-        nlohmann::json return_type
-            = nlohmann::json::object( { { "name", "return type" },
-                                        { "type_id", "" },
-                                        { "symbol", "" },
-                                        { "value", pFunction->get_return_type_trait()->get_str() } } );
+
+        nlohmann::json return_type;
+        PROP( return_type, "return type", pFunction->get_return_type_trait()->get_str() );
         node[ "properties" ].push_back( return_type );
     }
     else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
@@ -241,13 +271,17 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
 
     std::ostringstream os;
 
-    nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName< Concrete::Context >( pContext ) },
-                                                    { "label", "" },
-                                                    { "concrete_id", pContext->get_concrete_id() },
-                                                    { "type_id", pContext->get_interface()->get_type_id() },
-                                                    { "symbol", pContext->get_interface()->get_symbol() },
-                                                    { "bases", nlohmann::json::array() },
-                                                    { "properties", nlohmann::json::array() } } );
+    nlohmann::json node;
+    NODE( node, getContextFullTypeName< Concrete::Context >( pContext ), "" );
+
+    // nlohmann::json node = nlohmann::json::object( { { "name", getContextFullTypeName< Concrete::Context >( pContext )
+    // },
+    //                                                 { "label", "" },
+    //                                                 { "concrete_id", pContext->get_concrete_id() },
+    //                                                 { "type_id", pContext->get_interface()->get_type_id() },
+    //                                                 { "symbol", pContext->get_interface()->get_symbol() },
+    //                                                 { "bases", nlohmann::json::array() },
+    //                                                 { "properties", nlohmann::json::array() } } );
 
     if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
     {
@@ -259,38 +293,31 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
     {
         os << "Action: " << getIdentifier( pContext );
         node[ "label" ] = os.str();
-        // addInheritance( pAction->get_inheritance(), node );
         addProperties( node, pAction->get_dimensions() );
     }
     else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
     {
         os << "Event: " << getIdentifier( pContext );
         node[ "label" ] = os.str();
-        // addInheritance( pEvent->get_inheritance(), node );
         addProperties( node, pEvent->get_dimensions() );
     }
     else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
     {
         os << "Function: " << getIdentifier( pContext );
-        node[ "label" ]          = os.str();
-        nlohmann::json arguments = nlohmann::json::object(
-            { { "name", "arguments" },
-              { "type_id", "" },
-              { "symbol", "" },
-              { "value", pFunction->get_interface_function()->get_arguments_trait()->get_str() } } );
+        node[ "label" ] = os.str();
+
+        nlohmann::json arguments;
+        PROP( arguments, "arguments", pFunction->get_interface_function()->get_arguments_trait()->get_str() );
         node[ "properties" ].push_back( arguments );
-        nlohmann::json return_type = nlohmann::json::object(
-            { { "name", "return type" },
-              { "type_id", "" },
-              { "symbol", "" },
-              { "value", pFunction->get_interface_function()->get_return_type_trait()->get_str() } } );
+
+        nlohmann::json return_type;
+        PROP( arguments, "return type", pFunction->get_interface_function()->get_return_type_trait()->get_str() );
         node[ "properties" ].push_back( return_type );
     }
     else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
     {
         os << "Object: " << getIdentifier( pContext );
         node[ "label" ] = os.str();
-        // addInheritance( pObject->get_inheritance(), node );
         addProperties( node, pObject->get_dimensions() );
     }
     else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
@@ -381,14 +408,8 @@ void createGraphNode( std::set< FinalStage::Interface::Link* >& links, FinalStag
 
     if ( links.find( pLink ) == links.end() )
     {
-        nlohmann::json node
-            = nlohmann::json::object( { { "name", getContextFullTypeName< Interface::IContext >( pLink ) },
-                                        { "label", os.str() },
-                                        { "concrete_id", "" }, // pLink->get_concrete_id()
-                                        { "type_id", pLink->get_type_id() },
-                                        { "symbol", pLink->get_symbol() },
-                                        { "bases", nlohmann::json::array() },
-                                        { "properties", nlohmann::json::array() } } );
+        nlohmann::json node;
+        NODE( node, getContextFullTypeName< Interface::IContext >( pLink ), os.str() );
         data[ "nodes" ].push_back( node );
         links.insert( pLink );
     }
@@ -468,13 +489,10 @@ std::string createMemoryNode( FinalStage::Concrete::Object* pObject, nlohmann::j
     std::ostringstream osName;
     osName << "object_" << getContextFullTypeName( pObject );
 
-    nlohmann::json node = nlohmann::json::object( { { "name", osName.str() },
-                                                    { "label", getContextFullTypeName( pObject ) },
-                                                    { "concrete_id", pObject->get_concrete_id() },
-                                                    { "type_id", pObject->get_interface()->get_type_id() },
-                                                    { "symbol", pObject->get_interface()->get_symbol() },
-                                                    { "bases", nlohmann::json::array() },
-                                                    { "properties", nlohmann::json::array() } } );
+    nlohmann::json node;
+    NODE( node, osName.str(),
+          getContextFullTypeName( pObject ) << " concrete_id " << pObject->get_concrete_id() << " type_id "
+                                            << pObject->get_interface()->get_type_id() );
     data[ "nodes" ].push_back( node );
     return osName.str();
 }
@@ -507,13 +525,8 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Buffer* pBuffer, nlohman
         THROW_RTE( "Unknown buffer type" );
     }
 
-    nlohmann::json node = nlohmann::json::object( { { "name", osName.str() },
-                                                    { "label", os.str() },
-                                                    { "concrete_id", "" },
-                                                    { "type_id", "" },
-                                                    { "symbol", "" },
-                                                    { "bases", nlohmann::json::array() },
-                                                    { "properties", nlohmann::json::array() } } );
+    nlohmann::json node;
+    NODE( node, osName.str(), os.str() << " size " << pBuffer->get_size() << " align" << pBuffer->get_alignment() );
     data[ "nodes" ].push_back( node );
     return osName.str();
 }
@@ -528,21 +541,17 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Part* pPart, nlohmann::j
     std::ostringstream os;
     os << "Part: " << getContextFullTypeName( pPart->get_context() );
 
-    nlohmann::json node = nlohmann::json::object( { { "name", osName.str() },
-                                                    { "label", os.str() },
-                                                    { "concrete_id", "" },
-                                                    { "type_id", "" },
-                                                    { "symbol", "" },
-                                                    { "bases", nlohmann::json::array() },
-                                                    { "properties", nlohmann::json::array() } } );
+    nlohmann::json node;
+    NODE( node, osName.str(),
+          os.str() << " size " << pPart->get_size() << " offset " << pPart->get_offset() << " align "
+                   << pPart->get_alignment() );
 
     for ( auto p : pPart->get_user_dimensions() )
     {
-        nlohmann::json property
-            = nlohmann::json::object( { { "name", p->get_interface_dimension()->get_id()->get_str() },
-                                        { "type_id", p->get_interface_dimension()->get_type_id() },
-                                        { "symbol", p->get_interface_dimension()->get_symbol() },
-                                        { "value", p->get_interface_dimension()->get_type() } } );
+        nlohmann::json property;
+        PROP( property, p->get_interface_dimension()->get_id()->get_str(),
+              " type_id " << p->get_interface_dimension()->get_type_id() << " type "
+                          << p->get_interface_dimension()->get_type() << " offset " << p->get_offset() );
         node[ "properties" ].push_back( property );
     }
     for ( auto p : pPart->get_allocation_dimensions() )
@@ -583,11 +592,10 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Part* pPart, nlohmann::j
                 }
             }
 
-            nlohmann::json property
-                = nlohmann::json::object( { { "name", pAllocated->get_interface()->get_identifier() },
-                                            { "type_id", pAllocated->get_concrete_id() },
-                                            { "symbol", "" },
-                                            { "value", osValue.str() } } );
+            nlohmann::json property;
+            PROP( property, pAllocated->get_interface()->get_identifier(),
+                  " type_id " << pAllocated->get_concrete_id() << " offset " << pAllocatorDimension->get_offset()
+                              << " value " << osValue.str() );
             node[ "properties" ].push_back( property );
         }
         else
@@ -617,10 +625,10 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Part* pPart, nlohmann::j
             }
         }
 
-        nlohmann::json property = nlohmann::json::object( { { "name", pLink->get_link()->get_identifier() },
-                                                            { "type_id", pLink->get_link()->get_type_id() },
-                                                            { "symbol", "" },
-                                                            { "value", osValue.str() } } );
+        nlohmann::json property;
+        PROP( property, pLink->get_link()->get_identifier(),
+              "type_id " << pLink->get_link()->get_type_id() << " offset " << p->get_offset() << " value "
+                         << osValue.str() );
         node[ "properties" ].push_back( property );
     }
     data[ "nodes" ].push_back( node );

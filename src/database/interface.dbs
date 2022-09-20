@@ -14,6 +14,7 @@ namespace Interface
 
         value< std::string >             canonical_type  -> InterfaceAnalysisStage::Clang;
         value< mega::U64 >               size            -> InterfaceAnalysisStage::Clang;
+        value< mega::U64 >               alignment       -> InterfaceAnalysisStage::Clang;
         value< bool >                    simple          -> InterfaceAnalysisStage::Clang;
         array< ref< Symbols::Symbol > >  symbols         -> InterfaceAnalysisStage::Clang;
     }

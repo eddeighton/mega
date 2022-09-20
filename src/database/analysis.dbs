@@ -40,7 +40,7 @@ namespace Symbols
         // each symbol represents a unique string 
         // and MUST have a unique id
         value< std::string >                      symbol;
-        value< mega::I32 >                     id;
+        value< mega::I32 >                        id;
         array< ref< Interface::IContext > >       contexts;
         array< ref< Interface::DimensionTrait > > dimensions;
     }
@@ -164,13 +164,14 @@ namespace MemoryLayout
 {
     object Part  -> MemoryStage::MemoryLayout
     {
-        value< mega::U64 >                                total_domain_size;
+        value< mega::U64 >                                  total_domain_size;
         ref< Concrete::Context >                            context;
         array< ref< Concrete::Dimensions::User > >          user_dimensions;
         array< ref< Concrete::Dimensions::LinkReference > > link_dimensions;
         array< ref< Concrete::Dimensions::Allocation > >    allocation_dimensions;
 
         late< value< mega::U64 > >                        size;
+        late< value< mega::U64 > >                        alignment;
         late< value< mega::U64 > >                        offset;
     }
 
@@ -178,6 +179,7 @@ namespace MemoryLayout
     {
         array< ref< Part > > parts;
         value< mega::U64 > size;
+        value< mega::U64 > alignment;
     }
 
     object NonSimpleBuffer : Buffer -> MemoryStage::MemoryLayout

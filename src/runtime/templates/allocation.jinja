@@ -3,21 +3,66 @@
 #include "mega/reference.hpp"
 #include "runtime/runtime_functions.hpp"
 
+namespace mega
+{
+{% for allocator in allocators %}
+    void new_{{allocator}}(void*);
+{% endfor %}
+{% for deallocator in deallocators %}
+    void delete_{{deallocator}}(void*);
+{% endfor %}
+}
 
 void shared_ctor_{{ objectTypeID }}( void* pBuffer )
 {
+    char* pIter = (char*)pBuffer;
+{% for part in shared_parts %}
+    for( char* pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    {
+{% for member in part.members %}
+        mega::new_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+{% endfor %}
+    }
+{% endfor %}
 }
 
 void shared_dtor_{{ objectTypeID }}( void* pBuffer )
 {
+    char* pIter = (char*)pBuffer;
+{% for part in shared_parts %}
+    for( char* pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    {
+{% for member in part.members %}
+        mega::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+{% endfor %}
+    }
+{% endfor %}
 }
 
 void heap_ctor_{{ objectTypeID }}( void* pBuffer )
 {
+    char* pIter = (char*)pBuffer;
+{% for part in heap_parts %}
+    for( char* pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    {
+{% for member in part.members %}
+        mega::new_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+{% endfor %}
+    }
+{% endfor %}
 }
 
 void heap_dtor_{{ objectTypeID }}( void* pBuffer )
 {
+    char* pIter = (char*)pBuffer;
+{% for part in heap_parts %}
+    for( char* pEnd = pIter + {{ part.total_domain }} * {{ part.size }}; pIter != pEnd; pIter += {{ part.size }} )
+    {
+{% for member in part.members %}
+        mega::delete_{{member.mangle}}( pIter + {{ member.offset }} ); // {{ member.type }} {{ member.name }}
+{% endfor %}
+    }
+{% endfor %}
 }
 
 static mega::runtime::Allocator* __g_allocator = nullptr;

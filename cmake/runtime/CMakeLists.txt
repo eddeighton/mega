@@ -43,6 +43,8 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/object_allocator.cpp
     ${MEGA_SRC_DIR}/runtime/runtime_api.cpp
     ${MEGA_SRC_DIR}/runtime/symbol_utils.hpp
+
+    ${MEGA_API_DIR}/mega/default_traits.cpp
 )
 
 add_library( runtime

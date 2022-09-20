@@ -131,6 +131,12 @@ public:
                 }
                 {
                     std::ostringstream osTrait;
+                    osTrait << "static const mega::U64 " << mega::EG_TRAITS_ALIGNMENT << " = mega::DimensionTraits< "
+                            << strType << " >::Alignment";
+                    trait_struct[ "traits" ].push_back( osTrait.str() );
+                }
+                {
+                    std::ostringstream osTrait;
                     osTrait << "static const mega::U64 " << mega::EG_TRAITS_SIMPLE << " = mega::DimensionTraits< "
                             << strType << " >::Simple";
                     trait_struct[ "traits" ].push_back( osTrait.str() );

@@ -189,6 +189,19 @@ public:
                     THROW_RTE( "Error attempting to record dimension size" );
                 }
 
+                // determine the alignment
+                ::mega::U64 szAlignment = 0U;
+                if ( std::optional< ::mega::U64 > alignmentOpt
+                     = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
+                                    ::mega::EG_TRAITS_ALIGNMENT ) )
+                {
+                    szAlignment = static_cast< ::mega::U64 >( alignmentOpt.value() );
+                }
+                else
+                {
+                    THROW_RTE( "Error attempting to record dimension size" );
+                }
+
                 // determine if the type is simple
                 bool bIsSimple = true;
                 if ( std::optional< ::mega::U64 > sizeOpt
@@ -202,8 +215,8 @@ public:
                     THROW_RTE( "Error attempting to record if dimension is simple" );
                 }
 
-                m_database.construct< Interface::DimensionTrait >(
-                    Interface::DimensionTrait::Args{ pDimensionTrait, strCanonicalType, szSize, bIsSimple, symbols } );
+                m_database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args{
+                    pDimensionTrait, strCanonicalType, szSize, szAlignment, bIsSimple, symbols } );
             }
             else
             {

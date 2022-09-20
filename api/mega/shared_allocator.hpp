@@ -47,6 +47,8 @@ public:
         SharedPtr pShared;
         if ( szShared )
         {
+            // m_pSegmentManager->allocate_aligned( szShared, szSharedAlignment )
+
             pShared = m_pSegmentManager->allocate( szShared );
             std::memset( pShared.get(), 0, szShared );
         }

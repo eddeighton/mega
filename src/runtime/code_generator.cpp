@@ -17,6 +17,7 @@
 #include "inja/template.hpp"
 
 #include "boost/process.hpp"
+#include "boost/algorithm/string.hpp"
 
 #include <string>
 #include <istream>
@@ -212,6 +213,58 @@ CodeGenerator::CodeGenerator( const mega::network::MegastructureInstallation& me
 {
 }
 
+std::string megaMangle( const std::string& strCanonicalTypeName )
+{
+    std::ostringstream os;
+    for ( auto c : strCanonicalTypeName )
+    {
+        if ( std::isspace( c ) )
+            continue;
+        else if ( std::isalnum( c ) )
+            os << c;
+        else
+        {
+            switch ( c )
+            {
+                case ':':
+                    os << '0';
+                    break;
+                case '(':
+                    os << '1';
+                    break;
+                case ')':
+                    os << '2';
+                    break;
+                case '<':
+                    os << '3';
+                    break;
+                case '>':
+                    os << '4';
+                    break;
+                case '[':
+                    os << '5';
+                    break;
+                case ']':
+                    os << '6';
+                    break;
+                case '.':
+                    os << '7';
+                    break;
+                case '*':
+                    os << '8';
+                    break;
+                case '&':
+                    os << '9';
+                    break;
+                    break;
+                default:
+                    THROW_RTE( "Unexpected character in typename: " << strCanonicalTypeName );
+            }
+        }
+    }
+    return os.str();
+}
+
 void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega::TypeID objectTypeID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_allocation: {}", objectTypeID );
@@ -221,9 +274,14 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
 
     std::ostringstream osObjectTypeID;
     osObjectTypeID << objectTypeID;
-    nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() } } );
+    nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
+                           { "shared_parts", nlohmann::json::array() },
+                           { "heap_parts", nlohmann::json::array() },
+                           { "allocators", nlohmann::json::array() },
+                           { "deallocators", nlohmann::json::array() } } );
 
-    /*{
+    std::set< std::string > allocators, deallocators;
+    {
         using namespace FinalStage;
         for ( auto pBuffer : pObject->get_buffers() )
         {
@@ -247,37 +305,49 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                                        { "size", pPart->get_size() },
                                        { "offset", pPart->get_offset() },
                                        { "total_domain", szTotalDomainSize },
-                                       { "inits", std::vector< int >( szTotalDomainSize, 0 ) },
                                        { "members", nlohmann::json::array() } } );
 
                 for ( auto pUserDim : pPart->get_user_dimensions() )
                 {
+                    const std::string strMangle
+                        = megaMangle( pUserDim->get_interface_dimension()->get_canonical_type() );
                     nlohmann::json member( { { "type", pUserDim->get_interface_dimension()->get_canonical_type() },
+                                             { "mangle", strMangle },
                                              { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
                                              { "offset", pUserDim->get_offset() } } );
                     part[ "members" ].push_back( member );
+                    allocators.insert( strMangle );
+                    deallocators.insert( strMangle );
                 }
                 for ( auto pLinkDim : pPart->get_link_dimensions() )
                 {
                     if ( Concrete::Dimensions::LinkMany* pLinkMany
                          = dynamic_database_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
                     {
+                        const std::string  strMangle = megaMangle( "mega::ReferenceVector" );
                         std::ostringstream osLinkName;
                         osLinkName << "link_" << pLinkMany->get_link()->get_concrete_id();
                         nlohmann::json member( { { "type", "mega::ReferenceVector" },
+                                                 { "mangle", strMangle },
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkMany->get_offset() } } );
                         part[ "members" ].push_back( member );
+                        allocators.insert( strMangle );
+                        deallocators.insert( strMangle );
                     }
                     else if ( Concrete::Dimensions::LinkSingle* pLinkSingle
                               = dynamic_database_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
                     {
+                        const std::string  strMangle = megaMangle( "mega::reference" );
                         std::ostringstream osLinkName;
                         osLinkName << "link_" << pLinkSingle->get_link()->get_concrete_id();
                         nlohmann::json member( { { "type", "mega::reference" },
+                                                 { "mangle", strMangle },
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkSingle->get_offset() } } );
                         part[ "members" ].push_back( member );
+                        allocators.insert( strMangle );
+                        deallocators.insert( strMangle );
                     }
                     else
                     {
@@ -298,12 +368,16 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                         else if ( Allocators::Singleton* pAlloc
                                   = dynamic_database_cast< Allocators::Singleton >( pAllocBase ) )
                         {
+                            const std::string  strMangle = megaMangle( "bool" );
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
                             nlohmann::json member( { { "type", "bool" },
+                                                     { "mangle", strMangle },
                                                      { "name", osAllocName.str() },
                                                      { "offset", pAllocator->get_offset() } } );
                             part[ "members" ].push_back( member );
+                            allocators.insert( strMangle );
+                            deallocators.insert( strMangle );
                         }
                         else if ( Allocators::Range32* pAlloc
                                   = dynamic_database_cast< Allocators::Range32 >( pAllocBase ) )
@@ -316,10 +390,14 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                                        << database.getLocalDomainSize(
                                               pAlloc->get_allocated_context()->get_concrete_id() )
                                        << " >";
-                            nlohmann::json member( { { "type", osTypeName.str() },
-                                                     { "name", osAllocName.str() },
-                                                     { "offset", pAllocator->get_offset() } } );
+                            const std::string strMangle = megaMangle( osTypeName.str() );
+                            nlohmann::json    member( { { "type", osTypeName.str() },
+                                                        { "mangle", strMangle },
+                                                        { "name", osAllocName.str() },
+                                                        { "offset", pAllocator->get_offset() } } );
                             part[ "members" ].push_back( member );
+                            allocators.insert( strMangle );
+                            deallocators.insert( strMangle );
                         }
                         else if ( Allocators::Range64* pAlloc
                                   = dynamic_database_cast< Allocators::Range64 >( pAllocBase ) )
@@ -331,10 +409,14 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                                        << database.getLocalDomainSize(
                                               pAlloc->get_allocated_context()->get_concrete_id() )
                                        << " >";
-                            nlohmann::json member( { { "type", osTypeName.str() },
-                                                     { "name", osAllocName.str() },
-                                                     { "offset", pAllocator->get_offset() } } );
+                            const std::string strMangle = megaMangle( osTypeName.str() );
+                            nlohmann::json    member( { { "type", osTypeName.str() },
+                                                        { "mangle", strMangle },
+                                                        { "name", osAllocName.str() },
+                                                        { "offset", pAllocator->get_offset() } } );
                             part[ "members" ].push_back( member );
+                            allocators.insert( strMangle );
+                            deallocators.insert( strMangle );
                         }
                         else if ( Allocators::RangeAny* pAlloc
                                   = dynamic_database_cast< Allocators::RangeAny >( pAllocBase ) )
@@ -346,10 +428,14 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                                        << database.getLocalDomainSize(
                                               pAlloc->get_allocated_context()->get_concrete_id() )
                                        << " >";
-                            nlohmann::json member( { { "type", osTypeName.str() },
-                                                     { "name", osAllocName.str() },
-                                                     { "offset", pAllocator->get_offset() } } );
+                            const std::string strMangle = megaMangle( osTypeName.str() );
+                            nlohmann::json    member( { { "type", osTypeName.str() },
+                                                        { "mangle", strMangle },
+                                                        { "name", osAllocName.str() },
+                                                        { "offset", pAllocator->get_offset() } } );
                             part[ "members" ].push_back( member );
+                            allocators.insert( strMangle );
+                            deallocators.insert( strMangle );
                         }
                         else
                         {
@@ -368,7 +454,16 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                     data[ "heap_parts" ].push_back( part );
             }
         }
-    }*/
+    }
+
+    for ( const auto& str : allocators )
+    {
+        data[ "allocators" ].push_back( str );
+    }
+    for ( const auto& str : deallocators )
+    {
+        data[ "deallocators" ].push_back( str );
+    }
 
     std::ostringstream osCPPCode;
     m_pPimpl->render_allocation( data, osCPPCode );
@@ -398,8 +493,8 @@ void generateBufferFPtrCheck( bool bShared, mega::TypeID id, std::ostream& os )
 }
 void generateReferenceCheck( bool bShared, mega::TypeID id, const std::string& strInstanceVar, std::ostream& os )
 {
-    os << indent << "if( " << strInstanceVar << ".isNetwork() ) " << strInstanceVar << " = mega::runtime::networkToMachine( " << id
-       << ", " << strInstanceVar << ".network );\n";
+    os << indent << "if( " << strInstanceVar << ".isNetwork() ) " << strInstanceVar
+       << " = mega::runtime::networkToMachine( " << id << ", " << strInstanceVar << ".network );\n";
 }
 void generateBufferRead( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
                          const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
