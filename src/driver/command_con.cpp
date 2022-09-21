@@ -17,54 +17,36 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "pipeline/configuration.hpp"
-
-#include "pipeline/stash.hpp"
 #include "service/terminal.hpp"
-
-#include "pipeline/pipeline.hpp"
-
-#include "utilities/cmake.hpp"
-
-#include "parser/parser.hpp"
 
 #include "boost/program_options.hpp"
 #include "boost/filesystem/path.hpp"
-#include "boost/filesystem/operations.hpp"
-#include "boost/program_options/value_semantic.hpp"
-#include "boost/dll.hpp"
 
-#include "common/assert_verify.hpp"
-#include "common/file.hpp"
-#include "common/stash.hpp"
-
+#include <vector>
+#include <string>
 #include <iostream>
-#include <spdlog/spdlog.h>
 
 namespace driver
 {
-namespace new_install
+namespace con
 {
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    boost::filesystem::path projectInstallDir;
+    bool bList = false;
 
     namespace po = boost::program_options;
-    po::options_description commandOptions( " Notify Megastructure of a new project installation" );
+    po::options_description commandOptions( " Project Commands" );
     {
         // clang-format off
         commandOptions.add_options()
-        ( "mega_project",      po::value< boost::filesystem::path >( &projectInstallDir ),   "Project Installation Directory" )
-        ;
+            ( "list",    po::bool_switch( &bList ),    "List all conversations" )
+            ;
         // clang-format on
     }
 
-    po::positional_options_description p;
-    p.add( "dir", -1 );
-
     po::variables_map vm;
-    po::store( po::command_line_parser( args ).options( commandOptions ).positional( p ).run(), vm );
+    po::store( po::command_line_parser( args ).options( commandOptions ).run(), vm );
     po::notify( vm );
 
     if ( bHelp )
@@ -73,20 +55,15 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        try
+        if ( bList )
         {
-            const mega::network::Project project( projectInstallDir );
-            mega::service::Terminal      terminal;
-            if ( !terminal.NewInstallation( project ) )
-            {
-                THROW_RTE( "Installation failed" );
-            }
+            mega::service::Terminal terminal;
         }
-        catch ( std::exception& ex )
+        else
         {
-            THROW_RTE( "Exception executing pipeline: " << ex.what() );
+            std::cout << "Unrecognised project command" << std::endl;
         }
     }
 }
-} // namespace new_install
+} // namespace con
 } // namespace driver

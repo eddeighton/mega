@@ -23,7 +23,7 @@ ConversationBase::RequestStack::RequestStack( const char* pszMsg, ConversationBa
 }
 ConversationBase::RequestStack::~RequestStack()
 {
-    const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
+    // const auto timeDelta = std::chrono::steady_clock::now() - m_startTime;
     // SPDLOG_DEBUG( "{} {} {} {}", conversation.getProcessName(), conversation.getID(), m_pszMsg, timeDelta );
     conversation.requestCompleted();
 }
@@ -86,7 +86,7 @@ void Conversation::run( boost::asio::yield_context& yield_ctx )
     }
     catch ( std::exception& ex )
     {
-        SPDLOG_WARN( "Conversation: {} exception: {}", getID(), ex.what() );
+        SPDLOG_WARN( "Conversation run: {} exception: {}", getID(), ex.what() );
         m_conversationManager.conversationCompleted( shared_from_this() );
     }
 }

@@ -26,7 +26,7 @@
 #include <string>
 #include <iostream>
 
-namespace terminal
+namespace driver
 {
 namespace sim
 {
@@ -37,7 +37,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     std::string strList, strDestroy, strID, strRead, strWrite, strRelease, strSuspend, strResume, strStop, strStart;
 
     namespace po = boost::program_options;
-    po::options_description commandOptions( " Generate graph json data" );
+    po::options_description commandOptions( " Simulation Commands" );
     {
         // clang-format off
         commandOptions.add_options()
@@ -158,4 +158,4 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
 }
 } // namespace sim
-} // namespace terminal
+} // namespace driver

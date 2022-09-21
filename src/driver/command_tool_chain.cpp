@@ -42,7 +42,7 @@
 
 namespace driver
 {
-namespace tool_chain_hash
+namespace tool_chain
 {
 namespace
 {
@@ -128,7 +128,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         std::ostringstream os;
         {
             const std::string strClangVersion   = getClangVersion( clangCompiler );
-            const mega::U64 szDatabaseVersion = getDatabaseVersion( databaseDll );
+            const mega::U64   szDatabaseVersion = getDatabaseVersion( databaseDll );
 
             const mega::utilities::ToolChain toolChain(
                 strClangVersion, szDatabaseVersion, parserDll, megaCompiler, clangCompiler, clangPlugin, databaseDll );
@@ -139,5 +139,5 @@ void command( bool bHelp, const std::vector< std::string >& args )
         boost::filesystem::updateFileIfChanged( outputFilePath, os.str() );
     }
 }
-} // namespace tool_chain_hash
+} // namespace tool_chain
 } // namespace driver

@@ -6,7 +6,7 @@ find_path(LLVM_CONFIGURATION_PATH NAMES "llvm/install" PATHS "${CMAKE_INSTALL_PR
 find_file(SCRIPT_CLANG_COMPILER NAMES clang++ PATHS ${LLVM_CONFIGURATION_PATH}/llvm/install/bin REQUIRED NO_DEFAULT_PATH)
 
 execute_process( 
-	COMMAND mega --tool_chain_hash
+	COMMAND mega --tool_chain
 	
 		--clang_compiler "${SCRIPT_CLANG_COMPILER}"
 		--parser_dll "${CMAKE_INSTALL_PREFIX}/bin/$<TARGET_FILE_NAME:parser>"

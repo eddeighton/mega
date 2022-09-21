@@ -38,7 +38,7 @@
 
 namespace driver
 {
-namespace list
+namespace component_listing
 {
 
 void command( bool bHelp, const std::vector< std::string >& args )
@@ -48,7 +48,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     std::vector< std::string > objectSourceFileNames;
 
     namespace po = boost::program_options;
-    po::options_description commandOptions( " List input mega source files" );
+    po::options_description commandOptions( " Generate component listing file" );
     {
         // clang-format off
         commandOptions.add_options()

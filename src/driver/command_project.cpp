@@ -26,7 +26,7 @@
 #include <string>
 #include <iostream>
 
-namespace terminal
+namespace driver
 {
 namespace project
 {
@@ -37,7 +37,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     bool                    bGetProject = false;
 
     namespace po = boost::program_options;
-    po::options_description commandOptions( " Generate graph json data" );
+    po::options_description commandOptions( " Project Commands" );
     {
         // clang-format off
         commandOptions.add_options()
@@ -76,4 +76,4 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
 }
 } // namespace project
-} // namespace terminal
+} // namespace driver

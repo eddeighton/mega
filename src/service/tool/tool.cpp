@@ -60,8 +60,7 @@ public:
         else
         {
             // This can happen when initiating request has received exception - in which case
-            SPDLOG_ERROR( "Tool: {} {}", connection, strErrorMsg );
-            THROW_RTE( "Tool: Critical error in error handler" );
+            SPDLOG_ERROR( "Tool cannot resolve connection: {} on error: {}", connection, strErrorMsg );
         }
     }
 
@@ -141,15 +140,15 @@ public:
         mega::reference result;
 
         auto toolRequest = getToolRequest( *m_pYieldContext );
-        //if( toolRequest.ToolSimReadLock( getID(), simID ) )
+        // if( toolRequest.ToolSimReadLock( getID(), simID ) )
         {
             const MPO mpo = toolRequest.ToolGetMPO( simID );
             return runtime::get_root( mpo );
         }
-        //else
+        // else
         //{
-        //    THROW_RTE( "Failed to acquire read lock on simID: " << simID );
-        //}
+        //     THROW_RTE( "Failed to acquire read lock on simID: " << simID );
+        // }
     }
 
     mega::reference getRoot() override { return m_pExecutionRoot->root(); }
@@ -168,7 +167,7 @@ public:
     {
         VERIFY_RTE( m_pYieldContext );
         // SPDLOG_TRACE( "getNetworkAddressMPO called with: {}", networkAddress );
-        return getToolRequest( *m_pYieldContext ).ToolGetNetworkAddressMPO( networkAddress ) ;
+        return getToolRequest( *m_pYieldContext ).ToolGetNetworkAddressMPO( networkAddress );
     }
     virtual NetworkAddress getRootNetworkAddress( MPO mpo )
     {

@@ -68,9 +68,7 @@ public:
         }
         else
         {
-            SPDLOG_ERROR(
-                "Leaf: Cannot resolve connection: {} in error handler for error: {}", connection, strErrorMsg );
-            THROW_RTE( "Leaf: Critical error in error handler" );
+            SPDLOG_ERROR( "Leaf cannot resolve connection: {} on error: {}", connection, strErrorMsg );
         }
     }
     network::daemon_leaf::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )

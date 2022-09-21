@@ -55,7 +55,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
-        ( "project",        po::value< std::string >( &projectName ),                "Mega Project Name" )
+        ( "mega_project",   po::value< std::string >( &projectName ),                "Mega Project Name" )
         ( "components",     po::value< std::string >( &strComponentInfoPaths ),      "Component info files" )
         ( "src_dir",        po::value< boost::filesystem::path >( &srcDir ),         "Root source directory" )
         ( "build_dir",      po::value< boost::filesystem::path >( &buildDir ),       "Root build directory" )

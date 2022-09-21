@@ -118,8 +118,16 @@ void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversa
     {
         WriteLock                          lock( m_mutex );
         ConversationPtrMap::const_iterator iFind = m_conversations.find( pConversation->getID() );
-        VERIFY_RTE( iFind != m_conversations.end() );
-        m_conversations.erase( iFind );
+        VERIFY_RTE ( iFind != m_conversations.end() );
+        //if ( iFind != m_conversations.end() )
+        {
+            SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
+            m_conversations.erase( iFind );
+        }
+        /*else
+        {
+            SPDLOG_WARN( "conversationCompleted failed to locate conversation: {}", pConversation->getID() );
+        }*/
     }
     // SPDLOG_DEBUG( "ConversationBase Completed id: {}", pConversation->getID() );
 }

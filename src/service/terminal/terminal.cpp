@@ -59,8 +59,7 @@ public:
         else
         {
             // This can happen when initiating request has received exception - in which case
-            SPDLOG_ERROR( "Terminal: {} {}", connection, strErrorMsg );
-            THROW_RTE( "Terminal: Critical error in error handler" );
+            SPDLOG_ERROR( "Terminal cannot resolve connection: {} on error: {}", connection, strErrorMsg );
         }
     }
 

@@ -187,14 +187,14 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
-        ( "stash_dir",          po::value< boost::filesystem::path >( &stashDir ),                  "Stash directory" )
-        ( "toolchain_xml",      po::value< boost::filesystem::path >( &toolchainXML ),              "Toolchain XML file" )
         ( "configuration",      po::value< boost::filesystem::path >( &pipelineXML ),               "Pipeline Configuration XML File" )
-        ( "result_out",         po::value< boost::filesystem::path >( &outputPipelineResultPath ),  "Output Pipeline Result XML File" )
-        ( "result_in",          po::value< boost::filesystem::path >( &inputPipelineResultPath ),   "Input Pipeline Result XML File" )
+        ( "result_out",         po::value< boost::filesystem::path >( &outputPipelineResultPath ),  "Output Pipeline Result XML File. ( Optional )" )
         ( "local",              po::bool_switch( &bRunLocally ),                                    "Run locally" )
-        ( "task",               po::value< std::string >( &strTaskName ),                           "Specific task to run.  Must provide source file also." )
-        ( "source",             po::value< std::string >( &strSourceFile ),                         "Source file for specific task" )
+        ( "result_in",          po::value< boost::filesystem::path >( &inputPipelineResultPath ),   "Input Pipeline Result XML File ( Local only )" )
+        ( "stash_dir",          po::value< boost::filesystem::path >( &stashDir ),                  "Stash directory ( Local only )" )
+        ( "toolchain_xml",      po::value< boost::filesystem::path >( &toolchainXML ),              "Toolchain XML file ( Local only )" )
+        ( "task",               po::value< std::string >( &strTaskName ),                           "Specific task to run. ( Local only )" )
+        ( "source",             po::value< std::string >( &strSourceFile ),                         "Source file for specific task. ( Local only )" )
         ;
         // clang-format on
     }
@@ -227,15 +227,6 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        mega::utilities::ToolChain toolchain;
-        {
-            VERIFY_RTE_MSG( boost::filesystem::exists( toolchainXML ),
-                            "Failed to locate toolchain file: " << toolchainXML.string() );
-            auto                         pInStream = boost::filesystem::createBinaryInputFileStream( toolchainXML );
-            boost::archive::xml_iarchive ia( *pInStream );
-            ia&                          boost::serialization::make_nvp( "toolchain", toolchain );
-        }
-
         mega::pipeline::Configuration pipelineConfig;
         boost::filesystem::loadAsciiFile( pipelineXML, pipelineConfig.data() );
 
@@ -243,31 +234,29 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             if ( bRunLocally )
             {
+                SPDLOG_INFO( "Running pipeline locally" );
+                mega::utilities::ToolChain toolchain;
+                {
+                    VERIFY_RTE_MSG( boost::filesystem::exists( toolchainXML ),
+                                    "Failed to locate toolchain file: " << toolchainXML.string() );
+                    auto pInStream = boost::filesystem::createBinaryInputFileStream( toolchainXML );
+                    boost::archive::xml_iarchive ia( *pInStream );
+                    ia&                          boost::serialization::make_nvp( "toolchain", toolchain );
+                }
                 pipelineResult = runPipelineLocally(
                     stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile, inputPipelineResultPath );
             }
             else
             {
+                mega::service::Terminal terminal;
                 try
                 {
-                    mega::service::Terminal terminal;
-
-                    SPDLOG_INFO( "Running pipeline using Megastructure service" );
-                    try
-                    {
-                        pipelineResult = terminal.PipelineRun( pipelineConfig );
-                    }
-                    catch ( std::exception& ex )
-                    {
-                        SPDLOG_WARN( "Megastructure service unavailable so running pipeline locally" );
-                        THROW_RTE( "Exception executing pipeline: " << ex.what() );
-                    }
+                    pipelineResult = terminal.PipelineRun( pipelineConfig );
                 }
                 catch ( std::exception& ex )
                 {
                     SPDLOG_WARN( "Megastructure service unavailable so running pipeline locally" );
-                    pipelineResult
-                        = runPipelineLocally( stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile, {} );
+                    THROW_RTE( "Exception executing pipeline: " << ex.what() );
                 }
             }
         }

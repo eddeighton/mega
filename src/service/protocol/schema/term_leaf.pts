@@ -5,7 +5,13 @@ msg TermListNetworkNodes
     request();
     response(std::vector< std::string > nodes);
 }
-
+/* TODO!!
+msg TermListConversations
+{
+    request();
+    response(std::vector< mega::network::ConversationID > conversations);
+}
+*/
 msg TermPipelineRun
 {
     request(mega::pipeline::Configuration configuration);

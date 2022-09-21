@@ -49,8 +49,8 @@ namespace driver
             {
                 // clang-format off
             commandOptions.add_options()
-                ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),     "Source directory" )
-                ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),      "Build directory" )
+                ( "src_dir",    po::value< boost::filesystem::path >( &srcDir ),            "Source directory" )
+                ( "build_dir",  po::value< boost::filesystem::path >( &buildDir ),          "Build directory" )
                 ( "output",     po::value< boost::filesystem::path >( &outputFilePath ),    "Archive file to generate" )
                 ;
                 // clang-format on

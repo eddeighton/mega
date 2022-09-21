@@ -56,8 +56,7 @@ public:
         }
         else
         {
-            SPDLOG_ERROR( "Cannot resolve connection in error handler" );
-            THROW_RTE( "Daemon: Critical error in error handler" );
+            SPDLOG_ERROR( "Daemon cannot resolve connection: {} on error: {}", connectionID, strErrorMsg );
         }
     }
 

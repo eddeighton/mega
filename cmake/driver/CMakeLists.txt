@@ -34,11 +34,14 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_graph.cpp
 		${DRIVER_SOURCE_DIR}/command_inja.cpp
 		${DRIVER_SOURCE_DIR}/command_json.cpp
-		${DRIVER_SOURCE_DIR}/command_list.cpp
+		${DRIVER_SOURCE_DIR}/command_component_listing.cpp
 		${DRIVER_SOURCE_DIR}/command_make_pipeline.cpp
 		${DRIVER_SOURCE_DIR}/command_execute_pipeline.cpp
-		${DRIVER_SOURCE_DIR}/command_tool_chain_hash.cpp
+		${DRIVER_SOURCE_DIR}/command_tool_chain.cpp
 		${DRIVER_SOURCE_DIR}/command_new_install.cpp
+		${DRIVER_SOURCE_DIR}/command_project.cpp
+		${DRIVER_SOURCE_DIR}/command_sim.cpp
+		${DRIVER_SOURCE_DIR}/command_con.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 
@@ -58,8 +61,9 @@ add_executable( mega ${DRIVER_SOURCES} ${GENERATOR_SOURCES} )
 target_link_libraries( mega compiler_config )
 target_link_libraries( mega database )
 target_link_libraries( mega utilities )
+target_link_libraries( mega protocol )
 target_link_libraries( mega network )
-target_link_libraries( mega service )
+target_link_libraries( mega terminal )
 
 set_target_properties( mega PROPERTIES FOLDER driver )
 
