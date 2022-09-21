@@ -28,7 +28,7 @@ IndexedBufferAllocator::IndexedBufferAllocator( TypeID objectTypeID, ManagedShar
           sharedMemory.find_or_construct< FreeList >( m_strSharedName.c_str() )( IndexAllocator{ m_pSegmentManager } ) )
 
 {
-    SPDLOG_TRACE( "IndexedBufferAllocator" );
+    // SPDLOG_TRACE( "IndexedBufferAllocator" );
 }
 
 IndexedBufferAllocator::~IndexedBufferAllocator() 
@@ -54,10 +54,6 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
     if ( szHeapSize )
     {
         pHeap.reset( new ( std::align_val_t( szHeapAlign ) ) char[ szHeapSize ] );
-        if ( reinterpret_cast< U64 >( pHeap.get() ) % szHeapAlign != 0 )
-        {
-            throw std::runtime_error( "Alignment error" );
-        }
         // SPDLOG_TRACE( "IndexedBufferAllocator::allocate heap {}", pHeap.get() );
     }
 
@@ -85,11 +81,13 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
     }
     catch ( boost::container::out_of_range& ex )
     {
+        SPDLOG_ERROR( "Error allocating {}", m_strSharedName );
         m_pSegmentManager->deallocate( pShared.get() );
         throw boost::interprocess::bad_alloc{};
     }
     catch ( boost::interprocess::bad_alloc& ex )
     {
+        SPDLOG_ERROR( "Error allocating {}", m_strSharedName );
         m_pSegmentManager->deallocate( pShared.get() );
         throw boost::interprocess::bad_alloc{};
     }

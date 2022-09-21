@@ -55,6 +55,25 @@ void Conversation::requestCompleted()
 }
 const std::string& Conversation::getProcessName() const { return m_conversationManager.getProcessName(); }
 
+void Conversation::onDisconnect( const ConnectionID& connectionID )
+{
+    for( const ConnectionID& existing : m_stack )
+    {
+        if( existing == connectionID )
+        {
+            m_disconnections.insert( connectionID );
+            break;
+        }
+    }
+
+    if( !m_stack.empty() && m_stack.back() == connectionID )
+    {
+        SPDLOG_ERROR( "Generating disconnect on conversation: {} for connection: {}", getID(), connectionID );
+        const ReceivedMsg rMsg{ connectionID, make_error_msg( "Disconnection" ) };
+        send( rMsg );
+    }
+}
+
 // run is ALWAYS call for each conversation after it is created
 void Conversation::run( boost::asio::yield_context& yield_ctx )
 {
@@ -87,6 +106,18 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
         if ( isRequest( msg.msg ) )
         {
             dispatchRequestImpl( msg, yield_ctx );
+
+            // check if connection has disconnected
+            if( m_disconnections.empty() )
+            {
+                ASSERT( !m_stack.empty() );
+                if( m_disconnections.count( m_stack.back() ) )
+                {
+                    SPDLOG_ERROR( "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
+                    const ReceivedMsg rMsg{ m_stack.back(), make_error_msg( "Disconnection" ) };
+                    send( rMsg );
+                }
+            }
         }
         else
         {

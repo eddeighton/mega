@@ -45,6 +45,7 @@ public:
     virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
     virtual void               run( boost::asio::yield_context& yield_ctx )                           = 0;
     virtual const std::string& getProcessName() const                                                 = 0;
+    virtual void               onDisconnect( const ConnectionID& connectionID )                       = 0;
 
 protected:
     virtual void requestStarted( const ConnectionID& connectionID ) = 0;
@@ -56,7 +57,7 @@ public:
         const char*                           m_pszMsg;
         boost::asio::steady_timer::time_point m_startTime;
         ConversationBase&                     conversation;
-        RequestStack( RequestStack& ) = delete;
+        RequestStack( RequestStack& )            = delete;
         RequestStack& operator=( RequestStack& ) = delete;
 
     public:
@@ -124,6 +125,7 @@ protected:
     virtual void               requestStarted( const ConnectionID& connectionID );
     virtual void               requestCompleted();
     virtual const std::string& getProcessName() const;
+    virtual void               onDisconnect( const ConnectionID& connectionID );
 
 protected:
     void run_one( boost::asio::yield_context& yield_ctx );
@@ -149,6 +151,7 @@ protected:
     ConversationID                        m_conversationID;
     std::optional< ConnectionID >         m_originatingEndPoint;
     std::vector< ConnectionID >           m_stack;
+    std::set< ConnectionID >              m_disconnections;
     mutable std::optional< ConnectionID > m_selfConnectionID;
 };
 

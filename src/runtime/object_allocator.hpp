@@ -41,7 +41,7 @@ private:
     mega::TypeID m_objectTypeID;
     mega::U64    m_szSizeShared, m_szSizeHeap;
     mega::U64    m_szAlignShared, m_szAlignHeap;
-    IndexPtrMap  m_index;
+    IndexPtrMap  m_indexTable;
 
     SetAllocatorFunction m_pSetAllocator = nullptr;
     SharedCtorFunction   m_pSharedCtor   = nullptr;

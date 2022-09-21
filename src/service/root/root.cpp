@@ -132,7 +132,8 @@ public:
             = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
 
         pConnection->setMPO( mpo );
-        pConnection->setDisconnectCallback( [ mpo, &root = m_root ]() { root.onDaemonDisconnect( mpo ); } );
+        pConnection->setDisconnectCallback( [ mpo, &root = m_root ]( const network::ConnectionID& connectionID )
+                                            { root.onDaemonDisconnect( connectionID, mpo ); } );
 
         getStackTopDaemonResponse( yield_ctx ).DaemonEnrole( mpo );
     }
@@ -146,6 +147,7 @@ public:
     virtual void DaemonLeafDisconnect( const mega::MPO& leafMPO, boost::asio::yield_context& yield_ctx ) override
     {
         m_root.m_mpoManager.leafDisconnected( leafMPO );
+
         getStackTopDaemonResponse( yield_ctx ).DaemonLeafDisconnect();
     }
 
@@ -824,7 +826,11 @@ void Root::saveConfig()
     }
 }
 
-void Root::onDaemonDisconnect( mega::MPO mpo ) { m_mpoManager.daemonDisconnect( mpo ); }
+void Root::onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MPO mpo )
+{
+    onDisconnect( connectionID );
+    m_mpoManager.daemonDisconnect( mpo );
+}
 
 void Root::shutdown()
 {

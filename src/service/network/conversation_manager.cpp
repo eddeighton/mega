@@ -23,6 +23,15 @@ ConversationManager::~ConversationManager() {}
 
 boost::asio::io_context& ConversationManager::getIOContext() const { return m_ioContext; }
 
+void ConversationManager::onDisconnect( const ConnectionID& connectionID )
+{
+    WriteLock lock( m_mutex );
+    for ( const auto& [ id, pConversation ] : m_conversations )
+    {
+        pConversation->onDisconnect( connectionID );
+    }
+}
+
 std::vector< ConversationID > ConversationManager::reportConversations() const
 {
     std::vector< ConversationID > activities;

@@ -107,7 +107,8 @@ public:
         const mega::MPO leafMPO = getRootRequest( yield_ctx ).DaemonLeafEnrole( m_daemon.m_mpo );
 
         pConnection->setMPO( leafMPO );
-        pConnection->setDisconnectCallback( [ leafMPO, &daemon = m_daemon ]() { daemon.onLeafDisconnect( leafMPO ); } );
+        pConnection->setDisconnectCallback( [ leafMPO, &daemon = m_daemon ]( const network::ConnectionID& connectionID )
+                                            { daemon.onLeafDisconnect( connectionID, leafMPO ); } );
 
         getStackTopLeafResponse( yield_ctx ).LeafEnrole( leafMPO );
     }
@@ -697,8 +698,10 @@ Daemon::~Daemon()
     // SPDLOG_TRACE( "Daemon shutdown" );
 }
 
-void Daemon::onLeafDisconnect( mega::MPO mpo )
+void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::MPO mpo )
 {
+    onDisconnect( connectionID );
+
     class DaemonLeafDisconnect : public DaemonRequestConversation
     {
         mega::MPO m_leafMPO;

@@ -27,7 +27,7 @@ public:
     {
         friend class Server;
 
-        using DisconnectCallback = std::function< void() >;
+        using DisconnectCallback = std::function< void( const ConnectionID& connectionID ) >;
 
     public:
         using Ptr    = std::shared_ptr< Connection >;

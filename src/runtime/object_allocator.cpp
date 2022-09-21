@@ -97,8 +97,9 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
 {
     IndexPtr pAllocator;
     {
-        auto iFind = m_index.find( mpo );
-        if ( iFind != m_index.end() )
+        // TODO - this needs thread safety
+        auto iFind = m_indexTable.find( mpo );
+        if ( iFind != m_indexTable.end() )
         {
             //SPDLOG_TRACE( "ObjectTypeAllocator::getIndex cached {} {}", m_objectTypeID, mpo );
             pAllocator = iFind->second;
@@ -108,7 +109,7 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
             //SPDLOG_TRACE( "ObjectTypeAllocator::getIndex created {} {}", m_objectTypeID, mpo );
             pAllocator
                 = std::make_shared< IndexedBufferAllocator >( m_objectTypeID, m_runtime.getSharedMemoryManager( mpo ) );
-            m_index.insert( { mpo, pAllocator } );
+            m_indexTable.insert( { mpo, pAllocator } );
         }
     }
     return pAllocator;
@@ -149,7 +150,6 @@ void ObjectTypeAllocator::deAllocate( MachineAddress machineAddress )
 {
     //SPDLOG_TRACE( "ObjectTypeAllocator::deAllocate {} {}", m_objectTypeID, machineAddress );
     auto pIndex = getIndex( machineAddress );
-
     if ( void* pAddress = pIndex->getShared( machineAddress.object ) )
     {
         m_pSharedDtor( pAddress );

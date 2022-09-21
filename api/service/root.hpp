@@ -43,7 +43,7 @@ private:
     void loadConfig();
     void saveConfig();
 
-    void onDaemonDisconnect( mega::MPO mpo );
+    void onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MPO mpo );
 
 private:
     network::Server                                     m_server;

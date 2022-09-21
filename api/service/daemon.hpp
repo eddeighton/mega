@@ -34,7 +34,7 @@ public:
     virtual void conversationEnd( const network::Header& header, const network::ReceivedMsg& msg );
 
 private:
-    void onLeafDisconnect( mega::MPO mpo );
+    void onLeafDisconnect( const network::ConnectionID& connectionID, mega::MPO mpo );
 
     network::Client     m_rootClient;
     network::Server     m_leafServer;

@@ -78,10 +78,9 @@ reference Runtime::allocateMachineAddress( MPO mpo, TypeID objectTypeID, Network
     if ( pMPOContext->getThisMPO() != mpo )
     {
         // request write lock
-        if ( !pMPOContext->readLock( mpo ) )
+        if ( !pMPOContext->writeLock( mpo ) )
         {
-            // TODO - read lock refused - probably due to error
-            SPDLOG_ERROR( "RUNTIME: allocateMachineAddress Failed to acquire read lock on: {}", mpo );
+            SPDLOG_ERROR( "RUNTIME: allocateMachineAddress Failed to acquire write lock on: {}", mpo );
             return reference{};
         }
     }
@@ -125,10 +124,9 @@ reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress network
         if ( pMPOContext->getThisMPO() != mpo )
         {
             // request write lock
-            if ( !pMPOContext->readLock( mpo ) )
+            if ( !pMPOContext->writeLock( mpo ) )
             {
-                // TODO - read lock refused - probably due to error
-                SPDLOG_ERROR( "RUNTIME: allocateMachineAddress Failed to acquire read lock on: {}", mpo );
+                SPDLOG_ERROR( "RUNTIME: allocateMachineAddress Failed to acquire write lock on: {}", mpo );
                 return reference{};
             }
         }

@@ -24,6 +24,8 @@ public:
     const std::string&       getProcessName() const { return m_strProcessName; }
     boost::asio::io_context& getIOContext() const;
 
+    void onDisconnect( const ConnectionID& connectionID );
+
     std::vector< ConversationID > reportConversations() const;
     ConversationID                createConversationID( const ConnectionID& connectionID ) const;
     void                          conversationInitiated( ConversationBase::Ptr pConversation, Sender& parentSender );

@@ -64,6 +64,20 @@ public:
         m_processes[ mpo.getMachineID() ].free( mpo.getProcessID() );
         m_owners[ mpo.getMachineID() ][ mpo.getProcessID() ].reset();
         SPDLOG_TRACE( "MPOMGR: leafDisconnected: {}", mpo );
+
+        // TODO - how to broadcast disconnects ??
+        // THROW_RTE( "TODO" );
+
+        for( const auto& [ simMPO, simID ] : m_simulations )
+        {
+            if( simMPO.getMachineID() == mpo.getMachineID() )
+            {
+                if( simMPO.getProcessID() == mpo.getProcessID() )
+                {
+                    // 
+                }
+            }
+        }
     }
 
     MPO newOwner( MPO leafMPO, const network::ConversationID& conversationID )

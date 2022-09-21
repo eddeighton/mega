@@ -58,7 +58,7 @@ void Server::Connection::disconnected()
     }
     if( m_disconnectCallback.has_value() )
     {
-        (*m_disconnectCallback)();
+        (*m_disconnectCallback)( m_connectionID.value() );
     }
     m_server.onDisconnected( shared_from_this() );
 }
