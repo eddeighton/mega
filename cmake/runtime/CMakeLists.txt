@@ -46,7 +46,6 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/indexed_buffer_allocator.hpp
     ${MEGA_SRC_DIR}/runtime/indexed_buffer_allocator.cpp
     
-    ${MEGA_API_DIR}/mega/default_traits.cpp
 )
 
 add_library( runtime
