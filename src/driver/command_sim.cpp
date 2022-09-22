@@ -67,94 +67,95 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        if ( bCreate )
-        {
-            mega::service::Terminal             terminal;
-            const mega::network::ConversationID simID = terminal.SimNew();
-            std::cout << simID << std::endl;
-        }
-        else if ( bList )
-        {
-            mega::service::Terminal terminal;
-            const auto              result = terminal.SimList();
-            for ( auto simID : result )
-            {
-                std::cout << simID << std::endl;
-            }
-        }
-        else if ( !strDestroy.empty() )
-        {
-            mega::network::ConversationID simID;
-            {
-                std::istringstream is( strDestroy );
-                is >> simID;
-            }
-            mega::service::Terminal terminal;
-            terminal.SimDestroy( simID );
-        }
-        else if ( !strRead.empty() )
-        {
-            mega::network::ConversationID owningID;
-            {
-                std::istringstream is( strID );
-                is >> owningID;
-            }
-            mega::network::ConversationID simID;
-            {
-                std::istringstream is( strRead );
-                is >> simID;
-            }
-            mega::service::Terminal terminal;
-            const bool              bResult = terminal.SimRead( owningID, simID );
-            std::cout << std::boolalpha << bResult << std::endl;
-        }
-        else if ( !strWrite.empty() )
-        {
-            mega::network::ConversationID owningID;
-            {
-                std::istringstream is( strID );
-                is >> owningID;
-            }
-            mega::network::ConversationID simID;
-            {
-                std::istringstream is( strWrite );
-                is >> simID;
-            }
-            mega::service::Terminal terminal;
-            const bool              bResult = terminal.SimWrite( owningID, simID );
-            std::cout << std::boolalpha << bResult << std::endl;
-        }
-        else if ( !strRelease.empty() )
-        {
-            mega::network::ConversationID owningID;
-            {
-                std::istringstream is( strID );
-                is >> owningID;
-            }
-            mega::network::ConversationID simID;
-            {
-                std::istringstream is( strRelease );
-                is >> simID;
-            }
-            mega::service::Terminal terminal;
-            terminal.SimRelease( owningID, simID );
-        }
-        else if ( !strSuspend.empty() )
-        {
-        }
-        else if ( !strResume.empty() )
-        {
-        }
-        else if ( !strStop.empty() )
-        {
-        }
-        else if ( !strStart.empty() )
-        {
-        }
-        else
-        {
-            std::cout << "Unrecognised project command" << std::endl;
-        }
+            THROW_RTE( "TODO" );
+        // if ( bCreate )
+        // {
+        //     mega::service::Terminal             terminal;
+        //     const mega::network::ConversationID simID = terminal.SimNew();
+        //     std::cout << simID << std::endl;
+        // }
+        // else if ( bList )
+        // {
+        //     mega::service::Terminal terminal;
+        //     const auto              result = terminal.SimList();
+        //     for ( auto simID : result )
+        //     {
+        //         std::cout << simID << std::endl;
+        //     }
+        // }
+        // else if ( !strDestroy.empty() )
+        // {
+        //     mega::network::ConversationID simID;
+        //     {
+        //         std::istringstream is( strDestroy );
+        //         is >> simID;
+        //     }
+        //     mega::service::Terminal terminal;
+        //     terminal.SimDestroy( simID );
+        // }
+        // else if ( !strRead.empty() )
+        // {
+        //     mega::network::ConversationID owningID;
+        //     {
+        //         std::istringstream is( strID );
+        //         is >> owningID;
+        //     }
+        //     mega::network::ConversationID simID;
+        //     {
+        //         std::istringstream is( strRead );
+        //         is >> simID;
+        //     }
+        //     mega::service::Terminal terminal;
+        //     const bool              bResult = terminal.SimRead( owningID, simID );
+        //     std::cout << std::boolalpha << bResult << std::endl;
+        // }
+        // else if ( !strWrite.empty() )
+        // {
+        //     mega::network::ConversationID owningID;
+        //     {
+        //         std::istringstream is( strID );
+        //         is >> owningID;
+        //     }
+        //     mega::network::ConversationID simID;
+        //     {
+        //         std::istringstream is( strWrite );
+        //         is >> simID;
+        //     }
+        //     mega::service::Terminal terminal;
+        //     const bool              bResult = terminal.SimWrite( owningID, simID );
+        //     std::cout << std::boolalpha << bResult << std::endl;
+        // }
+        // else if ( !strRelease.empty() )
+        // {
+        //     mega::network::ConversationID owningID;
+        //     {
+        //         std::istringstream is( strID );
+        //         is >> owningID;
+        //     }
+        //     mega::network::ConversationID simID;
+        //     {
+        //         std::istringstream is( strRelease );
+        //         is >> simID;
+        //     }
+        //     mega::service::Terminal terminal;
+        //     terminal.SimRelease( owningID, simID );
+        // }
+        // else if ( !strSuspend.empty() )
+        // {
+        // }
+        // else if ( !strResume.empty() )
+        // {
+        // }
+        // else if ( !strStop.empty() )
+        // {
+        // }
+        // else if ( !strStart.empty() )
+        // {
+        // }
+        // else
+        // {
+        //     std::cout << "Unrecognised project command" << std::endl;
+        // }
     }
 }
 } // namespace sim

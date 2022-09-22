@@ -59,15 +59,17 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         if ( !projectPath.empty() )
         {
-            mega::service::Terminal      terminal;
-            const mega::network::Project project( projectPath );
-            terminal.SetProject( project );
+            THROW_RTE( "TODO" );
+            // mega::service::Terminal      terminal;
+            // const mega::network::Project project( projectPath );
+            // terminal.SetProject( project );
         }
         else if ( bGetProject )
         {
-            mega::service::Terminal      terminal;
-            const mega::network::Project project = terminal.GetProject();
-            std::cout << project.getProjectInstallPath().string() << std::endl;
+            THROW_RTE( "TODO" );
+            // mega::service::Terminal      terminal;
+            // const mega::network::Project project = terminal.GetProject();
+            // std::cout << project.getProjectInstallPath().string() << std::endl;
         }
         else
         {

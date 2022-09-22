@@ -1,0 +1,6 @@
+
+msg TermRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}

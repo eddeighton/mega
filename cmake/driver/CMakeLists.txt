@@ -41,7 +41,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_new_install.cpp
 		${DRIVER_SOURCE_DIR}/command_project.cpp
 		${DRIVER_SOURCE_DIR}/command_sim.cpp
-		${DRIVER_SOURCE_DIR}/command_con.cpp
+		${DRIVER_SOURCE_DIR}/command_status.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 

@@ -56,9 +56,9 @@ void Server::Connection::disconnected()
         boost::system::error_code ec;
         m_socket.close( ec );
     }
-    if( m_disconnectCallback.has_value() )
+    if ( m_disconnectCallback.has_value() )
     {
-        (*m_disconnectCallback)( m_connectionID.value() );
+        ( *m_disconnectCallback )( m_connectionID.value() );
     }
     m_server.onDisconnected( shared_from_this() );
 }
@@ -122,5 +122,6 @@ Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID 
         return Connection::Ptr();
     }
 }
+
 } // namespace network
 } // namespace mega

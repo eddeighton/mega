@@ -28,8 +28,8 @@ public:
     JobConversation( Executor& executor, const network::ConversationID& conversationID,
                      mega::pipeline::Pipeline::Ptr pPipeline, const network::ConversationID& rootConversationID );
 
-    virtual void RootPipelineStartTask( const mega::pipeline::TaskDescriptor& task,
-                                        boost::asio::yield_context&           yield_ctx ) override;
+    //virtual void RootPipelineStartTask( const mega::pipeline::TaskDescriptor& task,
+    //                                    boost::asio::yield_context&           yield_ctx ) override;
 
     // pipeline::DependencyProvider
     virtual EG_PARSER_INTERFACE* getParser() override;

@@ -133,22 +133,25 @@ protected:
 protected:
     friend class ConversationManager;
     // this is called by ConversationManager but can be overridden in initiating activities
-    virtual void run( boost::asio::yield_context& yield_ctx );
-    virtual bool dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
+    virtual void    run( boost::asio::yield_context& yield_ctx );
+    virtual Message dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
+    virtual void    dispatchResponse( const network::ConnectionID& connectionID, const Message& msg,
+                                      boost::asio::yield_context& yield_ctx )
+        = 0;
     virtual void error( const ConnectionID& connectionID, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx )
         = 0;
 
 public:
-    // this is used by the Request_Encode generated classes
     virtual Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx );
 
 protected:
     void dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yield_context& yield_ctx );
 
 protected:
-    ConversationManager&                  m_conversationManager;
-    ConversationID                        m_conversationID;
+    ConversationManager& m_conversationManager;
+    ConversationID       m_conversationID;
+
     std::optional< ConnectionID >         m_originatingEndPoint;
     std::vector< ConnectionID >           m_stack;
     std::set< ConnectionID >              m_disconnections;

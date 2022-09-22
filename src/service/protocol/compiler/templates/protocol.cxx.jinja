@@ -17,8 +17,37 @@ namespace network
 {
 namespace {{ filename }}
 {
+Request_Encoder::Request_Encoder( Sender pSender )
+    :   m_pSender( pSender )
+{
 
-Request_Encode::Request_Encode( ConversationBase& conversation,
+}
+{% for request in requests %}
+{{ request.return_type }} Request_Encoder::{{ request.name }}
+( 
+{%for p in request.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%} 
+)
+{
+    Message result = m_pSender( MSG_{{ request.name }}_Request::make
+    (
+        MSG_{{ request.name }}_Request
+        {
+{%for p in request.params%}
+            {{p.name}}{% if not loop.is_last %},{%endif%}
+{%endfor%} 
+        }
+    ) );
+{%if request.return_type != "void" %}
+    return {{ filename }}::MSG_{{ request.name }}_Response::get( result ).{{ request.return_msg_member }};
+{% endif %}
+}
+{% endfor %}
+
+Request_Sender::Request_Sender( ConversationBase& conversation,
                                 Sender& sender,
                                 boost::asio::yield_context&   yield_ctx )
     : m_conversation( conversation )
@@ -28,7 +57,7 @@ Request_Encode::Request_Encode( ConversationBase& conversation,
 }
 
 {% for request in requests %}
-{{ request.return_type }} Request_Encode::{{ request.name }}
+{{ request.return_type }} Request_Sender::{{ request.name }}
 ( 
 {%for p in request.params%}
     const {{p.type}}& 
@@ -67,48 +96,7 @@ Request_Encode::Request_Encode( ConversationBase& conversation,
 }
 {% endfor %}
 
-
-Response_Encode::Response_Encode( ConversationBase& conversation,
-                                  Sender& sender,
-                                  boost::asio::yield_context&   yield_ctx )
-    : m_conversation( conversation )
-    , m_sender( sender )
-    , m_yield_ctx( yield_ctx )
-{
-}
-
-{% for response in responses %}
-void Response_Encode::{{ response.name }}
-( 
-{%for p in response.params%}
-    const {{p.type}}& 
-    {{p.name}}
-    {% if not loop.is_last %}, {%endif%}
-{%endfor%}
-)
-{
-    const Message msg = MSG_{{ response.name }}_Response::make
-    (
-        MSG_{{ response.name }}_Response
-        {
-{%for p in response.params%}
-            {{p.name}}{% if not loop.is_last %},{%endif%}
-{%endfor%} 
-        }
-    );
-
-    if ( const boost::system::error_code ec = m_sender.send( m_conversation.getID(), msg, m_yield_ctx ) )
-    {
-        THROW_RTE( "Error writing: " << ec.what() );
-    }
-    else
-    {
-        // SPDLOG_TRACE( "Sent response: {{ filename }}::MSG_{{ response.name }}_Response conversation: {}", m_conversation.getID() );
-    }
-}
-{% endfor %}
-
-bool Impl::dispatchRequest( const Message& message, boost::asio::yield_context& yield_ctx )
+Message Impl::dispatchRequest( const Message& message, boost::asio::yield_context& yield_ctx )
 {
     switch( getMsgID( message ) )
     {
@@ -117,6 +105,7 @@ bool Impl::dispatchRequest( const Message& message, boost::asio::yield_context& 
         case {{ filename }}::MSG_{{ request.name }}_Request::ID:
         {
             auto& msg = {{ filename }}::MSG_{{ request.name }}_Request::get( message );
+{% if request.return_type == "void" %}
             {{ request.name }}
             ( 
 {%for p in request.params%}
@@ -124,12 +113,30 @@ bool Impl::dispatchRequest( const Message& message, boost::asio::yield_context& 
 {%endfor%}
                 yield_ctx 
             );
-            return true;
+            return MSG_{{ request.name }}_Response::make
+            (
+                MSG_{{ request.name }}_Response{}
+            );
+{% else %}
+            return MSG_{{ request.name }}_Response::make
+            (
+                MSG_{{ request.name }}_Response
+                {
+                    {{ request.name }}
+                    ( 
+{%for p in request.params%}
+                        msg.{{p.name}},
+{%endfor%}
+                        yield_ctx 
+                    )
+                }
+            );
+{% endif %}
         }
         break;
 {% endfor %}
         default:
-            return false;
+            return Message{};
     }
 }
 

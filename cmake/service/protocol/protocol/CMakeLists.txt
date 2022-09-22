@@ -12,74 +12,53 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 
 set( PROTOCOL_SCHEMA_DIR ${MEGA_SRC_DIR}/service/protocol/schema )
 
-set( PROTOCOL_SCHEMAS 
-    ${PROTOCOL_SCHEMA_DIR}/daemon_leaf.pts
-    ${PROTOCOL_SCHEMA_DIR}/daemon_root.pts
-    ${PROTOCOL_SCHEMA_DIR}/leaf_daemon.pts
-    ${PROTOCOL_SCHEMA_DIR}/leaf_term.pts
-    ${PROTOCOL_SCHEMA_DIR}/leaf_tool.pts
-    ${PROTOCOL_SCHEMA_DIR}/leaf_exe.pts
-    ${PROTOCOL_SCHEMA_DIR}/root_daemon.pts
-    ${PROTOCOL_SCHEMA_DIR}/term_leaf.pts
-    ${PROTOCOL_SCHEMA_DIR}/tool_leaf.pts
-    ${PROTOCOL_SCHEMA_DIR}/exe_leaf.pts
-    ${PROTOCOL_SCHEMA_DIR}/exe_sim.pts
+set( ROUTING_SCHEMAS
+    daemon_leaf
+    daemon_root
+    leaf_daemon
+    leaf_term
+    leaf_tool
+    leaf_exe
+    root_daemon
+    term_leaf
+    tool_leaf
+    exe_leaf
+    exe_sim 
+)
+
+set( INTERFACE_SCHEMAS
+    "project"
+    sim
+    job
+    enrole
+    pipeline
 )
 
 set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )
-
-set( MEGA_PROTOCOL_GENERATED_HEADERS
-    ${PROTOCOL_HEADER_DIR}/messages.hxx
-
-    ${PROTOCOL_HEADER_DIR}/daemon_leaf.hxx
-    ${PROTOCOL_HEADER_DIR}/daemon_root.hxx
-    ${PROTOCOL_HEADER_DIR}/leaf_daemon.hxx
-    ${PROTOCOL_HEADER_DIR}/leaf_term.hxx
-    ${PROTOCOL_HEADER_DIR}/leaf_tool.hxx
-    ${PROTOCOL_HEADER_DIR}/leaf_exe.hxx
-    ${PROTOCOL_HEADER_DIR}/root_daemon.hxx
-    ${PROTOCOL_HEADER_DIR}/term_leaf.hxx
-    ${PROTOCOL_HEADER_DIR}/tool_leaf.hxx
-    ${PROTOCOL_HEADER_DIR}/exe_leaf.hxx
-    ${PROTOCOL_HEADER_DIR}/exe_sim.hxx
-)
-
 set( PROTOCOL_SOURCE_DIR ${MEGA_SRC_DIR}/service/protocol/model )
 
-set( MEGA_PROTOCOL_GENERATED_SOURCES
-    ${PROTOCOL_SOURCE_DIR}/messages.cxx
+set( MEGA_PROTOCOL_PROTOCOL_SCHEMAS )
+set( MEGA_PROTOCOL_GENERATED_HEADERS "${PROTOCOL_HEADER_DIR}/messages.hxx" )
+set( MEGA_PROTOCOL_GENERATED_SOURCES "${PROTOCOL_SOURCE_DIR}/messages.cxx" )
+set( COMPILER_BYPRODUCTS messages.json )
 
-    ${PROTOCOL_SOURCE_DIR}/daemon_leaf.cxx
-    ${PROTOCOL_SOURCE_DIR}/daemon_root.cxx
-    ${PROTOCOL_SOURCE_DIR}/leaf_daemon.cxx
-    ${PROTOCOL_SOURCE_DIR}/leaf_term.cxx
-    ${PROTOCOL_SOURCE_DIR}/leaf_tool.cxx
-    ${PROTOCOL_SOURCE_DIR}/leaf_exe.cxx
-    ${PROTOCOL_SOURCE_DIR}/root_daemon.cxx
-    ${PROTOCOL_SOURCE_DIR}/term_leaf.cxx
-    ${PROTOCOL_SOURCE_DIR}/tool_leaf.cxx
-    ${PROTOCOL_SOURCE_DIR}/exe_leaf.cxx
-    ${PROTOCOL_SOURCE_DIR}/exe_sim.cxx
-)
+foreach(loop_var IN LISTS ROUTING_SCHEMAS)
+    list(APPEND MEGA_PROTOCOL_PROTOCOL_SCHEMAS "${PROTOCOL_SCHEMA_DIR}/routing/${loop_var}.pts" )
+    list(APPEND MEGA_PROTOCOL_GENERATED_HEADERS "${PROTOCOL_HEADER_DIR}/${loop_var}.hxx" )
+    list(APPEND MEGA_PROTOCOL_GENERATED_SOURCES "${PROTOCOL_SOURCE_DIR}/${loop_var}.cxx" )
+    list(APPEND COMPILER_BYPRODUCTS "${loop_var}.json" )
+endforeach()
+
+foreach(loop_var IN LISTS INTERFACE_SCHEMAS)
+    list(APPEND MEGA_PROTOCOL_PROTOCOL_SCHEMAS "${PROTOCOL_SCHEMA_DIR}/interface/${loop_var}.pts" )
+    list(APPEND MEGA_PROTOCOL_GENERATED_HEADERS "${PROTOCOL_HEADER_DIR}/${loop_var}.hxx" )
+    list(APPEND MEGA_PROTOCOL_GENERATED_SOURCES "${PROTOCOL_SOURCE_DIR}/${loop_var}.cxx" )
+    list(APPEND COMPILER_BYPRODUCTS "${loop_var}.json" )
+endforeach()
+
 set( COMPILER_OUTPUTS 
     ${MEGA_PROTOCOL_GENERATED_HEADERS} 
     ${MEGA_PROTOCOL_GENERATED_SOURCES} )
-
-set( COMPILER_BYPRODUCTS
-    messages.json 
-
-    root_daemon.json
-    daemon_root.json
-    daemon_leaf.json
-    leaf_daemon.json
-    tool_leaf.json
-    leaf_tool.json
-    term_leaf.json
-    leaf_term.json
-    exe_leaf.json
-    leaf_exe.json
-    leaf_sim.json
-)
 
 set( TEMPLATES 
     ${MEGA_SRC_DIR}/service/protocol/compiler/templates/messages.hxx.jinja
@@ -97,8 +76,8 @@ add_custom_command(
         --inja_dir ${MEGA_SRC_DIR}/service/protocol/compiler/templates/
         --json
         --template
-        --input ${PROTOCOL_SCHEMAS}
-    DEPENDS ${PROTOCOL_SCHEMAS} ${TEMPLATES} protocol_compiler_driver
+        --input ${MEGA_PROTOCOL_PROTOCOL_SCHEMAS}
+    DEPENDS ${MEGA_PROTOCOL_PROTOCOL_SCHEMAS} ${TEMPLATES} protocol_compiler_driver
     COMMENT "Generating protocol" 
     )
 

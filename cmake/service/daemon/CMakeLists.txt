@@ -15,6 +15,9 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( DAEMON_SOURCE_DIR ${MEGA_SRC_DIR}/service/daemon )
 
 set( DAEMON_SOURCE 
+    ${DAEMON_SOURCE_DIR}/shared_memory_manager.hpp
+    ${DAEMON_SOURCE_DIR}/daemon.hpp
+    ${DAEMON_SOURCE_DIR}/daemon.cpp
     ${DAEMON_SOURCE_DIR}/main.cpp 
     )
 
@@ -25,7 +28,6 @@ target_compile_options( daemon PUBLIC "-fcoroutines" )
 target_link_libraries( daemon utilities )
 target_link_libraries( daemon protocol )
 target_link_libraries( daemon network )
-target_link_libraries( daemon service )
 
 set_target_properties( daemon PROPERTIES FOLDER driver )
 

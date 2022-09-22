@@ -14,6 +14,8 @@
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/common/megastructure_installation.hpp"
 
+#include "service/protocol/model/project.hxx"
+
 #include <boost/asio/io_service.hpp>
 
 #include <memory>
@@ -45,7 +47,7 @@ public:
                                                              const network::Header&       header,
                                                              const network::Message&      msg );
 
-    std::vector< std::string >             ListNetworkNodes();
+    /*std::vector< std::string >             ListNetworkNodes();
     network::PipelineResult                PipelineRun( const pipeline::Configuration& pipelineConfig );
     network::MegastructureInstallation     GetMegastructureInstallation();
     bool                                   SetProject( const mega::network::Project& project );
@@ -59,9 +61,16 @@ public:
     void        SimRelease( const network::ConversationID& owningID, const network::ConversationID& simID );
     void        ClearStash();
     mega::U64 Capacity();
-    void        Shutdown();
+    void        Shutdown();*/
+
+    std::string GetVersion();
 
     network::Sender& getLeafSender() { return m_leaf; }
+
+private:
+    network::Message rootRequest( const network::Message& message );
+
+    network::project::Request_Encoder getProject();
 
 private:
     boost::asio::io_context  m_io_context;

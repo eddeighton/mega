@@ -1,13 +1,13 @@
 #ifndef DAEMON_25_MAY_2022
 #define DAEMON_25_MAY_2022
 
-#include "mega/common.hpp"
-
-#include "service/shared_memory_manager.hpp"
+#include "shared_memory_manager.hpp"
 
 #include "service/network/client.hpp"
 #include "service/network/server.hpp"
 #include "service/network/conversation_manager.hpp"
+
+#include "mega/common.hpp"
 
 #include "boost/asio/io_context.hpp"
 
@@ -30,8 +30,6 @@ public:
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
                                                              const network::Header&       header,
                                                              const network::Message&      msg );
-    virtual void conversationNew( const network::Header& header, const network::ReceivedMsg& msg );
-    virtual void conversationEnd( const network::Header& header, const network::ReceivedMsg& msg );
 
 private:
     void onLeafDisconnect( const network::ConnectionID& connectionID, mega::MPO mpo );

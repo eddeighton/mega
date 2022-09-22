@@ -15,6 +15,7 @@
 #include <ostream>
 #include <istream>
 #include <optional>
+#include <functional>
 
 namespace mega
 {
@@ -27,10 +28,29 @@ class Sender;
 namespace {{ filename }}
 {
 
-class Request_Encode
+class Request_Encoder
 {
 public:
-    Request_Encode( ConversationBase& conversation,
+    using Sender = std::function< Message(const Message&) >;
+    Request_Encoder( Sender pSender );
+{% for request in requests %}
+    {{ request.return_type }} {{ request.name }}
+    (
+{%for p in request.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%}
+    );
+{% endfor %}
+private:
+    Sender m_pSender;
+};
+
+class Request_Sender
+{
+public:
+    Request_Sender( ConversationBase& conversation,
                     Sender& sender,
                     boost::asio::yield_context&   yield_ctx );
 
@@ -51,37 +71,13 @@ private:
     boost::asio::yield_context&   m_yield_ctx;
 };
 
-class Response_Encode
-{
-public:
-    Response_Encode( ConversationBase& conversation,
-                     Sender& sender,
-                     boost::asio::yield_context&   yield_ctx );
-
-{% for response in responses %}
-    void {{ response.name }}
-    (
-{%for p in response.params%}
-    const {{p.type}}& 
-    {{p.name}}
-    {% if not loop.is_last %}, {%endif%}
-{%endfor%}
-    );
-{% endfor %}
-
-private:
-    ConversationBase&             m_conversation;
-    Sender&                       m_sender;
-    boost::asio::yield_context&   m_yield_ctx;
-};
-
 class Impl
 {
 public:
-    bool dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx );
+    Message dispatchRequest( const Message& msg, boost::asio::yield_context& yield_ctx );
 
 {% for request in requests %}
-    virtual void {{ request.name }}
+    virtual {{ request.return_type }} {{ request.name }}
     (
 {%for p in request.params%}
         const {{p.type}}& 

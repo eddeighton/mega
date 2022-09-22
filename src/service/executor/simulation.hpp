@@ -27,7 +27,11 @@ public:
 
     Simulation( Executor& executor, const network::ConversationID& conversationID );
 
-    virtual bool dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message dispatchRequest( const network::Message&     msg,
+                                              boost::asio::yield_context& yield_ctx ) override;
+    virtual void             dispatchResponse( const network::ConnectionID& connectionID,
+                                               const network::Message&      msg,
+                                               boost::asio::yield_context&  yield_ctx ) override;
 
     virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx ) override;
@@ -45,7 +49,7 @@ public:
     }
 
     //  network::exe_sim::Impl
-    virtual void ExeSimDestroy( const mega::network::ConversationID& simulationID,
+    /*virtual void ExeSimDestroy( const mega::network::ConversationID& simulationID,
                                 boost::asio::yield_context&          yield_ctx ) override;
     virtual void ExeSimReadLockAcquire( const mega::network::ConversationID& owningID,
                                         const mega::network::ConversationID& simulationID,
@@ -55,7 +59,7 @@ public:
                                          boost::asio::yield_context&          yield_ctx ) override;
     virtual void ExeSimLockRelease( const mega::network::ConversationID& owningID,
                                     const mega::network::ConversationID& simulationID,
-                                    boost::asio::yield_context&          yield_ctx ) override;
+                                    boost::asio::yield_context&          yield_ctx ) override;*/
 
     // mega::MPOContext - native code interface
     virtual SimIDVector     getSimulationIDs() override;

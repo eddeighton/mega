@@ -251,7 +251,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 mega::service::Terminal terminal;
                 try
                 {
-                    pipelineResult = terminal.PipelineRun( pipelineConfig );
+                    THROW_RTE( "TODO" );
+                    //pipelineResult = terminal.PipelineRun( pipelineConfig );
                 }
                 catch ( std::exception& ex )
                 {

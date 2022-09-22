@@ -15,6 +15,14 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( ROOT_SOURCE_DIR ${MEGA_SRC_DIR}/service/root )
 
 set( ROOT_SOURCE 
+    ${ROOT_SOURCE_DIR}/logical_address_space.hpp
+    ${ROOT_SOURCE_DIR}/mpo_manager.hpp
+    ${ROOT_SOURCE_DIR}/root.hpp
+    ${ROOT_SOURCE_DIR}/root.cpp
+    ${ROOT_SOURCE_DIR}/pipeline.hpp
+    ${ROOT_SOURCE_DIR}/pipeline.cpp
+    ${ROOT_SOURCE_DIR}/request.hpp
+    ${ROOT_SOURCE_DIR}/request.cpp
     ${ROOT_SOURCE_DIR}/main.cpp
  )
 
@@ -25,7 +33,6 @@ target_compile_options( root PUBLIC "-fcoroutines" )
 target_link_libraries( root utilities )
 target_link_libraries( root protocol )
 target_link_libraries( root network )
-target_link_libraries( root service )
 target_link_libraries( root pipeline )
 
 set_target_properties( root PROPERTIES FOLDER driver )

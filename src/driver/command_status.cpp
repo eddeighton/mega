@@ -28,7 +28,7 @@
 
 namespace driver
 {
-namespace con
+namespace status
 {
 
 void command( bool bHelp, const std::vector< std::string >& args )
@@ -58,6 +58,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         if ( bList )
         {
             mega::service::Terminal terminal;
+            std::cout << terminal.GetVersion() << std::endl;
         }
         else
         {

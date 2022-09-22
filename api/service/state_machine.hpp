@@ -55,11 +55,11 @@ public:
     const AckVector& acks() const { return m_acks; }
     void             resetAcks() { m_acks.clear(); }
 
-    using Read    = mega::network::exe_sim::MSG_ExeSimReadLockAcquire_Request;
-    using Write   = mega::network::exe_sim::MSG_ExeSimWriteLockAcquire_Request;
-    using Release = mega::network::exe_sim::MSG_ExeSimLockRelease_Request;
-    using Destroy = mega::network::exe_sim::MSG_ExeSimDestroy_Request;
-    using Clock   = mega::network::exe_sim::MSG_ExeExeClock_Request;
+    using Read    = network::sim::MSG_SimLockRead_Request;
+    using Write   = network::sim::MSG_SimLockWrite_Request;
+    using Release = network::sim::MSG_SimLockRelease_Request;
+    using Destroy = network::sim::MSG_SimDestroy_Request;
+    using Clock   = network::sim::MSG_SimClock_Request;
 
     const network::ConversationID& getSimID( const mega::network::ChannelMsg& msg ) const
     {

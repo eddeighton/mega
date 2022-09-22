@@ -23,9 +23,26 @@ ExecutorRequestConversation::ExecutorRequestConversation( Executor&             
 {
 }
 
-bool ExecutorRequestConversation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
+network::Message ExecutorRequestConversation::dispatchRequest( const network::Message&     msg,
+                                                               boost::asio::yield_context& yield_ctx )
 {
     return network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx );
+}
+
+void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
+                                                    const network::Message&      msg,
+                                                    boost::asio::yield_context&  yield_ctx )
+{
+    if ( ( m_executor.getLeafSender().getConnectionID() == connectionID )
+         || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == connectionID ) )
+    {
+        m_executor.getLeafSender().send( getID(), msg, yield_ctx );
+    }
+    else
+    {
+        SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection for response: {}", connectionID );
+        THROW_RTE( "ExecutorRequestConversation: Executor Critical error in response handler: " << connectionID );
+    }
 }
 
 void ExecutorRequestConversation::error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
@@ -45,15 +62,15 @@ void ExecutorRequestConversation::error( const network::ConnectionID& connection
     }
 }
 
-network::exe_leaf::Request_Encode ExecutorRequestConversation::getLeafRequest( boost::asio::yield_context& yield_ctx )
+network::exe_leaf::Request_Sender ExecutorRequestConversation::getLeafRequest( boost::asio::yield_context& yield_ctx )
 {
-    return network::exe_leaf::Request_Encode( *this, m_executor.getLeafSender(), yield_ctx );
+    return network::exe_leaf::Request_Sender( *this, m_executor.getLeafSender(), yield_ctx );
 }
-network::leaf_exe::Response_Encode ExecutorRequestConversation::getLeafResponse( boost::asio::yield_context& yield_ctx )
+/*network::leaf_exe::Response_Encode ExecutorRequestConversation::getLeafResponse( boost::asio::yield_context& yield_ctx )
 {
     return network::leaf_exe::Response_Encode( *this, m_executor.getLeafSender(), yield_ctx );
-}
-
+}*/
+/*
 void ExecutorRequestConversation::RootListNetworkNodes( boost::asio::yield_context& yield_ctx )
 {
     std::vector< std::string > result = { m_executor.getProcessName() };
@@ -194,6 +211,6 @@ void ExecutorRequestConversation::RootShutdown( boost::asio::yield_context& yiel
     getLeafResponse( yield_ctx ).RootShutdown();
     boost::asio::post( [ &executor = m_executor ]() { executor.shutdown(); } );
 }
-
+*/
 } // namespace service
 } // namespace mega

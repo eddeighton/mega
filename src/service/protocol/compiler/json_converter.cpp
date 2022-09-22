@@ -97,7 +97,7 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
 
     {
         nlohmann::json errorResponse( { { "has_namespace", false },
-                                        { "name", "MSG_Error_Response" },
+                                        { "name", "MSG_Error_Dispatch" },
                                         { "is_request", false },
                                         { "id", idCounter++ },
                                         { "namespaces", nlohmann::json::array() },
@@ -107,25 +107,17 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
         errorResponse[ "members" ].push_back( parameter );
         data[ "messages" ].push_back( errorResponse );
     }
-
     {
-        nlohmann::json newConversation( { { "has_namespace", false },
-                                          { "name", "MSG_Conversation_New" },
-                                          { "is_request", true },
-                                          { "id", idCounter++ },
-                                          { "namespaces", nlohmann::json::array() },
-                                          { "members", nlohmann::json::array() } } );
-        data[ "messages" ].push_back( newConversation );
-    }
+        nlohmann::json errorResponse( { { "has_namespace", false },
+                                        { "name", "MSG_Error_Response" },
+                                        { "is_request", false },
+                                        { "id", idCounter++ },
+                                        { "namespaces", nlohmann::json::array() },
+                                        { "members", nlohmann::json::array() } } );
 
-    {
-        nlohmann::json endConversation( { { "has_namespace", false },
-                                          { "name", "MSG_Conversation_End" },
-                                          { "is_request", true },
-                                          { "id", idCounter++ },
-                                          { "namespaces", nlohmann::json::array() },
-                                          { "members", nlohmann::json::array() } } );
-        data[ "messages" ].push_back( endConversation );
+        nlohmann::json parameter( { { "name", "what" }, { "type", "std::string" } } );
+        errorResponse[ "members" ].push_back( parameter );
+        data[ "messages" ].push_back( errorResponse );
     }
 
     for ( const auto& [ strName, schema ] : schemas )

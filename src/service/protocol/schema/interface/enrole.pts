@@ -1,0 +1,25 @@
+
+
+msg EnroleDaemon
+{
+    request();
+    response(MPO daemonMPO);
+}
+
+msg EnroleLeafWithDaemon
+{
+    request(mega::network::Node::Type type);
+    response(MPO leafMPO);
+}
+
+msg EnroleLeafWithRoot
+{
+    request(MPO daemonMPO);
+    response(MPO leafMPO);
+}
+
+msg EnroleLeafDisconnect
+{
+    request(MPO leafMPO);
+    response();
+}

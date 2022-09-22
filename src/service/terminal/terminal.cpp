@@ -43,9 +43,24 @@ public:
     {
     }
 
-    virtual bool dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx ) override
+    virtual network::Message dispatchRequest( const network::Message&     msg,
+                                              boost::asio::yield_context& yield_ctx ) override
     {
         return network::leaf_term::Impl::dispatchRequest( msg, yield_ctx );
+    }
+    virtual void dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
+                                   boost::asio::yield_context& yield_ctx ) override
+    {
+        if ( ( m_terminal.getLeafSender().getConnectionID() == connectionID )
+             || ( m_terminal.m_receiverChannel.getSender()->getConnectionID() == connectionID ) )
+        {
+            m_terminal.getLeafSender().send( getID(), msg, yield_ctx );
+        }
+        else
+        {
+            // This can happen when initiating request has received exception - in which case
+            SPDLOG_ERROR( "Terminal cannot resolve connection: {} on error: {}", connectionID, msg );
+        }
     }
 
     virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
@@ -63,22 +78,22 @@ public:
         }
     }
 
-    network::leaf_term::Response_Encode getLeafResponse( boost::asio::yield_context& yield_ctx )
+    /*network::leaf_term::Response_Encode getLeafResponse( boost::asio::yield_context& yield_ctx )
     {
         return network::leaf_term::Response_Encode( *this, m_terminal.getLeafSender(), yield_ctx );
-    }
-
-    virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
-    {
-        getLeafResponse( yield_ctx ).RootListNetworkNodes( { m_terminal.getProcessName() } );
-    }
-
-    void RootShutdown( boost::asio::yield_context& yield_ctx ) override
-    {
-        SPDLOG_TRACE( "RootShutdown received" );
-        getLeafResponse( yield_ctx ).RootShutdown();
-        boost::asio::post( [ &terminal = m_terminal ]() { terminal.shutdown(); } );
-    }
+    }*/
+    /*
+        virtual std::vector< std::string > RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
+        {
+            return { m_terminal.getProcessName() };
+        }
+        virtual void RootShutdown( boost::asio::yield_context& yield_ctx ) override
+        {
+            SPDLOG_TRACE( "RootShutdown received" );
+            // getLeafResponse( yield_ctx ).RootShutdown();
+            boost::asio::post( [ &terminal = m_terminal ]() { terminal.shutdown(); } );
+        }
+    */
 };
 
 template < typename TConversationFunctor >
@@ -128,10 +143,11 @@ network::ConversationBase::Ptr Terminal::joinConversation( const network::Connec
                                                            const network::Header&       header,
                                                            const network::Message&      msg )
 {
-    return network::ConversationBase::Ptr(
-        new TerminalRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+    THROW_RTE( "TODO" );
+    // return network::ConversationBase::Ptr(
+    //     new TerminalRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
-
+/*
 #define GENERIC_MSG_NO_RESULT( msg_name )                                                                \
     {                                                                                                    \
         std::optional< std::variant< bool, std::exception_ptr > > result;                                \
@@ -401,6 +417,71 @@ void Terminal::Shutdown()
     //
     GENERIC_MSG_NO_RESULT( TermShutdown );
 }
+*/
+
+network::Message Terminal::rootRequest( const network::Message& message )
+{
+    class RootConversation : public TerminalRequestConversation
+    {
+    public:
+        using ResultType = std::optional< std::variant< network::Message, std::exception_ptr > >;
+
+        RootConversation( Terminal& terminal, const network::ConversationID& conversationID,
+                          const network::ConnectionID& originatingConnectionID, const network::Message& msg,
+                          ResultType& result )
+            : TerminalRequestConversation( terminal, conversationID, originatingConnectionID )
+            , m_message( msg )
+            , m_result( result )
+        {
+        }
+        void run( boost::asio::yield_context& yield_ctx )
+        {
+            try
+            {
+                network::term_leaf::Request_Sender leaf( *this, m_terminal.getLeafSender(), yield_ctx );
+                m_result = leaf.TermRoot( m_message );
+            }
+            catch ( std::exception& ex )
+            {
+                m_result = std::current_exception();
+            }
+        }
+
+    private:
+        network::Message m_message;
+        ResultType&      m_result;
+    };
+
+    RootConversation::ResultType result;
+    {
+        auto& sender         = getLeafSender();
+        auto  connectionID   = sender.getConnectionID();
+        auto  conversationID = createConversationID( connectionID );
+        conversationInitiated( network::ConversationBase::Ptr(
+                                   new RootConversation( *this, conversationID, connectionID, message, result ) ),
+                               sender );
+    }
+
+    while ( !result.has_value() )
+        m_io_context.run_one();
+
+    if ( result->index() == 1 )
+    {
+        std::rethrow_exception( std::get< std::exception_ptr >( result.value() ) );
+    }
+    else
+    {
+        return std::get< network::Message >( result.value() );
+    }
+}
+
+network::project::Request_Encoder Terminal::getProject()
+{
+    using namespace std::placeholders;
+    return network::project::Request_Encoder( std::bind( &Terminal::rootRequest, this, _1 ) );
+}
+
+std::string Terminal::GetVersion() { return getProject().GetVersion(); }
 
 } // namespace service
 } // namespace mega

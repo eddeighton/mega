@@ -60,17 +60,7 @@ void ConversationManager::spawnInitiatedConversation( ConversationBase::Ptr pCon
         [ pConversation, &parentSender ]( boost::asio::yield_context yield_ctx ) 
         { 
             ConversationBase::RequestStack stack( "Initiated", *pConversation, parentSender.getConnectionID() );
-            {
-                {
-                    auto msg = network::MSG_Conversation_New::make( network::MSG_Conversation_New{} );
-                    parentSender.send( pConversation->getID(), msg, yield_ctx );
-                }
-                pConversation->run( yield_ctx );
-                {
-                    auto msg = network::MSG_Conversation_End::make( network::MSG_Conversation_End{} );
-                    parentSender.send( pConversation->getID(), msg, yield_ctx );
-                }
-            }
+            pConversation->run( yield_ctx );
         }
 /*#ifdef WIN32
     // segmented stacks do NOT work on windows
@@ -116,18 +106,13 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
 void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversation )
 {
     {
-        WriteLock                          lock( m_mutex );
+        WriteLock lock( m_mutex );
         ConversationPtrMap::const_iterator iFind = m_conversations.find( pConversation->getID() );
-        VERIFY_RTE ( iFind != m_conversations.end() );
-        //if ( iFind != m_conversations.end() )
+        VERIFY_RTE( iFind != m_conversations.end() );
         {
             SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
             m_conversations.erase( iFind );
         }
-        /*else
-        {
-            SPDLOG_WARN( "conversationCompleted failed to locate conversation: {}", pConversation->getID() );
-        }*/
     }
     // SPDLOG_DEBUG( "ConversationBase Completed id: {}", pConversation->getID() );
 }
@@ -148,46 +133,22 @@ ConversationBase::Ptr ConversationManager::findExistingConversation( const Conve
 
 void ConversationManager::dispatch( const Header& header, const ReceivedMsg& msg )
 {
-    if ( header.getMessageID() == MSG_Conversation_New::ID )
+    ConversationBase::Ptr pConversation = findExistingConversation( header.getConversationID() );
+    if ( !pConversation )
     {
-        // SPDLOG_TRACE( "Conversation initiated: {}", header.getConversationID() );
-        conversationNew( header, msg );
-    }
-    else if ( header.getMessageID() == MSG_Conversation_End::ID )
-    {
-        // SPDLOG_TRACE( "Conversation ended: {}", header.getConversationID() );
-        conversationEnd( header, msg );
+        pConversation = joinConversation( msg.connectionID, header, msg.msg );
+        conversationJoined( pConversation );
+        // SPDLOG_TRACE( "Received msg {}. Started new conversation {}.",
+        //               getMsgNameFromID( header.getMessageID() ),
+        //               pConversation->getID() );
     }
     else
     {
-        ConversationBase::Ptr pConversation = findExistingConversation( header.getConversationID() );
-        if ( !pConversation )
-        {
-            pConversation = joinConversation( msg.connectionID, header, msg.msg );
-            conversationJoined( pConversation );
-            // SPDLOG_TRACE( "Received msg {}. Started new conversation {}.",
-            //               getMsgNameFromID( header.getMessageID() ),
-            //               pConversation->getID() );
-        }
-        else
-        {
-            // SPDLOG_TRACE( "Received msg: {}. Resumed existing conversation: {}.",
-            //               getMsgNameFromID( header.getMessageID() ),
-            //               pConversation->getID() );
-        }
-
-        pConversation->send( msg );
+        // SPDLOG_TRACE( "Received msg: {}. Resumed existing conversation: {}.",
+        //               getMsgNameFromID( header.getMessageID() ),
+        //               pConversation->getID() );
     }
-}
-
-void ConversationManager::conversationNew( const Header& header, const ReceivedMsg& msg )
-{
-    THROW_RTE( "conversationNew not implemented" );
-}
-
-void ConversationManager::conversationEnd( const Header& header, const ReceivedMsg& msg )
-{
-    THROW_RTE( "conversationEnd not implemented" );
+    pConversation->send( msg );
 }
 
 } // namespace network

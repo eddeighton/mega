@@ -1,27 +1,26 @@
 
-
-msg ExeSimDestroy
-{
-    request(mega::network::ConversationID requestID);
-    response();
-}
-msg ExeSimReadLockAcquire
+msg SimLockRead
 {
     request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
     response(bool bSuccess);
 }
-msg ExeSimWriteLockAcquire
+msg SimLockWrite
 {
     request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
     response(bool bSuccess);
 }
-msg ExeSimLockRelease
+msg SimLockRelease
 {
     request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
     response();
 }
-msg ExeExeClock
+msg SimClock
 {
     request();
+    response();
+}
+msg SimDestroy
+{
+    request(mega::network::ConversationID requestID);
     response();
 }

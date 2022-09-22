@@ -1,0 +1,30 @@
+
+msg TermRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+
+msg ExeRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+
+msg ToolRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+
+msg LeafRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+
+msg DaemonRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}

@@ -1,0 +1,7 @@
+
+
+msg GetVersion
+{
+    request();
+    response(std::string version);
+}

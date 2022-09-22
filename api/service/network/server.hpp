@@ -39,12 +39,9 @@ public:
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
         const std::optional< mega::MPO >&  getMPOOpt() const { return m_mpoOpt; }
         const std::string&                 getName() const { return m_strName; }
-        const std::set< ConversationID >&  getConversations() const { return m_conversations; }
 
         void setType( Node::Type type ) { m_typeOpt = type; }
         void setMPO( mega::MPO mpo ) { m_mpoOpt = mpo; }
-        void conversationNew( const ConversationID& id ) { m_conversations.insert( id ); }
-        void conversationEnd( const ConversationID& id ) { m_conversations.erase( id ); }
 
         // Sender
         virtual ConnectionID              getConnectionID() const { return m_pSender->getConnectionID(); }
@@ -83,7 +80,6 @@ public:
         std::string                         m_strName;
         Sender::Ptr                         m_pSender;
         std::optional< Node::Type >         m_typeOpt;
-        std::set< ConversationID >          m_conversations;
         std::optional< DisconnectCallback > m_disconnectCallback;
         std::optional< mega::MPO >          m_mpoOpt;
     };

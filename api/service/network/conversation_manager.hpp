@@ -16,6 +16,7 @@ namespace network
 class ConversationManager
 {
     using ConversationPtrMap = std::map< ConversationID, ConversationBase::Ptr >;
+    using ConversationIDSet  = std::set< ConversationID >;
 
 public:
     ConversationManager( const std::string& strProcessName, boost::asio::io_context& ioContext );
@@ -37,8 +38,6 @@ public:
     virtual ConversationBase::Ptr joinConversation( const ConnectionID& originatingConnectionID, const Header& header,
                                                     const Message& msg )
         = 0;
-    virtual void conversationNew( const Header& header, const ReceivedMsg& msg );
-    virtual void conversationEnd( const Header& header, const ReceivedMsg& msg );
     virtual void dispatch( const Header& header, const ReceivedMsg& msg );
 
 protected:

@@ -33,8 +33,17 @@ namespace network
 
 struct Message
 {
-    MessageID index;
+    MessageID index = 0; // MSG_Error_Dispatch
     std::any msg;
+
+    operator bool() const { return index != 0; }
+
+    template < typename Archive >
+    void save( Archive& ar, const unsigned int version ) const;
+
+    template < typename Archive >
+    void load( Archive& ar, const unsigned int version );
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
 {%for message in messages%}
@@ -60,8 +69,22 @@ struct {{ message.name }}
 Message make_error_msg( const std::string& strErrorMsg );
 
 bool isRequest( const Message& msg );
-Message decode( boost::archive::binary_iarchive& archive, const Header& header );
+Message decode( boost::archive::binary_iarchive& archive, MessageID msgID );
 void encode( boost::archive::binary_oarchive& archive, const Message& msg );
+
+template < typename Archive >
+void Message::save( Archive& ar, const unsigned int version ) const
+{
+    ar & index;
+    encode( ar, *this );
+}
+
+template < typename Archive >
+void Message::load( Archive& ar, const unsigned int version )
+{
+    ar & index;
+    *this = decode( ar, index );
+}
 
 const char* getMsgName( const Message& msg );
 std::ostream& operator<<( std::ostream& os, const Message& msg );

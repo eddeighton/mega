@@ -35,8 +35,6 @@ public:
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
                                                              const network::Header&       header,
                                                              const network::Message&      msg );
-    virtual void conversationNew( const network::Header& header, const network::ReceivedMsg& msg );
-    virtual void conversationEnd( const network::Header& header, const network::ReceivedMsg& msg );
 
     network::Node::Type getType() const { return m_nodeType; }
     network::Sender&    getDaemonSender() { return m_client; }
@@ -67,9 +65,7 @@ private:
     network::Client                                  m_client;
     boost::asio::executor_work_guard< ExecutorType > m_work_guard;
     std::thread                                      m_io_thread;
-
-    std::set< network::ConversationID > m_conversationIDs;
-    mega::MPO m_mpo;
+    mega::MPO                                        m_mpo;
 };
 
 } // namespace service

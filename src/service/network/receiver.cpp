@@ -110,7 +110,7 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
                     boost::archive::binary_iarchive                       ia( is );
                     ia&                                                   header;
 
-                    const auto        msg = decode( ia, header );
+                    const auto        msg = decode( ia, header.getMessageID() );
                     const ReceivedMsg receivedMsg{ m_connectionID, std::move( msg ) };
                     m_conversationManager.dispatch( header, receivedMsg );
                 }

@@ -137,10 +137,16 @@ void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yie
     try
     {
         ASSERT( isRequest( msg.msg ) );
-        if ( !dispatchRequest( msg.msg, yield_ctx ) )
+        network::Message result = dispatchRequest( msg.msg, yield_ctx );
+        if ( !result )
         {
             SPDLOG_ERROR( "Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
             THROW_RTE( "Failed to dispatch request message: " << msg.msg );
+        }
+        else
+        {
+            // send response
+            dispatchResponse( msg.connectionID, result, yield_ctx );
         }
     }
     catch ( std::exception& ex )

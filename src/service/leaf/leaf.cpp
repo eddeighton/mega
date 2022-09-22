@@ -15,6 +15,7 @@
 #include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/leaf_tool.hxx"
+#include "service/protocol/model/enrole.hxx"
 
 #include "mega/common.hpp"
 
@@ -46,12 +47,42 @@ public:
     {
     }
 
-    virtual bool dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx ) override
+    virtual network::Message dispatchRequest( const network::Message&     msg,
+                                              boost::asio::yield_context& yield_ctx ) override
     {
-        return network::term_leaf::Impl::dispatchRequest( msg, yield_ctx )
-               || network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx )
-               || network::exe_leaf::Impl::dispatchRequest( msg, yield_ctx )
-               || network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx );
+        network::Message result;
+        result = network::term_leaf::Impl::dispatchRequest( msg, yield_ctx );
+        if ( result )
+            return result;
+        result = network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx );
+        if ( result )
+            return result;
+        result = network::exe_leaf::Impl::dispatchRequest( msg, yield_ctx );
+        if ( result )
+            return result;
+        result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx );
+        if ( result )
+            return result;
+        return result;
+    }
+
+    virtual void dispatchResponse( const network::ConnectionID& connectionID,
+                                   const network::Message&      msg,
+                                   boost::asio::yield_context&  yield_ctx ) override
+    {
+        if ( ( m_leaf.getNodeChannelSender().getConnectionID() == connectionID )
+             || ( m_leaf.m_pSelfSender->getConnectionID() == connectionID ) )
+        {
+            m_leaf.getNodeChannelSender().send( getID(), msg, yield_ctx );
+        }
+        else if ( m_leaf.getDaemonSender().getConnectionID() == connectionID )
+        {
+            m_leaf.getDaemonSender().send( getID(), msg, yield_ctx );
+        }
+        else
+        {
+            SPDLOG_ERROR( "Leaf cannot resolve connection: {} on response: {}", connectionID, msg );
+        }
     }
 
     virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
@@ -71,95 +102,86 @@ public:
             SPDLOG_ERROR( "Leaf cannot resolve connection: {} on error: {}", connection, strErrorMsg );
         }
     }
-    network::daemon_leaf::Response_Encode getDaemonResponse( boost::asio::yield_context& yield_ctx )
+
+    network::leaf_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx )
     {
-        return network::daemon_leaf::Response_Encode( *this, m_leaf.getDaemonSender(), yield_ctx );
-    }
-    network::leaf_daemon::Request_Encode getDaemonRequest( boost::asio::yield_context& yield_ctx )
-    {
-        return network::leaf_daemon::Request_Encode( *this, m_leaf.getDaemonSender(), yield_ctx );
+        return network::leaf_daemon::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
     }
 
-    network::term_leaf::Response_Encode getTermResponse( boost::asio::yield_context& yield_ctx )
+    // network::term_leaf::Impl
+    virtual network::Message TermRoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override
     {
-        return network::term_leaf::Response_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+        return getDaemonSender( yield_ctx ).TermRoot( request );
     }
-    network::leaf_term::Request_Encode getTermRequest( boost::asio::yield_context& yield_ctx )
+
+    // network::exe_leaf::Impl
+    virtual network::Message ExeRoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override
     {
-        return network::leaf_term::Request_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+        return getDaemonSender( yield_ctx ).ExeRoot( request );
     }
-    network::tool_leaf::Response_Encode getToolResponse( boost::asio::yield_context& yield_ctx )
+
+    // network::tool_leaf::Impl
+    virtual network::Message ToolRoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override
     {
-        return network::tool_leaf::Response_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
-    }
-    network::leaf_tool::Request_Encode getToolRequest( boost::asio::yield_context& yield_ctx )
-    {
-        return network::leaf_tool::Request_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
-    }
-    network::exe_leaf::Response_Encode getExeResponse( boost::asio::yield_context& yield_ctx )
-    {
-        return network::exe_leaf::Response_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
-    }
-    network::leaf_exe::Request_Encode getExeRequest( boost::asio::yield_context& yield_ctx )
-    {
-        return network::leaf_exe::Request_Encode( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+        return getDaemonSender( yield_ctx ).ToolRoot( request );
     }
 
     // term_leaf
+    /*
     virtual void TermListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermListNetworkNodes();
+        auto result = getDaemonSender( yield_ctx ).TermListNetworkNodes();
         getTermResponse( yield_ctx ).TermListNetworkNodes( result );
     }
 
     virtual void TermPipelineRun( const mega::pipeline::Configuration& configuration,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermPipelineRun( configuration );
+        auto result = getDaemonSender( yield_ctx ).TermPipelineRun( configuration );
         getTermResponse( yield_ctx ).TermPipelineRun( result );
     }
 
     virtual void TermGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermGetMegastructureInstallation();
+        auto result = getDaemonSender( yield_ctx ).TermGetMegastructureInstallation();
         getTermResponse( yield_ctx ).TermGetMegastructureInstallation( result );
     }
 
     virtual void TermGetProject( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermGetProject();
+        auto result = getDaemonSender( yield_ctx ).TermGetProject();
         getTermResponse( yield_ctx ).TermGetProject( result );
     }
 
     virtual void TermSetProject( const mega::network::Project& project, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSetProject( project );
+        auto result = getDaemonSender( yield_ctx ).TermSetProject( project );
         getTermResponse( yield_ctx ).TermSetProject( result );
     }
 
     virtual void TermNewInstallation( const mega::network::Project& project,
                                       boost::asio::yield_context&   yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermNewInstallation( project );
+        auto result = getDaemonSender( yield_ctx ).TermNewInstallation( project );
         getTermResponse( yield_ctx ).TermNewInstallation( result );
     }
 
     virtual void TermSimNew( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSimNew();
+        auto result = getDaemonSender( yield_ctx ).TermSimNew();
         getTermResponse( yield_ctx ).TermSimNew( result );
     }
 
     virtual void TermSimDestroy( const mega::network::ConversationID& simulationID,
                                  boost::asio::yield_context&          yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).TermSimDestroy( simulationID );
+        getDaemonSender( yield_ctx ).TermSimDestroy( simulationID );
         getTermResponse( yield_ctx ).TermSimDestroy();
     }
 
     virtual void TermSimList( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSimList();
+        auto result = getDaemonSender( yield_ctx ).TermSimList();
         getTermResponse( yield_ctx ).TermSimList( result );
     }
 
@@ -167,7 +189,7 @@ public:
                                   const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSimReadLock( owningID, simulationID );
+        auto result = getDaemonSender( yield_ctx ).TermSimReadLock( owningID, simulationID );
         getTermResponse( yield_ctx ).TermSimReadLock( result );
     }
 
@@ -175,7 +197,7 @@ public:
                                    const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermSimWriteLock( owningID, simulationID );
+        auto result = getDaemonSender( yield_ctx ).TermSimWriteLock( owningID, simulationID );
         getTermResponse( yield_ctx ).TermSimWriteLock( result );
     }
 
@@ -183,25 +205,25 @@ public:
                                      const mega::network::ConversationID& simulationID,
                                      boost::asio::yield_context&          yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).TermSimReleaseLock( owningID, simulationID );
+        getDaemonSender( yield_ctx ).TermSimReleaseLock( owningID, simulationID );
         getTermResponse( yield_ctx ).TermSimReleaseLock();
     }
 
     virtual void TermClearStash( boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).TermClearStash();
+        getDaemonSender( yield_ctx ).TermClearStash();
         getTermResponse( yield_ctx ).TermClearStash();
     }
 
     virtual void TermCapacity( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).TermCapacity();
+        auto result = getDaemonSender( yield_ctx ).TermCapacity();
         getTermResponse( yield_ctx ).TermCapacity( result );
     }
 
     virtual void TermShutdown( boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).TermShutdown();
+        getDaemonSender( yield_ctx ).TermShutdown();
         getTermResponse( yield_ctx ).TermShutdown();
     }
 
@@ -347,20 +369,20 @@ public:
     virtual void ExePipelineReadyForWork( const network::ConversationID& rootConversationID,
                                           boost::asio::yield_context&    yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ExePipelineReadyForWork( rootConversationID );
+        getDaemonSender( yield_ctx ).ExePipelineReadyForWork( rootConversationID );
         getExeResponse( yield_ctx ).ExePipelineReadyForWork();
     }
 
     virtual void ExePipelineWorkProgress( const std::string& message, boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ExePipelineWorkProgress( message );
+        getDaemonSender( yield_ctx ).ExePipelineWorkProgress( message );
         getExeResponse( yield_ctx ).ExePipelineWorkProgress();
     }
 
     virtual void ExeGetBuildHashCode( const boost::filesystem::path& filePath,
                                       boost::asio::yield_context&    yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeGetBuildHashCode( filePath );
+        auto result = getDaemonSender( yield_ctx ).ExeGetBuildHashCode( filePath );
         getExeResponse( yield_ctx ).ExeGetBuildHashCode( result );
     }
 
@@ -368,7 +390,7 @@ public:
                                       const task::FileHash&          hashCode,
                                       boost::asio::yield_context&    yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ExeSetBuildHashCode( filePath, hashCode );
+        getDaemonSender( yield_ctx ).ExeSetBuildHashCode( filePath, hashCode );
         getExeResponse( yield_ctx ).ExeSetBuildHashCode();
     }
 
@@ -376,7 +398,7 @@ public:
                            const task::DeterminantHash&   determinant,
                            boost::asio::yield_context&    yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ExeStash( filePath, determinant );
+        getDaemonSender( yield_ctx ).ExeStash( filePath, determinant );
         getExeResponse( yield_ctx ).ExeStash();
     }
 
@@ -384,49 +406,49 @@ public:
                              const task::DeterminantHash&   determinant,
                              boost::asio::yield_context&    yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeRestore( filePath, determinant );
+        auto result = getDaemonSender( yield_ctx ).ExeRestore( filePath, determinant );
         getExeResponse( yield_ctx ).ExeRestore( result );
     }
 
     virtual void ExeGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeGetMegastructureInstallation();
+        auto result = getDaemonSender( yield_ctx ).ExeGetMegastructureInstallation();
         getExeResponse( yield_ctx ).ExeGetMegastructureInstallation( result );
     }
 
     virtual void ExeGetProject( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeGetProject();
+        auto result = getDaemonSender( yield_ctx ).ExeGetProject();
         getExeResponse( yield_ctx ).ExeGetProject( result );
     }
 
     virtual void ExeCreateMPO( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeCreateMPO( m_leaf.m_mpo );
+        auto result = getDaemonSender( yield_ctx ).ExeCreateMPO( m_leaf.m_mpo );
         getExeResponse( yield_ctx ).ExeCreateMPO( result );
     }
 
     virtual void ExeAcquireMemory( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeAcquireMemory( mpo );
+        auto result = getDaemonSender( yield_ctx ).ExeAcquireMemory( mpo );
         getExeResponse( yield_ctx ).ExeAcquireMemory( result );
     }
     virtual void ExeGetRootNetworkAddress( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeGetRootNetworkAddress( mpo );
+        auto result = getDaemonSender( yield_ctx ).ExeGetRootNetworkAddress( mpo );
         getExeResponse( yield_ctx ).ExeGetRootNetworkAddress( result );
     }
     virtual void ExeGetNetworkAddressMPO( const mega::AddressStorage& networkAddress,
                                           boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeGetNetworkAddressMPO( networkAddress );
+        auto result = getDaemonSender( yield_ctx ).ExeGetNetworkAddressMPO( networkAddress );
         getExeResponse( yield_ctx ).ExeGetNetworkAddressMPO( result );
     }
     virtual void ExeAllocateNetworkAddress( const mega::MPO&            mpo,
                                             const mega::TypeID&         objectTypeID,
                                             boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeAllocateNetworkAddress( mpo, objectTypeID );
+        auto result = getDaemonSender( yield_ctx ).ExeAllocateNetworkAddress( mpo, objectTypeID );
         getExeResponse( yield_ctx ).ExeAllocateNetworkAddress( result );
     }
 
@@ -434,70 +456,70 @@ public:
                                               const mega::AddressStorage& networkAddress,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ExeDeAllocateNetworkAddress( mpo, networkAddress );
+        getDaemonSender( yield_ctx ).ExeDeAllocateNetworkAddress( mpo, networkAddress );
         getExeResponse( yield_ctx ).ExeDeAllocateNetworkAddress();
     }
 
     virtual void ExeGetMPOContextID( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeGetMPOContextID( mpo );
+        auto result = getDaemonSender( yield_ctx ).ExeGetMPOContextID( mpo );
         getExeResponse( yield_ctx ).ExeGetMPOContextID( result );
     }
 
     virtual void ExeSimReadLock( const mega::network::ConversationID& simulationID,
                                  boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeSimReadLock( simulationID );
+        auto result = getDaemonSender( yield_ctx ).ExeSimReadLock( simulationID );
         getExeResponse( yield_ctx ).ExeSimReadLock( result );
     }
 
     virtual void ExeSimWriteLock( const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ExeSimWriteLock( simulationID );
+        auto result = getDaemonSender( yield_ctx ).ExeSimWriteLock( simulationID );
         getExeResponse( yield_ctx ).ExeSimWriteLock( result );
     }
 
     virtual void ExeSimReleaseLock( const mega::network::ConversationID& simulationID,
                                     boost::asio::yield_context&          yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ExeSimReleaseLock( simulationID );
+        getDaemonSender( yield_ctx ).ExeSimReleaseLock( simulationID );
         getExeResponse( yield_ctx ).ExeSimReleaseLock();
     }
 
     virtual void ToolGetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolGetMegastructureInstallation();
+        auto result = getDaemonSender( yield_ctx ).ToolGetMegastructureInstallation();
         getToolResponse( yield_ctx ).ToolGetMegastructureInstallation( result );
     }
 
     virtual void ToolCreateMPO( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolCreateMPO( m_leaf.m_mpo );
+        auto result = getDaemonSender( yield_ctx ).ToolCreateMPO( m_leaf.m_mpo );
         getToolResponse( yield_ctx ).ToolCreateMPO( result );
     }
 
     virtual void ToolAcquireMemory( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolAcquireMemory( mpo );
+        auto result = getDaemonSender( yield_ctx ).ToolAcquireMemory( mpo );
         getToolResponse( yield_ctx ).ToolAcquireMemory( result );
     }
     virtual void ToolGetRootNetworkAddress( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolGetRootNetworkAddress( mpo );
+        auto result = getDaemonSender( yield_ctx ).ToolGetRootNetworkAddress( mpo );
         getToolResponse( yield_ctx ).ToolGetRootNetworkAddress( result );
     }
     virtual void ToolGetNetworkAddressMPO( const mega::AddressStorage& networkAddress,
                                            boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolGetNetworkAddressMPO( networkAddress );
+        auto result = getDaemonSender( yield_ctx ).ToolGetNetworkAddressMPO( networkAddress );
         getToolResponse( yield_ctx ).ToolGetNetworkAddressMPO( result );
     }
     virtual void ToolAllocateNetworkAddress( const mega::MPO&            mpo,
                                              const mega::TypeID&         objectTypeID,
                                              boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolAllocateNetworkAddress( mpo, objectTypeID );
+        auto result = getDaemonSender( yield_ctx ).ToolAllocateNetworkAddress( mpo, objectTypeID );
         getToolResponse( yield_ctx ).ToolAllocateNetworkAddress( result );
     }
 
@@ -505,40 +527,40 @@ public:
                                                const mega::AddressStorage& networkAddress,
                                                boost::asio::yield_context& yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ToolDeAllocateNetworkAddress( mpo, networkAddress );
+        getDaemonSender( yield_ctx ).ToolDeAllocateNetworkAddress( mpo, networkAddress );
         getToolResponse( yield_ctx ).ToolDeAllocateNetworkAddress();
     }
     virtual void ToolStash( const boost::filesystem::path& filePath,
                             const task::DeterminantHash&   determinant,
                             boost::asio::yield_context&    yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ToolStash( filePath, determinant );
+        getDaemonSender( yield_ctx ).ToolStash( filePath, determinant );
         getToolResponse( yield_ctx ).ToolStash();
     }
     virtual void ToolRestore( const boost::filesystem::path& filePath,
                               const task::DeterminantHash&   determinant,
                               boost::asio::yield_context&    yield_ctx ) override
     {
-        const bool bRestored = getDaemonRequest( yield_ctx ).ToolRestore( filePath, determinant );
+        const bool bRestored = getDaemonSender( yield_ctx ).ToolRestore( filePath, determinant );
         getToolResponse( yield_ctx ).ToolRestore( bRestored );
     }
 
     virtual void ToolGetMPOContextID( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolGetMPOContextID( mpo );
+        auto result = getDaemonSender( yield_ctx ).ToolGetMPOContextID( mpo );
         getToolResponse( yield_ctx ).ToolGetMPOContextID( result );
     }
     virtual void ToolGetMPO( const mega::network::ConversationID& conversationID,
                              boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolGetMPO( conversationID );
+        auto result = getDaemonSender( yield_ctx ).ToolGetMPO( conversationID );
         getToolResponse( yield_ctx ).ToolGetMPO( result );
     }
     virtual void ToolSimReadLock( const mega::network::ConversationID& owningID,
                                   const mega::network::ConversationID& simulationID,
                                   boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolSimReadLock( owningID, simulationID );
+        auto result = getDaemonSender( yield_ctx ).ToolSimReadLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimReadLock( result );
     }
 
@@ -546,7 +568,7 @@ public:
                                    const mega::network::ConversationID& simulationID,
                                    boost::asio::yield_context&          yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolSimWriteLock( owningID, simulationID );
+        auto result = getDaemonSender( yield_ctx ).ToolSimWriteLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimWriteLock( result );
     }
 
@@ -554,14 +576,14 @@ public:
                                      const mega::network::ConversationID& simulationID,
                                      boost::asio::yield_context&          yield_ctx ) override
     {
-        getDaemonRequest( yield_ctx ).ToolSimReleaseLock( owningID, simulationID );
+        getDaemonSender( yield_ctx ).ToolSimReleaseLock( owningID, simulationID );
         getToolResponse( yield_ctx ).ToolSimReleaseLock();
     }
     virtual void ToolSimList( boost::asio::yield_context& yield_ctx ) override
     {
-        auto result = getDaemonRequest( yield_ctx ).ToolSimList();
+        auto result = getDaemonSender( yield_ctx ).ToolSimList();
         getToolResponse( yield_ctx ).ToolSimList( result );
-    }
+    }*/
 };
 
 class LeafEnrole : public LeafRequestConversation
@@ -574,10 +596,12 @@ public:
         , m_promise( promise )
     {
     }
-
     void run( boost::asio::yield_context& yield_ctx )
     {
-        m_leaf.m_mpo = getDaemonRequest( yield_ctx ).LeafEnrole( m_leaf.getType() );
+        network::enrole::Request_Encoder encoder(
+            [ daemonSender = getDaemonSender( yield_ctx ) ]( const network::Message& msg ) mutable
+            { return daemonSender.LeafDaemon( msg ); } );
+        m_leaf.m_mpo = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };
@@ -596,14 +620,16 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType )
 
     m_pSelfSender = m_receiverChannel.getSender();
 
-    // immediately enrole with node type
     {
-        std::promise< void >          promise;
-        std::future< void >           future = promise.get_future();
-        std::shared_ptr< LeafEnrole > pEnrole
-            = std::make_shared< LeafEnrole >( *this, getDaemonSender().getConnectionID(), promise );
-        conversationInitiated( pEnrole, getDaemonSender() );
-        future.wait();
+        std::promise< void > promise;
+        std::future< void >  future = promise.get_future();
+        conversationInitiated(
+            std::make_shared< LeafEnrole >( *this, getDaemonSender().getConnectionID(), promise ), getDaemonSender() );
+        using namespace std::chrono_literals;
+        while ( std::future_status::timeout == future.wait_for( 0s ) )
+        {
+            m_io_context.run_one();
+        }
     }
 }
 
@@ -642,22 +668,6 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
             THROW_RTE( "Leaf: Unknown leaf type" );
             break;
     }
-}
-
-void Leaf::conversationNew( const network::Header& header, const network::ReceivedMsg& msg )
-{
-    m_conversationIDs.insert( header.getConversationID() );
-    boost::asio::spawn( m_ioContext,
-                        [ &m_client = m_client, header, message = msg.msg ]( boost::asio::yield_context yield_ctx )
-                        { m_client.send( header.getConversationID(), message, yield_ctx ); } );
-}
-
-void Leaf::conversationEnd( const network::Header& header, const network::ReceivedMsg& msg )
-{
-    m_conversationIDs.erase( header.getConversationID() );
-    boost::asio::spawn( m_ioContext,
-                        [ &m_client = m_client, header, message = msg.msg ]( boost::asio::yield_context yield_ctx )
-                        { m_client.send( header.getConversationID(), message, yield_ctx ); } );
 }
 
 } // namespace service
