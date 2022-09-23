@@ -125,5 +125,36 @@ const char* getMsgName( const Message& msg )
     return getMsgNameFromID( getMsgID( msg ) );
 }
 
+void aggregate( Message& request, const std::vector< Message >& responses )
+{
+    switch( request.index )
+    {
+{%for message in messages%}
+{% if message.is_broadcast %}
+        case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
+        {
+            {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg = 
+                *std::any_cast< {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }} >( &request.msg );
+{%for member in message.members%}
+{% if loop.is_last %}
+            for( const Message& response : responses )
+            {
+                const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.response_name }}& responseMsg =
+                    *std::any_cast< {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.response_name }} >( &response.msg );
+                msg.{{ member.name }}.push_back( responseMsg.{{ message.response_member }} );
+            }
+{% endif %}
+{%endfor%}
+        }
+        break;
+{% endif %}
+{% endfor %}
+        default:
+        {
+            THROW_RTE( "Error decoding message: " << request.index );
+        }
+    }
+}
+
 }
 }

@@ -8,24 +8,27 @@ namespace service
 {
 
 // network::project::Impl
-std::string RootRequestConversation::GetVersion( boost::asio::yield_context& yield_ctx ) 
-{ 
+
+std::string RootRequestConversation::CollateVersions( boost::asio::yield_context& yield_ctx )
+{
+    RootRequestConversation*          pThis = this;
+    network::project::Request_Encoder project( [ pThis, &yield_ctx ]( const network::Message& msg )
+                                               { return pThis->RootLeafBroadcast( msg, yield_ctx ); } );
+    return project.GetVersion( {} );
+}
+
+std::string RootRequestConversation::GetVersion( const std::vector< std::string >& version,
+                                                 boost::asio::yield_context&       yield_ctx )
+{
+    SPDLOG_TRACE( "RootRequestConversation::GetVersion" );
     std::ostringstream os;
-    os << "Hello from root: " << m_root.m_strProcessName << "\n";
+    os << "ROOT: " << m_root.m_strProcessName << " " << "\n";
+    for ( const std::string& str : version )
     {
-        for( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
-        {
-            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-            network::project::Request_Encoder encoder( [ &sender ]( const network::Message& msg )
-                {
-                    return sender.RootAll( msg );
-                });
-
-            os << encoder.GetVersion() << "\n";
-        }
+        os << str << "\n";
     }
-    return os.str(); 
+    return os.str();
 }
 
-}
-}
+} // namespace service
+} // namespace mega

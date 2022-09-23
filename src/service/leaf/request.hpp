@@ -42,6 +42,9 @@ public:
                                     boost::asio::yield_context& yield_ctx ) override;
 
     network::leaf_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );
+    network::leaf_exe::Request_Sender    getExeSender( boost::asio::yield_context& yield_ctx );
+    network::leaf_tool::Request_Sender   getToolSender( boost::asio::yield_context& yield_ctx );
+    network::leaf_term::Request_Sender   getTermSender( boost::asio::yield_context& yield_ctx );
 
     // network::term_leaf::Impl
     virtual network::Message TermRoot( const network::Message&     request,
@@ -54,8 +57,14 @@ public:
     virtual network::Message ToolRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
 
+    // network::daemon_leaf::Impl
+    virtual network::Message RootLeafBroadcast( const network::Message&     request,
+                                                boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
+                                                  boost::asio::yield_context& yield_ctx ) override;
+
     // network::project::Impl
-    virtual std::string GetVersion( boost::asio::yield_context& yield_ctx ) override;
+    virtual std::string GetVersion( const std::vector< std::string >& version, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace service

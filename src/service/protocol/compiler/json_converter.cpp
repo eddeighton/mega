@@ -48,38 +48,62 @@ void toJSON( const boost::filesystem::path& dataDir, const std::string& strFileN
     for ( const schema::Transaction& transaction : schema.m_transactions )
     {
         std::optional< schema::Parameter > returnParam;
-        for ( const schema::Response& response : transaction.m_responses )
+
         {
             nlohmann::json responseData( { { "name", transaction.m_name }, { "params", nlohmann::json::array() } } );
-
-            for ( const schema::Parameter& parameter : response.m_parameters )
+            VERIFY_RTE( transaction.m_response.m_parameters.size() <= 1U );
+            for ( const schema::Parameter& parameter : transaction.m_response.m_parameters )
             {
                 if ( !returnParam )
                     returnParam = parameter;
                 responseData[ "params" ].push_back( writeParameter( parameter ) );
             }
-
             data[ "responses" ].push_back( responseData );
-            break;
         }
 
         nlohmann::json requestData( { { "return_type", "void" },
                                       { "name", transaction.m_name },
                                       { "params", nlohmann::json::array() },
                                       { "return_msg_member", "" } } );
-
         if ( returnParam.has_value() )
         {
             requestData[ "return_type" ]       = typeToString( returnParam.value().m_type );
             requestData[ "return_msg_member" ] = returnParam.value().m_name;
         }
 
+        struct Visitor
         {
-            for ( const schema::Parameter& parameter : transaction.m_request.m_parameters )
+            const schema::Transaction&                transaction;
+            const std::optional< schema::Parameter >& returnParam;
+            nlohmann::json&                           data;
+            Visitor( const schema::Transaction& transaction, const std::optional< schema::Parameter >& returnParam,
+                     nlohmann::json& data )
+                : transaction( transaction )
+                , returnParam( returnParam )
+                , data( data )
             {
-                requestData[ "params" ].push_back( writeParameter( parameter ) );
             }
-        }
+            void operator()( const protocol::schema::PointToPointRequest& request ) const
+            {
+                for ( const schema::Parameter& parameter : request.m_parameters )
+                {
+                    data[ "params" ].push_back( writeParameter( parameter ) );
+                }
+            }
+            void operator()( const protocol::schema::BroadcastRequest& request ) const
+            {
+                for ( const schema::Parameter& parameter : request.m_parameters )
+                {
+                    data[ "params" ].push_back( writeParameter( parameter ) );
+                }
+                VERIFY_RTE_MSG( returnParam, "Broadcast: " << transaction.m_name << " has no return type" );
+                std::ostringstream osType;
+                osType << "std::vector< " << typeToString( returnParam.value().m_type ) << " >";
+                nlohmann::json broadcastParam( { { "name", returnParam.value().m_name }, { "type", osType.str() } } );
+                data[ "params" ].push_back( broadcastParam );
+            }
+        } visitor( transaction, returnParam, requestData );
+        boost::apply_visitor( visitor, transaction.m_request );
 
         data[ "requests" ].push_back( requestData );
     }
@@ -99,6 +123,7 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
         nlohmann::json errorResponse( { { "has_namespace", false },
                                         { "name", "MSG_Error_Dispatch" },
                                         { "is_request", false },
+                                        { "is_broadcast", false },
                                         { "id", idCounter++ },
                                         { "namespaces", nlohmann::json::array() },
                                         { "members", nlohmann::json::array() } } );
@@ -111,6 +136,7 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
         nlohmann::json errorResponse( { { "has_namespace", false },
                                         { "name", "MSG_Error_Response" },
                                         { "is_request", false },
+                                        { "is_broadcast", false },
                                         { "id", idCounter++ },
                                         { "namespaces", nlohmann::json::array() },
                                         { "members", nlohmann::json::array() } } );
@@ -130,37 +156,70 @@ void toMessagesJSON( const boost::filesystem::path& dataDir, const std::map< std
                 nlohmann::json request( { { "has_namespace", true },
                                           { "name", osName.str() },
                                           { "is_request", true },
+                                          { "is_broadcast", false },
                                           { "id", idCounter++ },
                                           { "namespaces", { strName } },
                                           { "members", nlohmann::json::array() } } );
 
-                for ( const schema::Parameter& parameter : transaction.m_request.m_parameters )
+                struct Visitor
                 {
-                    request[ "members" ].push_back( writeParameter( parameter ) );
-                }
+                    const schema::Transaction& transaction;
+                    nlohmann::json&            data;
+                    Visitor( const schema::Transaction& transaction, nlohmann::json& data )
+                        : transaction( transaction )
+                        , data( data )
+                    {
+                    }
+                    void operator()( const protocol::schema::PointToPointRequest& request ) const
+                    {
+                        for ( const schema::Parameter& parameter : request.m_parameters )
+                        {
+                            data[ "members" ].push_back( writeParameter( parameter ) );
+                        }
+                    }
+                    void operator()( const protocol::schema::BroadcastRequest& request ) const
+                    {
+                        data[ "is_broadcast" ] = true;
+                        {
+                            std::ostringstream osName;
+                            osName << "MSG_" << transaction.m_name << "_Response";
+                            data[ "response_name" ] = osName.str();
+                        }
+                        for ( const schema::Parameter& parameter : request.m_parameters )
+                        {
+                            data[ "members" ].push_back( writeParameter( parameter ) );
+                        }
+
+                        const auto&        returnParam = transaction.m_response.m_parameters.back();
+                        std::ostringstream osType;
+                        osType << "std::vector< " << typeToString( returnParam.m_type ) << " >";
+                        nlohmann::json broadcastParam( { { "name", returnParam.m_name }, { "type", osType.str() } } );
+                        data[ "members" ].push_back( broadcastParam );
+                        data[ "response_member" ] = returnParam.m_name;
+                    }
+                } visitor( transaction, request );
+                boost::apply_visitor( visitor, transaction.m_request );
 
                 data[ "messages" ].push_back( request );
             }
 
-            for ( const schema::Response& response : transaction.m_responses )
             {
                 std::ostringstream osName;
                 osName << "MSG_" << transaction.m_name << "_Response";
                 nlohmann::json responseData( { { "has_namespace", true },
                                                { "name", osName.str() },
                                                { "is_request", false },
+                                               { "is_broadcast", false },
                                                { "id", idCounter++ },
                                                { "namespaces", { strName } },
                                                { "members", nlohmann::json::array() } } );
 
-                for ( const schema::Parameter& parameter : response.m_parameters )
+                for ( const schema::Parameter& parameter : transaction.m_response.m_parameters )
                 {
                     responseData[ "members" ].push_back( writeParameter( parameter ) );
                 }
 
                 data[ "messages" ].push_back( responseData );
-
-                break;
             }
         }
     }

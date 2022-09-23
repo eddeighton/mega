@@ -91,6 +91,8 @@ std::ostream& operator<<( std::ostream& os, const Message& msg );
 MessageID getMsgID( const Message& msg );
 const char* getMsgNameFromID( MessageID id );
 
+void aggregate( Message& request, const std::vector< Message >& responses );
+
 } // namespace network
 } // namespace mega
 

@@ -26,7 +26,7 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    return result;
+    THROW_RTE( "RootRequestConversation::dispatchRequest failed" );
 }
 
 void RootRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
@@ -68,32 +68,61 @@ RootRequestConversation::getDaemonRequest( network::Server::Connection::Ptr pCon
 network::Message RootRequestConversation::TermRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "RootRequestConversation::TermRoot" );
     return dispatchRequest( request, yield_ctx );
 }
 
 network::Message RootRequestConversation::ExeRoot( const network::Message&     request,
                                                    boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "RootRequestConversation::ExeRoot" );
     return dispatchRequest( request, yield_ctx );
 }
 
 network::Message RootRequestConversation::ToolRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "RootRequestConversation::ToolRoot" );
     return dispatchRequest( request, yield_ctx );
 }
 
 network::Message RootRequestConversation::LeafRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "RootRequestConversation::LeafRoot" );
     return dispatchRequest( request, yield_ctx );
 }
 
 network::Message RootRequestConversation::DaemonRoot( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "RootRequestConversation::DaemonRoot" );
     return dispatchRequest( request, yield_ctx );
 }
+
+
+// network::root_daemon::Impl
+network::Message RootRequestConversation::RootLeafBroadcast( const network::Message& request, boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "RootRequestConversation::RootLeafBroadcast" );
+    // dispatch to children
+    std::vector< network::Message > responses;
+    {
+        for( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+        {
+            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+            const network::Message response = sender.RootLeafBroadcast( request );
+            responses.push_back( response );
+        }
+    }
+
+    network::Message aggregateRequest = request;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );
+}
+
 
 
 } // namespace service

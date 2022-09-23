@@ -46,7 +46,10 @@ public:
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        return network::leaf_term::Impl::dispatchRequest( msg, yield_ctx );
+        network::Message result;
+        if ( result = network::leaf_term::Impl::dispatchRequest( msg, yield_ctx ); result )
+            return result;
+        THROW_RTE( "TerminalRequestConversation::dispatchRequest failed" );
     }
     virtual void dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
                                    boost::asio::yield_context& yield_ctx ) override
@@ -421,6 +424,7 @@ void Terminal::Shutdown()
 
 network::Message Terminal::rootRequest( const network::Message& message )
 {
+    SPDLOG_TRACE( "Terminal::rootRequest" );
     class RootConversation : public TerminalRequestConversation
     {
     public:
@@ -433,11 +437,13 @@ network::Message Terminal::rootRequest( const network::Message& message )
             , m_message( msg )
             , m_result( result )
         {
+            SPDLOG_TRACE( "Terminal::rootRequest::RootConversation::ctor {}", network::getMsgName( m_message ) );
         }
         void run( boost::asio::yield_context& yield_ctx )
         {
             try
             {
+                SPDLOG_TRACE( "Terminal::rootRequest::RootConversation" );
                 network::term_leaf::Request_Sender leaf( *this, m_terminal.getLeafSender(), yield_ctx );
                 m_result = leaf.TermRoot( m_message );
             }
@@ -481,7 +487,11 @@ network::project::Request_Encoder Terminal::getProject()
     return network::project::Request_Encoder( std::bind( &Terminal::rootRequest, this, _1 ) );
 }
 
-std::string Terminal::GetVersion() { return getProject().GetVersion(); }
+std::string Terminal::GetVersion()
+{
+    SPDLOG_TRACE( "Terminal::GetVersion" );
+    return getProject().CollateVersions();
+}
 
 } // namespace service
 } // namespace mega

@@ -35,36 +35,7 @@ network::Message Simulation::dispatchRequest( const network::Message& msg, boost
     result = network::exe_sim::Impl::dispatchRequest( msg, yield_ctx );
     if ( result )
         return result;
-    return result;
-}
-
-void Simulation::dispatchResponse( const network::ConnectionID& connectionID,
-                                   const network::Message&      msg,
-                                   boost::asio::yield_context&  yield_ctx )
-{
-    if ( m_executor.getLeafSender().getConnectionID() == connectionID )
-    {
-        m_executor.getLeafSender().send( getID(), msg, yield_ctx );
-    }
-    else
-    {
-        SPDLOG_ERROR( "SIM: Cannot resolve connection in response handler: {} for error: {}", connectionID, msg );
-        THROW_RTE( "Simulation: Executor Critical error in response handler: " << connectionID << " : " << msg );
-    }
-}
-
-void Simulation::error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx )
-{
-    if ( m_executor.getLeafSender().getConnectionID() == connectionID )
-    {
-        m_executor.getLeafSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
-    }
-    else
-    {
-        SPDLOG_ERROR( "SIM: Cannot resolve connection in error handler: {} for error: {}", connectionID, strErrorMsg );
-        THROW_RTE( "Simulation: Executor Critical error in error handler: " << connectionID << " : " << strErrorMsg );
-    }
+    return ExecutorRequestConversation::dispatchRequest(msg, yield_ctx);
 }
 
 Simulation::SimIDVector Simulation::getSimulationIDs() { THROW_RTE( "Unsupported getSimulationIDs from simulation" ); }

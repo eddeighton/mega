@@ -39,6 +39,7 @@ public:
             [ daemonSender = getDaemonSender( yield_ctx ) ]( const network::Message& msg ) mutable
             { return daemonSender.LeafDaemon( msg ); } );
         m_leaf.m_mpo = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
+        SPDLOG_TRACE( "Leaf enrole mpo: {}", m_leaf.m_mpo );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };
@@ -62,11 +63,7 @@ Leaf::Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType )
         std::future< void >  future = promise.get_future();
         conversationInitiated(
             std::make_shared< LeafEnrole >( *this, getDaemonSender().getConnectionID(), promise ), getDaemonSender() );
-        using namespace std::chrono_literals;
-        while ( std::future_status::timeout == future.wait_for( 0s ) )
-        {
-            m_io_context.run_one();
-        }
+        future.get();
     }
 }
 

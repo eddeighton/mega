@@ -26,7 +26,7 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
         return result;
     if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    return result;
+    THROW_RTE( "DaemonRequestConversation::dispatchRequest failed" );
 }
 
 void DaemonRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
@@ -68,6 +68,7 @@ void DaemonRequestConversation::error( const network::ConnectionID& connectionID
 network::Message DaemonRequestConversation::TermRoot( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "DaemonRequestConversation::TermRoot" );
     return getRootSender( yield_ctx ).TermRoot( request );
 }
 
@@ -94,5 +95,49 @@ network::Message DaemonRequestConversation::LeafDaemon( const network::Message& 
 {
     return dispatchRequest( request, yield_ctx );
 }
+
+network::Message DaemonRequestConversation::RootLeafBroadcast( const network::Message&     request,
+                                                               boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "DaemonRequestConversation::RootLeafBroadcast" );
+    // dispatch to children
+    std::vector< network::Message > responses;
+    {
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+            const network::Message               response = sender.RootLeafBroadcast( request );
+            responses.push_back( response );
+        }
+    }
+
+    network::Message aggregateRequest = request;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );
+}
+network::Message DaemonRequestConversation::DaemonLeafBroadcast( const network::Message&     request,
+                                                                 boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "DaemonRequestConversation::DaemonLeafBroadcast" );
+    // dispatch to children
+    std::vector< network::Message > responses;
+    {
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+            const network::Message               response = sender.DaemonLeafBroadcast( request );
+            responses.push_back( response );
+        }
+    }
+
+    network::Message aggregateRequest = request;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );
+}
+
 } // namespace service
 } // namespace mega

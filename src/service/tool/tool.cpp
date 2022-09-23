@@ -47,7 +47,10 @@ public:
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        return network::leaf_tool::Impl::dispatchRequest( msg, yield_ctx );
+        network::Message result;
+        if ( result = network::leaf_tool::Impl::dispatchRequest( msg, yield_ctx ); result )
+            return result;
+        THROW_RTE( "ToolRequestConversation::dispatchRequest failed" );
     }
     virtual void dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
                                    boost::asio::yield_context& yield_ctx ) override

@@ -1,14 +1,1 @@
 
-
-msg RootAll
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-
-msg DaemonAll
-{
-    request(network::Message request);
-    response(network::Message response);
-}
-

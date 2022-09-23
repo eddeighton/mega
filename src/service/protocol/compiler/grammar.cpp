@@ -225,10 +225,10 @@ ParseResult parse( const std::string& strInput, Parameter& parameter, std::ostre
 } // namespace protocol
 
 // clang-format off
-BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Request,
+BOOST_FUSION_ADAPT_STRUCT( protocol::schema::PointToPointRequest,
     ( std::vector< protocol::schema::Parameter >, m_parameters ) )
 
-BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Event,
+BOOST_FUSION_ADAPT_STRUCT( protocol::schema::BroadcastRequest,
     ( std::vector< protocol::schema::Parameter >, m_parameters ) )
 
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Response,
@@ -244,10 +244,10 @@ namespace schema
 enum MessageKeywordType
 {
     eREQUEST,
-    eEVENT,
+    eBROADCAST,
     eRESPONSE
 };
-static const char* MessageKeywordNames[] = { "request", "event", "response" };
+static const char* MessageKeywordNames[] = { "request", "broadcast", "response" };
 
 template < typename MessageType, typename Iterator, MessageKeywordType messageKeywordType >
 class MessageGrammar : public boost::spirit::qi::grammar< Iterator, SkipGrammar< Iterator >, MessageType() >
@@ -279,13 +279,15 @@ public:
     boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, MessageType() > m_main_rule;
 };
 
-ParseResult parse( const std::string& strInput, Request& request, std::ostream& errorStream )
+ParseResult parse( const std::string& strInput, PointToPointRequest& request, std::ostream& errorStream )
 {
-    return parse_impl< MessageGrammar< Request, IteratorType, eREQUEST > >( strInput, request, errorStream );
+    return parse_impl< MessageGrammar< PointToPointRequest, IteratorType, eREQUEST > >(
+        strInput, request, errorStream );
 }
-ParseResult parse( const std::string& strInput, Event& event, std::ostream& errorStream )
+ParseResult parse( const std::string& strInput, BroadcastRequest& broadcast, std::ostream& errorStream )
 {
-    return parse_impl< MessageGrammar< Event, IteratorType, eEVENT > >( strInput, event, errorStream );
+    return parse_impl< MessageGrammar< BroadcastRequest, IteratorType, eBROADCAST > >(
+        strInput, broadcast, errorStream );
 }
 ParseResult parse( const std::string& strInput, Response& response, std::ostream& errorStream )
 {
@@ -297,10 +299,9 @@ ParseResult parse( const std::string& strInput, Response& response, std::ostream
 
 // clang-format off
 BOOST_FUSION_ADAPT_STRUCT( protocol::schema::Transaction,
-                           ( protocol::schema::Identifier,              m_name )
-                           ( protocol::schema::Request,                 m_request )
-                           ( std::vector< protocol::schema::Event >,    m_events )
-                           ( std::vector< protocol::schema::Response >, m_responses ) 
+                           ( protocol::schema::Identifier,      m_name )
+                           ( protocol::schema::RequestVariant,  m_request )
+                           ( protocol::schema::Response,        m_response ) 
                         )
 
 // clang-format on
@@ -324,24 +325,26 @@ public:
         using boost::spirit::qi::eoi;
         using namespace boost::phoenix;
 
+        m_grammar_request = m_grammar_point2point_request | m_grammar_broadcast_request;
+
         // clang-format off
         m_main_rule = lit( TRANSACTION_KEYWORD ) >> 
             m_grammar_identifier[ at_c< 0 >( _val ) = qi::_1 ]
             >>
             lit( '{' ) >> 
-                            m_grammar_request   [ at_c< 1 >( _val ) = qi::_1 ]              >> lit( ';' ) >>
-                        *(  m_grammar_event     [ push_back( at_c< 2 >( _val ), qi::_1 ) ]  >> lit( ';' ) ) >>
-                        *(  m_grammar_response  [ push_back( at_c< 3 >( _val ), qi::_1 ) ]  >> lit( ';' ) ) >
+                            m_grammar_request   [ at_c< 1 >( _val ) = qi::_1 ] >> lit( ';' ) >>
+                            m_grammar_response  [ at_c< 2 >( _val ) = qi::_1 ] >> lit( ';' ) >
             lit( '}' )
             ;
         // clang-format on
     }
 
-    IdentifierGrammar< Iterator >                                               m_grammar_identifier;
-    MessageGrammar< Request, Iterator, eREQUEST >                               m_grammar_request;
-    MessageGrammar< Event, Iterator, eEVENT >                                   m_grammar_event;
-    MessageGrammar< Response, Iterator, eRESPONSE >                             m_grammar_response;
-    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Transaction() > m_main_rule;
+    IdentifierGrammar< Iterator >                                                  m_grammar_identifier;
+    MessageGrammar< PointToPointRequest, Iterator, eREQUEST >                      m_grammar_point2point_request;
+    MessageGrammar< BroadcastRequest, Iterator, eBROADCAST >                       m_grammar_broadcast_request;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, RequestVariant() > m_grammar_request;
+    MessageGrammar< Response, Iterator, eRESPONSE >                                m_grammar_response;
+    boost::spirit::qi::rule< Iterator, SkipGrammar< Iterator >, Transaction() >    m_main_rule;
 };
 
 ParseResult parse( const std::string& strInput, Transaction& msg, std::ostream& errorStream )
@@ -418,19 +421,35 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Parameter& p
     return os << parameter.m_type << " " << parameter.m_name;
 }
 
-std::ostream& operator<<( std::ostream& os, const protocol::schema::Request& message )
+std::ostream& operator<<( std::ostream& os, const protocol::schema::PointToPointRequest& message )
 {
     using namespace protocol::schema;
     os << protocol::schema::MessageKeywordNames[ protocol::schema::eREQUEST ] << '(';
     common::delimit( message.m_parameters.begin(), message.m_parameters.end(), ",", os );
     return os << ')';
 }
-std::ostream& operator<<( std::ostream& os, const protocol::schema::Event& message )
+std::ostream& operator<<( std::ostream& os, const protocol::schema::BroadcastRequest& message )
 {
     using namespace protocol::schema;
-    os << protocol::schema::MessageKeywordNames[ protocol::schema::eEVENT ] << '(';
+    os << protocol::schema::MessageKeywordNames[ protocol::schema::eBROADCAST ] << '(';
     common::delimit( message.m_parameters.begin(), message.m_parameters.end(), ",", os );
     return os << ')';
+}
+std::ostream& operator<<( std::ostream& os, const protocol::schema::RequestVariant& message )
+{
+    using namespace protocol::schema;
+    struct Visitor
+    {
+        std::ostream& os;
+        Visitor( std::ostream& os )
+            : os( os )
+        {
+        }
+        void operator()( const protocol::schema::PointToPointRequest& message ) const { os << message << "\n"; }
+        void operator()( const protocol::schema::BroadcastRequest& message ) const { os << message << "\n"; }
+    } visitor( os );
+    boost::apply_visitor( visitor, message );
+    return os;
 }
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Response& message )
 {
@@ -444,10 +463,8 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Transaction&
 {
     const std::string strDelim = "\n    ";
     using namespace protocol::schema;
-    os << TRANSACTION_KEYWORD << ' ' << transaction.m_name << "\n{    " << transaction.m_request << strDelim;
-    common::delimit( transaction.m_events.begin(), transaction.m_events.end(), strDelim, os );
-    common::delimit( transaction.m_responses.begin(), transaction.m_responses.end(), strDelim, os );
-    return os << '}';
+    os << TRANSACTION_KEYWORD << ' ' << transaction.m_name << "\n{    " << transaction.m_request << strDelim
+       << transaction.m_response << strDelim << '}';
 }
 
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Schema& schema )

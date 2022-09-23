@@ -18,6 +18,7 @@ namespace service
 class DaemonRequestConversation : public network::InThreadConversation,
                                   public network::leaf_daemon::Impl,
                                   public network::root_daemon::Impl,
+                                  public network::daemon_leaf::Impl,
                                   public network::enrole::Impl,
                                   public network::project::Impl
 {
@@ -62,12 +63,19 @@ public:
     virtual network::Message LeafDaemon( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
 
+    // network::daemon_leaf::Impl
+    virtual network::Message RootLeafBroadcast( const network::Message&     request,
+                                                boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
+                                                  boost::asio::yield_context& yield_ctx ) override;
+
     // network::enrole::Impl
     virtual MPO EnroleLeafWithDaemon( const mega::network::Node::Type& type,
                                       boost::asio::yield_context&      yield_ctx ) override;
 
     // network::project::Impl
-    virtual std::string GetVersion( boost::asio::yield_context& yield_ctx ) override;
+    virtual std::string GetVersion( const std::vector< std::string >& version,
+                                    boost::asio::yield_context&       yield_ctx ) override;
 };
 
 } // namespace service

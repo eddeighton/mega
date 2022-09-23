@@ -1,12 +1,12 @@
 
 
-msg RootAll
+msg RootLeafBroadcast
 {
     request(network::Message request);
     response(network::Message response);
 }
 
-msg DaemonAll
+msg DaemonLeafBroadcast
 {
     request(network::Message request);
     response(network::Message response);

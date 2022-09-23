@@ -1,25 +1,23 @@
 
 #include "request.hpp"
 
+#include "service/network/log.hpp"
+
 namespace mega
 {
 namespace service
 {
 
 // network::project::Impl
-std::string LeafRequestConversation::GetVersion( boost::asio::yield_context& yield_ctx )
+std::string LeafRequestConversation::GetVersion( const std::vector< std::string >& version,
+                                                 boost::asio::yield_context&       yield_ctx )
 {
+    SPDLOG_TRACE( "LeafRequestConversation::GetVersion" );
     std::ostringstream os;
-    os << "Hello from root: " << m_leaf.m_strProcessName << "\n";
-    {
-        /*network::leaf_exe::Request_Sender sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
-        network::project::Request_Encoder encoder( [ &sender ]( const network::Message& msg )
-            {
-                return sender.RootAll( msg );
-            });
-
-        os << encoder.GetVersion() << "\n";*/
-    }
+    const std::size_t  szMachineID = m_leaf.m_mpo.getMachineID();
+    const std::size_t  szProcessID = m_leaf.m_mpo.getProcessID();
+    os << "        LEAF: " << m_leaf.m_strProcessName << " " << szMachineID << "." << szProcessID
+       << "\n";
     return os.str();
 }
 

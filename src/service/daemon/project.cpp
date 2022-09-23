@@ -7,19 +7,16 @@ namespace service
 {
 
 // network::project::Impl
-std::string DaemonRequestConversation::GetVersion( boost::asio::yield_context& yield_ctx )
+std::string DaemonRequestConversation::GetVersion( const std::vector< std::string >& version,
+                                                   boost::asio::yield_context&       yield_ctx )
 {
+    SPDLOG_TRACE( "DaemonRequestConversation::GetVersion" );
     std::ostringstream os;
-    os << "Hello from daemon: " << m_daemon.m_strProcessName << "\n";
+    const std::size_t  szMachineID = m_daemon.m_mpo.getMachineID();
+    os << "    DAEMON: " << m_daemon.m_strProcessName << " " << szMachineID << "\n";
+    for ( const std::string& str : version )
     {
-        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
-        {
-            network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
-            network::project::Request_Encoder    encoder( [ &sender ]( const network::Message& msg )
-                                                       { return sender.RootAll( msg ); } );
-
-            os << encoder.GetVersion() << "\n";
-        }
+        os << str << "\n";
     }
     return os.str();
 }

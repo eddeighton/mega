@@ -26,7 +26,10 @@ ExecutorRequestConversation::ExecutorRequestConversation( Executor&             
 network::Message ExecutorRequestConversation::dispatchRequest( const network::Message&     msg,
                                                                boost::asio::yield_context& yield_ctx )
 {
-    return network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx );
+    network::Message result;
+    if ( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    THROW_RTE( "ExecutorRequestConversation::dispatchRequest failed" );
 }
 
 void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
@@ -66,7 +69,9 @@ network::exe_leaf::Request_Sender ExecutorRequestConversation::getLeafRequest( b
 {
     return network::exe_leaf::Request_Sender( *this, m_executor.getLeafSender(), yield_ctx );
 }
-/*network::leaf_exe::Response_Encode ExecutorRequestConversation::getLeafResponse( boost::asio::yield_context& yield_ctx )
+
+/*network::leaf_exe::Response_Encode ExecutorRequestConversation::getLeafResponse( boost::asio::yield_context& yield_ctx
+)
 {
     return network::leaf_exe::Response_Encode( *this, m_executor.getLeafSender(), yield_ctx );
 }*/

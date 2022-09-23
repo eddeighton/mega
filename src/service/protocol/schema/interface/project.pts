@@ -2,6 +2,12 @@
 
 msg GetVersion
 {
+    broadcast();
+    response(std::string version);
+}
+
+msg CollateVersions
+{
     request();
     response(std::string version);
 }

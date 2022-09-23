@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <variant>
 #include <optional>
 #include <ostream>
 #include <sstream>
@@ -75,27 +76,28 @@ namespace protocol
         {
             std::vector< Parameter > m_parameters;
         };
-        struct Request : public Message
+        struct PointToPointRequest : public Message
         {
         };
-        struct Event : public Message
+        struct BroadcastRequest : public Message
         {
         };
         struct Response : public Message
         {
         };
-        using MessageVariant = boost::variant< Request, Event, Response >;
+        using MessageVariant = boost::variant< PointToPointRequest, BroadcastRequest, Response >;
 
-        ParseResult parse( const std::string& strInput, Request& message, std::ostream& errorStream );
-        ParseResult parse( const std::string& strInput, Event& message, std::ostream& errorStream );
+        ParseResult parse( const std::string& strInput, PointToPointRequest& message, std::ostream& errorStream );
+        ParseResult parse( const std::string& strInput, BroadcastRequest& message, std::ostream& errorStream );
         ParseResult parse( const std::string& strInput, Response& message, std::ostream& errorStream );
+
+        using RequestVariant = boost::variant< PointToPointRequest, BroadcastRequest >;
 
         struct Transaction
         {
             Identifier m_name;
-            Request m_request;
-            std::vector< Event > m_events;
-            std::vector< Response > m_responses;
+            RequestVariant m_request;
+            Response m_response;
         };
 
         ParseResult parse( const std::string& strInput, Transaction& transaction, std::ostream& errorStream );
@@ -125,8 +127,9 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Identifier& 
 std::ostream& operator<<( std::ostream& os, const protocol::schema::IdentifierList& idlist );
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Type& type );
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Parameter& parameter );
-std::ostream& operator<<( std::ostream& os, const protocol::schema::Request& message );
-std::ostream& operator<<( std::ostream& os, const protocol::schema::Event& message );
+std::ostream& operator<<( std::ostream& os, const protocol::schema::PointToPointRequest& message );
+std::ostream& operator<<( std::ostream& os, const protocol::schema::BroadcastRequest& message );
+std::ostream& operator<<( std::ostream& os, const protocol::schema::RequestVariant& message );
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Response& message );
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Transaction& transaction );
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Schema& schema );

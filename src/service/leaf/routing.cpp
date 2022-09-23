@@ -27,7 +27,9 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    return result;
+    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    THROW_RTE( "LeafRequestConversation::dispatchRequest failed on msg: " << msg );
 }
 
 void LeafRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
@@ -71,11 +73,24 @@ network::leaf_daemon::Request_Sender LeafRequestConversation::getDaemonSender( b
 {
     return network::leaf_daemon::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
 }
+network::leaf_exe::Request_Sender LeafRequestConversation::getExeSender( boost::asio::yield_context& yield_ctx )
+{
+    return network::leaf_exe::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+}
+network::leaf_tool::Request_Sender LeafRequestConversation::getToolSender( boost::asio::yield_context& yield_ctx )
+{
+    return network::leaf_tool::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+}
+network::leaf_term::Request_Sender LeafRequestConversation::getTermSender( boost::asio::yield_context& yield_ctx )
+{
+    return network::leaf_term::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+}
 
 // network::term_leaf::Impl
 network::Message LeafRequestConversation::TermRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "LeafRequestConversation::TermRoot" );
     return getDaemonSender( yield_ctx ).TermRoot( request );
 }
 
@@ -92,6 +107,37 @@ network::Message LeafRequestConversation::ToolRoot( const network::Message&     
 {
     return getDaemonSender( yield_ctx ).ToolRoot( request );
 }
+
+// network::daemon_leaf::Impl
+network::Message LeafRequestConversation::RootLeafBroadcast( const network::Message&     request,
+                                                             boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestConversation::RootLeafBroadcast" );
+    return dispatchRequest( request, yield_ctx );
+}
+network::Message LeafRequestConversation::DaemonLeafBroadcast( const network::Message&     request,
+                                                               boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestConversation::DaemonLeafBroadcast" );
+    return dispatchRequest( request, yield_ctx );
+}
+
+/*switch ( m_leaf.m_nodeType )
+{
+    case network::Node::Terminal:
+        return getTermSender( yield_ctx ).RootAll( request );
+    case network::Node::Tool:
+        return getToolSender( yield_ctx ).RootAll( request );
+    case network::Node::Executor:
+        return getExeSender( yield_ctx ).RootAll( request );
+    case network::Node::Daemon:
+    case network::Node::Root:
+    case network::Node::Leaf:
+    case network::Node::TOTAL_NODE_TYPES:
+        THROW_RTE( "Unreachable" );
+    default:
+        THROW_RTE( "Unknown node type" );
+}*/
 
 } // namespace service
 } // namespace mega

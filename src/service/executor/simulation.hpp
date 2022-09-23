@@ -29,12 +29,6 @@ public:
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
-    virtual void             dispatchResponse( const network::ConnectionID& connectionID,
-                                               const network::Message&      msg,
-                                               boost::asio::yield_context&  yield_ctx ) override;
-
-    virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx ) override;
 
     virtual void run( boost::asio::yield_context& yield_ctx ) override;
 
