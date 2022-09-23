@@ -19,6 +19,10 @@ set( DAEMON_SOURCE
     ${DAEMON_SOURCE_DIR}/daemon.hpp
     ${DAEMON_SOURCE_DIR}/daemon.cpp
     ${DAEMON_SOURCE_DIR}/main.cpp 
+    ${DAEMON_SOURCE_DIR}/request.hpp
+    ${DAEMON_SOURCE_DIR}/routing.cpp
+    ${DAEMON_SOURCE_DIR}/enrole.cpp
+    ${DAEMON_SOURCE_DIR}/project.cpp
     )
 
 add_executable( daemon ${DAEMON_HEADERS} ${DAEMON_SOURCE}  )

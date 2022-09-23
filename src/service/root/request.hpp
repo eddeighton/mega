@@ -6,6 +6,7 @@
 
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
+#include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/enrole.hxx"
 

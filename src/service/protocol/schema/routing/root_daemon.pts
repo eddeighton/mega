@@ -1,0 +1,7 @@
+
+
+msg RootAll
+{
+    request(network::Message request);
+    response(network::Message response);
+}
