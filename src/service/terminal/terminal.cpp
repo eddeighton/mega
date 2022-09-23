@@ -487,10 +487,16 @@ network::project::Request_Encoder Terminal::getProject()
     return network::project::Request_Encoder( std::bind( &Terminal::rootRequest, this, _1 ) );
 }
 
-std::string Terminal::GetVersion()
+network::status::Request_Encoder Terminal::getStatus()
+{
+    using namespace std::placeholders;
+    return network::status::Request_Encoder( std::bind( &Terminal::rootRequest, this, _1 ) );
+}
+
+network::Status Terminal::GetNetworkStatus()
 {
     SPDLOG_TRACE( "Terminal::GetVersion" );
-    return getProject().CollateVersions();
+    return getStatus().GetNetworkStatus();
 }
 
 } // namespace service

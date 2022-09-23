@@ -9,6 +9,7 @@
 #include "service/protocol/model/daemon_root.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
+#include "service/protocol/model/status.hxx"
 
 namespace mega
 {
@@ -20,7 +21,7 @@ class DaemonRequestConversation : public network::InThreadConversation,
                                   public network::root_daemon::Impl,
                                   public network::daemon_leaf::Impl,
                                   public network::enrole::Impl,
-                                  public network::project::Impl
+                                  public network::status::Impl
 {
 protected:
     Daemon& m_daemon;
@@ -73,9 +74,9 @@ public:
     virtual MPO EnroleLeafWithDaemon( const mega::network::Node::Type& type,
                                       boost::asio::yield_context&      yield_ctx ) override;
 
-    // network::project::Impl
-    virtual std::string GetVersion( const std::vector< std::string >& version,
-                                    boost::asio::yield_context&       yield_ctx ) override;
+    // network::status::Impl
+    virtual network::Status GetStatus( const std::vector< network::Status >& status,
+                                       boost::asio::yield_context&           yield_ctx ) override;
 };
 
 } // namespace service

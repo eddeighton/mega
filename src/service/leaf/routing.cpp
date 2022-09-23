@@ -27,7 +27,7 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "LeafRequestConversation::dispatchRequest failed on msg: " << msg );
 }

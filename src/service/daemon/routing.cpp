@@ -22,9 +22,11 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
         return result;
     if ( result = network::root_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if ( result = network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     if ( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
+    if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "DaemonRequestConversation::dispatchRequest failed" );
 }

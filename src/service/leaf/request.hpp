@@ -12,7 +12,7 @@
 #include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/leaf_tool.hxx"
-#include "service/protocol/model/project.hxx"
+#include "service/protocol/model/status.hxx"
 
 namespace mega
 {
@@ -24,7 +24,7 @@ class LeafRequestConversation : public network::InThreadConversation,
                                 public network::daemon_leaf::Impl,
                                 public network::exe_leaf::Impl,
                                 public network::tool_leaf::Impl,
-                                public network::project::Impl
+                                public network::status::Impl
 {
 protected:
     Leaf& m_leaf;
@@ -63,8 +63,9 @@ public:
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 
-    // network::project::Impl
-    virtual std::string GetVersion( const std::vector< std::string >& version, boost::asio::yield_context& yield_ctx ) override;
+    // network::status::Impl
+    virtual network::Status GetStatus( const std::vector< network::Status >& status,
+                                                   boost::asio::yield_context&       yield_ctx ) override;
 };
 
 } // namespace service

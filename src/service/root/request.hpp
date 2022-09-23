@@ -8,6 +8,7 @@
 #include "service/protocol/model/daemon_root.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/status.hxx"
 
 namespace mega
 {
@@ -19,7 +20,8 @@ class RootRequestConversation : public network::InThreadConversation,
                                 public network::daemon_root::Impl,
                                 public network::root_daemon::Impl,
                                 public network::project::Impl,
-                                public network::enrole::Impl
+                                public network::enrole::Impl,
+                                public network::status::Impl
 {
 protected:
     Root& m_root;
@@ -57,14 +59,18 @@ public:
                                                 boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
-    virtual std::string CollateVersions( boost::asio::yield_context& yield_ctx ) override;
-    virtual std::string GetVersion( const std::vector< std::string >& version,
-                                    boost::asio::yield_context&       yield_ctx ) override;
+    virtual network::Project GetProject( boost::asio::yield_context& yield_ctx ) override;
+    virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
     virtual MPO  EnroleDaemon( boost::asio::yield_context& yield_ctx ) override;
     virtual MPO  EnroleLeafWithRoot( const MPO& daemonMPO, boost::asio::yield_context& yield_ctx ) override;
     virtual void EnroleLeafDisconnect( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::status::Impl
+    virtual mega::network::Status GetStatus( const std::vector< mega::network::Status >& status,
+                                             boost::asio::yield_context&                 yield_ctx ) override;
+    virtual mega::network::Status GetNetworkStatus( boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace service

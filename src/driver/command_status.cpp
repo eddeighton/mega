@@ -20,6 +20,7 @@
 #include "service/terminal.hpp"
 
 #include "service/network/log.hpp"
+#include "service/protocol/common/status.hpp"
 
 #include "boost/program_options.hpp"
 #include "boost/filesystem/path.hpp"
@@ -57,15 +58,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-        if ( bList )
-        {
-            mega::service::Terminal terminal;
-            std::cout << terminal.GetVersion() << std::endl;
-        }
-        else
-        {
-            std::cout << "Unrecognised project command" << std::endl;
-        }
+        mega::service::Terminal terminal;
+        std::cout << terminal.GetNetworkStatus() << std::endl;
     }
 }
 } // namespace con

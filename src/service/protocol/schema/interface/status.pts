@@ -1,0 +1,13 @@
+
+
+msg GetStatus
+{
+    broadcast();
+    response(mega::network::Status status);
+}
+
+msg GetNetworkStatus
+{
+    request();
+    response(mega::network::Status status);
+}

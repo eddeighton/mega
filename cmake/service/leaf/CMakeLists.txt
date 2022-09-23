@@ -18,7 +18,7 @@ set( MEGA_LEAF_SRC
     ${MEGA_SRC_DIR}/service/leaf/request.hpp
     ${MEGA_SRC_DIR}/service/leaf/leaf.cpp
     ${MEGA_SRC_DIR}/service/leaf/routing.cpp
-    ${MEGA_SRC_DIR}/service/leaf/project.cpp
+    ${MEGA_SRC_DIR}/service/leaf/status.cpp
 )
 
 add_library( leaf

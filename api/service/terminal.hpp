@@ -15,6 +15,7 @@
 #include "service/protocol/common/megastructure_installation.hpp"
 
 #include "service/protocol/model/project.hxx"
+#include "service/protocol/model/status.hxx"
 
 #include <boost/asio/io_service.hpp>
 
@@ -63,7 +64,7 @@ public:
     mega::U64 Capacity();
     void        Shutdown();*/
 
-    std::string GetVersion();
+    network::Status GetNetworkStatus();
 
     network::Sender& getLeafSender() { return m_leaf; }
 
@@ -71,6 +72,7 @@ private:
     network::Message rootRequest( const network::Message& message );
 
     network::project::Request_Encoder getProject();
+    network::status::Request_Encoder getStatus();
 
 private:
     boost::asio::io_context  m_io_context;

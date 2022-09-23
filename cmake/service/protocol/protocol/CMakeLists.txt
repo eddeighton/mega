@@ -32,6 +32,7 @@ set( INTERFACE_SCHEMAS
     job
     enrole
     pipeline
+    status
 )
 
 set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )
@@ -89,6 +90,7 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/pipeline_result.hpp
     ${MEGA_API_DIR}/service/protocol/common/project.hpp
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
+    ${MEGA_API_DIR}/service/protocol/common/status.hpp
 	)
 
 set( MEGA_PROTOCOL_COMMON_SOURCE
@@ -97,6 +99,7 @@ set( MEGA_PROTOCOL_COMMON_SOURCE
     ${MEGA_SRC_DIR}/service/protocol/common/megastructure_installation.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/project.cpp
     ${MEGA_SRC_DIR}/service/protocol/common/root_config.cpp
+    ${MEGA_SRC_DIR}/service/protocol/common/status.cpp
     )
 
 add_library( protocol

@@ -26,6 +26,7 @@ set( ROOT_SOURCE
     ${ROOT_SOURCE_DIR}/routing.cpp
     ${ROOT_SOURCE_DIR}/project.cpp
     ${ROOT_SOURCE_DIR}/enrole.cpp
+    ${ROOT_SOURCE_DIR}/status.cpp
  )
 
 add_executable( root ${ROOT_SOURCE} )

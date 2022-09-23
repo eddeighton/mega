@@ -1,13 +1,13 @@
 
 
-msg GetVersion
-{
-    broadcast();
-    response(std::string version);
-}
-
-msg CollateVersions
+msg GetProject
 {
     request();
-    response(std::string version);
+    response(mega::network::Project project);
+}
+
+msg SetProject
+{
+    request(mega::network::Project project);
+    response();
 }
