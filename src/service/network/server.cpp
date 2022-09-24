@@ -108,6 +108,15 @@ void Server::onConnect( Connection::Ptr pNewConnection, const boost::system::err
 void Server::onDisconnected( Connection::Ptr pConnection )
 {
     m_connections.erase( pConnection->getSocketConnectionID() );
+
+    for ( auto i = m_mpoMap.begin(), iEnd = m_mpoMap.end(); i != iEnd; ++i )
+    {
+        if ( i->second == pConnection )
+        {
+            m_mpoMap.erase( i );
+            break;
+        }
+    }
 }
 
 Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID )
@@ -121,6 +130,28 @@ Server::Connection::Ptr Server::getConnection( const ConnectionID& connectionID 
     {
         return Connection::Ptr();
     }
+}
+
+Server::Connection::Ptr Server::findConnection( const mega::MPO& mpo ) const
+{
+    const auto iFind = m_mpoMap.find( mpo );
+    if ( iFind != m_mpoMap.end() )
+    {
+        return iFind->second;
+    }
+    else
+    {
+        return Connection::Ptr{};
+    }
+}
+void Server::mapConnection( const mega::MPO& mpo, Connection::Ptr pConnection )
+{
+    m_mpoMap.insert( { mpo, pConnection } );
+}
+
+void Server::unmapConnection( const mega::MPO& mpo, Connection::Ptr pConnection )
+{
+    m_mpoMap.erase( mpo );
 }
 
 } // namespace network

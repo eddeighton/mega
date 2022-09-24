@@ -84,7 +84,8 @@ public:
         std::optional< mega::MPO >          m_mpoOpt;
     };
 
-    using ConnectionMap = std::map< ConnectionID, Connection::Ptr >;
+    using ConnectionMap    = std::map< ConnectionID, Connection::Ptr >;
+    using ConnectionMPOMap = std::unordered_map< mega::MPO, Connection::Ptr, mega::MPO::Hash >;
 
 public:
     Server( boost::asio::io_context& ioContext, ConversationManager& conversationManager, short port );
@@ -93,6 +94,24 @@ public:
     boost::asio::io_context& getIOContext() const { return m_ioContext; }
     Connection::Ptr          getConnection( const ConnectionID& connectionID );
     const ConnectionMap&     getConnections() const { return m_connections; }
+    Connection::Ptr          findConnection( const mega::MPO& mpo ) const;
+    void                     mapConnection( const mega::MPO& mpo, Connection::Ptr pConnection );
+    void                     unmapConnection( const mega::MPO& mpo, Connection::Ptr pConnection );
+
+    struct MPOMapping
+    {
+        Server&          server;
+        const mega::MPO& mpo;
+        Connection::Ptr  pConnection;
+        MPOMapping( Server& server, const mega::MPO& mpo, Connection::Ptr pConnection )
+            : server( server )
+            , mpo( mpo )
+            , pConnection( pConnection )
+        {
+            server.mapConnection( mpo, pConnection );
+        }
+        ~MPOMapping() { server.unmapConnection( mpo, pConnection ); }
+    };
 
     void stop();
     void waitForConnection();
@@ -104,6 +123,7 @@ private:
     ConversationManager&           m_conversationManager;
     boost::asio::ip::tcp::acceptor m_acceptor;
     ConnectionMap                  m_connections;
+    ConnectionMPOMap               m_mpoMap;
 };
 
 } // namespace network

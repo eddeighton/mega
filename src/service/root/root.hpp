@@ -23,6 +23,7 @@ class Root : public network::ConversationManager
 {
     friend class RootPipelineConversation;
     friend class RootRequestConversation;
+    friend class RootSimulation;
 
 public:
     Root( boost::asio::io_context& ioContext );

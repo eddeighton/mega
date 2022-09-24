@@ -14,47 +14,52 @@ namespace mega
 namespace service
 {
 
-
-/*network::leaf_exe::Response_Encode ExecutorRequestConversation::getLeafResponse( boost::asio::yield_context& yield_ctx
-)
+bool ExecutorRequestConversation::SimLockRead( const mega::MPO& owningID,
+                                               const mega::MPO& requestID,
+                                               boost::asio::yield_context&          yield_ctx )
 {
-    return network::leaf_exe::Response_Encode( *this, m_executor.getLeafSender(), yield_ctx );
-}*/
-/*
-void ExecutorRequestConversation::RootListNetworkNodes( boost::asio::yield_context& yield_ctx )
-{
-    std::vector< std::string > result = { m_executor.getProcessName() };
-    getLeafResponse( yield_ctx ).RootListNetworkNodes( result );
+    //
+    return false;
 }
-
-
-void ExecutorRequestConversation::RootProjectUpdated( const mega::network::Project& project,
-                                                      boost::asio::yield_context&   yield_ctx )
+bool ExecutorRequestConversation::SimLockWrite( const mega::MPO& owningID,
+                                                const mega::MPO& requestID,
+                                                boost::asio::yield_context&          yield_ctx )
 {
-    mega::runtime::initialiseRuntime( m_executor.m_megastructureInstallation, project );
-    getLeafResponse( yield_ctx ).RootProjectUpdated();
+    //
+    return false;
 }
-
-void ExecutorRequestConversation::RootSimList( boost::asio::yield_context& yield_ctx )
+void ExecutorRequestConversation::SimLockRelease( const mega::MPO& owningID,
+                                                  const mega::MPO& requestID,
+                                                  boost::asio::yield_context&          yield_ctx )
 {
-    std::vector< network::ConversationID > simulationIDs;
-    for ( auto& [ id, pSim ] : m_executor.m_simulations )
-    {
-        simulationIDs.push_back( id );
-    }
-    getLeafResponse( yield_ctx ).RootSimList( simulationIDs );
+    //
 }
-
-void ExecutorRequestConversation::RootSimCreate( boost::asio::yield_context& yield_ctx )
+mega::MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );
     const network::ConversationID id = m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() );
     Simulation::Ptr               pSim = std::make_shared< Simulation >( m_executor, id );
-    m_executor.simulationInitiated( pSim );
-    getLeafResponse( yield_ctx ).RootSimCreate( pSim->getID() );
+
+    network::sim::Request_Sender rq( *this, pSim->getRequestSender(), yield_ctx );
+    return rq.SimCreate();
 }
 
-void ExecutorRequestConversation::RootSimDestroy( const mega::network::ConversationID& simulationID,
+void ExecutorRequestConversation::SimDestroy( const mega::MPO& mpo,
+                                              boost::asio::yield_context&          yield_ctx )
+{
+    VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );
+    if ( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
+    {
+        network::sim::Request_Sender rq( *this, pSim->getRequestSender(), yield_ctx );
+        SPDLOG_TRACE( "SIM: ExecutorRequestConversation::RootSimDestroy {}", mpo );
+        rq.SimDestroy( mpo );
+        SPDLOG_TRACE( "SIM: ExecutorRequestConversation::RootSimDestroy responded" );
+    }
+}
+
+
+/*
+void ExecutorRequestConversation::RootSimDestroy( const mega::MPO& simulationID,
                                                   boost::asio::yield_context&          yield_ctx )
 {
     VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );

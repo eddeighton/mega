@@ -8,7 +8,7 @@
 #include "service/state_machine.hpp"
 #include "service/network/sender.hpp"
 #include "service/protocol/common/header.hpp"
-#include "service/protocol/model/exe_sim.hxx"
+#include "service/protocol/model/sim.hxx"
 
 #include "mega/common.hpp"
 #include "mega/basic_scheduler.hpp"
@@ -20,7 +20,7 @@ namespace service
 {
 class Executor;
 
-class Simulation : public ExecutorRequestConversation, public network::exe_sim::Impl, public mega::MPOContext
+class Simulation : public ExecutorRequestConversation, public mega::MPOContext
 {
 public:
     using Ptr = std::shared_ptr< Simulation >;
@@ -42,18 +42,22 @@ public:
         return *m_pRequestChannelSender;
     }
 
-    //  network::exe_sim::Impl
-    /*virtual void ExeSimDestroy( const mega::network::ConversationID& simulationID,
-                                boost::asio::yield_context&          yield_ctx ) override;
-    virtual void ExeSimReadLockAcquire( const mega::network::ConversationID& owningID,
-                                        const mega::network::ConversationID& simulationID,
-                                        boost::asio::yield_context&          yield_ctx ) override;
-    virtual void ExeSimWriteLockAcquire( const mega::network::ConversationID& owningID,
-                                         const mega::network::ConversationID& simulationID,
-                                         boost::asio::yield_context&          yield_ctx ) override;
-    virtual void ExeSimLockRelease( const mega::network::ConversationID& owningID,
-                                    const mega::network::ConversationID& simulationID,
-                                    boost::asio::yield_context&          yield_ctx ) override;*/
+    // network::sim::Impl
+    virtual bool      SimLockRead( const mega::MPO&            owningID,
+                                   const mega::MPO&            requestID,
+                                   boost::asio::yield_context& yield_ctx ) override;
+    virtual bool      SimLockWrite( const mega::MPO&            owningID,
+                                    const mega::MPO&            requestID,
+                                    boost::asio::yield_context& yield_ctx ) override;
+    virtual void      SimLockRelease( const mega::MPO&            owningID,
+                                      const mega::MPO&            requestID,
+                                      boost::asio::yield_context& yield_ctx ) override;
+    virtual void      SimClock( boost::asio::yield_context& yield_ctx ) override;
+    virtual mega::MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
+    virtual void      SimDestroy( const mega::MPO& requestID, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::leaf_exe::Impl
+    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // mega::MPOContext - native code interface
     virtual SimIDVector     getSimulationIDs() override;
@@ -79,9 +83,7 @@ private:
     void clock();
     void cycle();
     void runSimulation( boost::asio::yield_context& yield_ctx );
-    void acknowledgeMessage( const network::ChannelMsg&                            msg,
-                             const std::optional< mega::network::ConversationID >& requestingID,
-                             boost::asio::yield_context&                           yield_ctx );
+    void acknowledgeMessage( const network::ChannelMsg& msg, boost::asio::yield_context& yield_ctx );
 
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 

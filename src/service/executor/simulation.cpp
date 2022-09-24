@@ -32,10 +32,7 @@ network::Message Simulation::dispatchRequest( const network::Message& msg, boost
     result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx );
     if ( result )
         return result;
-    result = network::exe_sim::Impl::dispatchRequest( msg, yield_ctx );
-    if ( result )
-        return result;
-    return ExecutorRequestConversation::dispatchRequest(msg, yield_ctx);
+    return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
 Simulation::SimIDVector Simulation::getSimulationIDs() { THROW_RTE( "Unsupported getSimulationIDs from simulation" ); }
@@ -133,9 +130,7 @@ void Simulation::releaseLock( MPO mpo )
     THROW_RTE( "TODO" );
 }
 
-void Simulation::acknowledgeMessage( const network::ChannelMsg&                            msg,
-                                     const std::optional< mega::network::ConversationID >& requestingID,
-                                     boost::asio::yield_context&                           yield_ctx )
+void Simulation::acknowledgeMessage( const network::ChannelMsg& msg, boost::asio::yield_context& yield_ctx )
 {
     {
         ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
@@ -152,15 +147,17 @@ void Simulation::acknowledgeMessage( const network::ChannelMsg&                 
         }
         catch ( std::exception& ex )
         {
-            if ( requestingID.has_value() )
-            {
-                Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingID.value() );
-                pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
-            }
-            else
-            {
-                error( m_stack.back(), ex.what(), yield_ctx );
-            }
+            Conversation::Ptr pRequestCon = m_executor.findExistingConversation( msg.header.getConversationID() );
+            pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
+            // if ( requestingID.has_value() )
+            // {
+            //     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( msg.header.getConversationID()
+            //     ); pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
+            // }
+            // else
+            // {
+            //     error( m_stack.back(), ex.what(), yield_ctx );
+            // }
         }
     }
     VERIFY_RTE_MSG( m_stack.size() == 1, "Unexpected stack size after acknowledgeMessage" );
@@ -178,14 +175,12 @@ void Simulation::clock()
 {
     // SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
     //  send the clock tick msg
-    
-    // using namespace network::exe_sim;
-    // const network::Message    msg = MSG_ExeExeClock_Request::make( MSG_ExeExeClock_Request{} );
-    // const network::ChannelMsg channelMsg{
-    //     network::Header{ static_cast< network::MessageID >( getMsgID( msg ) ), getID() }, msg };
-    // boost::system::error_code ec;
-    // m_requestChannel.async_send( ec, channelMsg, []( boost::system::error_code ec ) {} );
-    THROW_RTE( "TODO" );
+    using namespace network::sim;
+    const network::Message    msg = MSG_SimClock_Request::make( MSG_SimClock_Request{} );
+    const network::ChannelMsg channelMsg{
+        network::Header{ static_cast< network::MessageID >( getMsgID( msg ) ), getID() }, msg };
+    boost::system::error_code ec;
+    m_requestChannel.async_send( ec, channelMsg, []( boost::system::error_code ec ) {} );
 }
 
 void Simulation::cycle()
@@ -197,156 +192,165 @@ void Simulation::cycle()
 
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
-    THROW_RTE( "TODO" );
-    // try
-    // {
-    //     m_mpo            = getLeafRequest( yield_ctx ).ExeCreateMPO();
-    //     m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_mpo.value() );
-    //     SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
-// 
-    //     // issue first clock tick
-    //     issueClock();
-    //     bool bRegistedAsTerminating = false;
-// 
-    //     SimulationStateMachine::MsgVector msgs;
-    //     while ( !m_stateMachine.isTerminated() )
-    //     {
-    //         if ( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
-    //         {
-    //             Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( shared_from_this() );
-    //             m_executor.simulationTerminating( pSim );
-    //             bRegistedAsTerminating = true;
-    //         }
-// 
-    //         for ( const auto& msg : m_stateMachine.acks() )
-    //         {
-    //             acknowledgeMessage( msg.first, msg.second, yield_ctx );
-    //         }
-    //         m_stateMachine.resetAcks();
-// 
-    //         switch ( m_stateMachine.getState() )
-    //         {
-    //             case SimulationStateMachine::SIM:
-    //             {
-    //                 // SPDLOG_TRACE( "SIM: SIM {}", getID() );
-    //                 cycle();
-    //             }
-    //             break;
-    //             case SimulationStateMachine::READ:
-    //             {
-    //                 SPDLOG_TRACE( "SIM: READ {}", getID() );
-    //             }
-    //             break;
-    //             case SimulationStateMachine::WRITE:
-    //             {
-    //                 SPDLOG_TRACE( "SIM: WRITE {}", getID() );
-    //             }
-    //             break;
-    //             case SimulationStateMachine::TERM:
-    //             {
-    //                 SPDLOG_TRACE( "SIM: TERM {}", getID() );
-    //             }
-    //             break;
-    //             case SimulationStateMachine::WAIT:
-    //             {
-    //                 SPDLOG_TRACE( "SIM: WAIT {}", getID() );
-    //             }
-    //             break;
-    //         }
-// 
-    //         // process a message
-    //         SUSPEND_MPO_CONTEXT();
-// 
-    //         {
-    //             const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
-    //             msgs.push_back( msg );
-    //         }
-    //         while ( m_requestChannel.try_receive(
-    //             [ &msgs ]( boost::system::error_code ec, const network::ChannelMsg& msg )
-    //             {
-    //                 if ( !ec )
-    //                 {
-    //                     msgs.push_back( msg );
-    //                 }
-    //                 else
-    //                 {
-    //                     /// TODO.
-    //                 }
-    //             } ) )
-    //             ;
-// 
-    //         RESUME_MPO_CONTEXT();
-    //         // SPDLOG_TRACE( "SIM: Msgs {}", msgs.size() );
-// 
-    //         // returns whether there was clock tick
-    //         if ( m_stateMachine.onMsg( msgs ) )
-    //         {
-    //             if ( !m_stateMachine.isTerminated() )
-    //             {
-    //                 issueClock();
-    //             }
-    //         }
-    //         msgs.clear();
-    //     }
-    // }
-    // catch ( std::exception& ex )
-    // {
-    //     SPDLOG_WARN( "SIM: Conversation: {} exception: {}", getID(), ex.what() );
-    //     m_conversationManager.conversationCompleted( shared_from_this() );
-    // }
+    try
+    {
+        m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_mpo.value() );
+        SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
+
+        // issue first clock tick
+        issueClock();
+        bool bRegistedAsTerminating = false;
+
+        SimulationStateMachine::MsgVector msgs;
+        while ( !m_stateMachine.isTerminated() )
+        {
+            if ( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
+            {
+                Simulation::Ptr pSim = std::dynamic_pointer_cast< Simulation >( shared_from_this() );
+                m_executor.simulationTerminating( pSim );
+                bRegistedAsTerminating = true;
+            }
+
+            for ( const auto& msg : m_stateMachine.acks() )
+            {
+                acknowledgeMessage( msg, yield_ctx );
+            }
+            m_stateMachine.resetAcks();
+
+            switch ( m_stateMachine.getState() )
+            {
+                case SimulationStateMachine::SIM:
+                {
+                    // SPDLOG_TRACE( "SIM: SIM {}", getID() );
+                    cycle();
+                }
+                break;
+                case SimulationStateMachine::READ:
+                {
+                    SPDLOG_TRACE( "SIM: READ {}", getID() );
+                }
+                break;
+                case SimulationStateMachine::WRITE:
+                {
+                    SPDLOG_TRACE( "SIM: WRITE {}", getID() );
+                }
+                break;
+                case SimulationStateMachine::TERM:
+                {
+                    SPDLOG_TRACE( "SIM: TERM {}", getID() );
+                }
+                break;
+                case SimulationStateMachine::WAIT:
+                {
+                    SPDLOG_TRACE( "SIM: WAIT {}", getID() );
+                }
+                break;
+            }
+
+            // process a message
+            SUSPEND_MPO_CONTEXT();
+
+            {
+                const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
+                msgs.push_back( msg );
+            }
+            while ( m_requestChannel.try_receive(
+                [ &msgs ]( boost::system::error_code ec, const network::ChannelMsg& msg )
+                {
+                    if ( !ec )
+                    {
+                        msgs.push_back( msg );
+                    }
+                    else
+                    {
+                        /// TODO.
+                    }
+                } ) )
+                ;
+
+            RESUME_MPO_CONTEXT();
+            // SPDLOG_TRACE( "SIM: Msgs {}", msgs.size() );
+
+            // returns whether there was clock tick
+            if ( m_stateMachine.onMsg( msgs ) )
+            {
+                if ( !m_stateMachine.isTerminated() )
+                {
+                    issueClock();
+                }
+            }
+            msgs.clear();
+        }
+    }
+    catch ( std::exception& ex )
+    {
+        SPDLOG_WARN( "SIM: Conversation: {} exception: {}", getID(), ex.what() );
+        m_conversationManager.conversationCompleted( shared_from_this() );
+    }
 }
 
 void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "SIM: run: {}", getID() );
+    // send request to root to start - will get request back to run
+    network::sim::Request_Encoder request(
+        [ rootRequest = getMPORequest( yield_ctx ) ]( const network::Message& msg ) mutable
+        { return rootRequest.MPORoot( msg ); } );
+    request.SimStart();
+}
+
+bool Simulation::SimLockRead( const mega::MPO&            owningID,
+                              const mega::MPO&            requestID,
+                              boost::asio::yield_context& yield_ctx )
+{
+    return !m_stateMachine.isTerminating();
+}
+bool Simulation::SimLockWrite( const mega::MPO&            owningID,
+                               const mega::MPO&            requestID,
+                               boost::asio::yield_context& yield_ctx )
+{
+    return !m_stateMachine.isTerminating();
+}
+void Simulation::SimLockRelease( const mega::MPO&            owningID,
+                                 const mega::MPO&            requestID,
+                                 boost::asio::yield_context& yield_ctx )
+{
+    // Do nothing just return
+}
+void Simulation::SimClock( boost::asio::yield_context& yield_ctx )
+{
+    // Do nothing just return
+}
+
+mega::MPO Simulation::SimCreate( boost::asio::yield_context& yield_ctx )
+{
+    // called by request handler while waiting for sim to start running
+    VERIFY_RTE( m_mpo.has_value() );
+    return m_mpo.value();
+}
+
+void Simulation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+{
+    m_mpo = mpo;
+
+    m_executor.simulationInitiated( std::dynamic_pointer_cast< Simulation >( shared_from_this() ) );
+
+    // acknowledge the pending SimCreate from request handler
+    {
+        const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
+        VERIFY_RTE( msg.header.getMessageID() == network::sim::MSG_SimCreate_Request::ID );
+        acknowledgeMessage( msg, yield_ctx );
+    }
+
+    // now start running the simulation
     MPOContext::resume( this );
     m_pYieldContext = &yield_ctx;
     runSimulation( yield_ctx );
     MPOContext::suspend();
 }
-/*
-void Simulation::ExeSimDestroy( const mega::network::ConversationID& requestingConID,
-                                boost::asio::yield_context&          yield_ctx )
+void Simulation::SimDestroy( const mega::MPO& requestID, boost::asio::yield_context& yield_ctx )
 {
-    // SPDLOG_TRACE( "SIM: Simulation::ExeSimDestroy: {}", requestingConID );
-    Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestingConID );
-    VERIFY_RTE( pRequestCon );
-    network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
-    response.ExeSimDestroy();
+    SPDLOG_TRACE( "SIM: Simulation::SimDestroy: {}", requestID );
 }
 
-void Simulation::ExeSimReadLockAcquire( const mega::network::ConversationID& owningID,
-                                        const mega::network::ConversationID& requestID,
-                                        boost::asio::yield_context&          yield_ctx )
-{
-    SPDLOG_TRACE( "SIM: Simulation::ExeSimReadLockAcquire: {} {}", owningID, requestID );
-    Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestID );
-    VERIFY_RTE( pRequestCon );
-    network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
-    response.ExeSimReadLockAcquire( !m_stateMachine.isTerminating() );
-}
-
-void Simulation::ExeSimWriteLockAcquire( const mega::network::ConversationID& owningID,
-                                         const mega::network::ConversationID& requestID,
-                                         boost::asio::yield_context&          yield_ctx )
-{
-    SPDLOG_TRACE( "SIM: Simulation::ExeSimWriteLockAcquire: {} {}", owningID, requestID );
-    Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestID );
-    VERIFY_RTE( pRequestCon );
-    network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
-    response.ExeSimWriteLockAcquire( !m_stateMachine.isTerminating() );
-}
-
-void Simulation::ExeSimLockRelease( const mega::network::ConversationID& owningID,
-                                    const mega::network::ConversationID& requestID,
-                                    boost::asio::yield_context&          yield_ctx )
-{
-    SPDLOG_TRACE( "SIM: Simulation::ExeSimLockRelease: {} {}", owningID, requestID );
-    Conversation::Ptr pRequestCon = m_executor.findExistingConversation( requestID );
-    VERIFY_RTE( pRequestCon );
-    network::exe_sim::Response_Encode response( *this, *pRequestCon, yield_ctx );
-    response.ExeSimLockRelease();
-}
-*/
 } // namespace service
 } // namespace mega

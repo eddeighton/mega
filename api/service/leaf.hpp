@@ -66,6 +66,7 @@ private:
     boost::asio::executor_work_guard< ExecutorType > m_work_guard;
     std::thread                                      m_io_thread;
     mega::MPO                                        m_mpo;
+    std::set< mega::MPO >                            m_mpos;
 };
 
 } // namespace service

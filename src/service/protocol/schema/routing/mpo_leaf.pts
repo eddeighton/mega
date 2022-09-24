@@ -1,0 +1,15 @@
+
+
+msg MPORoot
+{
+    // route to the leaf where MPO will be added to routing message to Root
+    request(network::Message request);
+    response(network::Message response);
+}
+msg MPOMPO
+{
+    // route using initiated conversation path
+    request(network::Message request, mega::MPO mpo);
+    response(network::Message response);
+}
+

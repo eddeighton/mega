@@ -65,13 +65,6 @@ void RootRequestConversation::error( const network::ConnectionID& connectionID,
         SPDLOG_ERROR( "Root cannot resolve connection: {} on error: {}", connectionID, strErrorMsg );
     }
 }
-/*
-network::root_daemon::Request_Sender
-RootRequestConversation::getDaemonRequest( network::Server::Connection::Ptr pConnection,
-                                           boost::asio::yield_context&      yield_ctx )
-{
-    return network::root_daemon::Request_Sender( *this, *pConnection, yield_ctx );
-}*/
 
 // network::daemon_root::Impl
 network::Message RootRequestConversation::TermRoot( const network::Message&     request,
@@ -109,6 +102,21 @@ network::Message RootRequestConversation::DaemonRoot( const network::Message&   
     return dispatchRequest( request, yield_ctx );
 }
 
+network::Message RootRequestConversation::MPORoot( const network::Message&     request,
+                                                   const mega::MPO&            mpo,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    // NOTE: how mpo is captured by the root::JoinConversation routine
+    SPDLOG_TRACE( "RootRequestConversation::MPORoot" );
+    return dispatchRequest( request, yield_ctx );
+}
+network::Message RootRequestConversation::MPOMPO( const network::Message&     request,
+                                                  const mega::MPO&            mpo,
+                                                  boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "RootRequestConversation::MPOMPO" );
+    return dispatchRequest( request, yield_ctx );
+}
 // network::root_daemon::Impl
 network::Message RootRequestConversation::RootLeafBroadcast( const network::Message&     request,
                                                              boost::asio::yield_context& yield_ctx )
@@ -163,6 +171,21 @@ network::Message RootRequestConversation::RootExe( const network::Message&     r
     VERIFY_RTE( pConnection );
     network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
     return sender.RootExe( request );
+}
+
+void RootRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+{
+    auto stackCon = getOriginatingEndPointID();
+    VERIFY_RTE( stackCon.has_value() );
+    auto pConnection = m_root.m_server.getConnection( stackCon.value() );
+    VERIFY_RTE( pConnection );
+
+    // simulation runs entirely on the stack in this scope!
+    {
+        network::Server::MPOMapping          mpoMapping( m_root.m_server, mpo, pConnection );
+        network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+        sender.RootSimRun( mpo );
+    }
 }
 
 } // namespace service

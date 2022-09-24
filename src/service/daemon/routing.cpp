@@ -20,8 +20,8 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
     network::Message result;
     if ( result = network::leaf_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::root_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
+    // if ( result = network::root_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
+    //    return result;
     if ( result = network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
@@ -100,6 +100,18 @@ network::Message DaemonRequestConversation::LeafDaemon( const network::Message& 
     return dispatchRequest( request, yield_ctx );
 }
 
+network::Message DaemonRequestConversation::MPORoot( const network::Message&     request,
+                                                     const mega::MPO&            mpo,
+                                                     boost::asio::yield_context& yield_ctx )
+{
+    return getRootSender( yield_ctx ).MPORoot( request, mpo );
+}
+network::Message DaemonRequestConversation::MPOMPO( const network::Message&     request,
+                                                    const mega::MPO&            mpo,
+                                                    boost::asio::yield_context& yield_ctx )
+{
+    return getRootSender( yield_ctx ).MPOMPO( request, mpo );
+}
 network::Message DaemonRequestConversation::RootLeafBroadcast( const network::Message&     request,
                                                                boost::asio::yield_context& yield_ctx )
 {
@@ -157,6 +169,21 @@ network::Message DaemonRequestConversation::RootExe( const network::Message&    
     VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor );
     network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
     return sender.RootExe( request );
+}
+
+void DaemonRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
+{
+    auto stackCon = getOriginatingEndPointID();
+    VERIFY_RTE( stackCon.has_value() );
+    auto pConnection = m_daemon.m_leafServer.getConnection( stackCon.value() );
+    VERIFY_RTE( pConnection );
+    VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor );
+
+    {
+        network::Server::MPOMapping          mpoMapping( m_daemon.m_leafServer, mpo, pConnection );
+        network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+        sender.RootSimRun( mpo );
+    }
 }
 
 network::Message DaemonRequestConversation::DaemonLeafBroadcast( const network::Message&     request,

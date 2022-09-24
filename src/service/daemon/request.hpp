@@ -19,7 +19,7 @@ namespace service
 
 class DaemonRequestConversation : public network::InThreadConversation,
                                   public network::leaf_daemon::Impl,
-                                  public network::root_daemon::Impl,
+                                  // public network::root_daemon::Impl,
                                   public network::daemon_leaf::Impl,
                                   public network::enrole::Impl,
                                   public network::status::Impl,
@@ -55,7 +55,7 @@ public:
                                    { return rootRequest.DaemonRoot( msg ); } );
     }
 
-    // routing
+    // network::leaf_daemon::Impl
     virtual network::Message TermRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message ExeRoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
@@ -65,6 +65,10 @@ public:
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafDaemon( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPORoot( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPOMPO( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::daemon_leaf::Impl
     virtual network::Message RootLeafBroadcast( const network::Message&     request,
@@ -72,6 +76,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
+    virtual void             RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 

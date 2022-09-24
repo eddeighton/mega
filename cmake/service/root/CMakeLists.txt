@@ -23,6 +23,8 @@ set( ROOT_SOURCE
     ${ROOT_SOURCE_DIR}/pipeline.cpp
     ${ROOT_SOURCE_DIR}/job.hpp
     ${ROOT_SOURCE_DIR}/job.cpp
+    ${ROOT_SOURCE_DIR}/simulation.hpp
+    ${ROOT_SOURCE_DIR}/simulation.cpp
     ${ROOT_SOURCE_DIR}/main.cpp
     ${ROOT_SOURCE_DIR}/request.hpp
     ${ROOT_SOURCE_DIR}/routing.cpp

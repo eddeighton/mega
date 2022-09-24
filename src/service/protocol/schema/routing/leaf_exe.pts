@@ -12,3 +12,10 @@ msg RootExe
     request(network::Message request);
     response(network::Message response);
 }
+
+// special case for registering MPO and running simulation
+msg RootSimRun
+{
+    request(mega::MPO mpo);
+    response();
+}

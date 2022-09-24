@@ -4,37 +4,40 @@
 #include "service/state_machine.hpp"
 
 using namespace std::literals;
-static const mega::network::ConversationID id1( 1, "test"s );
-static const mega::network::ConversationID id2( 2, "test"s );
-static const mega::network::ConversationID id3( 3, "test"s );
-static const mega::network::ConversationID id4( 4, "test"s );
+static const mega::MPO id1( 1, 2, 3 );
+static const mega::MPO id2( 1, 2, 4 );
+static const mega::MPO id3( 1, 3, 3 );
+static const mega::MPO id4( 2, 3, 4 );
 
 using SM = mega::service::SimulationStateMachine;
 
-mega::network::ChannelMsg makeChannelMsg( const mega::network::ConversationID& id, const mega::network::Message& msg )
+mega::network::ChannelMsg makeChannelMsg( const mega::MPO& id, const mega::network::Message& msg )
 {
+    std::ostringstream os;
+    os << (int)id.getMachineID() << "." << (int)id.getProcessID() << "." << (int)id.getOwnerID();
+    mega::network::ConversationID conID( 1, os.str() );
     const mega::network::ChannelMsg channelMsg{
-        mega::network::Header{ static_cast< mega::network::MessageID >( getMsgID( msg ) ), id }, msg };
+        mega::network::Header{ static_cast< mega::network::MessageID >( getMsgID( msg ) ), conID }, msg };
     return channelMsg;
 }
 
-mega::network::ChannelMsg makeClock( const mega::network::ConversationID& id )
+mega::network::ChannelMsg makeClock( const mega::MPO& id )
 {
     return makeChannelMsg( id, SM::Clock::make( SM::Clock{} ) );
 }
-mega::network::ChannelMsg makeRead( const mega::network::ConversationID& id )
+mega::network::ChannelMsg makeRead( const mega::MPO& id )
 {
     return makeChannelMsg( id, SM::Read::make( SM::Read{ id } ) );
 }
-mega::network::ChannelMsg makeWrite( const mega::network::ConversationID& id )
+mega::network::ChannelMsg makeWrite( const mega::MPO& id )
 {
     return makeChannelMsg( id, SM::Write::make( SM::Write{ id } ) );
 }
-mega::network::ChannelMsg makeRelease( const mega::network::ConversationID& id )
+mega::network::ChannelMsg makeRelease( const mega::MPO& id )
 {
     return makeChannelMsg( id, SM::Release::make( SM::Release{ id } ) );
 }
-mega::network::ChannelMsg makeDestroy( const mega::network::ConversationID& id )
+mega::network::ChannelMsg makeDestroy( const mega::MPO& id )
 {
     return makeChannelMsg( id, SM::Destroy::make( SM::Destroy{ id } ) );
 }

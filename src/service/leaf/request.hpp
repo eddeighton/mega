@@ -6,6 +6,7 @@
 
 #include "service/protocol/model/term_leaf.hxx"
 #include "service/protocol/model/leaf_term.hxx"
+#include "service/protocol/model/mpo_leaf.hxx"
 #include "service/protocol/model/daemon_leaf.hxx"
 #include "service/protocol/model/leaf_daemon.hxx"
 #include "service/protocol/model/exe_leaf.hxx"
@@ -22,8 +23,8 @@ namespace service
 
 class LeafRequestConversation : public network::InThreadConversation,
                                 public network::term_leaf::Impl,
-                                public network::daemon_leaf::Impl,
                                 public network::exe_leaf::Impl,
+                                public network::mpo_leaf::Impl,
                                 public network::tool_leaf::Impl,
                                 public network::leaf_exe::Impl,
                                 public network::leaf_tool::Impl,
@@ -62,16 +63,16 @@ public:
     virtual network::Message ToolRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
 
-    // network::daemon_leaf::Impl
-    virtual network::Message RootLeafBroadcast( const network::Message&     request,
-                                                boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
-                                                  boost::asio::yield_context& yield_ctx ) override;
+    // network::mpo_leaf::Impl
+    virtual network::Message MPORoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPOMPO( const network::Message& request, const mega::MPO& mpo,
+                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::leaf_exe::Impl
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
+    virtual void             RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,

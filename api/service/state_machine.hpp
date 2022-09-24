@@ -21,12 +21,8 @@ namespace service
 
 class SimulationStateMachine
 {
-    using ID        = mega::network::ConversationID;
-    using IDSet     = std::set< ID >;
-    using Ack       = std::pair< network::ChannelMsg, ID >;
-    using AckVector = std::vector< Ack >;
-
-    AckVector m_acks;
+    using ID    = mega::MPO;
+    using IDSet = std::set< ID >;
 
 public:
     enum State
@@ -38,8 +34,10 @@ public:
         WAIT
     };
     using MsgVector = std::vector< network::ChannelMsg >;
+    using AckVector = MsgVector;
 
 private:
+    AckVector           m_acks;
     State               m_state = SIM;
     MsgVector           m_msgQueue;
     IDSet               m_activeReads;
@@ -61,7 +59,7 @@ public:
     using Destroy = network::sim::MSG_SimDestroy_Request;
     using Clock   = network::sim::MSG_SimClock_Request;
 
-    const network::ConversationID& getSimID( const mega::network::ChannelMsg& msg ) const
+    const mega::MPO& getSimID( const mega::network::ChannelMsg& msg ) const
     {
         switch ( getMsgID( msg.msg ) )
         {
@@ -72,7 +70,7 @@ public:
             case Release::ID:
                 return Release::get( msg.msg ).owningID;
             case Destroy::ID:
-                return Destroy::get( msg.msg ).requestID;
+                return Destroy::get( msg.msg ).mpo;
             case Clock::ID:
             default:
                 THROW_RTE( "Unreachable" );
@@ -105,7 +103,7 @@ public:
             for ( const auto& msg : reads )
             {
                 const ID& id = getSimID( msg );
-                m_acks.push_back( { msg, id } );
+                m_acks.push_back( msg );
                 m_activeReads.insert( id );
             }
             m_msgQueue = std::move( other );
@@ -126,7 +124,7 @@ public:
                         if ( m_state == WAIT && m_state != TERM )
                         {
                             const ID& id = getSimID( msg );
-                            m_acks.push_back( { msg, id } );
+                            m_acks.push_back( msg );
                             m_activeWrite = id;
                             m_state       = WRITE;
                         }
@@ -190,7 +188,7 @@ public:
                     case Read::ID:
                     {
                         const ID& id = getSimID( msg );
-                        m_acks.push_back( { msg, id } );
+                        m_acks.push_back( msg );
                         m_activeReads.insert( id );
                     }
                     break;
@@ -201,11 +199,11 @@ public:
                         if ( iFind != m_activeReads.end() )
                         {
                             m_activeReads.erase( iFind );
-                            m_acks.push_back( { msg, id } );
+                            m_acks.push_back( msg );
                         }
                         else
                         {
-                            THROW_RTE( "Invalid release: " << id );
+                            THROW_RTE( "Invalid release" );
                         }
                     }
                     break;
@@ -238,7 +236,7 @@ public:
                                 m_state = WRITE;
                                 m_activeReads.clear();
                                 m_activeWrite = id;
-                                m_acks.push_back( { msg, id } );
+                                m_acks.push_back( msg );
                                 bPromoted = true;
                             }
                         }
@@ -312,7 +310,7 @@ public:
                         const ID& id = getSimID( msg );
                         if ( m_activeWrite.value() == id )
                         {
-                            m_acks.push_back( { msg, id } );
+                            m_acks.push_back( msg );
                         }
                         else
                         {
@@ -344,7 +342,7 @@ public:
                         if ( m_activeWrite.value() == id )
                         {
                             m_activeWrite.reset();
-                            m_acks.push_back( { msg, id } );
+                            m_acks.push_back( msg );
                         }
                         else
                         {
@@ -376,7 +374,7 @@ public:
                         else
                         {
                             // if read is for same SimID as write then ack it
-                            m_acks.push_back( { msg, id } );
+                            m_acks.push_back( msg );
                         }
                     }
                     else
@@ -389,7 +387,7 @@ public:
                     if ( m_state == WRITE && !m_activeWrite.has_value() )
                     {
                         const ID& id = getSimID( msg );
-                        m_acks.push_back( { msg, id } );
+                        m_acks.push_back( msg );
                         m_activeWrite = id;
                     }
                     else
@@ -435,13 +433,13 @@ public:
                 case Read::ID:
                 {
                     const ID& id = getSimID( msg );
-                    m_acks.push_back( { msg, id } );
+                    m_acks.push_back( msg );
                 }
                 break;
                 case Write::ID:
                 {
                     const ID& id = getSimID( msg );
-                    m_acks.push_back( { msg, id } );
+                    m_acks.push_back( msg );
                 }
                 break;
                 case Release::ID:
@@ -451,12 +449,12 @@ public:
                     if ( iFind != m_activeReads.end() )
                     {
                         m_activeReads.erase( iFind );
-                        m_acks.push_back( { msg, id } );
+                        m_acks.push_back( msg );
                     }
                     else if ( m_activeWrite.has_value() && ( m_activeWrite.value() == id ) )
                     {
                         m_activeWrite.reset();
-                        m_acks.push_back( { msg, id } );
+                        m_acks.push_back( msg );
                     }
                     else
                     {
@@ -472,7 +470,7 @@ public:
                 case Destroy::ID:
                 {
                     const ID& id = getSimID( msg );
-                    m_acks.push_back( { msg, id } );
+                    m_acks.push_back( msg );
                 }
                 break;
                 default:

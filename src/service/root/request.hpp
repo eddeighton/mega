@@ -24,12 +24,9 @@ class RootRequestConversation : public network::InThreadConversation,
                                 public network::project::Impl,
                                 public network::enrole::Impl,
                                 public network::status::Impl,
-                                public network::stash::Impl, 
+                                public network::stash::Impl,
                                 public network::job::Impl
 {
-protected:
-    Root& m_root;
-
 public:
     RootRequestConversation( Root&                          root,
                              const network::ConversationID& conversationID,
@@ -43,9 +40,6 @@ public:
     virtual void             error( const network::ConnectionID& connectionID,
                                     const std::string&           strErrorMsg,
                                     boost::asio::yield_context&  yield_ctx ) override;
-
-    // network::root_daemon::Request_Sender getDaemonRequest( network::Server::Connection::Ptr pConnection,
-    //                                                        boost::asio::yield_context&      yield_ctx );
 
     template < typename RequestEncoderType >
     RequestEncoderType getExeRequest( boost::asio::yield_context& yield_ctx )
@@ -72,6 +66,10 @@ public:
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonRoot( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPORoot( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPOMPO( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::root_daemon::Impl
     virtual network::Message RootLeafBroadcast( const network::Message&     request,
@@ -79,6 +77,7 @@ public:
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
+    virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual network::Project GetProject( boost::asio::yield_context& yield_ctx ) override;
@@ -126,6 +125,9 @@ public:
         }
         return result;
     }
+
+protected:
+    Root& m_root;
 };
 
 } // namespace service

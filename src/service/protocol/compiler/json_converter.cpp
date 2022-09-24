@@ -38,7 +38,7 @@ nlohmann::json writeParameter( const schema::Parameter& param )
 void toJSON( const boost::filesystem::path& dataDir, const std::string& strFileName, const schema::Schema& schema )
 {
     std::ostringstream osGuard;
-    osGuard << "DATABASE_VIEW_" << strFileName << "_GUARD";
+    osGuard << "PROTOCOL_" << strFileName << "_GUARD";
 
     nlohmann::json data( { { "guard", osGuard.str() },
                            { "filename", strFileName },
@@ -51,7 +51,8 @@ void toJSON( const boost::filesystem::path& dataDir, const std::string& strFileN
 
         {
             nlohmann::json responseData( { { "name", transaction.m_name }, { "params", nlohmann::json::array() } } );
-            VERIFY_RTE( transaction.m_response.m_parameters.size() <= 1U );
+            VERIFY_RTE_MSG( transaction.m_response.m_parameters.size() <= 1U,
+                            "Non singular response parameters in: " << transaction.m_name );
             for ( const schema::Parameter& parameter : transaction.m_response.m_parameters )
             {
                 if ( !returnParam )

@@ -19,6 +19,26 @@ msg RootExe
     response(network::Message response);
 }
 
+// special case for registering MPO and running simulation
+msg RootSimRun
+{
+    request(mega::MPO mpo);
+    response();
+}
+
+msg RootMPO
+{
+    request(network::Message request, mega::MPO mpo);
+    response(network::Message response);
+}
+
+msg MPOMPO
+{
+    // route using initiated conversation path
+    request(network::Message request, mega::MPO mpo);
+    response(network::Message response);
+}
+
 msg DaemonLeafBroadcast
 {
     request(network::Message request);

@@ -1,17 +1,17 @@
 
 msg SimLockRead
 {
-    request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
+    request(mega::MPO owningID,mega::MPO requestID);
     response(bool bSuccess);
 }
 msg SimLockWrite
 {
-    request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
+    request(mega::MPO owningID,mega::MPO requestID);
     response(bool bSuccess);
 }
 msg SimLockRelease
 {
-    request(mega::network::ConversationID owningID,mega::network::ConversationID requestID);
+    request(mega::MPO owningID,mega::MPO requestID);
     response();
 }
 msg SimClock
@@ -19,8 +19,18 @@ msg SimClock
     request();
     response();
 }
+msg SimCreate
+{
+    request();
+    response(mega::MPO mpo);
+}
+msg SimStart
+{
+    request();
+    response();
+}
 msg SimDestroy
 {
-    request(mega::network::ConversationID requestID);
+    request(mega::MPO mpo);
     response();
 }

@@ -28,3 +28,17 @@ msg LeafRoot
     request(network::Message request);
     response(network::Message response);
 }
+
+msg MPORoot
+{
+    // route using initiated conversation path
+    request(network::Message request, mega::MPO mpo);
+    response(network::Message response);
+}
+
+msg MPOMPO
+{
+    // route using initiated conversation path
+    request(network::Message request, mega::MPO mpo);
+    response(network::Message response);
+}

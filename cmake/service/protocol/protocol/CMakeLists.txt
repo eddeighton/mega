@@ -23,7 +23,8 @@ set( ROUTING_SCHEMAS
     term_leaf
     tool_leaf
     exe_leaf
-    exe_sim 
+    mpo_leaf
+    leaf_mpo 
 )
 
 set( INTERFACE_SCHEMAS

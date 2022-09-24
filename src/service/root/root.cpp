@@ -3,6 +3,7 @@
 #include "request.hpp"
 #include "pipeline.hpp"
 #include "job.hpp"
+#include "simulation.hpp"
 
 #include "mega/common.hpp"
 
@@ -118,6 +119,18 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
     SPDLOG_TRACE( "Root::joinConversation {}", network::getMsgNameFromID( network::getMsgID( msg ) ) );
     switch ( header.getMessageID() )
     {
+        case network::daemon_root::MSG_MPORoot_Request::ID:
+        {
+            const network::daemon_root::MSG_MPORoot_Request& actualMsg
+                = network::daemon_root::MSG_MPORoot_Request::get( msg );
+            switch ( actualMsg.request.index )
+            {
+                case network::sim::MSG_SimStart_Request::ID:
+                    return network::ConversationBase::Ptr(
+                        new RootSimulation( *this, header.getConversationID(), originatingConnectionID, actualMsg.mpo ) );
+            }
+        }
+        break;
         case network::daemon_root::MSG_ExeRoot_Request::ID:
         {
             const network::daemon_root::MSG_ExeRoot_Request& actualMsg
