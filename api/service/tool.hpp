@@ -1,7 +1,6 @@
 #ifndef TOOL_16_JUNE_2022
 #define TOOL_16_JUNE_2022
 
-
 #include "service/leaf.hpp"
 
 #include "service/network/client.hpp"
@@ -43,10 +42,14 @@ public:
 
     network::Sender& getLeafSender() { return m_leaf; }
 
+    const mega::MPO& getMPO() const { return m_mpo.value(); }
+    void             setMPO( mega::MPO mpo ) { m_mpo = mpo; }
+
 private:
-    boost::asio::io_context  m_io_context;
-    network::ReceiverChannel m_receiverChannel;
-    Leaf                     m_leaf;
+    boost::asio::io_context    m_io_context;
+    network::ReceiverChannel   m_receiverChannel;
+    Leaf                       m_leaf;
+    std::optional< mega::MPO > m_mpo;
 };
 
 } // namespace service

@@ -63,5 +63,17 @@ network::tool_leaf::Request_Sender ToolRequestConversation::getToolRequest( boos
     return network::tool_leaf::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
 }
 
+network::Message ToolRequestConversation::RootMPO( const network::Message& request, const mega::MPO& mpo,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    return MPOMPODown( request, mpo, yield_ctx );
+}
+network::Message ToolRequestConversation::MPOMPODown( const network::Message& request, const mega::MPO& mpo,
+                                                      boost::asio::yield_context& yield_ctx )
+{
+    VERIFY_RTE_MSG( m_tool.getMPO() == mpo, "Tool does not have expected mpo" );
+    return dispatchRequest( request, yield_ctx );
+}
+
 } // namespace service
 } // namespace mega

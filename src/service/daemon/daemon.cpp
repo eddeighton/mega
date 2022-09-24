@@ -41,9 +41,9 @@ public:
 Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP )
     : network::ConversationManager( network::makeProcessName( network::Node::Daemon ), ioContext )
     , m_rootClient( ioContext, *this, strRootIP, mega::network::MegaRootServiceName() )
-    , m_leafServer( ioContext, *this, network::MegaDaemonPort() )
+    , m_server( ioContext, *this, network::MegaDaemonPort() )
 {
-    m_leafServer.waitForConnection();
+    m_server.waitForConnection();
 
     // immediately enrole
     {
@@ -93,7 +93,7 @@ void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::
 void Daemon::shutdown()
 {
     m_rootClient.stop();
-    m_leafServer.stop();
+    m_server.stop();
 }
 
 network::ConversationBase::Ptr Daemon::joinConversation( const network::ConnectionID& originatingConnectionID,

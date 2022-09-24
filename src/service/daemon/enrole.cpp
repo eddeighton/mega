@@ -11,7 +11,7 @@ MPO DaemonRequestConversation::EnroleLeafWithDaemon( const mega::network::Node::
                                                      boost::asio::yield_context&      yield_ctx )
 {
     network::Server::Connection::Ptr pConnection
-        = m_daemon.m_leafServer.getConnection( getOriginatingEndPointID().value() );
+        = m_daemon.m_server.getConnection( getOriginatingEndPointID().value() );
     VERIFY_RTE( pConnection );
     pConnection->setType( type );
     // SPDLOG_TRACE( "Leaf {} enroled as {}", pConnection->getName(), network::Node::toStr( type ) );

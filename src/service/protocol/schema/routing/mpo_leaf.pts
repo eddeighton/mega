@@ -6,7 +6,7 @@ msg MPORoot
     request(network::Message request);
     response(network::Message response);
 }
-msg MPOMPO
+msg MPOMPOUp
 {
     // route using initiated conversation path
     request(network::Message request, mega::MPO mpo);

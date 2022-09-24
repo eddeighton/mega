@@ -21,17 +21,11 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
     network::Message result;
     if ( result = network::term_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    // if ( result = network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
-    //     return result;
+    if ( result = network::daemon_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     if ( result = network::exe_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
-    if ( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
-    if ( result = network::leaf_term::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
-    if ( result = network::leaf_tool::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
@@ -122,13 +116,19 @@ network::Message LeafRequestConversation::MPORoot( const network::Message&     r
 {
     return getDaemonSender( yield_ctx ).MPORoot( request, m_leaf.m_mpo );
 }
-network::Message LeafRequestConversation::MPOMPO( const network::Message& request, const mega::MPO& mpo,
-                                                  boost::asio::yield_context& yield_ctx )
+
+network::Message LeafRequestConversation::MPOMPOUp( const network::Message& request, const mega::MPO& mpo,
+                                                    boost::asio::yield_context& yield_ctx )
 {
-    return getDaemonSender( yield_ctx ).MPOMPO( request, mpo );
+    return MPOMPODown( request, mpo, yield_ctx );
 }
 
-// network::leaf_exe::Impl
+// network::daemon_leaf::Impl
+network::Message LeafRequestConversation::RootLeafBroadcast( const network::Message&     request,
+                                                             boost::asio::yield_context& yield_ctx )
+{
+    return dispatchRequest( request, yield_ctx );
+}
 network::Message LeafRequestConversation::RootExeBroadcast( const network::Message&     request,
                                                             boost::asio::yield_context& yield_ctx )
 {
@@ -147,7 +147,6 @@ network::Message LeafRequestConversation::RootExeBroadcast( const network::Messa
             THROW_RTE( "Unknown node type" );
     }
 }
-
 network::Message LeafRequestConversation::RootExe( const network::Message&     request,
                                                    boost::asio::yield_context& yield_ctx )
 {
@@ -166,7 +165,6 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
             THROW_RTE( "Unknown node type" );
     }
 }
-
 void LeafRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
     switch ( m_leaf.m_nodeType )
@@ -197,6 +195,57 @@ void LeafRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yie
         default:
             THROW_RTE( "Unknown node type" );
     }
+}
+network::Message LeafRequestConversation::RootMPO( const network::Message& request, const mega::MPO& mpo,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    switch ( m_leaf.m_nodeType )
+    {
+        case network::Node::Executor:
+            return getExeSender( yield_ctx ).RootMPO( request, mpo );
+        case network::Node::Tool:
+            return getToolSender( yield_ctx ).RootMPO( request, mpo );
+        case network::Node::Terminal:
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::Leaf:
+        case network::Node::TOTAL_NODE_TYPES:
+            THROW_RTE( "Unreachable" );
+        default:
+            THROW_RTE( "Unknown node type" );
+    }
+}
+network::Message LeafRequestConversation::MPOMPODown( const network::Message& request, const mega::MPO& mpo,
+                                                      boost::asio::yield_context& yield_ctx )
+{
+    if ( m_leaf.m_mpos.count( mpo ) )
+    {
+        switch ( m_leaf.m_nodeType )
+        {
+            case network::Node::Executor:
+                return getExeSender( yield_ctx ).MPOMPODown( request, mpo );
+            case network::Node::Tool:
+                return getToolSender( yield_ctx ).MPOMPODown( request, mpo );
+            case network::Node::Terminal:
+            case network::Node::Daemon:
+            case network::Node::Root:
+            case network::Node::Leaf:
+            case network::Node::TOTAL_NODE_TYPES:
+                THROW_RTE( "Unreachable" );
+            default:
+                THROW_RTE( "Unknown node type" );
+        }
+    }
+    else
+    {
+        return getDaemonSender( yield_ctx ).MPOMPOUp( request, mpo );
+    }
+}
+
+network::Message LeafRequestConversation::DaemonLeafBroadcast( const network::Message&     request,
+                                                               boost::asio::yield_context& yield_ctx )
+{
+    return dispatchRequest( request, yield_ctx );
 }
 
 } // namespace service

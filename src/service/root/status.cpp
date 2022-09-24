@@ -10,14 +10,11 @@ namespace service
 // network::status::Impl
 network::Status RootRequestConversation::GetNetworkStatus( boost::asio::yield_context& yield_ctx )
 {
-    RootRequestConversation*         pThis = this;
-    network::status::Request_Encoder project( [ pThis, &yield_ctx ]( const network::Message& msg )
-                                              { return pThis->RootLeafBroadcast( msg, yield_ctx ); } );
-    return project.GetStatus( {} );
+    return getLeafBroadcastRequest< network::status::Request_Encoder >( yield_ctx ).GetStatus( {} );
 }
 
 network::Status RootRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                          boost::asio::yield_context&                 yield_ctx )
+                                                    boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestConversation::GetVersion" );
 

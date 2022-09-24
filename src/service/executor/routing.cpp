@@ -1,5 +1,6 @@
 
 #include "request.hpp"
+#include "simulation.hpp"
 
 #include "service/executor.hpp"
 
@@ -22,10 +23,6 @@ network::Message ExecutorRequestConversation::dispatchRequest( const network::Me
 {
     network::Message result;
     if ( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
-    if ( result = network::exe_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
-    if ( result = network::mpo_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
@@ -94,16 +91,23 @@ network::Message ExecutorRequestConversation::RootExe( const network::Message&  
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message ExecutorRequestConversation::ExeRoot( const network::Message&     request,
+network::Message ExecutorRequestConversation::RootMPO( const network::Message& request, const mega::MPO& mpo,
                                                        boost::asio::yield_context& yield_ctx )
 {
-    return getLeafRequest( yield_ctx ).ExeRoot( request );
+    return MPOMPODown( request, mpo, yield_ctx );
 }
 
-network::Message ExecutorRequestConversation::MPORoot( const network::Message& request,
-                                                       boost::asio::yield_context& yield_ctx )
+network::Message ExecutorRequestConversation::MPOMPODown( const network::Message& request, const mega::MPO& mpo,
+                                                          boost::asio::yield_context& yield_ctx )
 {
-    return getMPORequest( yield_ctx ).MPORoot( request );
+    if ( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
+    {
+        return pSim->dispatchRequest( request, yield_ctx );
+    }
+    else
+    {
+        THROW_RTE( "Failed to locate simulation" );
+    }
 }
 
 } // namespace service

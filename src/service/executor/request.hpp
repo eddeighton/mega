@@ -21,8 +21,6 @@ class Executor;
 
 class ExecutorRequestConversation : public network::ConcurrentConversation,
                                     public network::leaf_exe::Impl,
-                                    public network::exe_leaf::Impl,
-                                    public network::mpo_leaf::Impl,
                                     public network::job::Impl,
                                     public network::sim::Impl
 {
@@ -53,16 +51,14 @@ public:
                                    { return rootRequest.ExeRoot( msg ); } );
     }
 
-    // network::leaf_exe::Impl
+    // network::leaf_exe::Impl - NOTE: RootSimRun note implemented here
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-
-    // network::exe_leaf::Impl
-    virtual network::Message ExeRoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-
-    // network::mpo_leaf::Impl
-    virtual network::Message MPORoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message RootMPO( const network::Message& request, const mega::MPO& mpo,
+                                      boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPOMPODown( const network::Message& request, const mega::MPO& mpo,
+                                         boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl - note also in JobConversation
     virtual std::vector< network::ConversationID >

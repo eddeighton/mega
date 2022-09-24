@@ -26,6 +26,7 @@ public:
     virtual void SimStart( boost::asio::yield_context& yield_ctx ) override;
 
 private:
+
     mega::MPO m_mpo;
 };
 

@@ -35,7 +35,7 @@ private:
     void onLeafDisconnect( const network::ConnectionID& connectionID, mega::MPO mpo );
 
     network::Client     m_rootClient;
-    network::Server     m_leafServer;
+    network::Server     m_server;
     SharedMemoryManager m_sharedMemoryManager;
     mega::MPO           m_mpo;
 };

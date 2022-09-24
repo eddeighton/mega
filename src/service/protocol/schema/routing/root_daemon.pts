@@ -32,7 +32,7 @@ msg RootMPO
     response(network::Message response);
 }
 
-msg MPOMPO
+msg MPOMPODown
 {
     // route using initiated conversation path
     request(network::Message request, mega::MPO mpo);

@@ -23,8 +23,6 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
     network::Message result;
     if ( result = network::daemon_root::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    if ( result = network::root_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
     if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
@@ -66,6 +64,57 @@ void RootRequestConversation::error( const network::ConnectionID& connectionID,
     }
 }
 
+network::root_daemon::Request_Sender RootRequestConversation::getDaemonSender( boost::asio::yield_context& yield_ctx )
+{
+    auto stackCon = getOriginatingEndPointID();
+    VERIFY_RTE( stackCon.has_value() );
+    auto pConnection = m_root.m_server.getConnection( stackCon.value() );
+    VERIFY_RTE( pConnection );
+    network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+    return sender;
+}
+
+network::Message RootRequestConversation::broadcastLeaf( const network::Message&     msg,
+                                                         boost::asio::yield_context& yield_ctx )
+{
+    // dispatch to children
+    std::vector< network::Message > responses;
+    {
+        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+        {
+            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+            const network::Message               response = sender.RootLeafBroadcast( msg );
+            responses.push_back( response );
+        }
+    }
+
+    network::Message aggregateRequest = msg;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );
+}
+
+network::Message RootRequestConversation::broadcastExe( const network::Message&     msg,
+                                                        boost::asio::yield_context& yield_ctx )
+{
+    // dispatch to children
+    std::vector< network::Message > responses;
+    {
+        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+        {
+            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+            const network::Message               response = sender.RootExeBroadcast( msg );
+            responses.push_back( response );
+        }
+    }
+
+    network::Message aggregateRequest = msg;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );
+}
 // network::daemon_root::Impl
 network::Message RootRequestConversation::TermRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
@@ -110,81 +159,20 @@ network::Message RootRequestConversation::MPORoot( const network::Message&     r
     SPDLOG_TRACE( "RootRequestConversation::MPORoot" );
     return dispatchRequest( request, yield_ctx );
 }
-network::Message RootRequestConversation::MPOMPO( const network::Message&     request,
-                                                  const mega::MPO&            mpo,
-                                                  boost::asio::yield_context& yield_ctx )
+network::Message RootRequestConversation::MPOMPOUp( const network::Message&     request,
+                                                    const mega::MPO&            mpo,
+                                                    boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "RootRequestConversation::MPOMPO" );
-    return dispatchRequest( request, yield_ctx );
-}
-// network::root_daemon::Impl
-network::Message RootRequestConversation::RootLeafBroadcast( const network::Message&     request,
-                                                             boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "RootRequestConversation::RootLeafBroadcast" );
-    // dispatch to children
-    std::vector< network::Message > responses;
+    SPDLOG_TRACE( "RootRequestConversation::MPOMPOUp" );
+
+    if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mpo ) )
     {
-        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
-        {
-            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-            const network::Message               response = sender.RootLeafBroadcast( request );
-            responses.push_back( response );
-        }
+        network::root_daemon::Request_Sender sender( *this, *pCon, yield_ctx );
+        return sender.MPOMPODown( request, mpo );
     }
-
-    network::Message aggregateRequest = request;
-    network::aggregate( aggregateRequest, responses );
-
-    // dispatch to this
-    return dispatchRequest( aggregateRequest, yield_ctx );
-}
-
-network::Message RootRequestConversation::RootExeBroadcast( const network::Message&     request,
-                                                            boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "RootRequestConversation::RootExeBroadcast" );
-    // dispatch to children
-    std::vector< network::Message > responses;
+    else
     {
-        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
-        {
-            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-            const network::Message               response = sender.RootExeBroadcast( request );
-            responses.push_back( response );
-        }
-    }
-
-    network::Message aggregateRequest = request;
-    network::aggregate( aggregateRequest, responses );
-
-    // dispatch to this
-    return dispatchRequest( aggregateRequest, yield_ctx );
-}
-
-network::Message RootRequestConversation::RootExe( const network::Message&     request,
-                                                   boost::asio::yield_context& yield_ctx )
-{
-    auto stackCon = getOriginatingEndPointID();
-    VERIFY_RTE( stackCon.has_value() );
-    auto pConnection = m_root.m_server.getConnection( stackCon.value() );
-    VERIFY_RTE( pConnection );
-    network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-    return sender.RootExe( request );
-}
-
-void RootRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
-{
-    auto stackCon = getOriginatingEndPointID();
-    VERIFY_RTE( stackCon.has_value() );
-    auto pConnection = m_root.m_server.getConnection( stackCon.value() );
-    VERIFY_RTE( pConnection );
-
-    // simulation runs entirely on the stack in this scope!
-    {
-        network::Server::MPOMapping          mpoMapping( m_root.m_server, mpo, pConnection );
-        network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-        sender.RootSimRun( mpo );
+        THROW_RTE( "Cannot locate mpo" );
     }
 }
 
