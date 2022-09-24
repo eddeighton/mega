@@ -248,15 +248,13 @@ void command( bool bHelp, const std::vector< std::string >& args )
             }
             else
             {
-                mega::service::Terminal terminal;
                 try
                 {
-                    THROW_RTE( "TODO" );
-                    //pipelineResult = terminal.PipelineRun( pipelineConfig );
+                    mega::service::Terminal terminal;
+                    pipelineResult = terminal.PipelineRun( pipelineConfig );
                 }
                 catch ( std::exception& ex )
                 {
-                    SPDLOG_WARN( "Megastructure service unavailable so running pipeline locally" );
                     THROW_RTE( "Exception executing pipeline: " << ex.what() );
                 }
             }

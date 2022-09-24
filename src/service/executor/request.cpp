@@ -14,61 +14,6 @@ namespace mega
 namespace service
 {
 
-ExecutorRequestConversation::ExecutorRequestConversation( Executor&                      executor,
-                                                          const network::ConversationID& conversationID,
-                                                          std::optional< network::ConnectionID >
-                                                              originatingConnectionID )
-    : ConcurrentConversation( executor, conversationID, originatingConnectionID )
-    , m_executor( executor )
-{
-}
-
-network::Message ExecutorRequestConversation::dispatchRequest( const network::Message&     msg,
-                                                               boost::asio::yield_context& yield_ctx )
-{
-    network::Message result;
-    if ( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
-        return result;
-    THROW_RTE( "ExecutorRequestConversation::dispatchRequest failed" );
-}
-
-void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
-                                                    const network::Message&      msg,
-                                                    boost::asio::yield_context&  yield_ctx )
-{
-    if ( ( m_executor.getLeafSender().getConnectionID() == connectionID )
-         || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == connectionID ) )
-    {
-        m_executor.getLeafSender().send( getID(), msg, yield_ctx );
-    }
-    else
-    {
-        SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection for response: {}", connectionID );
-        THROW_RTE( "ExecutorRequestConversation: Executor Critical error in response handler: " << connectionID );
-    }
-}
-
-void ExecutorRequestConversation::error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
-                                         boost::asio::yield_context& yield_ctx )
-{
-    if ( ( m_executor.getLeafSender().getConnectionID() == connectionID )
-         || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == connectionID ) )
-    {
-        m_executor.getLeafSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
-    }
-    else
-    {
-        SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection in error handler: {} for error: {}",
-                      connectionID, strErrorMsg );
-        THROW_RTE( "ExecutorRequestConversation: Executor Critical error in error handler: " << connectionID << " : "
-                                                                                             << strErrorMsg );
-    }
-}
-
-network::exe_leaf::Request_Sender ExecutorRequestConversation::getLeafRequest( boost::asio::yield_context& yield_ctx )
-{
-    return network::exe_leaf::Request_Sender( *this, m_executor.getLeafSender(), yield_ctx );
-}
 
 /*network::leaf_exe::Response_Encode ExecutorRequestConversation::getLeafResponse( boost::asio::yield_context& yield_ctx
 )
@@ -82,43 +27,6 @@ void ExecutorRequestConversation::RootListNetworkNodes( boost::asio::yield_conte
     getLeafResponse( yield_ctx ).RootListNetworkNodes( result );
 }
 
-void ExecutorRequestConversation::RootPipelineStartJobs( const mega::utilities::ToolChain& toolChain,
-                                                         const pipeline::Configuration&    configuration,
-                                                         const network::ConversationID&    rootConversationID,
-                                                         boost::asio::yield_context&       yield_ctx )
-{
-    mega::pipeline::Pipeline::Ptr pPipeline;
-    {
-        std::ostringstream osLog;
-        pPipeline = pipeline::Registry::getPipeline( toolChain, configuration, osLog );
-        if ( !pPipeline )
-        {
-            SPDLOG_ERROR( "PIPELINE: Executor: Failed to load pipeline: {}", configuration.getPipelineID() );
-            THROW_RTE( "Executor: Failed to load pipeline: " << configuration.get() );
-        }
-        else
-        {
-            SPDLOG_TRACE( "PIPELINE: {}", osLog.str() );
-        }
-    }
-
-    std::vector< network::ConversationID > jobIDs;
-    std::vector< JobConversation::Ptr >    jobs;
-    for ( int i = 0; i < m_executor.getNumThreads(); ++i )
-    {
-        JobConversation::Ptr pJob = std::make_shared< JobConversation >(
-            m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), pPipeline,
-            rootConversationID );
-        jobIDs.push_back( pJob->getID() );
-        jobs.push_back( pJob );
-    }
-    getLeafResponse( yield_ctx ).RootPipelineStartJobs( jobIDs );
-
-    for ( JobConversation::Ptr pJob : jobs )
-    {
-        m_executor.conversationInitiated( pJob, m_executor.getLeafSender() );
-    }
-}
 
 void ExecutorRequestConversation::RootProjectUpdated( const mega::network::Project& project,
                                                       boost::asio::yield_context&   yield_ctx )

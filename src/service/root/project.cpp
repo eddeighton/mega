@@ -19,5 +19,10 @@ void RootRequestConversation::SetProject( const network::Project& project, boost
     m_root.setProject( project );
 }
 
+mega::network::MegastructureInstallation RootRequestConversation::GetMegastructureInstallation( boost::asio::yield_context& yield_ctx )
+{
+    return m_root.getMegastructureInstallation();
+}
+
 } // namespace service
 } // namespace mega

@@ -21,12 +21,15 @@ set( ROOT_SOURCE
     ${ROOT_SOURCE_DIR}/root.cpp
     ${ROOT_SOURCE_DIR}/pipeline.hpp
     ${ROOT_SOURCE_DIR}/pipeline.cpp
+    ${ROOT_SOURCE_DIR}/job.hpp
+    ${ROOT_SOURCE_DIR}/job.cpp
     ${ROOT_SOURCE_DIR}/main.cpp
     ${ROOT_SOURCE_DIR}/request.hpp
     ${ROOT_SOURCE_DIR}/routing.cpp
     ${ROOT_SOURCE_DIR}/project.cpp
     ${ROOT_SOURCE_DIR}/enrole.cpp
     ${ROOT_SOURCE_DIR}/status.cpp
+    ${ROOT_SOURCE_DIR}/stash.cpp
  )
 
 add_executable( root ${ROOT_SOURCE} )

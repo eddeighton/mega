@@ -11,3 +11,9 @@ msg SetProject
     request(mega::network::Project project);
     response();
 }
+
+msg GetMegastructureInstallation
+{
+    request();
+    response(mega::network::MegastructureInstallation install);
+}

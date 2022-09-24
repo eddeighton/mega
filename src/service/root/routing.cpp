@@ -18,7 +18,8 @@ RootRequestConversation::RootRequestConversation( Root&                         
 network::Message RootRequestConversation::dispatchRequest( const network::Message&     msg,
                                                            boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "RootRequestConversation::dispatchRequest {}", network::getMsgNameFromID( network::getMsgID( msg ) ) );
+    SPDLOG_TRACE(
+        "RootRequestConversation::dispatchRequest {}", network::getMsgNameFromID( network::getMsgID( msg ) ) );
     network::Message result;
     if ( result = network::daemon_root::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
@@ -30,7 +31,11 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "RootRequestConversation::dispatchRequest failed" );
+    if ( result = network::stash::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    THROW_RTE( "RootRequestConversation::dispatchRequest failed: " << network::getMsgName( msg ) );
 }
 
 void RootRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
@@ -104,18 +109,18 @@ network::Message RootRequestConversation::DaemonRoot( const network::Message&   
     return dispatchRequest( request, yield_ctx );
 }
 
-
 // network::root_daemon::Impl
-network::Message RootRequestConversation::RootLeafBroadcast( const network::Message& request, boost::asio::yield_context& yield_ctx )
+network::Message RootRequestConversation::RootLeafBroadcast( const network::Message&     request,
+                                                             boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestConversation::RootLeafBroadcast" );
     // dispatch to children
     std::vector< network::Message > responses;
     {
-        for( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
         {
             network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-            const network::Message response = sender.RootLeafBroadcast( request );
+            const network::Message               response = sender.RootLeafBroadcast( request );
             responses.push_back( response );
         }
     }
@@ -127,7 +132,38 @@ network::Message RootRequestConversation::RootLeafBroadcast( const network::Mess
     return dispatchRequest( aggregateRequest, yield_ctx );
 }
 
+network::Message RootRequestConversation::RootExeBroadcast( const network::Message&     request,
+                                                            boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "RootRequestConversation::RootExeBroadcast" );
+    // dispatch to children
+    std::vector< network::Message > responses;
+    {
+        for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+        {
+            network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+            const network::Message               response = sender.RootExeBroadcast( request );
+            responses.push_back( response );
+        }
+    }
 
+    network::Message aggregateRequest = request;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );
+}
+
+network::Message RootRequestConversation::RootExe( const network::Message&     request,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    auto stackCon = getOriginatingEndPointID();
+    VERIFY_RTE( stackCon.has_value() );
+    auto pConnection = m_root.m_server.getConnection( stackCon.value() );
+    VERIFY_RTE( pConnection );
+    network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
+    return sender.RootExe( request );
+}
 
 } // namespace service
 } // namespace mega

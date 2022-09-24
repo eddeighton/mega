@@ -7,6 +7,8 @@
 
 #include "pipeline/pipeline.hpp"
 
+#include "service/protocol/model/job.hxx"
+
 namespace mega
 {
 namespace service
@@ -22,6 +24,8 @@ class JobConversation : public ExecutorRequestConversation,
     mega::pipeline::Pipeline::Ptr m_pPipeline;
     boost::asio::yield_context*   m_pYieldCtx = nullptr;
 
+    std::optional< network::PipelineResult > m_resultOpt;
+
 public:
     using Ptr = std::shared_ptr< JobConversation >;
 
@@ -31,8 +35,9 @@ public:
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
-    // virtual void RootPipelineStartTask( const mega::pipeline::TaskDescriptor& task,
-    //                                     boost::asio::yield_context&           yield_ctx ) override;
+    // network::job::Impl,
+    virtual network::PipelineResult JobStartTask( const mega::pipeline::TaskDescriptor& task,
+                                                  boost::asio::yield_context&           yield_ctx ) override;
 
     // pipeline::DependencyProvider
     virtual EG_PARSER_INTERFACE* getParser() override;

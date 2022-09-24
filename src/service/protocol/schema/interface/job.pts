@@ -1,0 +1,27 @@
+
+
+msg JobStart
+{
+    broadcast(    mega::utilities::ToolChain toolChain, 
+                mega::pipeline::Configuration configuration, 
+                network::ConversationID rootConversationID );
+    response(std::vector< network::ConversationID > jobs);
+}
+
+msg JobReadyForWork
+{
+    request(network::ConversationID rootConversationID);
+    response();
+}
+
+msg JobProgress
+{
+    request(std::string message);
+    response();
+}
+
+msg JobStartTask
+{
+    request(mega::pipeline::TaskDescriptor task);
+    response(network::PipelineResult result);
+}

@@ -1,6 +1,8 @@
 
 #include "service/tool.hpp"
 
+#include "request.hpp"
+
 #include "mega/common.hpp"
 #include "mega/root.hpp"
 
@@ -31,79 +33,6 @@ namespace mega
 namespace service
 {
 
-class ToolRequestConversation : public network::InThreadConversation, public network::leaf_tool::Impl
-{
-protected:
-    Tool& m_tool;
-
-public:
-    ToolRequestConversation( Tool& tool, const network::ConversationID& conversationID,
-                             const network::ConnectionID& originatingConnectionID )
-        : InThreadConversation( tool, conversationID, originatingConnectionID )
-        , m_tool( tool )
-    {
-    }
-
-    virtual network::Message dispatchRequest( const network::Message&     msg,
-                                              boost::asio::yield_context& yield_ctx ) override
-    {
-        network::Message result;
-        if ( result = network::leaf_tool::Impl::dispatchRequest( msg, yield_ctx ); result )
-            return result;
-        THROW_RTE( "ToolRequestConversation::dispatchRequest failed" );
-    }
-    virtual void dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
-                                   boost::asio::yield_context& yield_ctx ) override
-    {
-        if ( ( m_tool.getLeafSender().getConnectionID() == connectionID )
-             || ( m_tool.m_receiverChannel.getSender()->getConnectionID() == connectionID ) )
-        {
-            m_tool.getLeafSender().send( getID(), msg, yield_ctx );
-        }
-        else
-        {
-            SPDLOG_ERROR( "Terminal cannot resolve connection: {} on error: {}", connectionID, msg );
-        }
-    }
-
-    virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
-                        boost::asio::yield_context& yield_ctx ) override
-    {
-        if ( ( m_tool.getLeafSender().getConnectionID() == connection )
-             || ( m_tool.m_receiverChannel.getSender()->getConnectionID() == connection ) )
-        {
-            m_tool.getLeafSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
-        }
-        else
-        {
-            // This can happen when initiating request has received exception - in which case
-            SPDLOG_ERROR( "Tool cannot resolve connection: {} on error: {}", connection, strErrorMsg );
-        }
-    }
-
-    network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx )
-    {
-        return network::tool_leaf::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
-    }
-
-    /*network::leaf_tool::Response_Encode getLeafResponse( boost::asio::yield_context& yield_ctx )
-    {
-        return network::leaf_tool::Response_Encode( *this, m_tool.getLeafSender(), yield_ctx );
-    }*/
-
-    /*virtual void RootListNetworkNodes( boost::asio::yield_context& yield_ctx ) override
-    {
-        SPDLOG_TRACE( "Tool RootListNetworkNodes" );
-        getLeafResponse( yield_ctx ).RootListNetworkNodes( { m_tool.getProcessName() } );
-    }
-
-    virtual void RootShutdown( boost::asio::yield_context& yield_ctx ) override
-    {
-        getLeafResponse( yield_ctx ).RootShutdown();
-        boost::asio::post( [ &tool = m_tool ]() { tool.shutdown(); } );
-    }*/
-};
-
 template < typename TConversationFunctor >
 class GenericConversation : public ToolRequestConversation, public mega::MPOContext
 {
@@ -117,7 +46,7 @@ public:
     {
     }
 
-    void run( boost::asio::yield_context& yield_ctx )
+    void run( boost::asio::yield_context& yield_ctx ) override
     {
         MPOContext::resume( this );
         m_pYieldContext = &yield_ctx;
@@ -185,14 +114,14 @@ public:
         THROW_RTE( "TODO" );
     }
 
-    virtual MPO getNetworkAddressMPO( NetworkAddress networkAddress )
+    virtual MPO getNetworkAddressMPO( NetworkAddress networkAddress ) override
     {
         VERIFY_RTE( m_pYieldContext );
         // SPDLOG_TRACE( "getNetworkAddressMPO called with: {}", networkAddress );
         //return getToolRequest( *m_pYieldContext ).ToolGetNetworkAddressMPO( networkAddress );
         THROW_RTE( "TODO" );
     }
-    virtual NetworkAddress getRootNetworkAddress( MPO mpo )
+    virtual NetworkAddress getRootNetworkAddress( MPO mpo ) override
     {
         VERIFY_RTE( m_pYieldContext );
         // SPDLOG_TRACE( "getRootNetworkAddress called with: {} {}", mpo, objectTypeID );

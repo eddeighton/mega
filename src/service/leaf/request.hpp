@@ -13,6 +13,7 @@
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/leaf_tool.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/job.hxx"
 
 namespace mega
 {
@@ -24,7 +25,11 @@ class LeafRequestConversation : public network::InThreadConversation,
                                 public network::daemon_leaf::Impl,
                                 public network::exe_leaf::Impl,
                                 public network::tool_leaf::Impl,
-                                public network::status::Impl
+                                public network::leaf_exe::Impl,
+                                public network::leaf_tool::Impl,
+                                public network::leaf_term::Impl,
+                                public network::status::Impl,
+                                public network::job::Impl
 {
 protected:
     Leaf& m_leaf;
@@ -63,9 +68,31 @@ public:
     virtual network::Message DaemonLeafBroadcast( const network::Message&     request,
                                                   boost::asio::yield_context& yield_ctx ) override;
 
+    // network::leaf_exe::Impl
+    virtual network::Message RootExeBroadcast( const network::Message&     request,
+                                               boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
+
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
-                                                   boost::asio::yield_context&       yield_ctx ) override;
+                                       boost::asio::yield_context&           yield_ctx ) override;
+
+    // network::job::Impl
+    virtual std::vector< network::ConversationID >
+    JobStart( const mega::utilities::ToolChain&                            toolChain,
+              const mega::pipeline::Configuration&                         configuration,
+              const network::ConversationID&                               rootConversationID,
+              const std::vector< std::vector< network::ConversationID > >& jobs,
+              boost::asio::yield_context&                                  yield_ctx ) override
+    {
+        std::vector< network::ConversationID > result;
+        for ( const auto& j : jobs )
+        {
+            for ( const auto& k : j )
+                result.push_back( k );
+        }
+        return result;
+    }
 };
 
 } // namespace service

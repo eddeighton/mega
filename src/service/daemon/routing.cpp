@@ -28,7 +28,9 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
         return result;
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "DaemonRequestConversation::dispatchRequest failed" );
+    if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    THROW_RTE( "DaemonRequestConversation::dispatchRequest failed: " << network::getMsgName( msg ) );
 }
 
 void DaemonRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,
@@ -119,6 +121,44 @@ network::Message DaemonRequestConversation::RootLeafBroadcast( const network::Me
     // dispatch to this
     return dispatchRequest( aggregateRequest, yield_ctx );
 }
+
+network::Message DaemonRequestConversation::RootExeBroadcast( const network::Message&     request,
+                                                              boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "DaemonRequestConversation::RootExeBroadcast" );
+    // dispatch to children
+    std::vector< network::Message > responses;
+    {
+        for ( auto& [ id, pConnection ] : m_daemon.m_leafServer.getConnections() )
+        {
+            if ( pConnection->getTypeOpt().value() == network::Node::Executor )
+            {
+                network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+                const network::Message               response = sender.RootExeBroadcast( request );
+                responses.push_back( response );
+            }
+        }
+    }
+
+    network::Message aggregateRequest = request;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );
+}
+
+network::Message DaemonRequestConversation::RootExe( const network::Message&     request,
+                                                     boost::asio::yield_context& yield_ctx )
+{
+    auto stackCon = getOriginatingEndPointID();
+    VERIFY_RTE( stackCon.has_value() );
+    auto pConnection = m_daemon.m_leafServer.getConnection( stackCon.value() );
+    VERIFY_RTE( pConnection );
+    VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor );
+    network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
+    return sender.RootExe( request );
+}
+
 network::Message DaemonRequestConversation::DaemonLeafBroadcast( const network::Message&     request,
                                                                  boost::asio::yield_context& yield_ctx )
 {

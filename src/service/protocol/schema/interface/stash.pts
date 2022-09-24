@@ -1,0 +1,32 @@
+
+
+
+msg StashClear
+{
+    request();
+    response();
+}
+
+msg StashStash
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response();
+}
+
+msg StashRestore
+{
+    request( boost::filesystem::path filePath, task::DeterminantHash determinant );
+    response( bool bRestored );
+}
+
+msg BuildGetHashCode
+{
+    request( boost::filesystem::path filePath );
+    response( task::FileHash hashCode );
+}
+
+msg BuildSetHashCode
+{
+    request( boost::filesystem::path filePath, task::FileHash hashCode );
+    response();
+}

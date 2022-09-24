@@ -9,6 +9,8 @@
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/stash.hxx"
+#include "service/protocol/model/job.hxx"
 
 namespace mega
 {
@@ -21,7 +23,9 @@ class RootRequestConversation : public network::InThreadConversation,
                                 public network::root_daemon::Impl,
                                 public network::project::Impl,
                                 public network::enrole::Impl,
-                                public network::status::Impl
+                                public network::status::Impl,
+                                public network::stash::Impl, 
+                                public network::job::Impl
 {
 protected:
     Root& m_root;
@@ -43,6 +47,21 @@ public:
     // network::root_daemon::Request_Sender getDaemonRequest( network::Server::Connection::Ptr pConnection,
     //                                                        boost::asio::yield_context&      yield_ctx );
 
+    template < typename RequestEncoderType >
+    RequestEncoderType getExeRequest( boost::asio::yield_context& yield_ctx )
+    {
+        RootRequestConversation* pThis = this;
+        return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
+                                   { return pThis->RootExe( msg, yield_ctx ); } );
+    }
+    template < typename RequestEncoderType >
+    RequestEncoderType getExeBroadcastRequest( boost::asio::yield_context& yield_ctx )
+    {
+        RootRequestConversation* pThis = this;
+        return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
+                                   { return pThis->RootExeBroadcast( msg, yield_ctx ); } );
+    }
+
     // network::daemon_root::Impl
     virtual network::Message TermRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
@@ -57,10 +76,15 @@ public:
     // network::root_daemon::Impl
     virtual network::Message RootLeafBroadcast( const network::Message&     request,
                                                 boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message RootExeBroadcast( const network::Message&     request,
+                                               boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual network::Project GetProject( boost::asio::yield_context& yield_ctx ) override;
     virtual void SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx ) override;
+    virtual mega::network::MegastructureInstallation
+    GetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
     virtual MPO  EnroleDaemon( boost::asio::yield_context& yield_ctx ) override;
@@ -71,6 +95,37 @@ public:
     virtual mega::network::Status GetStatus( const std::vector< mega::network::Status >& status,
                                              boost::asio::yield_context&                 yield_ctx ) override;
     virtual mega::network::Status GetNetworkStatus( boost::asio::yield_context& yield_ctx ) override;
+
+    // network::stash::Impl
+    virtual void           StashClear( boost::asio::yield_context& yield_ctx ) override;
+    virtual void           StashStash( const boost::filesystem::path& filePath,
+                                       const task::DeterminantHash&   determinant,
+                                       boost::asio::yield_context&    yield_ctx ) override;
+    virtual bool           StashRestore( const boost::filesystem::path& filePath,
+                                         const task::DeterminantHash&   determinant,
+                                         boost::asio::yield_context&    yield_ctx ) override;
+    virtual task::FileHash BuildGetHashCode( const boost::filesystem::path& filePath,
+                                             boost::asio::yield_context&    yield_ctx ) override;
+    virtual void           BuildSetHashCode( const boost::filesystem::path& filePath,
+                                             const task::FileHash&          hashCode,
+                                             boost::asio::yield_context&    yield_ctx ) override;
+
+    // network::job::Impl
+    virtual std::vector< network::ConversationID >
+    JobStart( const mega::utilities::ToolChain&                            toolChain,
+              const mega::pipeline::Configuration&                         configuration,
+              const network::ConversationID&                               rootConversationID,
+              const std::vector< std::vector< network::ConversationID > >& jobs,
+              boost::asio::yield_context&                                  yield_ctx ) override
+    {
+        std::vector< network::ConversationID > result;
+        for ( const auto& j : jobs )
+        {
+            for ( const auto& k : j )
+                result.push_back( k );
+        }
+        return result;
+    }
 };
 
 } // namespace service

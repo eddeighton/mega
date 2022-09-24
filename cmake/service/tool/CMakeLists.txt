@@ -25,6 +25,8 @@ set( TOOL_LIB_API ${MEGA_API_DIR}/service/tool.hpp )
 
 set( TOOL_LIB_SRC 
     ${TOOL_SRC_DIR}/tool.cpp
+    ${TOOL_SRC_DIR}/request.hpp
+    ${TOOL_SRC_DIR}/routing.cpp
 )
 
 add_library( tool

@@ -27,7 +27,15 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if ( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::leaf_term::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::leaf_tool::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "LeafRequestConversation::dispatchRequest failed on msg: " << msg );
 }
@@ -122,22 +130,43 @@ network::Message LeafRequestConversation::DaemonLeafBroadcast( const network::Me
     return dispatchRequest( request, yield_ctx );
 }
 
-/*switch ( m_leaf.m_nodeType )
+network::Message LeafRequestConversation::RootExeBroadcast( const network::Message&     request,
+                                                            boost::asio::yield_context& yield_ctx )
 {
-    case network::Node::Terminal:
-        return getTermSender( yield_ctx ).RootAll( request );
-    case network::Node::Tool:
-        return getToolSender( yield_ctx ).RootAll( request );
-    case network::Node::Executor:
-        return getExeSender( yield_ctx ).RootAll( request );
-    case network::Node::Daemon:
-    case network::Node::Root:
-    case network::Node::Leaf:
-    case network::Node::TOTAL_NODE_TYPES:
-        THROW_RTE( "Unreachable" );
-    default:
-        THROW_RTE( "Unknown node type" );
-}*/
+    switch ( m_leaf.m_nodeType )
+    {
+        case network::Node::Executor:
+            return getExeSender( yield_ctx ).RootExeBroadcast( request );
+        case network::Node::Terminal:
+        case network::Node::Tool:
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::Leaf:
+        case network::Node::TOTAL_NODE_TYPES:
+            THROW_RTE( "Unreachable" );
+        default:
+            THROW_RTE( "Unknown node type" );
+    }
+}
+
+network::Message LeafRequestConversation::RootExe( const network::Message&     request,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    switch ( m_leaf.m_nodeType )
+    {
+        case network::Node::Executor:
+            return getExeSender( yield_ctx ).RootExe( request );
+        case network::Node::Terminal:
+        case network::Node::Tool:
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::Leaf:
+        case network::Node::TOTAL_NODE_TYPES:
+            THROW_RTE( "Unreachable" );
+        default:
+            THROW_RTE( "Unknown node type" );
+    }
+}
 
 } // namespace service
 } // namespace mega

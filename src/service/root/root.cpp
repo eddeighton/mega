@@ -2,6 +2,7 @@
 #include "root.hpp"
 #include "request.hpp"
 #include "pipeline.hpp"
+#include "job.hpp"
 
 #include "mega/common.hpp"
 
@@ -117,14 +118,33 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
     SPDLOG_TRACE( "Root::joinConversation {}", network::getMsgNameFromID( network::getMsgID( msg ) ) );
     switch ( header.getMessageID() )
     {
-        // case network::daemon_root::MSG_ExePipelineReadyForWork_Request::ID:
-        // case network::daemon_root::MSG_TermPipelineRun_Request::ID:
-        //     return network::ConversationBase::Ptr(
-        //         new RootPipelineConversation( *this, header.getConversationID(), originatingConnectionID ) );
-        default:
-            return network::ConversationBase::Ptr(
-                new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+        case network::daemon_root::MSG_ExeRoot_Request::ID:
+        {
+            const network::daemon_root::MSG_ExeRoot_Request& actualMsg
+                = network::daemon_root::MSG_ExeRoot_Request::get( msg );
+            switch ( actualMsg.request.index )
+            {
+                case network::job::MSG_JobReadyForWork_Request::ID:
+                    return network::ConversationBase::Ptr(
+                        new RootJobConversation( *this, header.getConversationID(), originatingConnectionID ) );
+            }
+        }
+        break;
+        case network::daemon_root::MSG_TermRoot_Request::ID:
+        {
+            const network::daemon_root::MSG_TermRoot_Request& actualMsg
+                = network::daemon_root::MSG_TermRoot_Request::get( msg );
+            switch ( actualMsg.request.index )
+            {
+                case network::pipeline::MSG_PipelineRun_Request::ID:
+                    return network::ConversationBase::Ptr(
+                        new RootPipelineConversation( *this, header.getConversationID(), originatingConnectionID ) );
+            }
+        }
+        break;
     }
+    return network::ConversationBase::Ptr(
+        new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
 }
 
 } // namespace service

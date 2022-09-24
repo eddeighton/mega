@@ -3,10 +3,53 @@
 
 #include "service/executor.hpp"
 
+#include "service/protocol/model/stash.hxx"
+
 namespace mega
 {
 namespace service
 {
+
+std::vector< network::ConversationID >
+ExecutorRequestConversation::JobStart( const mega::utilities::ToolChain&                            toolChain,
+                                       const mega::pipeline::Configuration&                         configuration,
+                                       const network::ConversationID&                               rootConversationID,
+                                       const std::vector< std::vector< network::ConversationID > >& resultJobs,
+                                       boost::asio::yield_context&                                  yield_ctx )
+{
+    mega::pipeline::Pipeline::Ptr pPipeline;
+    {
+        std::ostringstream osLog;
+        pPipeline = pipeline::Registry::getPipeline( toolChain, configuration, osLog );
+        if ( !pPipeline )
+        {
+            SPDLOG_ERROR( "PIPELINE: Executor: Failed to load pipeline: {}", configuration.getPipelineID() );
+            THROW_RTE( "Executor: Failed to load pipeline: " << configuration.get() );
+        }
+        else
+        {
+            SPDLOG_TRACE( "PIPELINE: {}", osLog.str() );
+        }
+    }
+
+    std::vector< network::ConversationID > jobIDs;
+    std::vector< JobConversation::Ptr >    jobs;
+    for ( int i = 0; i < m_executor.getNumThreads(); ++i )
+    {
+        JobConversation::Ptr pJob = std::make_shared< JobConversation >(
+            m_executor, m_executor.createConversationID( m_executor.getLeafSender().getConnectionID() ), pPipeline,
+            rootConversationID );
+        jobIDs.push_back( pJob->getID() );
+        jobs.push_back( pJob );
+    }
+
+    for ( JobConversation::Ptr pJob : jobs )
+    {
+        m_executor.conversationInitiated( pJob, m_executor.getLeafSender() );
+    }
+
+    return jobIDs;
+}
 
 JobConversation::JobConversation( Executor& executor, const network::ConversationID& conversationID,
                                   mega::pipeline::Pipeline::Ptr  pPipeline,
@@ -20,17 +63,18 @@ JobConversation::JobConversation( Executor& executor, const network::Conversatio
 
 network::Message JobConversation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
+    // base already inherits job interface
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
-/*
-void JobConversation::RootPipelineStartTask( const mega::pipeline::TaskDescriptor& task,
-                                             boost::asio::yield_context&           yield_ctx )
+network::PipelineResult JobConversation::JobStartTask( const mega::pipeline::TaskDescriptor& task,
+                                                       boost::asio::yield_context&           yield_ctx )
 {
-    m_pYieldCtx = &yield_ctx;
+    m_resultOpt.reset();
     m_pPipeline->execute( task, *this, *this, *this );
+    VERIFY_RTE( m_resultOpt.has_value() );
+    return m_resultOpt.value();
 }
-*/
 
 // pipeline::DependencyProvider
 EG_PARSER_INTERFACE* JobConversation::getParser() { return m_executor.m_pParser.get(); }
@@ -39,50 +83,46 @@ EG_PARSER_INTERFACE* JobConversation::getParser() { return m_executor.m_pParser.
 
 void JobConversation::onStarted( const std::string& strMsg )
 {
-    // getLeafRequest( *m_pYieldCtx ).ExePipelineWorkProgress( strMsg );
+    getRootRequest< network::job::Request_Encoder >( *m_pYieldCtx ).JobProgress( strMsg );
 }
 
 void JobConversation::onProgress( const std::string& strMsg )
 {
-    // getLeafRequest( *m_pYieldCtx ).ExePipelineWorkProgress( strMsg );
+    getRootRequest< network::job::Request_Encoder >( *m_pYieldCtx ).JobProgress( strMsg );
 }
 
 void JobConversation::onFailed( const std::string& strMsg )
 {
-    // getLeafResponse( *m_pYieldCtx ).RootPipelineStartTask( network::PipelineResult( false, strMsg, {} ) );
+    m_resultOpt = network::PipelineResult( false, strMsg, {} );
 }
 
 void JobConversation::onCompleted( const std::string& strMsg )
 {
-    // getLeafResponse( *m_pYieldCtx ).RootPipelineStartTask( network::PipelineResult( true, strMsg, {} ) );
+    m_resultOpt = network::PipelineResult( true, strMsg, {} );
 }
 
 // pipeline::Stash
 task::FileHash JobConversation::getBuildHashCode( const boost::filesystem::path& filePath )
 {
-    // return getLeafRequest( *m_pYieldCtx ).ExeGetBuildHashCode( filePath );
-    THROW_RTE( "TODO" );
+    return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).BuildGetHashCode( filePath );
 }
 void JobConversation::setBuildHashCode( const boost::filesystem::path& filePath, task::FileHash hashCode )
 {
-    // getLeafRequest( *m_pYieldCtx ).ExeSetBuildHashCode( filePath, hashCode );
-    THROW_RTE( "TODO" );
+    getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).BuildSetHashCode( filePath, hashCode );
 }
 void JobConversation::stash( const boost::filesystem::path& file, task::DeterminantHash code )
 {
-    // getLeafRequest( *m_pYieldCtx ).ExeStash( file, code );
-    THROW_RTE( "TODO" );
+    getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).StashStash( file, code );
 }
 bool JobConversation::restore( const boost::filesystem::path& file, task::DeterminantHash code )
 {
-    // return getLeafRequest( *m_pYieldCtx ).ExeRestore( file, code );
-    THROW_RTE( "TODO" );
+    return getRootRequest< network::stash::Request_Encoder >( *m_pYieldCtx ).StashRestore( file, code );
 }
 
 void JobConversation::run( boost::asio::yield_context& yield_ctx )
 {
-    // getLeafRequest( yield_ctx ).ExePipelineReadyForWork( m_rootConversationID );
-    THROW_RTE( "TODO" );
+    m_pYieldCtx = &yield_ctx;
+    getRootRequest< network::job::Request_Encoder >( yield_ctx ).JobReadyForWork( m_rootConversationID );
 }
 
 } // namespace service
