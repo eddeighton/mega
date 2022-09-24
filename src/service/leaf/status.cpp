@@ -13,14 +13,18 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
                                                     boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "LeafRequestConversation::GetVersion" );
-    
+
     network::Status status{ childNodeStatus };
     {
-        std::ostringstream os;
-        const std::size_t  szMachineID = m_leaf.m_mpo.getMachineID();
-        const std::size_t  szProcessID = m_leaf.m_mpo.getProcessID();
-        os << "LEAF: " << m_leaf.m_strProcessName << " " << szMachineID << "." << szProcessID;
-        status.setDescription( os.str() );
+        std::vector< network::ConversationID > conversations;
+        for ( const auto& [ id, pCon ] : m_leaf.m_conversations )
+        {
+            conversations.push_back( id );
+        }
+        status.setConversationID( conversations );
+        status.setMPO( m_leaf.m_mpo );
+        status.setDescription( m_leaf.m_strProcessName );
+
     }
 
     return status;

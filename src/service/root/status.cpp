@@ -20,9 +20,13 @@ network::Status RootRequestConversation::GetStatus( const std::vector< network::
 
     network::Status status{ childNodeStatus };
     {
-        std::ostringstream os;
-        os << "ROOT: " << m_root.m_strProcessName;
-        status.setDescription( os.str() );
+        std::vector< network::ConversationID > conversations;
+        for ( const auto& [ id, pCon ] : m_root.m_conversations )
+        {
+            conversations.push_back( id );
+        }
+        status.setConversationID( conversations );
+        status.setDescription( m_root.m_strProcessName );
     }
 
     return status;

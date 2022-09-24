@@ -8,16 +8,20 @@ namespace service
 
 // network::project::Impl
 network::Status DaemonRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                   boost::asio::yield_context&       yield_ctx )
+                                                      boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::GetStatus" );
-    
+
     network::Status status{ childNodeStatus };
     {
-        std::ostringstream os;
-        const std::size_t  szMachineID = m_daemon.m_mpo.getMachineID();
-        os << "DAEMON: " << m_daemon.m_strProcessName << " " << szMachineID;
-        status.setDescription( os.str() );
+        std::vector< network::ConversationID > conversations;
+        for ( const auto& [ id, pCon ] : m_daemon.m_conversations )
+        {
+            conversations.push_back( id );
+        }
+        status.setConversationID( conversations );
+        status.setMPO( m_daemon.m_mpo );
+        status.setDescription( m_daemon.m_strProcessName );
     }
 
     return status;
