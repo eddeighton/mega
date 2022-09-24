@@ -41,8 +41,12 @@ public:
                                                              const network::Header&       header,
                                                              const network::Message&      msg );
 
-    network::Status         GetNetworkStatus();
-    network::PipelineResult PipelineRun( const pipeline::Configuration& pipelineConfig );
+    network::MegastructureInstallation GetMegastructureInstallation();
+    network::Project                   GetProject();
+    void                               SetProject( const network::Project& project );
+    void                               ClearStash();
+    network::Status                    GetNetworkStatus();
+    network::PipelineResult            PipelineRun( const pipeline::Configuration& pipelineConfig );
 
     network::Sender& getLeafSender() { return m_leaf; }
 

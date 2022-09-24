@@ -41,9 +41,9 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         // clang-format off
         commandOptions.add_options()
-            ( "set",    po::value< boost::filesystem::path >( &projectPath ),    "Set project" )
-            ( "get",    po::bool_switch( &bGetProject ),                         "Get current project" )
-            ;
+        ( "set",    po::value< boost::filesystem::path >( &projectPath ), "Set project" )
+        ( "get",    po::bool_switch( &bGetProject ),                      "Get current project" )
+        ;
         // clang-format on
     }
 
@@ -59,21 +59,60 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         if ( !projectPath.empty() )
         {
-            THROW_RTE( "TODO" );
-            // mega::service::Terminal      terminal;
-            // const mega::network::Project project( projectPath );
-            // terminal.SetProject( project );
+            mega::service::Terminal      terminal;
+            const mega::network::Project project( projectPath );
+            terminal.SetProject( project );
         }
         else if ( bGetProject )
         {
-            THROW_RTE( "TODO" );
-            // mega::service::Terminal      terminal;
-            // const mega::network::Project project = terminal.GetProject();
-            // std::cout << project.getProjectInstallPath().string() << std::endl;
+            mega::service::Terminal      terminal;
+            const mega::network::Project project = terminal.GetProject();
+            std::cout << project.getProjectInstallPath().string() << std::endl;
         }
-        else
+        else // if ( bGetInstallInfo )
         {
-            std::cout << "Unrecognised project command" << std::endl;
+            mega::service::Terminal terminal;
+            const mega::network::Project     project   = terminal.GetProject();
+            const auto                       result    = terminal.GetMegastructureInstallation();
+            const mega::utilities::ToolChain toolChain = result.getToolchainXML();
+
+            std::ostringstream osProject;
+            {
+                if ( project.isEmpty() )
+                {
+                    osProject << "NO PROJECT";
+                }
+                else
+                {
+                    osProject << "Project Install:    " << project.getProjectInstallPath().string() << "\n";
+                    osProject << "Project Bin:        " << project.getProjectBin().string() << "\n";
+                    osProject << "Project Database:   " << project.getProjectDatabase().string() << "\n";
+                    osProject << "Project Termp Dir:  " << project.getProjectTempDir().string() << "\n";
+                }
+            }
+
+            // clang-format off
+            std::cout   << "Installation:       " << result.getInstallationPath().string() << "\n"
+
+                        << "Clang Version:      " << toolChain.strClangCompilerVersion << "\n"
+
+                        << "parserDllPath:      " << toolChain.parserDllPath.string() << "\n"
+                        << "megaCompilerPath:   " << toolChain.megaCompilerPath.string() << "\n"
+                        << "clangCompilerPath:  " << toolChain.clangCompilerPath.string() << "\n"
+                        << "clangPluginPath:    " << toolChain.clangPluginPath.string() << "\n"
+                        << "databasePath:       " << toolChain.databasePath.string() << "\n"
+
+                        << "parserDllHash:      " << toolChain.parserDllHash.toHexString() << "\n"
+                        << "megaCompilerHash:   " << toolChain.megaCompilerHash.toHexString() << "\n"
+                        << "clangPluginHash:    " << toolChain.clangPluginHash.toHexString() << "\n"
+                        << "databaseVersion:    " << toolChain.databaseVersion.toHexString() << "\n"
+                        << "clangCompilerHash:  " << toolChain.clangCompilerHash.toHexString() << "\n"
+                        << "toolChainHash:      " << toolChain.toolChainHash.toHexString() << "\n"
+
+                        << osProject.str()
+
+                        << std::endl;
+            // clang-format on
         }
     }
 }

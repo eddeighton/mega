@@ -42,6 +42,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_project.cpp
 		${DRIVER_SOURCE_DIR}/command_sim.cpp
 		${DRIVER_SOURCE_DIR}/command_status.cpp
+		${DRIVER_SOURCE_DIR}/command_stash.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 

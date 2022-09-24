@@ -17,6 +17,8 @@
 #include "service/protocol/model/term_leaf.hxx"
 #include "service/protocol/model/pipeline.hxx"
 #include "service/protocol/model/status.hxx"
+#include "service/protocol/model/project.hxx"
+#include "service/protocol/model/stash.hxx"
 
 #include "common/requireSemicolon.hpp"
 
@@ -136,6 +138,27 @@ network::Message Terminal::rootRequest( const network::Message& message )
     {
         return std::get< network::Message >( result.value() );
     }
+}
+
+network::MegastructureInstallation Terminal::GetMegastructureInstallation()
+{
+    //
+    return getRootRequest< network::project::Request_Encoder >().GetMegastructureInstallation();
+}
+network::Project Terminal::GetProject()
+{
+    //
+    return getRootRequest< network::project::Request_Encoder >().GetProject();
+}
+void Terminal::SetProject( const network::Project& project )
+{
+    //
+    getRootRequest< network::project::Request_Encoder >().SetProject( project );
+}
+void Terminal::ClearStash()
+{
+    //
+    getRootRequest< network::stash::Request_Encoder >().StashClear();
 }
 
 network::Status Terminal::GetNetworkStatus()
