@@ -28,7 +28,6 @@ public:
 
     // network::ConversationManager
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Header&       header,
                                                              const network::Message&      msg );
 
 private:

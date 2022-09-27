@@ -99,11 +99,10 @@ void Daemon::shutdown()
 }
 
 network::ConversationBase::Ptr Daemon::joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                         const network::Header&       header,
                                                          const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new DaemonRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+        new DaemonRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
 }
 
 } // namespace service

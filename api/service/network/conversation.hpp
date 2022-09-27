@@ -24,12 +24,6 @@ namespace network
 
 class ConversationManager;
 
-struct ReceivedMsg
-{
-    ConnectionID connectionID;
-    Message      msg;
-};
-
 ////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 class ConversationBase : public std::enable_shared_from_this< ConversationBase >, public Sender
@@ -40,13 +34,12 @@ public:
     using Ptr = std::shared_ptr< ConversationBase >;
     using ID  = ConversationID;
 
-    virtual const ID&          getID() const                                                           = 0;
-    virtual void               send( const ReceivedMsg& msg )                                          = 0;
-    //virtual void               post( const ReceivedMsg& msg, const network::ConversationID& sourceID ) = 0;
-    virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )  = 0;
-    virtual void               run( boost::asio::yield_context& yield_ctx )                            = 0;
-    virtual const std::string& getProcessName() const                                                  = 0;
-    virtual void               onDisconnect( const ConnectionID& connectionID )                        = 0;
+    virtual const ID&          getID() const                                                          = 0;
+    virtual void               send( const ReceivedMsg& msg )                                         = 0;
+    virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
+    virtual void               run( boost::asio::yield_context& yield_ctx )                           = 0;
+    virtual const std::string& getProcessName() const                                                 = 0;
+    virtual void               onDisconnect( const ConnectionID& connectionID )                       = 0;
 
 protected:
     virtual void requestStarted( const ConnectionID& connectionID ) = 0;
@@ -96,7 +89,6 @@ protected:
 
 public:
     virtual void send( const ReceivedMsg& msg ) = 0;
-    //virtual void post( const ReceivedMsg& msg, const network::ConversationID& sourceID ) = 0;
 
     // Sender
     virtual ConnectionID getConnectionID() const
@@ -109,17 +101,16 @@ public:
         m_selfConnectionID = os.str();
         return m_selfConnectionID.value();
     }
-    virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
-                                            boost::asio::yield_context& yield_ctx )
+    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
         const ReceivedMsg rMsg{ getConnectionID(), msg };
         send( rMsg );
         return boost::system::error_code{};
     }
-    virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
+    virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( strErrorMsg ) };
+        const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.receiver, strErrorMsg ) };
         send( rMsg );
     }
 
@@ -140,7 +131,7 @@ protected:
     virtual void    dispatchResponse( const network::ConnectionID& connectionID, const Message& msg,
                                       boost::asio::yield_context& yield_ctx )
         = 0;
-    virtual void error( const ConnectionID& connectionID, const std::string& strErrorMsg,
+    virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx )
         = 0;
 
@@ -167,7 +158,8 @@ class InThreadConversation : public Conversation
     using MessageChannel = boost::asio::experimental::channel< void( boost::system::error_code, ReceivedMsg ) >;
 
 public:
-    InThreadConversation( ConversationManager& conversationManager, const ConversationID& conversationID,
+    InThreadConversation( ConversationManager&          conversationManager,
+                          const ConversationID&         conversationID,
                           std::optional< ConnectionID > originatingConnectionID = std::nullopt );
 
 protected:
@@ -186,7 +178,8 @@ class ConcurrentConversation : public Conversation
         = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, ReceivedMsg ) >;
 
 public:
-    ConcurrentConversation( ConversationManager& conversationManager, const ConversationID& conversationID,
+    ConcurrentConversation( ConversationManager&          conversationManager,
+                            const ConversationID&         conversationID,
                             std::optional< ConnectionID > originatingConnectionID = std::nullopt );
 
 protected:

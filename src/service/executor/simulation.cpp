@@ -24,7 +24,6 @@ namespace service
 
 Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
-    //, m_requestChannel( executor.m_io_context )
     , m_timer( executor.m_io_context )
 {
 }
@@ -146,7 +145,7 @@ void Simulation::clock()
     // SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
     //  send the clock tick msg
     using namespace network::sim;
-    send( network::ReceivedMsg{ getConnectionID(), MSG_SimClock_Request::make( MSG_SimClock_Request{} ) } );
+    send( network::ReceivedMsg{ getConnectionID(), MSG_SimClock_Request::make( getID(), MSG_SimClock_Request{} ) } );
 }
 
 void Simulation::cycle()
@@ -301,7 +300,7 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
                     {
                         SPDLOG_ERROR(
                             "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
-                        const network::ReceivedMsg rMsg{ m_stack.back(), network::make_error_msg( "Disconnection" ) };
+                        const network::ReceivedMsg rMsg{ m_stack.back(), network::make_error_msg( msg.msg.receiver, "Disconnection" ) };
                         send( rMsg );
                     }
                 }
@@ -331,7 +330,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
     // send request to root to start - will get request back to run
     network::sim::Request_Encoder request(
         [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-        { return rootRequest.MPRoot( msg, mega::MP{} ); } );
+        { return rootRequest.MPRoot( msg, mega::MP{} ); }, getID() );
     request.SimStart();
 }
 

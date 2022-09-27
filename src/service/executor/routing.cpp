@@ -41,16 +41,17 @@ void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID&
 {
     if ( ( m_executor.getLeafSender().getConnectionID() == connectionID ) )
     {
-        m_executor.getLeafSender().send( getID(), msg, yield_ctx );
+        m_executor.getLeafSender().send( msg, yield_ctx );
     }
     else if ( m_executor.m_receiverChannel.getSender()->getConnectionID() == connectionID )
     {
-        m_executor.getLeafSender().send( getID(), msg, yield_ctx );
+        m_executor.getLeafSender().send( msg, yield_ctx );
     }
-    /*else if ( network::ConversationBase::Ptr pConversation = m_executor.findConversation( connectionID ) )
+    else if ( network::ConversationBase::Ptr pConversation = m_executor.findExistingConversation( msg.receiver ) )
     {
+        SPDLOG_TRACE( "Found response conversation within executor" );
         pConversation->send( network::ReceivedMsg{ connectionID, msg } );
-    }*/
+    }
     else
     {
         SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection for response: {}", connectionID );
@@ -58,24 +59,24 @@ void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID&
     }
 }
 
-void ExecutorRequestConversation::error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
+void ExecutorRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                          boost::asio::yield_context& yield_ctx )
 {
-    if ( ( m_executor.getLeafSender().getConnectionID() == connectionID )
-         || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == connectionID ) )
+    if ( ( m_executor.getLeafSender().getConnectionID() == msg.connectionID )
+         || ( m_executor.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID ) )
     {
-        m_executor.getLeafSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+        m_executor.getLeafSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
-    else if ( m_executor.m_receiverChannel.getSender()->getConnectionID() == connectionID )
+    else if ( m_executor.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID )
     {
-        m_executor.m_receiverChannel.getSender()->sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+        m_executor.m_receiverChannel.getSender()->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
     else
     {
         SPDLOG_ERROR( "ExecutorRequestConversation: Cannot resolve connection in error handler: {} for error: {}",
-                      connectionID, strErrorMsg );
-        THROW_RTE( "ExecutorRequestConversation: Executor Critical error in error handler: " << connectionID << " : "
-                                                                                             << strErrorMsg );
+                      msg.connectionID, strErrorMsg );
+        THROW_RTE( "ExecutorRequestConversation: Executor Critical error in error handler: " << msg.connectionID
+                                                                                             << " : " << strErrorMsg );
     }
 }
 

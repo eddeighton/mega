@@ -25,15 +25,9 @@ public:
     using Ptr         = std::unique_ptr< Sender >;
     virtual ~Sender() = 0;
 
-    virtual ConnectionID getConnectionID() const = 0;
-
-    virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
-                                            boost::asio::yield_context& yield_ctx )
-        = 0;
-    /*virtual boost::system::error_code post( const ConversationID& sourceID, const ConversationID& targetID,
-                                            const Message& msg, boost::asio::yield_context& yield_ctx )
-        = 0;*/
-    virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
+    virtual ConnectionID              getConnectionID() const                                           = 0;
+    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx ) = 0;
+    virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
         = 0;
 };

@@ -21,19 +21,13 @@ namespace mega
 namespace network
 {
 
-struct ChannelMsg
-{
-    Header  header;
-    Message msg;
-};
+using ChannelMsg = Message;
 
 using ConcurrentChannel
     = boost::asio::experimental::concurrent_channel< void( boost::system::error_code, ChannelMsg ) >;
 using Channel = boost::asio::experimental::channel< void( boost::system::error_code, ChannelMsg ) >;
 
 ConnectionID makeConnectionID( boost::asio::ip::tcp::socket& socket );
-// ConnectionID makeConnectionID( ConcurrentChannel& channel );
-// ConnectionID makeConnectionID( Channel& channel );
 
 } // namespace network
 } // namespace mega

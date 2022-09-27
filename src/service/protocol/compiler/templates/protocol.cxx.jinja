@@ -17,10 +17,17 @@ namespace network
 {
 namespace {{ filename }}
 {
-Request_Encoder::Request_Encoder( Sender pSender )
+Request_Encoder::Request_Encoder( Sender pSender, const ConversationID& sender )
     :   m_pSender( pSender )
+    ,   m_sender( sender )
+    ,   m_receiver( sender )
 {
-
+}
+Request_Encoder::Request_Encoder( Sender pSender, const ConversationID& sender, const ConversationID& receiver )
+    :   m_pSender( pSender )
+    ,   m_sender( sender )
+    ,   m_receiver( receiver )
+{
 }
 {% for request in requests %}
 {{ request.return_type }} Request_Encoder::{{ request.name }}
@@ -34,6 +41,7 @@ Request_Encoder::Request_Encoder( Sender pSender )
 {
     Message result = m_pSender( MSG_{{ request.name }}_Request::make
     (
+        m_sender, m_receiver,
         MSG_{{ request.name }}_Request
         {
 {%for p in request.params%}
@@ -51,6 +59,18 @@ Request_Sender::Request_Sender( ConversationBase& conversation,
                                 Sender& sender,
                                 boost::asio::yield_context&   yield_ctx )
     : m_conversation( conversation )
+    , m_receiver( m_conversation.getID() )
+    , m_sender( sender )
+    , m_yield_ctx( yield_ctx )
+{
+}
+
+Request_Sender::Request_Sender( ConversationBase& conversation, 
+                                const ConversationID& receiver,
+                                Sender& sender,
+                                boost::asio::yield_context&   yield_ctx )
+    : m_conversation( conversation )
+    , m_receiver( receiver )
     , m_sender( sender )
     , m_yield_ctx( yield_ctx )
 {
@@ -72,6 +92,7 @@ Request_Sender::Request_Sender( ConversationBase& conversation,
     {
         const Message msg = MSG_{{ request.name }}_Request::make
         (
+            m_conversation.getID(), m_receiver,
             MSG_{{ request.name }}_Request
             {
 {%for p in request.params%}
@@ -80,7 +101,7 @@ Request_Sender::Request_Sender( ConversationBase& conversation,
             }
         );
 
-        if ( const boost::system::error_code ec = m_sender.send( m_conversation.getID(), msg, m_yield_ctx ) )
+        if ( const boost::system::error_code ec = m_sender.send( msg, m_yield_ctx ) )
         {
             THROW_RTE( "Error writing: " << ec.what() );
         }
@@ -95,60 +116,6 @@ Request_Sender::Request_Sender( ConversationBase& conversation,
 {% endif %}
 }
 {% endfor %}
-
-
-Request_Poster::Request_Poster( ConversationBase& conversation,
-                                const ConversationID& targetConversationID,
-                                Sender& sender,
-                                boost::asio::yield_context& yield_ctx )
-    : m_conversation( conversation )
-    , m_targetConversationID( targetConversationID )
-    , m_sender( sender )
-    , m_yield_ctx( yield_ctx )
-{
-}
-
-{% for request in requests %}
-{{ request.return_type }} Request_Poster::{{ request.name }}
-( 
-{%for p in request.params%}
-    const {{p.type}}& 
-    {{p.name}}
-    {% if not loop.is_last %}, {%endif%}
-{%endfor%} 
-)
-{
-    SUSPEND_MPO_CONTEXT();
-    ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_conversation, m_sender.getConnectionID() );
-
-    {
-        const Message msg = MSG_{{ request.name }}_Request::make
-        (
-            MSG_{{ request.name }}_Request
-            {
-{%for p in request.params%}
-                {{p.name}}{% if not loop.is_last %},{%endif%}
-{%endfor%} 
-            }
-        );
-
-        const boost::system::error_code ec;
-        //if ( ec = m_sender.post( m_conversation.getID(), m_targetConversationID, msg, m_yield_ctx ) )
-        {
-            THROW_RTE( "Error writing: " << ec.what() );
-        }
-    }
-
-    const Message msg = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
-    VERIFY_RTE_MSG( getMsgID( msg ) == {{ filename }}::MSG_{{ request.name }}_Response::ID,
-        "Unexpected reponse of type: " << getMsgNameFromID( getMsgID( msg ) ) << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
-    RESUME_MPO_CONTEXT();
-{%if request.return_type != "void" %}
-    return {{ filename }}::MSG_{{ request.name }}_Response::get( msg ).{{ request.return_msg_member }};
-{% endif %}
-}
-{% endfor %}
-
 
 
 Message Impl::dispatchRequest( const Message& message, boost::asio::yield_context& yield_ctx )
@@ -170,11 +137,13 @@ Message Impl::dispatchRequest( const Message& message, boost::asio::yield_contex
             );
             return MSG_{{ request.name }}_Response::make
             (
+                message.receiver, message.sender,
                 MSG_{{ request.name }}_Response{}
             );
 {% else %}
             return MSG_{{ request.name }}_Response::make
             (
+                message.receiver, message.sender,
                 MSG_{{ request.name }}_Response
                 {
                     {{ request.name }}

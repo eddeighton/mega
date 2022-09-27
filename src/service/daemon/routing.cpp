@@ -39,11 +39,11 @@ void DaemonRequestConversation::dispatchResponse( const network::ConnectionID& c
 {
     if ( m_daemon.m_rootClient.getConnectionID() == connectionID )
     {
-        m_daemon.m_rootClient.send( getID(), msg, yield_ctx );
+        m_daemon.m_rootClient.send( msg, yield_ctx );
     }
     else if ( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( connectionID ) )
     {
-        pLeafConnection->send( getID(), msg, yield_ctx );
+        pLeafConnection->send( msg, yield_ctx );
     }
     else
     {
@@ -51,21 +51,21 @@ void DaemonRequestConversation::dispatchResponse( const network::ConnectionID& c
     }
 }
 
-void DaemonRequestConversation::error( const network::ConnectionID& connectionID,
-                                       const std::string&           strErrorMsg,
-                                       boost::asio::yield_context&  yield_ctx )
+void DaemonRequestConversation::error( const network::ReceivedMsg& msg,
+                                       const std::string&          strErrorMsg,
+                                       boost::asio::yield_context& yield_ctx )
 {
-    if ( m_daemon.m_rootClient.getConnectionID() == connectionID )
+    if ( m_daemon.m_rootClient.getConnectionID() == msg.connectionID )
     {
-        m_daemon.m_rootClient.sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+        m_daemon.m_rootClient.sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
-    else if ( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( connectionID ) )
+    else if ( network::Server::Connection::Ptr pLeafConnection = m_daemon.m_server.getConnection( msg.connectionID ) )
     {
-        pLeafConnection->sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+        pLeafConnection->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
     else
     {
-        SPDLOG_ERROR( "Daemon cannot resolve connection: {} on error: {}", connectionID, strErrorMsg );
+        SPDLOG_ERROR( "Daemon cannot resolve connection: {} on error: {}", msg.connectionID, strErrorMsg );
     }
 }
 

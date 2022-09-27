@@ -76,14 +76,14 @@ Terminal::~Terminal()
 void Terminal::shutdown() { m_receiverChannel.stop(); }
 
 network::ConversationBase::Ptr Terminal::joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                           const network::Header&       header,
                                                            const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new TerminalRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+        new TerminalRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
 }
 
-network::Message Terminal::routeGenericRequest( const network::Message& message, RouterFactory router )
+network::Message Terminal::routeGenericRequest( const network::ConversationID& conversationID,
+                                                const network::Message& message, RouterFactory router )
 {
     SPDLOG_TRACE( "Terminal::rootRequest" );
     class RootConversation : public TerminalRequestConversation
@@ -123,7 +123,6 @@ network::Message Terminal::routeGenericRequest( const network::Message& message,
     {
         auto& sender         = getLeafSender();
         auto  connectionID   = sender.getConnectionID();
-        auto  conversationID = createConversationID( connectionID );
         conversationInitiated( network::ConversationBase::Ptr( new RootConversation(
                                    *this, conversationID, connectionID, message, router, result ) ),
                                sender );
@@ -215,11 +214,7 @@ std::string Terminal::PingMP( const mega::MP& mp )
     return getMPRequest< network::status::Request_Encoder >( mp ).Ping();
 }
 
-std::string Terminal::PingMPO( const mega::MPO& mpo )
-{
-    THROW_RTE( "TODO" );
-}
-
+std::string Terminal::PingMPO( const mega::MPO& mpo ) { THROW_RTE( "TODO" ); }
 
 } // namespace service
 } // namespace mega

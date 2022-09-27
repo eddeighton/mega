@@ -32,7 +32,8 @@ class Request_Encoder
 {
 public:
     using Sender = std::function< Message(const Message&) >;
-    Request_Encoder( Sender pSender );
+    Request_Encoder( Sender pSender, const ConversationID& sender );
+    Request_Encoder( Sender pSender, const ConversationID& sender, const ConversationID& receiver );
 {% for request in requests %}
     {{ request.return_type }} {{ request.name }}
     (
@@ -45,6 +46,8 @@ public:
 {% endfor %}
 private:
     Sender m_pSender;
+    const ConversationID m_sender;
+    const ConversationID m_receiver;
 };
 
 class Request_Sender
@@ -53,29 +56,8 @@ public:
     Request_Sender( ConversationBase& conversation,
                     Sender& sender,
                     boost::asio::yield_context&   yield_ctx );
-
-{% for request in requests %}
-    {{ request.return_type }} {{ request.name }}
-    (
-{%for p in request.params%}
-    const {{p.type}}& 
-    {{p.name}}
-    {% if not loop.is_last %}, {%endif%}
-{%endfor%}
-    );
-{% endfor %}
-
-private:
-    ConversationBase&             m_conversation;
-    Sender&                       m_sender;
-    boost::asio::yield_context&   m_yield_ctx;
-};
-
-class Request_Poster
-{
-public:
-    Request_Poster( ConversationBase& conversation,
-                    const ConversationID& targetConversationID,
+    Request_Sender( ConversationBase& conversation, 
+                    const ConversationID& receiver,
                     Sender& sender,
                     boost::asio::yield_context&   yield_ctx );
 
@@ -92,7 +74,7 @@ public:
 
 private:
     ConversationBase&             m_conversation;
-    const ConversationID          m_targetConversationID;
+    ConversationID                m_receiver;
     Sender&                       m_sender;
     boost::asio::yield_context&   m_yield_ctx;
 };

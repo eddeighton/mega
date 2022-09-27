@@ -49,7 +49,7 @@ public:
         , m_functor( functor )
     {
     }
-    
+
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx )
     {
         return network::tool_leaf::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
@@ -59,7 +59,8 @@ public:
     {
         network::sim::Request_Encoder request(
             [ rootRequest = getToolRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-            { return rootRequest.ToolRoot( msg ); } );
+            { return rootRequest.ToolRoot( msg ); },
+            getID() );
         request.SimStart();
     }
 
@@ -247,11 +248,10 @@ void Tool::shutdown()
 }
 
 network::ConversationBase::Ptr Tool::joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                       const network::Header&       header,
                                                        const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new ToolRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+        new ToolRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
 }
 
 void Tool::run( Tool::Functor& function )

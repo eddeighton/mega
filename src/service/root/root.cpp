@@ -114,11 +114,10 @@ network::MegastructureInstallation Root::getMegastructureInstallation()
 }
 
 network::ConversationBase::Ptr Root::joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                       const network::Header&       header,
                                                        const network::Message&      msg )
 {
     SPDLOG_TRACE( "Root::joinConversation {}", network::getMsgNameFromID( network::getMsgID( msg ) ) );
-    switch ( header.getMessageID() )
+    switch ( network::getMsgID( msg ) )
     {
         case network::mpo::MSG_MPRoot_Request::ID:
         {
@@ -128,7 +127,7 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
             {
                 case network::sim::MSG_SimStart_Request::ID:
                     return network::ConversationBase::Ptr( new RootSimulation(
-                        *this, header.getConversationID(), originatingConnectionID, actualMsg.mp ) );
+                        *this, getMsgReceiver( msg ), originatingConnectionID, actualMsg.mp ) );
             }
         }
         break;
@@ -140,7 +139,7 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
             {
                 case network::job::MSG_JobReadyForWork_Request::ID:
                     return network::ConversationBase::Ptr(
-                        new RootJobConversation( *this, header.getConversationID(), originatingConnectionID ) );
+                        new RootJobConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
             }
         }
         break;
@@ -152,13 +151,13 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
             {
                 case network::pipeline::MSG_PipelineRun_Request::ID:
                     return network::ConversationBase::Ptr(
-                        new RootPipelineConversation( *this, header.getConversationID(), originatingConnectionID ) );
+                        new RootPipelineConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
             }
         }
         break;
     }
     return network::ConversationBase::Ptr(
-        new RootRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+        new RootRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
 }
 
 } // namespace service

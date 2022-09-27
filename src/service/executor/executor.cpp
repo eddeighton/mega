@@ -62,8 +62,8 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
                         network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
         {
             network::exe_leaf::Request_Sender exe_leaf( con, sender, yield_ctx );
-            network::project::Request_Encoder project( [ &exe_leaf ]( const network::Message& msg )
-                                                       { return exe_leaf.ExeRoot( msg ); } );
+            network::project::Request_Encoder project(
+                [ &exe_leaf ]( const network::Message& msg ) { return exe_leaf.ExeRoot( msg ); }, con.getID() );
 
             thisRef.m_megastructureInstallation = project.GetMegastructureInstallation();
             VERIFY_RTE_MSG( !thisRef.m_megastructureInstallation.isEmpty(),
@@ -99,11 +99,10 @@ Executor::~Executor()
 void Executor::shutdown() { m_receiverChannel.stop(); }
 
 network::ConversationBase::Ptr Executor::joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                           const network::Header&       header,
                                                            const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new ExecutorRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+        new ExecutorRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
 }
 
 std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) const
@@ -132,7 +131,7 @@ mega::MPO Executor::createSimulation( network::ConversationBase&  callingConvers
         SPDLOG_TRACE( "Executor::createSimulation {}", pSimulation->getID() );
     }
 
-    network::sim::Request_Sender rq( callingConversation, *pSimulation, yield_ctx );
+    network::sim::Request_Sender rq( callingConversation, pSimulation->getID(), *pSimulation, yield_ctx );
     const mega::MPO              simMPO = rq.SimCreate();
     SPDLOG_TRACE( "Executor::createSimulation sinCreate returned {}", simMPO );
 
@@ -160,16 +159,5 @@ void Executor::conversationCompleted( network::ConversationBase::Ptr pConversati
     network::ConversationManager::conversationCompleted( pConversation );
 }
 
-network::ConversationBase::Ptr Executor::findConversation( const network::ConnectionID& connectionID )
-{
-    ReadLock lock( m_mutex );
-
-    for ( const auto& [ id, pCon ] : m_conversations )
-    {
-        if ( pCon->getConnectionID() == connectionID )
-            return pCon;
-    }
-    return network::ConversationBase::Ptr{};
-}
 } // namespace service
 } // namespace mega

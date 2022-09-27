@@ -32,11 +32,11 @@ void ToolRequestConversation::dispatchResponse( const network::ConnectionID& con
 {
     if ( m_tool.getLeafSender().getConnectionID() == connectionID )
     {
-        m_tool.getLeafSender().send( getID(), msg, yield_ctx );
+        m_tool.getLeafSender().send( msg, yield_ctx );
     }
     else if ( m_tool.m_receiverChannel.getSender()->getConnectionID() == connectionID )
     {
-        m_tool.getLeafSender().send( getID(), msg, yield_ctx );
+        m_tool.getLeafSender().send( msg, yield_ctx );
     }
     else
     {
@@ -44,21 +44,21 @@ void ToolRequestConversation::dispatchResponse( const network::ConnectionID& con
     }
 }
 
-void ToolRequestConversation::error( const network::ConnectionID& connection, const std::string& strErrorMsg,
+void ToolRequestConversation::error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                      boost::asio::yield_context& yield_ctx )
 {
-    if ( m_tool.getLeafSender().getConnectionID() == connection )
+    if ( m_tool.getLeafSender().getConnectionID() == msg.connectionID )
     {
-        m_tool.getLeafSender().sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+        m_tool.getLeafSender().sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
-    else if ( m_tool.m_receiverChannel.getSender()->getConnectionID() == connection )
+    else if ( m_tool.m_receiverChannel.getSender()->getConnectionID() == msg.connectionID )
     {
-        m_tool.m_receiverChannel.getSender()->sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+        m_tool.m_receiverChannel.getSender()->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
     else
     {
         // This can happen when initiating request has received exception - in which case
-        SPDLOG_ERROR( "Tool cannot resolve connection: {} on error: {}", connection, strErrorMsg );
+        SPDLOG_ERROR( "Tool cannot resolve connection: {} on error: {}", msg.connectionID, strErrorMsg );
     }
 }
 
@@ -68,24 +68,24 @@ network::tool_leaf::Request_Sender ToolRequestConversation::getToolRequest( boos
 }
 
 network::Message ToolRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
-                                                      boost::asio::yield_context& yield_ctx )
+                                                  boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
 }
 network::Message ToolRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
-                                                    boost::asio::yield_context& yield_ctx )
+                                                boost::asio::yield_context& yield_ctx )
 {
     network::mpo::Request_Sender leaf( *this, m_tool.getLeafSender(), yield_ctx );
     return leaf.MPUp( request, mp );
 }
 
 network::Message ToolRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
-                                                       boost::asio::yield_context& yield_ctx )
+                                                   boost::asio::yield_context& yield_ctx )
 {
     THROW_RTE( "TODO" );
 }
 network::Message ToolRequestConversation::MPOUp( const network::Message& request, const mega::MPO& mpo,
-                                                     boost::asio::yield_context& yield_ctx )
+                                                 boost::asio::yield_context& yield_ctx )
 {
     THROW_RTE( "TODO" );
 }

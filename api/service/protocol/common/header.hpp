@@ -81,35 +81,6 @@ std::istream& operator>>( std::istream& is, ConversationID& conversationID );
 
 using MessageID = mega::U32;
 
-class Header
-{
-public:
-    Header()
-        : m_messageID( 0U )
-    {
-    }
-
-    Header( MessageID messageID, const ConversationID& conversationID )
-        : m_messageID( messageID )
-        , m_conversationID( conversationID )
-    {
-    }
-
-    template < class Archive >
-    inline void serialize( Archive& archive, const unsigned int version )
-    {
-        archive& m_messageID;
-        archive& m_conversationID;
-    }
-
-    MessageID             getMessageID() const { return m_messageID; }
-    const ConversationID& getConversationID() const { return m_conversationID; }
-
-private:
-    MessageID      m_messageID;
-    ConversationID m_conversationID;
-};
-
 } // namespace network
 } // namespace mega
 

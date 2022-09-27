@@ -21,23 +21,23 @@ SM::Msg makeMsg( const mega::MPO& id, const mega::network::Message& msg )
 
 SM::Msg makeClock( const mega::MPO& id )
 {
-    return makeMsg( id, SM::Clock::make( SM::Clock{} ) );
+    return makeMsg( id, SM::Clock::make( {}, SM::Clock{} ) );
 }
 SM::Msg makeRead( const mega::MPO& id )
 {
-    return makeMsg( id, SM::Read::make( SM::Read{ id } ) );
+    return makeMsg( id, SM::Read::make( {}, SM::Read{ id } ) );
 }
 SM::Msg makeWrite( const mega::MPO& id )
 {
-    return makeMsg( id, SM::Write::make( SM::Write{ id } ) );
+    return makeMsg( id, SM::Write::make( {}, SM::Write{ id } ) );
 }
 SM::Msg makeRelease( const mega::MPO& id )
 {
-    return makeMsg( id, SM::Release::make( SM::Release{ id } ) );
+    return makeMsg( id, SM::Release::make( {}, SM::Release{ id } ) );
 }
 SM::Msg makeDestroy( const mega::MPO& id )
 {
-    return makeMsg( id, SM::Destroy::make( SM::Destroy{} ) );
+    return makeMsg( id, SM::Destroy::make( {}, SM::Destroy{} ) );
 }
 
 TEST( SimStateMachine, WaitForClock )

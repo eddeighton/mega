@@ -131,12 +131,12 @@ ConversationBase::Ptr ConversationManager::findExistingConversation( const Conve
     }
 }
 
-void ConversationManager::dispatch( const Header& header, const ReceivedMsg& msg )
+void ConversationManager::dispatch( const ReceivedMsg& msg )
 {
-    ConversationBase::Ptr pConversation = findExistingConversation( header.getConversationID() );
+    ConversationBase::Ptr pConversation = findExistingConversation( getMsgReceiver( msg.msg ) );
     if ( !pConversation )
     {
-        pConversation = joinConversation( msg.connectionID, header, msg.msg );
+        pConversation = joinConversation( msg.connectionID, msg.msg );
         conversationJoined( pConversation );
         // SPDLOG_TRACE( "Received msg {}. Started new conversation {}.",
         //               getMsgNameFromID( header.getMessageID() ),

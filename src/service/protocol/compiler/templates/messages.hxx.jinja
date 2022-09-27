@@ -35,6 +35,7 @@ namespace network
 struct Message
 {
     MessageID index = 0; // MSG_Error_Dispatch
+    ConversationID sender, receiver;
     std::any msg;
 
     operator bool() const { return index != 0; }
@@ -45,6 +46,12 @@ struct Message
     template < typename Archive >
     void load( Archive& ar, const unsigned int version );
     BOOST_SERIALIZATION_SPLIT_MEMBER()
+};
+
+struct ReceivedMsg
+{
+    ConnectionID connectionID;
+    Message      msg;
 };
 
 {%for message in messages%}
@@ -59,7 +66,8 @@ struct {{ message.name }}
 {%for member in message.members%}
     {{ member.type }} {{ member.name }}; 
 {%endfor%}
-    static Message make( const {{ message.name }}& msg );
+    static Message make( const ConversationID& sender, const ConversationID& receiver, const {{ message.name }}& msg );
+    static inline Message make( const ConversationID& sender, const {{ message.name }}& msg ) { return make( sender, sender, msg ); }
     static const {{ message.name }}& get( const Message& msg );
 };
 
@@ -67,30 +75,30 @@ struct {{ message.name }}
 {%endfor%}
 
 
-Message make_error_msg( const std::string& strErrorMsg );
+Message make_error_msg( const ConversationID& receiver, const std::string& strErrorMsg );
 
 bool isRequest( const Message& msg );
-Message decode( boost::archive::binary_iarchive& archive, MessageID msgID );
+Message decode( boost::archive::binary_iarchive& archive );
 void encode( boost::archive::binary_oarchive& archive, const Message& msg );
 
 template < typename Archive >
 void Message::save( Archive& ar, const unsigned int version ) const
 {
-    ar & index;
     encode( ar, *this );
 }
 
 template < typename Archive >
 void Message::load( Archive& ar, const unsigned int version )
 {
-    ar & index;
-    *this = decode( ar, index );
+    *this = decode( ar );
 }
 
 const char* getMsgName( const Message& msg );
 std::ostream& operator<<( std::ostream& os, const Message& msg );
 MessageID getMsgID( const Message& msg );
 const char* getMsgNameFromID( MessageID id );
+inline const ConversationID& getMsgSender( const Message& msg ) { return msg.sender; }
+inline const ConversationID& getMsgReceiver( const Message& msg ) { return msg.receiver; }
 
 void aggregate( Message& request, const std::vector< Message >& responses );
 

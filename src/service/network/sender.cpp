@@ -44,17 +44,14 @@ public:
 
     virtual ConnectionID getConnectionID() const { return m_connectionID; }
 
-    virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
-                                            boost::asio::yield_context& yield_ctx )
+    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
         using SendBuffer = std::vector< char >;
         SendBuffer buffer;
         {
             boost::interprocess::basic_vectorbuf< SendBuffer > os;
             {
-                const Header                    header( getMsgID( msg ), conversationID );
                 boost::archive::binary_oarchive oa( os );
-                oa&                             header;
                 encode( oa, msg );
             }
             const MessageSize size = os.vector().size();
@@ -76,17 +73,18 @@ public:
         }
     }
 
-    virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
+    virtual void sendErrorResponse( const network::ReceivedMsg& receivedMsg,
+                                    const std::string&          strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        Message msg = make_error_msg( strErrorMsg );
-        if ( const boost::system::error_code ec = send( conversationID, msg, yield_ctx ) )
+        Message msg = make_error_msg( receivedMsg.msg.receiver, strErrorMsg );
+        if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );
         }
         else
         {
-            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID, strErrorMsg );
+            SPDLOG_TRACE( "Sent error response for msg: {}", strErrorMsg );
         }
     }
 };
@@ -112,13 +110,11 @@ public:
 
     virtual ConnectionID getConnectionID() const { return m_connectionID; }
 
-    virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
-                                            boost::asio::yield_context& yield_ctx )
+    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
-        const ChannelMsg channelMsg{ Header{ static_cast< MessageID >( getMsgID( msg ) ), conversationID }, msg };
         boost::system::error_code ec;
         VERIFY_RTE_MSG( m_channel.is_open(), "Channel NOT open" );
-        m_channel.async_send( ec, channelMsg, yield_ctx );
+        m_channel.async_send( ec, msg, yield_ctx );
 
         if ( ec != boost::system::error_code() )
         {
@@ -134,21 +130,21 @@ public:
                 THROW_RTE( "Failed to send request due to channel closed: " << ec.what() );
             }
         }
-
         return ec;
     }
 
-    virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
+    virtual void sendErrorResponse( const network::ReceivedMsg& receivedMsg,
+                                    const std::string&          strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        Message msg = make_error_msg( strErrorMsg );
-        if ( const boost::system::error_code ec = send( conversationID, msg, yield_ctx ) )
+        Message msg = make_error_msg( receivedMsg.msg.receiver, strErrorMsg );
+        if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );
         }
         else
         {
-            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID, strErrorMsg );
+            SPDLOG_TRACE( "Sent error response for msg: {}", strErrorMsg );
         }
     }
 };
@@ -174,13 +170,11 @@ public:
 
     virtual ConnectionID getConnectionID() const { return m_connectionID; }
 
-    virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
-                                            boost::asio::yield_context& yield_ctx )
+    virtual boost::system::error_code send( const Message& msg, boost::asio::yield_context& yield_ctx )
     {
-        const ChannelMsg channelMsg{ Header{ static_cast< MessageID >( getMsgID( msg ) ), conversationID }, msg };
         boost::system::error_code ec;
         VERIFY_RTE_MSG( m_channel.is_open(), "Channel NOT open" );
-        m_channel.async_send( ec, channelMsg, yield_ctx );
+        m_channel.async_send( ec, msg, yield_ctx );
 
         if ( ec != boost::system::error_code() )
         {
@@ -200,17 +194,18 @@ public:
         return ec;
     }
 
-    virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
+    virtual void sendErrorResponse( const network::ReceivedMsg& receivedMsg,
+                                    const std::string&          strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        Message msg = make_error_msg( strErrorMsg );
-        if ( const boost::system::error_code ec = send( conversationID, msg, yield_ctx ) )
+        Message msg = make_error_msg( receivedMsg.msg.receiver, strErrorMsg );
+        if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );
         }
         else
         {
-            SPDLOG_TRACE( "Sent error response for conversation: {} msg: {}", conversationID, strErrorMsg );
+            SPDLOG_TRACE( "Sent error response for msg: {}", strErrorMsg );
         }
     }
 };

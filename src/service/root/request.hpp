@@ -40,9 +40,9 @@ public:
     virtual void             dispatchResponse( const network::ConnectionID& connectionID,
                                                const network::Message&      msg,
                                                boost::asio::yield_context&  yield_ctx ) override;
-    virtual void             error( const network::ConnectionID& connectionID,
-                                    const std::string&           strErrorMsg,
-                                    boost::asio::yield_context&  yield_ctx ) override;
+    virtual void             error( const network::ReceivedMsg& msg,
+                                    const std::string&          strErrorMsg,
+                                    boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
     network::root_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );
@@ -54,21 +54,24 @@ public:
     {
         RootRequestConversation* pThis = this;
         return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
-                                   { return pThis->getDaemonSender( yield_ctx ).RootExe( msg ); } );
+                                   { return pThis->getDaemonSender( yield_ctx ).RootExe( msg ); },
+                                   getID() );
     }
     template < typename RequestEncoderType >
     RequestEncoderType getExeBroadcastRequest( boost::asio::yield_context& yield_ctx )
     {
         RootRequestConversation* pThis = this;
         return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
-                                   { return pThis->broadcastExe( msg, yield_ctx ); } );
+                                   { return pThis->broadcastExe( msg, yield_ctx ); },
+                                   getID() );
     }
     template < typename RequestEncoderType >
     RequestEncoderType getLeafBroadcastRequest( boost::asio::yield_context& yield_ctx )
     {
         RootRequestConversation* pThis = this;
         return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
-                                   { return pThis->broadcastLeaf( msg, yield_ctx ); } );
+                                   { return pThis->broadcastLeaf( msg, yield_ctx ); },
+                                   getID() );
     }
 
     // network::daemon_root::Impl
@@ -83,16 +86,16 @@ public:
                                          boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
-    virtual network::Message
-    MPRoot( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPDown( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPUp( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPOUp( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPRoot( const network::Message& request, const mega::MP& mp,
+                                     boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,
+                                      boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,
+                                     boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPUp( const network::Message& request, const mega::MP& mp,
+                                   boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPOUp( const network::Message& request, const mega::MPO& mpo,
+                                    boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual network::Project GetProject( boost::asio::yield_context& yield_ctx ) override;

@@ -41,9 +41,9 @@ public:
     virtual void             dispatchResponse( const network::ConnectionID& connectionID,
                                                const network::Message&      msg,
                                                boost::asio::yield_context&  yield_ctx ) override;
-    virtual void             error( const network::ConnectionID& connectionID,
-                                    const std::string&           strErrorMsg,
-                                    boost::asio::yield_context&  yield_ctx ) override;
+    virtual void             error( const network::ReceivedMsg& msg,
+                                    const std::string&          strErrorMsg,
+                                    boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
     network::daemon_root::Request_Sender getRootSender( boost::asio::yield_context& yield_ctx )
@@ -55,7 +55,7 @@ public:
     RequestEncoderType getRootRequest( boost::asio::yield_context& yield_ctx )
     {
         return RequestEncoderType( [ rootRequest = getRootSender( yield_ctx ) ]( const network::Message& msg ) mutable
-                                   { return rootRequest.DaemonRoot( msg ); } );
+                                   { return rootRequest.DaemonRoot( msg ); }, getID() );
     }
 
     // network::leaf_daemon::Impl

@@ -30,7 +30,7 @@ public:
     virtual void             dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
                                                boost::asio::yield_context& yield_ctx ) override;
 
-    virtual void error( const network::ConnectionID& connection, const std::string& strErrorMsg,
+    virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx ) override;
 
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx );

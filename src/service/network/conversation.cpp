@@ -57,19 +57,19 @@ const std::string& Conversation::getProcessName() const { return m_conversationM
 
 void Conversation::onDisconnect( const ConnectionID& connectionID )
 {
-    for( const ConnectionID& existing : m_stack )
+    for ( const ConnectionID& existing : m_stack )
     {
-        if( existing == connectionID )
+        if ( existing == connectionID )
         {
             m_disconnections.insert( connectionID );
             break;
         }
     }
 
-    if( !m_stack.empty() && m_stack.back() == connectionID )
+    if ( !m_stack.empty() && m_stack.back() == connectionID )
     {
         SPDLOG_ERROR( "Generating disconnect on conversation: {} for connection: {}", getID(), connectionID );
-        const ReceivedMsg rMsg{ connectionID, make_error_msg( "Disconnection" ) };
+        const ReceivedMsg rMsg{ connectionID, make_error_msg( getID(), "Disconnection" ) };
         send( rMsg );
     }
 }
@@ -108,13 +108,14 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
             dispatchRequestImpl( msg, yield_ctx );
 
             // check if connection has disconnected
-            if( m_disconnections.empty() )
+            if ( m_disconnections.empty() )
             {
                 ASSERT( !m_stack.empty() );
-                if( m_disconnections.count( m_stack.back() ) )
+                if ( m_disconnections.count( m_stack.back() ) )
                 {
-                    SPDLOG_ERROR( "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
-                    const ReceivedMsg rMsg{ m_stack.back(), make_error_msg( "Disconnection" ) };
+                    SPDLOG_ERROR(
+                        "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
+                    const ReceivedMsg rMsg{ m_stack.back(), make_error_msg( msg.msg.receiver, "Disconnection" ) };
                     send( rMsg );
                 }
             }
@@ -151,7 +152,7 @@ void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yie
     }
     catch ( std::exception& ex )
     {
-        error( m_stack.back(), ex.what(), yield_ctx );
+        error( msg, ex.what(), yield_ctx );
     }
 }
 

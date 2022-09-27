@@ -37,7 +37,7 @@ public:
     {
         network::enrole::Request_Encoder encoder(
             [ daemonSender = getDaemonSender( yield_ctx ) ]( const network::Message& msg ) mutable
-            { return daemonSender.LeafDaemon( msg ); } );
+            { return daemonSender.LeafDaemon( msg ); }, getID() );
         m_leaf.m_mp = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
         SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
@@ -83,7 +83,6 @@ void Leaf::shutdown()
 */
 // network::ConversationManager
 network::ConversationBase::Ptr Leaf::joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                       const network::Header&       header,
                                                        const network::Message&      msg )
 {
     switch ( m_nodeType )
@@ -93,7 +92,7 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
         case network::Node::Tool:
         case network::Node::Executor:
             return network::ConversationBase::Ptr(
-                new LeafRequestConversation( *this, header.getConversationID(), originatingConnectionID ) );
+                new LeafRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
             break;
         case network::Node::Daemon:
         case network::Node::Root:

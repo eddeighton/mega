@@ -33,7 +33,6 @@ public:
 
     // network::ConversationManager
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Header&       header,
                                                              const network::Message&      msg );
 
     network::Node::Type getType() const { return m_nodeType; }
@@ -42,21 +41,15 @@ public:
 
     // network::Sender
     virtual network::ConnectionID     getConnectionID() const { return m_pSelfSender->getConnectionID(); }
-    virtual boost::system::error_code send( const network::ConversationID& conversationID, const network::Message& msg,
-                                            boost::asio::yield_context& yield_ctx )
+    virtual boost::system::error_code send( const network::Message& msg, boost::asio::yield_context& yield_ctx )
     {
-        return m_pSelfSender->send( conversationID, msg, yield_ctx );
+        return m_pSelfSender->send( msg, yield_ctx );
     }
-   /*virtual boost::system::error_code post( const network::ConversationID& sourceID,
-                                            const network::ConversationID& targetID, const network::Message& msg,
-                                            boost::asio::yield_context& yield_ctx )
-    {
-        return m_pSelfSender->post( sourceID, targetID, msg, yield_ctx );
-    }*/
-    virtual void sendErrorResponse( const network::ConversationID& conversationID, const std::string& strErrorMsg,
+    virtual void sendErrorResponse( const network::ReceivedMsg& msg,
+                                    const std::string&          strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        m_pSelfSender->sendErrorResponse( conversationID, strErrorMsg, yield_ctx );
+        m_pSelfSender->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
 
 private:

@@ -33,7 +33,6 @@ public:
 
     // network::ConversationManager
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Header&       header,
                                                              const network::Message&      msg );
 
     using Functor = std::function< void( boost::asio::yield_context& yield_ctx ) >;

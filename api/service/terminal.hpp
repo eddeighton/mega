@@ -38,7 +38,6 @@ public:
 
     // network::ConversationManager
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Header&       header,
                                                              const network::Message&      msg );
 
     network::MegastructureInstallation GetMegastructureInstallation();
@@ -63,27 +62,35 @@ private:
     RouterFactory makeMP( mega::MP mp );
     RouterFactory makeMPO( mega::MPO mpo );
 
-    network::Message routeGenericRequest( const network::Message& message, RouterFactory router );
+    network::Message routeGenericRequest( const network::ConversationID& conversationID,
+                                          const network::Message&        message,
+                                          RouterFactory                  router );
 
     template < typename RequestType >
     RequestType getRootRequest()
     {
+        const auto conversationID = createConversationID( getLeafSender().getConnectionID() );
         using namespace std::placeholders;
-        return RequestType( std::bind( &Terminal::routeGenericRequest, this, _1, makeTermRoot() ) );
+        return RequestType(
+            std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeTermRoot() ), conversationID );
     }
 
     template < typename RequestType >
     RequestType getMPRequest( mega::MP mp )
     {
+        const auto conversationID = createConversationID( getLeafSender().getConnectionID() );
         using namespace std::placeholders;
-        return RequestType( std::bind( &Terminal::routeGenericRequest, this, _1, makeMP( mp ) ) );
+        return RequestType(
+            std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeMP( mp ) ), conversationID );
     }
 
     template < typename RequestType >
     RequestType getMPORequest( mega::MPO mpo )
     {
+        const auto conversationID = createConversationID( getLeafSender().getConnectionID() );
         using namespace std::placeholders;
-        return RequestType( std::bind( &Terminal::routeGenericRequest, this, _1, makeMPO( mpo ) ) );
+        return RequestType(
+            std::bind( &Terminal::routeGenericRequest, this, conversationID, _1, makeMPO( mpo ) ), conversationID );
     }
 
 private:

@@ -57,12 +57,12 @@ void SocketReceiver::onError( const boost::system::error_code& ec )
 void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
 {
     static const mega::U64 MessageSizeSize = sizeof( network::MessageSize );
-    using ReceiveBuffer                      = std::vector< char >;
+    using ReceiveBuffer                    = std::vector< char >;
     ReceiveBuffer                       buffer( 1024 );
     boost::system::error_code           ec;
-    mega::U64                         szBytesTransferred = 0U;
+    mega::U64                           szBytesTransferred = 0U;
     std::array< char, MessageSizeSize > buf;
-    Header                              header;
+    MessageID                           messageID;
 
     if ( m_bContinue && m_socket.is_open() )
     {
@@ -108,11 +108,10 @@ void SocketReceiver::receive( boost::asio::yield_context& yield_ctx )
 
                     boost::interprocess::basic_vectorbuf< ReceiveBuffer > is( buffer );
                     boost::archive::binary_iarchive                       ia( is );
-                    ia&                                                   header;
 
-                    const auto        msg = decode( ia, header.getMessageID() );
+                    const auto        msg = decode( ia );
                     const ReceivedMsg receivedMsg{ m_connectionID, std::move( msg ) };
-                    m_conversationManager.dispatch( header, receivedMsg );
+                    m_conversationManager.dispatch( receivedMsg );
                 }
                 else // if( ec.failed() )
                 {
@@ -168,8 +167,8 @@ void ConcurrentChannelReceiver::receive( boost::asio::yield_context& yield_ctx )
             msg = m_channel.async_receive( yield_ctx[ ec ] );
             if ( !ec )
             {
-                receivedMsg = ReceivedMsg{ m_connectionID, msg.msg };
-                m_conversationManager.dispatch( msg.header, receivedMsg );
+                receivedMsg = ReceivedMsg{ m_connectionID, msg };
+                m_conversationManager.dispatch( receivedMsg );
             }
             else
             {

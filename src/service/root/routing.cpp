@@ -48,7 +48,7 @@ void RootRequestConversation::dispatchResponse( const network::ConnectionID& con
 {
     if ( network::Server::Connection::Ptr pHostConnection = m_root.m_server.getConnection( connectionID ) )
     {
-        pHostConnection->send( getID(), msg, yield_ctx );
+        pHostConnection->send( msg, yield_ctx );
     }
     else
     {
@@ -56,17 +56,17 @@ void RootRequestConversation::dispatchResponse( const network::ConnectionID& con
     }
 }
 
-void RootRequestConversation::error( const network::ConnectionID& connectionID,
-                                     const std::string&           strErrorMsg,
-                                     boost::asio::yield_context&  yield_ctx )
+void RootRequestConversation::error( const network::ReceivedMsg& msg,
+                                     const std::string&          strErrorMsg,
+                                     boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pHostConnection = m_root.m_server.getConnection( connectionID ) )
+    if ( network::Server::Connection::Ptr pHostConnection = m_root.m_server.getConnection( msg.connectionID ) )
     {
-        pHostConnection->sendErrorResponse( getID(), strErrorMsg, yield_ctx );
+        pHostConnection->sendErrorResponse( msg, strErrorMsg, yield_ctx );
     }
     else
     {
-        SPDLOG_ERROR( "Root cannot resolve connection: {} on error: {}", connectionID, strErrorMsg );
+        SPDLOG_ERROR( "Root cannot resolve connection: {} on error: {}", msg.connectionID, strErrorMsg );
     }
 }
 

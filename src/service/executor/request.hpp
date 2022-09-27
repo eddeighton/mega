@@ -40,7 +40,7 @@ public:
                                                const network::Message&      msg,
                                                boost::asio::yield_context&  yield_ctx ) override;
 
-    virtual void error( const network::ConnectionID& connectionID, const std::string& strErrorMsg,
+    virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx ) override;
 
     // helpers
@@ -51,14 +51,14 @@ public:
     RequestEncoderType getRootRequest( boost::asio::yield_context& yield_ctx )
     {
         return RequestEncoderType( [ rootRequest = getLeafRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-                                   { return rootRequest.ExeRoot( msg ); } );
+                                   { return rootRequest.ExeRoot( msg ); }, getID() );
     }
 
     template < typename RequestEncoderType >
     RequestEncoderType getDaemonRequest( boost::asio::yield_context& yield_ctx )
     {
         return RequestEncoderType( [ rootRequest = getLeafRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-                                   { return rootRequest.ExeDaemon( msg ); } );
+                                   { return rootRequest.ExeDaemon( msg ); }, getID() );
     }
 
     // network::leaf_exe::Impl - NOTE: RootSimRun note implemented here
