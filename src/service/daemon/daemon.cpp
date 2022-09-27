@@ -8,7 +8,6 @@
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
-
 #include <iostream>
 
 namespace mega
@@ -31,7 +30,7 @@ public:
     }
     void run( boost::asio::yield_context& yield_ctx )
     {
-        m_daemon.m_mpo = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleDaemon();
+        m_daemon.m_mp = getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleDaemon();
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };
@@ -42,6 +41,7 @@ Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP
     : network::ConversationManager( network::makeProcessName( network::Node::Daemon ), ioContext )
     , m_rootClient( ioContext, *this, strRootIP, mega::network::MegaRootServiceName() )
     , m_server( ioContext, *this, network::MegaDaemonPort() )
+    , m_sharedMemoryManager( m_strProcessName )
 {
     m_server.waitForConnection();
 
@@ -65,29 +65,31 @@ Daemon::~Daemon()
     // SPDLOG_TRACE( "Daemon shutdown" );
 }
 
-void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::MPO leafMPO )
+void Daemon::onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP leafMP )
 {
+    m_server.unmapConnection( leafMP );
+
     onDisconnect( connectionID );
 
     class DaemonLeafDisconnect : public DaemonRequestConversation
     {
-        mega::MPO m_leafMPO;
+        mega::MP m_leafMP;
 
     public:
-        DaemonLeafDisconnect( Daemon& daemon, const network::ConnectionID& originatingConnectionID, mega::MPO leafMPO )
+        DaemonLeafDisconnect( Daemon& daemon, const network::ConnectionID& originatingConnectionID, mega::MP leafMP )
             : DaemonRequestConversation(
                 daemon, daemon.createConversationID( originatingConnectionID ), originatingConnectionID )
-            , m_leafMPO( leafMPO )
+            , m_leafMP( leafMP )
         {
         }
         void run( boost::asio::yield_context& yield_ctx )
         {
-            getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleLeafDisconnect( m_leafMPO );
-            SPDLOG_TRACE( "DaemonLeafDisconnect {}", m_leafMPO );
+            getRootRequest< network::enrole::Request_Encoder >( yield_ctx ).EnroleLeafDisconnect( m_leafMP );
+            SPDLOG_TRACE( "DaemonLeafDisconnect {}", m_leafMP );
         }
     };
     conversationInitiated(
-        std::make_shared< DaemonLeafDisconnect >( *this, m_rootClient.getConnectionID(), leafMPO ), m_rootClient );
+        std::make_shared< DaemonLeafDisconnect >( *this, m_rootClient.getConnectionID(), leafMP ), m_rootClient );
 }
 
 void Daemon::shutdown()

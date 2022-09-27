@@ -144,15 +144,29 @@ Server::Connection::Ptr Server::findConnection( const mega::MPO& mpo ) const
         return Connection::Ptr{};
     }
 }
+
+Server::Connection::Ptr Server::findConnection( const mega::MP& mp ) const
+{
+    const auto iFind = m_mpMap.find( mp );
+    if ( iFind != m_mpMap.end() )
+    {
+        return iFind->second;
+    }
+    else
+    {
+        return Connection::Ptr{};
+    }
+}
 void Server::mapConnection( const mega::MPO& mpo, Connection::Ptr pConnection )
 {
     m_mpoMap.insert( { mpo, pConnection } );
 }
 
-void Server::unmapConnection( const mega::MPO& mpo, Connection::Ptr pConnection )
-{
-    m_mpoMap.erase( mpo );
-}
+void Server::unmapConnection( const mega::MPO& mpo ) { m_mpoMap.erase( mpo ); }
+
+void Server::mapConnection( const mega::MP& mp, Connection::Ptr pConnection ) { m_mpMap.insert( { mp, pConnection } ); }
+
+void Server::unmapConnection( const mega::MP& mp ) { m_mpMap.erase( mp ); }
 
 } // namespace network
 } // namespace mega

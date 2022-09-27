@@ -40,12 +40,13 @@ public:
     using Ptr = std::shared_ptr< ConversationBase >;
     using ID  = ConversationID;
 
-    virtual const ID&          getID() const                                                          = 0;
-    virtual void               send( const ReceivedMsg& msg )                                         = 0;
-    virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) = 0;
-    virtual void               run( boost::asio::yield_context& yield_ctx )                           = 0;
-    virtual const std::string& getProcessName() const                                                 = 0;
-    virtual void               onDisconnect( const ConnectionID& connectionID )                       = 0;
+    virtual const ID&          getID() const                                                           = 0;
+    virtual void               send( const ReceivedMsg& msg )                                          = 0;
+    //virtual void               post( const ReceivedMsg& msg, const network::ConversationID& sourceID ) = 0;
+    virtual Message            dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )  = 0;
+    virtual void               run( boost::asio::yield_context& yield_ctx )                            = 0;
+    virtual const std::string& getProcessName() const                                                  = 0;
+    virtual void               onDisconnect( const ConnectionID& connectionID )                        = 0;
 
 protected:
     virtual void requestStarted( const ConnectionID& connectionID ) = 0;
@@ -95,6 +96,7 @@ protected:
 
 public:
     virtual void send( const ReceivedMsg& msg ) = 0;
+    //virtual void post( const ReceivedMsg& msg, const network::ConversationID& sourceID ) = 0;
 
     // Sender
     virtual ConnectionID getConnectionID() const
@@ -191,7 +193,7 @@ protected:
     virtual ReceivedMsg receive( boost::asio::yield_context& yield_ctx );
     virtual void        send( const ReceivedMsg& msg );
 
-private:
+protected:
     MessageChannel m_channel;
 };
 

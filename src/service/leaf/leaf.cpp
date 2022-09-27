@@ -38,8 +38,8 @@ public:
         network::enrole::Request_Encoder encoder(
             [ daemonSender = getDaemonSender( yield_ctx ) ]( const network::Message& msg ) mutable
             { return daemonSender.LeafDaemon( msg ); } );
-        m_leaf.m_mpo = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
-        SPDLOG_TRACE( "Leaf enrole mpo: {}", m_leaf.m_mpo );
+        m_leaf.m_mp = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
+        SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
     }
 };

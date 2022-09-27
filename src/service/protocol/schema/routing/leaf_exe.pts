@@ -20,14 +20,3 @@ msg RootSimRun
     response();
 }
 
-msg RootMPO
-{
-    request(network::Message request, mega::MPO mpo);
-    response(network::Message response);
-}
-
-msg MPOMPODown
-{
-    request(network::Message request, mega::MPO mpo);
-    response(network::Message response);
-}

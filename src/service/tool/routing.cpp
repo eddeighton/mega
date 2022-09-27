@@ -21,6 +21,10 @@ network::Message ToolRequestConversation::dispatchRequest( const network::Messag
     network::Message result;
     if ( result = network::leaf_tool::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if ( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     THROW_RTE( "ToolRequestConversation::dispatchRequest failed" );
 }
 void ToolRequestConversation::dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
@@ -63,16 +67,27 @@ network::tool_leaf::Request_Sender ToolRequestConversation::getToolRequest( boos
     return network::tool_leaf::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
 }
 
-network::Message ToolRequestConversation::RootMPO( const network::Message& request, const mega::MPO& mpo,
-                                                   boost::asio::yield_context& yield_ctx )
-{
-    return MPOMPODown( request, mpo, yield_ctx );
-}
-network::Message ToolRequestConversation::MPOMPODown( const network::Message& request, const mega::MPO& mpo,
+network::Message ToolRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
                                                       boost::asio::yield_context& yield_ctx )
 {
-    VERIFY_RTE_MSG( m_tool.getMPO() == mpo, "Tool does not have expected mpo" );
     return dispatchRequest( request, yield_ctx );
+}
+network::Message ToolRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
+                                                    boost::asio::yield_context& yield_ctx )
+{
+    network::mpo::Request_Sender leaf( *this, m_tool.getLeafSender(), yield_ctx );
+    return leaf.MPUp( request, mp );
+}
+
+network::Message ToolRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
+                                                       boost::asio::yield_context& yield_ctx )
+{
+    THROW_RTE( "TODO" );
+}
+network::Message ToolRequestConversation::MPOUp( const network::Message& request, const mega::MPO& mpo,
+                                                     boost::asio::yield_context& yield_ctx )
+{
+    THROW_RTE( "TODO" );
 }
 
 } // namespace service

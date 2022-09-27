@@ -20,11 +20,18 @@ network::Status DaemonRequestConversation::GetStatus( const std::vector< network
             conversations.push_back( id );
         }
         status.setConversationID( conversations );
-        status.setMPO( m_daemon.m_mpo );
+        status.setMP( m_daemon.m_mp );
         status.setDescription( m_daemon.m_strProcessName );
     }
 
     return status;
+}
+
+std::string DaemonRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
+{
+    std::ostringstream os;
+    os << "Ping from Daemon: " << m_daemon.getProcessName();
+    return os.str();
 }
 
 } // namespace service

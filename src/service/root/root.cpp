@@ -82,11 +82,12 @@ void Root::saveConfig()
     }
 }
 
-void Root::onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MPO mpo )
+void Root::onDaemonDisconnect( const network::ConnectionID& connectionID, mega::MP mp )
 {
-    SPDLOG_TRACE( "Root::onDaemonDisconnect {} {}", connectionID, mpo );
+    SPDLOG_TRACE( "Root::onDaemonDisconnect {} {}", connectionID, mp );
+    m_server.unmapConnection( mp );
     onDisconnect( connectionID );
-    m_mpoManager.daemonDisconnect( mpo );
+    m_mpoManager.daemonDisconnect( mp );
 }
 
 void Root::shutdown()
@@ -119,15 +120,15 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
     SPDLOG_TRACE( "Root::joinConversation {}", network::getMsgNameFromID( network::getMsgID( msg ) ) );
     switch ( header.getMessageID() )
     {
-        case network::daemon_root::MSG_MPORoot_Request::ID:
+        case network::mpo::MSG_MPRoot_Request::ID:
         {
-            const network::daemon_root::MSG_MPORoot_Request& actualMsg
-                = network::daemon_root::MSG_MPORoot_Request::get( msg );
+            const network::mpo::MSG_MPRoot_Request& actualMsg
+                = network::mpo::MSG_MPRoot_Request::get( msg );
             switch ( actualMsg.request.index )
             {
                 case network::sim::MSG_SimStart_Request::ID:
-                    return network::ConversationBase::Ptr(
-                        new RootSimulation( *this, header.getConversationID(), originatingConnectionID, actualMsg.mpo ) );
+                    return network::ConversationBase::Ptr( new RootSimulation(
+                        *this, header.getConversationID(), originatingConnectionID, actualMsg.mp ) );
             }
         }
         break;

@@ -32,12 +32,12 @@ public:
                                                              const network::Message&      msg );
 
 private:
-    void onLeafDisconnect( const network::ConnectionID& connectionID, mega::MPO mpo );
+    void onLeafDisconnect( const network::ConnectionID& connectionID, mega::MP mp );
 
     network::Client     m_rootClient;
     network::Server     m_server;
     SharedMemoryManager m_sharedMemoryManager;
-    mega::MPO           m_mpo;
+    mega::MP            m_mp;
 };
 
 } // namespace service

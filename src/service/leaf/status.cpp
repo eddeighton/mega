@@ -22,12 +22,20 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
             conversations.push_back( id );
         }
         status.setConversationID( conversations );
-        status.setMPO( m_leaf.m_mpo );
-        status.setDescription( m_leaf.m_strProcessName );
-
+        status.setMP( m_leaf.m_mp );
+        std::ostringstream os;
+        os << mega::network::Node::toStr( m_leaf.m_nodeType ) << ": " << m_leaf.getProcessName();
+        status.setDescription( os.str() );
     }
 
     return status;
+}
+
+std::string LeafRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
+{
+    std::ostringstream os;
+    os << "Ping from " << mega::network::Node::toStr( m_leaf.m_nodeType ) << ": " << m_leaf.getProcessName();
+    return os.str();
 }
 
 } // namespace service

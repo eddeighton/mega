@@ -11,3 +11,9 @@ msg GetNetworkStatus
     request();
     response(mega::network::Status status);
 }
+
+msg Ping
+{
+    request();
+    response(std::string ping);
+}

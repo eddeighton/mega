@@ -11,9 +11,9 @@ namespace service
 RootSimulation::RootSimulation( Root&                          root,
                                 const network::ConversationID& conversationID,
                                 const network::ConnectionID&   originatingConnectionID,
-                                mega::MPO                      leafMPO )
+                                mega::MP                       leafMP )
     : RootRequestConversation( root, conversationID, originatingConnectionID )
-    , m_mpo( leafMPO )
+    , m_leafMP( leafMP )
 {
 }
 
@@ -27,20 +27,22 @@ network::Message RootSimulation::dispatchRequest( const network::Message& msg, b
 
 struct Deferred
 {
-    MPOManager&      mpoManager;
-    const mega::MPO& mpo;
-    Deferred( MPOManager& mpoManager, const mega::MPO& mpo )
+    MPOManager&                          mpoManager;
+    const mega::network::ConversationID& id;
+    Deferred( MPOManager& mpoManager, const mega::network::ConversationID& id )
         : mpoManager( mpoManager )
-        , mpo( mpo )
+        , id( id )
     {
     }
-    ~Deferred() { mpoManager.leafDisconnected( mpo ); }
+    ~Deferred() { mpoManager.release( id ); }
 };
 
 void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
 {
-    m_mpo = m_root.m_mpoManager.newOwner( m_mpo, getID() );
-    Deferred defered( m_root.m_mpoManager, m_mpo );
+    mega::MPO simulationMPO = m_root.m_mpoManager.newOwner( m_leafMP, getID() );
+    SPDLOG_TRACE( "RootSimulation::SimStart: {}", simulationMPO );
+
+    Deferred defered( m_root.m_mpoManager, getID() );
 
     auto stackCon = getOriginatingEndPointID();
     VERIFY_RTE( stackCon.has_value() );
@@ -49,9 +51,10 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
 
     // simulation runs entirely on the stack in this scope!
     {
-        network::Server::MPOMapping          mpoMapping( m_root.m_server, m_mpo, pConnection );
+        network::Server::MPOConnection       mpoConnection( m_root.m_server, simulationMPO, pConnection );
         network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-        sender.RootSimRun( m_mpo );
+        SPDLOG_TRACE( "RootSimulation::SimStart: sending RootSimRun for {}", simulationMPO );
+        sender.RootSimRun( simulationMPO );
     }
 }
 

@@ -49,9 +49,11 @@ public:
     network::Sender& getLeafSender() { return m_leaf; }
 
     std::shared_ptr< Simulation > getSimulation( const mega::MPO& mpo ) const;
-    void                          simulationInitiated( std::shared_ptr< Simulation > pSimulation );
-    void                          simulationTerminating( std::shared_ptr< Simulation > pSimulation );
-    virtual void                  conversationCompleted( network::ConversationBase::Ptr pConversation );
+    mega::MPO createSimulation( network::ConversationBase& callingConversation, boost::asio::yield_context& yield_ctx );
+    void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
+    virtual void conversationCompleted( network::ConversationBase::Ptr pConversation );
+
+    network::ConversationBase::Ptr findConversation( const network::ConnectionID& connectionID );
 
 private:
     boost::asio::io_context&                 m_io_context;

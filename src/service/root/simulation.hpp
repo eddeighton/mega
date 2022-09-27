@@ -18,7 +18,7 @@ public:
     RootSimulation( Root&                          root,
                     const network::ConversationID& conversationID,
                     const network::ConnectionID&   originatingConnectionID,
-                    mega::MPO                      leafMPO );
+                    mega::MP                       leafMP );
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
@@ -26,8 +26,7 @@ public:
     virtual void SimStart( boost::asio::yield_context& yield_ctx ) override;
 
 private:
-
-    mega::MPO m_mpo;
+    mega::MP  m_leafMP;
 };
 
 } // namespace service

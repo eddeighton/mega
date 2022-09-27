@@ -5,3 +5,9 @@ msg ExeRoot
     request(network::Message request);
     response(network::Message response);
 }
+
+msg ExeDaemon
+{
+    request(network::Message request);
+    response(network::Message response);
+}

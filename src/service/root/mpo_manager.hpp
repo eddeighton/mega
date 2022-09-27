@@ -21,21 +21,21 @@ class MPOManager
     using OwnerAllocator   = mega::RingAllocator< mega::OwnerID, mega::MAX_OWNER_PER_PROCESS >;
 
 public:
-    MPO newDaemon()
+    MP newDaemon()
     {
         if ( m_machines.full() )
         {
             THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
         }
 
-        const MPO mpo( m_machines.allocate(), 0U, 0U );
-        SPDLOG_TRACE( "MPOMGR: newDaemon: {}", mpo );
-        return mpo;
+        const MP mp( m_machines.allocate(), 0U, true );
+        SPDLOG_TRACE( "MPOMGR: newDaemon: {}", mp );
+        return mp;
     }
 
-    void daemonDisconnect( MPO mpo )
+    void daemonDisconnect( MP mp )
     {
-        MachineID m = mpo.getMachineID();
+        MachineID m = mp.getMachineID();
 
         m_machines.free( m );
         m_processes[ m ].reset();
@@ -43,36 +43,36 @@ public:
         {
             alloc.reset();
         }
-        SPDLOG_TRACE( "MPOMGR: daemonDisconnect: {}", mpo );
+        SPDLOG_TRACE( "MPOMGR: daemonDisconnect: {}", mp );
     }
 
-    MPO newLeaf( MPO daemonMPO )
+    MP newLeaf( MP daemonMP )
     {
-        ProcessAllocator& alloc = m_processes[ daemonMPO.getMachineID() ];
+        ProcessAllocator& alloc = m_processes[ daemonMP.getMachineID() ];
         if ( alloc.full() )
         {
             THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
         }
 
-        const MPO mpo( daemonMPO.getMachineID(), alloc.allocate(), 0U );
-        SPDLOG_TRACE( "MPOMGR: newLeaf: {}", mpo );
-        return mpo;
+        const MP mp( daemonMP.getMachineID(), alloc.allocate(), false );
+        SPDLOG_TRACE( "MPOMGR: newLeaf: {}", mp );
+        return mp;
     }
 
-    void leafDisconnected( MPO mpo )
+    void leafDisconnected( MP mp )
     {
-        m_processes[ mpo.getMachineID() ].free( mpo.getProcessID() );
-        m_owners[ mpo.getMachineID() ][ mpo.getProcessID() ].reset();
-        SPDLOG_TRACE( "MPOMGR: leafDisconnected: {}", mpo );
+        m_processes[ mp.getMachineID() ].free( mp.getProcessID() );
+        m_owners[ mp.getMachineID() ][ mp.getProcessID() ].reset();
+        SPDLOG_TRACE( "MPOMGR: leafDisconnected: {}", mp );
 
         // TODO - how to broadcast disconnects ??
         // THROW_RTE( "TODO" );
 
         for( const auto& [ simMPO, simID ] : m_simulations )
         {
-            if( simMPO.getMachineID() == mpo.getMachineID() )
+            if( simMPO.getMachineID() == mp.getMachineID() )
             {
-                if( simMPO.getProcessID() == mpo.getProcessID() )
+                if( simMPO.getProcessID() == mp.getProcessID() )
                 {
                     // 
                 }
@@ -80,14 +80,14 @@ public:
         }
     }
 
-    MPO newOwner( MPO leafMPO, const network::ConversationID& conversationID )
+    MPO newOwner( MP leafMP, const network::ConversationID& conversationID )
     {
-        OwnerAllocator& alloc = m_owners[ leafMPO.getMachineID() ][ leafMPO.getProcessID() ];
+        OwnerAllocator& alloc = m_owners[ leafMP.getMachineID() ][ leafMP.getProcessID() ];
         if ( alloc.full() )
         {
             THROW_RTE( "MPOMgr: Maximum machine capacity reached" );
         }
-        const MPO mpo( leafMPO.getMachineID(), leafMPO.getProcessID(), alloc.allocate() );
+        const MPO mpo( leafMP.getMachineID(), leafMP.getProcessID(), alloc.allocate() );
         SPDLOG_TRACE( "MPOMgr: newOwner: {} {}", mpo, conversationID );
 
         m_simulations.insert( { mpo, conversationID } );

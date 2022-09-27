@@ -47,17 +47,43 @@ public:
     void                               ClearStash();
     network::Status                    GetNetworkStatus();
     network::PipelineResult            PipelineRun( const pipeline::Configuration& pipelineConfig );
+    mega::MPO                          SimCreate( const mega::MP& mp );
+    void                               SimDestroy( const mega::MPO& mpo );
+    std::string                        PingMP( const mega::MP& mp );
+    std::string                        PingMPO( const mega::MPO& mpo );
 
     network::Sender& getLeafSender() { return m_leaf; }
 
 private:
-    network::Message rootRequest( const network::Message& message );
+    using Router        = std::function< network::Message( const network::Message& ) >;
+    using RouterFactory = std::function< Router(
+        network::ConversationBase&, network::Sender&, boost::asio::yield_context& yield_ctx ) >;
+
+    RouterFactory makeTermRoot();
+    RouterFactory makeMP( mega::MP mp );
+    RouterFactory makeMPO( mega::MPO mpo );
+
+    network::Message routeGenericRequest( const network::Message& message, RouterFactory router );
 
     template < typename RequestType >
     RequestType getRootRequest()
     {
         using namespace std::placeholders;
-        return RequestType( std::bind( &Terminal::rootRequest, this, _1 ) );
+        return RequestType( std::bind( &Terminal::routeGenericRequest, this, _1, makeTermRoot() ) );
+    }
+
+    template < typename RequestType >
+    RequestType getMPRequest( mega::MP mp )
+    {
+        using namespace std::placeholders;
+        return RequestType( std::bind( &Terminal::routeGenericRequest, this, _1, makeMP( mp ) ) );
+    }
+
+    template < typename RequestType >
+    RequestType getMPORequest( mega::MPO mpo )
+    {
+        using namespace std::placeholders;
+        return RequestType( std::bind( &Terminal::routeGenericRequest, this, _1, makeMPO( mpo ) ) );
     }
 
 private:

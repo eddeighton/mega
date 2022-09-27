@@ -47,6 +47,12 @@ public:
     {
         return m_pSelfSender->send( conversationID, msg, yield_ctx );
     }
+   /*virtual boost::system::error_code post( const network::ConversationID& sourceID,
+                                            const network::ConversationID& targetID, const network::Message& msg,
+                                            boost::asio::yield_context& yield_ctx )
+    {
+        return m_pSelfSender->post( sourceID, targetID, msg, yield_ctx );
+    }*/
     virtual void sendErrorResponse( const network::ConversationID& conversationID, const std::string& strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
@@ -65,7 +71,7 @@ private:
     network::Client                                  m_client;
     boost::asio::executor_work_guard< ExecutorType > m_work_guard;
     std::thread                                      m_io_thread;
-    mega::MPO                                        m_mpo;
+    mega::MP                                         m_mp;
     std::set< mega::MPO >                            m_mpos;
 };
 

@@ -5,13 +5,18 @@
 
 #include "service/protocol/model/leaf_tool.hxx"
 #include "service/protocol/model/tool_leaf.hxx"
+#include "service/protocol/model/mpo.hxx"
+#include "service/protocol/model/status.hxx"
 
 namespace mega
 {
 namespace service
 {
 
-class ToolRequestConversation : public network::InThreadConversation, public network::leaf_tool::Impl
+class ToolRequestConversation : public network::InThreadConversation,
+                                public network::leaf_tool::Impl,
+                                public network::mpo::Impl,
+                                public network::status::Impl
 {
 protected:
     Tool& m_tool;
@@ -30,11 +35,20 @@ public:
 
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx );
 
-    // network::leaf_tool::Impl
-    virtual network::Message
-    RootMPO( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPOMPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    // network::mpo::Impl
+    virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,
+                                      boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,
+                                     boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPUp( const network::Message& request, const mega::MP& mp,
+                                   boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPOUp( const network::Message& request, const mega::MPO& mpo,
+                                    boost::asio::yield_context& yield_ctx ) override;
+
+    // network::status::Impl
+    virtual network::Status GetStatus( const std::vector< network::Status >& status,
+                                       boost::asio::yield_context&           yield_ctx ) override;
+    virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace service

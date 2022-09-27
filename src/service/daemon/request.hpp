@@ -7,10 +7,12 @@
 #include "service/protocol/model/daemon_leaf.hxx"
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
+#include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/job.hxx"
+#include "service/protocol/model/memory.hxx"
 
 namespace mega
 {
@@ -20,9 +22,11 @@ namespace service
 class DaemonRequestConversation : public network::InThreadConversation,
                                   public network::leaf_daemon::Impl,
                                   public network::root_daemon::Impl,
+                                  public network::mpo::Impl,
                                   public network::enrole::Impl,
                                   public network::status::Impl,
-                                  public network::job::Impl
+                                  public network::job::Impl,
+                                  public network::memory::Impl
 {
 protected:
     Daemon& m_daemon;
@@ -64,10 +68,8 @@ public:
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafDaemon( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPORoot( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPOMPOUp( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message ExeDaemon( const network::Message&     request,
+                                        boost::asio::yield_context& yield_ctx ) override;
 
     // network::root_daemon::Impl
     virtual network::Message RootLeafBroadcast( const network::Message&     request,
@@ -76,18 +78,31 @@ public:
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
     virtual void             RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::mpo::Impl
     virtual network::Message
-    RootMPO( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    MPRoot( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message
-    MPOMPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    MPDown( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPUp( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPOUp( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
-    virtual MPO EnroleLeafWithDaemon( const mega::network::Node::Type& type,
-                                      boost::asio::yield_context&      yield_ctx ) override;
+    virtual MP EnroleLeafWithDaemon( const mega::network::Node::Type& type,
+                                     boost::asio::yield_context&      yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
+    virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
+
+    // network::memory::Impl
+    virtual std::string AcquireSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual void        ReleaseSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
     virtual std::vector< network::ConversationID >

@@ -23,6 +23,7 @@ set( DAEMON_SOURCE
     ${DAEMON_SOURCE_DIR}/routing.cpp
     ${DAEMON_SOURCE_DIR}/enrole.cpp
     ${DAEMON_SOURCE_DIR}/status.cpp
+    ${DAEMON_SOURCE_DIR}/memory.cpp
     )
 
 add_executable( daemon ${DAEMON_HEADERS} ${DAEMON_SOURCE}  )

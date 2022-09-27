@@ -6,11 +6,13 @@
 
 #include "service/protocol/model/root_daemon.hxx"
 #include "service/protocol/model/daemon_root.hxx"
+#include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/job.hxx"
+#include "service/protocol/model/address.hxx"
 
 namespace mega
 {
@@ -20,11 +22,13 @@ class Root;
 
 class RootRequestConversation : public network::InThreadConversation,
                                 public network::daemon_root::Impl,
+                                public network::mpo::Impl,
                                 public network::project::Impl,
                                 public network::enrole::Impl,
                                 public network::status::Impl,
                                 public network::stash::Impl,
-                                public network::job::Impl
+                                public network::job::Impl,
+                                public network::address::Impl
 {
 public:
     RootRequestConversation( Root&                          root,
@@ -77,10 +81,18 @@ public:
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message DaemonRoot( const network::Message&     request,
                                          boost::asio::yield_context& yield_ctx ) override;
+
+    // network::mpo::Impl
     virtual network::Message
-    MPORoot( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    MPRoot( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message
-    MPOMPOUp( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    MPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPDown( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPUp( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPOUp( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::project::Impl
     virtual network::Project GetProject( boost::asio::yield_context& yield_ctx ) override;
@@ -89,14 +101,26 @@ public:
     GetMegastructureInstallation( boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
-    virtual MPO  EnroleDaemon( boost::asio::yield_context& yield_ctx ) override;
-    virtual MPO  EnroleLeafWithRoot( const MPO& daemonMPO, boost::asio::yield_context& yield_ctx ) override;
-    virtual void EnroleLeafDisconnect( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual MP   EnroleDaemon( boost::asio::yield_context& yield_ctx ) override;
+    virtual MP   EnroleLeafWithRoot( const MP& daemonMP, boost::asio::yield_context& yield_ctx ) override;
+    virtual void EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual mega::network::Status GetStatus( const std::vector< mega::network::Status >& status,
                                              boost::asio::yield_context&                 yield_ctx ) override;
     virtual mega::network::Status GetNetworkStatus( boost::asio::yield_context& yield_ctx ) override;
+
+    // network::address::Impl
+    virtual mega::MPO            GetNetworkAddressMPO( const mega::NetworkAddress& networkAddress,
+                                                       boost::asio::yield_context& yield_ctx ) override;
+    virtual mega::NetworkAddress GetRootNetworkAddress( const mega::MPO&            mpo,
+                                                        boost::asio::yield_context& yield_ctx ) override;
+    virtual mega::NetworkAddress AllocateNetworkAddress( const mega::MPO&            mpo,
+                                                         const mega::TypeID&         objectTypeID,
+                                                         boost::asio::yield_context& yield_ctx ) override;
+    virtual void                 DeAllocateNetworkAddress( const MPO&                  mpo,
+                                                           const NetworkAddress&       networkAddress,
+                                                           boost::asio::yield_context& yield_ctx ) override;
 
     // network::stash::Impl
     virtual void           StashClear( boost::asio::yield_context& yield_ctx ) override;

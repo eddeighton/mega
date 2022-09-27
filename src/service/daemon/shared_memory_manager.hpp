@@ -3,6 +3,8 @@
 #define SHARED_MEMORY_MANAGER_3_SEPT_2022
 
 #include "mega/common.hpp"
+#include "mega/reference.hpp"
+#include "mega/reference_io.hpp"
 #include "mega/default_traits.hpp"
 
 #include "service/protocol/common/header.hpp"
@@ -23,13 +25,6 @@ class SharedMemoryManager
     {
         static constexpr mega::U64 SIZE = 1024 * 1024 * 4;
 
-        std::string memoryName( const network::ConversationID& conversationID ) const
-        {
-            std::ostringstream os;
-            os << "memory_" << conversationID;
-            return os.str();
-        }
-
         struct AddressSpaceMapLifetime
         {
             const std::string& strName;
@@ -44,8 +39,8 @@ class SharedMemoryManager
     public:
         using Ptr = std::unique_ptr< SharedMemory >;
 
-        SharedMemory( const network::ConversationID& conversationID )
-            : m_strName( memoryName( conversationID ) )
+        SharedMemory( const mega::MPO& mpo, const std::string& strName )
+            : m_strName( strName )
             , m_memoryLifetime( m_strName )
             , m_memory( boost::interprocess::create_only, m_strName.c_str(), SIZE )
         {
@@ -54,42 +49,55 @@ class SharedMemoryManager
         const std::string& getName() const { return m_strName; }
 
     private:
-        std::string                  m_strName;
+        const std::string            m_strName;
         AddressSpaceMapLifetime      m_memoryLifetime;
         runtime::ManagedSharedMemory m_memory;
     };
 
-    using SharedMemoryMap = std::map< network::ConversationID, SharedMemory::Ptr >;
+    using SharedMemoryMap = std::map< mega::MPO, SharedMemory::Ptr >;
+
+    std::string memoryName( const mega::MPO& mpo ) const
+    {
+        std::ostringstream os;
+        os << m_strDaemonPrefix << "_mem_" << mpo;
+        return os.str();
+    }
 
 public:
-    const std::string& acquire( const network::ConversationID& conversationID )
+    SharedMemoryManager( const std::string& daemonPrefix )
+        : m_strDaemonPrefix( daemonPrefix )
     {
-        auto iFind = m_memory.find( conversationID );
+    }
+
+    const std::string& acquire( const mega::MPO& mpo )
+    {
+        auto iFind = m_memory.find( mpo );
         if ( iFind != m_memory.end() )
         {
             return iFind->second->getName();
         }
         else
         {
-            SharedMemory::Ptr  pNewMemory = std::make_unique< SharedMemory >( conversationID );
+            SharedMemory::Ptr  pNewMemory = std::make_unique< SharedMemory >( mpo, memoryName( mpo ) );
             const std::string& strName    = pNewMemory->getName();
-            m_memory.insert( { conversationID, std::move( pNewMemory ) } );
+            m_memory.insert( { mpo, std::move( pNewMemory ) } );
             return strName;
         }
     }
 
-    void release( const network::ConversationID& conversationID )
+    void release( const mega::MPO& mpo )
     {
-        auto iFind = m_memory.find( conversationID );
+        auto iFind = m_memory.find( mpo );
         if ( iFind != m_memory.end() )
         {
             m_memory.erase( iFind );
-            SPDLOG_INFO( "Daemon released memory for {}", conversationID );
+            SPDLOG_INFO( "Daemon released memory for {}", mpo );
         }
     }
 
 private:
-    SharedMemoryMap m_memory;
+    const std::string m_strDaemonPrefix;
+    SharedMemoryMap   m_memory;
 };
 } // namespace service
 } // namespace mega

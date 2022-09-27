@@ -96,6 +96,61 @@ Request_Sender::Request_Sender( ConversationBase& conversation,
 }
 {% endfor %}
 
+
+Request_Poster::Request_Poster( ConversationBase& conversation,
+                                const ConversationID& targetConversationID,
+                                Sender& sender,
+                                boost::asio::yield_context& yield_ctx )
+    : m_conversation( conversation )
+    , m_targetConversationID( targetConversationID )
+    , m_sender( sender )
+    , m_yield_ctx( yield_ctx )
+{
+}
+
+{% for request in requests %}
+{{ request.return_type }} Request_Poster::{{ request.name }}
+( 
+{%for p in request.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%} 
+)
+{
+    SUSPEND_MPO_CONTEXT();
+    ConversationBase::RequestStack stack( "{{ filename }}::MSG_{{ request.name }}_Request", m_conversation, m_sender.getConnectionID() );
+
+    {
+        const Message msg = MSG_{{ request.name }}_Request::make
+        (
+            MSG_{{ request.name }}_Request
+            {
+{%for p in request.params%}
+                {{p.name}}{% if not loop.is_last %},{%endif%}
+{%endfor%} 
+            }
+        );
+
+        const boost::system::error_code ec;
+        //if ( ec = m_sender.post( m_conversation.getID(), m_targetConversationID, msg, m_yield_ctx ) )
+        {
+            THROW_RTE( "Error writing: " << ec.what() );
+        }
+    }
+
+    const Message msg = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
+    VERIFY_RTE_MSG( getMsgID( msg ) == {{ filename }}::MSG_{{ request.name }}_Response::ID,
+        "Unexpected reponse of type: " << getMsgNameFromID( getMsgID( msg ) ) << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+    RESUME_MPO_CONTEXT();
+{%if request.return_type != "void" %}
+    return {{ filename }}::MSG_{{ request.name }}_Response::get( msg ).{{ request.return_msg_member }};
+{% endif %}
+}
+{% endfor %}
+
+
+
 Message Impl::dispatchRequest( const Message& message, boost::asio::yield_context& yield_ctx )
 {
     switch( getMsgID( message ) )

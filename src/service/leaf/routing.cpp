@@ -3,6 +3,8 @@
 
 #include "service/network/log.hpp"
 
+#include "mega/reference_io.hpp"
+
 namespace mega
 {
 namespace service
@@ -26,6 +28,8 @@ network::Message LeafRequestConversation::dispatchRequest( const network::Messag
     if ( result = network::exe_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::tool_leaf::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
@@ -87,7 +91,14 @@ network::leaf_term::Request_Sender LeafRequestConversation::getTermSender( boost
 {
     return network::leaf_term::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
 }
-
+network::mpo::Request_Sender LeafRequestConversation::getMPOUpSender( boost::asio::yield_context& yield_ctx )
+{
+    return network::mpo::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
+}
+network::mpo::Request_Sender LeafRequestConversation::getMPODownSender( boost::asio::yield_context& yield_ctx )
+{
+    return network::mpo::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+}
 // network::term_leaf::Impl
 network::Message LeafRequestConversation::TermRoot( const network::Message&     request,
                                                     boost::asio::yield_context& yield_ctx )
@@ -102,6 +113,11 @@ network::Message LeafRequestConversation::ExeRoot( const network::Message&     r
 {
     return getDaemonSender( yield_ctx ).ExeRoot( request );
 }
+network::Message LeafRequestConversation::ExeDaemon( const network::Message&     request,
+                                                     boost::asio::yield_context& yield_ctx )
+{
+    return getDaemonSender( yield_ctx ).ExeDaemon( request );
+}
 
 // network::tool_leaf::Impl
 network::Message LeafRequestConversation::ToolRoot( const network::Message&     request,
@@ -110,17 +126,76 @@ network::Message LeafRequestConversation::ToolRoot( const network::Message&     
     return getDaemonSender( yield_ctx ).ToolRoot( request );
 }
 
-// network::mpo_leaf::Impl
-network::Message LeafRequestConversation::MPORoot( const network::Message&     request,
-                                                   boost::asio::yield_context& yield_ctx )
+// network::mpo::Impl
+network::Message LeafRequestConversation::MPRoot( const network::Message&     request, const mega::MP&,
+                                                  boost::asio::yield_context& yield_ctx )
 {
-    return getDaemonSender( yield_ctx ).MPORoot( request, m_leaf.m_mpo );
+    // ignor the passed MP and use the leaf MP
+    return getMPOUpSender( yield_ctx ).MPRoot( request, m_leaf.m_mp );
+}
+network::Message LeafRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
+                                                  boost::asio::yield_context& yield_ctx )
+{
+    switch ( m_leaf.m_nodeType )
+    {
+        case network::Node::Executor:
+            return getMPODownSender( yield_ctx ).MPDown( request, mp );
+        case network::Node::Tool:
+            return getMPODownSender( yield_ctx ).MPDown( request, mp );
+        case network::Node::Terminal:
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::Leaf:
+        case network::Node::TOTAL_NODE_TYPES:
+            THROW_RTE( "Unreachable" );
+        default:
+            THROW_RTE( "Unknown node type" );
+    }
+}
+network::Message LeafRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
+                                                boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "LeafRequestConversation::MPUp: {} {}", mp, network::getMsgName( request ) );
+    if ( m_leaf.m_mp == mp )
+    {
+        return dispatchRequest( request, yield_ctx );
+    }
+    else
+    {
+        return getMPOUpSender( yield_ctx ).MPUp( request, mp );
+    }
 }
 
-network::Message LeafRequestConversation::MPOMPOUp( const network::Message& request, const mega::MPO& mpo,
-                                                    boost::asio::yield_context& yield_ctx )
+network::Message LeafRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
+                                                   boost::asio::yield_context& yield_ctx )
 {
-    return MPOMPODown( request, mpo, yield_ctx );
+    switch ( m_leaf.m_nodeType )
+    {
+        case network::Node::Executor:
+            return getMPODownSender( yield_ctx ).MPODown( request, mpo );
+        case network::Node::Tool:
+            return getMPODownSender( yield_ctx ).MPODown( request, mpo );
+        case network::Node::Terminal:
+        case network::Node::Daemon:
+        case network::Node::Root:
+        case network::Node::Leaf:
+        case network::Node::TOTAL_NODE_TYPES:
+            THROW_RTE( "Unreachable" );
+        default:
+            THROW_RTE( "Unknown node type" );
+    }
+}
+network::Message LeafRequestConversation::MPOUp( const network::Message& request, const mega::MPO& mpo,
+                                                 boost::asio::yield_context& yield_ctx )
+{
+    if ( m_leaf.m_mpos.count( mpo ) )
+    {
+        return MPODown( request, mpo, yield_ctx );
+    }
+    else
+    {
+        return getMPOUpSender( yield_ctx ).MPOUp( request, mpo );
+    }
 }
 
 // network::daemon_leaf::Impl
@@ -128,7 +203,42 @@ network::Message LeafRequestConversation::RootLeafBroadcast( const network::Mess
                                                              boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
+
+    /*SPDLOG_TRACE( "LeafRequestConversation::RootLeafBroadcast" );
+    // dispatch to children
+    std::vector< network::Message > responses;
+    {
+        switch ( m_leaf.m_nodeType )
+        {
+            case network::Node::Executor:
+                const network::Message response = getExeSender( yield_ctx ).RootLeafBroadcast( request );
+                responses.push_back( response );
+                break;
+            case network::Node::Terminal:
+                const network::Message response = getTermSender( yield_ctx ).RootLeafBroadcast( request );
+                responses.push_back( response );
+                break;
+            case network::Node::Tool:
+                const network::Message response = getToolSender( yield_ctx ).RootLeafBroadcast( request );
+                responses.push_back( response );
+                break;
+            case network::Node::Daemon:
+            case network::Node::Root:
+            case network::Node::Leaf:
+            case network::Node::TOTAL_NODE_TYPES:
+                THROW_RTE( "Unreachable" );
+            default:
+                THROW_RTE( "Unknown node type" );
+        }
+    }
+
+    network::Message aggregateRequest = request;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );*/
 }
+
 network::Message LeafRequestConversation::RootExeBroadcast( const network::Message&     request,
                                                             boost::asio::yield_context& yield_ctx )
 {
@@ -167,6 +277,7 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
 }
 void LeafRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", mpo );
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
@@ -183,7 +294,7 @@ void LeafRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yie
                 }
                 ~MPOEntry() { mpos.erase( mpo ); }
             } mpoEntry( m_leaf.m_mpos, mpo );
-            getExeSender( yield_ctx ).RootSimRun( mpo );
+            return getExeSender( yield_ctx ).RootSimRun( mpo );
         }
         case network::Node::Terminal:
         case network::Node::Tool:
@@ -194,51 +305,6 @@ void LeafRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yie
             THROW_RTE( "Unreachable" );
         default:
             THROW_RTE( "Unknown node type" );
-    }
-}
-network::Message LeafRequestConversation::RootMPO( const network::Message& request, const mega::MPO& mpo,
-                                                   boost::asio::yield_context& yield_ctx )
-{
-    switch ( m_leaf.m_nodeType )
-    {
-        case network::Node::Executor:
-            return getExeSender( yield_ctx ).RootMPO( request, mpo );
-        case network::Node::Tool:
-            return getToolSender( yield_ctx ).RootMPO( request, mpo );
-        case network::Node::Terminal:
-        case network::Node::Daemon:
-        case network::Node::Root:
-        case network::Node::Leaf:
-        case network::Node::TOTAL_NODE_TYPES:
-            THROW_RTE( "Unreachable" );
-        default:
-            THROW_RTE( "Unknown node type" );
-    }
-}
-network::Message LeafRequestConversation::MPOMPODown( const network::Message& request, const mega::MPO& mpo,
-                                                      boost::asio::yield_context& yield_ctx )
-{
-    if ( m_leaf.m_mpos.count( mpo ) )
-    {
-        switch ( m_leaf.m_nodeType )
-        {
-            case network::Node::Executor:
-                return getExeSender( yield_ctx ).MPOMPODown( request, mpo );
-            case network::Node::Tool:
-                return getToolSender( yield_ctx ).MPOMPODown( request, mpo );
-            case network::Node::Terminal:
-            case network::Node::Daemon:
-            case network::Node::Root:
-            case network::Node::Leaf:
-            case network::Node::TOTAL_NODE_TYPES:
-                THROW_RTE( "Unreachable" );
-            default:
-                THROW_RTE( "Unknown node type" );
-        }
-    }
-    else
-    {
-        return getDaemonSender( yield_ctx ).MPOMPOUp( request, mpo );
     }
 }
 

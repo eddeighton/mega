@@ -1,0 +1,13 @@
+
+
+msg AcquireSharedMemory
+{
+    request(MPO mpo);
+    response(std::string strSharedMemoryName);
+}
+
+msg ReleaseSharedMemory
+{
+    request(MPO mpo);
+    response();
+}

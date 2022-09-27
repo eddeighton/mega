@@ -30,17 +30,8 @@ public:
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override;
 
-    virtual void run( boost::asio::yield_context& yield_ctx ) override;
-
-    network::Sender& getRequestSender()
-    {
-        if ( !m_pRequestChannelSender )
-        {
-            m_pRequestChannelSender
-                = network::make_current_channel_sender( m_requestChannel, network::ConnectionID{ "sim" } );
-        }
-        return *m_pRequestChannelSender;
-    }
+    virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
+    virtual void             run( boost::asio::yield_context& yield_ctx ) override;
 
     // network::sim::Impl
     virtual bool      SimLockRead( const mega::MPO&            owningID,
@@ -54,7 +45,7 @@ public:
                                       boost::asio::yield_context& yield_ctx ) override;
     virtual void      SimClock( boost::asio::yield_context& yield_ctx ) override;
     virtual mega::MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
-    virtual void      SimDestroy( const mega::MPO& requestID, boost::asio::yield_context& yield_ctx ) override;
+    virtual void      SimDestroy( boost::asio::yield_context& yield_ctx ) override;
 
     // network::leaf_exe::Impl
     virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
@@ -83,21 +74,20 @@ private:
     void clock();
     void cycle();
     void runSimulation( boost::asio::yield_context& yield_ctx );
-    void acknowledgeMessage( const network::ChannelMsg& msg, boost::asio::yield_context& yield_ctx );
 
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
 
 private:
-    network::ConcurrentChannel                           m_requestChannel;
     network::Sender::Ptr                                 m_pRequestChannelSender;
     boost::asio::yield_context*                          m_pYieldContext = nullptr;
     std::optional< mega::MPO >                           m_mpo;
     std::shared_ptr< mega::runtime::MPORoot >            m_pExecutionRoot;
     mega::Scheduler                                      m_scheduler;
-    SimulationStateMachine                               m_stateMachine;
+    StateMachine                                         m_stateMachine;
     boost::asio::steady_timer                            m_timer;
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     LockTracker                                          m_lockTracker;
+    StateMachine::MsgVector                              m_messageQueue;
 };
 
 } // namespace service

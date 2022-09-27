@@ -3,23 +3,23 @@
 msg EnroleDaemon
 {
     request();
-    response(MPO daemonMPO);
+    response(MP daemonMP);
 }
 
 msg EnroleLeafWithDaemon
 {
     request(mega::network::Node::Type type);
-    response(MPO leafMPO);
+    response(MP leafMP);
 }
 
 msg EnroleLeafWithRoot
 {
-    request(MPO daemonMPO);
-    response(MPO leafMPO);
+    request(MP daemonMP);
+    response(MP leafMP);
 }
 
 msg EnroleLeafDisconnect
 {
-    request(MPO leafMPO);
+    request(MP leafMP);
     response();
 }

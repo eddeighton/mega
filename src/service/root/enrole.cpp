@@ -8,25 +8,29 @@ namespace service
 {
 
 // network::enrole::Impl
-MPO RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yield_ctx )
+MP RootRequestConversation::EnroleDaemon( boost::asio::yield_context& yield_ctx )
 {
-    const mega::MPO                  mpo         = m_root.m_mpoManager.newDaemon();
+    const mega::MP mp = m_root.m_mpoManager.newDaemon();
+    SPDLOG_TRACE( "RootRequestConversation::EnroleDaemon: {}", mp );
     network::Server::Connection::Ptr pConnection = m_root.m_server.getConnection( getOriginatingEndPointID().value() );
-    pConnection->setMPO( mpo );
-    pConnection->setDisconnectCallback( [ mpo, &root = m_root ]( const network::ConnectionID& connectionID )
-                                        { root.onDaemonDisconnect( connectionID, mpo ); } );
-    return mpo;
+    pConnection->setMP( mp );
+    pConnection->setDisconnectCallback( [ mp, &root = m_root ]( const network::ConnectionID& connectionID )
+                                        { root.onDaemonDisconnect( connectionID, mp ); } );
+    m_root.m_server.mapConnection( mp, pConnection );
+    return mp;
 }
 
-MPO RootRequestConversation::EnroleLeafWithRoot( const MPO& daemonMPO, boost::asio::yield_context& yield_ctx )
+MP RootRequestConversation::EnroleLeafWithRoot( const MP& daemonMP, boost::asio::yield_context& yield_ctx )
 {
-    return m_root.m_mpoManager.newLeaf( daemonMPO );
+    const MP mp = m_root.m_mpoManager.newLeaf( daemonMP );
+    SPDLOG_TRACE( "RootRequestConversation::EnroleLeafWithRoot: {}", mp );
+    return mp;
 }
 
-void RootRequestConversation::EnroleLeafDisconnect( const MPO& mpo, boost::asio::yield_context& yield_ctx )
+void RootRequestConversation::EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "EnroleLeafDisconnect {}", mpo );
-    m_root.m_mpoManager.leafDisconnected( mpo );
+    SPDLOG_TRACE( "RootRequestConversation::EnroleLeafDisconnect {}", mp );
+    m_root.m_mpoManager.leafDisconnected( mp );
 }
-}
-}
+} // namespace service
+} // namespace mega

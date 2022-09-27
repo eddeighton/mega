@@ -18,6 +18,8 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
                                                              boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
+    if ( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     if ( result = network::leaf_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::root_daemon::Impl::dispatchRequest( msg, yield_ctx ); result )
@@ -98,17 +100,10 @@ network::Message DaemonRequestConversation::LeafDaemon( const network::Message& 
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message DaemonRequestConversation::MPORoot( const network::Message&     request,
-                                                     const mega::MPO&            mpo,
-                                                     boost::asio::yield_context& yield_ctx )
+network::Message DaemonRequestConversation::ExeDaemon( const network::Message&     request,
+                                                       boost::asio::yield_context& yield_ctx )
 {
-    return getRootSender( yield_ctx ).MPORoot( request, mpo );
-}
-network::Message DaemonRequestConversation::MPOMPOUp( const network::Message&     request,
-                                                      const mega::MPO&            mpo,
-                                                      boost::asio::yield_context& yield_ctx )
-{
-    return MPOMPODown( request, mpo, yield_ctx );
+    return dispatchRequest( request, yield_ctx );
 }
 
 // network::root_daemon::Impl
@@ -173,6 +168,8 @@ network::Message DaemonRequestConversation::RootExe( const network::Message&    
 
 void DaemonRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "DaemonRequestConversation::RootSimRun: {}", mpo );
+
     auto stackCon = getOriginatingEndPointID();
     VERIFY_RTE( stackCon.has_value() );
     auto pConnection = m_daemon.m_server.getConnection( stackCon.value() );
@@ -180,38 +177,72 @@ void DaemonRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::y
     VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor );
 
     {
-        network::Server::MPOMapping          mpoMapping( m_daemon.m_server, mpo, pConnection );
+        network::Server::MPOConnection       mpoConnection( m_daemon.m_server, mpo, pConnection );
         network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
         sender.RootSimRun( mpo );
     }
 }
 
-network::Message DaemonRequestConversation::RootMPO( const network::Message&     request,
-                                                     const mega::MPO&            mpo,
-                                                     boost::asio::yield_context& yield_ctx )
+// network::mpo::Impl
+network::Message DaemonRequestConversation::MPRoot( const network::Message&     request,
+                                                    const mega::MP&             mp,
+                                                    boost::asio::yield_context& yield_ctx )
 {
-    auto stackCon = getOriginatingEndPointID();
-    VERIFY_RTE( stackCon.has_value() );
-    auto pConnection = m_daemon.m_server.getConnection( stackCon.value() );
-    VERIFY_RTE( pConnection );
-    VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor );
-    network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
-    return sender.RootMPO( request, mpo );
+    network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+    return sender.MPRoot( request, mp );
 }
 
-network::Message DaemonRequestConversation::MPOMPODown( const network::Message&     request,
-                                                        const mega::MPO&            mpo,
-                                                        boost::asio::yield_context& yield_ctx )
+network::Message DaemonRequestConversation::MPDown( const network::Message&     request,
+                                                    const mega::MP&             mp,
+                                                    boost::asio::yield_context& yield_ctx )
 {
-    if ( network::Server::Connection::Ptr pCon = m_daemon.m_server.findConnection( mpo ) )
+    if ( m_daemon.m_mp == mp )
     {
-        network::daemon_leaf::Request_Sender sender( *this, *pCon, yield_ctx );
-        return sender.MPOMPODown( request, mpo );
+        return dispatchRequest( request, yield_ctx );
     }
     else
     {
-        return getRootSender( yield_ctx ).MPOMPOUp( request, mpo );
+        network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp );
+        VERIFY_RTE_MSG( pConnection, "Failed to locate connection for mp: " << mp );
+        network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.MPDown( request, mp );
     }
+}
+
+network::Message DaemonRequestConversation::MPUp( const network::Message&     request,
+                                                  const mega::MP&             mp,
+                                                  boost::asio::yield_context& yield_ctx )
+{
+    if ( m_daemon.m_mp == mp )
+    {
+        return dispatchRequest( request, yield_ctx );
+    }
+    else
+    {
+        if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( mp ) )
+        {
+            network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
+            return sender.MPDown( request, mp );
+        }
+        else
+        {
+            network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+            return sender.MPUp( request, mp );
+        }
+    }
+}
+
+network::Message DaemonRequestConversation::MPODown( const network::Message&     request,
+                                                     const mega::MPO&            mpo,
+                                                     boost::asio::yield_context& yield_ctx )
+{
+    THROW_RTE( "TODO" );
+}
+network::Message DaemonRequestConversation::MPOUp( const network::Message&     request,
+                                                   const mega::MPO&            mpo,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    THROW_RTE( "TODO" );
 }
 
 } // namespace service

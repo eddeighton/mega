@@ -26,19 +26,6 @@ msg RootSimRun
     response();
 }
 
-msg RootMPO
-{
-    request(network::Message request, mega::MPO mpo);
-    response(network::Message response);
-}
-
-msg MPOMPODown
-{
-    // route using initiated conversation path
-    request(network::Message request, mega::MPO mpo);
-    response(network::Message response);
-}
-
 msg DaemonLeafBroadcast
 {
     request(network::Message request);

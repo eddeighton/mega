@@ -37,11 +37,11 @@ public:
         ~Connection();
 
         const std::optional< Node::Type >& getTypeOpt() const { return m_typeOpt; }
-        const std::optional< mega::MPO >&  getMPOOpt() const { return m_mpoOpt; }
+        const std::optional< mega::MP >&   getMPOpt() const { return m_mpOpt; }
         const std::string&                 getName() const { return m_strName; }
 
         void setType( Node::Type type ) { m_typeOpt = type; }
-        void setMPO( mega::MPO mpo ) { m_mpoOpt = mpo; }
+        void setMP( mega::MP mp ) { m_mpOpt = mp; }
 
         // Sender
         virtual ConnectionID              getConnectionID() const { return m_pSender->getConnectionID(); }
@@ -50,6 +50,11 @@ public:
         {
             return m_pSender->send( conversationID, msg, yield_ctx );
         }
+        /*virtual boost::system::error_code post( const ConversationID& sourceID, const ConversationID& targetID,
+                                                const Message& msg, boost::asio::yield_context& yield_ctx )
+        {
+            return m_pSender->post( sourceID, targetID, msg, yield_ctx );
+        }*/
         virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
                                         boost::asio::yield_context& yield_ctx )
         {
@@ -81,11 +86,12 @@ public:
         Sender::Ptr                         m_pSender;
         std::optional< Node::Type >         m_typeOpt;
         std::optional< DisconnectCallback > m_disconnectCallback;
-        std::optional< mega::MPO >          m_mpoOpt;
+        std::optional< mega::MP >           m_mpOpt;
     };
 
     using ConnectionMap    = std::map< ConnectionID, Connection::Ptr >;
     using ConnectionMPOMap = std::unordered_map< mega::MPO, Connection::Ptr, mega::MPO::Hash >;
+    using ConnectionMPMap  = std::unordered_map< mega::MP, Connection::Ptr, mega::MP::Hash >;
 
 public:
     Server( boost::asio::io_context& ioContext, ConversationManager& conversationManager, short port );
@@ -95,22 +101,25 @@ public:
     Connection::Ptr          getConnection( const ConnectionID& connectionID );
     const ConnectionMap&     getConnections() const { return m_connections; }
     Connection::Ptr          findConnection( const mega::MPO& mpo ) const;
+    Connection::Ptr          findConnection( const mega::MP& mp ) const;
     void                     mapConnection( const mega::MPO& mpo, Connection::Ptr pConnection );
-    void                     unmapConnection( const mega::MPO& mpo, Connection::Ptr pConnection );
+    void                     unmapConnection( const mega::MPO& mpo );
+    void                     mapConnection( const mega::MP& mp, Connection::Ptr pConnection );
+    void                     unmapConnection( const mega::MP& mp );
 
-    struct MPOMapping
+    struct MPOConnection
     {
         Server&          server;
         const mega::MPO& mpo;
         Connection::Ptr  pConnection;
-        MPOMapping( Server& server, const mega::MPO& mpo, Connection::Ptr pConnection )
+        MPOConnection( Server& server, const mega::MPO& mpo, Connection::Ptr pConnection )
             : server( server )
             , mpo( mpo )
             , pConnection( pConnection )
         {
             server.mapConnection( mpo, pConnection );
         }
-        ~MPOMapping() { server.unmapConnection( mpo, pConnection ); }
+        ~MPOConnection() { server.unmapConnection( mpo ); }
     };
 
     void stop();
@@ -124,6 +133,7 @@ private:
     boost::asio::ip::tcp::acceptor m_acceptor;
     ConnectionMap                  m_connections;
     ConnectionMPOMap               m_mpoMap;
+    ConnectionMPMap                m_mpMap;
 };
 
 } // namespace network

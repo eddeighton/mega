@@ -32,6 +32,7 @@ set( ROOT_SOURCE
     ${ROOT_SOURCE_DIR}/enrole.cpp
     ${ROOT_SOURCE_DIR}/status.cpp
     ${ROOT_SOURCE_DIR}/stash.cpp
+    ${ROOT_SOURCE_DIR}/address.cpp
  )
 
 add_executable( root ${ROOT_SOURCE} )

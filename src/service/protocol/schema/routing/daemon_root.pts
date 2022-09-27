@@ -28,17 +28,3 @@ msg DaemonRoot
     request(network::Message request);
     response(network::Message response);
 }
-
-msg MPORoot
-{
-    // route using initiated conversation path
-    request(network::Message request, mega::MPO mpo);
-    response(network::Message response);
-}
-
-msg MPOMPOUp
-{
-    // route using initiated conversation path
-    request(network::Message request, mega::MPO mpo);
-    response(network::Message response);
-}

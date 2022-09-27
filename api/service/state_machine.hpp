@@ -9,6 +9,8 @@
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/model/exe_sim.hxx"
 
+#include "network/conversation.hpp"
+
 #include <set>
 #include <vector>
 #include <optional>
@@ -19,7 +21,7 @@ namespace mega
 namespace service
 {
 
-class SimulationStateMachine
+class StateMachine
 {
     using ID    = mega::MPO;
     using IDSet = std::set< ID >;
@@ -33,7 +35,8 @@ public:
         TERM,
         WAIT
     };
-    using MsgVector = std::vector< network::ChannelMsg >;
+    using Msg       = network::ReceivedMsg;
+    using MsgVector = std::vector< Msg >;
     using AckVector = MsgVector;
 
 private:
@@ -59,9 +62,13 @@ public:
     using Destroy = network::sim::MSG_SimDestroy_Request;
     using Clock   = network::sim::MSG_SimClock_Request;
 
-    const mega::MPO& getSimID( const mega::network::ChannelMsg& msg ) const
+    static network::MessageID getMsgID( const Msg& msg )
     {
-        switch ( getMsgID( msg.msg ) )
+        return network::getMsgID( msg.msg );
+    }
+    static const mega::MPO& getSimID( const Msg& msg )
+    {
+        switch ( getMsgID( msg ) )
         {
             case Read::ID:
                 return Read::get( msg.msg ).owningID;
@@ -70,7 +77,6 @@ public:
             case Release::ID:
                 return Release::get( msg.msg ).owningID;
             case Destroy::ID:
-                return Destroy::get( msg.msg ).mpo;
             case Clock::ID:
             default:
                 THROW_RTE( "Unreachable" );
@@ -85,9 +91,9 @@ public:
         m_state           = WAIT;
         MsgVector reads;
         MsgVector other;
-        for ( const ChannelMsg& msg : m_msgQueue )
+        for ( const Msg& msg : m_msgQueue )
         {
-            switch ( getMsgID( msg.msg ) )
+            switch ( getMsgID( msg ) )
             {
                 case Read::ID:
                     reads.push_back( msg );
@@ -114,7 +120,7 @@ public:
             m_msgQueue.clear();
             for ( const auto& msg : other )
             {
-                switch ( getMsgID( msg.msg ) )
+                switch ( getMsgID( msg ) )
                 {
                     case Read::ID:
                         THROW_RTE( "Unreachable" );
@@ -136,7 +142,7 @@ public:
                     break;
                     case Release::ID:
                     {
-                        SPDLOG_ERROR( "SIM: Invalid release request: {}", msg.header );
+                        SPDLOG_ERROR( "SIM: Invalid release request: {}", msg.msg );
                         THROW_RTE( "SIM: Invalid release request" );
                     }
                     break;
@@ -181,9 +187,9 @@ public:
         MsgVector other;
         {
             // add new reads and process release
-            for ( const ChannelMsg& msg : m_msgQueue )
+            for ( const Msg& msg : m_msgQueue )
             {
-                switch ( getMsgID( msg.msg ) )
+                switch ( getMsgID( msg ) )
                 {
                     case Read::ID:
                     {
@@ -220,9 +226,9 @@ public:
         {
             MsgVector other2;
             std::swap( other2, other );
-            for ( const network::ChannelMsg& msg : other2 )
+            for ( const Msg& msg : other2 )
             {
-                switch ( getMsgID( msg.msg ) )
+                switch ( getMsgID( msg ) )
                 {
                     case Write::ID:
                     {
@@ -257,9 +263,9 @@ public:
             // direct transition to write?
         }
 
-        for ( const network::ChannelMsg& msg : other )
+        for ( const Msg& msg : other )
         {
-            switch ( getMsgID( msg.msg ) )
+            switch ( getMsgID( msg ) )
             {
                 case Read::ID:
                     THROW_RTE( "Unreachable" );
@@ -301,9 +307,9 @@ public:
         MsgVector other;
         {
             // add new reads and process release
-            for ( const ChannelMsg& msg : m_msgQueue )
+            for ( const Msg& msg : m_msgQueue )
             {
-                switch ( getMsgID( msg.msg ) )
+                switch ( getMsgID( msg ) )
                 {
                     case Write::ID:
                     {
@@ -332,9 +338,9 @@ public:
             // add new reads and process release
             MsgVector other2;
             std::swap( other, other2 );
-            for ( const ChannelMsg& msg : other2 )
+            for ( const Msg& msg : other2 )
             {
-                switch ( getMsgID( msg.msg ) )
+                switch ( getMsgID( msg ) )
                 {
                     case Release::ID:
                     {
@@ -358,9 +364,9 @@ public:
         }
 
         // stay in the WRITE state until clock tick
-        for ( const network::ChannelMsg& msg : other )
+        for ( const Msg& msg : other )
         {
-            switch ( getMsgID( msg.msg ) )
+            switch ( getMsgID( msg ) )
             {
                 case Read::ID:
                 {
@@ -426,9 +432,9 @@ public:
         bool bClockTicked = false;
 
         // stay in the WRITE state until clock tick
-        for ( const network::ChannelMsg& msg : m_msgQueue )
+        for ( const Msg& msg : m_msgQueue )
         {
-            switch ( getMsgID( msg.msg ) )
+            switch ( getMsgID( msg ) )
             {
                 case Read::ID:
                 {
@@ -469,7 +475,6 @@ public:
                 break;
                 case Destroy::ID:
                 {
-                    const ID& id = getSimID( msg );
                     m_acks.push_back( msg );
                 }
                 break;
@@ -487,9 +492,9 @@ public:
     {
         using namespace mega::network;
 
-        for ( const ChannelMsg& msg : msgs )
+        for ( const Msg& msg : msgs )
         {
-            switch ( getMsgID( msg.msg ) )
+            switch ( getMsgID( msg ) )
             {
                 case Destroy::ID:
                     m_state = TERM;

@@ -30,6 +30,9 @@ public:
     virtual boost::system::error_code send( const ConversationID& conversationID, const Message& msg,
                                             boost::asio::yield_context& yield_ctx )
         = 0;
+    /*virtual boost::system::error_code post( const ConversationID& sourceID, const ConversationID& targetID,
+                                            const Message& msg, boost::asio::yield_context& yield_ctx )
+        = 0;*/
     virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
         = 0;

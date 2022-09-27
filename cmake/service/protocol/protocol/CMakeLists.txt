@@ -13,18 +13,17 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 set( PROTOCOL_SCHEMA_DIR ${MEGA_SRC_DIR}/service/protocol/schema )
 
 set( ROUTING_SCHEMAS
-    daemon_leaf
     daemon_root
+    root_daemon
+    daemon_leaf
     leaf_daemon
     leaf_term
     leaf_tool
     leaf_exe
-    root_daemon
     term_leaf
     tool_leaf
     exe_leaf
-    mpo_leaf
-    leaf_mpo 
+    mpo 
 )
 
 set( INTERFACE_SCHEMAS
@@ -35,6 +34,8 @@ set( INTERFACE_SCHEMAS
     pipeline
     status
     stash
+    memory
+    address
 )
 
 set( PROTOCOL_HEADER_DIR ${MEGA_API_DIR}/service/protocol/model )

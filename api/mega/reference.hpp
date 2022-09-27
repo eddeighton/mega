@@ -103,6 +103,54 @@ static constexpr auto TOTAL_MACHINES  = MAX_MACHINES;                           
 static constexpr auto TOTAL_PROCESSES = MAX_MACHINES * MAX_PROCESS_PER_MACHINE;                         // 128
 static constexpr auto TOTAL_OWNERS    = MAX_MACHINES * MAX_PROCESS_PER_MACHINE * MAX_OWNER_PER_PROCESS; // 32768
 
+class MP
+{
+    using MPStorageType = U8;
+
+    struct MachineProcess
+    {
+        U8 process : 4, machine : 3, is_daemon : 1;
+    };
+    static_assert( sizeof( MachineProcess ) == 1U, "Invalid MachineProcess Size" );
+
+    union
+    {
+        MachineProcess mp;
+        MPStorageType  mp_storage;
+    };
+
+public:
+    struct Hash
+    {
+        inline U64 operator()( const MP& mp ) const noexcept { return mp.mp_storage; }
+    };
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& mp_storage;
+    }
+
+    MP() {}
+    MP( MachineID machineID, ProcessID processID, bool isDeamon )
+        : mp{ processID, machineID, isDeamon }
+    {
+    }
+
+    inline MachineID getMachineID() const { return mp.machine; }
+    inline ProcessID getProcessID() const { return mp.process; }
+    inline bool      getIsDaemon() const { return mp.is_daemon; }
+
+    inline bool operator==( const MP& cmp ) const { return mp_storage == cmp.mp_storage; }
+    inline bool operator!=( const MP& cmp ) const { return !( *this == cmp ); }
+    inline bool operator<( const MP& cmp ) const { return mp_storage < cmp.mp_storage; }
+
+    void setMachineID( MachineID machineID ) { mp.machine = machineID; }
+    void setProcessID( ProcessID processID ) { mp.process = processID; }
+    void setIsDaemon( bool bIsDaemon ) { mp.is_daemon = bIsDaemon; }
+};
+static_assert( sizeof( MP ) == 1U, "Invalid MP Size" );
+
 class MPO
 {
     using MPOStorageType = U16;

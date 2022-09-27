@@ -7,9 +7,10 @@
 
 #include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/exe_leaf.hxx"
-#include "service/protocol/model/mpo_leaf.hxx"
+#include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/sim.hxx"
+#include "service/protocol/model/status.hxx"
 
 #include "runtime/runtime_api.hpp"
 
@@ -21,7 +22,9 @@ class Executor;
 
 class ExecutorRequestConversation : public network::ConcurrentConversation,
                                     public network::leaf_exe::Impl,
+                                    public network::mpo::Impl,
                                     public network::job::Impl,
+                                    public network::status::Impl,
                                     public network::sim::Impl
 {
 protected:
@@ -42,7 +45,7 @@ public:
 
     // helpers
     network::exe_leaf::Request_Sender getLeafRequest( boost::asio::yield_context& yield_ctx );
-    network::mpo_leaf::Request_Sender getMPORequest( boost::asio::yield_context& yield_ctx );
+    network::mpo::Request_Sender getMPRequest( boost::asio::yield_context& yield_ctx );
 
     template < typename RequestEncoderType >
     RequestEncoderType getRootRequest( boost::asio::yield_context& yield_ctx )
@@ -51,14 +54,32 @@ public:
                                    { return rootRequest.ExeRoot( msg ); } );
     }
 
+    template < typename RequestEncoderType >
+    RequestEncoderType getDaemonRequest( boost::asio::yield_context& yield_ctx )
+    {
+        return RequestEncoderType( [ rootRequest = getLeafRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+                                   { return rootRequest.ExeDaemon( msg ); } );
+    }
+
     // network::leaf_exe::Impl - NOTE: RootSimRun note implemented here
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message RootMPO( const network::Message& request, const mega::MPO& mpo,
-                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPOMPODown( const network::Message& request, const mega::MPO& mpo,
-                                         boost::asio::yield_context& yield_ctx ) override;
+
+    // network::mpo::Impl
+    virtual network::Message
+    MPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPDown( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPUp( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message
+    MPOUp( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+
+    // network::status::Impl
+    virtual network::Status GetStatus( const std::vector< network::Status >& status,
+                                       boost::asio::yield_context&           yield_ctx ) override;
+    virtual std::string Ping( boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl - note also in JobConversation
     virtual std::vector< network::ConversationID >
@@ -69,17 +90,7 @@ public:
               boost::asio::yield_context&                                  yield_ctx ) override;
 
     // network::sim::Impl
-    virtual bool      SimLockRead( const mega::MPO&            owningID,
-                                   const mega::MPO&            requestID,
-                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual bool      SimLockWrite( const mega::MPO&            owningID,
-                                    const mega::MPO&            requestID,
-                                    boost::asio::yield_context& yield_ctx ) override;
-    virtual void      SimLockRelease( const mega::MPO&            owningID,
-                                      const mega::MPO&            requestID,
-                                      boost::asio::yield_context& yield_ctx ) override;
     virtual mega::MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
-    virtual void      SimDestroy( const mega::MPO& requestID, boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace service

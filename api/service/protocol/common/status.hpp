@@ -24,11 +24,13 @@ public:
     {
     }
 
+    const std::optional< mega::MP >&              getMP() const { return m_mp; }
     const std::optional< mega::MPO >&             getMPO() const { return m_mpo; }
     const std::vector< network::ConversationID >& getConversations() const { return m_conversationIDs; }
     const std::string&                            getDescription() const { return m_description; }
     const StatusVector&                           getChildren() const { return m_childStatus; }
 
+    void setMP( mega::MP mp ) { m_mp = mp; }
     void setMPO( mega::MPO mpo ) { m_mpo = mpo; }
     void setConversationID( const std::vector< network::ConversationID >& conversations )
     {
@@ -39,6 +41,7 @@ public:
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
     {
+        archive& m_mp;
         archive& m_mpo;
         archive& m_conversationIDs;
         archive& m_description;
@@ -46,6 +49,7 @@ public:
     }
 
 private:
+    std::optional< mega::MP >              m_mp;
     std::optional< mega::MPO >             m_mpo;
     std::vector< network::ConversationID > m_conversationIDs;
     std::string                            m_description;

@@ -1,0 +1,25 @@
+
+msg GetNetworkAddressMPO
+{
+    request( mega::NetworkAddress networkAddress );
+    response( mega::MPO mpo );
+}
+
+msg GetRootNetworkAddress
+{
+    request( mega::MPO mpo );
+    response( mega::NetworkAddress networkAddress );
+}
+
+msg AllocateNetworkAddress
+{
+    request( mega::MPO mpo, mega::TypeID objectTypeID );
+    response( mega::NetworkAddress networkAddress );
+}
+
+msg DeAllocateNetworkAddress
+{
+    request( MPO mpo, NetworkAddress networkAddress );
+    response();
+}
+

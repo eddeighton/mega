@@ -43,6 +43,12 @@ public:
     {
         return m_pSender->send( conversationID, msg, yield_ctx );
     }
+    /*virtual boost::system::error_code post( const network::ConversationID& sourceID,
+                                            const network::ConversationID& targetID, const Message& msg,
+                                            boost::asio::yield_context& yield_ctx )
+    {
+        return m_pSender->post( sourceID, targetID, msg, yield_ctx );
+    }*/
     virtual void sendErrorResponse( const ConversationID& conversationID, const std::string& strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {

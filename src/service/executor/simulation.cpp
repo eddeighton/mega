@@ -12,6 +12,9 @@
 
 #include "service/protocol/model/exe_leaf.hxx"
 #include "service/protocol/model/exe_sim.hxx"
+#include "service/protocol/model/memory.hxx"
+#include "service/protocol/model/address.hxx"
+#include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/messages.hxx"
 
 namespace mega
@@ -21,7 +24,7 @@ namespace service
 
 Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
-    , m_requestChannel( executor.m_io_context )
+    //, m_requestChannel( executor.m_io_context )
     , m_timer( executor.m_io_context )
 {
 }
@@ -41,52 +44,52 @@ mega::reference Simulation::getRoot( const SimID& simID ) { THROW_RTE( "Unsuppor
 mega::reference Simulation::getRoot() { return m_pExecutionRoot->root(); }
 
 // mega::MPOContext
-MPO Simulation::getThisMPO() { return m_mpo.value(); }
+MPO Simulation::getThisMPO()
+{
+    ASSERT( m_mpo.has_value() );
+    return m_mpo.value();
+}
 
 std::string Simulation::acquireMemory( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
-    // return getLeafRequest( *m_pYieldContext ).ExeAcquireMemory( mpo );
-    THROW_RTE( "TODO" );
+    return getDaemonRequest< network::memory::Request_Encoder >( *m_pYieldContext ).AcquireSharedMemory( mpo );
 }
 MPO Simulation::getNetworkAddressMPO( NetworkAddress networkAddress )
 {
     VERIFY_RTE( m_pYieldContext );
-    // return getLeafRequest( *m_pYieldContext ).ExeGetNetworkAddressMPO( networkAddress );
-    THROW_RTE( "TODO" );
+    return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
+        .GetNetworkAddressMPO( networkAddress );
 }
 NetworkAddress Simulation::getRootNetworkAddress( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
-    // return NetworkAddress{ getLeafRequest( *m_pYieldContext ).ExeGetRootNetworkAddress( mpo ) };
-    THROW_RTE( "TODO" );
+    return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext ).GetRootNetworkAddress( mpo );
 }
 NetworkAddress Simulation::allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
 {
     VERIFY_RTE( m_pYieldContext );
-    // return NetworkAddress{ getLeafRequest( *m_pYieldContext ).ExeAllocateNetworkAddress( mpo, objectTypeID ) };
-    THROW_RTE( "TODO" );
+    return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
+        .AllocateNetworkAddress( mpo, objectTypeID );
 }
 
 void Simulation::deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress )
 {
     VERIFY_RTE( m_pYieldContext );
-    // getLeafRequest( *m_pYieldContext ).ExeDeAllocateNetworkAddress( mpo, networkAddress );
-    THROW_RTE( "TODO" );
+    getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
+        .DeAllocateNetworkAddress( mpo, networkAddress );
 }
 
 void Simulation::stash( const std::string& filePath, mega::U64 determinant )
 {
     VERIFY_RTE( m_pYieldContext );
-    // getLeafRequest( *m_pYieldContext ).ExeStash( filePath, determinant );
-    THROW_RTE( "TODO" );
+    getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext ).StashStash( filePath, determinant );
 }
 
 bool Simulation::restore( const std::string& filePath, mega::U64 determinant )
 {
     VERIFY_RTE( m_pYieldContext );
-    // return getLeafRequest( *m_pYieldContext ).ExeRestore( filePath, determinant );
-    THROW_RTE( "TODO" );
+    return getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext ).StashRestore( filePath, determinant );
 }
 
 bool Simulation::readLock( MPO mpo )
@@ -130,39 +133,6 @@ void Simulation::releaseLock( MPO mpo )
     THROW_RTE( "TODO" );
 }
 
-void Simulation::acknowledgeMessage( const network::ChannelMsg& msg, boost::asio::yield_context& yield_ctx )
-{
-    {
-        ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, getConnectionID() );
-        try
-        {
-            // SPDLOG_TRACE( "SIM: acknowledgeMessage {}", getMsgName( msg.msg ) );
-            ASSERT( isRequest( msg.msg ) );
-            const network::Message result = dispatchRequest( msg.msg, yield_ctx );
-            if ( !result )
-            {
-                SPDLOG_ERROR( "SIM: Failed to dispatch request: {} on conversation: {}", msg.msg, getID() );
-                THROW_RTE( "Failed to dispatch request message: " << msg.msg );
-            }
-        }
-        catch ( std::exception& ex )
-        {
-            Conversation::Ptr pRequestCon = m_executor.findExistingConversation( msg.header.getConversationID() );
-            pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
-            // if ( requestingID.has_value() )
-            // {
-            //     Conversation::Ptr pRequestCon = m_executor.findExistingConversation( msg.header.getConversationID()
-            //     ); pRequestCon->sendErrorResponse( getID(), ex.what(), yield_ctx );
-            // }
-            // else
-            // {
-            //     error( m_stack.back(), ex.what(), yield_ctx );
-            // }
-        }
-    }
-    VERIFY_RTE_MSG( m_stack.size() == 1, "Unexpected stack size after acknowledgeMessage" );
-}
-
 void Simulation::issueClock()
 {
     Simulation* pThis = this;
@@ -176,11 +146,7 @@ void Simulation::clock()
     // SPDLOG_TRACE( "SIM: Clock {} {}", getID(), getElapsedTime() );
     //  send the clock tick msg
     using namespace network::sim;
-    const network::Message    msg = MSG_SimClock_Request::make( MSG_SimClock_Request{} );
-    const network::ChannelMsg channelMsg{
-        network::Header{ static_cast< network::MessageID >( getMsgID( msg ) ), getID() }, msg };
-    boost::system::error_code ec;
-    m_requestChannel.async_send( ec, channelMsg, []( boost::system::error_code ec ) {} );
+    send( network::ReceivedMsg{ getConnectionID(), MSG_SimClock_Request::make( MSG_SimClock_Request{} ) } );
 }
 
 void Simulation::cycle()
@@ -194,6 +160,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
     {
+        VERIFY_RTE( m_mpo.has_value() );
         m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_mpo.value() );
         SPDLOG_TRACE( "SIM: runSimulation {} {}", m_mpo.value(), getID() );
 
@@ -201,7 +168,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         issueClock();
         bool bRegistedAsTerminating = false;
 
-        SimulationStateMachine::MsgVector msgs;
+        StateMachine::MsgVector msgs, msgs2;
         while ( !m_stateMachine.isTerminated() )
         {
             if ( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
@@ -213,34 +180,34 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
             for ( const auto& msg : m_stateMachine.acks() )
             {
-                acknowledgeMessage( msg, yield_ctx );
+                dispatchRequestImpl( msg, yield_ctx );
             }
             m_stateMachine.resetAcks();
 
             switch ( m_stateMachine.getState() )
             {
-                case SimulationStateMachine::SIM:
+                case StateMachine::SIM:
                 {
-                    // SPDLOG_TRACE( "SIM: SIM {}", getID() );
+                    SPDLOG_TRACE( "SIM: SIM {} {}", getID(), getElapsedTime() );
                     cycle();
                 }
                 break;
-                case SimulationStateMachine::READ:
+                case StateMachine::READ:
                 {
                     SPDLOG_TRACE( "SIM: READ {}", getID() );
                 }
                 break;
-                case SimulationStateMachine::WRITE:
+                case StateMachine::WRITE:
                 {
                     SPDLOG_TRACE( "SIM: WRITE {}", getID() );
                 }
                 break;
-                case SimulationStateMachine::TERM:
+                case StateMachine::TERM:
                 {
                     SPDLOG_TRACE( "SIM: TERM {}", getID() );
                 }
                 break;
-                case SimulationStateMachine::WAIT:
+                case StateMachine::WAIT:
                 {
                     SPDLOG_TRACE( "SIM: WAIT {}", getID() );
                 }
@@ -251,11 +218,11 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             SUSPEND_MPO_CONTEXT();
 
             {
-                const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
-                msgs.push_back( msg );
+                const network::ReceivedMsg msg = receive( yield_ctx );
+                m_messageQueue.push_back( msg );
             }
-            while ( m_requestChannel.try_receive(
-                [ &msgs ]( boost::system::error_code ec, const network::ChannelMsg& msg )
+            while ( m_channel.try_receive(
+                [ &msgs = m_messageQueue ]( boost::system::error_code ec, const network::ReceivedMsg& msg )
                 {
                     if ( !ec )
                     {
@@ -271,15 +238,37 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             RESUME_MPO_CONTEXT();
             // SPDLOG_TRACE( "SIM: Msgs {}", msgs.size() );
 
+            // process non-state messages
+            {
+                msgs2.clear();
+                for ( const auto& msg : m_messageQueue )
+                {
+                    switch ( StateMachine::getMsgID( msg ) )
+                    {
+                        case StateMachine::Read::ID:
+                        case StateMachine::Write::ID:
+                        case StateMachine::Release::ID:
+                        case StateMachine::Destroy::ID:
+                        case StateMachine::Clock::ID:
+                            msgs2.push_back( msg );
+                            break;
+                        default:
+                            dispatchRequestImpl( msg, yield_ctx );
+                            break;
+                    }
+                }
+                m_messageQueue.clear();
+            }
+
             // returns whether there was clock tick
-            if ( m_stateMachine.onMsg( msgs ) )
+            if ( m_stateMachine.onMsg( msgs2 ) )
             {
                 if ( !m_stateMachine.isTerminated() )
                 {
                     issueClock();
                 }
             }
-            msgs.clear();
+            msgs2.clear();
         }
     }
     catch ( std::exception& ex )
@@ -289,57 +278,92 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
     }
 }
 
+network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
+{
+    SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse" );
+    network::ReceivedMsg msg;
+    while ( true )
+    {
+        msg = receive( yield_ctx );
+
+        // simulation is running so process as normal
+        if ( isRequest( msg.msg ) )
+        {
+            if ( m_mpo.has_value() || ( getMsgID( msg.msg ) == network::leaf_exe::MSG_RootSimRun_Request::ID ) )
+            {
+                dispatchRequestImpl( msg, yield_ctx );
+
+                // check if connection has disconnected
+                if ( m_disconnections.empty() )
+                {
+                    ASSERT( !m_stack.empty() );
+                    if ( m_disconnections.count( m_stack.back() ) )
+                    {
+                        SPDLOG_ERROR(
+                            "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
+                        const network::ReceivedMsg rMsg{ m_stack.back(), network::make_error_msg( "Disconnection" ) };
+                        send( rMsg );
+                    }
+                }
+            }
+            else
+            {
+                // queue the messages
+                SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse queued: {}", msg.msg );
+                m_messageQueue.push_back( msg );
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
+    if ( getMsgID( msg.msg ) == network::MSG_Error_Response::ID )
+    {
+        throw std::runtime_error( network::MSG_Error_Response::get( msg.msg ).what );
+    }
+    return msg.msg;
+}
+
 void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "SIM: run" );
     // send request to root to start - will get request back to run
     network::sim::Request_Encoder request(
-        [ rootRequest = getMPORequest( yield_ctx ) ]( const network::Message& msg ) mutable
-        { return rootRequest.MPORoot( msg ); } );
+        [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+        { return rootRequest.MPRoot( msg, mega::MP{} ); } );
     request.SimStart();
 }
 
-bool Simulation::SimLockRead( const mega::MPO&            owningID,
-                              const mega::MPO&            requestID,
-                              boost::asio::yield_context& yield_ctx )
+bool Simulation::SimLockRead( const mega::MPO&, const mega::MPO&, boost::asio::yield_context& )
 {
     return !m_stateMachine.isTerminating();
 }
-bool Simulation::SimLockWrite( const mega::MPO&            owningID,
-                               const mega::MPO&            requestID,
-                               boost::asio::yield_context& yield_ctx )
+bool Simulation::SimLockWrite( const mega::MPO&, const mega::MPO&, boost::asio::yield_context& )
 {
     return !m_stateMachine.isTerminating();
 }
-void Simulation::SimLockRelease( const mega::MPO&            owningID,
-                                 const mega::MPO&            requestID,
-                                 boost::asio::yield_context& yield_ctx )
+void Simulation::SimLockRelease( const mega::MPO&, const mega::MPO&, boost::asio::yield_context& )
 {
     // Do nothing just return
 }
-void Simulation::SimClock( boost::asio::yield_context& yield_ctx )
+void Simulation::SimClock( boost::asio::yield_context& )
 {
     // Do nothing just return
 }
 
-mega::MPO Simulation::SimCreate( boost::asio::yield_context& yield_ctx )
+mega::MPO Simulation::SimCreate( boost::asio::yield_context& )
 {
-    // called by request handler while waiting for sim to start running
     VERIFY_RTE( m_mpo.has_value() );
+    SPDLOG_TRACE( "SIM: SimCreate {}", m_mpo.value() );
+    // This is called when RootSimRun acks the pending SimCreate from ExecutorRequestConversation::SimCreate
     return m_mpo.value();
 }
 
 void Simulation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "SIM: RootSimRun {}", mpo );
     m_mpo = mpo;
-
-    m_executor.simulationInitiated( std::dynamic_pointer_cast< Simulation >( shared_from_this() ) );
-
-    // acknowledge the pending SimCreate from request handler
-    {
-        const network::ChannelMsg msg = m_requestChannel.async_receive( yield_ctx );
-        VERIFY_RTE( msg.header.getMessageID() == network::sim::MSG_SimCreate_Request::ID );
-        acknowledgeMessage( msg, yield_ctx );
-    }
 
     // now start running the simulation
     MPOContext::resume( this );
@@ -347,9 +371,9 @@ void Simulation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& y
     runSimulation( yield_ctx );
     MPOContext::suspend();
 }
-void Simulation::SimDestroy( const mega::MPO& requestID, boost::asio::yield_context& yield_ctx )
+void Simulation::SimDestroy( boost::asio::yield_context& )
 {
-    SPDLOG_TRACE( "SIM: Simulation::SimDestroy: {}", requestID );
+    // do nothing
 }
 
 } // namespace service

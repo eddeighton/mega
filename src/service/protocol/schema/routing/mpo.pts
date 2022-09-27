@@ -1,0 +1,28 @@
+
+
+msg MPRoot
+{
+    request(network::Message request, mega::MP mp);
+    response(network::Message response);
+}
+msg MPDown
+{
+    request(network::Message request, mega::MP mp);
+    response(network::Message response);
+}
+msg MPUp
+{
+    request(network::Message request, mega::MP mp);
+    response(network::Message response);
+}
+msg MPODown
+{
+    request(network::Message request, mega::MPO mpo);
+    response(network::Message response);
+}
+msg MPOUp
+{
+    request(network::Message request, mega::MPO mpo);
+    response(network::Message response);
+}
+

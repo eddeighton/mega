@@ -1,5 +1,7 @@
 #include "request.hpp"
 
+#include "mega/reference_io.hpp"
+
 #include "root.hpp"
 
 namespace mega
@@ -23,6 +25,8 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
     network::Message result;
     if ( result = network::daemon_root::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
+    if ( result = network::mpo::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
     if ( result = network::project::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::enrole::Impl::dispatchRequest( msg, yield_ctx ); result )
@@ -30,6 +34,8 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::stash::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::address::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
@@ -151,29 +157,52 @@ network::Message RootRequestConversation::DaemonRoot( const network::Message&   
     return dispatchRequest( request, yield_ctx );
 }
 
-network::Message RootRequestConversation::MPORoot( const network::Message&     request,
-                                                   const mega::MPO&            mpo,
-                                                   boost::asio::yield_context& yield_ctx )
+network::Message RootRequestConversation::MPRoot( const network::Message&     request,
+                                                  const mega::MP&             mp,
+                                                  boost::asio::yield_context& yield_ctx )
 {
-    // NOTE: how mpo is captured by the root::JoinConversation routine
-    SPDLOG_TRACE( "RootRequestConversation::MPORoot" );
     return dispatchRequest( request, yield_ctx );
 }
-network::Message RootRequestConversation::MPOMPOUp( const network::Message&     request,
-                                                    const mega::MPO&            mpo,
-                                                    boost::asio::yield_context& yield_ctx )
+network::Message RootRequestConversation::MPDown( const network::Message&     request,
+                                                  const mega::MP&             mp,
+                                                  boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "RootRequestConversation::MPOMPOUp" );
-
-    if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mpo ) )
+    const mega::MP machineMP( mp.getMachineID(), 0U, true );
+    if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( machineMP ) )
     {
-        network::root_daemon::Request_Sender sender( *this, *pCon, yield_ctx );
-        return sender.MPOMPODown( request, mpo );
+        network::mpo::Request_Sender sender( *this, *pCon, yield_ctx );
+        return sender.MPDown( request, mp );
     }
     else
     {
-        THROW_RTE( "Cannot locate mpo" );
+        THROW_RTE( "Failed to route to mp: " << mp );
     }
+}
+network::Message RootRequestConversation::MPUp( const network::Message&     request,
+                                                const mega::MP&             mp,
+                                                boost::asio::yield_context& yield_ctx )
+{
+    return MPDown( request, mp, yield_ctx );
+}
+network::Message RootRequestConversation::MPODown( const network::Message&     request,
+                                                   const mega::MPO&            mpo,
+                                                   boost::asio::yield_context& yield_ctx )
+{
+    if ( network::Server::Connection::Ptr pCon = m_root.m_server.findConnection( mpo ) )
+    {
+        network::mpo::Request_Sender sender( *this, *pCon, yield_ctx );
+        return sender.MPODown( request, mpo );
+    }
+    else
+    {
+        THROW_RTE( "Failed to route to mpo: " << mpo );
+    }
+}
+network::Message RootRequestConversation::MPOUp( const network::Message&     request,
+                                                 const mega::MPO&            mpo,
+                                                 boost::asio::yield_context& yield_ctx )
+{
+    return MPODown( request, mpo, yield_ctx );
 }
 
 } // namespace service

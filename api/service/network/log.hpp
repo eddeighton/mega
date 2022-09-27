@@ -4,6 +4,7 @@
 
 #include "mega/common.hpp"
 #include "mega/invocation_id.hpp"
+#include "mega/reference_io.hpp"
 
 #include "service/protocol/model/messages.hxx"
 
@@ -215,6 +216,20 @@ struct formatter< mega::NetworkOrProcessAddress >
     auto format( const mega::NetworkOrProcessAddress& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         return format_to( ctx.out(), "nop:{}", address.nop_storage );
+    }
+};
+
+template <>
+struct formatter< mega::MP >
+{
+    constexpr auto parse( format_parse_context& ctx ) -> decltype( ctx.begin() ) { return ctx.begin(); }
+    template < typename FormatContext >
+    auto format( const mega::MP& address, FormatContext& ctx ) -> decltype( ctx.out() )
+    {
+        std::ostringstream os;
+        using ::operator<<;
+        os << address;
+        return format_to( ctx.out(), "mp:{}", os.str() );
     }
 };
 

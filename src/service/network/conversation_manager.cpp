@@ -110,7 +110,7 @@ void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversa
         ConversationPtrMap::const_iterator iFind = m_conversations.find( pConversation->getID() );
         VERIFY_RTE( iFind != m_conversations.end() );
         {
-            SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
+            //SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
             m_conversations.erase( iFind );
         }
     }

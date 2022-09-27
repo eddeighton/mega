@@ -1,4 +1,5 @@
-
+// ed was here! on deepthought
+//
 #include <gtest/gtest.h>
 
 #include "service/state_machine.hpp"
@@ -9,37 +10,34 @@ static const mega::MPO id2( 1, 2, 4 );
 static const mega::MPO id3( 1, 3, 3 );
 static const mega::MPO id4( 2, 3, 4 );
 
-using SM = mega::service::SimulationStateMachine;
+using SM = mega::service::StateMachine;
 
-mega::network::ChannelMsg makeChannelMsg( const mega::MPO& id, const mega::network::Message& msg )
+SM::Msg makeMsg( const mega::MPO& id, const mega::network::Message& msg )
 {
     std::ostringstream os;
-    os << (int)id.getMachineID() << "." << (int)id.getProcessID() << "." << (int)id.getOwnerID();
-    mega::network::ConversationID conID( 1, os.str() );
-    const mega::network::ChannelMsg channelMsg{
-        mega::network::Header{ static_cast< mega::network::MessageID >( getMsgID( msg ) ), conID }, msg };
-    return channelMsg;
+    os << id;
+    return mega::network::ReceivedMsg{ os.str(), msg };
 }
 
-mega::network::ChannelMsg makeClock( const mega::MPO& id )
+SM::Msg makeClock( const mega::MPO& id )
 {
-    return makeChannelMsg( id, SM::Clock::make( SM::Clock{} ) );
+    return makeMsg( id, SM::Clock::make( SM::Clock{} ) );
 }
-mega::network::ChannelMsg makeRead( const mega::MPO& id )
+SM::Msg makeRead( const mega::MPO& id )
 {
-    return makeChannelMsg( id, SM::Read::make( SM::Read{ id } ) );
+    return makeMsg( id, SM::Read::make( SM::Read{ id } ) );
 }
-mega::network::ChannelMsg makeWrite( const mega::MPO& id )
+SM::Msg makeWrite( const mega::MPO& id )
 {
-    return makeChannelMsg( id, SM::Write::make( SM::Write{ id } ) );
+    return makeMsg( id, SM::Write::make( SM::Write{ id } ) );
 }
-mega::network::ChannelMsg makeRelease( const mega::MPO& id )
+SM::Msg makeRelease( const mega::MPO& id )
 {
-    return makeChannelMsg( id, SM::Release::make( SM::Release{ id } ) );
+    return makeMsg( id, SM::Release::make( SM::Release{ id } ) );
 }
-mega::network::ChannelMsg makeDestroy( const mega::MPO& id )
+SM::Msg makeDestroy( const mega::MPO& id )
 {
-    return makeChannelMsg( id, SM::Destroy::make( SM::Destroy{ id } ) );
+    return makeMsg( id, SM::Destroy::make( SM::Destroy{} ) );
 }
 
 TEST( SimStateMachine, WaitForClock )

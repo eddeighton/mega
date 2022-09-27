@@ -9,6 +9,7 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/project.hxx"
+#include "service/protocol/model/sim.hxx"
 
 #include "parser/parser.hpp"
 
@@ -72,7 +73,15 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
 
             auto currentProject = project.GetProject();
             if ( !currentProject.isEmpty() && boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+            {
                 mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, currentProject );
+                SPDLOG_TRACE(
+                    "Executor runtime initialised with project: {}", currentProject.getProjectInstallPath().string() );
+            }
+            else
+            {
+                SPDLOG_TRACE( "Could not initialised runtime.  No active project" );
+            }
         };
         conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(
                                    *this, createConversationID( getLeafSender().getConnectionID() ),
@@ -109,12 +118,30 @@ std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) co
         return Simulation::Ptr{};
 }
 
-void Executor::simulationInitiated( std::shared_ptr< Simulation > pSimulation )
+mega::MPO Executor::createSimulation( network::ConversationBase&  callingConversation,
+                                      boost::asio::yield_context& yield_ctx )
 {
-    WriteLock lock( m_mutex );
-    m_simulations.insert( { pSimulation->getThisMPO(), pSimulation } );
-    m_conversations.insert( std::make_pair( pSimulation->getID(), pSimulation ) );
-    spawnInitiatedConversation( pSimulation, getLeafSender() );
+    Simulation::Ptr pSimulation;
+    {
+        WriteLock lock( m_mutex );
+        // NOTE: duplicate of ConversationManager::createConversationID
+        const network::ConversationID id( ++m_nextConversationID, getLeafSender().getConnectionID() );
+        pSimulation = std::make_shared< Simulation >( *this, id );
+        m_conversations.insert( std::make_pair( pSimulation->getID(), pSimulation ) );
+        spawnInitiatedConversation( pSimulation, getLeafSender() );
+        SPDLOG_TRACE( "Executor::createSimulation {}", pSimulation->getID() );
+    }
+
+    network::sim::Request_Sender rq( callingConversation, *pSimulation, yield_ctx );
+    const mega::MPO              simMPO = rq.SimCreate();
+    SPDLOG_TRACE( "Executor::createSimulation sinCreate returned {}", simMPO );
+
+    {
+        WriteLock lock( m_mutex );
+        m_simulations.insert( { simMPO, pSimulation } );
+    }
+
+    return simMPO;
 }
 
 void Executor::simulationTerminating( std::shared_ptr< Simulation > pSimulation )
@@ -133,5 +160,16 @@ void Executor::conversationCompleted( network::ConversationBase::Ptr pConversati
     network::ConversationManager::conversationCompleted( pConversation );
 }
 
+network::ConversationBase::Ptr Executor::findConversation( const network::ConnectionID& connectionID )
+{
+    ReadLock lock( m_mutex );
+
+    for ( const auto& [ id, pCon ] : m_conversations )
+    {
+        if ( pCon->getConnectionID() == connectionID )
+            return pCon;
+    }
+    return network::ConversationBase::Ptr{};
+}
 } // namespace service
 } // namespace mega

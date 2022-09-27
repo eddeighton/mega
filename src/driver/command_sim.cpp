@@ -19,6 +19,8 @@
 
 #include "service/terminal.hpp"
 
+#include "mega/reference_io.hpp"
+
 #include "boost/program_options.hpp"
 #include "boost/filesystem/path.hpp"
 
@@ -33,15 +35,16 @@ namespace sim
 
 void command( bool bHelp, const std::vector< std::string >& args )
 {
-    bool        bCreate = false, bList = false;
-    std::string strList, strDestroy, strID, strRead, strWrite, strRelease, strSuspend, strResume, strStop, strStart;
+    bool        bList = false;
+    std::string strCreate, strList, strDestroy, strID, strRead, strWrite, strRelease, strSuspend, strResume, strStop,
+        strStart;
 
     namespace po = boost::program_options;
     po::options_description commandOptions( " Simulation Commands" );
     {
         // clang-format off
         commandOptions.add_options()
-            ( "create",     po::bool_switch( &bCreate ),    "Create" )
+            ( "create",     po::value( &strCreate ),        "Create using Executor MPO" )
             ( "list",       po::bool_switch( &bList ) ,     "List" )
             ( "destroy",    po::value( &strDestroy ) ,      "Destroy" )
             ( "id",         po::value( &strID ) ,           "ID to use with lock commands" )
@@ -67,13 +70,21 @@ void command( bool bHelp, const std::vector< std::string >& args )
     }
     else
     {
-            THROW_RTE( "TODO" );
-        // if ( bCreate )
-        // {
-        //     mega::service::Terminal             terminal;
-        //     const mega::network::ConversationID simID = terminal.SimNew();
-        //     std::cout << simID << std::endl;
-        // }
+        if ( !strCreate.empty() )
+        {
+            mega::MP executorMP;
+            {
+                std::istringstream is( strCreate );
+                is >> executorMP;
+            }
+            mega::service::Terminal terminal;
+            const mega::MPO         simMPO = terminal.SimCreate( executorMP );
+            std::cout << simMPO << std::endl;
+        }
+        else
+        {
+            std::cout << "Unrecognised project command" << std::endl;
+        }
         // else if ( bList )
         // {
         //     mega::service::Terminal terminal;

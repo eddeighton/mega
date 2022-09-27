@@ -71,6 +71,32 @@ private:
     boost::asio::yield_context&   m_yield_ctx;
 };
 
+class Request_Poster
+{
+public:
+    Request_Poster( ConversationBase& conversation,
+                    const ConversationID& targetConversationID,
+                    Sender& sender,
+                    boost::asio::yield_context&   yield_ctx );
+
+{% for request in requests %}
+    {{ request.return_type }} {{ request.name }}
+    (
+{%for p in request.params%}
+    const {{p.type}}& 
+    {{p.name}}
+    {% if not loop.is_last %}, {%endif%}
+{%endfor%}
+    );
+{% endfor %}
+
+private:
+    ConversationBase&             m_conversation;
+    const ConversationID          m_targetConversationID;
+    Sender&                       m_sender;
+    boost::asio::yield_context&   m_yield_ctx;
+};
+
 class Impl
 {
 public:

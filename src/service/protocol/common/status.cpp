@@ -1,5 +1,8 @@
 #include "service/protocol/common/status.hpp"
 
+#include "mega/reference.hpp"
+#include "mega/reference_io.hpp"
+
 namespace mega
 {
 namespace network
@@ -33,12 +36,19 @@ struct StatusPrinter
     {
         line( iCurrentDepth ) << status.getDescription() << "\n";
 
+        using ::operator<<;//( std::ostream&, const mega::MP& );
+
         // generate padding
+        if ( status.getMP().has_value() )
+        {
+            const mega::MP& mp = status.getMP().value();
+            line( iCurrentDepth + 2 ) << "MP: " << mp << "\n";
+        }
+        
         if ( status.getMPO().has_value() )
         {
             const mega::MPO& mpo = status.getMPO().value();
-            line( iCurrentDepth + 2 ) << "MPO: " << ( int )mpo.getMachineID() << "." << ( int )mpo.getProcessID() << "."
-                                      << ( int )mpo.getOwnerID() << "\n";
+            line( iCurrentDepth + 2 ) << "MPO: " << mpo << "\n";
         }
 
         for ( const auto& conID : status.getConversations() )
