@@ -100,7 +100,7 @@ public:
                                     boost::asio::yield_context& yield_ctx ) override;
 
     // network::daemon_leaf::Impl
-    virtual network::Message RootLeafBroadcast( const network::Message&     request,
+    virtual network::Message RootAllBroadcast( const network::Message&     request,
                                                 boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;

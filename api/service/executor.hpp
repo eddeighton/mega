@@ -69,6 +69,7 @@ public:
 
     network::Sender& getLeafSender() { return m_leaf; }
 
+    void getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
     std::shared_ptr< Simulation > getSimulation( const mega::MPO& mpo ) const;
     mega::MPO createSimulation( network::ConversationBase& callingConversation, boost::asio::yield_context& yield_ctx );
     void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );

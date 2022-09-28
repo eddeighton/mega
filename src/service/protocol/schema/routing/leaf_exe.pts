@@ -20,6 +20,11 @@
 
 
 
+msg RootAllBroadcast
+{
+    request(network::Message request);
+    response(network::Message response);
+}
 
 msg RootExeBroadcast
 {

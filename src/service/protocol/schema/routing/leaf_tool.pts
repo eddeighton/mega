@@ -18,9 +18,11 @@
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
 
-
-
-
+msg RootAllBroadcast
+{
+    request(network::Message request);
+    response(network::Message response);
+}
 
 // special case for registering MPO and running simulation
 msg RootSimRun

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
 #include "service/network/log.hpp"
@@ -218,29 +217,31 @@ network::Message LeafRequestConversation::MPOUp( const network::Message& request
 }
 
 // network::daemon_leaf::Impl
-network::Message LeafRequestConversation::RootLeafBroadcast( const network::Message&     request,
-                                                             boost::asio::yield_context& yield_ctx )
+network::Message LeafRequestConversation::RootAllBroadcast( const network::Message&     request,
+                                                            boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
-
-    /*SPDLOG_TRACE( "LeafRequestConversation::RootLeafBroadcast" );
-    // dispatch to children
     std::vector< network::Message > responses;
     {
         switch ( m_leaf.m_nodeType )
         {
             case network::Node::Executor:
-                const network::Message response = getExeSender( yield_ctx ).RootLeafBroadcast( request );
+            {
+                const network::Message response = getExeSender( yield_ctx ).RootAllBroadcast( request );
                 responses.push_back( response );
-                break;
+            }
+            break;
             case network::Node::Terminal:
-                const network::Message response = getTermSender( yield_ctx ).RootLeafBroadcast( request );
+            {
+                const network::Message response = getTermSender( yield_ctx ).RootAllBroadcast( request );
                 responses.push_back( response );
-                break;
+            }
+            break;
             case network::Node::Tool:
-                const network::Message response = getToolSender( yield_ctx ).RootLeafBroadcast( request );
+            {
+                const network::Message response = getToolSender( yield_ctx ).RootAllBroadcast( request );
                 responses.push_back( response );
-                break;
+            }
+            break;
             case network::Node::Daemon:
             case network::Node::Root:
             case network::Node::Leaf:
@@ -255,7 +256,7 @@ network::Message LeafRequestConversation::RootLeafBroadcast( const network::Mess
     network::aggregate( aggregateRequest, responses );
 
     // dispatch to this
-    return dispatchRequest( aggregateRequest, yield_ctx );*/
+    return dispatchRequest( aggregateRequest, yield_ctx );
 }
 
 network::Message LeafRequestConversation::RootExeBroadcast( const network::Message&     request,

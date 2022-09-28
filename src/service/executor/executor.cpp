@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/executor.hpp"
 
 #include "request.hpp"
@@ -123,7 +122,26 @@ network::ConversationBase::Ptr Executor::joinConversation( const network::Connec
     return network::ConversationBase::Ptr(
         new ExecutorRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
 }
+/*
+void Executor::reportSimulations( network::Status& status ) const
+{
+    ReadLock lock( m_mutex );
+    for( const auto& [ id, pSim ] : m_simulations )
+    {
+        network::Status simStatus;
 
+    }
+
+}*/
+
+void Executor::getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const
+{
+    ReadLock lock( m_mutex );
+    for ( const auto& [ id, pSim ] : m_simulations )
+    {
+        simulations.push_back( pSim );
+    }
+}
 std::shared_ptr< Simulation > Executor::getSimulation( const mega::MPO& mpo ) const
 {
     ReadLock lock( m_mutex );

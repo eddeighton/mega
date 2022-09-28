@@ -54,15 +54,15 @@ public:
 
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx );
 
+    // network::leaf_tool::Impl
+    virtual network::Message RootAllBroadcast( const network::Message&     request,
+                                               boost::asio::yield_context& yield_ctx ) override;
+
     // network::mpo::Impl
-    virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,
-                                      boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,
                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPUp( const network::Message& request, const mega::MP& mp,
-                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message MPOUp( const network::Message& request, const mega::MPO& mpo,
-                                    boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,
+                                      boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,

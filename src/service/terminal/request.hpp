@@ -23,13 +23,16 @@
 #include "service/terminal.hpp"
 
 #include "service/protocol/model/leaf_term.hxx"
+#include "service/protocol/model/status.hxx"
 
 namespace mega
 {
 namespace service
 {
 
-class TerminalRequestConversation : public network::InThreadConversation, public network::leaf_term::Impl
+class TerminalRequestConversation : public network::InThreadConversation,
+                                    public network::leaf_term::Impl,
+                                    public network::status::Impl
 {
 protected:
     Terminal& m_terminal;
@@ -45,9 +48,18 @@ public:
 
     virtual void error( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                         boost::asio::yield_context& yield_ctx ) override;
+
+    // network::leaf_term::Impl
+    virtual network::Message RootAllBroadcast( const network::Message&     request,
+                                               boost::asio::yield_context& yield_ctx ) override;
+
+    // network::status::Impl
+    virtual network::Status GetStatus( const std::vector< network::Status >& status,
+                                       boost::asio::yield_context&           yield_ctx ) override;
+    virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 };
 
 } // namespace service
 } // namespace mega
 
-#endif //TERMINAL_REQUEST_23_SEPT_2022
+#endif // TERMINAL_REQUEST_23_SEPT_2022

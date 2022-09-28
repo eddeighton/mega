@@ -65,6 +65,11 @@ public:
     // network::leaf_exe::Impl
     virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
+    // network::status::Impl
+    virtual network::Status GetStatus( const std::vector< network::Status >& status,
+                                       boost::asio::yield_context&           yield_ctx ) override;
+    virtual std::string Ping( boost::asio::yield_context& yield_ctx ) override;
+
     // mega::MPOContext - native code interface
     virtual SimIDVector     getSimulationIDs() override;
     virtual SimID           createSimulation() override;
@@ -83,10 +88,6 @@ public:
     virtual bool           readLock( MPO mpo ) override;
     virtual bool           writeLock( MPO mpo ) override;
     virtual void           releaseLock( MPO mpo ) override;
-
-    // network::mpo::Impl
-    virtual network::Message
-    MPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
 private:
     void issueClock();

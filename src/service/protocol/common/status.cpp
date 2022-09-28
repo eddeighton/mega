@@ -53,9 +53,12 @@ struct StatusPrinter
 
     std::ostream& operator()( const Status& status ) const
     {
-        line( iCurrentDepth ) << status.getDescription() << "\n";
-
         using ::operator<<;//( std::ostream&, const mega::MP& );
+
+        if( !status.getDescription().empty() )
+        {
+            line( iCurrentDepth ) << status.getDescription() << "\n";
+        }
 
         // generate padding
         if ( status.getMP().has_value() )

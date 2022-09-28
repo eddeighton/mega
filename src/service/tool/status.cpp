@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
 #include "service/network/log.hpp"
@@ -35,13 +34,9 @@ network::Status ToolRequestConversation::GetStatus( const std::vector< network::
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
-        /*for ( const auto& [ id, pCon ] : m_tool.m_conversations )
-        {
-            conversations.push_back( id );
-        }*/
-        status.setConversationID( conversations );
-        // status.setMP( m_tool.m_mp );
+        // mega::runtime::getRuntimeStatus();
+        status.setConversationID( m_tool.reportConversations() );
+        status.setMPO( m_tool.getMPO() );
         status.setDescription( m_tool.m_strProcessName );
     }
 
@@ -51,7 +46,7 @@ network::Status ToolRequestConversation::GetStatus( const std::vector< network::
 std::string ToolRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
 {
     std::ostringstream os;
-    os << "Ping from Tool: " << m_tool.m_strProcessName;
+    os << "Ping from Tool: " << m_tool.m_strProcessName << " " << m_tool.getMPO();
     return os.str();
 }
 

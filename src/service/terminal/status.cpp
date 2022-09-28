@@ -17,11 +17,36 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "request.hpp"
 
-msg RootAllBroadcast
+#include "service/network/log.hpp"
+
+namespace mega
 {
-    request(network::Message request);
-    response(network::Message response);
+namespace service
+{
+
+// network::project::Impl
+network::Status TerminalRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+                                                    boost::asio::yield_context&           yield_ctx )
+{
+    SPDLOG_TRACE( "TerminalRequestConversation::GetStatus" );
+
+    network::Status status{ childNodeStatus };
+    {
+        status.setConversationID( m_terminal.reportConversations() );
+        status.setDescription( m_terminal.m_strProcessName );
+    }
+
+    return status;
 }
 
+std::string TerminalRequestConversation::Ping( boost::asio::yield_context& yield_ctx )
+{
+    std::ostringstream os;
+    os << "Ping from Terminal: " << m_terminal.m_strProcessName;
+    return os.str();
+}
 
+} // namespace service
+} // namespace mega

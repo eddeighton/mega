@@ -42,6 +42,7 @@ set( TERMINAL_LIB_SRC
     ${TERMINAL_SOURCE_DIR}/terminal.cpp
     ${TERMINAL_SOURCE_DIR}/request.hpp
     ${TERMINAL_SOURCE_DIR}/routing.cpp
+    ${TERMINAL_SOURCE_DIR}/status.cpp
 )
 
 add_library( terminal

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 #include "simulation.hpp"
 
@@ -108,11 +107,42 @@ network::mpo::Request_Sender ExecutorRequestConversation::getMPRequest( boost::a
     return network::mpo::Request_Sender( *this, m_executor.getLeafSender(), yield_ctx );
 }
 
-network::Message ExecutorRequestConversation::RootExeBroadcast( const network::Message&     request,
+network::Message ExecutorRequestConversation::RootAllBroadcast( const network::Message&     request,
                                                                 boost::asio::yield_context& yield_ctx )
 {
-    return dispatchRequest( request, yield_ctx );
+    std::vector< network::Message > responses;
+    {
+        std::vector< Simulation::Ptr > simulations;
+        m_executor.getSimulations( simulations );
+        for ( Simulation::Ptr pSimulation : simulations )
+        {
+            switch ( getMsgID( request ) )
+            {
+                case network::status::MSG_GetStatus_Request::ID:
+                {
+                    auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
+                    network::status::Request_Sender rq( *this, pSimulation->getID(), *pSimulation, yield_ctx );
+                    auto response = network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) };
+                    const network::Message responseWrapper
+                        = network::status::MSG_GetStatus_Response::make( request.receiver, request.sender, response );
+                    responses.push_back( responseWrapper );
+                }
+                break;
+                default:
+                {
+                    THROW_RTE( "Unsupported RootAllBroadcast request type" );
+                }
+            }
+        }
+    }
+
+    network::Message aggregateRequest = request;
+    network::aggregate( aggregateRequest, responses );
+
+    // dispatch to this
+    return dispatchRequest( aggregateRequest, yield_ctx );
 }
+
 network::Message ExecutorRequestConversation::RootExe( const network::Message&     request,
                                                        boost::asio::yield_context& yield_ctx )
 {
@@ -123,20 +153,6 @@ network::Message ExecutorRequestConversation::MPDown( const network::Message& re
                                                       boost::asio::yield_context& yield_ctx )
 {
     return dispatchRequest( request, yield_ctx );
-}
-
-network::Message ExecutorRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
-                                                       boost::asio::yield_context& yield_ctx )
-{
-    if( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
-    {
-        network::mpo::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-        return rq.MPODown( request, mpo );
-    }
-    else
-    {
-        THROW_RTE( "Failed to resolve simulation: " << mpo );
-    }
 }
 
 } // namespace service

@@ -37,14 +37,8 @@ network::Status ExecutorRequestConversation::GetStatus( const std::vector< netwo
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
-        /*for ( const auto& [ id, pCon ] : m_executor.m_conversations )
-        {
-            conversations.push_back( id );
-        }*/
-        status.setConversationID( conversations );
-        // status.setMP( m_executor.m_mp );
-        //status.setDescription( m_executor.m_strProcessName );
+        status.setConversationID( m_executor.reportConversations() );
+        //m_executor.reportSimulations( status );
     }
 
     return status;

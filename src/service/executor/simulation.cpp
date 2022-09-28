@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #include "service/executor/simulation.hpp"
 
 #include "mega/common.hpp"
@@ -56,12 +53,6 @@ network::Message Simulation::dispatchRequest( const network::Message& msg, boost
     if ( result )
         return result;
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
-}
-
-network::Message Simulation::MPODown( const network::Message& request, const mega::MPO& mpo,
-                                      boost::asio::yield_context& yield_ctx )
-{
-    return dispatchRequest( request, yield_ctx );
 }
 
 Simulation::SimIDVector Simulation::getSimulationIDs() { THROW_RTE( "Unsupported getSimulationIDs from simulation" ); }
@@ -199,7 +190,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
         issueClock();
         bool bRegistedAsTerminating = false;
 
-        StateMachine::MsgVector msgs, msgs2;
+        StateMachine::MsgVector tempMessages;
         while ( !m_stateMachine.isTerminated() )
         {
             if ( m_stateMachine.isTerminating() && !bRegistedAsTerminating )
@@ -219,28 +210,28 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case StateMachine::SIM:
                 {
-                    SPDLOG_TRACE( "SIM: SIM {} {}", getID(), getElapsedTime() );
+                    SPDLOG_TRACE( "SIM: SIM {} {} {}", getID(), m_mpo.value(), getElapsedTime() );
                     cycle();
                 }
                 break;
                 case StateMachine::READ:
                 {
-                    SPDLOG_TRACE( "SIM: READ {}", getID() );
+                    SPDLOG_TRACE( "SIM: READ {} {}", getID(), m_mpo.value() );
                 }
                 break;
                 case StateMachine::WRITE:
                 {
-                    SPDLOG_TRACE( "SIM: WRITE {}", getID() );
+                    SPDLOG_TRACE( "SIM: WRITE {} {}", getID(), m_mpo.value() );
                 }
                 break;
                 case StateMachine::TERM:
                 {
-                    SPDLOG_TRACE( "SIM: TERM {}", getID() );
+                    SPDLOG_TRACE( "SIM: TERM {} {}", getID(), m_mpo.value() );
                 }
                 break;
                 case StateMachine::WAIT:
                 {
-                    SPDLOG_TRACE( "SIM: WAIT {}", getID() );
+                    SPDLOG_TRACE( "SIM: WAIT {} {}", getID(), m_mpo.value() );
                 }
                 break;
             }
@@ -267,11 +258,10 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 ;
 
             RESUME_MPO_CONTEXT();
-            // SPDLOG_TRACE( "SIM: Msgs {}", msgs.size() );
 
             // process non-state messages
             {
-                msgs2.clear();
+                tempMessages.clear();
                 for ( const auto& msg : m_messageQueue )
                 {
                     switch ( StateMachine::getMsgID( msg ) )
@@ -281,7 +271,7 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                         case StateMachine::Release::ID:
                         case StateMachine::Destroy::ID:
                         case StateMachine::Clock::ID:
-                            msgs2.push_back( msg );
+                            tempMessages.push_back( msg );
                             break;
                         default:
                             dispatchRequestImpl( msg, yield_ctx );
@@ -292,14 +282,14 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             }
 
             // returns whether there was clock tick
-            if ( m_stateMachine.onMsg( msgs2 ) )
+            if ( m_stateMachine.onMsg( tempMessages ) )
             {
                 if ( !m_stateMachine.isTerminated() )
                 {
                     issueClock();
                 }
             }
-            msgs2.clear();
+            tempMessages.clear();
         }
     }
     catch ( std::exception& ex )
@@ -403,6 +393,32 @@ void Simulation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& y
 void Simulation::SimDestroy( boost::asio::yield_context& )
 {
     // do nothing
+}
+
+// network::status::Impl
+network::Status Simulation::GetStatus( const std::vector< network::Status >& childNodeStatus,
+                                       boost::asio::yield_context&           yield_ctx )
+{
+    SPDLOG_TRACE( "Simulation::GetStatus" );
+
+    network::Status status{ childNodeStatus };
+    {
+        std::vector< network::ConversationID > conversations;
+        status.setConversationID( { getID() } );
+        status.setMPO( m_mpo.value() );
+        std::ostringstream os;
+        os << "Simulation";
+        status.setDescription( os.str() );
+    }
+
+    return status;
+}
+
+std::string Simulation::Ping( boost::asio::yield_context& yield_ctx )
+{
+    std::ostringstream os;
+    os << "Ping from Simulation: " << m_mpo.value();
+    return os.str();
 }
 
 } // namespace service

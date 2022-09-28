@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
 #include "service/network/log.hpp"
@@ -84,6 +83,12 @@ void ToolRequestConversation::error( const network::ReceivedMsg& msg, const std:
 network::tool_leaf::Request_Sender ToolRequestConversation::getToolRequest( boost::asio::yield_context& yield_ctx )
 {
     return network::tool_leaf::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
+}
+
+network::Message ToolRequestConversation::RootAllBroadcast( const network::Message&     request,
+                                                            boost::asio::yield_context& yield_ctx )
+{
+    return dispatchRequest( request, yield_ctx );
 }
 
 network::Message ToolRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,

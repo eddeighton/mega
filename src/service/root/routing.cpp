@@ -99,7 +99,7 @@ network::root_daemon::Request_Sender RootRequestConversation::getDaemonSender( b
     return sender;
 }
 
-network::Message RootRequestConversation::broadcastLeaf( const network::Message&     msg,
+network::Message RootRequestConversation::broadcastAll( const network::Message&     msg,
                                                          boost::asio::yield_context& yield_ctx )
 {
     // dispatch to children
@@ -108,7 +108,7 @@ network::Message RootRequestConversation::broadcastLeaf( const network::Message&
         for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
         {
             network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
-            const network::Message               response = sender.RootLeafBroadcast( msg );
+            const network::Message               response = sender.RootAllBroadcast( msg );
             responses.push_back( response );
         }
     }

@@ -126,17 +126,17 @@ network::Message DaemonRequestConversation::ExeDaemon( const network::Message&  
 }
 
 // network::root_daemon::Impl
-network::Message DaemonRequestConversation::RootLeafBroadcast( const network::Message&     request,
+network::Message DaemonRequestConversation::RootAllBroadcast( const network::Message&     request,
                                                                boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "DaemonRequestConversation::RootLeafBroadcast" );
+    SPDLOG_TRACE( "DaemonRequestConversation::RootAllBroadcast" );
     // dispatch to children
     std::vector< network::Message > responses;
     {
         for ( auto& [ id, pConnection ] : m_daemon.m_server.getConnections() )
         {
             network::daemon_leaf::Request_Sender sender( *this, *pConnection, yield_ctx );
-            const network::Message               response = sender.RootLeafBroadcast( request );
+            const network::Message               response = sender.RootAllBroadcast( request );
             responses.push_back( response );
         }
     }

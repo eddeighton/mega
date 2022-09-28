@@ -104,6 +104,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
         else if ( !strRead.empty() )
         {
+            VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );
             const mega::MPO         targetMPO = toMPO( strRead );
             mega::service::Terminal terminal;
@@ -112,16 +113,18 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
         else if ( !strWrite.empty() )
         {
+            VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );
-            const mega::MPO         targetMPO = toMPO( strRead );
+            const mega::MPO         targetMPO = toMPO( strWrite );
             mega::service::Terminal terminal;
             const bool              bResult = terminal.SimWrite( sourceMPO, targetMPO );
             std::cout << std::boolalpha << bResult << std::endl;
         }
         else if ( !strRelease.empty() )
         {
+            VERIFY_RTE_MSG( !strID.empty(), "Missing source mpo" );
             const mega::MPO         sourceMPO = toMPO( strID );
-            const mega::MPO         targetMPO = toMPO( strRead );
+            const mega::MPO         targetMPO = toMPO( strRelease );
             mega::service::Terminal terminal;
             terminal.SimRelease( sourceMPO, targetMPO );
         }

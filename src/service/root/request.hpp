@@ -65,7 +65,7 @@ public:
 
     // helpers
     network::root_daemon::Request_Sender getDaemonSender( boost::asio::yield_context& yield_ctx );
-    network::Message broadcastLeaf( const network::Message& msg, boost::asio::yield_context& yield_ctx );
+    network::Message broadcastAll( const network::Message& msg, boost::asio::yield_context& yield_ctx );
     network::Message broadcastExe( const network::Message& msg, boost::asio::yield_context& yield_ctx );
 
     template < typename RequestEncoderType >
@@ -85,11 +85,11 @@ public:
                                    getID() );
     }
     template < typename RequestEncoderType >
-    RequestEncoderType getLeafBroadcastRequest( boost::asio::yield_context& yield_ctx )
+    RequestEncoderType getAllBroadcastRequest( boost::asio::yield_context& yield_ctx )
     {
         RootRequestConversation* pThis = this;
         return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
-                                   { return pThis->broadcastLeaf( msg, yield_ctx ); },
+                                   { return pThis->broadcastAll( msg, yield_ctx ); },
                                    getID() );
     }
 

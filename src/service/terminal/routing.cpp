@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
 #include "service/network/log.hpp"
@@ -40,6 +39,8 @@ network::Message TerminalRequestConversation::dispatchRequest( const network::Me
 {
     network::Message result;
     if ( result = network::leaf_term::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "TerminalRequestConversation::dispatchRequest failed" );
 }
@@ -78,5 +79,12 @@ void TerminalRequestConversation::error( const network::ReceivedMsg& msg, const 
         SPDLOG_ERROR( "Terminal cannot resolve connection: {} on error: {}", msg.connectionID, strErrorMsg );
     }
 }
+
+network::Message TerminalRequestConversation::RootAllBroadcast( const network::Message&     request,
+                                                                boost::asio::yield_context& yield_ctx )
+{
+    return dispatchRequest( request, yield_ctx );
+}
+
 } // namespace service
 } // namespace mega

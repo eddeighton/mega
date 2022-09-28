@@ -29,7 +29,7 @@ namespace service
 // network::status::Impl
 network::Status RootRequestConversation::GetNetworkStatus( boost::asio::yield_context& yield_ctx )
 {
-    return getLeafBroadcastRequest< network::status::Request_Encoder >( yield_ctx ).GetStatus( {} );
+    return getAllBroadcastRequest< network::status::Request_Encoder >( yield_ctx ).GetStatus( {} );
 }
 
 network::Status RootRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
