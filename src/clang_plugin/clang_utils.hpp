@@ -1,4 +1,4 @@
-//  Copyright (c) Deighton Systems Limited. 2019. All Rights Reserved.
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
 

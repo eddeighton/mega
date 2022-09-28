@@ -1,4 +1,23 @@
 
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
 #ifndef SIMULATION_22_JUNE_2022
 #define SIMULATION_22_JUNE_2022
 
@@ -34,18 +53,12 @@ public:
     virtual void             run( boost::asio::yield_context& yield_ctx ) override;
 
     // network::sim::Impl
-    virtual bool      SimLockRead( const mega::MPO&            owningID,
-                                   const mega::MPO&            requestID,
-                                   boost::asio::yield_context& yield_ctx ) override;
-    virtual bool      SimLockWrite( const mega::MPO&            owningID,
-                                    const mega::MPO&            requestID,
-                                    boost::asio::yield_context& yield_ctx ) override;
-    virtual void      SimLockRelease( const mega::MPO&            owningID,
-                                      const mega::MPO&            requestID,
-                                      boost::asio::yield_context& yield_ctx ) override;
-    virtual void      SimClock( boost::asio::yield_context& yield_ctx ) override;
-    virtual mega::MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
-    virtual void      SimDestroy( boost::asio::yield_context& yield_ctx ) override;
+    virtual bool      SimLockRead( const mega::MPO&, boost::asio::yield_context& ) override;
+    virtual bool      SimLockWrite( const mega::MPO&, boost::asio::yield_context& ) override;
+    virtual void      SimLockRelease( const mega::MPO&, boost::asio::yield_context& ) override;
+    virtual void      SimClock( boost::asio::yield_context& ) override;
+    virtual mega::MPO SimCreate( boost::asio::yield_context& ) override;
+    virtual void      SimDestroy( boost::asio::yield_context& ) override;
 
     // network::leaf_exe::Impl
     virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
@@ -68,6 +81,10 @@ public:
     virtual bool           readLock( MPO mpo ) override;
     virtual bool           writeLock( MPO mpo ) override;
     virtual void           releaseLock( MPO mpo ) override;
+
+    // network::mpo::Impl
+    virtual network::Message
+    MPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
 private:
     void issueClock();

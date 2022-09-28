@@ -169,10 +169,10 @@ network::Message LeafRequestConversation::MPUp( const network::Message& request,
 network::Message LeafRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
+    ASSERT( m_leaf.m_mpos.count( mpo ) );
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
-            return getMPODownSender( yield_ctx ).MPODown( request, mpo );
         case network::Node::Tool:
             return getMPODownSender( yield_ctx ).MPODown( request, mpo );
         case network::Node::Terminal:

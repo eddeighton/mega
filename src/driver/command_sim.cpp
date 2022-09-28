@@ -33,6 +33,22 @@ namespace driver
 namespace sim
 {
 
+mega::MP toMP( const std::string& strMP )
+{
+    mega::MP           mp;
+    std::istringstream is( strMP );
+    is >> mp;
+    return mp;
+}
+
+mega::MPO toMPO( const std::string& strMPO )
+{
+    mega::MPO          mpo;
+    std::istringstream is( strMPO );
+    is >> mpo;
+    return mpo;
+}
+
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     bool        bList = false;
@@ -45,17 +61,18 @@ void command( bool bHelp, const std::vector< std::string >& args )
         // clang-format off
         commandOptions.add_options()
             ( "create",     po::value( &strCreate ),        "Create using Executor MPO" )
-            ( "list",       po::bool_switch( &bList ) ,     "List" )
+            //( "list",       po::bool_switch( &bList ) ,     "List" )
             ( "destroy",    po::value( &strDestroy ) ,      "Destroy" )
-            ( "id",         po::value( &strID ) ,           "ID to use with lock commands" )
-            ( "read",       po::value( &strRead ) ,         "Obtain read lock" )
-            ( "write",      po::value( &strWrite ) ,        "Obtain write lock" )
-            ( "release",    po::value( &strRelease ) ,      "Release locks" )
 
-            ( "suspend",    po::value( &strSuspend ) ,      "Suspend scheduler" )
-            ( "resume",     po::value( &strResume ) ,       "Resume scheduler" )
-            ( "stop",       po::value( &strStop ) ,         "Stop scheduler" )
-            ( "start",      po::value( &strStart ) ,        "Start scheduler" )
+            ( "id",         po::value( &strID ) ,           "Source MPO for lock Commands" )
+            ( "read",       po::value( &strRead ) ,         "Request Read Lock on specified MPO ( use id to specify who from )" )
+            ( "write",      po::value( &strWrite ) ,        "Request Write Lock on specified MPO ( use id to specify who from )" )
+            ( "release",    po::value( &strRelease ) ,      "Request Release Lock on specified MPO ( use id to specify who from )" )
+
+            // ( "suspend",    po::value( &strSuspend ) ,      "Suspend scheduler" )
+            // ( "resume",     po::value( &strResume ) ,       "Resume scheduler" )
+            // ( "stop",       po::value( &strStop ) ,         "Stop scheduler" )
+            // ( "start",      po::value( &strStart ) ,        "Start scheduler" )
             ;
         // clang-format on
     }
@@ -72,101 +89,44 @@ void command( bool bHelp, const std::vector< std::string >& args )
     {
         if ( !strCreate.empty() )
         {
-            mega::MP executorMP;
-            {
-                std::istringstream is( strCreate );
-                is >> executorMP;
-            }
+            const mega::MP          executorMP = toMP( strCreate );
             mega::service::Terminal terminal;
             const mega::MPO         simMPO = terminal.SimCreate( executorMP );
             std::cout << simMPO << std::endl;
+        }
+        else if ( !strDestroy.empty() )
+        {
+            const mega::MPO         simMPO = toMPO( strDestroy );
+            mega::service::Terminal terminal;
+            terminal.SimDestroy( simMPO );
+        }
+        else if ( !strRead.empty() )
+        {
+            const mega::MPO         sourceMPO = toMPO( strID );
+            const mega::MPO         targetMPO = toMPO( strRead );
+            mega::service::Terminal terminal;
+            const bool              bResult = terminal.SimRead( sourceMPO, targetMPO );
+            std::cout << std::boolalpha << bResult << std::endl;
+        }
+        else if ( !strWrite.empty() )
+        {
+            const mega::MPO         sourceMPO = toMPO( strID );
+            const mega::MPO         targetMPO = toMPO( strRead );
+            mega::service::Terminal terminal;
+            const bool              bResult = terminal.SimWrite( sourceMPO, targetMPO );
+            std::cout << std::boolalpha << bResult << std::endl;
+        }
+        else if ( !strRelease.empty() )
+        {
+            const mega::MPO         sourceMPO = toMPO( strID );
+            const mega::MPO         targetMPO = toMPO( strRead );
+            mega::service::Terminal terminal;
+            terminal.SimRelease( sourceMPO, targetMPO );
         }
         else
         {
             std::cout << "Unrecognised project command" << std::endl;
         }
-        // else if ( bList )
-        // {
-        //     mega::service::Terminal terminal;
-        //     const auto              result = terminal.SimList();
-        //     for ( auto simID : result )
-        //     {
-        //         std::cout << simID << std::endl;
-        //     }
-        // }
-        // else if ( !strDestroy.empty() )
-        // {
-        //     mega::network::ConversationID simID;
-        //     {
-        //         std::istringstream is( strDestroy );
-        //         is >> simID;
-        //     }
-        //     mega::service::Terminal terminal;
-        //     terminal.SimDestroy( simID );
-        // }
-        // else if ( !strRead.empty() )
-        // {
-        //     mega::network::ConversationID owningID;
-        //     {
-        //         std::istringstream is( strID );
-        //         is >> owningID;
-        //     }
-        //     mega::network::ConversationID simID;
-        //     {
-        //         std::istringstream is( strRead );
-        //         is >> simID;
-        //     }
-        //     mega::service::Terminal terminal;
-        //     const bool              bResult = terminal.SimRead( owningID, simID );
-        //     std::cout << std::boolalpha << bResult << std::endl;
-        // }
-        // else if ( !strWrite.empty() )
-        // {
-        //     mega::network::ConversationID owningID;
-        //     {
-        //         std::istringstream is( strID );
-        //         is >> owningID;
-        //     }
-        //     mega::network::ConversationID simID;
-        //     {
-        //         std::istringstream is( strWrite );
-        //         is >> simID;
-        //     }
-        //     mega::service::Terminal terminal;
-        //     const bool              bResult = terminal.SimWrite( owningID, simID );
-        //     std::cout << std::boolalpha << bResult << std::endl;
-        // }
-        // else if ( !strRelease.empty() )
-        // {
-        //     mega::network::ConversationID owningID;
-        //     {
-        //         std::istringstream is( strID );
-        //         is >> owningID;
-        //     }
-        //     mega::network::ConversationID simID;
-        //     {
-        //         std::istringstream is( strRelease );
-        //         is >> simID;
-        //     }
-        //     mega::service::Terminal terminal;
-        //     terminal.SimRelease( owningID, simID );
-        // }
-        // else if ( !strSuspend.empty() )
-        // {
-        // }
-        // else if ( !strResume.empty() )
-        // {
-        // }
-        // else if ( !strStop.empty() )
-        // {
-        // }
-        // else if ( !strStart.empty() )
-        // {
-        // }
-        // else
-        // {
-        //     std::cout << "Unrecognised project command" << std::endl;
-        // }
     }
 }
 } // namespace sim

@@ -1,4 +1,23 @@
 
+//  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
+//  Author: Edward Deighton
+//  License: Please see license.txt in the project root folder.
+
+//  Use and copying of this software and preparation of derivative works
+//  based upon this software are permitted. Any copy of this software or
+//  of any derivative work must include the above copyright notice, this
+//  paragraph and the one after it.  Any distribution of this software or
+//  derivative works must comply with all applicable laws.
+
+//  This software is made available AS IS, and COPYRIGHT OWNERS DISCLAIMS
+//  ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE
+//  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+//  PURPOSE, AND NOTWITHSTANDING ANY OTHER PROVISION CONTAINED HEREIN, ANY
+//  LIABILITY FOR DAMAGES RESULTING FROM THE SOFTWARE OR ITS USE IS
+//  EXPRESSLY DISCLAIMED, WHETHER ARISING IN CONTRACT, TORT (INCLUDING
+//  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
+//  OF THE POSSIBILITY OF SUCH DAMAGES.
+
 #include "service/executor/simulation.hpp"
 
 #include "mega/common.hpp"
@@ -35,6 +54,12 @@ network::Message Simulation::dispatchRequest( const network::Message& msg, boost
     if ( result )
         return result;
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
+}
+
+network::Message Simulation::MPODown( const network::Message& request, const mega::MPO& mpo,
+                                      boost::asio::yield_context& yield_ctx )
+{
+    return dispatchRequest( request, yield_ctx );
 }
 
 Simulation::SimIDVector Simulation::getSimulationIDs() { THROW_RTE( "Unsupported getSimulationIDs from simulation" ); }
@@ -94,6 +119,11 @@ bool Simulation::restore( const std::string& filePath, mega::U64 determinant )
 bool Simulation::readLock( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
+
+    auto request = getMPRequest( *m_pYieldContext );
+
+    // request.MPOUp(const network::Message &request, const mega::MPO &mpo)
+
     // const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
     // if ( getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id ) )
     //{
@@ -279,7 +309,6 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 
 network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "SIM::dispatchRequestsUntilResponse" );
     network::ReceivedMsg msg;
     while ( true )
     {
@@ -300,7 +329,8 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
                     {
                         SPDLOG_ERROR(
                             "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
-                        const network::ReceivedMsg rMsg{ m_stack.back(), network::make_error_msg( msg.msg.receiver, "Disconnection" ) };
+                        const network::ReceivedMsg rMsg{
+                            m_stack.back(), network::make_error_msg( msg.msg.receiver, "Disconnection" ) };
                         send( rMsg );
                     }
                 }
@@ -326,23 +356,23 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
 
 void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "SIM: run" );
     // send request to root to start - will get request back to run
     network::sim::Request_Encoder request(
         [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-        { return rootRequest.MPRoot( msg, mega::MP{} ); }, getID() );
+        { return rootRequest.MPRoot( msg, mega::MP{} ); },
+        getID() );
     request.SimStart();
 }
 
-bool Simulation::SimLockRead( const mega::MPO&, const mega::MPO&, boost::asio::yield_context& )
+bool Simulation::SimLockRead( const mega::MPO&, boost::asio::yield_context& )
 {
     return !m_stateMachine.isTerminating();
 }
-bool Simulation::SimLockWrite( const mega::MPO&, const mega::MPO&, boost::asio::yield_context& )
+bool Simulation::SimLockWrite( const mega::MPO&, boost::asio::yield_context& )
 {
     return !m_stateMachine.isTerminating();
 }
-void Simulation::SimLockRelease( const mega::MPO&, const mega::MPO&, boost::asio::yield_context& )
+void Simulation::SimLockRelease( const mega::MPO&, boost::asio::yield_context& )
 {
     // Do nothing just return
 }
@@ -354,14 +384,12 @@ void Simulation::SimClock( boost::asio::yield_context& )
 mega::MPO Simulation::SimCreate( boost::asio::yield_context& )
 {
     VERIFY_RTE( m_mpo.has_value() );
-    SPDLOG_TRACE( "SIM: SimCreate {}", m_mpo.value() );
     // This is called when RootSimRun acks the pending SimCreate from ExecutorRequestConversation::SimCreate
     return m_mpo.value();
 }
 
 void Simulation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "SIM: RootSimRun {}", mpo );
     m_mpo = mpo;
 
     // now start running the simulation

@@ -70,24 +70,16 @@ network::tool_leaf::Request_Sender ToolRequestConversation::getToolRequest( boos
 network::Message ToolRequestConversation::MPDown( const network::Message& request, const mega::MP& mp,
                                                   boost::asio::yield_context& yield_ctx )
 {
+    const mega::MP toolMP( m_tool.getMPO().getMachineID(), m_tool.getMPO().getProcessID(), false );
+    VERIFY_RTE( toolMP == mp );
     return dispatchRequest( request, yield_ctx );
-}
-network::Message ToolRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
-                                                boost::asio::yield_context& yield_ctx )
-{
-    network::mpo::Request_Sender leaf( *this, m_tool.getLeafSender(), yield_ctx );
-    return leaf.MPUp( request, mp );
 }
 
 network::Message ToolRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    THROW_RTE( "TODO" );
-}
-network::Message ToolRequestConversation::MPOUp( const network::Message& request, const mega::MPO& mpo,
-                                                 boost::asio::yield_context& yield_ctx )
-{
-    THROW_RTE( "TODO" );
+    VERIFY_RTE( m_tool.getMPO() == mpo );
+    return dispatchRequest( request, yield_ctx );
 }
 
 } // namespace service

@@ -105,59 +105,20 @@ network::Message ExecutorRequestConversation::MPDown( const network::Message& re
 {
     return dispatchRequest( request, yield_ctx );
 }
-network::Message ExecutorRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
-                                                    boost::asio::yield_context& yield_ctx )
-{
-    network::mpo::Request_Sender leaf( *this, m_executor.getLeafSender(), yield_ctx );
-    return leaf.MPUp( request, mp );
-}
 
 network::Message ExecutorRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
                                                        boost::asio::yield_context& yield_ctx )
 {
-    THROW_RTE( "TODO" );
-}
-network::Message ExecutorRequestConversation::MPOUp( const network::Message& request, const mega::MPO& mpo,
-                                                     boost::asio::yield_context& yield_ctx )
-{
-    THROW_RTE( "TODO" );
-}
-/*
-network::Message ExecutorRequestConversation::RootMPO( const network::Message& request, const mega::MPO& mpo,
-                                                       boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "ExecutorRequestConversation::RootMPO: {}", mpo );
-    return MPODown( request, mpo, yield_ctx );
-}
-*/
-
-/*
-network::Message ExecutorRequestConversation::MPODown( const network::Message& request, const mega::MPO& mpo,
-                                                          boost::asio::yield_context& yield_ctx )
-{
-    SPDLOG_TRACE( "ExecutorRequestConversation::MPODown: {}", mpo );
-    if ( request.index == network::sim::MSG_SimCreate_Request::ID )
+    if( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
     {
-        return dispatchRequest( request, yield_ctx );
+        network::mpo::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
+        return rq.MPODown( request, mpo );
     }
     else
     {
-        if ( Simulation::Ptr pSim = m_executor.getSimulation( mpo ) )
-        {
-            return pSim->dispatchRequest( request, yield_ctx );
-        }
-        else
-        {
-            // network::exe_leaf::Request_Encoder request(
-            //     [ rootRequest = getMPORequest( yield_ctx ) ]( const network::Message& msg ) mutable
-            //     { return rootRequest.MPORoot( msg ); } );
-            // request.MPOUp( request );
-
-            THROW_RTE( "Failed to locate simulation" );
-        }
+        THROW_RTE( "Failed to resolve simulation: " << mpo );
     }
 }
-*/
 
 } // namespace service
 } // namespace mega

@@ -236,13 +236,32 @@ network::Message DaemonRequestConversation::MPODown( const network::Message&    
                                                      const mega::MPO&            mpo,
                                                      boost::asio::yield_context& yield_ctx )
 {
-    THROW_RTE( "TODO" );
+    const mega::MP targetMP( mpo.getMachineID(), mpo.getProcessID(), false );
+    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMP ) )
+    {
+        network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.MPODown( request, mpo );
+    }
+    else
+    {
+        THROW_RTE( "Routing error cannot locate mpo: " << mpo );
+    }
 }
 network::Message DaemonRequestConversation::MPOUp( const network::Message&     request,
                                                    const mega::MPO&            mpo,
                                                    boost::asio::yield_context& yield_ctx )
 {
-    THROW_RTE( "TODO" );
+    const mega::MP targetMP( mpo.getMachineID(), mpo.getProcessID(), false );
+    if ( network::Server::Connection::Ptr pConnection = m_daemon.m_server.findConnection( targetMP ) )
+    {
+        network::mpo::Request_Sender sender( *this, *pConnection, yield_ctx );
+        return sender.MPODown( request, mpo );
+    }
+    else
+    {
+        network::mpo::Request_Sender sender( *this, m_daemon.m_rootClient, yield_ctx );
+        return sender.MPOUp( request, mpo );
+    }
 }
 
 } // namespace service
