@@ -39,20 +39,20 @@ namespace service
 {
 class SharedMemoryManager
 {
+    struct AddressSpaceMapLifetime
+    {
+        const std::string& strName;
+        AddressSpaceMapLifetime( const std::string& strName )
+            : strName( strName )
+        {
+            boost::interprocess::shared_memory_object::remove( strName.c_str() );
+        }
+        ~AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( strName.c_str() ); }
+    };
+
     class SharedMemory
     {
         static constexpr mega::U64 SIZE = 1024 * 1024 * 4;
-
-        struct AddressSpaceMapLifetime
-        {
-            const std::string& strName;
-            AddressSpaceMapLifetime( const std::string& strName )
-                : strName( strName )
-            {
-                boost::interprocess::shared_memory_object::remove( strName.c_str() );
-            }
-            ~AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( strName.c_str() ); }
-        };
 
     public:
         using Ptr = std::unique_ptr< SharedMemory >;
@@ -81,9 +81,32 @@ class SharedMemoryManager
         return os.str();
     }
 
+    mega::network::MemoryConfig calculateSharedConfig() const
+    {
+        mega::network::MemoryConfig config;
+        {
+            std::ostringstream os;
+            os << m_strDaemonPrefix << "_address_space_mem";
+            config.setMemory( os.str() );
+        }
+        {
+            std::ostringstream os;
+            os << m_strDaemonPrefix << "_address_space_mutex";
+            config.setMutex( os.str() );
+        }
+        {
+            std::ostringstream os;
+            os << m_strDaemonPrefix << "_address_space_map";
+            config.setMap( os.str() );
+        }
+        return config;
+    }
+
 public:
     SharedMemoryManager( const std::string& daemonPrefix )
         : m_strDaemonPrefix( daemonPrefix )
+        , m_config( calculateSharedConfig() )
+        , m_memoryLifetime( m_config.getMemory() )
     {
     }
 
@@ -114,9 +137,13 @@ public:
         }
     }
 
+    const mega::network::MemoryConfig& getConfig() const { return m_config; }
+
 private:
-    const std::string m_strDaemonPrefix;
-    SharedMemoryMap   m_memory;
+    const std::string           m_strDaemonPrefix;
+    mega::network::MemoryConfig m_config;
+    SharedMemoryMap             m_memory;
+    AddressSpaceMapLifetime     m_memoryLifetime;
 };
 } // namespace service
 } // namespace mega

@@ -35,5 +35,10 @@ void DaemonRequestConversation::ReleaseSharedMemory( const MPO& mpo, boost::asio
     return m_daemon.m_sharedMemoryManager.release( mpo );
 }
 
+mega::network::MemoryConfig DaemonRequestConversation::GetSharedMemoryConfig( boost::asio::yield_context& yield_ctx )
+{
+    return m_daemon.m_sharedMemoryManager.getConfig();
+}
+
 } // namespace service
 } // namespace mega

@@ -43,11 +43,13 @@
 #include "service/protocol/model/address.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/enrole.hxx"
+#include "service/protocol/model/project.hxx"
 
 #include "common/requireSemicolon.hpp"
 
 #include "boost/system/detail/error_code.hpp"
 #include "boost/bind/bind.hpp"
+#include "boost/filesystem.hpp"
 
 #include <thread>
 
@@ -91,6 +93,35 @@ public:
 
     void run( boost::asio::yield_context& yield_ctx ) override
     {
+        {
+            network::project::Request_Encoder projectRequest(
+                [ rootRequest = getToolRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+                { return rootRequest.ToolRoot( msg ); },
+                getID() );
+
+            const auto currentProject            = projectRequest.GetProject();
+            const auto megaStructureInstallation = projectRequest.GetMegastructureInstallation();
+
+            if ( !currentProject.isEmpty() && boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+            {
+                network::memory::Request_Encoder memoryRequest(
+                    [ rootRequest = getToolRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+                    { return rootRequest.ToolDaemon( msg ); },
+                    getID() );
+
+                const auto memoryConfig = memoryRequest.GetSharedMemoryConfig();
+
+                mega::runtime::initialiseRuntime( megaStructureInstallation, currentProject, memoryConfig.getMemory(),
+                                                  memoryConfig.getMutex(), memoryConfig.getMap() );
+                SPDLOG_TRACE(
+                    "Executor runtime initialised with project: {}", currentProject.getProjectInstallPath().string() );
+            }
+            else
+            {
+                SPDLOG_TRACE( "Could not initialised runtime.  No active project" );
+            }
+        }
+
         SPDLOG_TRACE( "TOOL: run function" );
         network::sim::Request_Encoder request(
             [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable

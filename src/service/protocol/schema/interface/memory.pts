@@ -29,3 +29,9 @@ msg ReleaseSharedMemory
     request(MPO mpo);
     response();
 }
+
+msg GetSharedMemoryConfig
+{
+    request();
+    response( mega::network::MemoryConfig config );
+}

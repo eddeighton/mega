@@ -25,7 +25,8 @@ namespace mega
 namespace runtime
 {
 Runtime::Runtime( const mega::network::MegastructureInstallation& megastructureInstallation,
-                  const mega::network::Project&                   project )
+                  const mega::network::Project&                   project,
+                  const AddressSpace::Names&                      addressSpaceNames )
     : m_megastructureInstallation( megastructureInstallation )
     , m_project( project )
     , m_jitMutex()
@@ -33,7 +34,7 @@ Runtime::Runtime( const mega::network::MegastructureInstallation& megastructureI
     , m_codeGenerator( m_megastructureInstallation, m_project )
     , m_database( m_project.getProjectDatabase() )
     , m_componentManager( m_project, m_database )
-    , m_addressSpace()
+    , m_addressSpace( addressSpaceNames )
     , m_objectTypeAllocatorMapping()
     , m_executionContextRoot()
     , m_executionContextMemory()

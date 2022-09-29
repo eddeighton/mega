@@ -125,6 +125,7 @@ public:
     // network::memory::Impl
     virtual std::string AcquireSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
     virtual void        ReleaseSharedMemory( const MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual mega::network::MemoryConfig GetSharedMemoryConfig( boost::asio::yield_context& yield_ctx ) override;
 
     // network::job::Impl
     virtual std::vector< network::ConversationID >

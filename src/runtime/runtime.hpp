@@ -69,7 +69,8 @@ class Runtime
 
 public:
     Runtime( const mega::network::MegastructureInstallation& megastructureInstallation,
-             const mega::network::Project&                   project );
+             const mega::network::Project&                   project,
+             const AddressSpace::Names&                      addressSpaceNames );
 
     NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID );
     reference      allocateMachineAddress( MPO mpo, TypeID objectTypeID, NetworkAddress networkAddress );

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "runtime/runtime_api.hpp"
 
 #include "runtime.hpp"
@@ -32,7 +31,8 @@ namespace
 static std::unique_ptr< Runtime > g_pRuntime;
 
 void initialiseStaticRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
-                              const mega::network::Project&                   project )
+                              const mega::network::Project&                   project,
+                              const AddressSpace::Names&                      addressSpaceNames )
 {
     try
     {
@@ -46,7 +46,7 @@ void initialiseStaticRuntime( const mega::network::MegastructureInstallation& me
             }
             else
             {
-                g_pRuntime = std::make_unique< Runtime >( megastructureInstallation, project );
+                g_pRuntime = std::make_unique< Runtime >( megastructureInstallation, project, addressSpaceNames );
             }
         }
     }
@@ -83,7 +83,10 @@ reference allocateMachineAddress( mega::MPO mpo, mega::TypeID objectTypeID, mega
 {
     return g_pRuntime->allocateMachineAddress( mpo, objectTypeID, networkAddress );
 }
-reference networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress ) { return g_pRuntime->networkToMachine( objectTypeID, networkAddress ); }
+reference networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress )
+{
+    return g_pRuntime->networkToMachine( objectTypeID, networkAddress );
+}
 
 void get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
 {
@@ -102,9 +105,13 @@ void get_getter_call( const char* pszUnitName, mega::TypeID objectTypeID, TypeEr
 
 // public facing runtime interface
 void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
-                        const mega::network::Project&                   project )
+                        const mega::network::Project&                   project,
+                        const std::string&                              addressSpaceMemory,
+                        const std::string&                              addressSpaceMutex,
+                        const std::string&                              addressSpaceMap )
 {
-    initialiseStaticRuntime( megastructureInstallation, project );
+    initialiseStaticRuntime(
+        megastructureInstallation, project, { addressSpaceMemory, addressSpaceMutex, addressSpaceMap } );
 }
 bool isRuntimeInitialised() { return isStaticRuntimeInitialised(); }
 

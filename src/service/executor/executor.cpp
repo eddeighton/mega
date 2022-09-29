@@ -27,6 +27,7 @@
 #include "service/network/log.hpp"
 
 #include "service/protocol/model/project.hxx"
+#include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"
 
 #include "parser/parser.hpp"
@@ -80,19 +81,31 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
                         network::ConversationBase& con, network::Sender& sender, boost::asio::yield_context& yield_ctx )
         {
             network::exe_leaf::Request_Sender exe_leaf( con, sender, yield_ctx );
-            network::project::Request_Encoder project(
-                [ &exe_leaf ]( const network::Message& msg ) { return exe_leaf.ExeRoot( msg ); }, con.getID() );
 
-            thisRef.m_megastructureInstallation = project.GetMegastructureInstallation();
-            VERIFY_RTE_MSG( !thisRef.m_megastructureInstallation.isEmpty(),
-                            "Invalid mega structure installation returned from root" );
-            thisRef.m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
-                thisRef.m_megastructureInstallation.getParserPath(), "g_parserSymbol" );
+            mega::network::Project currentProject;
+            {
+                network::project::Request_Encoder projectRequest(
+                    [ &exe_leaf ]( const network::Message& msg ) { return exe_leaf.ExeRoot( msg ); }, con.getID() );
 
-            auto currentProject = project.GetProject();
+                {
+                    thisRef.m_megastructureInstallation = projectRequest.GetMegastructureInstallation();
+                    VERIFY_RTE_MSG( !thisRef.m_megastructureInstallation.isEmpty(),
+                                    "Invalid mega structure installation returned from root" );
+                    thisRef.m_pParser = boost::dll::import_symbol< EG_PARSER_INTERFACE >(
+                        thisRef.m_megastructureInstallation.getParserPath(), "g_parserSymbol" );
+                }
+
+                currentProject = projectRequest.GetProject();
+            }
+
             if ( !currentProject.isEmpty() && boost::filesystem::exists( currentProject.getProjectDatabase() ) )
             {
-                mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, currentProject );
+                network::memory::Request_Encoder memoryRequest(
+                    [ &exe_leaf ]( const network::Message& msg ) { return exe_leaf.ExeDaemon( msg ); }, con.getID() );
+                const mega::network::MemoryConfig memoryConfig = memoryRequest.GetSharedMemoryConfig();
+                mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, currentProject,
+                                                  memoryConfig.getMemory(), memoryConfig.getMutex(),
+                                                  memoryConfig.getMap() );
                 SPDLOG_TRACE(
                     "Executor runtime initialised with project: {}", currentProject.getProjectInstallPath().string() );
             }

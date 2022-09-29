@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef RUNTIME_18_JUNE_2022
 #define RUNTIME_18_JUNE_2022
 
@@ -39,7 +36,10 @@ namespace mega
 namespace runtime
 {
 void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
-                        const mega::network::Project&                   project );
+                        const mega::network::Project&                   project,
+                        const std::string&                              addressSpaceMemory,
+                        const std::string&                              addressSpaceMutex,
+                        const std::string&                              addressSpaceMap );
 bool isRuntimeInitialised();
 
 class MPORoot
