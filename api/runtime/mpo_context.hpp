@@ -62,7 +62,16 @@ public:
     virtual bool           restore( const std::string& filePath, mega::U64 determinant )      = 0;
     virtual bool           readLock( MPO mpo )                                                = 0;
     virtual bool           writeLock( MPO mpo )                                               = 0;
-    virtual void           releaseLock( MPO mpo )                                             = 0;
+    virtual void           cycleComplete()                                                    = 0;
+};
+
+class Cycle
+{
+public:
+    ~Cycle()
+    {
+        mega::MPOContext::get()->cycleComplete();
+    }
 };
 
 #define SUSPEND_MPO_CONTEXT()                      \

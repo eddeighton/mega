@@ -484,6 +484,7 @@ std::ostream& operator<<( std::ostream& os, const protocol::schema::Transaction&
     using namespace protocol::schema;
     os << TRANSACTION_KEYWORD << ' ' << transaction.m_name << "\n{    " << transaction.m_request << strDelim
        << transaction.m_response << strDelim << '}';
+    return os;
 }
 
 std::ostream& operator<<( std::ostream& os, const protocol::schema::Schema& schema )

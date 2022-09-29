@@ -204,22 +204,11 @@ void Runtime::deAllocateRoot( const mega::MPO& mpo )
     auto iFind = m_executionContextRoot.find( mpo );
     if ( iFind != m_executionContextRoot.end() )
     {
-        std::optional< reference > machineRef;
-        {
-            if ( iFind->second.isMachine() )
-            {
-                machineRef = iFind->second;
-            }
-            else if ( auto resultOpt = m_addressSpace.find( iFind->second.network ); resultOpt.has_value() )
-            {
-                machineRef = resultOpt.value();
-            }
-        }
-        if ( machineRef )
-        {
-            ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( machineRef.value().type );
-            pAllocator->deAllocate( machineRef.value() );
-        }
+        mega::reference& ref = iFind->second;
+        if ( ref.isNetwork() )
+            ref = networkToMachine( ref.type, ref.network );
+        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( ref.type );
+        pAllocator->deAllocate( ref );
         m_executionContextRoot.erase( iFind );
     }
 }

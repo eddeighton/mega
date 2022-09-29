@@ -210,11 +210,14 @@ public:
 
     virtual bool readLock( MPO mpo ) override
     {
-        // SPDLOG_TRACE( "readLock from: {} to: {}", m_tool.getMPO(), mpo );
         VERIFY_RTE( m_pYieldContext );
-        // const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
 
-        /*if ( getToolRequest( *m_pYieldContext ).ToolSimReadLock( getID(), id ) )
+        network::sim::Request_Encoder request(
+            [ mpoRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
+            { return mpoRequest.MPOUp( msg, mpo ); },
+            getID() );
+
+        if ( request.SimLockRead( m_tool.getMPO() ) )
         {
             m_lockTracker.onRead( mpo );
             return true;
@@ -222,16 +225,19 @@ public:
         else
         {
             return false;
-        }*/
-        THROW_RTE( "TODO" );
+        }
     }
 
     virtual bool writeLock( MPO mpo ) override
     {
-        // SPDLOG_TRACE( "writeLock from: {} to: {}", m_tool.getMPO(), mpo );
         VERIFY_RTE( m_pYieldContext );
-        /*const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
-        if ( getToolRequest( *m_pYieldContext ).ToolSimWriteLock( getID(), id ) )
+
+        network::sim::Request_Encoder request(
+            [ mpoRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
+            { return mpoRequest.MPOUp( msg, mpo ); },
+            getID() );
+
+        if ( request.SimLockWrite( m_tool.getMPO() ) )
         {
             m_lockTracker.onWrite( mpo );
             return true;
@@ -239,18 +245,32 @@ public:
         else
         {
             return false;
-        }*/
-        THROW_RTE( "TODO" );
+        }
     }
 
-    virtual void releaseLock( MPO mpo ) override
+    virtual void cycleComplete() override
     {
-        // SPDLOG_TRACE( "releaseLock from: {} to: {}", m_tool.getMPO(), mpo );
-        /*VERIFY_RTE( m_pYieldContext );
-        const network::ConversationID id = getToolRequest( *m_pYieldContext ).ToolGetMPOContextID( mpo );
-        getToolRequest( *m_pYieldContext ).ToolSimReleaseLock( getID(), id );
-        m_lockTracker.onRelease( mpo );*/
-        THROW_RTE( "TODO" );
+        for ( MPO writeLock : m_lockTracker.getWrites() )
+        {
+            VERIFY_RTE( m_pYieldContext );
+            network::sim::Request_Encoder request(
+                [ mpoRequest = getMPRequest( *m_pYieldContext ), writeLock ]( const network::Message& msg ) mutable
+                { return mpoRequest.MPOUp( msg, writeLock ); },
+                getID() );
+            request.SimLockRelease( m_tool.getMPO() );
+            m_lockTracker.onRelease( writeLock );
+        }
+
+        for ( MPO writeLock : m_lockTracker.getReads() )
+        {
+            VERIFY_RTE( m_pYieldContext );
+            network::sim::Request_Encoder request(
+                [ mpoRequest = getMPRequest( *m_pYieldContext ), writeLock ]( const network::Message& msg ) mutable
+                { return mpoRequest.MPOUp( msg, writeLock ); },
+                getID() );
+            request.SimLockRelease( m_tool.getMPO() );
+            m_lockTracker.onRelease( writeLock );
+        }
     }
 
     boost::asio::yield_context*               m_pYieldContext = nullptr;

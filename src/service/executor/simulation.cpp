@@ -113,46 +113,69 @@ bool Simulation::readLock( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
 
-    auto request = getMPRequest( *m_pYieldContext );
+    network::sim::Request_Encoder request(
+        [ mpoRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
+        { return mpoRequest.MPOUp( msg, mpo ); },
+        getID() );
 
-    // request.MPOUp(const network::Message &request, const mega::MPO &mpo)
-
-    // const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
-    // if ( getLeafRequest( *m_pYieldContext ).ExeSimReadLock( id ) )
-    //{
-    //     m_lockTracker.onRead( mpo );
-    //     return true;
-    // }
-    // else
-    //{
-    //     return false;
-    // }
-    THROW_RTE( "TODO" );
+    if ( request.SimLockRead( m_mpo.value() ) )
+    {
+        m_lockTracker.onRead( mpo );
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 bool Simulation::writeLock( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
-    // const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
-    // if ( getLeafRequest( *m_pYieldContext ).ExeSimWriteLock( id ) )
-    //{
-    //     m_lockTracker.onWrite( mpo );
-    //     return true;
-    // }
-    // else
-    //{
-    //     return false;
-    // }
-    THROW_RTE( "TODO" );
+
+    network::sim::Request_Encoder request(
+        [ mpoRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
+        { return mpoRequest.MPOUp( msg, mpo ); },
+        getID() );
+
+    if ( request.SimLockWrite( m_mpo.value() ) )
+    {
+        m_lockTracker.onWrite( mpo );
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
-void Simulation::releaseLock( MPO mpo )
+void Simulation::cycleComplete()
 {
     VERIFY_RTE( m_pYieldContext );
-    // const network::ConversationID id = getLeafRequest( *m_pYieldContext ).ExeGetMPOContextID( mpo );
-    // getLeafRequest( *m_pYieldContext ).ExeSimReleaseLock( id );
-    // m_lockTracker.onRelease( mpo );
-    THROW_RTE( "TODO" );
+
+    for ( MPO writeLock : m_lockTracker.getWrites() )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        network::sim::Request_Encoder request(
+            [ mpoRequest = getMPRequest( *m_pYieldContext ), writeLock ]( const network::Message& msg ) mutable
+            { return mpoRequest.MPOUp( msg, writeLock ); },
+            getID() );
+        request.SimLockRelease( m_mpo.value() );
+        m_lockTracker.onRelease( writeLock );
+    }
+
+    for ( MPO writeLock : m_lockTracker.getReads() )
+    {
+        VERIFY_RTE( m_pYieldContext );
+        network::sim::Request_Encoder request(
+            [ mpoRequest = getMPRequest( *m_pYieldContext ), writeLock ]( const network::Message& msg ) mutable
+            { return mpoRequest.MPOUp( msg, writeLock ); },
+            getID() );
+        request.SimLockRelease( m_mpo.value() );
+        m_lockTracker.onRelease( writeLock );
+    }
+
+    m_lockTracker.reset();
 }
 
 void Simulation::issueClock()
@@ -174,8 +197,7 @@ void Simulation::clock()
 void Simulation::cycle()
 {
     m_scheduler.cycle();
-
-    // submit all transactions...
+    cycleComplete();
 }
 
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )

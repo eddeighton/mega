@@ -87,7 +87,7 @@ public:
     virtual bool           restore( const std::string& filePath, mega::U64 determinant ) override;
     virtual bool           readLock( MPO mpo ) override;
     virtual bool           writeLock( MPO mpo ) override;
-    virtual void           releaseLock( MPO mpo ) override;
+    virtual void           cycleComplete() override;
 
 private:
     void issueClock();
