@@ -650,6 +650,9 @@ void generateInstructions( const DatabaseInstance&                             d
         {
             std::ostringstream os;
             os << indent << "// Start\n";
+
+            
+
             data[ "assignments" ].push_back( os.str() );
         }
         else if ( Stop* pStop = dynamic_database_cast< Stop >( pOperation ) )

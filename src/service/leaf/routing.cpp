@@ -144,6 +144,12 @@ network::Message LeafRequestConversation::ToolRoot( const network::Message&     
     return getDaemonSender( yield_ctx ).ToolRoot( request );
 }
 
+network::Message LeafRequestConversation::ToolDaemon( const network::Message&     request,
+                                                      boost::asio::yield_context& yield_ctx )
+{
+    return getDaemonSender( yield_ctx ).ToolDaemon( request );
+}
+
 // network::mpo::Impl
 network::Message LeafRequestConversation::MPRoot( const network::Message&     request, const mega::MP&,
                                                   boost::asio::yield_context& yield_ctx )
@@ -297,27 +303,33 @@ network::Message LeafRequestConversation::RootExe( const network::Message&     r
 }
 void LeafRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx )
 {
+    struct MPOEntry
+    {
+        std::set< mega::MPO >& mpos;
+        const mega::MPO&       mpo;
+        MPOEntry( std::set< mega::MPO >& mpos, const mega::MPO& mpo )
+            : mpos( mpos )
+            , mpo( mpo )
+        {
+            mpos.insert( mpo );
+        }
+        ~MPOEntry() { mpos.erase( mpo ); }
+    };
+
     SPDLOG_TRACE( "LeafRequestConversation::RootSimRun {}", mpo );
     switch ( m_leaf.m_nodeType )
     {
         case network::Node::Executor:
         {
-            struct MPOEntry
-            {
-                std::set< mega::MPO >& mpos;
-                const mega::MPO&       mpo;
-                MPOEntry( std::set< mega::MPO >& mpos, const mega::MPO& mpo )
-                    : mpos( mpos )
-                    , mpo( mpo )
-                {
-                    mpos.insert( mpo );
-                }
-                ~MPOEntry() { mpos.erase( mpo ); }
-            } mpoEntry( m_leaf.m_mpos, mpo );
+            MPOEntry mpoEntry( m_leaf.m_mpos, mpo );
             return getExeSender( yield_ctx ).RootSimRun( mpo );
         }
-        case network::Node::Terminal:
         case network::Node::Tool:
+        {
+            MPOEntry mpoEntry( m_leaf.m_mpos, mpo );
+            return getToolSender( yield_ctx ).RootSimRun( mpo );
+        }
+        case network::Node::Terminal:
         case network::Node::Daemon:
         case network::Node::Root:
         case network::Node::Leaf:

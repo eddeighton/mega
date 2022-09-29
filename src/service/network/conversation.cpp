@@ -93,7 +93,6 @@ void Conversation::onDisconnect( const ConnectionID& connectionID )
     }
 }
 
-// run is ALWAYS call for each conversation after it is created
 void Conversation::run( boost::asio::yield_context& yield_ctx )
 {
     try
@@ -105,7 +104,7 @@ void Conversation::run( boost::asio::yield_context& yield_ctx )
     }
     catch ( std::exception& ex )
     {
-        SPDLOG_WARN( "Conversation run: {} exception: {}", getID(), ex.what() );
+        SPDLOG_WARN( "Conversation: {} exception: {}", getID(), ex.what() );
         m_conversationManager.conversationCompleted( shared_from_this() );
     }
 }

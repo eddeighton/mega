@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef REQUEST_LEAF_23_SEPT_2022
 #define REQUEST_LEAF_23_SEPT_2022
 
@@ -86,6 +85,8 @@ public:
     // network::tool_leaf::Impl
     virtual network::Message ToolRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message ToolDaemon( const network::Message&     request,
+                                         boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
     virtual network::Message MPRoot( const network::Message& request, const mega::MP& mp,
@@ -101,7 +102,7 @@ public:
 
     // network::daemon_leaf::Impl
     virtual network::Message RootAllBroadcast( const network::Message&     request,
-                                                boost::asio::yield_context& yield_ctx ) override;
+                                               boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;

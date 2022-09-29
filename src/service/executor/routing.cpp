@@ -143,6 +143,11 @@ network::Message ExecutorRequestConversation::RootAllBroadcast( const network::M
     return dispatchRequest( aggregateRequest, yield_ctx );
 }
 
+network::Message ExecutorRequestConversation::RootExeBroadcast( const network::Message&     request,
+                                                                boost::asio::yield_context& yield_ctx )
+{
+    return dispatchRequest( request, yield_ctx );
+}
 network::Message ExecutorRequestConversation::RootExe( const network::Message&     request,
                                                        boost::asio::yield_context& yield_ctx )
 {

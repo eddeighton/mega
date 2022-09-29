@@ -31,7 +31,6 @@ msg ExeRoot
     request(network::Message request);
     response(network::Message response);
 }
-
 msg ExeDaemon
 {
     request(network::Message request);
@@ -43,13 +42,17 @@ msg ToolRoot
     request(network::Message request);
     response(network::Message response);
 }
+msg ToolDaemon
+{
+    request(network::Message request);
+    response(network::Message response);
+}
 
 msg LeafDaemon
 {
     request(network::Message request);
     response(network::Message response);
 }
-
 msg LeafRoot
 {
     request(network::Message request);

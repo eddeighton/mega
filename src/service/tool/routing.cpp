@@ -43,7 +43,7 @@ network::Message ToolRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "ToolRequestConversation::dispatchRequest failed" );
+    THROW_RTE( "ToolRequestConversation::dispatchRequest failed: " << msg );
 }
 void ToolRequestConversation::dispatchResponse( const network::ConnectionID& connectionID, const network::Message& msg,
                                                 boost::asio::yield_context& yield_ctx )

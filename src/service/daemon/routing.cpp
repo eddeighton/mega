@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
 namespace mega
@@ -48,6 +47,8 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
     if ( result = network::status::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
+        return result;
+    if ( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     THROW_RTE( "DaemonRequestConversation::dispatchRequest failed: " << network::getMsgName( msg ) );
 }
@@ -107,6 +108,11 @@ network::Message DaemonRequestConversation::ToolRoot( const network::Message&   
     return getRootSender( yield_ctx ).ToolRoot( request );
 }
 
+network::Message DaemonRequestConversation::ToolDaemon( const network::Message&     request,
+                                                        boost::asio::yield_context& yield_ctx )
+{
+    return dispatchRequest( request, yield_ctx );
+}
 network::Message DaemonRequestConversation::LeafRoot( const network::Message&     request,
                                                       boost::asio::yield_context& yield_ctx )
 {
@@ -127,7 +133,7 @@ network::Message DaemonRequestConversation::ExeDaemon( const network::Message&  
 
 // network::root_daemon::Impl
 network::Message DaemonRequestConversation::RootAllBroadcast( const network::Message&     request,
-                                                               boost::asio::yield_context& yield_ctx )
+                                                              boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "DaemonRequestConversation::RootAllBroadcast" );
     // dispatch to children
@@ -193,7 +199,8 @@ void DaemonRequestConversation::RootSimRun( const mega::MPO& mpo, boost::asio::y
     VERIFY_RTE( stackCon.has_value() );
     auto pConnection = m_daemon.m_server.getConnection( stackCon.value() );
     VERIFY_RTE( pConnection );
-    VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor );
+    VERIFY_RTE( pConnection->getTypeOpt().value() == network::Node::Executor
+                || pConnection->getTypeOpt().value() == network::Node::Tool );
 
     {
         network::Server::MPOConnection       mpoConnection( m_daemon.m_server, mpo, pConnection );

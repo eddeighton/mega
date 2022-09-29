@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/tool.hpp"
 
 #include "request.hpp"
@@ -39,8 +38,10 @@
 
 #include "service/protocol/model/leaf_tool.hxx"
 #include "service/protocol/model/tool_leaf.hxx"
-// #include "service/protocol/model/mpo_leaf.hxx"
+#include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"
+#include "service/protocol/model/address.hxx"
+#include "service/protocol/model/stash.hxx"
 
 #include "common/requireSemicolon.hpp"
 
@@ -55,7 +56,7 @@ namespace service
 {
 
 template < typename TConversationFunctor >
-class GenericConversation : public ToolRequestConversation, public mega::MPOContext
+class GenericConversation : public ToolRequestConversation, public mega::MPOContext, public network::sim::Impl
 {
     Tool&                m_tool;
     TConversationFunctor m_functor;
@@ -69,18 +70,36 @@ public:
     {
     }
 
+    virtual network::Message dispatchRequest( const network::Message&     msg,
+                                              boost::asio::yield_context& yield_ctx ) override
+    {
+        network::Message result;
+        if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
+            return result;
+        return ToolRequestConversation::dispatchRequest( msg, yield_ctx );
+    }
+
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx )
     {
         return network::tool_leaf::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
     }
+    network::mpo::Request_Sender getMPRequest( boost::asio::yield_context& yield_ctx )
+    {
+        return network::mpo::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
+    }
 
     void run( boost::asio::yield_context& yield_ctx ) override
     {
+        SPDLOG_TRACE( "TOOL: run function" );
         network::sim::Request_Encoder request(
-            [ rootRequest = getToolRequest( yield_ctx ) ]( const network::Message& msg ) mutable
-            { return rootRequest.ToolRoot( msg ); },
+            [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+            { return rootRequest.MPRoot( msg, mega::MP{} ); },
             getID() );
         request.SimStart();
+        SPDLOG_TRACE( "TOOL: run complete" );
+
+        // run complete will stop the receiver and ioservice.run() will complete.
+        m_tool.runComplete();
     }
 
     virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
@@ -95,11 +114,11 @@ public:
         {
             m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_tool.getMPO() );
             {
-                SPDLOG_TRACE( "TOOL: running function" );
                 m_functor( yield_ctx );
-                SPDLOG_TRACE( "TOOL: function completed" );
             }
+            m_pExecutionRoot.reset();
         }
+        SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", m_tool.getMPO() );
 
         m_pYieldContext = nullptr;
         MPOContext::suspend();
@@ -123,6 +142,7 @@ public:
     virtual mega::reference getRoot( const SimID& simID ) override
     {
         VERIFY_RTE( m_pYieldContext );
+        THROW_RTE( "TODO" );
         mega::reference result;
 
         // auto toolRequest = getToolRequest( *m_pYieldContext );
@@ -138,7 +158,11 @@ public:
         return result;
     }
 
-    mega::reference getRoot() override { return m_pExecutionRoot->root(); }
+    mega::reference getRoot() override
+    {
+        ASSERT( m_pExecutionRoot.get() );
+        return m_pExecutionRoot->root();
+    }
 
     // mega::MPOContext
     virtual MPO getThisMPO() override { return m_tool.getMPO(); }
@@ -146,50 +170,42 @@ public:
     virtual std::string acquireMemory( MPO mpo ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // SPDLOG_TRACE( "acquireMemory called with: {}", mpo );
-        // return getToolRequest( *m_pYieldContext ).ToolAcquireMemory( mpo );
-        THROW_RTE( "TODO" );
+        return getDaemonRequest< network::memory::Request_Encoder >( *m_pYieldContext ).AcquireSharedMemory( mpo );
     }
 
     virtual MPO getNetworkAddressMPO( NetworkAddress networkAddress ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // SPDLOG_TRACE( "getNetworkAddressMPO called with: {}", networkAddress );
-        // return getToolRequest( *m_pYieldContext ).ToolGetNetworkAddressMPO( networkAddress );
-        THROW_RTE( "TODO" );
+        return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
+            .GetNetworkAddressMPO( networkAddress );
     }
     virtual NetworkAddress getRootNetworkAddress( MPO mpo ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // SPDLOG_TRACE( "getRootNetworkAddress called with: {} {}", mpo, objectTypeID );
-        // return NetworkAddress{ getToolRequest( *m_pYieldContext ).ToolGetRootNetworkAddress( mpo ) };
-        THROW_RTE( "TODO" );
+        return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext ).GetRootNetworkAddress( mpo );
     }
     virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // SPDLOG_TRACE( "allocateNetworkAddress called with: {} {}", mpo, objectTypeID );
-        // return NetworkAddress{ getToolRequest( *m_pYieldContext ).ToolAllocateNetworkAddress( mpo, objectTypeID ) };
-        THROW_RTE( "TODO" );
+        return getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
+            .AllocateNetworkAddress( mpo, objectTypeID );
     }
     virtual void deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // SPDLOG_TRACE( "deAllocate called with: {} {}", mpo, networkAddress );
-        // getToolRequest( *m_pYieldContext ).ToolDeAllocateNetworkAddress( mpo, networkAddress );
-        THROW_RTE( "TODO" );
+        getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
+            .DeAllocateNetworkAddress( mpo, networkAddress );
     }
     virtual void stash( const std::string& filePath, mega::U64 determinant ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // getToolRequest( *m_pYieldContext ).ToolStash( filePath, determinant );
-        THROW_RTE( "TODO" );
+        getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext ).StashStash( filePath, determinant );
     }
     virtual bool restore( const std::string& filePath, mega::U64 determinant ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        // return getToolRequest( *m_pYieldContext ).ToolRestore( filePath, determinant );
-        THROW_RTE( "TODO" );
+        return getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext )
+            .StashRestore( filePath, determinant );
     }
 
     virtual bool readLock( MPO mpo ) override
@@ -265,12 +281,13 @@ void Tool::shutdown()
 {
     // TODO ?
 }
+void Tool::runComplete() { m_receiverChannel.stop(); }
 
 network::ConversationBase::Ptr Tool::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                        const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new ToolRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
+        new ToolRequestConversation( *this, network::getMsgReceiver( msg ), originatingConnectionID ) );
 }
 
 void Tool::run( Tool::Functor& function )
@@ -296,8 +313,8 @@ void Tool::run( Tool::Functor& function )
         conversationInitiated( pConversation, getLeafSender() );
     }
 
-    while ( !exceptionResult.has_value() )
-        m_io_context.run_one();
+    // run until m_tool.runComplete();
+    m_io_context.run();
 
     if ( exceptionResult->index() == 1 )
         std::rethrow_exception( std::get< std::exception_ptr >( exceptionResult.value() ) );

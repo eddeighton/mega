@@ -17,11 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 msg ToolRoot
+{
+    request(network::Message request);
+    response(network::Message response);
+}
+msg ToolDaemon
 {
     request(network::Message request);
     response(network::Message response);

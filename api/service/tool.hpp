@@ -51,7 +51,7 @@ public:
     ~Tool();
 
     void shutdown();
-    bool running() { return !m_io_context.stopped(); }
+    void runComplete();
 
     // network::ConversationManager
     virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,

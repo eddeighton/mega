@@ -74,7 +74,8 @@ public:
     RequestEncoderType getRootRequest( boost::asio::yield_context& yield_ctx )
     {
         return RequestEncoderType( [ rootRequest = getRootSender( yield_ctx ) ]( const network::Message& msg ) mutable
-                                   { return rootRequest.DaemonRoot( msg ); }, getID() );
+                                   { return rootRequest.DaemonRoot( msg ); },
+                                   getID() );
     }
 
     // network::leaf_daemon::Impl
@@ -83,6 +84,8 @@ public:
     virtual network::Message ExeRoot( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message ToolRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message ToolDaemon( const network::Message&     request,
+                                         boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafRoot( const network::Message&     request,
                                        boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message LeafDaemon( const network::Message&     request,
@@ -92,23 +95,23 @@ public:
 
     // network::root_daemon::Impl
     virtual network::Message RootAllBroadcast( const network::Message&     request,
-                                                boost::asio::yield_context& yield_ctx ) override;
+                                               boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExeBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;
     virtual network::Message RootExe( const network::Message& request, boost::asio::yield_context& yield_ctx ) override;
     virtual void             RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
 
     // network::mpo::Impl
-    virtual network::Message
-    MPRoot( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPDown( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPUp( const network::Message& request, const mega::MP& mp, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPODown( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
-    virtual network::Message
-    MPOUp( const network::Message& request, const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPRoot( const network::Message& request, const mega::MP& mp,
+                                     boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPDown( const network::Message& request, const mega::MP& mp,
+                                     boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPUp( const network::Message& request, const mega::MP& mp,
+                                   boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPODown( const network::Message& request, const mega::MPO& mpo,
+                                      boost::asio::yield_context& yield_ctx ) override;
+    virtual network::Message MPOUp( const network::Message& request, const mega::MPO& mpo,
+                                    boost::asio::yield_context& yield_ctx ) override;
 
     // network::enrole::Impl
     virtual MP EnroleLeafWithDaemon( const mega::network::Node::Type& type,

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "runtime.hpp"
 #include "symbol_utils.hpp"
 
@@ -151,7 +150,7 @@ reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress network
         }
 
         ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( objectTypeID );
-        const reference ref = pAllocator->allocate( mpo );
+        const reference          ref        = pAllocator->allocate( mpo );
 
         if ( thisMPO.getMachineID() != mpo.getMachineID() )
         {
@@ -205,11 +204,22 @@ void Runtime::deAllocateRoot( const mega::MPO& mpo )
     auto iFind = m_executionContextRoot.find( mpo );
     if ( iFind != m_executionContextRoot.end() )
     {
-        mega::reference& ref = iFind->second;
-        if ( ref.isNetwork() )
-            ref = networkToMachine( ref.type, ref.network );
-        ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( ref.type );
-        pAllocator->deAllocate( ref );
+        std::optional< reference > machineRef;
+        {
+            if ( iFind->second.isMachine() )
+            {
+                machineRef = iFind->second;
+            }
+            else if ( auto resultOpt = m_addressSpace.find( iFind->second.network ); resultOpt.has_value() )
+            {
+                machineRef = resultOpt.value();
+            }
+        }
+        if ( machineRef )
+        {
+            ObjectTypeAllocator::Ptr pAllocator = getOrCreateObjectTypeAllocator( machineRef.value().type );
+            pAllocator->deAllocate( machineRef.value() );
+        }
         m_executionContextRoot.erase( iFind );
     }
 }

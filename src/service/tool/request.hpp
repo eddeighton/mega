@@ -54,6 +54,22 @@ public:
 
     network::tool_leaf::Request_Sender getToolRequest( boost::asio::yield_context& yield_ctx );
 
+    template < typename RequestEncoderType >
+    RequestEncoderType getRootRequest( boost::asio::yield_context& yield_ctx )
+    {
+        return RequestEncoderType( [ rootRequest = getToolRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+                                   { return rootRequest.ToolRoot( msg ); },
+                                   getID() );
+    }
+
+    template < typename RequestEncoderType >
+    RequestEncoderType getDaemonRequest( boost::asio::yield_context& yield_ctx )
+    {
+        return RequestEncoderType( [ rootRequest = getToolRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+                                   { return rootRequest.ToolDaemon( msg ); },
+                                   getID() );
+    }
+
     // network::leaf_tool::Impl
     virtual network::Message RootAllBroadcast( const network::Message&     request,
                                                boost::asio::yield_context& yield_ctx ) override;

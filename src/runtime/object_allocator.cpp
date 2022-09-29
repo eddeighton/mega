@@ -167,7 +167,8 @@ reference ObjectTypeAllocator::allocate( MPO mpo )
 
 void ObjectTypeAllocator::deAllocate( MachineAddress machineAddress )
 {
-    //SPDLOG_TRACE( "ObjectTypeAllocator::deAllocate {} {}", m_objectTypeID, machineAddress );
+    SPDLOG_TRACE( "ObjectTypeAllocator::deAllocate {} {}", m_objectTypeID, machineAddress );
+    
     auto pIndex = getIndex( machineAddress );
     if ( void* pAddress = pIndex->getShared( machineAddress.object ) )
     {
