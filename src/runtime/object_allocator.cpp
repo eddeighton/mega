@@ -145,7 +145,8 @@ reference ObjectTypeAllocator::get( MachineAddress machineAddress )
 
 reference ObjectTypeAllocator::allocate( MPO mpo )
 {
-    //SPDLOG_TRACE( "ObjectTypeAllocator::allocate {} {}", m_objectTypeID, mpo );
+    SPDLOG_TRACE( "ObjectTypeAllocator::allocate {} {}", m_objectTypeID, mpo );
+    
     VERIFY_RTE( mpo.isMachine() );
 
     auto pIndex = getIndex( mpo );

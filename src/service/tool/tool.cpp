@@ -142,8 +142,10 @@ public:
         VERIFY_RTE( m_pYieldContext );
         return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetMPO( machineProcess );
     }
-    virtual MPO createMPO( MP machineProcess ) override
+    virtual MPO getThisMPO() override { return m_tool.getMPO(); }
+    virtual MPO constructMPO( MP machineProcess ) override
     {
+        SPDLOG_TRACE( "Tool constructMPO: {}", machineProcess );
         network::sim::Request_Encoder request(
             [ mpoRequest = getMPRequest( *m_pYieldContext ), machineProcess ]( const network::Message& msg ) mutable
             { return mpoRequest.MPRoot( msg, machineProcess ); },
@@ -154,8 +156,6 @@ public:
     virtual mega::reference getThisRoot() override { return m_pExecutionRoot->root(); }
 
     // mega::MPOContext
-    virtual MPO getThisMPO() override { return m_tool.getMPO(); }
-
     virtual std::string acquireMemory( MPO mpo ) override
     {
         VERIFY_RTE( m_pYieldContext );

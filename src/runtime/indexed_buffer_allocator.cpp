@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "indexed_buffer_allocator.hpp"
 
 #include "service/network/log.hpp"
@@ -50,7 +49,7 @@ IndexedBufferAllocator::IndexedBufferAllocator( TypeID objectTypeID, ManagedShar
     // SPDLOG_TRACE( "IndexedBufferAllocator" );
 }
 
-IndexedBufferAllocator::~IndexedBufferAllocator() 
+IndexedBufferAllocator::~IndexedBufferAllocator()
 {
     //
 }
@@ -59,8 +58,9 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
                                                                            mega::U64 szSharedAlign,
                                                                            mega::U64 szHeapSize, mega::U64 szHeapAlign )
 {
-    // SPDLOG_TRACE(
-    //     "IndexedBufferAllocator::allocate {} {} {} {}", szSharedSize, szSharedAlign, szHeapSize, szHeapAlign );
+    SPDLOG_TRACE(
+        "IndexedBufferAllocator::allocate {} {} {} {}", szSharedSize, szSharedAlign, szHeapSize, szHeapAlign );
+
     SharedPtr pShared;
     if ( szSharedSize )
     {
@@ -82,6 +82,7 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
         {
             if ( !m_pFreeList->empty() )
             {
+                SPDLOG_TRACE( "IndexedBufferAllocator::allocate using free list" );
                 result.object = m_pFreeList->back();
                 m_pFreeList->pop_back();
                 m_pSharedIndex->at( result.object ) = pShared;
@@ -89,6 +90,7 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
             }
             else
             {
+                SPDLOG_TRACE( "IndexedBufferAllocator::allocate new" );
                 result.object = static_cast< ObjectID >( m_pSharedIndex->size() );
                 m_pSharedIndex->push_back( pShared );
                 m_heapBuffers.push_back( std::move( pHeap ) );
@@ -114,7 +116,8 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
 
 void IndexedBufferAllocator::deallocate( Index index )
 {
-    // SPDLOG_TRACE( "IndexedBufferAllocator::allocate {}", index );
+    SPDLOG_TRACE( "IndexedBufferAllocator::allocate {}", index );
+    
     SharedPtr pShared           = m_pSharedIndex->at( index );
     m_pSharedIndex->at( index ) = nullptr;
     m_pSegmentManager->deallocate( pShared.get() );

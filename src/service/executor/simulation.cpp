@@ -71,8 +71,14 @@ MPOContext::MPOVector Simulation::getMPO( MP machineProcess )
     VERIFY_RTE( m_pYieldContext );
     return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetMPO( machineProcess );
 }
-MPO Simulation::createMPO( MP machineProcess )
+MPO Simulation::getThisMPO()
 {
+    ASSERT( m_mpo.has_value() );
+    return m_mpo.value();
+}
+MPO Simulation::constructMPO( MP machineProcess )
+{
+    SPDLOG_TRACE( "Tool constructMPO: {}", machineProcess );
     network::sim::Request_Encoder request(
         [ mpoRequest = getMPRequest( *m_pYieldContext ), machineProcess ]( const network::Message& msg ) mutable
         { return mpoRequest.MPRoot( msg, machineProcess ); },
@@ -83,12 +89,6 @@ mega::reference Simulation::getRoot( MPO mpo ) { return mega::runtime::get_root(
 mega::reference Simulation::getThisRoot() { return m_pExecutionRoot->root(); }
 
 // mega::MPOContext
-MPO Simulation::getThisMPO()
-{
-    ASSERT( m_mpo.has_value() );
-    return m_mpo.value();
-}
-
 std::string Simulation::acquireMemory( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );

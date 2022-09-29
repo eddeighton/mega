@@ -124,6 +124,7 @@ reference Runtime::allocateMachineAddress( MPO mpo, TypeID objectTypeID, Network
 
 reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress )
 {
+    SPDLOG_TRACE( "RUNTIME: networkToMachine: {} {}", objectTypeID, networkAddress );
     // AddressSpace::Lock lock( m_addressSpace.mutex() );
 
     auto resultOpt = m_addressSpace.find( networkAddress );

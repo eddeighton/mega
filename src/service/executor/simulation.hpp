@@ -71,12 +71,12 @@ public:
     virtual MPOContext::MachineIDVector        getMachines() override;
     virtual MPOContext::MachineProcessIDVector getProcesses( MachineID machineID ) override;
     virtual MPOContext::MPOVector              getMPO( MP machineProcess ) override;
-    virtual MPO                                createMPO( MP machineProcess ) override;
+    virtual MPO                                getThisMPO() override;
+    virtual MPO                                constructMPO( MP machineProcess ) override;
     virtual mega::reference                    getRoot( MPO mpo ) override;
     virtual mega::reference                    getThisRoot() override;
 
     // mega::MPOContext - runtime internal interface
-    virtual MPO            getThisMPO() override;
     virtual std::string    acquireMemory( MPO mpo ) override;
     virtual MPO            getNetworkAddressMPO( NetworkAddress networkAddress ) override;
     virtual NetworkAddress getRootNetworkAddress( MPO mpo ) override;

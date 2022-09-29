@@ -48,13 +48,13 @@ class AddressSpace
 
     static constexpr const char* MEMORY_NAME = "MEGA_RUNTIME_ADDRESS_SPACE_MEMORY";
 
-    struct AddressSpaceMapLifetime
+public:
+    struct AddressSpaceMapLifetime // for the daemon
     {
         AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( MEMORY_NAME ); }
         ~AddressSpaceMapLifetime() { boost::interprocess::shared_memory_object::remove( MEMORY_NAME ); }
     };
 
-public:
     using Lock = boost::interprocess::scoped_lock< boost::interprocess::named_mutex >;
 
     AddressSpace()
@@ -86,7 +86,6 @@ public:
     }
 
 private:
-    AddressSpaceMapLifetime          m_memoryLifetime;
     SharedMemoryType                 m_sharedMemory;
     boost::interprocess::named_mutex m_addressSpaceMutex;
     AddressMapping&                  m_addressMapping;
