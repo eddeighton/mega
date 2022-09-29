@@ -22,6 +22,8 @@
 #include "root.hpp"
 #include "mpo_manager.hpp"
 
+#include "service/protocol/model/memory.hxx"
+
 namespace mega
 {
 namespace service
@@ -46,14 +48,14 @@ network::Message RootSimulation::dispatchRequest( const network::Message& msg, b
 
 struct Deferred
 {
-    MPOManager&                          mpoManager;
-    const mega::network::ConversationID& id;
-    Deferred( MPOManager& mpoManager, const mega::network::ConversationID& id )
+    MPOManager&      mpoManager;
+    const mega::MPO& mpo;
+    Deferred( MPOManager& mpoManager, const mega::MPO& mpo )
         : mpoManager( mpoManager )
-        , id( id )
+        , mpo( mpo )
     {
     }
-    ~Deferred() { mpoManager.release( id ); }
+    ~Deferred() { mpoManager.release( mpo ); }
 };
 
 void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
@@ -61,7 +63,7 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
     mega::MPO simulationMPO = m_root.m_mpoManager.newOwner( m_leafMP, getID() );
     SPDLOG_TRACE( "RootSimulation::SimStart: {}", simulationMPO );
 
-    Deferred defered( m_root.m_mpoManager, getID() );
+    Deferred defered( m_root.m_mpoManager, simulationMPO );
 
     auto stackCon = getOriginatingEndPointID();
     VERIFY_RTE( stackCon.has_value() );
@@ -74,6 +76,12 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
         network::root_daemon::Request_Sender sender( *this, *pConnection, yield_ctx );
         SPDLOG_TRACE( "RootSimulation::SimStart: sending RootSimRun for {}", simulationMPO );
         sender.RootSimRun( simulationMPO );
+    }
+
+    // notify to release
+    {
+        network::memory::Request_Sender sender( *this, *pConnection, yield_ctx );
+        sender.ReleaseSharedMemory( simulationMPO );
     }
 }
 

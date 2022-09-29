@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef MPO_CONTEXT_SEPT_18_2022
 #define MPO_CONTEXT_SEPT_18_2022
 
@@ -33,22 +30,30 @@
 namespace mega
 {
 
-class MPOContext
+class Context
+{
+public:
+    using MachineIDVector        = std::vector< MachineID >;
+    using MachineProcessIDVector = std::vector< MP >;
+    using MPOVector              = std::vector< MPO >;
+
+    // native code interface
+    virtual MachineIDVector        getMachines()                       = 0;
+    virtual MachineProcessIDVector getProcesses( MachineID machineID ) = 0;
+    virtual MPOVector              getMPO( MP machineProcess )         = 0;
+    virtual MPO                    createMPO( MP machineProcess )      = 0;
+    virtual mega::reference        getRoot( MPO mpo )                  = 0;
+    virtual mega::reference        getThisRoot()                       = 0;
+
+    static Context* get();
+};
+
+class MPOContext : public Context
 {
 public:
     static void        resume( MPOContext* pMPOContext );
     static void        suspend();
     static MPOContext* get();
-
-public:
-    using SimID       = network::ConversationID;
-    using SimIDVector = std::vector< SimID >;
-
-    // native code interface
-    virtual SimIDVector     getSimulationIDs()            = 0;
-    virtual SimID           createSimulation()            = 0;
-    virtual mega::reference getRoot( const SimID& simID ) = 0;
-    virtual mega::reference getRoot()                     = 0;
 
 public:
     // runtime internal interface
@@ -68,10 +73,7 @@ public:
 class Cycle
 {
 public:
-    ~Cycle()
-    {
-        mega::MPOContext::get()->cycleComplete();
-    }
+    ~Cycle() { mega::MPOContext::get()->cycleComplete(); }
 };
 
 #define SUSPEND_MPO_CONTEXT()                      \

@@ -39,6 +39,28 @@ class MPOManager
     using ProcessAllocator = mega::RingAllocator< mega::ProcessID, mega::MAX_PROCESS_PER_MACHINE >;
     using OwnerAllocator   = mega::RingAllocator< mega::OwnerID, mega::MAX_OWNER_PER_PROCESS >;
 
+    template < typename T, T max, typename FreeList >
+    inline std::vector< T > inverseOfFree( const FreeList& free ) const
+    {
+        std::vector< T >       allocated;
+        std::vector< OwnerID > freeOwners( free.begin(), free.end() );
+        std::sort( freeOwners.begin(), freeOwners.end() );
+        auto iter = freeOwners.begin();
+        // calculate the inverse of the free
+        for ( T id = 0U; id != max; ++id )
+        {
+            if ( ( iter != freeOwners.end() ) && ( *iter == id ) )
+            {
+                ++iter;
+            }
+            else
+            {
+                allocated.push_back( id );
+            }
+        }
+        return allocated;
+    }
+
 public:
     MP newDaemon()
     {
@@ -78,27 +100,26 @@ public:
         return mp;
     }
 
-    void leafDisconnected( MP mp )
+    std::vector< MPO > leafDisconnected( MP mp )
     {
-        m_processes[ mp.getMachineID() ].free( mp.getProcessID() );
-        m_owners[ mp.getMachineID() ][ mp.getProcessID() ].reset();
         SPDLOG_TRACE( "MPOMGR: leafDisconnected: {}", mp );
 
-        // TODO - how to broadcast disconnects ??
-        // THROW_RTE( "TODO" );
+        // free the process within the machine
+        m_processes[ mp.getMachineID() ].free( mp.getProcessID() );
 
-        for( const auto& [ simMPO, simID ] : m_simulations )
+        std::vector< MPO > allocated;
         {
-            if( simMPO.getMachineID() == mp.getMachineID() )
+            // free all owners for the process
+            OwnerAllocator& owners = m_owners[ mp.getMachineID() ][ mp.getProcessID() ];
+            for ( OwnerID id : inverseOfFree< OwnerID, mega::MAX_PROCESS_PER_MACHINE >( owners.getFree() ) )
             {
-                if( simMPO.getProcessID() == mp.getProcessID() )
-                {
-                    // 
-                }
+                allocated.push_back( MPO( mp.getMachineID(), mp.getProcessID(), id ) );
             }
+            owners.reset();
         }
-    }
 
+        return allocated;
+    }
     MPO newOwner( MP leafMP, const network::ConversationID& conversationID )
     {
         OwnerAllocator& alloc = m_owners[ leafMP.getMachineID() ][ leafMP.getProcessID() ];
@@ -109,50 +130,45 @@ public:
         const MPO mpo( leafMP.getMachineID(), leafMP.getProcessID(), alloc.allocate() );
         SPDLOG_TRACE( "MPOMgr: newOwner: {} {}", mpo, conversationID );
 
-        m_simulations.insert( { mpo, conversationID } );
-        m_conversations.insert( { conversationID, mpo } );
-
         return mpo;
     }
 
-    void release( const network::ConversationID& conversationID )
+    void release( MPO mpo ) { m_owners[ mpo.getMachineID() ][ mpo.getProcessID() ].free( mpo.getOwnerID() ); }
+
+    std::vector< MachineID > getMachines() const
     {
-        // called after graceful close of conversation
-        auto iFind = m_conversations.find( conversationID );
-        if ( iFind != m_conversations.end() )
+        std::vector< MachineID > machines;
+        for ( auto id : inverseOfFree< MachineID, mega::MAX_MACHINES >( m_machines.getFree() ) )
         {
-            mega::MPO mpo = iFind->second;
-            m_conversations.erase( iFind );
-            {
-                auto jFind = m_simulations.find( mpo );
-                VERIFY_RTE( jFind != m_simulations.end() );
-                m_simulations.erase( jFind );
-            }
-            m_owners[ mpo.getMachineID() ][ mpo.getProcessID() ].free( mpo.getOwnerID() );
+            machines.push_back( id );
         }
+        return machines;
     }
-
-    const network::ConversationID& get( mega::MPO mpo ) const
+    std::vector< MP > getMachineProcesses( MachineID machineID ) const
     {
-        auto iFind = m_simulations.find( mpo );
-        VERIFY_RTE_MSG( iFind != m_simulations.end(), "MPOMgr: Could not find mpo" );
-        return iFind->second;
+        std::vector< MP > processes;
+        for ( auto id :
+              inverseOfFree< ProcessID, mega::MAX_PROCESS_PER_MACHINE >( m_processes[ machineID ].getFree() ) )
+        {
+            processes.push_back( MP( machineID, id, false ) );
+        }
+        return processes;
     }
-
-    mega::MPO get( const network::ConversationID& simID ) const
+    std::vector< MPO > getMPO( MP machineProcess ) const
     {
-        auto iFind = m_conversations.find( simID );
-        VERIFY_RTE_MSG( iFind != m_conversations.end(), "MPOMgr: Could not find simID: " << simID );
-        return iFind->second;
+        std::vector< MPO > mpos;
+        for ( auto id : inverseOfFree< OwnerID, mega::MAX_PROCESS_PER_MACHINE >(
+                  m_owners[ machineProcess.getMachineID() ][ machineProcess.getProcessID() ].getFree() ) )
+        {
+            mpos.push_back( MPO( machineProcess.getMachineID(), machineProcess.getProcessID(), id ) );
+        }
+        return mpos;
     }
 
 private:
     MachineAllocator m_machines;
     ProcessAllocator m_processes[ mega::MAX_MACHINES ];
     OwnerAllocator   m_owners[ mega::MAX_MACHINES ][ mega::MAX_PROCESS_PER_MACHINE ];
-
-    std::unordered_map< mega::MPO, network::ConversationID, mega::MPO::Hash >               m_simulations;
-    std::unordered_map< network::ConversationID, mega::MPO, network::ConversationID::Hash > m_conversations;
 };
 } // namespace service
 } // namespace mega

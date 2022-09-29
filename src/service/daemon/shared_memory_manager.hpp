@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef SHARED_MEMORY_MANAGER_3_SEPT_2022
 #define SHARED_MEMORY_MANAGER_3_SEPT_2022
 
@@ -97,6 +96,7 @@ public:
         }
         else
         {
+            SPDLOG_TRACE( "SharedMemoryManager allocated: {}", mpo );
             SharedMemory::Ptr  pNewMemory = std::make_unique< SharedMemory >( mpo, memoryName( mpo ) );
             const std::string& strName    = pNewMemory->getName();
             m_memory.insert( { mpo, std::move( pNewMemory ) } );

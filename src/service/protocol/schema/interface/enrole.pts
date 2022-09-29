@@ -44,3 +44,19 @@ msg EnroleLeafDisconnect
     request(MP leafMP);
     response();
 }
+
+msg EnroleGetDaemons
+{
+    request();
+    response(std::vector< mega::MachineID > daemons);
+}
+msg EnroleGetProcesses
+{
+    request( mega::MachineID machineID );
+    response(std::vector< mega::MP > machineProcesses);
+}
+msg EnroleGetMPO
+{
+    request( mega::MP machineProcess );
+    response( std::vector< mega::MPO > mpos );
+}

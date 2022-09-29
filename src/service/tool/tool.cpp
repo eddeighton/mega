@@ -42,6 +42,7 @@
 #include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/address.hxx"
 #include "service/protocol/model/stash.hxx"
+#include "service/protocol/model/enrole.hxx"
 
 #include "common/requireSemicolon.hpp"
 
@@ -126,43 +127,31 @@ public:
 
     //////////////////////////
     // mega::MPOContext
-    virtual SimIDVector getSimulationIDs() override
+    virtual MPOContext::MachineIDVector getMachines() override
     {
         VERIFY_RTE( m_pYieldContext );
-        // return getToolRequest( *m_pYieldContext ).ToolSimList();
-        THROW_RTE( "TODO" );
+        return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetDaemons();
     }
-
-    virtual SimID createSimulation() override
+    virtual MPOContext::MachineProcessIDVector getProcesses( MachineID machineID ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        SimID result;
-        return result;
+        return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetProcesses( machineID );
     }
-    virtual mega::reference getRoot( const SimID& simID ) override
+    virtual MPOContext::MPOVector getMPO( MP machineProcess ) override
     {
         VERIFY_RTE( m_pYieldContext );
-        THROW_RTE( "TODO" );
-        mega::reference result;
-
-        // auto toolRequest = getToolRequest( *m_pYieldContext );
-        //  if( toolRequest.ToolSimReadLock( getID(), simID ) )
-        //{
-        //     const MPO mpo = toolRequest.ToolGetMPO( simID );
-        //     return runtime::get_root( mpo );
-        // }
-        //  else
-        //{
-        //      THROW_RTE( "Failed to acquire read lock on simID: " << simID );
-        //  }
-        return result;
+        return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetMPO( machineProcess );
     }
-
-    mega::reference getRoot() override
+    virtual MPO createMPO( MP machineProcess ) override
     {
-        ASSERT( m_pExecutionRoot.get() );
-        return m_pExecutionRoot->root();
+        network::sim::Request_Encoder request(
+            [ mpoRequest = getMPRequest( *m_pYieldContext ), machineProcess ]( const network::Message& msg ) mutable
+            { return mpoRequest.MPRoot( msg, machineProcess ); },
+            getID() );
+        return request.SimCreate();
     }
+    virtual mega::reference getRoot( MPO mpo ) override { return mega::runtime::get_root( mpo ); }
+    virtual mega::reference getThisRoot() override { return m_pExecutionRoot->root(); }
 
     // mega::MPOContext
     virtual MPO getThisMPO() override { return m_tool.getMPO(); }

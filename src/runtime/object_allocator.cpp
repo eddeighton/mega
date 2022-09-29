@@ -125,7 +125,7 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
         }
         else
         {
-            //SPDLOG_TRACE( "ObjectTypeAllocator::getIndex created {} {}", m_objectTypeID, mpo );
+            SPDLOG_TRACE( "ObjectTypeAllocator::getIndex created {} {}", m_objectTypeID, mpo );
             pAllocator
                 = std::make_shared< IndexedBufferAllocator >( m_objectTypeID, m_runtime.getSharedMemoryManager( mpo ) );
             m_indexTable.insert( { mpo, pAllocator } );

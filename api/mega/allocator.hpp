@@ -144,9 +144,8 @@ class RingAllocator
 {
     friend struct mega::DimensionTraits< mega::RingAllocator< TInstanceType, _Size > >;
 
-    using FreeList = boost::circular_buffer< TInstanceType >;
-
 public:
+    using FreeList = boost::circular_buffer< TInstanceType >;
     using InstanceType              = TInstanceType;
     static const TInstanceType Size = _Size;
 
@@ -179,6 +178,8 @@ public:
     { 
         m_free.push_front( instance ); 
     }
+
+    const FreeList& getFree() const { return m_free; }
 
 private:
     FreeList m_free;

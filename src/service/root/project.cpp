@@ -36,9 +36,17 @@ network::Project RootRequestConversation::GetProject( boost::asio::yield_context
 void RootRequestConversation::SetProject( const network::Project& project, boost::asio::yield_context& yield_ctx )
 {
     m_root.setProject( project );
+    m_root.saveConfig();
+
+    /*for ( auto& [ id, pConnection ] : m_root.m_server.getConnections() )
+    {
+        network::root_daemon::Request_Encode rq( *this, *pConnection, yield_ctx );
+        rq.RootProjectUpdated( project );
+    }*/
 }
 
-mega::network::MegastructureInstallation RootRequestConversation::GetMegastructureInstallation( boost::asio::yield_context& yield_ctx )
+mega::network::MegastructureInstallation
+RootRequestConversation::GetMegastructureInstallation( boost::asio::yield_context& yield_ctx )
 {
     return m_root.getMegastructureInstallation();
 }

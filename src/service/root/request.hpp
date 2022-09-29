@@ -71,9 +71,8 @@ public:
     template < typename RequestEncoderType >
     RequestEncoderType getExeRequest( boost::asio::yield_context& yield_ctx )
     {
-        RootRequestConversation* pThis = this;
-        return RequestEncoderType( [ pThis, &yield_ctx ]( const network::Message& msg ) mutable
-                                   { return pThis->getDaemonSender( yield_ctx ).RootExe( msg ); },
+        return RequestEncoderType( [ sender = getDaemonSender( yield_ctx ) ]( const network::Message& msg ) mutable
+                                   { return sender.RootExe( msg ); },
                                    getID() );
     }
     template < typename RequestEncoderType >
@@ -126,6 +125,11 @@ public:
     virtual MP   EnroleDaemon( boost::asio::yield_context& yield_ctx ) override;
     virtual MP   EnroleLeafWithRoot( const MP& daemonMP, boost::asio::yield_context& yield_ctx ) override;
     virtual void EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx ) override;
+    virtual std::vector< mega::MachineID > EnroleGetDaemons( boost::asio::yield_context& yield_ctx ) override;
+    virtual std::vector< mega::MP >        EnroleGetProcesses( const mega::MachineID&      machineID,
+                                                               boost::asio::yield_context& yield_ctx ) override;
+    virtual std::vector< mega::MPO >       EnroleGetMPO( const mega::MP&             machineProcess,
+                                                         boost::asio::yield_context& yield_ctx ) override;
 
     // network::status::Impl
     virtual mega::network::Status GetStatus( const std::vector< mega::network::Status >& status,

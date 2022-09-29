@@ -46,7 +46,7 @@ ManagedSharedMemory& Runtime::getSharedMemoryManager( mega::MPO mpo )
     auto iFind = m_executionContextMemory.find( mpo );
     if ( iFind != m_executionContextMemory.end() )
     {
-        return *iFind->second;
+        return *iFind->second.get();
     }
     else
     {
@@ -56,7 +56,7 @@ ManagedSharedMemory& Runtime::getSharedMemoryManager( mega::MPO mpo )
         MPOSharedMemoryPtr pMemoryPtr
             = std::make_unique< MPOSharedMemory >( boost::interprocess::open_only, strMemoryName.c_str() );
         MPOSharedMemory* pMemory = pMemoryPtr.get();
-        m_executionContextMemory.insert( { mpo, std::move( pMemoryPtr ) } );
+        VERIFY_RTE( m_executionContextMemory.insert( { mpo, std::move( pMemoryPtr ) } ).second );
         return *pMemory;
     }
 }

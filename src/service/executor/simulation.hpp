@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef SIMULATION_22_JUNE_2022
 #define SIMULATION_22_JUNE_2022
 
@@ -68,13 +65,15 @@ public:
     // network::status::Impl
     virtual network::Status GetStatus( const std::vector< network::Status >& status,
                                        boost::asio::yield_context&           yield_ctx ) override;
-    virtual std::string Ping( boost::asio::yield_context& yield_ctx ) override;
+    virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 
     // mega::MPOContext - native code interface
-    virtual SimIDVector     getSimulationIDs() override;
-    virtual SimID           createSimulation() override;
-    virtual mega::reference getRoot( const SimID& simID ) override;
-    virtual mega::reference getRoot() override;
+    virtual MPOContext::MachineIDVector        getMachines() override;
+    virtual MPOContext::MachineProcessIDVector getProcesses( MachineID machineID ) override;
+    virtual MPOContext::MPOVector              getMPO( MP machineProcess ) override;
+    virtual MPO                                createMPO( MP machineProcess ) override;
+    virtual mega::reference                    getRoot( MPO mpo ) override;
+    virtual mega::reference                    getThisRoot() override;
 
     // mega::MPOContext - runtime internal interface
     virtual MPO            getThisMPO() override;

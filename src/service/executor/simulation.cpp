@@ -34,6 +34,7 @@
 #include "service/protocol/model/address.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/messages.hxx"
+#include "service/protocol/model/enrole.hxx"
 
 namespace mega
 {
@@ -55,10 +56,31 @@ network::Message Simulation::dispatchRequest( const network::Message& msg, boost
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
-Simulation::SimIDVector Simulation::getSimulationIDs() { THROW_RTE( "Unsupported getSimulationIDs from simulation" ); }
-Simulation::SimID       Simulation::createSimulation() { THROW_RTE( "Unsupported createSimulation from simulation" ); }
-mega::reference Simulation::getRoot( const SimID& simID ) { THROW_RTE( "Unsupported getRoot from simulation" ); }
-mega::reference Simulation::getRoot() { return m_pExecutionRoot->root(); }
+MPOContext::MachineIDVector Simulation::getMachines()
+{
+    VERIFY_RTE( m_pYieldContext );
+    return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetDaemons();
+}
+MPOContext::MachineProcessIDVector Simulation::getProcesses( MachineID machineID )
+{
+    VERIFY_RTE( m_pYieldContext );
+    return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetProcesses( machineID );
+}
+MPOContext::MPOVector Simulation::getMPO( MP machineProcess )
+{
+    VERIFY_RTE( m_pYieldContext );
+    return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetMPO( machineProcess );
+}
+MPO Simulation::createMPO( MP machineProcess )
+{
+    network::sim::Request_Encoder request(
+        [ mpoRequest = getMPRequest( *m_pYieldContext ), machineProcess ]( const network::Message& msg ) mutable
+        { return mpoRequest.MPRoot( msg, machineProcess ); },
+        getID() );
+    return request.SimCreate();
+}
+mega::reference Simulation::getRoot( MPO mpo ) { return mega::runtime::get_root( mpo ); }
+mega::reference Simulation::getThisRoot() { return m_pExecutionRoot->root(); }
 
 // mega::MPOContext
 MPO Simulation::getThisMPO()

@@ -21,6 +21,8 @@
 
 #include "root.hpp"
 
+#include "service/protocol/model/memory.hxx"
+
 namespace mega
 {
 namespace service
@@ -49,7 +51,35 @@ MP RootRequestConversation::EnroleLeafWithRoot( const MP& daemonMP, boost::asio:
 void RootRequestConversation::EnroleLeafDisconnect( const MP& mp, boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE( "RootRequestConversation::EnroleLeafDisconnect {}", mp );
-    m_root.m_mpoManager.leafDisconnected( mp );
+    const auto terminatedMPOS = m_root.m_mpoManager.leafDisconnected( mp );
+
+    auto stackCon = getOriginatingEndPointID();
+    VERIFY_RTE( stackCon.has_value() );
+    auto pConnection = m_root.m_server.getConnection( stackCon.value() );
+    VERIFY_RTE( pConnection );
+    network::memory::Request_Sender sender( *this, *pConnection, yield_ctx );
+    VERIFY_RTE( pConnection->getMPOpt()->getMachineID() == mp.getMachineID() );
+
+    for ( MPO mpo : terminatedMPOS )
+    {
+        sender.ReleaseSharedMemory( mpo );
+    }
 }
+
+std::vector< mega::MachineID > RootRequestConversation::EnroleGetDaemons( boost::asio::yield_context& yield_ctx )
+{
+    return m_root.m_mpoManager.getMachines();
+}
+std::vector< mega::MP > RootRequestConversation::EnroleGetProcesses( const mega::MachineID&      machineID,
+                                                                     boost::asio::yield_context& yield_ctx )
+{
+    return m_root.m_mpoManager.getMachineProcesses( machineID );
+}
+std::vector< mega::MPO > RootRequestConversation::EnroleGetMPO( const mega::MP&             machineProcess,
+                                                                boost::asio::yield_context& yield_ctx )
+{
+    return m_root.m_mpoManager.getMPO( machineProcess );
+}
+
 } // namespace service
 } // namespace mega

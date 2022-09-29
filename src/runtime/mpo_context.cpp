@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "runtime/mpo_context.hpp"
 
 #include "common/assert_verify.hpp"
@@ -38,6 +37,7 @@ void MPOContext::resume( MPOContext* pMPOContext )
 
 void MPOContext::suspend() { g_pMPOContext = nullptr; }
 
+Context*    Context::get() { return g_pMPOContext; }
 MPOContext* MPOContext::get() { return g_pMPOContext; }
 
 } // namespace mega
