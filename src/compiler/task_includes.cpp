@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/ParserStage.hxx"
@@ -168,15 +166,16 @@ public:
         const mega::io::PrecompiledHeaderFile      pchPath         = m_environment.IncludePCH( m_sourceFilePath );
         start( taskProgress, "Task_IncludePCH", m_sourceFilePath.path(), pchPath.path() );
 
-        const task::DeterminantHash determinant(
-            { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( includeFilePath ) } );
-
         using namespace ParserStage;
         Database               database( m_environment, m_sourceFilePath );
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
         const mega::Compilation compilationCMD = mega::Compilation::make_includePCH_compilation(
             m_environment, m_toolChain, pComponent, m_sourceFilePath );
+
+        const task::DeterminantHash determinant( { m_toolChain.clangCompilerHash,
+                                                   m_environment.getBuildHashCode( includeFilePath ),
+                                                   compilationCMD.generateCompilationCMD() } );
 
         if ( m_environment.restore( pchPath, determinant ) )
         {
@@ -366,11 +365,12 @@ public:
             = m_environment.IncludePCH( pComponent->get_build_dir(), pComponent->get_name() );
         start( taskProgress, "Task_CPPIncludePCH", m_strComponentName, pchPath.path() );
 
-        const task::DeterminantHash determinant(
-            { m_toolChain.clangCompilerHash, m_environment.getBuildHashCode( includeFilePath ) } );
-
         const mega::Compilation compilationCMD
             = mega::Compilation::make_cpp_includePCH_compilation( m_environment, m_toolChain, pComponent );
+
+        const task::DeterminantHash determinant( { m_toolChain.clangCompilerHash,
+                                                   m_environment.getBuildHashCode( includeFilePath ),
+                                                   compilationCMD.generateCompilationCMD() } );
 
         if ( m_environment.restore( pchPath, determinant ) )
         {
