@@ -33,6 +33,13 @@ static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter }} = nullptr;
 static mega::runtime::TypeErasedFunction _fptr_call_{{ call }} = nullptr;
 {% endfor %}
 
+namespace mega
+{
+{% for copy in copiers %}
+    void copy_{{copy}}(const void*,void*);
+{% endfor %}
+}
+
 mega::runtime::CallResult {{ name }}( mega::reference context )
 {
 {% for variable in variables %}

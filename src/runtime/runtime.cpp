@@ -368,9 +368,10 @@ void Runtime::get_write( const char* pszUnitName, const mega::InvocationID& invo
             m_invocations.insert( std::make_pair( invocationID, pModule ) );
         }
     }
+
     std::ostringstream os;
     symbolPrefix( invocationID, os );
-    os << "N4mega9referenceE";
+    os << "N4mega9referenceEPKv";
     *ppFunction = pModule->getWrite( os.str() );
 }
 

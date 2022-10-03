@@ -28,6 +28,13 @@ static const char* g_pszModuleName = "{{module_name}}";
 static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter }} = nullptr;
 {% endfor %}
 
+namespace mega
+{
+{% for copy in copiers %}
+    void copy_{{copy}}(const void*,void*);
+{% endfor %}
+}
+
 mega::reference {{ name }}( mega::reference context )
 {
 {% for variable in variables %}

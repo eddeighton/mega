@@ -67,9 +67,8 @@ struct __invoke_impl
         {
             mega::runtime::get_write( g_unit_name, id, &g_pRuntimeFunc );
         }
-        mega::runtime::WriteResult result = g_pRuntimeFunc( context.data );
-        *reinterpret_cast< {{ invocation.runtime_return_type }}* >( result.pData ) = {{ invocation.runtime_return_type }}{ args... };
-        return result.context;
+        const {{ invocation.runtime_return_type }} temp{ args... };
+        return g_pRuntimeFunc( context.data, (const void*)&temp );
 {% else if invocation.explicit_operation == "Allocate" %}
         // Allocate
         static mega::runtime::AllocateFunction g_pRuntimeFunc = nullptr;
@@ -117,6 +116,23 @@ struct __invoke_impl
         // Raw
 {% endif %}
     }
+
+{% if invocation.explicit_operation == "Write" %}
+    template<>
+    inline {{ invocation.return_type }} operator()( {{ invocation.context }} context, const {{ invocation.runtime_return_type }}& arg ) const
+    {
+        static constexpr std::array< mega::TypeID, {{ invocation.type_path_size }} > g_type_path_types = { {{ invocation.type_path_type_id_list }} };
+        static const mega::InvocationID id{ {{ invocation.context }}::ID, g_type_path_types, {{ invocation.operation }}::ID };
+        // Write
+        static mega::runtime::WriteFunction g_pRuntimeFunc = nullptr;
+        if( nullptr == g_pRuntimeFunc )
+        {
+            mega::runtime::get_write( g_unit_name, id, &g_pRuntimeFunc );
+        }
+        return g_pRuntimeFunc( context.data, (const void*)&arg );
+    }
+{% endif %}
+
 };
 {% endfor %}
 

@@ -37,13 +37,7 @@ using AllocationFunction   = MachineAddress ( * )( OwnerID mpo );
 using DeAllocationFunction = void ( * )( MachineAddress address );
 using AllocateFunction     = reference ( * )( reference );
 using ReadFunction         = void* ( * )( reference );
-
-struct WriteResult
-{
-    void*     pData;
-    reference context;
-};
-using WriteFunction = WriteResult ( * )( reference );
+using WriteFunction        = reference ( * )( reference, const void* );
 
 struct CallResult
 {

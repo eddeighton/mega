@@ -434,6 +434,7 @@ static const std::string indent( "    " );
 
 using PartSet = std::set< const FinalStage::MemoryLayout::Part* >;
 using CallSet = std::set< const FinalStage::Concrete::Context* >;
+using CopySet = std::set< const FinalStage::Interface::DimensionTrait* >;
 
 void generateBufferFPtrCheck( bool bShared, mega::TypeID id, std::ostream& os )
 {
@@ -462,17 +463,23 @@ void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayou
                           const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
                           std::ostream& os )
 {
+    const std::string strMegaMangledTypeName
+        = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
+    std::ostringstream osCopy;
+    osCopy << "::mega::copy_" << strMegaMangledTypeName;
+
     const std::string strType = bShared ? "shared" : "heap";
-    // os << indent << "mega::runtime::onWrite( " << strInstanceVar << " )\n";
-    os << indent << "return mega::runtime::WriteResult{ reinterpret_cast< char* >( _fptr_get_" << strType << "_" << id
-       << "( " << strInstanceVar << " ) )"
+    os << indent << osCopy.str() << "( pData, reinterpret_cast< char* >( _fptr_get_" << strType << "_" << id << "( "
+       << strInstanceVar << " ) ) "
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
-       << pDimension->get_offset() << ", " << strInstanceVar << "};";
+       << pDimension->get_offset() << " );\n";
+    os << indent << "return " << strInstanceVar << ";\n";
 }
 
 void generateInstructions( const DatabaseInstance&                             database,
                            FinalStage::Invocations::Instructions::Instruction* pInstruction,
-                           const VariableMap& variables, PartSet& parts, CallSet& calls, nlohmann::json& data )
+                           const VariableMap& variables, PartSet& parts, CallSet& calls, CopySet& copiers,
+                           nlohmann::json& data )
 {
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
@@ -570,7 +577,7 @@ void generateInstructions( const DatabaseInstance&                             d
 
         for ( auto pChildInstruction : pInstructionGroup->get_children() )
         {
-            generateInstructions( database, pChildInstruction, variables, parts, calls, data );
+            generateInstructions( database, pChildInstruction, variables, parts, calls, copiers, data );
         }
     }
     else if ( auto pOperation
@@ -708,6 +715,8 @@ void generateInstructions( const DatabaseInstance&                             d
             const mega::TypeID          id         = pPart->get_context()->get_concrete_id();
             const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
 
+            copiers.insert( pDimension->get_interface_dimension() );
+
             {
                 std::ostringstream os;
                 os << indent << "// Write Operation\n";
@@ -832,11 +841,13 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
 
     PartSet parts;
     CallSet calls;
+    CopySet copiers;
 
     nlohmann::json data( { { "name", strName },
                            { "module_name", strName },
                            { "getters", nlohmann::json::array() },
                            { "calls", nlohmann::json::array() },
+                           { "copiers", nlohmann::json::array() },
                            { "variables", nlohmann::json::array() },
                            { "assignments", nlohmann::json::array() } } );
 
@@ -851,7 +862,7 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
 
         for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            generateInstructions( database, pInstruction, variables, parts, calls, data );
+            generateInstructions( database, pInstruction, variables, parts, calls, copiers, data );
         }
     }
 
@@ -862,6 +873,10 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
     for ( auto pCall : calls )
     {
         data[ "calls" ].push_back( pCall->get_concrete_id() );
+    }
+    for ( auto pCopy : copiers )
+    {
+        data[ "copiers" ].push_back( megaMangle( pCopy->get_canonical_type() ) );
     }
     return data;
 }
