@@ -24,9 +24,7 @@
 
 #include <variant>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 {%for message in messages%}
@@ -184,5 +182,4 @@ void aggregate( Message& request, const std::vector< Message >& responses )
     }
 }
 
-}
 }

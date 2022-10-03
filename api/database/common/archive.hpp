@@ -17,43 +17,37 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef ARCHIVE_21_APRIL_2022
 #define ARCHIVE_21_APRIL_2022
 
 #include "database/types/sources.hpp"
 #include "database/model/manifest.hxx"
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 #include <memory>
 
-namespace mega
+namespace mega::io
 {
-    namespace io
-    {
 
-        class ReadArchive
-        {
-        public:
-            ReadArchive( const boost::filesystem::path& filePath );
+class ReadArchive
+{
+public:
+    ReadArchive( const boost::filesystem::path& filePath );
 
-            std::unique_ptr< std::istream > read( const SourceFilePath& filePath ) const;
-            std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const;
+    std::unique_ptr< std::istream > read( const SourceFilePath& filePath ) const;
+    std::unique_ptr< std::istream > read( const BuildFilePath& filePath ) const;
 
-            void verify();
+    void verify();
 
-            static void compile_archive( const boost::filesystem::path& filePath, const Manifest& manifest,
-                                         const boost::filesystem::path& srcDir, const boost::filesystem::path& buildDir );
+    static void compile_archive( const boost::filesystem::path& filePath, const Manifest& manifest,
+                                 const boost::filesystem::path& srcDir, const boost::filesystem::path& buildDir );
 
-        private:
-            struct Pimpl;
-            std::shared_ptr< Pimpl > m_pImpl;
-        };
+private:
+    struct Pimpl;
+    std::shared_ptr< Pimpl > m_pImpl;
+};
 
-    } // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // ARCHIVE_21_APRIL_2022

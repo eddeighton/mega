@@ -17,23 +17,20 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/network/client.hpp"
 #include "service/network/network.hpp"
 #include "service/network/log.hpp"
 #include "service/network/end_point.hpp"
 
-#include "boost/bind/bind.hpp"
-#include "boost/asio/connect.hpp"
+#include <boost/bind/bind.hpp>
+#include <boost/asio/connect.hpp>
 #include "service/network/sender.hpp"
 
 #include <exception>
 #include <future>
 #include <iostream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 Client::Client( boost::asio::io_context& ioContext, ConversationManager& conversationManager,
@@ -72,5 +69,4 @@ void Client::disconnected() { SPDLOG_TRACE( "Client disconnected from: {}", m_co
 
 Client::~Client() {}
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

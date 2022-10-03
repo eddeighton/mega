@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef ADDRESS_SPACE_4_SEPT_2022
 #define ADDRESS_SPACE_4_SEPT_2022
 
@@ -25,17 +24,15 @@
 #include "mega/default_traits.hpp"
 
 #include <boost/interprocess/interprocess_fwd.hpp>
-#include "boost/interprocess/managed_shared_memory.hpp"
-#include "boost/interprocess/sync/scoped_lock.hpp"
-#include "boost/interprocess/sync/named_mutex.hpp"
+#include <boost/interprocess/managed_shared_memory.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/interprocess/sync/named_mutex.hpp>
 #include <boost/interprocess/containers/map.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 
 #include <optional>
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 
 class AddressSpace
@@ -95,7 +92,7 @@ private:
     boost::interprocess::named_mutex m_addressSpaceMutex;
     AddressMapping&                  m_addressMapping;
 };
-} // namespace runtime
-} // namespace mega
+
+} // namespace mega::runtime
 
 #endif // ADDRESS_SPACE_4_SEPT_2022

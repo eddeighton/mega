@@ -21,9 +21,7 @@
 
 #include "service/network/log.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 ToolRequestConversation::ToolRequestConversation( Tool& tool, const network::ConversationID& conversationID,
@@ -106,5 +104,4 @@ network::Message ToolRequestConversation::MPODown( const network::Message& reque
     return dispatchRequest( request, yield_ctx );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

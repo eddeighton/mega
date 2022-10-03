@@ -22,9 +22,7 @@
 
 #include "service/executor.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 ExecutorRequestConversation::ExecutorRequestConversation( Executor&                      executor,
@@ -160,5 +158,4 @@ network::Message ExecutorRequestConversation::MPDown( const network::Message& re
     return dispatchRequest( request, yield_ctx );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

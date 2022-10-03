@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/DerivationAnalysis.hxx"
@@ -31,9 +29,7 @@
 #include "database/common/exception.hpp"
 #include "database/types/cardinality.hpp"
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_HyperGraph : public BaseTask
@@ -456,5 +452,4 @@ BaseTask::Ptr create_Task_HyperGraphRollout( const TaskArguments&          taskA
     return std::make_unique< Task_HyperGraphRollout >( taskArguments, megaSourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

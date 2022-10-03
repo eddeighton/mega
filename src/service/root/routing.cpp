@@ -23,9 +23,7 @@
 
 #include "root.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 RootRequestConversation::RootRequestConversation( Root&                          root,
@@ -100,7 +98,7 @@ network::root_daemon::Request_Sender RootRequestConversation::getDaemonSender( b
 }
 
 network::Message RootRequestConversation::broadcastAll( const network::Message&     msg,
-                                                         boost::asio::yield_context& yield_ctx )
+                                                        boost::asio::yield_context& yield_ctx )
 {
     // dispatch to children
     std::vector< network::Message > responses;
@@ -224,5 +222,4 @@ network::Message RootRequestConversation::MPOUp( const network::Message&     req
     return MPODown( request, mpo, yield_ctx );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

@@ -17,16 +17,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "job.hpp"
 
 #include "service/executor.hpp"
 
 #include "service/protocol/model/stash.hxx"
 
-namespace mega
-{
-namespace service
+#include "service/network/log.hpp"
+
+namespace mega::service
 {
 
 std::vector< network::ConversationID >
@@ -144,5 +143,4 @@ void JobConversation::run( boost::asio::yield_context& yield_ctx )
     getRootRequest< network::job::Request_Encoder >( yield_ctx ).JobReadyForWork( m_rootConversationID );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

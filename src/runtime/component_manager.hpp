@@ -17,28 +17,25 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef COMPONENT_MANAGER_20_JUNE_2022
 #define COMPONENT_MANAGER_20_JUNE_2022
 
 #include "database.hpp"
 
-#include "runtime/runtime_functions.hpp"
+#include "runtime/functions.hpp"
 
 #include "service/protocol/common/project.hpp"
 
-#include "boost/filesystem/path.hpp"
-#include "boost/dll/import.hpp"
-#include "boost/dll/alias.hpp"
-#include "boost/dll/library_info.hpp"
+#include <boost/filesystem/path.hpp>
+#include <boost/dll/import.hpp>
+#include <boost/dll/alias.hpp>
+#include <boost/dll/library_info.hpp>
 
 #include <map>
 #include <memory>
 #include <unordered_map>
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 
 class ComponentManager
@@ -82,7 +79,6 @@ private:
     FunctionPtrMap                m_functions;
 };
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // COMPONENT_MANAGER_20_JUNE_2022

@@ -17,10 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef PIPELINE_27_MAY_2022
 #define PIPELINE_27_MAY_2022
 
@@ -32,8 +28,8 @@
 
 #include "version/version.hpp"
 
-#include "boost/config.hpp"
-#include "boost/shared_ptr.hpp"
+#include <boost/config.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include <optional>
 #include <string>
@@ -44,9 +40,7 @@
 
 struct EG_PARSER_INTERFACE;
 
-namespace mega
-{
-namespace pipeline
+namespace mega::pipeline
 {
 
 class Dependencies
@@ -81,7 +75,7 @@ private:
 
 class BOOST_SYMBOL_VISIBLE Progress
 {
-    Progress( const Progress& ) = delete;
+    Progress( const Progress& )            = delete;
     Progress& operator=( const Progress& ) = delete;
 
 protected:
@@ -107,7 +101,7 @@ public:
 class BOOST_SYMBOL_VISIBLE Pipeline
 {
     friend class Registry;
-    Pipeline( const Pipeline& ) = delete;
+    Pipeline( const Pipeline& )            = delete;
     Pipeline& operator=( const Pipeline& ) = delete;
 
 protected:
@@ -116,6 +110,7 @@ protected:
     virtual void initialise( const mega::utilities::ToolChain& toolChain, const Configuration& configuration,
                              std::ostream& osLog )
         = 0;
+
 public:
     using Ptr = boost::shared_ptr< Pipeline >;
 
@@ -133,7 +128,6 @@ public:
     static Pipeline::Ptr getPipeline( const mega::utilities::ToolChain& toolChain, const Configuration& configuration,
                                       std::ostream& osLog );
 };
-} // namespace pipeline
-} // namespace mega
+} // namespace mega::pipeline
 
 #endif // PIPELINE_27_MAY_2022

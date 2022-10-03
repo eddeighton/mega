@@ -20,8 +20,8 @@
 #ifndef RUNTIME_18_JUNE_2022
 #define RUNTIME_18_JUNE_2022
 
-#include "runtime/runtime_functions.hpp"
-#include "runtime/mpo_context.hpp"
+#include "runtime/functions.hpp"
+#include "runtime/context.hpp"
 
 #include "mega/common.hpp"
 #include "mega/root.hpp"
@@ -31,9 +31,7 @@
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/project.hpp"
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 void initialiseRuntime( const mega::network::MegastructureInstallation& megastructureInstallation,
                         const mega::network::Project&                   project,
@@ -60,7 +58,6 @@ void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, 
 void get_write( const char* pszUnitName, const mega::InvocationID& invocationID, WriteFunction* ppFunction );
 void get_call( const char* pszUnitName, const mega::InvocationID& invocationID, CallFunction* ppFunction );
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // RUNTIME_18_JUNE_2022

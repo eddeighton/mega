@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "compiler/configuration.hpp"
 
 #include "base_task.hpp"
@@ -39,19 +37,18 @@
 #include <common/string.hpp>
 #include "common/assert_verify.hpp"
 
-#include "boost/config.hpp"
-#include "boost/archive/binary_iarchive.hpp"
-#include "boost/archive/binary_oarchive.hpp"
+#include <boost/config.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 
 #include <sstream>
 #include <thread>
 #include <chrono>
 #include <variant>
 
-namespace mega
+namespace mega::compiler
 {
-namespace compiler
-{
+
 namespace
 {
 
@@ -173,7 +170,7 @@ Task decode( const pipeline::TaskDescriptor& taskDescriptor )
 
 class CompilerPipeline : public pipeline::Pipeline
 {
-    std::optional< compiler::Configuration > m_configuration;
+    std::optional< compiler::Configuration >    m_configuration;
     std::optional< mega::utilities::ToolChain > m_toolChain;
 
 public:
@@ -181,13 +178,13 @@ public:
 
     // pipeline::Pipeline
     virtual pipeline::Schedule getSchedule( pipeline::Progress& progress, pipeline::Stash& stash ) override;
-    virtual void execute( const pipeline::TaskDescriptor& pipelineTask,
-                          pipeline::Progress& progress, pipeline::Stash& stash,
-                          pipeline::DependencyProvider& dependencies ) override;
+    virtual void               execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,
+                                        pipeline::Stash& stash, pipeline::DependencyProvider& dependencies ) override;
 
-    virtual void initialise( const mega::utilities::ToolChain& toolChain, const pipeline::Configuration& pipelineConfig, std::ostream& osLog ) override
+    virtual void initialise( const mega::utilities::ToolChain& toolChain, const pipeline::Configuration& pipelineConfig,
+                             std::ostream& osLog ) override
     {
-        m_toolChain = toolChain;
+        m_toolChain     = toolChain;
         m_configuration = fromPipelineConfiguration( pipelineConfig );
 
         // check the version is latest
@@ -417,7 +414,7 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
 {
     VERIFY_RTE( m_toolChain.has_value() );
     VERIFY_RTE( m_configuration.has_value() );
-    
+
     Configuration& config = m_configuration.value();
 
     const Task task = decode( pipelineTask );
@@ -466,5 +463,4 @@ void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pi
 extern "C" BOOST_SYMBOL_EXPORT CompilerPipeline mega_pipeline;
 CompilerPipeline                                mega_pipeline;
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

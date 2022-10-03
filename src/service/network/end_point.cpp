@@ -17,14 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/network/end_point.hpp"
 
 #include <sstream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 ConnectionID makeConnectionID( boost::asio::ip::tcp::socket& socket )
@@ -34,5 +31,4 @@ ConnectionID makeConnectionID( boost::asio::ip::tcp::socket& socket )
     return os.str();
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

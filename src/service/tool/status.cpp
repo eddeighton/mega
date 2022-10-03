@@ -21,11 +21,8 @@
 
 #include "service/network/log.hpp"
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
-
 // network::project::Impl
 network::Status ToolRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                     boost::asio::yield_context&           yield_ctx )
@@ -50,5 +47,4 @@ std::string ToolRequestConversation::Ping( boost::asio::yield_context& yield_ctx
     return os.str();
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

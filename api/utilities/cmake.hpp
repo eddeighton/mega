@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef DRIVER_COMMAND_UTILS_29_MAR_2022
 #define DRIVER_COMMAND_UTILS_29_MAR_2022
 
@@ -35,10 +32,9 @@
 #include <string>
 #include <vector>
 
-namespace mega
+namespace mega::utilities
 {
-namespace utilities
-{
+
 inline std::vector< std::string > parseCMakeStringList( const std::string& strPathList, const char* pszDelimiters )
 {
     return common::simpleTokenise( strPathList, pszDelimiters );
@@ -90,6 +86,5 @@ inline std::vector< boost::filesystem::path > pathListToFolders( const std::vect
     return result;
 }
 
-} // namespace utilities
-} // namespace mega
+} // namespace mega::utilities
 #endif // DRIVER_COMMAND_UTILS_29_MAR_2022

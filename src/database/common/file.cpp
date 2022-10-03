@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/file.hpp"
 #include "database/common/loader.hpp"
 #include "database/common/object_info.hpp"
@@ -27,9 +25,7 @@
 #include "database/model/manifest.hxx"
 #include <common/hash.hpp>
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 
 void File::preload( Loader& loader )
@@ -150,5 +146,4 @@ void File::to_json( const Manifest& manifest, nlohmann::json& data ) const
     data[ "files" ].push_back( file );
 }
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io

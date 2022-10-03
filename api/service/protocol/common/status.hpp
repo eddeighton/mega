@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef STATUS_23_SEPT_2022
 #define STATUS_23_SEPT_2022
 
@@ -30,9 +27,7 @@
 #include <ostream>
 #include <optional>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class Status
@@ -80,7 +75,6 @@ private:
 
 std::ostream& operator<<( std::ostream& os, const Status& conversationID );
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // STATUS_23_SEPT_2022

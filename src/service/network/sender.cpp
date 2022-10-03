@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/network/sender.hpp"
 
 #include "service/network/end_point.hpp"
@@ -33,16 +32,14 @@
 #include <boost/asio/experimental/channel_error.hpp>
 #include <boost/asio/write.hpp>
 
-#include "boost/interprocess/interprocess_fwd.hpp"
-#include "boost/interprocess/streams/vectorstream.hpp"
+#include <boost/interprocess/interprocess_fwd.hpp>
+#include <boost/interprocess/streams/vectorstream.hpp>
 
-#include "boost/archive/binary_oarchive.hpp"
+#include <boost/archive/binary_oarchive.hpp>
 #include <algorithm>
 #include <sstream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 Sender::~Sender() {}
@@ -234,5 +231,4 @@ Sender::Ptr make_channel_sender( Channel& channel, const ConnectionID& connectio
     return std::make_unique< ChannelSender >( channel, connectionID );
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

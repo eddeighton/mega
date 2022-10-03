@@ -33,7 +33,7 @@ struct TestMsg
 */
 TEST( Asio, EncodeDecode )
 {
-   // using namespace mega::network;
+   // using namespace mega::network
 
     // clang-format off
     /*TestMsg msg

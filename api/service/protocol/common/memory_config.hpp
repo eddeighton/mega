@@ -22,13 +22,10 @@
 
 #include "project.hpp"
 
-#include "boost/serialization/nvp.hpp"
+#include <boost/serialization/nvp.hpp>
 
-namespace mega
+namespace mega::network
 {
-namespace network
-{
-
 class MemoryConfig
 {
 public:
@@ -53,7 +50,6 @@ private:
     std::string m_addressSpaceMap;
 };
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // MEMORY_CONFIG_29_SEPT_2022

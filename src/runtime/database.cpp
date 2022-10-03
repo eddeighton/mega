@@ -17,15 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database.hpp"
 #include "database/model/FinalStage.hxx"
 
 #include "service/network/log.hpp"
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 
 DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDatabasePath )
@@ -198,5 +195,4 @@ mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
     }
 }
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime

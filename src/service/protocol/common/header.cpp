@@ -17,16 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/protocol/common/header.hpp"
 
 #include "common/assert_verify.hpp"
 
 #include <algorithm>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID )
@@ -47,7 +44,7 @@ std::istream& operator>>( std::istream& is, ConversationID& conversationID )
 
     ConversationID::ID id;
     {
-        std::string strInt( str.begin(), iter );
+        std::string        strInt( str.begin(), iter );
         std::istringstream isInt( strInt );
         isInt >> id;
     }
@@ -57,5 +54,4 @@ std::istream& operator>>( std::istream& is, ConversationID& conversationID )
     return is;
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

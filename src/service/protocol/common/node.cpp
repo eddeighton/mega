@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/protocol/common/node.hpp"
 
 #include "common/processID.hpp"
@@ -27,9 +26,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 namespace
 {
@@ -65,5 +62,4 @@ std::string makeProcessName( Node::Type type )
     return os.str();
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

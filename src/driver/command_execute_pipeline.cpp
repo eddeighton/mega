@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "service/terminal.hpp"
 
 #include "pipeline/configuration.hpp"
@@ -34,21 +32,19 @@
 #include "common/file.hpp"
 #include "common/stash.hpp"
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
-#include "boost/program_options.hpp"
-#include "boost/filesystem/path.hpp"
-#include "boost/filesystem/operations.hpp"
-#include "boost/program_options/value_semantic.hpp"
-#include "boost/dll.hpp"
-#include "boost/archive/xml_iarchive.hpp"
-#include "boost/archive/xml_oarchive.hpp"
+#include <boost/program_options.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/value_semantic.hpp>
+#include <boost/dll.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 #include <iostream>
 
-namespace driver
-{
-namespace execute_pipeline
+namespace driver::execute_pipeline
 {
 
 mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&       stashDir,
@@ -278,5 +274,4 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
     }
 }
-} // namespace execute_pipeline
-} // namespace driver
+} // namespace driver::execute_pipeline

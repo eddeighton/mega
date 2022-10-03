@@ -24,7 +24,7 @@
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>

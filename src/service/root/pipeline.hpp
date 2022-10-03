@@ -26,9 +26,7 @@
 
 #include "service/protocol/model/pipeline.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 class Root;
 
@@ -91,7 +89,6 @@ public:
     virtual mega::network::PipelineResult PipelineRun( const mega::pipeline::Configuration& configuration,
                                                        boost::asio::yield_context&          yield_ctx ) override;
 
-    
     mega::pipeline::TaskDescriptor getTask( boost::asio::yield_context& yield_ctx )
     {
         return m_taskReady.async_receive( yield_ctx );
@@ -102,10 +99,7 @@ public:
     {
         m_taskComplete.async_send( boost::system::error_code(), TaskCompletion{ getID(), task, bSuccess }, yield_ctx );
     }
-
 };
-
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // PIPELINE_22_SEPT_2022

@@ -25,9 +25,7 @@
 #include "service/protocol/model/leaf_term.hxx"
 #include "service/protocol/model/status.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 class TerminalRequestConversation : public network::InThreadConversation,
@@ -59,7 +57,6 @@ public:
     virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // TERMINAL_REQUEST_23_SEPT_2022

@@ -17,24 +17,18 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef PIPELINE_RESULT_2_JUNE_2022
 #define PIPELINE_RESULT_2_JUNE_2022
 
 #include "common/stash.hpp"
 
-#include "boost/serialization/nvp.hpp"
-#include "boost/serialization/split_member.hpp"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
 
 #include <string>
 #include <map>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class BuildHashCode
@@ -124,7 +118,6 @@ public:
     BuildHashCodeMap m_buildHashCodes;
 };
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // PIPELINE_RESULT_2_JUNE_2022

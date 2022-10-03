@@ -17,22 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef PROJECT_20_JUNE_2022
 #define PROJECT_20_JUNE_2022
 
 #include "utilities/serialization_helpers.hpp"
 
-#include "boost/filesystem/path.hpp"
-#include "boost/serialization/nvp.hpp"
+#include <boost/filesystem/path.hpp>
+#include <boost/serialization/nvp.hpp>
 
-namespace mega
+namespace mega::network
 {
-namespace network
-{
+
 class Project
 {
 public:
@@ -56,7 +51,7 @@ public:
 private:
     boost::filesystem::path m_projectInstallPath;
 };
-} // namespace network
-} // namespace mega
+
+} // namespace mega::network
 
 #endif // PROJECT_20_JUNE_2022

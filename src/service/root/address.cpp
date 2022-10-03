@@ -21,9 +21,7 @@
 
 #include "root.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::address::Impl
@@ -49,5 +47,4 @@ void RootRequestConversation::DeAllocateNetworkAddress( const MPO&              
 {
     return m_root.m_logicalAddressSpace.deAllocateNetworkAddress( mpo, networkAddress );
 }
-} // namespace service
 } // namespace mega

@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef CHANNEL_16_JUNE_2022
 #define CHANNEL_16_JUNE_2022
 
@@ -29,9 +26,7 @@
 
 #include <optional>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class ReceiverChannel
@@ -70,7 +65,6 @@ private:
     std::optional< ConnectionID > m_connectionIDOpt;
 };
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // CHANNEL_16_JUNE_2022

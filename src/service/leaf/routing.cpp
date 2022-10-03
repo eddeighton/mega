@@ -23,9 +23,7 @@
 
 #include "mega/reference_io.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 LeafRequestConversation::LeafRequestConversation( Leaf& leaf, const network::ConversationID& conversationID,
@@ -346,5 +344,4 @@ network::Message LeafRequestConversation::DaemonLeafBroadcast( const network::Me
     return dispatchRequest( request, yield_ctx );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

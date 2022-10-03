@@ -17,17 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/ParserStage.hxx"
 
 #include "parser/parser.hpp"
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_ParseAST : public BaseTask
@@ -49,10 +45,9 @@ public:
                                                      std::ostream&                             osError,
                                                      std::ostream&                             osWarn )
     {
-        
         ParserStage::Parser::ContextDef* pContextDef
             = m_parser->parseEGSourceFile( database, m_environment.FilePath( sourceFilePath ),
-                                                   pComponent->get_include_directories(), osError, osWarn );
+                                           pComponent->get_include_directories(), osError, osWarn );
         return pContextDef;
     }
 
@@ -181,5 +176,4 @@ BaseTask::Ptr create_Task_ParseAST( const TaskArguments& taskArguments, const me
     return std::make_unique< Task_ParseAST >( taskArguments, sourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

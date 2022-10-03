@@ -17,7 +17,7 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "runtime/mpo_context.hpp"
+#include "runtime/context.hpp"
 
 #include "common/assert_verify.hpp"
 

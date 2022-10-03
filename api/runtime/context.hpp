@@ -20,9 +20,7 @@
 #ifndef MPO_CONTEXT_SEPT_18_2022
 #define MPO_CONTEXT_SEPT_18_2022
 
-#include "mega/common.hpp"
-
-#include "service/protocol/common/header.hpp"
+#include "mega/reference.hpp"
 
 #include <string>
 #include <vector>
@@ -42,9 +40,20 @@ public:
     virtual MachineProcessIDVector getProcesses( MachineID machineID ) = 0;
     virtual MPOVector              getMPO( MP machineProcess )         = 0;
     virtual MPO                    getThisMPO()                        = 0;
-    virtual MPO                    constructMPO( MP machineProcess )      = 0;
-    virtual mega::reference        getRoot( MPO mpo )                  = 0;
-    virtual mega::reference        getThisRoot()                       = 0;
+    virtual MPO                    constructMPO( MP machineProcess )   = 0;
+    virtual reference              getRoot( MPO mpo )                  = 0;
+    virtual reference              getThisRoot()                       = 0;
+
+    // clock
+    virtual TimeStamp cycle() = 0;
+    virtual F32       ct()    = 0;
+    virtual F32       dt()    = 0;
+
+    // log
+    virtual void info( const reference& ref, const std::string& str )  = 0;
+    virtual void warn( const reference& ref, const std::string& str )  = 0;
+    virtual void error( const reference& ref, const std::string& str ) = 0;
+    virtual void write( const reference& ref ) = 0;
 
     static Context* get();
 };

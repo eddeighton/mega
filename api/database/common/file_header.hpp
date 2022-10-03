@@ -17,17 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef FILE_HEADER_12_MAY_2022
 #define FILE_HEADER_12_MAY_2022
 
 #include <cstddef>
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 
 class FileHeader
@@ -60,7 +55,6 @@ private:
     mega::U64 m_manifestHashCode;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // FILE_HEADER_12_MAY_2022

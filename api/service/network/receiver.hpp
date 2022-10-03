@@ -17,10 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef RECEIVER_24_MAY_2022
 #define RECEIVER_24_MAY_2022
 
@@ -28,16 +24,14 @@
 #include "service/network/conversation_manager.hpp"
 #include "service/network/end_point.hpp"
 
-#include "boost/asio/ip/tcp.hpp"
-#include "boost/asio/steady_timer.hpp"
-#include "boost/asio/spawn.hpp"
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/asio/spawn.hpp>
 
 #include <functional>
 #include <future>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class SocketReceiver
@@ -105,7 +99,6 @@ private:
     ConcurrentChannel&   m_channel;
 };
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // RECEIVER_24_MAY_2022

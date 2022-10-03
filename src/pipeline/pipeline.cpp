@@ -17,14 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "pipeline/pipeline.hpp"
 #include "pipeline/stash.hpp"
 
 #include "common/assert_verify.hpp"
 
-#include "boost/dll.hpp"
-#include "boost/dll/shared_library.hpp"
+#include <boost/dll.hpp>
+#include <boost/dll/shared_library.hpp>
 #include <boost/dll/shared_library_load_mode.hpp>
 
 #include <boost/filesystem/operations.hpp>
@@ -33,9 +32,7 @@
 #include "common/string.hpp"
 #include "common/file.hpp"
 
-namespace mega
-{
-namespace pipeline
+namespace mega::pipeline
 {
 
 TaskDescriptor::TaskDescriptor() {}
@@ -177,5 +174,4 @@ Pipeline::Ptr Registry::getPipeline( const mega::utilities::ToolChain& toolChain
     }
 }
 
-} // namespace pipeline
-} // namespace mega
+} // namespace mega::pipeline

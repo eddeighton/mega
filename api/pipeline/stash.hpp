@@ -17,18 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef STASH_20_MAY_2022
 #define STASH_20_MAY_2022
 
 #include "common/stash.hpp"
 
-namespace mega
-{
-namespace pipeline
+namespace mega::pipeline
 {
 class Stash
 {
@@ -40,7 +34,6 @@ public:
     virtual void           stash( const boost::filesystem::path& file, task::DeterminantHash code )             = 0;
     virtual bool           restore( const boost::filesystem::path& file, task::DeterminantHash code )           = 0;
 };
-} // namespace pipeline
-} // namespace mega
+} // namespace mega::pipeline
 
 #endif // STASH_20_MAY_2022

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "utilities/clang_format.hpp"
 
 #include "common/file.hpp"
@@ -36,9 +35,7 @@
 #include "llvm/Support/raw_os_ostream.h"
 #endif
 
-namespace mega
-{
-namespace utilities
+namespace mega::utilities
 {
 
 #ifdef DO_NOT_DO_THIS_BECAUSE_MASSIVE_CODE_BLOAT
@@ -127,5 +124,4 @@ void clang_format( std::string&, std::optional< boost::filesystem::path > )
 }
 #endif
 
-} // namespace utilities
-} // namespace mega
+} // namespace mega::utilities

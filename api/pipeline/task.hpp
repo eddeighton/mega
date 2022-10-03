@@ -17,21 +17,14 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef TASK_30_MAY_2022
 #define TASK_30_MAY_2022
 
 #include <vector>
 #include <string>
 
-namespace mega
+namespace mega::pipeline
 {
-namespace pipeline
-{
-
 class TaskDescriptor
 {
 public:
@@ -71,7 +64,6 @@ private:
     Buffer      m_buffer;
 };
 
-} // namespace pipeline
-} // namespace mega
+} // namespace mega::pipeline
 
 #endif // TASK_30_MAY_2022

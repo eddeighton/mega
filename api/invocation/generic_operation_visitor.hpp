@@ -17,18 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef GENERIC_OPERATION_VISITOR_10_JUNE_2022
 #define GENERIC_OPERATION_VISITOR_10_JUNE_2022
 
 #include "database/model/OperationsStage.hxx"
 
-namespace mega
-{
-namespace invocation
+namespace mega::invocation
 {
 
 class GenericOperationVisitor
@@ -79,7 +73,6 @@ private:
     OperationsStage::Operations::Invocation* m_pInvocation;
 };
 
-} // namespace invocation
-} // namespace mega
+} // namespace mega::invocation
 
 #endif // GENERIC_OPERATION_VISITOR_10_JUNE_2022

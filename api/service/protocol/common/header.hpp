@@ -17,10 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef HEADER_25_MAY_2022
 #define HEADER_25_MAY_2022
 
@@ -32,9 +28,7 @@
 #include <ostream>
 #include <istream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 using MessageSize  = mega::U32;
@@ -46,9 +40,10 @@ using ConnectionID = std::string;
 /// reliably mean anything to a given process.
 class ConversationID
 {
-    friend bool operator==( const ConversationID& left, const ConversationID& right );
-    friend bool operator<( const ConversationID& left, const ConversationID& right );
+    friend bool          operator==( const ConversationID& left, const ConversationID& right );
+    friend bool          operator<( const ConversationID& left, const ConversationID& right );
     friend std::ostream& operator<<( std::ostream& os, const ConversationID& conversationID );
+
 public:
     using ID = mega::U16;
 
@@ -72,10 +67,10 @@ public:
 
     struct Hash
     {
-        inline mega::U64 operator()( const ConversationID& id ) const noexcept 
-        { 
+        inline mega::U64 operator()( const ConversationID& id ) const noexcept
+        {
             const common::Hash hash{ id.m_id, id.m_connectionID };
-            return hash.get(); 
+            return hash.get();
         }
     };
 
@@ -103,7 +98,6 @@ std::istream& operator>>( std::istream& is, ConversationID& conversationID );
 
 using MessageID = mega::U32;
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // HEADER_25_MAY_2022

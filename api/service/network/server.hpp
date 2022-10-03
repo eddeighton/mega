@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef SERVER_24_MAY_2022
 #define SERVER_24_MAY_2022
 
@@ -30,17 +27,15 @@
 #include "service/network/receiver.hpp"
 #include "service/network/sender.hpp"
 
-#include "boost/asio/strand.hpp"
-#include "boost/asio/ip/tcp.hpp"
+#include <boost/asio/strand.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
 #include <string>
 #include <memory>
 #include <set>
 #include <functional>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 class Server
 {
@@ -152,7 +147,6 @@ private:
     ConnectionMPMap                m_mpMap;
 };
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // SERVER_24_MAY_2022

@@ -28,10 +28,9 @@
 #include <ostream>
 #include <sstream>
 
-namespace mega
+namespace mega::runtime
 {
-namespace runtime
-{
+
 static inline void symbolPrefix( const char* prefix, mega::TypeID objectTypeID, std::ostream& os )
 {
     std::ostringstream osTypeID;
@@ -98,7 +97,6 @@ static std::string megaMangle( const std::string& strCanonicalTypeName )
     return os.str();
 }
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // SYMBOL_UTILS_SEPT_19_2022

@@ -17,20 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/network/conversation_manager.hpp"
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/model/messages.hxx"
 
-#include "boost/asio/this_coro.hpp"
+#include <boost/asio/this_coro.hpp>
 
 #include <iostream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 ConversationManager::ConversationManager( const std::string& strProcessName, boost::asio::io_context& ioContext )
@@ -125,11 +122,11 @@ void ConversationManager::conversationJoined( ConversationBase::Ptr pConversatio
 void ConversationManager::conversationCompleted( ConversationBase::Ptr pConversation )
 {
     {
-        WriteLock lock( m_mutex );
+        WriteLock                          lock( m_mutex );
         ConversationPtrMap::const_iterator iFind = m_conversations.find( pConversation->getID() );
         VERIFY_RTE( iFind != m_conversations.end() );
         {
-            //SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
+            // SPDLOG_TRACE( "conversationCompleted {}", pConversation->getID() );
             m_conversations.erase( iFind );
         }
     }
@@ -170,5 +167,4 @@ void ConversationManager::dispatch( const ReceivedMsg& msg )
     pConversation->send( msg );
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

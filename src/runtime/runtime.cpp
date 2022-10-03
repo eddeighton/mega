@@ -20,9 +20,7 @@
 #include "runtime.hpp"
 #include "symbol_utils.hpp"
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 Runtime::Runtime( const mega::network::MegastructureInstallation& megastructureInstallation,
                   const mega::network::Project&                   project,
@@ -52,7 +50,7 @@ ManagedSharedMemory& Runtime::getSharedMemoryManager( mega::MPO mpo )
     else
     {
         MPOContext* pMPOContext = MPOContext::get();
-        VERIFY_RTE( pMPOContext );
+        ASSERT( pMPOContext );
         const std::string  strMemoryName = pMPOContext->acquireMemory( mpo );
         MPOSharedMemoryPtr pMemoryPtr
             = std::make_unique< MPOSharedMemory >( boost::interprocess::open_only, strMemoryName.c_str() );
@@ -67,7 +65,7 @@ NetworkAddress Runtime::allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
     SPDLOG_TRACE( "RUNTIME: allocateNetworkAddress: {} {}", mpo, objectTypeID );
 
     MPOContext* pMPOContext = MPOContext::get();
-    VERIFY_RTE( pMPOContext );
+    ASSERT( pMPOContext );
     return pMPOContext->allocateNetworkAddress( mpo, objectTypeID );
 }
 
@@ -93,7 +91,7 @@ reference Runtime::allocateMachineAddress( MPO mpo, TypeID objectTypeID, Network
     SPDLOG_TRACE( "RUNTIME: allocateMachineAddress: {} {} {}", mpo, objectTypeID, networkAddress );
 
     MPOContext* pMPOContext = MPOContext::get();
-    VERIFY_RTE( pMPOContext );
+    ASSERT( pMPOContext );
     if ( pMPOContext->getThisMPO() != mpo )
     {
         // request write lock
@@ -123,6 +121,11 @@ reference Runtime::allocateMachineAddress( MPO mpo, TypeID objectTypeID, Network
     return ref;
 }
 
+/*
+    Convert a network address to a machine address.
+    NOTE: This is NOT being used when Allocate a new object - instead that will allocate
+          a network address and then convert it to a machine address using allocateMachineAddress
+*/
 reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress )
 {
     SPDLOG_TRACE( "RUNTIME: networkToMachine: {} {}", objectTypeID, networkAddress );
@@ -137,7 +140,7 @@ reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress network
     else
     {
         MPOContext* pMPOContext = MPOContext::get();
-        VERIFY_RTE( pMPOContext );
+        ASSERT( pMPOContext );
         const MPO thisMPO = pMPOContext->getThisMPO();
         const MPO mpo     = pMPOContext->getNetworkAddressMPO( networkAddress );
 
@@ -146,7 +149,7 @@ reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress network
             // request write lock
             if ( !pMPOContext->writeLock( mpo ) )
             {
-                SPDLOG_ERROR( "RUNTIME: allocateMachineAddress Failed to acquire write lock on: {}", mpo );
+                SPDLOG_ERROR( "RUNTIME: networkToMachine Failed to acquire write lock on: {}", mpo );
                 return reference{};
             }
         }
@@ -157,9 +160,12 @@ reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress network
         if ( thisMPO.getMachineID() != mpo.getMachineID() )
         {
             // allocate the object locally and then acquire over network
+            // pMPOContext->read( mpo );
         }
         else if ( thisMPO.getProcessID() != mpo.getProcessID() )
         {
+            // is the heap memory required - if so get it from other process
+            // pMPOContext->read( mpo );
         }
 
         VERIFY_RTE( m_addressSpace.insert( networkAddress, ref ) );
@@ -179,7 +185,7 @@ mega::reference Runtime::getRoot( const mega::MPO& mpo )
     else
     {
         MPOContext* pMPOContext = MPOContext::get();
-        VERIFY_RTE( pMPOContext );
+        ASSERT( pMPOContext );
         const MPO thisMPO = pMPOContext->getThisMPO();
         SPDLOG_TRACE( "RUNTIME: getRoot: {} from {}", mpo, thisMPO );
 
@@ -213,6 +219,15 @@ void Runtime::deAllocateRoot( const mega::MPO& mpo )
         pAllocator->deAllocate( ref );
         m_executionContextRoot.erase( iFind );
     }
+}
+
+
+void Runtime::onWrite( reference dimension )
+{
+    MPOContext* pMPOContext = MPOContext::get();
+    ASSERT( pMPOContext );
+
+
 }
 
 void Runtime::get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )
@@ -387,5 +402,4 @@ void Runtime::get_call( const char* pszUnitName, const mega::InvocationID& invoc
     os << "N4mega9referenceE";
     *ppFunction = pModule->getCall( os.str() );
 }
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime

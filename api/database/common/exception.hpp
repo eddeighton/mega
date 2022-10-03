@@ -17,18 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef EXCEPTION_11_MAY_2022
 #define EXCEPTION_11_MAY_2022
 
 #include <stdexcept>
 #include <string>
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 
 class DatabaseVersionException : public std::exception
@@ -45,7 +40,6 @@ private:
     std::string m_string;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // EXCEPTION_11_MAY_2022

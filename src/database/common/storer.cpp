@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/storer.hpp"
 #include "database/common/file_header.hpp"
 
@@ -41,20 +39,18 @@ void MegaOArchive::objectInfo( const mega::io::ObjectInfo* pObjectInf ) { m_obje
 } // namespace archive
 } // namespace boost
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
+
 Storer::Storer( const FileSystem& fileSystem, const CompilationFilePath& filePath, boost::filesystem::path& tempFile )
     : m_pFileStream( fileSystem.write_temp( filePath, tempFile ) )
     , m_archive( *m_pFileStream, m_objectInfos )
 {
     {
-        mega::U64 manifestHash = 0U;
-        FileHeader  fileHeader( Environment::getVersion(), manifestHash );
-        m_archive&  fileHeader;
+        mega::U64  manifestHash = 0U;
+        FileHeader fileHeader( Environment::getVersion(), manifestHash );
+        m_archive& fileHeader;
     }
 }
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io

@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/DependencyAnalysis.hxx"
@@ -31,9 +29,7 @@
 #include "database/types/sources.hpp"
 #include "utilities/glob.hpp"
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_DependencyAnalysis : public BaseTask
@@ -519,5 +515,4 @@ BaseTask::Ptr create_Task_DependencyAnalysis( const TaskArguments&              
     return std::make_unique< Task_DependencyAnalysis >( taskArguments, manifestFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

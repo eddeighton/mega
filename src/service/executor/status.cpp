@@ -17,16 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
 #include "service/network/log.hpp"
 
 #include "service/executor.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::project::Impl
@@ -38,7 +35,7 @@ network::Status ExecutorRequestConversation::GetStatus( const std::vector< netwo
     network::Status status{ childNodeStatus };
     {
         status.setConversationID( m_executor.reportConversations() );
-        //m_executor.reportSimulations( status );
+        // m_executor.reportSimulations( status );
     }
 
     return status;
@@ -51,5 +48,4 @@ std::string ExecutorRequestConversation::Ping( boost::asio::yield_context& yield
     return os.str();
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

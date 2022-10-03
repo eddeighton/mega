@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef DATABASE_8_AUG_2022
 #define DATABASE_8_AUG_2022
 
@@ -30,10 +29,9 @@
 
 #include "database/types/invocation_id.hpp"
 
-namespace mega
+namespace mega::runtime
 {
-namespace runtime
-{
+
 class DatabaseInstance
 {
 public:
@@ -44,8 +42,8 @@ public:
     const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getOperationComponent( mega::TypeID objectType ) const;
-    //mega::U64                                 getTotalDomainSize( mega::TypeID concreteID ) const;
-    mega::U64                                 getLocalDomainSize( mega::TypeID concreteID ) const;
+    // mega::U64                                 getTotalDomainSize( mega::TypeID concreteID ) const;
+    mega::U64 getLocalDomainSize( mega::TypeID concreteID ) const;
 
 private:
     mega::io::ArchiveEnvironment                          m_environment;
@@ -56,7 +54,6 @@ private:
     std::map< mega::I32, FinalStage::Concrete::Context* > m_concreteIDs;
 };
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // DATABASE_8_AUG_2022

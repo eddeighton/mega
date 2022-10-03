@@ -27,6 +27,8 @@
 
 #include "common/assert_verify.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <boost/asio/associated_allocator.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/thread_pool.hpp>
@@ -37,18 +39,15 @@
 
 #include <memory>
 #include <iostream>
-#include <spdlog/spdlog.h>
+#include <utility>
 
-namespace mega
+namespace mega::network
 {
-namespace network
-{
-
 SocketReceiver::SocketReceiver( ConversationManager& conversationManager, boost::asio::ip::tcp::socket& socket,
                                 std::function< void() > disconnectHandler )
     : m_conversationManager( conversationManager )
     , m_socket( socket )
-    , m_disconnectHandler( disconnectHandler )
+    , m_disconnectHandler( std::move( disconnectHandler ) )
 {
 }
 
@@ -198,5 +197,4 @@ void ConcurrentChannelReceiver::receive( boost::asio::yield_context& yield_ctx )
     }
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

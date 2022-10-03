@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef CONVERSATION_24_MAY_2022
 #define CONVERSATION_24_MAY_2022
 
@@ -31,17 +28,15 @@
 
 #include "common/assert_verify.hpp"
 
-#include "boost/asio/spawn.hpp"
-#include "boost/asio/steady_timer.hpp"
-#include "boost/asio/experimental/concurrent_channel.hpp"
-#include "boost/asio/experimental/channel.hpp"
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <boost/asio/experimental/concurrent_channel.hpp>
+#include <boost/asio/experimental/channel.hpp>
 
 #include <cstddef>
 #include <memory>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class ConversationManager;
@@ -212,7 +207,6 @@ protected:
     MessageChannel m_channel;
 };
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // CONVERSATION_24_MAY_2022

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "daemon.hpp"
 #include "request.hpp"
 
@@ -29,9 +28,7 @@
 
 #include <iostream>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 ////////////////////////////////////////////////////////////////
@@ -124,5 +121,4 @@ network::ConversationBase::Ptr Daemon::joinConversation( const network::Connecti
         new DaemonRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/archive.hpp"
 #include "database/common/file_header.hpp"
 #include "database/common/exception.hpp"
@@ -27,7 +25,7 @@
 
 #include "common/assert_verify.hpp"
 
-#include "boost/iostreams/stream.hpp"
+#include <boost/iostreams/stream.hpp>
 #include "database/types/sources.hpp"
 
 #include <boost/filesystem.hpp>
@@ -72,10 +70,9 @@ std::streamsize eds_copy( Source& src, Sink& snk,
 } // namespace iostreams
 } // namespace boost
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
+
 struct TableOfContents
 {
     struct File
@@ -146,7 +143,7 @@ struct ReadArchive::Pimpl
                                                                const TableOfContents::File&   file )
         {
             std::unique_ptr< MappedSourceType > pMappedFile;
-            mega::U64                         szOffset = 0U;
+            mega::U64                           szOffset = 0U;
             try
             {
                 const mega::U64 szAlignment = MappedSourceType::alignment();
@@ -282,7 +279,7 @@ void ReadArchive::compile_archive( const boost::filesystem::path& filePath, cons
         file.m_start = StreamPos()( ofStream );
         {
             const boost::filesystem::path  filePath   = srcDir / file.m_id;
-            const mega::U64              szFileSize = boost::filesystem::file_size( filePath );
+            const mega::U64                szFileSize = boost::filesystem::file_size( filePath );
             ReadArchive::Pimpl::SourceType fileSource( filePath.native() );
             ReadArchive::Pimpl::StreamType istream( fileSource );
             boost::iostreams::eds_copy( istream, ofStream, szFileSize );
@@ -295,7 +292,7 @@ void ReadArchive::compile_archive( const boost::filesystem::path& filePath, cons
         file.m_start = StreamPos()( ofStream );
         {
             const boost::filesystem::path  filePath   = buildDir / file.m_id;
-            const mega::U64              szFileSize = boost::filesystem::file_size( filePath );
+            const mega::U64                szFileSize = boost::filesystem::file_size( filePath );
             ReadArchive::Pimpl::SourceType fileSource( filePath.native() );
             ReadArchive::Pimpl::StreamType istream( fileSource );
             boost::iostreams::eds_copy( istream, ofStream, szFileSize );
@@ -311,5 +308,4 @@ void ReadArchive::compile_archive( const boost::filesystem::path& filePath, cons
     }
 }
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io

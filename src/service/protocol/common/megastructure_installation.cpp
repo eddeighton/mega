@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/protocol/common/megastructure_installation.hpp"
 #include "service/protocol/common/environment.hpp"
 
@@ -26,9 +25,7 @@
 
 #include <cstdlib>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 MegastructureInstallation::MegastructureInstallation() {}
@@ -96,5 +93,4 @@ boost::filesystem::path MegastructureInstallation::getRuntimeTemplateCall() cons
     return m_installationPath / "templates/call.jinja";
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

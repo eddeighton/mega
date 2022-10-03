@@ -31,7 +31,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/Sema/Sema.h"
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 #include <memory>
 #include <string>

@@ -41,7 +41,7 @@
 
 #include "service/network/log.hpp"
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 #include <boost/archive/archive_exception.hpp>
 #include <boost/optional.hpp>
@@ -52,7 +52,7 @@
 #pragma warning( push )
 #pragma warning( disable : 4996 ) // iterator thing
 #pragma warning( disable : 4244 ) // conversion to DWORD from system_clock::rep
-#include "boost/process.hpp"
+#include <boost/process.hpp>
 #pragma warning( pop )
 
 #include <cstdlib>

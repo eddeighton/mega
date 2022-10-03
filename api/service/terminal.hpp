@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef SERVICE_24_MAY_2022
 #define SERVICE_24_MAY_2022
 
@@ -42,9 +39,7 @@
 #include <thread>
 #include <functional>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 class Terminal : public network::ConversationManager
@@ -123,7 +118,6 @@ private:
     Leaf                     m_leaf;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // SERVICE_24_MAY_2022

@@ -21,9 +21,7 @@
 
 #include "root.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::project::Impl
@@ -50,6 +48,4 @@ RootRequestConversation::GetMegastructureInstallation( boost::asio::yield_contex
 {
     return m_root.getMegastructureInstallation();
 }
-
-} // namespace service
-} // namespace mega
+} // namespace mega::service

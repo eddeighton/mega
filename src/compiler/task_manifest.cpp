@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/common/component_info.hpp"
@@ -32,9 +30,7 @@
 
 #include <common/stash.hpp>
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_GenerateManifest : public BaseTask
@@ -140,8 +136,8 @@ public:
                             "Duplicate component name: " << componentInfo.getName() );
             componentNames.insert( componentInfo.getName() );
 
-            const mega::io::ComponentFilePath componentFilePath =
-                m_environment.ComponentPath_fromPath( componentInfo.getFilePath() );
+            const mega::io::ComponentFilePath componentFilePath
+                = m_environment.ComponentPath_fromPath( componentInfo.getFilePath() );
 
             std::vector< mega::io::megaFilePath > megaSourceFiles;
             std::vector< mega::io::cppFilePath >  cppSourceFiles;
@@ -200,5 +196,4 @@ BaseTask::Ptr create_Task_GenerateComponents( const TaskArguments&              
     return std::make_unique< Task_GenerateComponents >( taskArguments, componentInfoPaths );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

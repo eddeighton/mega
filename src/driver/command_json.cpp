@@ -53,7 +53,7 @@
 #include "common/stash.hpp"
 
 #include "nlohmann/json.hpp"
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>

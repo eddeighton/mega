@@ -17,17 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef NODE_17_JUNE_2022
 #define NODE_17_JUNE_2022
 
 #include <string>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class Node
@@ -50,7 +45,6 @@ public:
 
 std::string makeProcessName( Node::Type type );
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // NODE_17_JUNE_2022

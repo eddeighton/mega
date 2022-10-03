@@ -29,7 +29,7 @@
 
 #include "common/file.hpp"
 
-#include "boost/dll/alias.hpp"
+#include <boost/dll/alias.hpp>
 #include <boost/filesystem/directory.hpp>
 
 extern "C"
@@ -38,28 +38,25 @@ const mega::U64 _db_version_ = {{ schema_version }};
 }
 BOOST_DLL_ALIAS_SECTIONED( _db_version_, MEGA_DATABASE_VERSION, mega )
 
-namespace mega
+namespace mega::io
 {
-namespace io
+mega::U64 Environment::getVersion()
 {
-    mega::U64 Environment::getVersion()
-    {
-        return _db_version_;
-    }
+    return _db_version_;
+}
 {% for stage in stages %}
 {% for file in stage.files %}
 {% for source in stage.sources %}
-    CompilationFilePath Environment::{{ stage.name }}_{{ file.name }}( const {{ source }}FilePath& source) const
-    {
-        std::ostringstream os;                                                                
-        os << source.path().filename().string() << ".{{ stage.name }}.{{ file.name }}" << CompilationFilePath::extension().string();
-        auto dirPath = source.path();
-        dirPath.remove_filename();
-        return CompilationFilePath( dirPath / os.str() );      
-    }
+CompilationFilePath Environment::{{ stage.name }}_{{ file.name }}( const {{ source }}FilePath& source) const
+{
+    std::ostringstream os;                                                                
+    os << source.path().filename().string() << ".{{ stage.name }}.{{ file.name }}" << CompilationFilePath::extension().string();
+    auto dirPath = source.path();
+    dirPath.remove_filename();
+    return CompilationFilePath( dirPath / os.str() );      
+}
 {% endfor %}
 {% endfor %}
 {% endfor %}
 
-} // namespace io
 } // namespace mega

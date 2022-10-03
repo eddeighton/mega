@@ -17,17 +17,14 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #include "compiler/configuration.hpp"
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 
-namespace mega
-{
-namespace compiler
+#include "utilities/serialization_helpers.hpp"
+
+namespace mega::compiler
 {
 
 pipeline::Configuration makePipelineConfiguration( const Configuration& configuration )
@@ -38,7 +35,7 @@ pipeline::Configuration makePipelineConfiguration( const Configuration& configur
 
         pipeline::ConfigurationHeader header = configuration.header;
         oa&                           boost::serialization::make_nvp( "pipeline_header", header );
-        Configuration temp = configuration;
+        Configuration                 temp = configuration;
         oa&                           boost::serialization::make_nvp( "pipeline_config", temp );
     }
     return pipeline::Configuration( os.str() );
@@ -59,5 +56,4 @@ Configuration fromPipelineConfiguration( const pipeline::Configuration& pipeline
     return configuration;
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

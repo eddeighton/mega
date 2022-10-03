@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #include "base_task.hpp"
 
 #include "database/model/OperationsStage.hxx"
@@ -54,9 +51,7 @@ using namespace FinalStage::Interface;
 #include "interface.hpp"
 } // namespace FinalStage
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_CPPInterfaceGeneration : public BaseTask
@@ -261,7 +256,7 @@ public:
 
         if ( m_environment.restore( interfacePCHFilePath, determinant ) )
         {
-            //if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            // if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
             {
                 m_environment.setBuildHashCode( interfacePCHFilePath );
                 cached( taskProgress );
@@ -331,7 +326,7 @@ public:
         bool bRestoredHPP = m_environment.restore( tempHPPFile, determinant );
         if ( bRestoredHPP )
         {
-            //if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
+            // if ( !run_cmd( taskProgress, compilationCMD.generatePCHVerificationCMD() ) )
             {
                 m_environment.setBuildHashCode( tempHPPFile );
                 bRestoredHPP = true;
@@ -610,5 +605,5 @@ BaseTask::Ptr create_Task_CPPObj( const TaskArguments& taskArguments, const mega
 {
     return std::make_unique< Task_CPPObj >( taskArguments, sourceFilePath );
 }
-} // namespace compiler
-} // namespace mega
+
+} // namespace mega::compiler

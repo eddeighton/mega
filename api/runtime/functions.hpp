@@ -17,17 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef RUNTIME_FUNCTIONS_17_AUG_2022
 #define RUNTIME_FUNCTIONS_17_AUG_2022
 
 #include "/workspace/root/src/mega/src/api/mega/common.hpp"
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 using TypeErasedFunction = const void*;
 using GetHeapFunction    = void* ( * )( MachineAddress address );
@@ -61,9 +56,9 @@ NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID );
 reference      allocateMachineAddress( MPO mpo, TypeID objectTypeID, NetworkAddress networkAddress );
 reference      networkToMachine( TypeID objectTypeID, NetworkAddress networkAddress );
 
-void           get_getter_heap( const char* pszUnitName, TypeID objectTypeID, GetHeapFunction* ppFunction );
-void           get_getter_shared( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
-void           get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
+void get_getter_heap( const char* pszUnitName, TypeID objectTypeID, GetHeapFunction* ppFunction );
+void get_getter_shared( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
+void get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );
 
 struct Allocator
 {
@@ -72,7 +67,6 @@ struct Allocator
 };
 using SetAllocatorFunction = void ( * )( Allocator* );
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // RUNTIME_FUNCTIONS_17_AUG_2022

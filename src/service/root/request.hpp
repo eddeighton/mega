@@ -33,9 +33,7 @@
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/address.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 class Root;
 
@@ -183,7 +181,6 @@ protected:
     Root& m_root;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // REQUEST_22_SEPT_2022

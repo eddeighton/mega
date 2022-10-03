@@ -17,23 +17,18 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef MEGASTRUCTURE_INSTALLATION_16_AUG_2022
 #define MEGASTRUCTURE_INSTALLATION_16_AUG_2022
 
 #include "utilities/serialization_helpers.hpp"
 #include "utilities/tool_chain_hash.hpp"
 
-#include "boost/filesystem/path.hpp"
-#include "boost/serialization/nvp.hpp"
+#include <boost/filesystem/path.hpp>
+#include <boost/serialization/nvp.hpp>
 
-namespace mega
+namespace mega::network
 {
-namespace network
-{
+
 class MegastructureInstallation
 {
 public:
@@ -49,12 +44,12 @@ public:
     boost::filesystem::path        getParserPath() const;
     boost::filesystem::path        getClangPath() const;
     boost::filesystem::path        getMegaIncludePath() const;
-    
-    boost::filesystem::path        getRuntimeTemplateAllocation() const;
-    boost::filesystem::path        getRuntimeTemplateAllocate() const;
-    boost::filesystem::path        getRuntimeTemplateRead() const;
-    boost::filesystem::path        getRuntimeTemplateWrite() const;
-    boost::filesystem::path        getRuntimeTemplateCall() const;
+
+    boost::filesystem::path getRuntimeTemplateAllocation() const;
+    boost::filesystem::path getRuntimeTemplateAllocate() const;
+    boost::filesystem::path getRuntimeTemplateRead() const;
+    boost::filesystem::path getRuntimeTemplateWrite() const;
+    boost::filesystem::path getRuntimeTemplateCall() const;
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int version )
@@ -65,7 +60,7 @@ public:
 private:
     boost::filesystem::path m_installationPath;
 };
-} // namespace network
-} // namespace mega
+
+} // namespace mega::network
 
 #endif // MEGASTRUCTURE_INSTALLATION_16_AUG_2022

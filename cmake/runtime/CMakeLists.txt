@@ -46,9 +46,9 @@ set( JINJA_TEMPLATES
 	)
 
 set( RUNTIME_HEADERS
-    ${MEGA_API_DIR}/runtime/runtime_functions.hpp
-    ${MEGA_API_DIR}/runtime/runtime_api.hpp
-    ${MEGA_API_DIR}/runtime/mpo_context.hpp
+    ${MEGA_API_DIR}/runtime/functions.hpp
+    ${MEGA_API_DIR}/runtime/api.hpp
+    ${MEGA_API_DIR}/runtime/context.hpp
 )
 
 set( RUNTIME_SOURCE
@@ -62,7 +62,7 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/runtime.cpp
     ${MEGA_SRC_DIR}/runtime/object_allocator.hpp
     ${MEGA_SRC_DIR}/runtime/object_allocator.cpp
-    ${MEGA_SRC_DIR}/runtime/runtime_api.cpp
+    ${MEGA_SRC_DIR}/runtime/api.cpp
     ${MEGA_SRC_DIR}/runtime/symbol_utils.hpp
     ${MEGA_SRC_DIR}/runtime/indexed_buffer_allocator.hpp
     ${MEGA_SRC_DIR}/runtime/indexed_buffer_allocator.cpp

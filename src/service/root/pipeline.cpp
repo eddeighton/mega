@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "pipeline.hpp"
 
 #include "root.hpp"
@@ -26,9 +25,7 @@
 
 #include "spdlog/stopwatch.h"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 RootPipelineConversation::RootPipelineConversation( Root&                          root,
@@ -178,5 +175,4 @@ mega::network::PipelineResult RootPipelineConversation::PipelineRun( const mega:
     }
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

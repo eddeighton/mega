@@ -22,11 +22,8 @@
 
 #include "database/model/file_info.hxx"
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
-
     FileInfo::FileInfo()
         : m_fileType( TOTAL_FILE_TYPES )
         , m_fileID( ObjectInfo::NO_FILE )
@@ -45,7 +42,6 @@ namespace io
     {
     }
 
-} // namespace io
 } // namespace mega
 
 std::ostream& operator<<( std::ostream& os, mega::io::FileInfo::Stage stage )

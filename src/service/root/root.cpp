@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "root.hpp"
 #include "request.hpp"
 #include "pipeline.hpp"
@@ -26,7 +25,7 @@
 
 #include "mega/common.hpp"
 
-#include "runtime/mpo_context.hpp"
+#include "runtime/context.hpp"
 
 #include "service/network/conversation.hpp"
 #include "service/network/network.hpp"
@@ -49,21 +48,19 @@
 #include "spdlog/fmt/chrono.h"
 #include "spdlog/stopwatch.h"
 
-#include "boost/archive/xml_iarchive.hpp"
-#include "boost/archive/xml_oarchive.hpp"
-#include "boost/dll/runtime_symbol_info.hpp"
-#include "boost/filesystem/operations.hpp"
-#include "boost/process/environment.hpp"
-#include "boost/system/detail/error_code.hpp"
-#include "boost/asio/experimental/concurrent_channel.hpp"
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+#include <boost/dll/runtime_symbol_info.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/process/environment.hpp>
+#include <boost/system/detail/error_code.hpp>
+#include <boost/asio/experimental/concurrent_channel.hpp>
 
 #include <iostream>
 #include <limits>
 #include <memory>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 Root::Root( boost::asio::io_context& ioContext )
@@ -140,13 +137,12 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
     {
         case network::mpo::MSG_MPRoot_Request::ID:
         {
-            const network::mpo::MSG_MPRoot_Request& actualMsg
-                = network::mpo::MSG_MPRoot_Request::get( msg );
+            const network::mpo::MSG_MPRoot_Request& actualMsg = network::mpo::MSG_MPRoot_Request::get( msg );
             switch ( actualMsg.request.index )
             {
                 case network::sim::MSG_SimStart_Request::ID:
-                    return network::ConversationBase::Ptr( new RootSimulation(
-                        *this, getMsgReceiver( msg ), originatingConnectionID, actualMsg.mp ) );
+                    return network::ConversationBase::Ptr(
+                        new RootSimulation( *this, getMsgReceiver( msg ), originatingConnectionID, actualMsg.mp ) );
             }
         }
         break;
@@ -179,5 +175,4 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
         new RootRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef ENVIRONMENT_BUILD_18_JUNE
 #define ENVIRONMENT_BUILD_18_JUNE
 
@@ -32,9 +29,7 @@
 
 #include <boost/filesystem/operations.hpp>
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 class BuildEnvironment : public Environment
 {
@@ -138,7 +133,6 @@ public:
     virtual void                            temp_to_real( const SourceFilePath& filePath ) const;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // ENVIRONMENT_BUILD_18_JUNE

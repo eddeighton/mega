@@ -17,12 +17,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/network/network.hpp"
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 const char* getVersion() { return "0.0.0.0"; }
@@ -39,5 +36,4 @@ short MegaExecutorPort() { return 4239; }
 
 const char* MegaExecutorServiceName() { return "megaexecutor"; }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

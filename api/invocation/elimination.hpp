@@ -17,18 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef ELIMINATION_11_JUNE_2022
 #define ELIMINATION_11_JUNE_2022
 
 #include "database/model/OperationsStage.hxx"
 
-namespace mega
-{
-namespace invocation
+namespace mega::invocation
 {
 
 enum EliminationResult
@@ -47,7 +41,6 @@ secondStageElimination( const std::vector< OperationsStage::Invocations::Operati
 std::vector< OperationsStage::Invocations::Operations::Operation* >
 getOperations( OperationsStage::Invocations::Instructions::Instruction* pInstruction );
 
-} // namespace invocation
-} // namespace mega
+} // namespace mega::invocation
 
 #endif // ELIMINATION_11_JUNE_2022

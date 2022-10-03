@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef CONVERSATION_MANAGER_26_MAY_2022
 #define CONVERSATION_MANAGER_26_MAY_2022
 
@@ -30,9 +27,7 @@
 #include <shared_mutex>
 #include <mutex>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class ConversationManager
@@ -75,7 +70,6 @@ protected:
     mutable ConversationID::ID m_nextConversationID = 0U;
 };
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // CONVERSATION_MANAGER_26_MAY_2022

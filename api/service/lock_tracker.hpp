@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef LOCK_TRACKER_SEPT_19_2022
 #define LOCK_TRACKER_SEPT_19_2022
 
@@ -27,9 +24,7 @@
 
 #include <set>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 class LockTracker
 {
@@ -62,7 +57,6 @@ public:
 private:
     MPOSet m_reads, m_writes;
 };
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // LOCK_TRACKER_SEPT_19_2022

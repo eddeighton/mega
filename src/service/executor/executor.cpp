@@ -32,16 +32,14 @@
 
 #include "parser/parser.hpp"
 
-#include "boost/dll.hpp"
-#include "boost/dll/shared_library_load_mode.hpp"
+#include <boost/dll.hpp>
+#include <boost/dll/shared_library_load_mode.hpp>
 
 #include <optional>
 #include <future>
 #include <thread>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 template < typename TConversationFunctor >
@@ -209,5 +207,4 @@ void Executor::conversationCompleted( network::ConversationBase::Ptr pConversati
     network::ConversationManager::conversationCompleted( pConversation );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

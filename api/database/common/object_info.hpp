@@ -17,17 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef OBJECT_INFO_30_MAR_2022
 #define OBJECT_INFO_30_MAR_2022
 
 #include "mega/native_types.hpp"
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 class Loader;
 class Storer;
@@ -95,7 +90,6 @@ private:
     Index  m_index  = NO_INDEX;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // OBJECT_INFO_30_MAR_2022

@@ -41,7 +41,7 @@
 
 #include "mega/common.hpp"
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 #include <vector>
 #include <map>
@@ -51,9 +51,7 @@
 #include <memory>
 #include <any>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 struct Message
@@ -126,7 +124,6 @@ inline const ConversationID& getMsgReceiver( const Message& msg ) { return msg.r
 
 void aggregate( Message& request, const std::vector< Message >& responses );
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // MESSAGES_GENERATED_26_MAY_2022

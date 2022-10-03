@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "component_manager.hpp"
 #include "database/model/FinalStage.hxx"
 
@@ -33,9 +32,7 @@
 
 #include <cstddef>
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 
 ComponentManager::ComponentPath ComponentManager::InterfaceComponent::makeTempComponent( const ComponentPath& path )
@@ -135,5 +132,4 @@ TypeErasedFunction ComponentManager::getOperationFunctionPtr( mega::TypeID concr
     THROW_RTE( "Failed to locate symbol: " << concreteTypeID );
 }
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime

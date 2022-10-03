@@ -17,15 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "invocation/generic_operation_visitor.hpp"
 #include "invocation/invocation.hpp"
 #include "database/model/OperationsStage.hxx"
 
-namespace mega
+namespace mega::invocation
 {
-namespace invocation
-{
+
 using namespace OperationsStage;
 using namespace OperationsStage::Invocations;
 
@@ -389,8 +387,8 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
 
                     using OperationsStage::Invocations::Operations::Write;
                     Write* pWrite = m_database.construct< Write >( Write::Args{ DimensionOperation::Args{
-                        Operation::Args{ Instruction::Args{}, pInstance, { pReturnType, pInterfaceVar }, {} }, pInterfaceDimension,
-                        pConcreteDimension } } );
+                        Operation::Args{ Instruction::Args{}, pInstance, { pReturnType, pInterfaceVar }, {} },
+                        pInterfaceDimension, pConcreteDimension } } );
                     pInstruction->push_back_children( pWrite );
                 }
             }
@@ -642,5 +640,5 @@ void GenericOperationVisitor::operator()()
         }
     }
 }
-} // namespace invocation
-} // namespace mega
+
+} // namespace mega::invocation

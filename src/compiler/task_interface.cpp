@@ -17,15 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/InterfaceStage.hxx"
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_InterfaceTree : public BaseTask
@@ -174,9 +170,10 @@ public:
 
                         const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
 
-                        pInterfaceContextGroup = database.construct< Namespace >( Namespace::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name.back(), pParent, pComponent ),
-                            bIsGlobalNamespace, { pIncludeContextDef } ) );
+                        pInterfaceContextGroup = database.construct< Namespace >(
+                            Namespace::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ),
+                                                             name.back(), pParent, pComponent ),
+                                             bIsGlobalNamespace, { pIncludeContextDef } ) );
                         pParent->push_back_children( pInterfaceContextGroup );
                         namedContexts.insert( std::make_pair( name, pInterfaceContextGroup ) );
                     }
@@ -197,13 +194,14 @@ public:
             {
                 constructOrAggregate< Parser::NamespaceDef, Namespace >(
                     database, pComponent, pRoot, pNamespaceDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
-                        Parser::ContextDef* pNamespaceDef ) -> Namespace*
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::ContextDef* pNamespaceDef ) -> Namespace*
                     {
                         const bool bIsGlobalNamespace = isGlobalNamespace()( pParent );
-                        return database.construct< Namespace >( Namespace::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            bIsGlobalNamespace, { pNamespaceDef } ) );
+                        return database.construct< Namespace >(
+                            Namespace::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
+                                                             pParent, pComponent ),
+                                             bIsGlobalNamespace, { pNamespaceDef } ) );
                     },
                     []( Namespace* pNamespace, Parser::ContextDef* pNamespaceDef )
                     { pNamespace->push_back_namespace_defs( pNamespaceDef ); } );
@@ -213,12 +211,13 @@ public:
             {
                 constructOrAggregate< Parser::AbstractDef, Abstract >(
                     database, pComponent, pRoot, pAbstractDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
-                        Parser::AbstractDef* pAbstractDef ) -> Abstract*
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::AbstractDef* pAbstractDef ) -> Abstract*
                     {
-                        return database.construct< Abstract >( Abstract::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            { pAbstractDef } ) );
+                        return database.construct< Abstract >(
+                            Abstract::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
+                                                            pParent, pComponent ),
+                                            { pAbstractDef } ) );
                     },
                     []( Abstract* pAbstract, Parser::AbstractDef* pAbstractDef )
                     { pAbstract->push_back_abstract_defs( pAbstractDef ); } );
@@ -227,12 +226,13 @@ public:
             {
                 constructOrAggregate< Parser::ActionDef, Action >(
                     database, pComponent, pRoot, pActionDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
-                        Parser::ActionDef* pActionDef ) -> Action*
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::ActionDef* pActionDef ) -> Action*
                     {
-                        return database.construct< Action >( Action::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            { pActionDef } ) );
+                        return database.construct< Action >(
+                            Action::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
+                                                          pParent, pComponent ),
+                                          { pActionDef } ) );
                     },
                     []( Action* pAction, Parser::ActionDef* pActionDef )
                     { pAction->push_back_action_defs( pActionDef ); } );
@@ -241,12 +241,13 @@ public:
             {
                 constructOrAggregate< Parser::EventDef, Event >(
                     database, pComponent, pRoot, pEventDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
-                        Parser::EventDef* pEventDef ) -> Event*
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::EventDef* pEventDef ) -> Event*
                     {
-                        return database.construct< Event >( Event::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            { pEventDef } ) );
+                        return database.construct< Event >(
+                            Event::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
+                                                         pParent, pComponent ),
+                                         { pEventDef } ) );
                     },
                     []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
             }
@@ -255,12 +256,13 @@ public:
             {
                 constructOrAggregate< Parser::FunctionDef, Function >(
                     database, pComponent, pRoot, pFunctionDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
-                        Parser::FunctionDef* pFunctionDef ) -> Function*
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::FunctionDef* pFunctionDef ) -> Function*
                     {
-                        return database.construct< Function >( Function::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            { pFunctionDef } ) );
+                        return database.construct< Function >(
+                            Function::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
+                                                            pParent, pComponent ),
+                                            { pFunctionDef } ) );
                     },
                     []( Function* pFunction, Parser::FunctionDef* pFunctionDef )
                     { pFunction->push_back_function_defs( pFunctionDef ); } );
@@ -269,12 +271,13 @@ public:
             {
                 constructOrAggregate< Parser::ObjectDef, Object >(
                     database, pComponent, pRoot, pObjectDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
-                        Parser::ObjectDef* pObjectDef ) -> Object*
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::ObjectDef* pObjectDef ) -> Object*
                     {
-                        return database.construct< Object >( Object::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            { pObjectDef } ) );
+                        return database.construct< Object >(
+                            Object::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
+                                                          pParent, pComponent ),
+                                          { pObjectDef } ) );
                     },
                     []( Object* pObject, Parser::ObjectDef* pObjectDef )
                     { pObject->push_back_object_defs( pObjectDef ); } );
@@ -284,12 +287,14 @@ public:
             {
                 constructOrAggregate< Parser::LinkInterfaceDef, LinkInterface >(
                     database, pComponent, pRoot, pLinkInterfaceDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component*    pComponent,
                         Parser::LinkInterfaceDef* pLinkInterfaceDef ) -> LinkInterface*
                     {
-                        return database.construct< LinkInterface >( LinkInterface::Args( Link::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            { pLinkInterfaceDef } ) ) );
+                        return database.construct< LinkInterface >( LinkInterface::Args(
+                            Link::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent,
+                                                        pComponent ),
+                                        { pLinkInterfaceDef } ) ) );
                     },
                     []( LinkInterface* pLinkInterface, Parser::LinkInterfaceDef* pLinkInterfaceDef )
                     { pLinkInterface->push_back_link_defs( pLinkInterfaceDef ); } );
@@ -298,12 +303,13 @@ public:
             {
                 constructOrAggregate< Parser::LinkDef, Link >(
                     database, pComponent, pRoot, pLinkDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
-                        Parser::LinkDef* pLinkDef ) -> Link*
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::LinkDef* pLinkDef ) -> Link*
                     {
-                        return database.construct< Link >( Link::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            { pLinkDef } ) );
+                        return database.construct< Link >(
+                            Link::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent,
+                                                        pComponent ),
+                                        { pLinkDef } ) );
                     },
                     []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
             }
@@ -311,12 +317,13 @@ public:
             {
                 constructOrAggregate< Parser::BufferDef, Buffer >(
                     database, pComponent, pRoot, pBufferDef, currentName, namedContexts,
-                    []( Database& database, const std::string& name, ContextGroup* pParent, Components::Component* pComponent,
-                        Parser::BufferDef* pBufferDef ) -> Buffer*
+                    []( Database& database, const std::string& name, ContextGroup* pParent,
+                        Components::Component* pComponent, Parser::BufferDef* pBufferDef ) -> Buffer*
                     {
-                        return database.construct< Buffer >( Buffer::Args(
-                            IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name, pParent, pComponent ),
-                            { pBufferDef } ) );
+                        return database.construct< Buffer >(
+                            Buffer::Args( IContext::Args( ContextGroup::Args( std::vector< IContext* >{} ), name,
+                                                          pParent, pComponent ),
+                                          { pBufferDef } ) );
                     },
                     []( Buffer* pBuffer, Parser::BufferDef* pBufferDef )
                     { pBuffer->push_back_buffer_defs( pBufferDef ); } );
@@ -635,5 +642,4 @@ BaseTask::Ptr create_Task_InterfaceTree( const TaskArguments&          taskArgum
     return std::make_unique< Task_InterfaceTree >( taskArguments, sourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

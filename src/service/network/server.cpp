@@ -17,21 +17,18 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/network/server.hpp"
 #include "service/network/log.hpp"
 
 #include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
 
-#include "boost/bind/bind.hpp"
-#include "boost/asio/placeholders.hpp"
+#include <boost/bind/bind.hpp>
+#include <boost/asio/placeholders.hpp>
 
 #include <iostream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 Server::Connection::Connection( Server& server, boost::asio::io_context& ioContext,
@@ -184,5 +181,4 @@ void Server::unmapConnection( const mega::MPO& mpo ) { m_mpoMap.erase( mpo ); }
 void Server::mapConnection( const mega::MP& mp, Connection::Ptr pConnection ) { m_mpMap.insert( { mp, pConnection } ); }
 void Server::unmapConnection( const mega::MP& mp ) { m_mpMap.erase( mp ); }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

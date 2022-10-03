@@ -17,30 +17,23 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef LOG_28_MAY_2022
 #define LOG_28_MAY_2022
 
-#include "mega/common.hpp"
 #include "mega/invocation_id.hpp"
 #include "mega/reference_io.hpp"
 
 #include "service/protocol/model/messages.hxx"
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 #include <string>
 #include <iterator>
 #include <chrono>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 using LogTime = std::chrono::steady_clock::duration;
@@ -119,8 +112,7 @@ inline void logLinesSuccessFail( const std::string strMsg, bool bSuccess, const 
     }
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 namespace fmt
 {
@@ -238,7 +230,7 @@ struct formatter< mega::MP >
     auto format( const mega::MP& address, FormatContext& ctx ) -> decltype( ctx.out() )
     {
         std::ostringstream os;
-        using ::operator<<;
+        using ::           operator<<;
         os << address;
         return format_to( ctx.out(), "mp:{}", os.str() );
     }

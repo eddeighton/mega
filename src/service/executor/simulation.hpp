@@ -21,21 +21,22 @@
 #define SIMULATION_22_JUNE_2022
 
 #include "request.hpp"
+#include "clock.hpp"
+#include "scheduler.hpp"
 
 #include "service/lock_tracker.hpp"
 #include "service/state_machine.hpp"
 #include "service/network/sender.hpp"
 #include "service/protocol/common/header.hpp"
-#include "service/protocol/model/sim.hxx"
 
-#include "mega/common.hpp"
-#include "mega/basic_scheduler.hpp"
-#include "mega/root.hpp"
+#include "runtime/api.hpp"
+#include "runtime/context.hpp"
 
-namespace mega
+#include "mega/reference.hpp"
+
+namespace mega::service
 {
-namespace service
-{
+
 class Executor;
 
 class Simulation : public ExecutorRequestConversation, public mega::MPOContext
@@ -76,6 +77,17 @@ public:
     virtual mega::reference                    getRoot( MPO mpo ) override;
     virtual mega::reference                    getThisRoot() override;
 
+    // mega::MPOContext - clock
+    virtual TimeStamp cycle() override { return m_clock.cycle(); }
+    virtual F32       ct() override { return m_clock.ct(); }
+    virtual F32       dt() override { return m_clock.dt(); }
+
+    // log
+    virtual void info( const reference& ref, const std::string& str ) override;
+    virtual void warn( const reference& ref, const std::string& str ) override;
+    virtual void error( const reference& ref, const std::string& str ) override;
+    virtual void write( const reference& ref ) override;
+
     // mega::MPOContext - runtime internal interface
     virtual std::string    acquireMemory( MPO mpo ) override;
     virtual MPO            getNetworkAddressMPO( NetworkAddress networkAddress ) override;
@@ -91,7 +103,6 @@ public:
 private:
     void issueClock();
     void clock();
-    void cycle();
     void runSimulation( boost::asio::yield_context& yield_ctx );
 
     auto getElapsedTime() const { return std::chrono::steady_clock::now() - m_startTime; }
@@ -107,9 +118,9 @@ private:
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
     LockTracker                                          m_lockTracker;
     StateMachine::MsgVector                              m_messageQueue;
+    mega::Clock                                          m_clock;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // SIMULATION_22_JUNE_2022

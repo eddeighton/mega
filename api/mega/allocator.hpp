@@ -30,7 +30,7 @@
 #include "reference.hpp"
 #include "clock.hpp"
 
-#include "boost/circular_buffer.hpp"
+#include <boost/circular_buffer.hpp>
 
 #ifdef __gnu_linux__
 #include <string.h>

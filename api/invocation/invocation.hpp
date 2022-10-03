@@ -17,10 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef INVOCATION_6_JUNE_2022
 #define INVOCATION_6_JUNE_2022
 
@@ -33,9 +29,7 @@
 #include <vector>
 #include <set>
 
-namespace mega
-{
-namespace invocation
+namespace mega::invocation
 {
 
 class Exception : public std::runtime_error
@@ -88,7 +82,6 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                                                     OperationsStage::Database&    database,
                                                     const mega::io::megaFilePath& sourceFile );
 
-} // namespace invocation
-} // namespace mega
+} // namespace mega::invocation
 
 #endif // INVOCATION_6_JUNE_2022

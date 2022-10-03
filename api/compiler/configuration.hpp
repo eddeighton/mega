@@ -24,23 +24,13 @@
 #define COMPILER_CONFIGURATION_27_MAY_2022
 
 #include "pipeline/configuration.hpp"
-#include "pipeline/pipeline.hpp"
 
-#include "utilities/tool_chain_hash.hpp"
-
-#include "common/hash.hpp"
-#include "common/stash.hpp"
-
-#include "boost/filesystem/path.hpp"
-#include "boost/serialization/nvp.hpp"
-#include "boost/serialization/split_member.hpp"
+#include <boost/filesystem/path.hpp>
 
 #include <vector>
 #include <string>
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 struct Directories
@@ -78,7 +68,6 @@ struct Configuration
 pipeline::Configuration makePipelineConfiguration( const Configuration& config );
 Configuration           fromPipelineConfiguration( const pipeline::Configuration& pipelineConfig );
 
-} // namespace compiler
 } // namespace mega
 
 #endif // COMPILER_CONFIGURATION_27_MAY_2022

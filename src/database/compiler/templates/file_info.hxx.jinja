@@ -29,13 +29,11 @@
 
 #include "database/types/sources.hpp"
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 #include <ostream>
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
     class FileInfo
     {
@@ -112,8 +110,6 @@ namespace io
         CompilationFilePath     m_filePath;
         SourceFilePath          m_objectSourceFilePath;
     };
-
-} // namespace io
 } // namespace mega
 
 std::ostream& operator<<( std::ostream& os, mega::io::FileInfo::Stage stage );

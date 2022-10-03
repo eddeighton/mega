@@ -23,7 +23,7 @@
 #ifndef DATABASE_COMPILER_GENERATOR_4_APRIL_2022
 #define DATABASE_COMPILER_GENERATOR_4_APRIL_2022
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 namespace db
 {

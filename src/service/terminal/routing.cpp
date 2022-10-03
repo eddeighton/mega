@@ -21,9 +21,7 @@
 
 #include "service/network/log.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 TerminalRequestConversation::TerminalRequestConversation( Terminal&                      terminal,
@@ -86,5 +84,4 @@ network::Message TerminalRequestConversation::RootAllBroadcast( const network::M
     return dispatchRequest( request, yield_ctx );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

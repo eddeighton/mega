@@ -54,10 +54,13 @@ set( EXECUTOR_LIB_SRC
     ${EXECUTOR_SRC_DIR}/job.cpp
     ${EXECUTOR_SRC_DIR}/simulation.hpp
     ${EXECUTOR_SRC_DIR}/simulation.cpp
+    ${EXECUTOR_SRC_DIR}/scheduler.hpp
+    ${EXECUTOR_SRC_DIR}/scheduler.cpp
+    ${EXECUTOR_SRC_DIR}/clock.hpp
+    ${EXECUTOR_SRC_DIR}/clock.cpp
     ${EXECUTOR_SRC_DIR}/executor.cpp
     ${EXECUTOR_SRC_DIR}/routing.cpp
     ${EXECUTOR_SRC_DIR}/status.cpp
-    ${MEGA_API_DIR}/mega/basic_scheduler.cpp
 )
 
 add_library( executorLib

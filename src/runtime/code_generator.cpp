@@ -17,17 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "code_generator.hpp"
-#include "database/common/environment_archive.hpp"
 #include "symbol_utils.hpp"
 
 #include "database/model/FinalStage.hxx"
-#include "mega/common.hpp"
 #include "service/network/log.hpp"
 
 #include "common/file.hpp"
-#include "common/string.hpp"
 #include "common/stash.hpp"
 
 #include "nlohmann/json.hpp"
@@ -36,16 +32,14 @@
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
 
-#include "boost/process.hpp"
-#include "boost/algorithm/string.hpp"
+#include <boost/process.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <string>
 #include <istream>
 #include <sstream>
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 namespace
 {
@@ -260,7 +254,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
             {
                 std::ostringstream osPartType;
                 std::ostringstream osPartName;
-                // osPart << "part_" << pPart->get_context()->get_concrete_id();
+
                 osPartType << pPart->get_context()->get_interface()->get_identifier();
                 osPartName << pPart->get_context()->get_interface()->get_identifier();
 
@@ -285,8 +279,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                 }
                 for ( auto pLinkDim : pPart->get_link_dimensions() )
                 {
-                    if ( Concrete::Dimensions::LinkMany* pLinkMany
-                         = dynamic_database_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
+                    if ( auto pLinkMany = dynamic_database_cast< Concrete::Dimensions::LinkMany >( pLinkDim ) )
                     {
                         const std::string  strMangle = megaMangle( "mega::ReferenceVector" );
                         std::ostringstream osLinkName;
@@ -299,8 +292,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                         allocators.insert( strMangle );
                         deallocators.insert( strMangle );
                     }
-                    else if ( Concrete::Dimensions::LinkSingle* pLinkSingle
-                              = dynamic_database_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
+                    else if ( auto pLinkSingle = dynamic_database_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
                     {
                         const std::string  strMangle = megaMangle( "mega::reference" );
                         std::ostringstream osLinkName;
@@ -320,17 +312,15 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                 }
                 for ( auto pAllocDim : pPart->get_allocation_dimensions() )
                 {
-                    if ( Concrete::Dimensions::Allocator* pAllocator
-                         = dynamic_database_cast< Concrete::Dimensions::Allocator >( pAllocDim ) )
+                    if ( auto pAllocator = dynamic_database_cast< Concrete::Dimensions::Allocator >( pAllocDim ) )
                     {
                         Allocators::Allocator* pAllocBase = pAllocator->get_allocator();
 
-                        if ( Allocators::Nothing* pAlloc = dynamic_database_cast< Allocators::Nothing >( pAllocBase ) )
+                        if ( auto pAlloc = dynamic_database_cast< Allocators::Nothing >( pAllocBase ) )
                         {
                             // do nothing
                         }
-                        else if ( Allocators::Singleton* pAlloc
-                                  = dynamic_database_cast< Allocators::Singleton >( pAllocBase ) )
+                        else if ( auto pAlloc = dynamic_database_cast< Allocators::Singleton >( pAllocBase ) )
                         {
                             const std::string  strMangle = megaMangle( "bool" );
                             std::ostringstream osAllocName;
@@ -343,8 +333,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                             allocators.insert( strMangle );
                             deallocators.insert( strMangle );
                         }
-                        else if ( Allocators::Range32* pAlloc
-                                  = dynamic_database_cast< Allocators::Range32 >( pAllocBase ) )
+                        else if ( auto pAlloc = dynamic_database_cast< Allocators::Range32 >( pAllocBase ) )
                         {
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
@@ -363,8 +352,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                             allocators.insert( strMangle );
                             deallocators.insert( strMangle );
                         }
-                        else if ( Allocators::Range64* pAlloc
-                                  = dynamic_database_cast< Allocators::Range64 >( pAllocBase ) )
+                        else if ( auto pAlloc = dynamic_database_cast< Allocators::Range64 >( pAllocBase ) )
                         {
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
@@ -382,8 +370,7 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                             allocators.insert( strMangle );
                             deallocators.insert( strMangle );
                         }
-                        else if ( Allocators::RangeAny* pAlloc
-                                  = dynamic_database_cast< Allocators::RangeAny >( pAllocBase ) )
+                        else if ( auto pAlloc = dynamic_database_cast< Allocators::RangeAny >( pAllocBase ) )
                         {
                             std::ostringstream osAllocName;
                             osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
@@ -438,7 +425,7 @@ using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable
 
 inline std::string get( const VariableMap& varMap, const FinalStage::Invocations::Variables::Variable* pVar )
 {
-    VariableMap::const_iterator iFind = varMap.find( pVar );
+    auto iFind = varMap.find( pVar );
     VERIFY_RTE( iFind != varMap.end() );
     return iFind->second;
 }
@@ -476,6 +463,7 @@ void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayou
                           std::ostream& os )
 {
     const std::string strType = bShared ? "shared" : "heap";
+    // os << indent << "mega::runtime::onWrite( " << strInstanceVar << " )\n";
     os << indent << "return mega::runtime::WriteResult{ reinterpret_cast< char* >( _fptr_get_" << strType << "_" << id
        << "( " << strInstanceVar << " ) )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
@@ -489,11 +477,9 @@ void generateInstructions( const DatabaseInstance&                             d
     using namespace FinalStage;
     using namespace FinalStage::Invocations;
 
-    if ( Instructions::InstructionGroup* pInstructionGroup
-         = dynamic_database_cast< Instructions::InstructionGroup >( pInstruction ) )
+    if ( auto pInstructionGroup = dynamic_database_cast< Instructions::InstructionGroup >( pInstruction ) )
     {
-        if ( Instructions::ParentDerivation* pParentDerivation
-             = dynamic_database_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
+        if ( auto pParentDerivation = dynamic_database_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
         {
             std::ostringstream os;
             os << indent << "// ParentDerivation\n";
@@ -518,8 +504,7 @@ void generateInstructions( const DatabaseInstance&                             d
 
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Instructions::ChildDerivation* pChildDerivation
-                  = dynamic_database_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
+        else if ( auto pChildDerivation = dynamic_database_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
         {
             std::ostringstream os;
             os << indent << "// ChildDerivation\n";
@@ -536,29 +521,26 @@ void generateInstructions( const DatabaseInstance&                             d
 
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Instructions::EnumDerivation* pEnumDerivation
-                  = dynamic_database_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
+        else if ( auto pEnumDerivation = dynamic_database_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
         {
             std::ostringstream os;
             os << indent << "// EnumDerivation\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Instructions::Enumeration* pEnumeration
-                  = dynamic_database_cast< Instructions::Enumeration >( pInstructionGroup ) )
+        else if ( auto pEnumeration = dynamic_database_cast< Instructions::Enumeration >( pInstructionGroup ) )
         {
             std::ostringstream os;
             os << indent << "// Enumeration\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Instructions::DimensionReferenceRead* pDimensionReferenceRead
+        else if ( auto pDimensionReferenceRead
                   = dynamic_database_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
         {
             std::ostringstream os;
             os << indent << "// DimensionReferenceRead\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Instructions::MonoReference* pMonoReference
-                  = dynamic_database_cast< Instructions::MonoReference >( pInstructionGroup ) )
+        else if ( auto pMonoReference = dynamic_database_cast< Instructions::MonoReference >( pInstructionGroup ) )
         {
             const Variables::Instance*  pInstance  = pMonoReference->get_instance();
             const Variables::Reference* pReference = pMonoReference->get_reference();
@@ -569,15 +551,13 @@ void generateInstructions( const DatabaseInstance&                             d
 
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Instructions::PolyReference* pPolyReference
-                  = dynamic_database_cast< Instructions::PolyReference >( pInstructionGroup ) )
+        else if ( auto pPolyReference = dynamic_database_cast< Instructions::PolyReference >( pInstructionGroup ) )
         {
             std::ostringstream os;
             os << indent << "// PolyReference\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Instructions::PolyCase* pPolyCase
-                  = dynamic_database_cast< Instructions::PolyCase >( pInstructionGroup ) )
+        else if ( auto pPolyCase = dynamic_database_cast< Instructions::PolyCase >( pInstructionGroup ) )
         {
             std::ostringstream os;
             os << indent << "// PolyCase\n";
@@ -593,13 +573,14 @@ void generateInstructions( const DatabaseInstance&                             d
             generateInstructions( database, pChildInstruction, variables, parts, calls, data );
         }
     }
-    else if ( FinalStage::Invocations::Operations::Operation* pOperation
+    else if ( auto pOperation
               = dynamic_database_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
     {
         using namespace FinalStage::Invocations::Operations;
 
-        if ( Allocate* pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
+        if ( auto pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
         {
+            // Note how no events are needed when allocate a new object
             Variables::Instance* pInstance       = pAllocate->get_instance();
             Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
 
@@ -612,14 +593,13 @@ void generateInstructions( const DatabaseInstance&                             d
                << "const mega::NetworkAddress networkAddress = mega::runtime::allocateNetworkAddress( "
                   "context, "
                << pConcreteTarget->get_concrete_id() << " );\n";
-
             os << indent << "mega::reference result = mega::runtime::allocateMachineAddress( context, "
                << pConcreteTarget->get_concrete_id() << ", networkAddress );\n";
             os << indent << "return result;\n";
 
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )
+        else if ( auto pCall = dynamic_database_cast< Call >( pOperation ) )
         {
             Concrete::Context*   pConcreteTarget = pCall->get_concrete_target();
             Variables::Instance* pInstance       = pCall->get_instance();
@@ -646,64 +626,62 @@ void generateInstructions( const DatabaseInstance&                             d
 
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Start* pStart = dynamic_database_cast< Start >( pOperation ) )
+        else if ( auto pStart = dynamic_database_cast< Start >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// Start\n";
 
-            
-
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Stop* pStop = dynamic_database_cast< Stop >( pOperation ) )
+        else if ( auto pStop = dynamic_database_cast< Stop >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// Stop\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Pause* pPause = dynamic_database_cast< Pause >( pOperation ) )
+        else if ( auto pPause = dynamic_database_cast< Pause >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// Pause\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Resume* pResume = dynamic_database_cast< Resume >( pOperation ) )
+        else if ( auto pResume = dynamic_database_cast< Resume >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// Resume\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Done* pDone = dynamic_database_cast< Done >( pOperation ) )
+        else if ( auto pDone = dynamic_database_cast< Done >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// Done\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( WaitAction* pWaitAction = dynamic_database_cast< WaitAction >( pOperation ) )
+        else if ( auto pWaitAction = dynamic_database_cast< WaitAction >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// WaitAction\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( WaitDimension* pWaitDimension = dynamic_database_cast< WaitDimension >( pOperation ) )
+        else if ( auto pWaitDimension = dynamic_database_cast< WaitDimension >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// WaitDimension\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( GetAction* pGetAction = dynamic_database_cast< GetAction >( pOperation ) )
+        else if ( auto pGetAction = dynamic_database_cast< GetAction >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// GetAction\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( GetDimension* pGetDimension = dynamic_database_cast< GetDimension >( pOperation ) )
+        else if ( auto pGetDimension = dynamic_database_cast< GetDimension >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// GetDimension\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Read* pRead = dynamic_database_cast< Read >( pOperation ) )
+        else if ( auto pRead = dynamic_database_cast< Read >( pOperation ) )
         {
             Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
             Variables::Instance*        pInstance  = pRead->get_instance();
@@ -722,7 +700,7 @@ void generateInstructions( const DatabaseInstance&                             d
 
             parts.insert( pDimension->get_part() );
         }
-        else if ( Write* pWrite = dynamic_database_cast< Write >( pOperation ) )
+        else if ( auto pWrite = dynamic_database_cast< Write >( pOperation ) )
         {
             Concrete::Dimensions::User* pDimension = pWrite->get_concrete_dimension();
             Variables::Instance*        pInstance  = pWrite->get_instance();
@@ -741,13 +719,13 @@ void generateInstructions( const DatabaseInstance&                             d
 
             parts.insert( pDimension->get_part() );
         }
-        else if ( WriteLink* pWriteLink = dynamic_database_cast< WriteLink >( pOperation ) )
+        else if ( auto pWriteLink = dynamic_database_cast< WriteLink >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// WriteLink\n";
             data[ "assignments" ].push_back( os.str() );
         }
-        else if ( Range* pRange = dynamic_database_cast< Range >( pOperation ) )
+        else if ( auto pRange = dynamic_database_cast< Range >( pOperation ) )
         {
             std::ostringstream os;
             os << indent << "// Range\n";
@@ -777,7 +755,7 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
     int iVariableCounter = 0;
     for ( auto pVariable : invocationVariables )
     {
-        if ( Variables::Instance* pInstanceVar = dynamic_database_cast< Variables::Instance >( pVariable ) )
+        if ( auto pInstanceVar = dynamic_database_cast< Variables::Instance >( pVariable ) )
         {
             std::ostringstream osName;
             {
@@ -792,7 +770,7 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
             }
             data[ "variables" ].push_back( osVar.str() );
         }
-        else if ( Variables::Dimension* pDimensionVar = dynamic_database_cast< Variables::Dimension >( pVariable ) )
+        else if ( auto pDimensionVar = dynamic_database_cast< Variables::Dimension >( pVariable ) )
         {
             auto types = pDimensionVar->get_types();
             VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
@@ -810,7 +788,7 @@ generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Vari
             }
             data[ "variables" ].push_back( osVar.str() );
         }
-        else if ( Variables::Context* pContextVar = dynamic_database_cast< Variables::Context >( pVariable ) )
+        else if ( auto pContextVar = dynamic_database_cast< Variables::Context >( pVariable ) )
         {
             auto types = pContextVar->get_types();
             VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
@@ -948,5 +926,4 @@ void CodeGenerator::generate_call( const DatabaseInstance& database, const mega:
     m_pPimpl->compileToLLVMIR( strName, osCPPCode.str(), os, std::nullopt );
 }
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime

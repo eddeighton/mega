@@ -17,13 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "runtime/runtime_api.hpp"
+#include "runtime/api.hpp"
 
 #include "runtime.hpp"
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 namespace
 {
@@ -65,12 +63,9 @@ void initialiseStaticRuntime( const mega::network::MegastructureInstallation& me
 bool isStaticRuntimeInitialised() { return g_pRuntime.get(); }
 
 } // namespace
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 
 // routines used by jit compiled functions
@@ -144,5 +139,4 @@ void get_call( const char* pszUnitName, const mega::InvocationID& invocationID, 
     g_pRuntime->get_call( pszUnitName, invocationID, ppFunction );
 }
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime

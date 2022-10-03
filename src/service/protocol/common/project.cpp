@@ -17,12 +17,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/protocol/common/project.hpp"
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 Project::Project() {}
@@ -37,5 +34,4 @@ boost::filesystem::path Project::getProjectBin() const { return m_projectInstall
 boost::filesystem::path Project::getProjectDatabase() const { return getProjectBin() / "archive.adb"; }
 boost::filesystem::path Project::getProjectTempDir() const { return m_projectInstallPath / "tmp/"; }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

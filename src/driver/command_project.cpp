@@ -17,20 +17,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "service/terminal.hpp"
 
-#include "boost/program_options.hpp"
-#include "boost/filesystem/path.hpp"
+#include <boost/program_options.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <vector>
 #include <string>
 #include <iostream>
 
-namespace driver
-{
-namespace project
+namespace driver::project
 {
 
 void command( bool bHelp, const std::vector< std::string >& args )
@@ -73,7 +69,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
         else // if ( bGetInstallInfo )
         {
-            mega::service::Terminal terminal;
+            mega::service::Terminal          terminal;
             const mega::network::Project     project   = terminal.GetProject();
             const auto                       result    = terminal.GetMegastructureInstallation();
             const mega::utilities::ToolChain toolChain = result.getToolchainXML();
@@ -118,5 +114,4 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
     }
 }
-} // namespace project
-} // namespace driver
+} // namespace driver::project

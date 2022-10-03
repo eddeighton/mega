@@ -1,3 +1,4 @@
+
 //  Copyright (c) Deighton Systems Limited. 2022. All Rights Reserved.
 //  Author: Edward Deighton
 //  License: Please see license.txt in the project root folder.
@@ -17,19 +18,16 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#ifndef GUARD_2022_September_30_clock
+#define GUARD_2022_September_30_clock
 
+#include "mega/native_types.hpp"
 
-#ifndef EG_CLOCK_12_06_2019
-#define EG_CLOCK_12_06_2019
-
-#include "common.hpp"
-
-struct clock
+struct Clock
 {
-    static mega::TimeStamp cycle( mega::TypeID type );
+    static mega::TimeStamp cycle();
     static mega::F32 ct();
     static mega::F32 dt();
-    static void next(); //for use by host
 };
 
-#endif //EG_CLOCK_12_06_2019
+#endif //GUARD_2022_September_30_clock

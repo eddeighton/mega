@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "jit.hpp"
 
 #include "common/string.hpp"
@@ -61,10 +59,9 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/SourceMgr.h"
 
-namespace mega
+namespace mega::runtime
 {
-namespace runtime
-{
+
 llvm::ExitOnError ExitOnErr;
 
 JITCompiler::Module::~Module() {}
@@ -276,5 +273,4 @@ JITCompiler::JITCompiler()
 
 JITCompiler::Module::Ptr JITCompiler::compile( const std::string& strModule ) { return m_pPimpl->compile( strModule ); }
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime

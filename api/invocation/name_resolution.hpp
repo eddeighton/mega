@@ -17,10 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef NAME_RESOLUTION_8_JUNE_2022
 #define NAME_RESOLUTION_8_JUNE_2022
 
@@ -28,9 +24,7 @@
 
 #include <stdexcept>
 
-namespace mega
-{
-namespace invocation
+namespace mega::invocation
 {
 
 class NameResolutionException : public std::runtime_error
@@ -42,12 +36,11 @@ public:
     }
 };
 
-OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&                  database,
-                                                      OperationsStage::Operations::Invocation*    pInvocation
+OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&               database,
+                                                      OperationsStage::Operations::Invocation* pInvocation
 
 );
 
-} // namespace invocation
-} // namespace mega
+} // namespace mega::invocation
 
 #endif // NAME_RESOLUTION_8_JUNE_2022

@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/InterfaceAnalysisStage.hxx"
@@ -44,9 +42,7 @@ using namespace InterfaceAnalysisStage::Interface;
 #include "interface.hpp"
 } // namespace InterfaceAnalysisStage
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_InterfaceGeneration : public BaseTask
@@ -267,5 +263,4 @@ BaseTask::Ptr create_Task_InterfaceAnalysis( const TaskArguments&          taskA
     return std::make_unique< Task_InterfaceAnalysis >( taskArguments, sourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

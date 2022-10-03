@@ -36,11 +36,8 @@
 
 #include <fstream>
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
-
     Manifest::Manifest() {}
  
     Manifest::Manifest( const Environment& environment, const manifestFilePath& filepath ) 
@@ -264,7 +261,6 @@ namespace io
         return task::FileHash( tempFilePath );
     }
 
-} // namespace io
 } // namespace mega
 
 BOOST_CLASS_IMPLEMENTATION( mega::io::Manifest, object_serializable )

@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "job.hpp"
 
 #include "root.hpp"
@@ -25,9 +24,7 @@
 
 #include "spdlog/stopwatch.h"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 RootJobConversation::RootJobConversation( Root&                          root,
@@ -51,7 +48,7 @@ void RootJobConversation::JobReadyForWork( const network::ConversationID& rootCo
     VERIFY_RTE( pCoordinator );
 
     {
-        auto exeRequest = getExeRequest< network::job::Request_Encoder >( yield_ctx );
+        auto              exeRequest = getExeRequest< network::job::Request_Encoder >( yield_ctx );
         spdlog::stopwatch sw;
         while ( true )
         {
@@ -86,5 +83,4 @@ void RootJobConversation::JobProgress( const std::string& message, boost::asio::
     network::logLinesInfo( message );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

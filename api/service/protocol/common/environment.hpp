@@ -17,16 +17,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef MEGA_ENVIRONMENT_9_SEPT
 #define MEGA_ENVIRONMENT_9_SEPT
 
-namespace mega
-{
-namespace environment
+namespace mega::environment
 {
 
 // environment variables setup by the environment configuration scripts
@@ -45,7 +39,6 @@ static const char* CFG_BOOST_TOOLSET   = "CFG_BOOST_TOOLSET";
 static const char* CFG_BOOST_B2        = "CFG_BOOST_B2";
 static const char* CFG_BOOST_B2_EXE    = "CFG_BOOST_B2_EXE";
 
-} // namespace environment
-} // namespace mega
+} // namespace mega::environment
 
 #endif // MEGA_ENVIRONMENT_9_SEPT

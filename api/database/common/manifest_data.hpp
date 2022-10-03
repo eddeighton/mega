@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef MANIFEST_DATA_17_JUNE_2022
 #define MANIFEST_DATA_17_JUNE_2022
 
@@ -29,9 +26,7 @@
 
 #include <vector>
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 struct ManifestData
 {
@@ -79,7 +74,6 @@ struct ManifestData
     FileInfoVector       m_compilationFileInfos;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // MANIFEST_DATA_17_JUNE_2022

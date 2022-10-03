@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "pipeline/configuration.hpp"
 
 #include "pipeline/stash.hpp"
@@ -30,11 +28,11 @@
 
 #include "parser/parser.hpp"
 
-#include "boost/program_options.hpp"
-#include "boost/filesystem/path.hpp"
-#include "boost/filesystem/operations.hpp"
-#include "boost/program_options/value_semantic.hpp"
-#include "boost/dll.hpp"
+#include <boost/program_options.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/value_semantic.hpp>
+#include <boost/dll.hpp>
 
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
@@ -43,9 +41,7 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
-namespace driver
-{
-namespace new_install
+namespace driver::new_install
 {
 
 void command( bool bHelp, const std::vector< std::string >& args )
@@ -91,5 +87,4 @@ void command( bool bHelp, const std::vector< std::string >& args )
         }
     }
 }
-} // namespace new_install
-} // namespace driver
+} // namespace driver::new_install

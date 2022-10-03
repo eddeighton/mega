@@ -17,12 +17,9 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::memory::Impl
@@ -40,5 +37,4 @@ mega::network::MemoryConfig DaemonRequestConversation::GetSharedMemoryConfig( bo
     return m_daemon.m_sharedMemoryManager.getConfig();
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

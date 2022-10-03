@@ -17,17 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/ConcreteStage.hxx"
 #include <common/stash.hpp>
 #include <optional>
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_ConcreteTree : public BaseTask
@@ -478,5 +474,4 @@ BaseTask::Ptr create_Task_ConcreteTree( const TaskArguments&          taskArgume
     return std::make_unique< Task_ConcreteTree >( taskArguments, sourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

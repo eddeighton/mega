@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef LOADER_18_04_2019
 #define LOADER_18_04_2019
 
@@ -44,9 +42,7 @@ namespace data
 {
 class ObjectPartLoader;
 }
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 class Manifest;
 
@@ -69,7 +65,6 @@ private:
     boost::archive::MegaIArchive      m_archive;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // LOADER_18_04_2019

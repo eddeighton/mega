@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef INDEXED_FILE_18_04_2019
 #define INDEXED_FILE_18_04_2019
 
@@ -37,53 +35,51 @@
 
 namespace data
 {
-    class ObjectPartLoader;
+class ObjectPartLoader;
 }
-namespace mega
+namespace mega::io
 {
-namespace io
+class Loader;
+class Storer;
+
+class Object
 {
-    class Loader;
-    class Storer;
+public:
+    using Array = std::vector< Object* >;
 
-    class Object
+    virtual ~Object();
+
+    virtual bool test_inheritance_pointer( ::data::ObjectPartLoader& loader ) const = 0;
+    virtual void set_inheritance_pointer()                                          = 0;
+    virtual void load( Loader& loader )                                             = 0;
+    virtual void store( Storer& storer ) const                                      = 0;
+    virtual void to_json( nlohmann::json& data ) const                              = 0;
+
+    Object( const ObjectInfo& objectInfo )
+        : m_objectInfo( objectInfo )
     {
-    public:
-        using Array = std::vector< Object* >;
+    }
 
-        virtual ~Object();
+    inline ObjectInfo::Type   getType() const { return m_objectInfo.getType(); }
+    inline ObjectInfo::FileID getFileID() const { return m_objectInfo.getFileID(); }
+    inline ObjectInfo::Index  getIndex() const { return m_objectInfo.getIndex(); }
 
-        virtual bool test_inheritance_pointer( ::data::ObjectPartLoader &loader ) const = 0;
-        virtual void set_inheritance_pointer() = 0;
-        virtual void load( Loader& loader ) = 0;
-        virtual void store( Storer& storer ) const = 0;
-        virtual void to_json( nlohmann::json& data ) const = 0;
+    const ObjectInfo& getObjectInfo() const { return m_objectInfo; }
 
-        Object( const ObjectInfo& objectInfo )
-            : m_objectInfo( objectInfo )
-        {
-        }
+private:
+    ObjectInfo m_objectInfo;
+};
 
-        inline ObjectInfo::Type   getType() const { return m_objectInfo.getType(); }
-        inline ObjectInfo::FileID getFileID() const { return m_objectInfo.getFileID(); }
-        inline ObjectInfo::Index  getIndex() const { return m_objectInfo.getIndex(); }
-
-        const ObjectInfo& getObjectInfo() const { return m_objectInfo; }
-
-    private:
-        ObjectInfo m_objectInfo;
-    };
-
-    struct CompareIndexedObjects
+struct CompareIndexedObjects
+{
+    inline bool operator()( const Object* pLeft, const Object* pRight ) const
     {
-        inline bool operator()( const Object* pLeft, const Object* pRight ) const
-        {
-            VERIFY_RTE( pLeft && pRight );
-            return ( pLeft->getFileID() != pRight->getFileID() ) ? ( pLeft->getFileID() < pRight->getFileID() ) : ( pLeft->getIndex() < pRight->getIndex() );
-        }
-    };
-    
-} // namespace io
-} // namespace mega
+        VERIFY_RTE( pLeft && pRight );
+        return ( pLeft->getFileID() != pRight->getFileID() ) ? ( pLeft->getFileID() < pRight->getFileID() )
+                                                             : ( pLeft->getIndex() < pRight->getIndex() );
+    }
+};
+
+} // namespace mega::io
 
 #endif // INDEXED_FILE_18_04_2019

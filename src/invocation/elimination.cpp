@@ -17,14 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "invocation/elimination.hpp"
 #include "database/model/OperationsStage.hxx"
 
-namespace mega
+namespace mega::invocation
 {
-namespace invocation
-{
+
 using namespace OperationsStage;
 using namespace OperationsStage::Operations;
 
@@ -223,5 +221,4 @@ getOperations( OperationsStage::Invocations::Instructions::Instruction* pInstruc
     return operations;
 }
 
-} // namespace invocation
-} // namespace mega
+} // namespace mega::invocation

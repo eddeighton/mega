@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef SHARED_ALLOCATOR_8_SEPT
 #define SHARED_ALLOCATOR_8_SEPT
 
@@ -29,9 +28,7 @@
 #include <memory>
 #include <utility>
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 
 class IndexedBufferAllocator
@@ -79,7 +76,6 @@ private:
     HeapBufferVector     m_heapBuffers;
 };
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // SHARED_ALLOCATOR_8_SEPT

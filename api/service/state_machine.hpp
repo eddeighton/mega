@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef STATE_MACHINE_16_SEPT_2022
 #define STATE_MACHINE_16_SEPT_2022
 
@@ -38,11 +35,8 @@
 #include <optional>
 #include <utility>
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
-
 class StateMachine
 {
     using ID    = mega::MPO;
@@ -84,11 +78,8 @@ public:
     using Destroy = network::sim::MSG_SimDestroy_Request;
     using Clock   = network::sim::MSG_SimClock_Request;
 
-    static network::MessageID getMsgID( const Msg& msg )
-    {
-        return network::getMsgID( msg.msg );
-    }
-    static const mega::MPO& getSimID( const Msg& msg )
+    static network::MessageID getMsgID( const Msg& msg ) { return network::getMsgID( msg.msg ); }
+    static const mega::MPO&   getSimID( const Msg& msg )
     {
         switch ( getMsgID( msg ) )
         {
@@ -544,7 +535,6 @@ public:
     }
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // STATE_MACHINE_16_SEPT_2022

@@ -47,6 +47,7 @@ set( MEGA_UNIT_TESTS
 	${MEGA_TEST_DIR}/allocator_tests.cpp
 	${MEGA_TEST_DIR}/sim_state_machine_tests.cpp
 	${MEGA_TEST_DIR}/reference_tests.cpp
+	${MEGA_TEST_DIR}/scheduler_tests.cpp
 	)
 
 enable_testing()
@@ -72,6 +73,7 @@ target_link_libraries( mega_tests database_compiler)
 target_link_libraries( mega_tests protocol)
 target_link_libraries( mega_tests network)
 target_link_libraries( mega_tests pipeline)
+target_link_libraries( mega_tests executorLib)
 
 gtest_add_tests( TARGET mega_tests SOURCES ${MEGA_UNIT_TESTS} )
 

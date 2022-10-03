@@ -21,14 +21,12 @@
 
 #include "service/network/log.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::project::Impl
 network::Status TerminalRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
-                                                    boost::asio::yield_context&           yield_ctx )
+                                                        boost::asio::yield_context&           yield_ctx )
 {
     SPDLOG_TRACE( "TerminalRequestConversation::GetStatus" );
 
@@ -48,5 +46,4 @@ std::string TerminalRequestConversation::Ping( boost::asio::yield_context& yield
     return os.str();
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

@@ -17,14 +17,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
-
 // network::enrole::Impl
 MP DaemonRequestConversation::EnroleLeafWithDaemon( const mega::network::Node::Type& type,
                                                     boost::asio::yield_context&      yield_ctx )
@@ -47,5 +43,4 @@ MP DaemonRequestConversation::EnroleLeafWithDaemon( const mega::network::Node::T
     return leafMP;
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

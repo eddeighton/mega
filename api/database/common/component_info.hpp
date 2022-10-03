@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef IO_SOURCETREE_25_MARCH_2022
 #define IO_SOURCETREE_25_MARCH_2022
 
@@ -31,11 +28,8 @@
 
 #include <vector>
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
-
 class ComponentInfo
 {
 public:
@@ -91,7 +85,6 @@ private:
     PathArray                  m_includeDirectories;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // IO_SOURCETREE_25_MARCH_2022

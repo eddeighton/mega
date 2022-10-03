@@ -19,9 +19,7 @@
 
 #include "request.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 DaemonRequestConversation::DaemonRequestConversation( Daemon&                        daemon,
@@ -290,5 +288,4 @@ network::Message DaemonRequestConversation::MPOUp( const network::Message&     r
     }
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

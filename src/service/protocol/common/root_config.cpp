@@ -17,15 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/protocol/common/root_config.hpp"
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 RootConfig::RootConfig() {}
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

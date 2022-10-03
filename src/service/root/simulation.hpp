@@ -26,11 +26,8 @@
 
 #include "service/protocol/model/sim.hxx"
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
-
 class RootSimulation : public RootRequestConversation, public network::sim::Impl
 {
 public:
@@ -45,9 +42,8 @@ public:
     virtual void SimStart( boost::asio::yield_context& yield_ctx ) override;
 
 private:
-    mega::MP  m_leafMP;
+    mega::MP m_leafMP;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 #endif // ROOT_SIM_24_SEPT_2022

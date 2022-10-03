@@ -17,15 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/environment_archive.hpp"
 
 #include "common/string.hpp"
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 
 ArchiveEnvironment::ArchiveEnvironment( const boost::filesystem::path& archiveFilePath )
@@ -63,5 +59,4 @@ void ArchiveEnvironment::temp_to_real( const SourceFilePath& filePath ) const
     THROW_RTE( "Invalid use of retail environment" );
 }
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io

@@ -33,9 +33,7 @@
 #include "service/protocol/model/job.hxx"
 #include "service/protocol/model/memory.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 class DaemonRequestConversation : public network::InThreadConversation,
@@ -145,7 +143,6 @@ public:
     }
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // DAEMON_REQUEST_23_SEPT_2022

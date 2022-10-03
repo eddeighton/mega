@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef TOOL_16_JUNE_2022
 #define TOOL_16_JUNE_2022
 
@@ -37,11 +34,8 @@
 #include <thread>
 #include <functional>
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
-
 class Tool : public network::ConversationManager
 {
     friend class ToolRequestConversation;
@@ -73,7 +67,6 @@ private:
     std::optional< mega::MPO > m_mpo;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // TOOL_16_JUNE_2022

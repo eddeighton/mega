@@ -17,20 +17,20 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/executor/request.hpp"
+#include "request.hpp"
+#include "simulation.hpp"
 
 #include "service/executor.hpp"
 
-#include "job.hpp"
 #include "service/protocol/common/header.hpp"
-#include "simulation.hpp"
 
-#include "service/protocol/model/exe_sim.hxx"
+#include "service/network/log.hpp"
 
-namespace mega
+#include "runtime/api.hpp"
+
+namespace mega::service
 {
-namespace service
-{
+
 mega::MPO ExecutorRequestConversation::SimCreate( boost::asio::yield_context& yield_ctx )
 {
     VERIFY_RTE_MSG( mega::runtime::isRuntimeInitialised(), "Megastructure Project not initialised" );
@@ -106,5 +106,4 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
     }
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

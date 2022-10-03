@@ -31,36 +31,33 @@
 
 #include "database/common/file_system.hpp"
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 #include <string>
 
-namespace mega
+namespace mega::io
 {
-namespace io
+class Environment : public FileSystem
 {
-    class Environment : public FileSystem
-    {
-    public:
-        static mega::U64 getVersion();
+public:
+    static mega::U64 getVersion();
 
-        manifestFilePath project_manifest() const
-        { 
-            std::ostringstream os;
-            os << "project" << manifestFilePath::extension().string(); 
-            return manifestFilePath( os.str() );
-        }
-        
+    manifestFilePath project_manifest() const
+    { 
+        std::ostringstream os;
+        os << "project" << manifestFilePath::extension().string(); 
+        return manifestFilePath( os.str() );
+    }
+    
 {% for stage in stages %}
 {% for file in stage.files %}
 {% for source in stage.sources %}
-        CompilationFilePath {{ stage.name }}_{{ file.name }}( const {{ source }}FilePath& source) const;
+    CompilationFilePath {{ stage.name }}_{{ file.name }}( const {{ source }}FilePath& source) const;
 {% endfor %}
 {% endfor %}
 {% endfor %}
 
-    };
-} // namespace io
+};
 } // namespace mega
 
 #endif // DRIVER_ENVIRONMENT_24_MARCH_2022

@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef BASE_TASK_10_MAY_2022
 #define BASE_TASK_10_MAY_2022
 
@@ -28,7 +26,7 @@
 
 #include "database/types/sources.hpp"
 
-//#include "database/model/file_info.hxx"
+// #include "database/model/file_info.hxx"
 
 #include "utilities/tool_chain_hash.hpp"
 
@@ -71,10 +69,9 @@
         throw std::runtime_error( _os2.str() );                                                                 \
     } )
 
-namespace mega
+namespace mega::compiler
 {
-namespace compiler
-{
+
 struct TaskArguments
 {
     TaskArguments( const mega::io::StashEnvironment& environment, const mega::utilities::ToolChain& toolChain,
@@ -238,7 +235,6 @@ public:
     }
 };
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler
 
 #endif // BASE_TASK_10_MAY_2022

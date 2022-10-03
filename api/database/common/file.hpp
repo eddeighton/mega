@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef INDEXED_FILE_25_MAR_2022
 #define INDEXED_FILE_25_MAR_2022
 
@@ -44,9 +41,7 @@
 #include <memory>
 #include <optional>
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 class Manifest;
 class File;
@@ -79,7 +74,7 @@ public:
     }
 
     mega::U64 getTotalObjects() const { return m_objects.size(); }
-    Object*     getObject( ObjectInfo::Index objectIndex ) const
+    Object*   getObject( ObjectInfo::Index objectIndex ) const
     {
         VERIFY_RTE( objectIndex >= 0 );
         VERIFY_RTE( objectIndex < m_objects.size() );
@@ -116,7 +111,6 @@ public:
     }
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // INDEXED_FILE_25_MAR_2022

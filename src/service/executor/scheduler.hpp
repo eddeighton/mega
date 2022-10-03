@@ -17,14 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef BASIC_SCHEDULER_12_SEPT_2022
 #define BASIC_SCHEDULER_12_SEPT_2022
 
-#include "common.hpp"
-#include "coroutine.hpp"
+#include "mega/reference.hpp"
+#include "mega/coroutine.hpp"
 
 #include <functional>
 #include <memory>
@@ -57,7 +54,7 @@ public:
     }
 
     // stopper callback
-    void stopperStopped( const reference& ref );
+    void stopped( const reference& ref );
 
     // are there any active actions
     bool active();

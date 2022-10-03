@@ -17,28 +17,22 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-#include "service/executor/simulation.hpp"
+#include "simulation.hpp"
 
-#include "mega/common.hpp"
-
-#include "runtime/runtime_api.hpp"
-#include "runtime/mpo_context.hpp"
+#include "runtime/api.hpp"
+#include "runtime/context.hpp"
 
 #include "service/executor.hpp"
 
 #include "service/network/conversation.hpp"
 
-#include "service/protocol/model/exe_leaf.hxx"
-#include "service/protocol/model/exe_sim.hxx"
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/address.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/messages.hxx"
 #include "service/protocol/model/enrole.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID )
@@ -87,6 +81,24 @@ MPO Simulation::constructMPO( MP machineProcess )
 }
 mega::reference Simulation::getRoot( MPO mpo ) { return mega::runtime::get_root( mpo ); }
 mega::reference Simulation::getThisRoot() { return m_pExecutionRoot->root(); }
+
+// log
+void Simulation::info( const reference& ref, const std::string& str )
+{
+    //
+}
+void Simulation::warn( const reference& ref, const std::string& str )
+{
+    //
+}
+void Simulation::error( const reference& ref, const std::string& str )
+{
+    //
+}
+void Simulation::write( const reference& ref )
+{
+    //
+}
 
 // mega::MPOContext
 std::string Simulation::acquireMemory( MPO mpo )
@@ -175,6 +187,8 @@ void Simulation::cycleComplete()
 {
     VERIFY_RTE( m_pYieldContext );
 
+    
+
     for ( MPO writeLock : m_lockTracker.getWrites() )
     {
         VERIFY_RTE( m_pYieldContext );
@@ -216,12 +230,6 @@ void Simulation::clock()
     send( network::ReceivedMsg{ getConnectionID(), MSG_SimClock_Request::make( getID(), MSG_SimClock_Request{} ) } );
 }
 
-void Simulation::cycle()
-{
-    m_scheduler.cycle();
-    cycleComplete();
-}
-
 void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
 {
     try
@@ -255,7 +263,8 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
                 case StateMachine::SIM:
                 {
                     SPDLOG_TRACE( "SIM: SIM {} {} {}", getID(), m_mpo.value(), getElapsedTime() );
-                    cycle();
+                    cycleComplete();
+                    m_scheduler.cycle();
                 }
                 break;
                 case StateMachine::READ:
@@ -412,10 +421,7 @@ void Simulation::SimLockRelease( const mega::MPO&, boost::asio::yield_context& )
 {
     // Do nothing just return
 }
-void Simulation::SimClock( boost::asio::yield_context& )
-{
-    // Do nothing just return
-}
+void Simulation::SimClock( boost::asio::yield_context& ) { m_clock.nextCycle(); }
 
 mega::MPO Simulation::SimCreate( boost::asio::yield_context& )
 {
@@ -465,5 +471,4 @@ std::string Simulation::Ping( boost::asio::yield_context& yield_ctx )
     return os.str();
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

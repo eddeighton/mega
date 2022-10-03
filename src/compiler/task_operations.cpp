@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/ConcreteStage.hxx"
@@ -40,9 +38,7 @@
 #include <vector>
 #include <string>
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 struct CleverUtility
@@ -146,7 +142,7 @@ public:
                                         { "types", types },
                                         { "params_string", "" },
                                         { "params", nlohmann::json::array() } } );
-                                        
+
             data[ "operations" ].push_back( operation );
 
             for ( IContext* pNestedContext : pAction->get_children() )
@@ -360,5 +356,4 @@ BaseTask::Ptr create_Task_OperationsPCH( const TaskArguments&          taskArgum
     return std::make_unique< Task_OperationsPCH >( taskArguments, sourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

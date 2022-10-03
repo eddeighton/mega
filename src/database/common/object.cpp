@@ -17,14 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/object.hpp"
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
-    Object::~Object(){};
-} // namespace io
-} // namespace mega
+
+Object::~Object(){};
+
+} // namespace mega::io

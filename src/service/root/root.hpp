@@ -31,11 +31,9 @@
 
 #include "common/stash.hpp"
 
-#include "boost/asio/io_context.hpp"
+#include <boost/asio/io_context.hpp>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 class Root : public network::ConversationManager
@@ -72,7 +70,6 @@ private:
     LogicalAddressSpace                                 m_logicalAddressSpace;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // ROOT_26_MAY_2022

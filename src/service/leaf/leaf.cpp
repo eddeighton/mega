@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "service/leaf.hpp"
 
 #include "request.hpp"
@@ -31,15 +30,13 @@
 
 #include "mega/common.hpp"
 
-#include "runtime/mpo_context.hpp"
+#include "runtime/context.hpp"
 
 #include "common/requireSemicolon.hpp"
 
-#include "boost/system/detail/error_code.hpp"
+#include <boost/system/detail/error_code.hpp>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 class LeafEnrole : public LeafRequestConversation
@@ -56,7 +53,8 @@ public:
     {
         network::enrole::Request_Encoder encoder(
             [ daemonSender = getDaemonSender( yield_ctx ) ]( const network::Message& msg ) mutable
-            { return daemonSender.LeafDaemon( msg ); }, getID() );
+            { return daemonSender.LeafDaemon( msg ); },
+            getID() );
         m_leaf.m_mp = encoder.EnroleLeafWithDaemon( m_leaf.getType() );
         SPDLOG_TRACE( "Leaf enrole mp: {}", m_leaf.m_mp );
         boost::asio::post( [ &promise = m_promise ]() { promise.set_value(); } );
@@ -122,5 +120,4 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
     }
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

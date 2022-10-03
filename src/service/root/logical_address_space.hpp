@@ -29,9 +29,7 @@
 #include <unordered_map>
 #include <deque>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 class LogicalAddressSpace
@@ -122,7 +120,6 @@ private:
     MPORootMap          m_MPORootMap;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // LOGICAL_ADDRESS_SPACE_31_AUG_2022

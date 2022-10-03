@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef LEAF_16_JUNE_2022
 #define LEAF_16_JUNE_2022
 
@@ -37,11 +34,8 @@
 #include <vector>
 #include <thread>
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
-
 class Leaf : public network::ConversationManager, public network::Sender
 {
     friend class LeafRequestConversation;
@@ -90,7 +84,6 @@ private:
     std::set< mega::MPO >                            m_mpos;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // LEAF_16_JUNE_2022

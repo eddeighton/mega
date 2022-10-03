@@ -17,16 +17,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef MEGA_NETWORK_16_MAY_2022
 #define MEGA_NETWORK_16_MAY_2022
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 const char* getVersion();
@@ -37,7 +31,6 @@ const char* MegaRootServiceName();
 short       MegaExecutorPort();
 const char* MegaExecutorServiceName();
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // MEGA_NETWORK_16_MAY_2022

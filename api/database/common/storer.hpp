@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef STORER_18_04_2019
 #define STORER_18_04_2019
 
@@ -38,9 +36,7 @@
 #include <map>
 #include <vector>
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 class Storer
 {
@@ -61,7 +57,6 @@ private:
     boost::archive::MegaOArchive            m_archive;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // STORER_18_04_2019

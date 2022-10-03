@@ -21,9 +21,7 @@
 
 #include "root.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::stash::Impl
@@ -56,5 +54,4 @@ void RootRequestConversation::BuildSetHashCode( const boost::filesystem::path& f
     m_root.m_buildHashCodes.set( filePath, hashCode );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

@@ -31,8 +31,6 @@ namespace mega
 using Instance       = U16;
 using SymbolID       = I16;
 using TypeID         = I16;
-using TimeStamp      = U32;
-using event_iterator = U64;
 
 static constexpr char   ROOT_TYPE_NAME[] = "Root";
 static constexpr TypeID ROOT_TYPE_ID     = 1;
@@ -42,7 +40,7 @@ struct TypeInstance
     Instance instance = 0U;
     TypeID   type     = 0;
 
-    TypeInstance() {}
+    TypeInstance() = default;
     TypeInstance( Instance instance, TypeID type )
         : instance( instance )
         , type( type )
@@ -153,7 +151,7 @@ public:
         archive& mp_storage;
     }
 
-    MP() {}
+    MP() = default;
     MP( MachineID machineID, ProcessID processID, bool isDeamon )
         : mp{ processID, machineID, isDeamon }
     {
@@ -263,7 +261,7 @@ static_assert( sizeof( MachineAddress ) == 4U, "Invalid MachineAddress Size" );
 
 struct reference : TypeInstance, MachineAddress, NetworkOrProcessAddress
 {
-    inline reference() {}
+    inline reference() = default;
     inline reference( TypeInstance typeInstance, MachineAddress machineAddress )
         : TypeInstance( typeInstance )
         , MachineAddress( machineAddress )

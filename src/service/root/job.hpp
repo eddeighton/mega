@@ -26,9 +26,7 @@
 
 #include "service/protocol/model/job.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 class Root;
 
@@ -48,7 +46,6 @@ public:
     virtual void JobProgress( const std::string& message, boost::asio::yield_context& yield_ctx ) override;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // ROOT_JOB_23_SEPT_2022

@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/FinalStage.hxx"
@@ -35,9 +33,7 @@
 #include "inja/environment.hpp"
 #include "inja/template.hpp"
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_Implementation : public BaseTask
@@ -224,7 +220,10 @@ public:
         Database database( m_environment, m_environment.project_manifest() );
 
         const mega::Compilation compilationCMD = mega::Compilation::make_implementationObj_compilation(
-            m_environment, m_toolChain, getComponent< Components::Component >( database, m_sourceFilePath ), m_sourceFilePath );
+            m_environment,
+            m_toolChain,
+            getComponent< Components::Component >( database, m_sourceFilePath ),
+            m_sourceFilePath );
 
         if ( run_cmd( taskProgress, compilationCMD.generateCompilationCMD() ) )
         {
@@ -251,5 +250,4 @@ BaseTask::Ptr create_Task_ImplementationObj( const TaskArguments&          taskA
     return std::make_unique< Task_ImplementationObj >( taskArguments, sourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

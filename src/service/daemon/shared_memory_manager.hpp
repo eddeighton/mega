@@ -33,10 +33,9 @@
 #include <sstream>
 #include <map>
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
+
 class SharedMemoryManager
 {
     struct AddressSpaceMapLifetime
@@ -145,7 +144,7 @@ private:
     SharedMemoryMap             m_memory;
     AddressSpaceMapLifetime     m_memoryLifetime;
 };
-} // namespace service
-} // namespace mega
+
+} // namespace mega::service
 
 #endif // SHARED_MEMORY_MANAGER_3_SEPT_2022

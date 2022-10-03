@@ -17,10 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef TOOLCHAIN_HASH_03_JUNE_20221
 #define TOOLCHAIN_HASH_03_JUNE_20221
 
@@ -28,17 +24,14 @@
 
 #include "mega/native_types.hpp"
 
-#include "boost/serialization/nvp.hpp"
-#include "boost/serialization/split_member.hpp"
-#include "boost/filesystem/path.hpp"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_member.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include <common/stash.hpp>
 
-namespace mega
+namespace mega::utilities
 {
-namespace utilities
-{
-
 struct ToolChain
 {
     ToolChain();
@@ -115,7 +108,6 @@ struct ToolChain
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
-} // namespace utilities
-} // namespace mega
+} // namespace mega::utilities
 
 #endif // TOOLCHAIN_HASH_03_JUNE_20221

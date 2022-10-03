@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef SENDER_15_JUNE_2022
 #define SENDER_15_JUNE_2022
 
@@ -29,16 +26,14 @@
 
 #include "service/network/end_point.hpp"
 
-#include "boost/asio/ip/tcp.hpp"
-#include "boost/asio/spawn.hpp"
-#include "boost/asio/experimental/concurrent_channel.hpp"
-#include "boost/asio/experimental/channel.hpp"
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/spawn.hpp>
+#include <boost/asio/experimental/concurrent_channel.hpp>
+#include <boost/asio/experimental/channel.hpp>
 
 #include <memory>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class Sender
@@ -58,7 +53,6 @@ Sender::Ptr make_socket_sender( boost::asio::ip::tcp::socket& socket, const Conn
 Sender::Ptr make_current_channel_sender( ConcurrentChannel& channel, const ConnectionID& connectionID );
 Sender::Ptr make_channel_sender( Channel& channel, const ConnectionID& connectionID );
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // SENDER_15_JUNE_2022

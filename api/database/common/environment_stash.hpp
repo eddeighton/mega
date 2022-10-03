@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef ENVIRONMENT_STASH_18_JUNE_2022
 #define ENVIRONMENT_STASH_18_JUNE_2022
 
@@ -27,11 +24,8 @@
 
 #include "environment_build.hpp"
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
-
 class StashEnvironment : public BuildEnvironment
 {
     mega::pipeline::Stash& m_stash;
@@ -72,7 +66,6 @@ public:
     bool restore( const CompilationFilePath& filePath, task::DeterminantHash hashCode ) const;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // ENVIRONMENT_STASH_18_JUNE_2022

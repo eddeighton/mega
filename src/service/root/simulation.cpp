@@ -24,9 +24,7 @@
 
 #include "service/protocol/model/memory.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 RootSimulation::RootSimulation( Root&                          root,
@@ -85,5 +83,4 @@ void RootSimulation::SimStart( boost::asio::yield_context& yield_ctx )
     }
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

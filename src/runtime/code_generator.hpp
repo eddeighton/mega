@@ -20,7 +20,7 @@
 #ifndef CODE_GENERATOR_16_AUG_2022
 #define CODE_GENERATOR_16_AUG_2022
 
-#include "runtime/runtime_api.hpp"
+#include "runtime/api.hpp"
 
 #include "database.hpp"
 
@@ -29,9 +29,7 @@
 
 #include <memory>
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 class CodeGenerator
 {
@@ -56,7 +54,6 @@ private:
 private:
     std::shared_ptr< Pimpl > m_pPimpl;
 };
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // CODE_GENERATOR_16_AUG_2022

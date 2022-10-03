@@ -27,18 +27,17 @@
 #include "database/types/sources.hpp"
 #include <common/file.hpp>
 
-namespace mega
+namespace mega::compiler
 {
-namespace compiler
-{
+
 namespace
 {
 inline void addStandardIncludes( std::ostream& os )
 {
     os << "#include \"mega/include.hpp\"\n";
     os << "#include \"mega/default_traits.hpp\"\n";
-    os << "#include \"runtime/runtime_functions.hpp\"\n";
-    os << "#include \"boost/dll/alias.hpp\"\n";
+    os << "#include \"runtime/functions.hpp\"\n";
+    os << "#include <boost/dll/alias.hpp>\n";
 }
 } // namespace
 
@@ -403,5 +402,4 @@ BaseTask::Ptr create_Task_CPPIncludePCH( const TaskArguments& taskArguments, con
     return std::make_unique< Task_CPPIncludePCH >( taskArguments, strComponentName );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

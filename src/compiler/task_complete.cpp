@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/FinalStage.hxx"
@@ -27,9 +25,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <common/stash.hpp>
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_InterfaceComponent : public BaseTask
@@ -196,5 +192,4 @@ BaseTask::Ptr create_Task_Complete( const TaskArguments&              taskArgume
     return std::make_unique< Task_Complete >( taskArguments, manifestFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

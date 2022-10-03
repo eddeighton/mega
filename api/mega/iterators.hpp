@@ -28,30 +28,7 @@
 
 #include <array>
 
-namespace mega
-{
-    union RingBufferAllocator
-    {
-        mega::U64 data;
-        struct
-        {
-            mega::U64 head : 31;
-            mega::U64 full : 1;
-            mega::U64 tail : 31;
-            mega::U64 protection : 1;
-        };
-     
-        RingBufferAllocator()
-            :   data( 0UL ) 
-        {
-        }
-        RingBufferAllocator( mega::U64 value ) 
-            :   data( value ) 
-        { 
-        }
-    };
-}
-
+/*
 template< typename ReferenceType >
 inline mega::TimeStamp getTimestamp( mega::TypeID type, mega::Instance instance );
 
@@ -231,6 +208,6 @@ namespace mega
 
 } //namespace mega
 
-
+*/
 
 #endif //EG_ITERATORS_02_05_2019

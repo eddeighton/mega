@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/ConcreteTypeAnalysis.hxx"
@@ -30,9 +28,7 @@
 #include "database/common/exception.hpp"
 #include "database/types/sources.hpp"
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_ConcreteTypeAnalysis : public BaseTask
@@ -70,12 +66,12 @@ public:
     using PathSet = std::set< mega::io::megaFilePath >;
     PathSet getSortedSourceFiles() const
     {
-        PathSet sourceFiles;
+        PathSet srcFiles;
         for ( const mega::io::megaFilePath& sourceFilePath : m_manifest.getMegaSourceFiles() )
         {
-            sourceFiles.insert( sourceFilePath );
+            srcFiles.insert( sourceFilePath );
         }
-        return sourceFiles;
+        return srcFiles;
     }
 
     struct SymbolCollector
@@ -586,5 +582,4 @@ BaseTask::Ptr create_Task_ConcreteTypeRollout( const TaskArguments&          tas
     return std::make_unique< Task_ConcreteTypeRollout >( taskArguments, sourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

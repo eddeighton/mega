@@ -17,16 +17,13 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/environment_build.hpp"
 
 #include "common/string.hpp"
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
+
 BuildEnvironment::BuildEnvironment( const compiler::Directories& directories )
     : m_directories( directories )
     , m_tempDir( tempDir() )
@@ -283,5 +280,5 @@ void BuildEnvironment::temp_to_real( const SourceFilePath& filePath ) const
 {
     copyToTargetPath( m_tempDir / filePath.path(), toPath( filePath ) );
 }
-} // namespace io
-} // namespace mega
+
+} // namespace mega::io

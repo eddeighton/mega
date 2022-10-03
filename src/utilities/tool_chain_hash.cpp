@@ -17,20 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "utilities/tool_chain_hash.hpp"
 
 #include <boost/process.hpp>
 
-namespace mega
-{
-namespace utilities
+namespace mega::utilities
 {
 
 ToolChain::ToolChain() {}
 
 ToolChain::ToolChain( const std::string& strClangCompilerVersion,
-                      mega::U64        szDatabaseVersion,
+                      mega::U64          szDatabaseVersion,
 
                       const boost::filesystem::path& path_parserDll,
                       const boost::filesystem::path& path_megaCompiler,
@@ -57,5 +54,4 @@ ToolChain::ToolChain( const std::string& strClangCompilerVersion,
 {
 }
 
-} // namespace utilities
-} // namespace mega
+} // namespace mega::utilities

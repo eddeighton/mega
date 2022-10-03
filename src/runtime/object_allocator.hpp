@@ -20,16 +20,14 @@
 #ifndef OBJECT_ALLOCATOR_SEPT_19_2022
 #define OBJECT_ALLOCATOR_SEPT_19_2022
 
-#include "runtime/runtime_functions.hpp"
+#include "runtime/functions.hpp"
 
 #include "indexed_buffer_allocator.hpp"
 
 #include <memory>
 #include <unordered_map>
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 
 class Runtime;
@@ -71,7 +69,6 @@ private:
     GetSharedFunction    m_pSharedGetter = nullptr;
 };
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime
 
 #endif // OBJECT_ALLOCATOR_SEPT_19_2022

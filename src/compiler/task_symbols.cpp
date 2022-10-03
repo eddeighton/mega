@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/SymbolAnalysis.hxx"
@@ -29,9 +27,7 @@
 #include "database/common/environment_archive.hpp"
 #include "database/common/exception.hpp"
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class Task_SymbolAnalysis : public BaseTask
@@ -184,7 +180,7 @@ public:
         {
             using namespace SymbolAnalysis;
 
-            std::set< mega::I32 >                 existingTypeIDs;
+            std::set< mega::I32 >                    existingTypeIDs;
             std::vector< ContextDimensionSymbolSet > unTyped;
 
             for ( TypeMap::const_iterator i = typeMap.begin(), iEnd = typeMap.end(); i != iEnd; ++i )
@@ -630,5 +626,4 @@ BaseTask::Ptr create_Task_SymbolRollout( const TaskArguments&          taskArgum
     return std::make_unique< Task_SymbolRollout >( taskArguments, sourceFilePath );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler

@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef TASK_UTILS_05_JUNE_2022
 #define TASK_UTILS_05_JUNE_2022
 
@@ -26,9 +24,7 @@
 
 #include <memory>
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 class BaseTask;
@@ -64,7 +60,6 @@ inline TaskType nameToTaskType( const char* pszName )
     THROW_RTE( "Failed to find task type for: " << pszName );
 }
 
-} // namespace compiler
-} // namespace mega
+} // namespace mega::compiler
 
 #endif // TASK_UTILS_05_JUNE_2022

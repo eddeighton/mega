@@ -27,9 +27,7 @@
 #include "service/protocol/model/mpo.hxx"
 #include "service/protocol/model/status.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 class ToolRequestConversation : public network::InThreadConversation,
@@ -86,7 +84,6 @@ public:
     virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // REQUEST_TOOL_23_SEPT_2022

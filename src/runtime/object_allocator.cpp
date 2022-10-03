@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "object_allocator.hpp"
 
 #include "runtime.hpp"
@@ -26,9 +25,7 @@
 
 #include "service/network/log.hpp"
 
-namespace mega
-{
-namespace runtime
+namespace mega::runtime
 {
 
 ObjectTypeAllocator::ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID )
@@ -120,7 +117,7 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
         auto iFind = m_indexTable.find( mpo );
         if ( iFind != m_indexTable.end() )
         {
-            //SPDLOG_TRACE( "ObjectTypeAllocator::getIndex cached {} {}", m_objectTypeID, mpo );
+            // SPDLOG_TRACE( "ObjectTypeAllocator::getIndex cached {} {}", m_objectTypeID, mpo );
             pAllocator = iFind->second;
         }
         else
@@ -136,7 +133,7 @@ ObjectTypeAllocator::IndexPtr ObjectTypeAllocator::getIndex( MPO mpo )
 
 reference ObjectTypeAllocator::get( MachineAddress machineAddress )
 {
-    //SPDLOG_TRACE( "ObjectTypeAllocator::get {} {}", m_objectTypeID, machineAddress );
+    // SPDLOG_TRACE( "ObjectTypeAllocator::get {} {}", m_objectTypeID, machineAddress );
     VERIFY_RTE( machineAddress.isMachine() );
     auto  pIndex  = getIndex( machineAddress );
     void* pShared = pIndex->getShared( machineAddress.object );
@@ -146,7 +143,7 @@ reference ObjectTypeAllocator::get( MachineAddress machineAddress )
 reference ObjectTypeAllocator::allocate( MPO mpo )
 {
     SPDLOG_TRACE( "ObjectTypeAllocator::allocate {} {}", m_objectTypeID, mpo );
-    
+
     VERIFY_RTE( mpo.isMachine() );
 
     auto pIndex = getIndex( mpo );
@@ -169,7 +166,7 @@ reference ObjectTypeAllocator::allocate( MPO mpo )
 void ObjectTypeAllocator::deAllocate( MachineAddress machineAddress )
 {
     SPDLOG_TRACE( "ObjectTypeAllocator::deAllocate {} {}", m_objectTypeID, machineAddress );
-    
+
     auto pIndex = getIndex( machineAddress );
     if ( void* pAddress = pIndex->getShared( machineAddress.object ) )
     {
@@ -187,7 +184,7 @@ void* ObjectTypeAllocator::get_shared( mega::MachineAddress machineAddress )
 {
     auto  pIndex   = getIndex( machineAddress );
     void* pAddress = pIndex->getShared( machineAddress.object );
-    //SPDLOG_TRACE( "ObjectTypeAllocator::get_shared {} {} {}", m_objectTypeID, machineAddress, pAddress );
+    // SPDLOG_TRACE( "ObjectTypeAllocator::get_shared {} {} {}", m_objectTypeID, machineAddress, pAddress );
     return pAddress;
 }
 
@@ -195,12 +192,11 @@ void* ObjectTypeAllocator::get_heap( mega::MachineAddress machineAddress )
 {
     auto  pIndex   = getIndex( machineAddress );
     void* pAddress = pIndex->getHeap( machineAddress.object );
-    //SPDLOG_TRACE( "ObjectTypeAllocator::get_heap {} {} {}", m_objectTypeID, machineAddress, pAddress );
+    // SPDLOG_TRACE( "ObjectTypeAllocator::get_heap {} {} {}", m_objectTypeID, machineAddress, pAddress );
     return pAddress;
 }
 
 GetHeapFunction   ObjectTypeAllocator::getHeapGetter() { return m_pHeapGetter; }
 GetSharedFunction ObjectTypeAllocator::getSharedGetter() { return m_pSharedGetter; }
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime

@@ -17,16 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef EXECUTOR_27_MAY_2022
 #define EXECUTOR_27_MAY_2022
 
 #include "service/leaf.hpp"
 
-#include "service/network/client.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/protocol/common/megastructure_installation.hpp"
 
@@ -42,9 +37,7 @@
 #include <vector>
 #include <thread>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 class Simulation;
 
@@ -58,22 +51,22 @@ public:
     using SimulationMap = std::unordered_map< mega::MPO, std::shared_ptr< Simulation >, mega::MPO::Hash >;
 
     Executor( boost::asio::io_context& io_context, int numThreads );
-    ~Executor();
+    ~Executor() override;
     void shutdown();
 
     int getNumThreads() const { return m_numThreads; }
 
     // network::ConversationManager
-    virtual network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
-                                                             const network::Message&      msg );
+    network::ConversationBase::Ptr joinConversation( const network::ConnectionID& originatingConnectionID,
+                                                     const network::Message&      msg ) override;
 
     network::Sender& getLeafSender() { return m_leaf; }
 
-    void getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
+    void                          getSimulations( std::vector< std::shared_ptr< Simulation > >& simulations ) const;
     std::shared_ptr< Simulation > getSimulation( const mega::MPO& mpo ) const;
     mega::MPO createSimulation( network::ConversationBase& callingConversation, boost::asio::yield_context& yield_ctx );
     void      simulationTerminating( std::shared_ptr< Simulation > pSimulation );
-    virtual void conversationCompleted( network::ConversationBase::Ptr pConversation );
+    void      conversationCompleted( network::ConversationBase::Ptr pConversation ) override;
 
 private:
     boost::asio::io_context&                 m_io_context;
@@ -85,7 +78,6 @@ private:
     network::MegastructureInstallation       m_megastructureInstallation;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // EXECUTOR_27_MAY_2022

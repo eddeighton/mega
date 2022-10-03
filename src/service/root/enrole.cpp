@@ -23,9 +23,7 @@
 
 #include "service/protocol/model/memory.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::enrole::Impl
@@ -81,5 +79,4 @@ std::vector< mega::MPO > RootRequestConversation::EnroleGetMPO( const mega::MP& 
     return m_root.m_mpoManager.getMPO( machineProcess );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

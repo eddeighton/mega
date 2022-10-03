@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #include "service/terminal.hpp"
 
 #include "request.hpp"
@@ -45,18 +42,16 @@
 
 #include "common/requireSemicolon.hpp"
 
-#include "spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
 
-#include "boost/asio/use_future.hpp"
-#include "boost/system/detail/error_code.hpp"
+#include <boost/asio/use_future.hpp>
+#include <boost/system/detail/error_code.hpp>
 
 #include <exception>
 #include <optional>
 #include <future>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 template < typename TConversationFunctor >
@@ -253,5 +248,4 @@ std::string Terminal::PingMPO( const mega::MPO& mpo )
     return getMPORequest< network::status::Request_Encoder >( mpo ).Ping();
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

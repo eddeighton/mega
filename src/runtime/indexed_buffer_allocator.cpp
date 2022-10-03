@@ -23,10 +23,9 @@
 
 #include <sstream>
 
-namespace mega
+namespace mega::runtime
 {
-namespace runtime
-{
+
 namespace
 {
 std::string generateSharedName( TypeID objectTypeID )
@@ -117,7 +116,7 @@ IndexedBufferAllocator::AllocationResult IndexedBufferAllocator::allocate( mega:
 void IndexedBufferAllocator::deallocate( Index index )
 {
     SPDLOG_TRACE( "IndexedBufferAllocator::allocate {}", index );
-    
+
     SharedPtr pShared           = m_pSharedIndex->at( index );
     m_pSharedIndex->at( index ) = nullptr;
     m_pSegmentManager->deallocate( pShared.get() );
@@ -138,5 +137,4 @@ void* IndexedBufferAllocator::getHeap( Index index ) const
     return m_heapBuffers[ index ].get();
 }
 
-} // namespace runtime
-} // namespace mega
+} // namespace mega::runtime

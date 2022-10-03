@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef CLIENT_24_MAY_2022
 #define CLIENT_24_MAY_2022
 
@@ -30,18 +27,16 @@
 
 #include "common/assert_verify.hpp"
 
-#include "boost/asio/strand.hpp"
-#include "boost/asio/ip/tcp.hpp"
-#include "boost/asio/io_context.hpp"
+#include <boost/asio/strand.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/io_context.hpp>
 
 #include <string>
 #include <thread>
 #include <functional>
 #include <iostream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 class Client : public Sender
@@ -81,7 +76,6 @@ private:
     Sender::Ptr                    m_pSender;
 };
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
 
 #endif // CLIENT_24_MAY_2022

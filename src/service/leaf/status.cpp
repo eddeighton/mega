@@ -17,14 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
 #include "service/network/log.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::project::Impl
@@ -57,5 +54,4 @@ std::string LeafRequestConversation::Ping( boost::asio::yield_context& yield_ctx
     return os.str();
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

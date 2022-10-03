@@ -28,10 +28,9 @@
 
 #include "service/protocol/model/job.hxx"
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
+
 class Executor;
 
 class JobConversation : public ExecutorRequestConversation,
@@ -76,7 +75,6 @@ public:
     void run( boost::asio::yield_context& yield_ctx ) override;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // JOB_22_JUNE_2022

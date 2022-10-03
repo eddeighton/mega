@@ -17,19 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #ifndef JIT_8_AUG_2022
 #define JIT_8_AUG_2022
 
-#include "runtime/runtime_functions.hpp"
+#include "runtime/functions.hpp"
 
 #include <memory>
 #include <set>
 
-namespace mega
+namespace mega::runtime
 {
-namespace runtime
-{
+
 class JITCompiler
 {
 public:
@@ -71,7 +69,7 @@ private:
     class Pimpl;
     std::shared_ptr< Pimpl > m_pPimpl;
 };
-} // namespace runtime
-} // namespace mega
+
+} // namespace mega::runtime
 
 #endif // JIT_8_AUG_2022

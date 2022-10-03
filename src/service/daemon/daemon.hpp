@@ -28,12 +28,11 @@
 
 #include "mega/common.hpp"
 
-#include "boost/asio/io_context.hpp"
+#include <boost/asio/io_context.hpp>
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
+
 class Daemon : public network::ConversationManager
 {
     friend class DaemonRequestConversation;
@@ -58,7 +57,6 @@ private:
     mega::MP            m_mp;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // DAEMON_25_MAY_2022

@@ -17,24 +17,17 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 #ifndef FORMAT_1_MAY_2022
 #define FORMAT_1_MAY_2022
 
-#include "boost/filesystem/path.hpp"
+#include <boost/filesystem/path.hpp>
 
 #include <optional>
 #include <string>
 
-namespace mega
+namespace mega::utilities
 {
-    namespace utilities
-    {
-        void clang_format( std::string& str, std::optional< boost::filesystem::path > formatSpecPath );
-    }
+void clang_format( std::string& str, std::optional< boost::filesystem::path > formatSpecPath );
 }
 
-#endif //FORMAT_1_MAY_2022
+#endif // FORMAT_1_MAY_2022

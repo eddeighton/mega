@@ -28,13 +28,11 @@
 #include "service/network/log.hpp"
 #include "service/network/sender.hpp"
 
-#include "runtime/mpo_context.hpp"
+#include "runtime/context.hpp"
 
 #include "common/assert_verify.hpp"
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 namespace {{ filename }}
 {
@@ -186,5 +184,4 @@ Message Impl::dispatchRequest( const Message& message, boost::asio::yield_contex
 }
 
 } // namespace {{ filename }}
-} // namespace network
-} // namespace mega
+} // namespace mega::network

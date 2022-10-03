@@ -37,9 +37,7 @@
 #include "service/protocol/model/status.hxx"
 #include "service/protocol/model/job.hxx"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 class LeafRequestConversation : public network::InThreadConversation,
@@ -133,7 +131,6 @@ public:
     }
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // REQUEST_LEAF_23_SEPT_2022

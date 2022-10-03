@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "invocation/invocation.hpp"
 
 #include "invocation/name_resolution.hpp"
@@ -31,10 +30,9 @@
 #include "mega/common_strings.hpp"
 #include <optional>
 
-namespace mega
+namespace mega::invocation
 {
-namespace invocation
-{
+
 using namespace OperationsStage;
 using namespace OperationsStage::Operations;
 
@@ -871,7 +869,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
             break;
             case mega::id_exp_Call:
             {
-                if( !strFunctionReturnTypeOpt.has_value() )
+                if ( !strFunctionReturnTypeOpt.has_value() )
                 {
                     osReturnTypeStr << "void";
                 }
@@ -881,7 +879,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
                 }
                 // define function pointer type
                 osRuntimeReturnType << osReturnTypeStr.str() << "(*)( mega::reference";
-                if( functionParameterTypesOpt.has_value() )
+                if ( functionParameterTypesOpt.has_value() )
                 {
                     for ( const std::string& strType : functionParameterTypesOpt.value() )
                         osRuntimeReturnType << "," << strType;
@@ -918,5 +916,4 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     return pInvocation;
 }
 
-} // namespace invocation
-} // namespace mega
+} // namespace mega::invocation

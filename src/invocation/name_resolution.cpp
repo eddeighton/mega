@@ -17,15 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "invocation/name_resolution.hpp"
 #include "invocation/invocation.hpp"
 
 #include "database/model/OperationsStage.hxx"
 
-namespace mega
-{
-namespace invocation
+namespace mega::invocation
 {
 
 using namespace OperationsStage;
@@ -33,8 +30,7 @@ using namespace OperationsStage;
 namespace
 {
 
-void expandReferences( OperationsStage::Database&                  database,
-                       std::vector< Operations::Name* >&           names )
+void expandReferences( OperationsStage::Database& database, std::vector< Operations::Name* >& names )
 {
     using namespace OperationsStage::Operations;
 
@@ -71,8 +67,8 @@ void expandReferences( OperationsStage::Database&                  database,
                             InterfaceVariantVectorVector interfaceVariantVectorVector
                                 = symbolVectorToInterfaceVariantVector( database, symbols );
 
-                            std::vector< Operations::ElementVector* > elementVector = toElementVector(
-                                database, interfaceVariantVectorVector );
+                            std::vector< Operations::ElementVector* > elementVector
+                                = toElementVector( database, interfaceVariantVectorVector );
 
                             for ( Operations::ElementVector* pElementVector : elementVector )
                             {
@@ -270,8 +266,8 @@ void pruneBranches( OperationsStage::Operations::Name* pName )
 
 } // namespace
 
-OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&                  database,
-                                                      OperationsStage::Operations::Invocation*    pInvocation )
+OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&               database,
+                                                      OperationsStage::Operations::Invocation* pInvocation )
 {
     bool bExpandFinalReferences = false;
     switch ( pInvocation->get_operation() )
@@ -340,5 +336,4 @@ OperationsStage::Operations::NameResolution* resolve( OperationsStage::Database&
     return database.construct< NameResolution >( NameResolution::Args{ pNameRoot } );
 }
 
-} // namespace invocation
-} // namespace mega
+} // namespace mega::invocation

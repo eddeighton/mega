@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef ARCHIVE_ENVIRONMENT_18_JUNE_2022
 #define ARCHIVE_ENVIRONMENT_18_JUNE_2022
 
@@ -27,11 +24,8 @@
 
 #include "database/common/archive.hpp"
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
-
 class ArchiveEnvironment : public Environment
 {
     ReadArchive m_fileArchive;
@@ -51,7 +45,6 @@ public:
     virtual void                            temp_to_real( const SourceFilePath& filePath ) const;
 };
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 #endif // ARCHIVE_ENVIRONMENT_18_JUNE_2022

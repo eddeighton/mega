@@ -17,23 +17,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "scheduler.hpp"
 
-
-#include "basic_scheduler.hpp"
-
-#include "common.hpp"
-#include "coroutine.hpp"
+#include "service/network/log.hpp"
 
 #include <list>
 #include <map>
 #include <unordered_map>
 #include <optional>
 #include <stdexcept>
-
-#ifndef ERR
-#define LOG( msg )
-#define ERR( msg )
-#endif
 
 namespace mega
 {
@@ -48,7 +40,7 @@ public:
     virtual void stop( const reference& ref )                                                     = 0;
     virtual void pause( const reference& ref )                                                    = 0;
     virtual void unpause( const reference& ref )                                                  = 0;
-    virtual void stopperStopped( const reference& ref )                                           = 0;
+    virtual void stopped( const reference& ref )                                                  = 0;
     virtual bool active()                                                                         = 0;
     virtual void cycle()                                                                          = 0;
 };
@@ -69,7 +61,7 @@ private:
             return *reinterpret_cast< const mega::U64* >( &ref );
         }
     };
-
+    
     using ActiveActionMap  = std::unordered_map< mega::reference, ActiveAction*, BasicScheduler::ReferenceHash >;
     using ActiveActionList = std::list< ActiveActionMap::iterator >;
 
@@ -84,7 +76,7 @@ private:
     {
         mega::reference                     ref;
         mega::Scheduler::StopperFunctionPtr pStopper;
-        mega::Scheduler::ActionOperator     op;
+        mega::Scheduler::ActionOperator     coroutineCreate;
         mega::ActionCoroutine               coroutine;
 
         ActiveActionList::iterator iter_one, iter_two, iter_three;
@@ -102,14 +94,14 @@ private:
 
         ActiveAction( const mega::reference&              _ref,
                       mega::Scheduler::StopperFunctionPtr _pStopper,
-                      mega::Scheduler::ActionOperator&    _op,
+                      mega::Scheduler::ActionOperator&    coroutineCreate,
                       ActiveActionList::iterator          _iter_one,
                       ActiveActionList::iterator          _iter_two,
                       ActiveActionList::iterator          _iter_three,
                       ActiveActionList::iterator          _iter_pause )
             : ref( _ref )
             , pStopper( _pStopper )
-            , op( _op )
+            , coroutineCreate( coroutineCreate )
             , iter_one( _iter_one )
             , iter_two( _iter_two )
             , iter_three( _iter_three )
@@ -140,7 +132,7 @@ private:
         eState_S_W_A
     };
     SleepSwapState m_sleepState = SleepSwapState::eState_A_W_S;
-    
+
     ActiveActionList::iterator& getActiveIter( ActiveAction& action )
     {
         switch ( m_sleepState )
@@ -157,7 +149,8 @@ private:
                 return action.iter_two;
             case SleepSwapState::eState_S_W_A:
                 return action.iter_three;
-            default: __builtin_unreachable();
+            default:
+                __builtin_unreachable();
         }
     }
     ActiveActionList::iterator& getWaitIter( ActiveAction& action )
@@ -176,7 +169,8 @@ private:
                 return action.iter_three;
             case SleepSwapState::eState_S_W_A:
                 return action.iter_two;
-            default: __builtin_unreachable();
+            default:
+                __builtin_unreachable();
         }
     }
     ActiveActionList::iterator& getSleepIter( ActiveAction& action )
@@ -195,7 +189,8 @@ private:
                 return action.iter_one;
             case SleepSwapState::eState_S_W_A:
                 return action.iter_one;
-            default: __builtin_unreachable();
+            default:
+                __builtin_unreachable();
         }
     }
 
@@ -221,7 +216,8 @@ private:
             case SleepSwapState::eState_S_W_A:
                 m_sleepState = SleepSwapState::eState_A_W_S;
                 break;
-            default: __builtin_unreachable();
+            default:
+                __builtin_unreachable();
         }
     }
 
@@ -247,7 +243,8 @@ private:
             case SleepSwapState::eState_S_W_A:
                 m_sleepState = SleepSwapState::eState_S_A_W;
                 break;
-            default: __builtin_unreachable();
+            default:
+                __builtin_unreachable();
         }
     }
 
@@ -267,7 +264,8 @@ private:
                 return m_listTwo;
             case SleepSwapState::eState_S_W_A:
                 return m_listThree;
-            default: __builtin_unreachable();
+            default:
+                __builtin_unreachable();
         }
     }
 
@@ -287,7 +285,8 @@ private:
                 return m_listThree;
             case SleepSwapState::eState_S_W_A:
                 return m_listTwo;
-            default: __builtin_unreachable();
+            default:
+                __builtin_unreachable();
         }
     }
 
@@ -307,7 +306,8 @@ private:
                 return m_listOne;
             case SleepSwapState::eState_S_W_A:
                 return m_listOne;
-            default: __builtin_unreachable();
+            default:
+                __builtin_unreachable();
         }
     }
 
@@ -442,16 +442,16 @@ public:
     {
         mega::Scheduler::ActionOperator actionOperator;
         ActiveAction*                   pAction = new ActiveAction(
-                              ref, pStopper, actionOperator, m_listOne.end(), m_listTwo.end(), m_listThree.end(), m_paused.end() );
+            ref, pStopper, actionOperator, m_listOne.end(), m_listTwo.end(), m_listThree.end(), m_paused.end() );
         auto insertResult = m_actions.insert( std::make_pair( ref, pAction ) );
         if ( !insertResult.second )
         {
-            ERR( "Could not allocation action" );
+            SPDLOG_ERROR( "Could not allocation action" );
             delete pAction;
         }
     }
 
-    virtual void stopperStopped( const mega::reference& ref )
+    virtual void stopped( const mega::reference& ref )
     {
         ActiveActionMap::iterator iFind = m_actions.find( ref );
         if ( iFind != m_actions.end() )
@@ -477,8 +477,8 @@ public:
         }
         else
         {
-            // TODO - need to analyse how stopperStopped is called...
-            // ERR( "Scheduler::stopperStopped with no active action for type: " << ref.type << " instance: " <<
+            // TODO - need to analyse how stopped is called...
+            // SPDLOG_ERROR( "Scheduler::stopped with no active action for type: " << ref.type << " instance: " <<
             // ref.instance << " address: " << ref.address );
         }
     }
@@ -505,8 +505,7 @@ public:
         }
         else
         {
-            ERR( "Scheduler::call failed type: " << ref.type << " instance: " << ref.instance
-                                                 << " address: " << ref.address );
+            SPDLOG_ERROR( "Scheduler::call failed for: {}", ref );
             delete pAction;
         }
     }
@@ -538,7 +537,7 @@ public:
         }
         else
         {
-            ERR( "Stopped inactive reference" );
+            SPDLOG_ERROR( "Stopped inactive reference: {}", ref );
         }
     }
 
@@ -556,7 +555,7 @@ public:
         }
         else
         {
-            ERR( "Stopped inactive reference" );
+            SPDLOG_ERROR( "Stopped inactive reference: {}", ref );
         }
     }
 
@@ -570,7 +569,7 @@ public:
         }
         else
         {
-            ERR( "Stopped inactive reference" );
+            SPDLOG_ERROR( "Stopped inactive reference: {}", ref );
         }
     }
 
@@ -618,7 +617,7 @@ public:
             {
                 if ( !m_pCurrentAction->coroutine.started() || m_pCurrentAction->coroutine.done() )
                 {
-                    m_pCurrentAction->coroutine = m_pCurrentAction->op();
+                    m_pCurrentAction->coroutine = m_pCurrentAction->coroutineCreate();
                     m_pCurrentAction->coroutine.resume();
                 }
                 else
@@ -681,10 +680,8 @@ public:
             EventRefMap::iterator i       = m_events_by_ref_wait.begin();
             mega::reference       ref     = i->first;
             ActiveAction*         pAction = i->second->second;
-            // error
-            ERR( "Never got event: " << ref.instance << " " << ref.type << " " << ref.address
-                                     << " for action: " << pAction->ref.instance << " " << pAction->ref.type << " "
-                                     << pAction->ref.address );
+
+            SPDLOG_ERROR( "Never got event: {} for action: {}", ref, pAction->ref );
             stop( pAction->ref );
         }
     }
@@ -708,7 +705,7 @@ void Scheduler::signal( const reference& ref ) { m_pPimpl->signal( ref ); }
 void Scheduler::stop( const reference& ref ) { m_pPimpl->stop( ref ); }
 void Scheduler::pause( const reference& ref ) { m_pPimpl->pause( ref ); }
 void Scheduler::unpause( const reference& ref ) { m_pPimpl->unpause( ref ); }
-void Scheduler::stopperStopped( const reference& ref ) { m_pPimpl->stopperStopped( ref ); }
+void Scheduler::stopped( const reference& ref ) { m_pPimpl->stopped( ref ); }
 bool Scheduler::active() { return m_pPimpl->active(); }
 void Scheduler::cycle() { m_pPimpl->cycle(); }
 

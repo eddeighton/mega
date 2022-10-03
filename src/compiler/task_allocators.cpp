@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "base_task.hpp"
 
 #include "database/model/MemoryStage.hxx"
@@ -351,9 +349,7 @@ mega::U64 getRingAllocatorAlignment( mega::U64 szLocalDomainSize )
 }
 } // namespace
 
-namespace mega
-{
-namespace compiler
+namespace mega::compiler
 {
 
 template < typename TContext >
@@ -981,5 +977,5 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
         }
     }
 }
-} // namespace compiler
-} // namespace mega
+
+} // namespace mega::compiler

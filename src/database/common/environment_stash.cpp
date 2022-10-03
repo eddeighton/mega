@@ -17,15 +17,11 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/environment_stash.hpp"
 
 #include "database/common/file_header.hpp"
 
-namespace mega
-{
-namespace io
+namespace mega::io
 {
 
 StashEnvironment::StashEnvironment( mega::pipeline::Stash& stash, const compiler::Directories& directories )
@@ -56,5 +52,4 @@ bool StashEnvironment::restore( const CompilationFilePath& filePath, task::Deter
     return false;
 }
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io

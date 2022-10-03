@@ -17,14 +17,10 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "request.hpp"
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
-
 // network::project::Impl
 network::Status DaemonRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                       boost::asio::yield_context&           yield_ctx )
@@ -53,5 +49,4 @@ std::string DaemonRequestConversation::Ping( boost::asio::yield_context& yield_c
     return os.str();
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

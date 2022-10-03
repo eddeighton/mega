@@ -21,22 +21,15 @@
 
 #include "request.hpp"
 
-#include "mega/common.hpp"
-#include "mega/root.hpp"
-
-#include "runtime/runtime_api.hpp"
-#include "runtime/mpo_context.hpp"
+#include "runtime/api.hpp"
+#include "runtime/context.hpp"
 
 #include "service/lock_tracker.hpp"
 #include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
-#include "service/network/network.hpp"
-#include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
 #include "service/protocol/common/header.hpp"
-
-#include "service/protocol/model/leaf_tool.hxx"
 #include "service/protocol/model/tool_leaf.hxx"
 #include "service/protocol/model/memory.hxx"
 #include "service/protocol/model/sim.hxx"
@@ -47,15 +40,12 @@
 
 #include "common/requireSemicolon.hpp"
 
-#include "boost/system/detail/error_code.hpp"
-#include "boost/bind/bind.hpp"
-#include "boost/filesystem.hpp"
+#include <spdlog/spdlog.h>
+#include <boost/filesystem.hpp>
 
 #include <thread>
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 template < typename TConversationFunctor >
@@ -185,6 +175,29 @@ public:
     }
     virtual mega::reference getRoot( MPO mpo ) override { return mega::runtime::get_root( mpo ); }
     virtual mega::reference getThisRoot() override { return m_pExecutionRoot->root(); }
+
+    // clock
+    virtual TimeStamp cycle() override { return TimeStamp{}; }
+    virtual F32       ct() override { return F32{}; }
+    virtual F32       dt() override { return F32{}; }
+
+    // log
+    virtual void info( const reference& ref, const std::string& str ) override
+    {
+        //
+    }
+    virtual void warn( const reference& ref, const std::string& str ) override
+    {
+        //
+    }
+    virtual void error( const reference& ref, const std::string& str ) override
+    {
+        //
+    }
+    virtual void write( const reference& ref ) override
+    {
+        //
+    }
 
     // mega::MPOContext
     virtual std::string acquireMemory( MPO mpo ) override
@@ -360,5 +373,4 @@ void Tool::run( Tool::Functor& function )
         std::rethrow_exception( std::get< std::exception_ptr >( exceptionResult.value() ) );
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

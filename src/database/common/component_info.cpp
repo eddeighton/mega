@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/component_info.hpp"
 
 #include "common/assert_verify.hpp"
@@ -28,10 +26,9 @@
 #include <fstream>
 #include <optional>
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
+
 ComponentInfo::ComponentInfo() {}
 
 ComponentInfo::ComponentInfo( ComponentType componentType, const std::string& strName,
@@ -52,7 +49,6 @@ ComponentInfo::ComponentInfo( ComponentType componentType, const std::string& st
 {
 }
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io
 
 BOOST_CLASS_IMPLEMENTATION( mega::io::ComponentInfo, object_serializable )

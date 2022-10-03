@@ -29,10 +29,9 @@
 #include <set>
 #include <unordered_map>
 
-namespace mega
+namespace mega::service
 {
-namespace service
-{
+
 class MPOManager
 {
     using MachineAllocator = mega::RingAllocator< mega::MachineID, mega::MAX_MACHINES >;
@@ -170,7 +169,7 @@ private:
     ProcessAllocator m_processes[ mega::MAX_MACHINES ];
     OwnerAllocator   m_owners[ mega::MAX_MACHINES ][ mega::MAX_PROCESS_PER_MACHINE ];
 };
-} // namespace service
-} // namespace mega
+
+} // namespace mega::service
 
 #endif // MPO_MANAGER_25_AUG_2022

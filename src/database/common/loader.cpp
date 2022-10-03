@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/loader.hpp"
 #include "database/common/file.hpp"
 #include "database/common/file_header.hpp"
@@ -49,12 +47,10 @@ void MegaIArchive::objectInfo( mega::io::ObjectInfo* pObjectInfo ) { m_objectInf
 } // namespace archive
 } // namespace boost
 
-namespace mega
+namespace mega::io
 {
-namespace io
-{
-Loader::Loader( const FileSystem& fileSystem, const CompilationFilePath& filePath,
-                ::data::ObjectPartLoader& loader )
+
+Loader::Loader( const FileSystem& fileSystem, const CompilationFilePath& filePath, ::data::ObjectPartLoader& loader )
     : m_pFileStream( fileSystem.read( filePath ) )
     , m_archive( *m_pFileStream, m_objectInfos, loader )
 {
@@ -64,8 +60,8 @@ Loader::Loader( const FileSystem& fileSystem, const CompilationFilePath& filePat
         if ( fileHeader.getVersion() != Environment::getVersion() )
         {
             std::ostringstream os;
-            os << "Compilation file: " << filePath.path().string() << 
-                "has version: " << fileHeader.getVersion() << " when current version is: " << Environment::getVersion();
+            os << "Compilation file: " << filePath.path().string() << "has version: " << fileHeader.getVersion()
+               << " when current version is: " << Environment::getVersion();
             throw mega::io::DatabaseVersionException( os.str() );
         }
     }
@@ -119,5 +115,4 @@ void Loader::postLoad( const Manifest& runtimeManifest )
     }
 }
 
-} // namespace io
-} // namespace mega
+} // namespace mega::io

@@ -21,9 +21,7 @@
 
 #include "root.hpp"
 
-namespace mega
-{
-namespace service
+namespace mega::service
 {
 
 // network::status::Impl
@@ -35,7 +33,7 @@ network::Status RootRequestConversation::GetNetworkStatus( boost::asio::yield_co
 network::Status RootRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                     boost::asio::yield_context&           yield_ctx )
 {
-    //SPDLOG_TRACE( "RootRequestConversation::GetVersion" );
+    // SPDLOG_TRACE( "RootRequestConversation::GetVersion" );
     network::Status status{ childNodeStatus };
     {
         std::vector< network::ConversationID > conversations;
@@ -50,5 +48,4 @@ network::Status RootRequestConversation::GetStatus( const std::vector< network::
     return status;
 }
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service

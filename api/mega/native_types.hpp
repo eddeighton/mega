@@ -56,6 +56,8 @@ static_assert( sizeof( F32 ) == 4U, "Invalid F32 Size" );
 using F64 = double;
 static_assert( sizeof( F64 ) == 8U, "Invalid F64 Size" );
 
+using TimeStamp      = U32;
+
 } // namespace mega
 
 #endif // MEGA_NATIVE_TYPES_18_SEPT_2022

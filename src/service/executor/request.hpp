@@ -21,7 +21,6 @@
 #define EXECUTOR_REQUEST_22_JUNE_2022
 
 #include "service/network/conversation.hpp"
-#include "service/network/log.hpp"
 
 #include "service/protocol/model/leaf_exe.hxx"
 #include "service/protocol/model/exe_leaf.hxx"
@@ -30,12 +29,9 @@
 #include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/status.hxx"
 
-#include "runtime/runtime_api.hpp"
+namespace mega::service
+{
 
-namespace mega
-{
-namespace service
-{
 class Executor;
 
 class ExecutorRequestConversation : public network::ConcurrentConversation,
@@ -111,7 +107,6 @@ public:
     virtual mega::MPO SimCreate( boost::asio::yield_context& yield_ctx ) override;
 };
 
-} // namespace service
-} // namespace mega
+} // namespace mega::service
 
 #endif // EXECUTOR_REQUEST_22_JUNE_2022

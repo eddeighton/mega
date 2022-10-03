@@ -27,9 +27,7 @@
 #include <chrono>
 #include <iostream>
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 
 ConversationBase::RequestStack::RequestStack( const char* pszMsg, ConversationBase& conversation,
@@ -232,5 +230,4 @@ void ConcurrentConversation::send( const ReceivedMsg& msg )
                           } );
 }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network

@@ -22,9 +22,7 @@
 #include "mega/reference.hpp"
 #include "mega/reference_io.hpp"
 
-namespace mega
-{
-namespace network
+namespace mega::network
 {
 namespace
 {
@@ -53,9 +51,9 @@ struct StatusPrinter
 
     std::ostream& operator()( const Status& status ) const
     {
-        using ::operator<<;//( std::ostream&, const mega::MP& );
+        using ::operator<<; //( std::ostream&, const mega::MP& );
 
-        if( !status.getDescription().empty() )
+        if ( !status.getDescription().empty() )
         {
             line( iCurrentDepth ) << status.getDescription() << "\n";
         }
@@ -66,7 +64,7 @@ struct StatusPrinter
             const mega::MP& mp = status.getMP().value();
             line( iCurrentDepth + 2 ) << "MP: " << mp << "\n";
         }
-        
+
         if ( status.getMPO().has_value() )
         {
             const mega::MPO& mpo = status.getMPO().value();
@@ -89,5 +87,4 @@ struct StatusPrinter
 
 std::ostream& operator<<( std::ostream& os, const Status& status ) { return ( StatusPrinter( os ) )( status ); }
 
-} // namespace network
-} // namespace mega
+} // namespace mega::network
