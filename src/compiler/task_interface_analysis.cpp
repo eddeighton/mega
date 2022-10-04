@@ -23,7 +23,6 @@
 
 #include "database/types/clang_compilation.hpp"
 
-#include "mega/common.hpp"
 #include "mega/common_strings.hpp"
 
 #include "utilities/clang_format.hpp"

@@ -21,7 +21,7 @@
 
 #include "database/model/ParserStage.hxx"
 #include "database/model/InterfaceAnalysisStage.hxx"
-#include "database/model/FinalStage.hxx"
+#include "database/model/DependencyAnalysisView.hxx"
 
 #include "database/types/clang_compilation.hpp"
 #include "database/types/sources.hpp"
@@ -220,7 +220,7 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        using namespace FinalStage;
+        using namespace DependencyAnalysisView;
 
         Database database( m_environment, m_environment.project_manifest() );
 
@@ -342,7 +342,7 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        using namespace FinalStage;
+        using namespace DependencyAnalysisView;
 
         Database database( m_environment, m_environment.project_manifest() );
 

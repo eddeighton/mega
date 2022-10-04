@@ -374,9 +374,13 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         const TskDesc objectInterfaceAnalysis
                             = encode( Task{ eTask_CPPInterfaceAnalysis, pComponent->get_name() } );
 
-                        dependencies.add( includes, TskDescVec{} );
+                        dependencies.add( includes, symbolRolloutTasks );
                         dependencies.add( includePCH, TskDescVec{ includes } );
-                        dependencies.add( objectInterfaceGeneration, TskDescVec{ includePCH } );
+
+                        TskDescVec deps = derivationRolloutTasks;
+                        deps.push_back( includePCH );
+
+                        dependencies.add( objectInterfaceGeneration, deps );
                         dependencies.add( objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration } );
 
                         for ( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
@@ -389,7 +393,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
 
                             TskDescVec tasks = concreteTypeIDRolloutTasks;
                             tasks.push_back( cppPCH );
-                            
+
                             dependencies.add( cppCPPImplementation, tasks );
                             dependencies.add( cppObj, TskDescVec{ cppCPPImplementation } );
                             binaryTasks.push_back( cppObj );

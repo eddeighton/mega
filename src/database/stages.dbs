@@ -87,8 +87,11 @@ stage DependencyAnalysisView
     source .manifest;
     dependency DependencyAnalysis;
 
+    global accessor array< ref< Components::Component > >;
     global accessor ref< Dependencies::Analysis >;
     persource accessor ref< Interface::Root >;
+    persource accessor array< ref< Parser::SystemInclude > >;
+    persource accessor array< ref< Parser::CPPInclude > >;
 }
 
 stage SymbolAnalysis
@@ -167,10 +170,16 @@ stage DerivationAnalysis
 
 stage DerivationAnalysisView
 {
+    // used by Task_CPPInterfaceGeneration - just because earliest
+
     source .manifest;
     dependency DerivationAnalysis;
 
     global accessor ref< Derivation::Mapping >;
+    global accessor ref< Dependencies::Analysis >;
+    global accessor array< ref< Components::Component > >;
+    persource accessor ref< Interface::Root >;
+    global accessor ref< Symbols::SymbolTable >;
 }
 
 stage DerivationAnalysisRollout

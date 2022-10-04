@@ -19,6 +19,7 @@
 
 #include "base_task.hpp"
 
+#include "database/model/DerivationAnalysisView.hxx"
 #include "database/model/OperationsStage.hxx"
 #include "database/model/FinalStage.hxx"
 
@@ -45,11 +46,11 @@
 #include <vector>
 #include <string>
 
-namespace FinalStage
+namespace DerivationAnalysisView
 {
-using namespace FinalStage::Interface;
+using namespace DerivationAnalysisView::Interface;
 #include "interface.hpp"
-} // namespace FinalStage
+} // namespace DerivationAnalysisView
 
 namespace mega::compiler
 {
@@ -67,7 +68,7 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        using namespace FinalStage;
+        using namespace DerivationAnalysisView;
 
         Database database( m_environment, m_environment.project_manifest() );
 
@@ -103,7 +104,7 @@ public:
         }*/
 
         // using namespace OperationsStage;
-        using namespace FinalStage::Interface;
+        using namespace DerivationAnalysisView::Interface;
 
         ::inja::Environment injaEnvironment;
         {
@@ -225,7 +226,7 @@ public:
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
-        using namespace FinalStage;
+        using namespace DerivationAnalysisView; // just need a stage that uses project_manifest
 
         Database database( m_environment, m_environment.project_manifest() );
 
@@ -554,7 +555,7 @@ public:
         const mega::io::ObjectFilePath cppObjectFile = m_environment.CPPObj( m_sourceFilePath );
         start( taskProgress, "Task_CPPObj", m_sourceFilePath.path(), cppObjectFile.path() );
 
-        using namespace OperationsStage;
+        using namespace FinalStage;
         Database               database( m_environment, m_sourceFilePath );
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
