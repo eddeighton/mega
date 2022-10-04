@@ -67,9 +67,10 @@ class SuperFactory;
 //////////////////////////////////////////////////////////////////////
 // Super type declarations
 {% for stype in stage.supertypes %}
-class {{ stype.name }} : public SuperTypeBase,
+class {{ stype.name }} : public SuperTypeBase
 {% for interface in stype.interfaces %}
-    public virtual {{ stage.name }}::{{ interface.name }}{% if not loop.is_last %}, 
+{% if interface.unique %}
+    , public virtual {{ stage.name }}::{{ interface.name }}
 {% endif %}
 {% endfor %}
 
@@ -95,20 +96,23 @@ public:
 template< typename T >
 struct traits;
 
-{% for interface_conversion in stage.interface_conversions %}
+{% for view_to_data in stage.conversions_view_to_data %}
 template<>
-struct traits< {{ interface_conversion.type }} >
+struct traits< {{ view_to_data.type }} >
 {
-    using DataType = data::{{ interface_conversion.file }}::{{ interface_conversion.object }};
-    using SuperType = {{ interface_conversion.supertype }};
+    using DataType = data::{{ view_to_data.file }}::{{ view_to_data.object }};
+    using SuperType = {{ view_to_data.supertype }};
 };
+{% endfor %}
+
+{% for data_to_view in stage.conversions_data_to_view %}
 template<>
-struct traits< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >
+struct traits< data::{{ data_to_view.file }}::{{ data_to_view.object }} >
 {
-    using ViewType = {{ interface_conversion.type }};
-    using SuperType = {{ interface_conversion.supertype }};
+    using ViewType = {{ data_to_view.type }};
+    using SuperType = {{ data_to_view.supertype }};
 };
-{% endfor %}{# stage.interface_conversions #}
+{% endfor %}
 
 struct SuperFactory
 {
@@ -466,28 +470,30 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
     std::vector< {{ many_accessor.type }}* > many_{{ many_accessor.longname }}( const mega::io::SourceFilePath& sourceFile ) const
     {
         std::vector< {{ many_accessor.type }}* > result;
+{% for file_accessor in many_accessor.files %}
         {
             mega::io::File::PtrCst pFile;
-{% if many_accessor.read_write %}
+{% if file_accessor.read_write %}
             if( sourceFile == m_sourceFile )
-                pFile = m_pFile_{{ many_accessor.file }};
+                pFile = m_pFile_{{ file_accessor.file }};
             else
                 pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                    m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+                    m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ file_accessor.stage }}_{{ file_accessor.file }} ) ;
 {% else %}
             pFile = m_manifest.loadFile( m_environment, const_cast< Database::Pimpl&>(*this), 
-                m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ many_accessor.stage }}_{{ many_accessor.file }} ) ;
+                m_readonlyFiles, sourceFile, mega::io::FileInfo::{{ stage.name }}, mega::io::FileInfo::{{ file_accessor.stage }}_{{ file_accessor.file }} ) ;
 {% endif %}
             for( mega::io::Object* pObject : pFile->range() )
             {
-                if( data::{{ many_accessor.file }}::{{ many_accessor.object }}* pFound = 
-                    dynamic_cast< data::{{ many_accessor.file }}::{{ many_accessor.object }}* >( pObject ) )
+                if( data::{{ file_accessor.file }}::{{ file_accessor.object }}* pFound = 
+                    dynamic_cast< data::{{ file_accessor.file }}::{{ file_accessor.object }}* >( pObject ) )
                 {
-                    data::Ptr< data::{{ many_accessor.file }}::{{ many_accessor.object }} > pData( const_cast<Database::Pimpl&>(*this), pFound );
+                    data::Ptr< data::{{ file_accessor.file }}::{{ file_accessor.object }} > pData( const_cast<Database::Pimpl&>(*this), pFound );
                     result.push_back( toView( const_cast< Database::Pimpl&>(*this), pData ) );
                 }
             }
         }
+{% endfor %} {# for file_accessor in many_accessor.files #}
         return result;
     }
 {% endfor %}{# stage.accessors #}
@@ -616,9 +622,9 @@ struct Database::Pimpl : public data::ObjectPartLoader, public SuperFactory
     {
         switch( objectInfo.getType() )
         {
-{% for interface_conversion in stage.interface_conversions %}
-            case {{ interface_conversion.index }}: return toView( const_cast< Database::Pimpl&>(*this),
-                data::Ptr< data::{{ interface_conversion.file }}::{{ interface_conversion.object }} >( const_cast< Database::Pimpl&>(*this), objectInfo ) );
+{% for data_to_view in stage.conversions_data_to_view %}
+            case {{ data_to_view.index }}: return toView( const_cast< Database::Pimpl&>(*this),
+                data::Ptr< data::{{ data_to_view.file }}::{{ data_to_view.object }} >( const_cast< Database::Pimpl&>(*this), objectInfo ) );
 {% endfor %}
             default: THROW_RTE( "Unknown object type" );
         }

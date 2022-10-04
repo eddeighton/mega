@@ -17,7 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "model.hpp"
 #include "grammar.hpp"
 
@@ -146,15 +145,83 @@ std::string Object::inheritanceGroupVariant( model::Stage::Ptr pStage ) const
         // determine if this object is visible in this stage
         if ( !pStage || pStage->isInterface( pObject ) )
         {
-            if ( bFirst )
-                bFirst = false;
-            else
-                os << ", ";
-            os << "data::Ptr< data::" << pObjectWeak.lock()->m_primaryObjectPart->getDataType( "::" ) << " >";
+            for ( auto pPart : pObject->m_primaryObjectParts )
+            {
+                if ( bFirst )
+                    bFirst = false;
+                else
+                    os << ", ";
+                os << "data::Ptr< data::" << pPart->getDataType( "::" ) << " >";
+            }
         }
     }
     os << " >";
     return os.str();
+}
+PrimaryObjectPart::Ptr Object::getPrimaryObjectPart( std::shared_ptr< Stage > pStage )
+{
+    VERIFY_RTE( !m_primaryObjectParts.empty() );
+    if( m_primaryObjectParts.size() == 1U )
+    {
+        return m_primaryObjectParts.front();
+    }
+
+    std::vector< PrimaryObjectPart::Ptr > pParts;
+    for ( const auto& p : m_primaryObjectParts )
+    {
+        //if( pStage->isDependency( p->m_file.lock()->m_stage.lock() ) )
+        if( pStage == p->m_file.lock()->m_stage.lock() )
+        {
+            pParts.push_back( p );
+        }
+    }
+    VERIFY_RTE_MSG( !pParts.empty(), "Failed to locate primary object part" );
+    VERIFY_RTE_MSG( pParts.size() == 1U, "Duplicate primary object parts found" );
+    return pParts.front();
+}
+
+std::vector< PrimaryObjectPart::Ptr > Interface::getPrimaryObjectParts() const
+{
+    return m_object.lock()->m_primaryObjectParts;
+}
+
+PrimaryObjectPart::Ptr Interface::getPrimaryObjectPart( std::shared_ptr< Stage > pStage ) const
+{
+    return m_object.lock()->getPrimaryObjectPart( pStage );
+    THROW_RTE( "Failed to locate primary object part for stage" );
+}
+
+bool Interface::ownsPrimaryObjectPart( std::shared_ptr< Stage > pStage ) const
+{
+    auto pPrimary = getPrimaryObjectPart( pStage );
+    return ownsPrimaryObjectPart( pPrimary );
+}
+
+bool Interface::ownsPrimaryObjectPart( PrimaryObjectPart::Ptr pPrimaryObjectPart ) const
+{
+    for ( model::ObjectPart::Ptr pPart : m_readWriteObjectParts )
+    {
+        if( PrimaryObjectPart::Ptr p = std::dynamic_pointer_cast< PrimaryObjectPart >( pPart ) )
+        {
+            if ( p == pPrimaryObjectPart )
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Interface::ownsInheritedSecondaryObjectPart() const
+{
+    for ( model::ObjectPart::Ptr pPart : m_readWriteObjectParts )
+    {
+        if ( std::dynamic_pointer_cast< InheritedObjectPart >( pPart ) )
+        {
+            return true;
+        }
+    }
+    return false;
 }
 namespace
 {
@@ -435,35 +502,43 @@ struct NamespaceVariantVisitor : boost::static_visitor< void >
         pNamespace->m_namespaces.push_back( pChildNamespace );
     }
 
-    ObjectPart::Ptr getObjectPart( const ObjectFilePair& objectFilePair, File::Ptr pFile, bool bIsPrimary ) const
+    ObjectPart::Ptr getOrCreatePrimaryObjectPart( const ObjectFilePair& objectFilePair, File::Ptr pFile ) const
     {
-        ObjectFilePairToObjectPartMap::iterator iFind = mapping.objectPartMap.find( objectFilePair );
+        auto iFind = mapping.objectPartMap.find( objectFilePair );
+        VERIFY_RTE( iFind == mapping.objectPartMap.end() );
 
         Object::Ptr pObject = objectFilePair.first;
 
-        if ( bIsPrimary )
+        PrimaryObjectPart::Ptr pPrimaryObjectPart = std::make_shared< PrimaryObjectPart >( mapping.counter );
+        pPrimaryObjectPart->m_object              = pObject;
+        pPrimaryObjectPart->m_file                = pFile;
+        pPrimaryObjectPart->m_typeID              = mapping.objectPartMap.size();
+
+        pFile->m_parts.push_back( pPrimaryObjectPart );
+
+        // VERIFY_RTE_MSG( pObject->m_primaryObjectParts.empty(), "Multiple primary object parts for: " << objectFilePair.second );
+        pObject->m_primaryObjectParts.push_back( pPrimaryObjectPart );
+
+        mapping.objectPartMap.insert( std::make_pair( objectFilePair, pPrimaryObjectPart ) );
+
+        return pPrimaryObjectPart;
+    }
+
+    // returns existing primary or secondary OR creates secondary
+    ObjectPart::Ptr getOrCreateSecondaryObjectPart( const ObjectFilePair& objectFilePair, File::Ptr pFile ) const
+    {
+        auto iFind = mapping.objectPartMap.find( objectFilePair );
+
+        Object::Ptr pObject = objectFilePair.first;
+
+        if ( iFind == mapping.objectPartMap.end() )
         {
-            VERIFY_RTE( iFind == mapping.objectPartMap.end() );
-            PrimaryObjectPart::Ptr pPrimaryObjectPart = std::make_shared< PrimaryObjectPart >( mapping.counter );
-            pPrimaryObjectPart->m_object              = pObject;
-            pPrimaryObjectPart->m_file                = pFile;
-            pPrimaryObjectPart->m_typeID              = mapping.objectPartMap.size();
-
-            pFile->m_parts.push_back( pPrimaryObjectPart );
-
-            pObject->m_primaryObjectPart = pPrimaryObjectPart;
-
-            mapping.objectPartMap.insert( std::make_pair( objectFilePair, pPrimaryObjectPart ) );
-
-            return pPrimaryObjectPart;
-        }
-        else if ( iFind == mapping.objectPartMap.end() )
-        {
-            VERIFY_RTE( pObject->m_primaryObjectPart );
+            auto pPrimaryObjectPart = pObject->getPrimaryObjectPart( pFile->m_stage.lock() );
+            VERIFY_RTE( pPrimaryObjectPart );
 
             SecondaryObjectPart::Ptr pSecondaryObjectPart;
 
-            if ( pObject->m_primaryObjectPart->m_file.lock()->m_stage.lock() != pFile->m_stage.lock() )
+            if ( pPrimaryObjectPart->m_file.lock()->m_stage.lock() != pFile->m_stage.lock() )
             {
                 pSecondaryObjectPart = std::make_shared< InheritedObjectPart >( mapping.counter );
             }
@@ -499,51 +574,51 @@ struct NamespaceVariantVisitor : boost::static_visitor< void >
                 std::make_pair( pObject, NameResolution{ pNamespace, object.m_optInheritance.value() } ) );
         }
 
-        FileMap::iterator iFind = mapping.fileMap.find( object.m_file );
-        VERIFY_RTE_MSG( iFind != mapping.fileMap.end(),
-                        "Could not find file: " << object.m_file << " for object: " << object.m_name );
-
-        File::Ptr pFile        = iFind->second;
-        pObject->m_primaryFile = pFile;
-        pObject->m_stage       = pFile->m_stage;
-        // pFile->m_stage.lock()->m_readWriteObjects.push_back( pObject );
-
-        ObjectFilePair objectFilePair( pObject, object.m_file );
-
-        // create first object part if not one already
-        ObjectPart::Ptr pObjectPart = getObjectPart( objectFilePair, pFile, true );
-
-        for ( const schema::Property& property : object.m_properties )
+        for ( const schema::IdentifierList& fileIDList : object.m_files )
         {
-            Property::Ptr pProperty = std::make_shared< Property >( mapping.counter );
-            pProperty->m_strName    = property.m_name;
-            if ( property.m_optFile.has_value() )
+            auto iFind = mapping.fileMap.find( fileIDList );
+            VERIFY_RTE_MSG( iFind != mapping.fileMap.end(),
+                            "Could not find fileIDList: " << fileIDList << " for object: " << object.m_name );
+
+            File::Ptr pFile = iFind->second;
+
+            ObjectFilePair objectFilePair( pObject, fileIDList );
+
+            // create first object part if not one already
+            ObjectPart::Ptr pObjectPart = getOrCreatePrimaryObjectPart( objectFilePair, pFile );
+
+            for ( const schema::Property& property : object.m_properties )
             {
-                FileMap::iterator i               = mapping.fileMap.find( property.m_optFile.value() );
-                File::Ptr         pObjectPartFile = i->second;
+                Property::Ptr pProperty = std::make_shared< Property >( mapping.counter );
+                pProperty->m_strName    = property.m_name;
+                if ( property.m_optFile.has_value() )
+                {
+                    auto      i               = mapping.fileMap.find( property.m_optFile.value() );
+                    File::Ptr pObjectPartFile = i->second;
 
-                VERIFY_RTE_MSG(
-                    i != mapping.fileMap.end(),
-                    "Could not find file: " << property.m_optFile.value() << " for object: " << object.m_name );
+                    VERIFY_RTE_MSG(
+                        i != mapping.fileMap.end(),
+                        "Could not find file: " << property.m_optFile.value() << " for object: " << object.m_name );
 
-                Stage::Ptr pObjectStage     = pFile->m_stage.lock();
-                Stage::Ptr pObjectPartStage = pObjectPartFile->m_stage.lock();
+                    Stage::Ptr pObjectStage     = pFile->m_stage.lock();
+                    Stage::Ptr pObjectPartStage = pObjectPartFile->m_stage.lock();
 
-                // ensure the object part is from current or later stage
-                VERIFY_RTE_MSG( pObjectStage->getCounter() <= pObjectPartStage->getCounter(),
-                                "Property: " << property.m_name << " specifies file which has earlier stage: "
-                                             << pObjectPartStage->m_strName << " than containing object: "
-                                             << object.m_name << " which is: " << pObjectStage->m_strName );
+                    // ensure the object part is from current or later stage
+                    VERIFY_RTE_MSG( pObjectStage->getCounter() <= pObjectPartStage->getCounter(),
+                                    "Property: " << property.m_name << " specifies file which has earlier stage: "
+                                                 << pObjectPartStage->m_strName << " than containing object: "
+                                                 << object.m_name << " which is: " << pObjectStage->m_strName );
 
-                pObjectPart
-                    = getObjectPart( ObjectFilePair( pObject, property.m_optFile.value() ), pObjectPartFile, false );
+                    pObjectPart = getOrCreateSecondaryObjectPart(
+                        ObjectFilePair( pObject, property.m_optFile.value() ), pObjectPartFile );
+                }
+                pProperty->m_objectPart = pObjectPart;
+                pObjectPart->m_properties.push_back( pProperty );
+
+                pProperty->m_type = getType( property.m_type, mapping, pNamespace );
+
+                VERIFY_RTE_MSG( pProperty->m_type, "Failed to resolve type for property: " << property.m_name );
             }
-            pProperty->m_objectPart = pObjectPart;
-            pObjectPart->m_properties.push_back( pProperty );
-
-            pProperty->m_type = getType( property.m_type, mapping, pNamespace );
-
-            VERIFY_RTE_MSG( pProperty->m_type, "Failed to resolve type for property: " << property.m_name );
         }
 
         pNamespace->m_objects.push_back( pObject );
@@ -927,7 +1002,7 @@ void stageInterfaces( Mapping& mapping, Schema::Ptr pSchema )
         // create stage functions
         for ( Interface::Ptr pInterface : pStage->m_readWriteInterfaces )
         {
-            if ( pInterface->ownsPrimaryObjectPart() || pInterface->ownsInheritedSecondaryObjectPart() )
+            if ( pInterface->ownsPrimaryObjectPart( pStage ) || pInterface->ownsInheritedSecondaryObjectPart() )
             {
                 Constructor::Ptr pConstructor = std::make_shared< Constructor >( mapping.counter );
                 pConstructor->m_interface     = pInterface;
@@ -1212,50 +1287,52 @@ void objectPartConversions( Mapping& mapping, Schema::Ptr pSchema )
 
     for ( Object::Ptr pObject : objects )
     {
-        // to self case
-        pSchema->m_conversions.insert(
-            std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pObject->m_primaryObjectPart },
-                            Schema::ObjectPartVector{} ) );
+        for ( auto pPrimaryObjectPart : pObject->m_primaryObjectParts )
+        {
+            // to self case
+            pSchema->m_conversions.insert( std::make_pair(
+                Schema::ObjectPartPair{ pPrimaryObjectPart, pPrimaryObjectPart }, Schema::ObjectPartVector{} ) );
 
-        if ( !pObject->m_base )
-        {
-            pSchema->m_base_conversions.insert(
-                std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pObject->m_primaryObjectPart },
-                                Schema::ObjectPartVector{} ) );
-        }
-
-        for ( ObjectPart::Ptr pSecondary : pObject->m_secondaryParts )
-        {
-            pSchema->m_conversions.insert(
-                std::make_pair( Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary },
-                                Schema::ObjectPartVector{ pSecondary } ) );
-        }
-        {
-            Object::Ptr              pBase = pObject->m_base;
-            Schema::ObjectPartVector baseList;
-            while ( pBase )
+            if ( !pObject->m_base )
             {
-                baseList.push_back( pBase->m_primaryObjectPart );
+                pSchema->m_base_conversions.insert( std::make_pair(
+                    Schema::ObjectPartPair{ pPrimaryObjectPart, pPrimaryObjectPart }, Schema::ObjectPartVector{} ) );
+            }
 
-                pSchema->m_conversions.insert( std::make_pair(
-                    Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart }, baseList ) );
-
-                if ( !pBase->m_base )
+            for ( ObjectPart::Ptr pSecondary : pObject->m_secondaryParts )
+            {
+                pSchema->m_conversions.insert( std::make_pair( Schema::ObjectPartPair{ pPrimaryObjectPart, pSecondary },
+                                                               Schema::ObjectPartVector{ pSecondary } ) );
+            }
+            {
+                Object::Ptr              pBase = pObject->m_base;
+                Schema::ObjectPartVector baseList;
+                while ( pBase )
                 {
-                    pSchema->m_base_conversions.insert( std::make_pair(
-                        Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pBase->m_primaryObjectPart },
-                        baseList ) );
-                }
+                    for ( auto pBasePrimaryObjectPart : pBase->m_primaryObjectParts )
+                    {
+                        baseList.push_back( pBasePrimaryObjectPart );
 
-                for ( ObjectPart::Ptr pSecondary : pBase->m_secondaryParts )
-                {
-                    Schema::ObjectPartVector baseListPlusSecondary = baseList;
-                    baseListPlusSecondary.push_back( pSecondary );
-                    pSchema->m_conversions.insert( std::make_pair(
-                        Schema::ObjectPartPair{ pObject->m_primaryObjectPart, pSecondary }, baseListPlusSecondary ) );
-                }
+                        pSchema->m_conversions.insert( std::make_pair(
+                            Schema::ObjectPartPair{ pPrimaryObjectPart, pBasePrimaryObjectPart }, baseList ) );
 
-                pBase = pBase->m_base;
+                        if ( !pBase->m_base )
+                        {
+                            pSchema->m_base_conversions.insert( std::make_pair(
+                                Schema::ObjectPartPair{ pPrimaryObjectPart, pBasePrimaryObjectPart }, baseList ) );
+                        }
+                    }
+
+                    for ( ObjectPart::Ptr pSecondary : pBase->m_secondaryParts )
+                    {
+                        Schema::ObjectPartVector baseListPlusSecondary = baseList;
+                        baseListPlusSecondary.push_back( pSecondary );
+                        pSchema->m_conversions.insert( std::make_pair(
+                            Schema::ObjectPartPair{ pPrimaryObjectPart, pSecondary }, baseListPlusSecondary ) );
+                    }
+
+                    pBase = pBase->m_base;
+                }
             }
         }
     }
@@ -1276,7 +1353,7 @@ void fileDependencies( Mapping& mapping, Schema::Ptr pSchema )
                     Object::Ptr pObject = pPrimaryPart->m_object.lock();
                     if ( Object::Ptr pBase = pObject->m_base )
                     {
-                        File::Ptr pDependencyFile = pBase->m_primaryObjectPart->m_file.lock();
+                        File::Ptr pDependencyFile = pBase->getPrimaryObjectPart( pStage )->m_file.lock();
                         if ( pDependencyFile != pFile )
                             dependencies.insert( pDependencyFile );
                     }
@@ -1285,7 +1362,7 @@ void fileDependencies( Mapping& mapping, Schema::Ptr pSchema )
                           = std::dynamic_pointer_cast< InheritedObjectPart >( pPart ) )
                 {
                     Object::Ptr pObject         = pInheritedSecondaryObjectPart->m_object.lock();
-                    File::Ptr   pDependencyFile = pObject->m_primaryObjectPart->m_file.lock();
+                    File::Ptr   pDependencyFile = pObject->getPrimaryObjectPart( pStage )->m_file.lock();
                     if ( pDependencyFile != pFile )
                         dependencies.insert( pDependencyFile );
 

@@ -130,7 +130,7 @@ struct Object
 {
     Identifier                      m_name;
     std::optional< IdentifierList > m_optInheritance;
-    IdentifierList                  m_file;
+    std::vector< IdentifierList >   m_files;
     std::vector< Property >         m_properties;
 };
 

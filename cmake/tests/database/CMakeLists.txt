@@ -22,3 +22,4 @@
 
 add_subdirectory(basic)
 add_subdirectory(advanced)
+add_subdirectory(multi_stage_base)

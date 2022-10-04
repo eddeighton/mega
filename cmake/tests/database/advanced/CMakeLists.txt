@@ -39,10 +39,7 @@ set( ADVANCED_DIR ${MEGA_TEST_DIR}/database/advanced )
 
 set( BASIC_DATABASE_GENERATED_HEADERS
 
-    ${ADVANCED_DIR}/database/model/data_FirstFile.hxx
-    ${ADVANCED_DIR}/database/model/data_SecondFile.hxx
-    ${ADVANCED_DIR}/database/model/data_ThirdFile.hxx
-    ${ADVANCED_DIR}/database/model/data_FourthFile.hxx
+    ${ADVANCED_DIR}/database/model/data.hxx
 
     ${ADVANCED_DIR}/database/model/environment.hxx
     ${ADVANCED_DIR}/database/model/manifest.hxx

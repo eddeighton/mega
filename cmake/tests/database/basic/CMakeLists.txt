@@ -39,11 +39,7 @@ set( BASIC_DIR ${MEGA_TEST_DIR}/database/basic )
 
 set( BASIC_DATABASE_GENERATED_HEADERS
 
-    ${BASIC_DIR}/database/model/data_FirstFile.hxx
-    ${BASIC_DIR}/database/model/data_SecondFile.hxx
-    ${BASIC_DIR}/database/model/data_ThirdFile.hxx
-    ${BASIC_DIR}/database/model/data_FourthFile.hxx
-    ${BASIC_DIR}/database/model/data_FifthFile.hxx
+    ${BASIC_DIR}/database/model/data.hxx
 
     ${BASIC_DIR}/database/model/environment.hxx
     ${BASIC_DIR}/database/model/manifest.hxx

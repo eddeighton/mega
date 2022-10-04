@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef DATABASE_COMPILER_MODEL_4_APRIL_2022
 #define DATABASE_COMPILER_MODEL_4_APRIL_2022
 
@@ -32,13 +29,12 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <map>
 #include <set>
 
-namespace db
-{
-namespace model
+namespace db::model
 {
 using Counter = mega::U64;
 
@@ -149,7 +145,7 @@ public:
     std::weak_ptr< Object >      m_object;
     std::weak_ptr< File >        m_file;
     std::vector< Property::Ptr > m_properties;
-    mega::U64                  m_typeID;
+    mega::U64                    m_typeID;
 
     std::string getDataType( const std::string& strDelimiter ) const;
     std::string getPointerName() const;
@@ -198,9 +194,9 @@ public:
 class Object : public CountedObject
 {
 public:
-    Object( Counter& szCounter, const std::string& strIdentifier )
+    Object( Counter& szCounter, std::string strIdentifier )
         : CountedObject( szCounter )
-        , m_strName( strIdentifier )
+        , m_strName( std::move( strIdentifier ) )
     {
     }
     using Ptr     = std::shared_ptr< Object >;
@@ -214,13 +210,12 @@ public:
     std::string delimitTypeName( const std::string& str ) const;
 
     std::weak_ptr< Namespace > m_namespace;
-    std::weak_ptr< File >      m_primaryFile;
-    std::weak_ptr< Stage >     m_stage;
-    // primary object part for the object in its stage
-    PrimaryObjectPart::Ptr m_primaryObjectPart;
 
-    // secondary object parts that belong to the stage of the object
+    // primary object part for the object in its stage
+    std::vector< PrimaryObjectPart::Ptr >   m_primaryObjectParts;
     std::vector< SecondaryObjectPart::Ptr > m_secondaryParts;
+
+    PrimaryObjectPart::Ptr getPrimaryObjectPart( std::shared_ptr< Stage > pStage );
 
     Ptr                                    m_base;
     std::vector< std::weak_ptr< Object > > m_deriving;
@@ -371,45 +366,19 @@ public:
 
     std::string delimitTypeName( const std::string& strStageNamespace, const std::string& str ) const;
 
-    inline PrimaryObjectPart::Ptr getPrimaryObjectPart() const
-    {
-        PrimaryObjectPart::Ptr pPart = m_object.lock()->m_primaryObjectPart;
-        VERIFY_RTE( pPart );
-        return pPart;
-    }
-
-    inline bool ownsPrimaryObjectPart() const
-    {
-        ObjectPart::Ptr pPrimaryObjectPart = getPrimaryObjectPart();
-        for ( model::ObjectPart::Ptr pPart : m_readWriteObjectParts )
-        {
-            if ( pPart == pPrimaryObjectPart )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    inline bool ownsInheritedSecondaryObjectPart() const
-    {
-        for ( model::ObjectPart::Ptr pPart : m_readWriteObjectParts )
-        {
-            if ( std::dynamic_pointer_cast< InheritedObjectPart >( pPart ) )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+    std::vector< PrimaryObjectPart::Ptr > getPrimaryObjectParts() const;
+    PrimaryObjectPart::Ptr                getPrimaryObjectPart( std::shared_ptr< Stage > pStage ) const;
+    bool                                  ownsPrimaryObjectPart( std::shared_ptr< Stage > pStage ) const;
+    bool                                  ownsPrimaryObjectPart( PrimaryObjectPart::Ptr pPrimaryObjectPart ) const;
+    bool                                  ownsInheritedSecondaryObjectPart() const;
 };
 
 class SuperType : public CountedObject
 {
 public:
-    SuperType( Counter& szCounter, const std::string& strTypeName )
+    SuperType( Counter& szCounter, std::string strTypeName )
         : CountedObject( szCounter )
-        , m_strTypeName( strTypeName )
+        , m_strTypeName( std::move( strTypeName ) )
     {
     }
     using Ptr = std::shared_ptr< SuperType >;
@@ -515,6 +484,18 @@ public:
             dependencies.push_back( pThis );
     }
 
+    bool isDependency( Stage::Ptr pStage ) const
+    {
+        if ( shared_from_this() == pStage )
+            return true;
+        for ( WeakPtr p : m_dependencies )
+        {
+            if ( p.lock()->isDependency( pStage ) )
+                return true;
+        }
+        return false;
+    }
+
     Interface::Ptr isInterface( Object::Ptr pObject ) const
     {
         for ( Interface::Ptr pInterface : m_interfaceTopological )
@@ -522,7 +503,7 @@ public:
             if ( pInterface->m_object.lock() == pObject )
                 return pInterface;
         }
-        return Interface::Ptr();
+        return {};
     }
     Interface::Ptr getInterface( Object::Ptr pObject ) const
     {
@@ -642,9 +623,11 @@ public:
     {
         VERIFY_RTE( m_object );
 
+        VERIFY_RTE_MSG( m_object->m_primaryObjectParts.size() == 1, "Ambiguous primary object part" );
+        auto pFile = m_object->m_primaryObjectParts.back()->m_file.lock();
+
         std::ostringstream os;
-        os << "data::Ptr< data::" << m_object->m_primaryFile.lock()->m_strName << "::" << m_object->getDataTypeName()
-           << " >";
+        os << "data::Ptr< data::" << pFile->m_strName << "::" << m_object->getDataTypeName() << " >";
 
         switch ( formatType )
         {
@@ -840,7 +823,6 @@ public:
 
 Schema::Ptr from_ast( const ::db::schema::Schema& schema );
 
-} // namespace model
-} // namespace db
+} // namespace db::model
 
 #endif // DATABASE_COMPILER_MODEL_4_APRIL_2022
