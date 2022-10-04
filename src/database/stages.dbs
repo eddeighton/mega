@@ -154,41 +154,10 @@ stage ConcreteStage
     persource accessor array< ref< Interface::DimensionTrait > >;
 }
 
-stage ConcreteTypeAnalysis
-{
-    source .manifest;
-    dependency ConcreteStage;
-
-    file ConcreteTable;
-
-    persource accessor ref< Concrete::Context >;
-    global accessor ref< Symbols::SymbolTable >;
-}
-
-stage ConcreteTypeAnalysisView
-{
-    source .manifest;
-    dependency ConcreteTypeAnalysis;
-
-    persource accessor ref< Concrete::Context >;
-    global accessor ref< Symbols::SymbolTable >;
-}
-
-stage ConcreteTypeRollout
-{
-    source .mega;
-    dependency ConcreteTypeAnalysis;
-
-    file PerSourceConcreteTable;
-
-    persource accessor ref< Concrete::Context >;
-    global accessor ref< Symbols::SymbolTable >;
-}
-
 stage DerivationAnalysis
 {
     source .manifest;
-    dependency ConcreteTypeRollout;
+    dependency ConcreteStage;
 
     file Derivations;
 
@@ -261,11 +230,42 @@ stage MemoryStage
     persource accessor ref< Concrete::Root >;
 }
 
+stage ConcreteTypeAnalysis
+{
+    source .manifest;
+    dependency MemoryStage;
+
+    file ConcreteTable;
+
+    persource accessor ref< Concrete::Context >;
+    global accessor ref< Symbols::SymbolTable >;
+}
+
+stage ConcreteTypeAnalysisView
+{
+    source .manifest;
+    dependency ConcreteTypeAnalysis;
+
+    persource accessor ref< Concrete::Context >;
+    global accessor ref< Symbols::SymbolTable >;
+}
+
+stage ConcreteTypeRollout
+{
+    source .mega;
+    dependency ConcreteTypeAnalysis;
+
+    file PerSourceConcreteTable;
+
+    persource accessor ref< Concrete::Context >;
+    global accessor ref< Symbols::SymbolTable >;
+}
+
 stage OperationsStage
 {
     source .mega;
     source .cpp;
-    dependency MemoryStage;
+    dependency ConcreteTypeRollout;
 
     file Operations;
 

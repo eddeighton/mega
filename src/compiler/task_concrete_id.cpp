@@ -92,10 +92,10 @@ public:
         }
 
         using SymbolSetMap      = std::map< mega::io::megaFilePath, ConcreteTypeAnalysis::Symbols::SymbolSet* >;
-        using SymbolIDPath      = std::vector< mega::I32 >;
+        using SymbolIDPath      = std::vector< mega::TypeID >;
         using IDPathToSymbolMap = std::map< SymbolIDPath, ConcreteTypeAnalysis::Symbols::ConcreteSymbol* >;
-        using IDToSymbolMap     = std::map< mega::I32, ::ConcreteTypeAnalysis::Symbols::ConcreteSymbol* >;
-        using IDToContextMap    = std::map< mega::I32, ::ConcreteTypeAnalysis::Concrete::Context* >;
+        using IDToSymbolMap     = std::map< mega::TypeID, ::ConcreteTypeAnalysis::Symbols::ConcreteSymbol* >;
+        using IDToContextMap    = std::map< mega::TypeID, ::ConcreteTypeAnalysis::Concrete::Context* >;
 
         ConcreteTypeAnalysis::Symbols::ConcreteSymbol*
         findOrCreateSymbol( ConcreteTypeAnalysis::Database&          database,
@@ -122,7 +122,12 @@ public:
             if ( !pSymbol )
             {
                 // create the symbol in an un-labelled state i.e. with 0 for symbol id
-                pSymbol = database.construct< ConcreteSymbol >( ConcreteSymbol::Args{ symbolIDPath, 0, pContext } );
+                pSymbol = database.construct< ConcreteSymbol >(
+                    ConcreteSymbol::Args{ symbolIDPath, 0, std::optional< Concrete::Context* >{ pContext },
+                                          std::optional< Concrete::Dimensions::User* >{},
+                                          std::optional< Concrete::Dimensions::LinkReference* >{},
+                                          std::optional< Concrete::Dimensions::Allocation* >{} } );
+
                 idPathToSymbolMap.insert( std::make_pair( symbolIDPath, pSymbol ) );
             }
 
@@ -146,7 +151,7 @@ public:
 
             bool bFoundRoot = false;
 
-            std::set< mega::I32 > symbolLabels;
+            std::set< mega::TypeID > symbolLabels;
             {
                 for ( IDPathToSymbolMap::iterator i = globalIDPathToSymbolMap.begin();
                       i != globalIDPathToSymbolMap.end();
@@ -156,14 +161,18 @@ public:
 
                     // pSymbol->get_context()->get_interface()
                     //  if the symbol is the root then set to 1
-                    if ( dynamic_database_cast< Interface::Root >(
-                             pSymbol->get_context()->get_interface()->get_parent() ) )
+
+                    if ( pSymbol->get_context().has_value() )
                     {
-                        if ( pSymbol->get_context()->get_interface()->get_identifier() == ROOT_TYPE_NAME )
+                        if ( dynamic_database_cast< Interface::Root >(
+                                 pSymbol->get_context().value()->get_interface()->get_parent() ) )
                         {
-                            VERIFY_RTE_MSG( !bFoundRoot, "Found duplicate Roots" );
-                            pSymbol->set_id( mega::ROOT_TYPE_ID );
-                            bFoundRoot = true;
+                            if ( pSymbol->get_context().value()->get_interface()->get_identifier() == ROOT_TYPE_NAME )
+                            {
+                                VERIFY_RTE_MSG( !bFoundRoot, "Found duplicate Roots" );
+                                pSymbol->set_id( mega::ROOT_TYPE_ID );
+                                bFoundRoot = true;
+                            }
                         }
                     }
 
@@ -176,8 +185,8 @@ public:
             }
             VERIFY_RTE_MSG( bFoundRoot, "Failed to find Root symbol" );
 
-            std::set< mega::I32 >::iterator labelIter   = symbolLabels.begin();
-            mega::I32                       szNextLabel = 2;
+            std::set< mega::TypeID >::iterator labelIter   = symbolLabels.begin();
+            mega::TypeID                       szNextLabel = 2;
             for ( IDPathToSymbolMap::iterator i = globalIDPathToSymbolMap.begin(); i != globalIDPathToSymbolMap.end();
                   ++i )
             {
@@ -195,9 +204,11 @@ public:
                             szNextLabel = *labelIter + 1;
                             ++labelIter;
                         }
+                        VERIFY_RTE_MSG( szNextLabel > 0, "Concrete Type ID overflowed" );
                     }
                     pSymbol->set_id( szNextLabel );
                     ++szNextLabel;
+                    VERIFY_RTE_MSG( szNextLabel > 0, "Concrete Type ID overflowed" );
                 }
             }
         }
@@ -213,9 +224,13 @@ public:
                 for ( const auto& [ id, pSymbol ] : pSymbolSet->get_concrete_symbols() )
                 {
                     VERIFY_RTE( pSymbol->get_id() != 0 );
-                    pSymbolSet->insert_context_concrete_ids( pSymbol->get_context(), pSymbol->get_id() );
+                    if ( pSymbol->get_context().has_value() )
+                    {
+                        pSymbolSet->insert_context_concrete_ids( pSymbol->get_context().value(), pSymbol->get_id() );
+                        VERIFY_RTE(
+                            idToContextMap.insert( { pSymbol->get_id(), pSymbol->get_context().value() } ).second );
+                    }
                     VERIFY_RTE( idToSymbolMap.insert( { pSymbol->get_id(), pSymbol } ).second );
-                    VERIFY_RTE( idToContextMap.insert( { pSymbol->get_id(), pSymbol->get_context() } ).second );
                 }
             }
         }
@@ -326,18 +341,23 @@ public:
                                     SymbolCollector::IDPathToSymbolMap localSymbolMap;
                                     for ( auto& [ id, pSymbol ] : pOldSymbolSet->get_concrete_symbols() )
                                     {
-                                        New::Concrete::Context* pNewContext
-                                            = newDatabase.convert< New::Concrete::Context >( pSymbol->get_context() );
+                                        if ( pSymbol->get_context().has_value() )
+                                        {
+                                            New::Concrete::Context* pNewContext
+                                                = newDatabase.convert< New::Concrete::Context >(
+                                                    pSymbol->get_context().value() );
 
-                                        // converted symbol will retain old concrete id
-                                        VERIFY_RTE( pSymbol->get_id() != 0 );
-                                        New::Symbols::ConcreteSymbol* pNewSymbol
-                                            = newDatabase.construct< New::Symbols::ConcreteSymbol >(
-                                                New::Symbols::ConcreteSymbol::Args{
-                                                    pSymbol->get_id_sequence(), pSymbol->get_id(), pNewContext } );
+                                            // converted symbol will retain old concrete id
+                                            VERIFY_RTE( pSymbol->get_id() != 0 );
+                                            New::Symbols::ConcreteSymbol* pNewSymbol
+                                                = newDatabase.construct< New::Symbols::ConcreteSymbol >(
+                                                    New::Symbols::ConcreteSymbol::Args{
+                                                        pSymbol->get_id_sequence(), pSymbol->get_id(), pNewContext,
+                                                        std::nullopt, std::nullopt, std::nullopt } );
 
-                                        VERIFY_RTE( localSymbolMap.insert( { id, pNewSymbol } ).second );
-                                        VERIFY_RTE( globalIDPathToSymbolMap.insert( { id, pNewSymbol } ).second );
+                                            VERIFY_RTE( localSymbolMap.insert( { id, pNewSymbol } ).second );
+                                            VERIFY_RTE( globalIDPathToSymbolMap.insert( { id, pNewSymbol } ).second );
+                                        }
                                     }
 
                                     auto iFind = oldSymbolSetsMap.find( sourceFilePath );
@@ -346,7 +366,7 @@ public:
 
                                     pSymbolSet = newDatabase.construct< New::Symbols::SymbolSet >(
                                         New::Symbols::SymbolSet::Args{
-                                            pSymbolSet, concreteHash.get(), localSymbolMap, {} } );
+                                            pSymbolSet, concreteHash.get(), localSymbolMap, {}, {}, {}, {} } );
                                     VERIFY_RTE( newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } ).second );
 
                                     // std::ostringstream os;
@@ -383,7 +403,7 @@ public:
 
                                 pSymbolSet
                                     = newDatabase.construct< New::Symbols::SymbolSet >( New::Symbols::SymbolSet::Args{
-                                        pSymbolSet, concreteHash.get(), idPathToSymbolMap, {} } );
+                                        pSymbolSet, concreteHash.get(), idPathToSymbolMap, {}, {}, {}, {} } );
                                 VERIFY_RTE( newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } ).second );
 
                                 for ( auto& [ id, pSymbol ] : idPathToSymbolMap )
@@ -411,7 +431,7 @@ public:
 
                                 pSymbolSet
                                     = newDatabase.construct< New::Symbols::SymbolSet >( New::Symbols::SymbolSet::Args{
-                                        pSymbolSet, concreteHash.get(), idPathToSymbolMap, {} } );
+                                        pSymbolSet, concreteHash.get(), idPathToSymbolMap, {}, {}, {}, {} } );
                                 VERIFY_RTE( newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } ).second );
 
                                 for ( auto& [ id, pSymbol ] : idPathToSymbolMap )
@@ -474,25 +494,28 @@ public:
 
                         // recreate the symbol set
                         pSymbolSet = database.construct< SymbolSet >(
-                            SymbolSet::Args{ pSymbolSet, concreteHash.get(), idPathToSymbolMap, {} } );
+                            SymbolSet::Args{ pSymbolSet, concreteHash.get(), idPathToSymbolMap, {}, {}, {}, {} } );
                         newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } );
                         for ( auto& [ id, pSymbol ] : idPathToSymbolMap )
                         {
                             const bool bResult = globalIDPathToSymbolMap.insert( std::make_pair( id, pSymbol ) ).second;
                             if ( !bResult )
                             {
-                                const auto         path = SymbolCollector::getContextPath( pSymbol->get_context() );
-                                std::ostringstream os;
-                                bool               bFirst = true;
-                                for ( const auto p : path )
+                                if( pSymbol->get_context().has_value() )
                                 {
-                                    if ( bFirst )
-                                        bFirst = false;
-                                    else
-                                        os << "::";
-                                    os << p->get_interface()->get_identifier();
+                                    const auto         path = SymbolCollector::getContextPath( pSymbol->get_context().value() );
+                                    std::ostringstream os;
+                                    bool               bFirst = true;
+                                    for ( const auto p : path )
+                                    {
+                                        if ( bFirst )
+                                            bFirst = false;
+                                        else
+                                            os << "::";
+                                        os << p->get_interface()->get_identifier();
+                                    }
+                                    THROW_RTE( "Duplicate symbols found: " << os.str() );
                                 }
-                                THROW_RTE( "Duplicate symbols found: " << os.str() );
                             }
                         }
                     }

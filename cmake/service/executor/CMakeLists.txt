@@ -109,6 +109,11 @@ set( EXECUTOR_SOURCE
 
 add_executable( executor ${EXECUTOR_SOURCE}  )
 
+add_c_preprocessor_command( OUTPUT default_traits.cpp.i SOURCE ${MEGA_API_DIR}/mega/default_traits.cpp TARGET executor )
+add_custom_target( PreprocessDefaultTraits 
+	SOURCES default_traits.cpp.i
+	COMMENT "Proprocessing default_traits.cpp")
+
 target_compile_options( executor PUBLIC "-fcoroutines" )
 
 target_link_libraries( executor executorLib )

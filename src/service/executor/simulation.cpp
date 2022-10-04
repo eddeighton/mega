@@ -95,7 +95,7 @@ void Simulation::error( const reference& ref, const std::string& str )
 {
     //
 }
-void Simulation::write( const reference& ref )
+void Simulation::write( const reference& ref, bool bShared, U64 size, const void* pData )
 {
     //
 }

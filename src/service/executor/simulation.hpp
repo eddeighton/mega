@@ -86,7 +86,7 @@ public:
     virtual void info( const reference& ref, const std::string& str ) override;
     virtual void warn( const reference& ref, const std::string& str ) override;
     virtual void error( const reference& ref, const std::string& str ) override;
-    virtual void write( const reference& ref ) override;
+    virtual void write( const reference& ref, bool bShared, U64 size, const void* pData ) override;
 
     // mega::MPOContext - runtime internal interface
     virtual std::string    acquireMemory( MPO mpo ) override;

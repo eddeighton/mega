@@ -194,7 +194,7 @@ public:
     {
         //
     }
-    virtual void write( const reference& ref ) override
+    virtual void write( const reference& ref, bool bShared, U64 size, const void* pData ) override
     {
         //
     }

@@ -53,7 +53,7 @@ public:
     virtual void info( const reference& ref, const std::string& str )  = 0;
     virtual void warn( const reference& ref, const std::string& str )  = 0;
     virtual void error( const reference& ref, const std::string& str ) = 0;
-    virtual void write( const reference& ref ) = 0;
+    virtual void write( const reference& ref, bool bShared, U64 size, const void* pData ) = 0;
 
     static Context* get();
 };

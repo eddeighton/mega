@@ -436,44 +436,49 @@ using PartSet = std::set< const FinalStage::MemoryLayout::Part* >;
 using CallSet = std::set< const FinalStage::Concrete::Context* >;
 using CopySet = std::set< const FinalStage::Interface::DimensionTrait* >;
 
-void generateBufferFPtrCheck( bool bShared, mega::TypeID id, std::ostream& os )
+void generateBufferFPtrCheck( bool bShared, mega::TypeID contextID, std::ostream& os )
 {
     const std::string strType = bShared ? "shared" : "heap";
-    os << indent << "if( _fptr_get_" << strType << "_" << id << " == nullptr ) "
-       << "mega::runtime::get_getter_" << strType << "( g_pszModuleName, " << id << ", &_fptr_get_" << strType << "_"
-       << id << " );\n";
+    os << indent << "if( _fptr_get_" << strType << "_" << contextID << " == nullptr ) "
+       << "mega::runtime::get_getter_" << strType << "( g_pszModuleName, " << contextID << ", &_fptr_get_" << strType
+       << "_" << contextID << " );\n";
 }
-void generateReferenceCheck( bool bShared, mega::TypeID id, const std::string& strInstanceVar, std::ostream& os )
+void generateReferenceCheck( bool bShared, mega::TypeID contextID, const std::string& strInstanceVar, std::ostream& os )
 {
     os << indent << "if( " << strInstanceVar << ".isNetwork() ) " << strInstanceVar
-       << " = mega::runtime::networkToMachine( " << id << ", " << strInstanceVar << ".network );\n";
+       << " = mega::runtime::networkToMachine( " << contextID << ", " << strInstanceVar << ".network );\n";
 }
-void generateBufferRead( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
+void generateBufferRead( bool bShared, mega::TypeID contextID, FinalStage::MemoryLayout::Part* pPart,
                          const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
                          std::ostream& os )
 {
     const std::string strType = bShared ? "shared" : "heap";
-    os << indent << "return reinterpret_cast< char* >(_fptr_get_" << strType << "_" << id << "( " << strInstanceVar
-       << " ) )"
+    os << indent << "return reinterpret_cast< char* >(_fptr_get_" << strType << "_" << contextID << "( "
+       << strInstanceVar << " ) )"
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
        << pDimension->get_offset() << ";\n";
 }
 
-void generateBufferWrite( bool bShared, mega::TypeID id, FinalStage::MemoryLayout::Part* pPart,
+void generateBufferWrite( bool bShared, mega::TypeID contextID, FinalStage::MemoryLayout::Part* pPart,
                           const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
                           std::ostream& os )
 {
     const std::string strMegaMangledTypeName
         = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
-    std::ostringstream osCopy;
-    osCopy << "::mega::copy_" << strMegaMangledTypeName;
 
-    const std::string strType = bShared ? "shared" : "heap";
-    os << indent << osCopy.str() << "( pData, reinterpret_cast< char* >( _fptr_get_" << strType << "_" << id << "( "
+    const std::string strType    = bShared ? "shared" : "heap";
+    const std::string strBShared = bShared ? "true" : "false";
+
+    os << indent << "{\n";
+    os << indent << indent << "char* p = reinterpret_cast< char* >( _fptr_get_" << strType << "_" << contextID << "( "
        << strInstanceVar << " ) ) "
        << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
-       << pDimension->get_offset() << " );\n";
-    os << indent << "return " << strInstanceVar << ";\n";
+       << pDimension->get_offset() << ";\n";
+    os << indent << indent << "::mega::copy_" << strMegaMangledTypeName << "( pData, p );\n";
+    os << indent << indent << "::mega::event_" << strMegaMangledTypeName << "( mega::reference( mega::TypeInstance( "
+       << strInstanceVar << ".instance, " << pDimension->get_concrete_id() << "), " << strInstanceVar << " ), "
+       << strBShared << ", p );\n";
+    os << indent << "}\n";
 }
 
 void generateInstructions( const DatabaseInstance&                             database,
@@ -693,15 +698,15 @@ void generateInstructions( const DatabaseInstance&                             d
             Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
             Variables::Instance*        pInstance  = pRead->get_instance();
             MemoryLayout::Part*         pPart      = pDimension->get_part();
-            const mega::TypeID          id         = pPart->get_context()->get_concrete_id();
+            const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
             const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
 
             {
                 std::ostringstream os;
                 os << indent << "// Read Operation\n";
-                generateBufferFPtrCheck( bSimple, id, os );
-                generateReferenceCheck( bSimple, id, get( variables, pInstance ), os );
-                generateBufferRead( bSimple, id, pPart, get( variables, pInstance ), pDimension, os );
+                generateBufferFPtrCheck( bSimple, contextID, os );
+                generateReferenceCheck( bSimple, contextID, get( variables, pInstance ), os );
+                generateBufferRead( bSimple, contextID, pPart, get( variables, pInstance ), pDimension, os );
                 data[ "assignments" ].push_back( os.str() );
             }
 
@@ -712,7 +717,7 @@ void generateInstructions( const DatabaseInstance&                             d
             Concrete::Dimensions::User* pDimension = pWrite->get_concrete_dimension();
             Variables::Instance*        pInstance  = pWrite->get_instance();
             MemoryLayout::Part*         pPart      = pDimension->get_part();
-            const mega::TypeID          id         = pPart->get_context()->get_concrete_id();
+            const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
             const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
 
             copiers.insert( pDimension->get_interface_dimension() );
@@ -720,9 +725,10 @@ void generateInstructions( const DatabaseInstance&                             d
             {
                 std::ostringstream os;
                 os << indent << "// Write Operation\n";
-                generateBufferFPtrCheck( bSimple, id, os );
-                generateReferenceCheck( bSimple, id, get( variables, pInstance ), os );
-                generateBufferWrite( bSimple, id, pPart, get( variables, pInstance ), pDimension, os );
+                generateBufferFPtrCheck( bSimple, contextID, os );
+                generateReferenceCheck( bSimple, contextID, get( variables, pInstance ), os );
+                generateBufferWrite( bSimple, contextID, pPart, get( variables, pInstance ), pDimension, os );
+                os << indent << "return " << get( variables, pInstance ) << ";\n";
                 data[ "assignments" ].push_back( os.str() );
             }
 

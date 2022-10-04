@@ -27,6 +27,8 @@ namespace Concrete
             ref< Concrete::Context > parent;
             ref< Interface::DimensionTrait > interface_dimension;
 
+            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
+
             value< mega::U64 > offset -> MemoryStage::MemoryLayout;
             ref< MemoryLayout::Part > part -> MemoryStage::MemoryLayout;
         }
@@ -37,6 +39,8 @@ namespace Concrete
             ref< Link > link;
             late< ref< MemoryLayout::Part > > part;
             late< value< mega::U64 > > offset;
+
+            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
         }
         object LinkSingle : LinkReference -> MemoryStage::MemoryLayout
         {
@@ -51,12 +55,16 @@ namespace Concrete
             ref< Concrete::Context > parent;
             late< ref< MemoryLayout::Part > > part;
             late< value< mega::U64 > > offset;
+
+            value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
         }
 
         object Allocator : Allocation -> MemoryStage::MemoryLayout
         {
             ref< Allocators::Allocator > allocator;
         }
+
+        // variant< User, LinkReference, Allocation > Dimension -> MemoryStage::MemoryLayout;
     }
 
     object ContextGroup -> ConcreteStage::Concrete
@@ -71,12 +79,11 @@ namespace Concrete
         ref< Interface::IContext > interface;
         array< ref< Interface::IContext > > inheritance;
         
-        value< mega::I32 > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
+        value< mega::TypeID > concrete_id -> ConcreteTypeRollout::PerSourceConcreteTable;
 
         // MemoryStage::MemoryLayout
         ref< Allocators::Allocator > allocator -> MemoryStage::MemoryLayout;
         array< ref< Dimensions::Allocator > > allocation_dimensions -> MemoryStage::MemoryLayout;
-        //array< ref< MemoryLayout::Part > > parts -> MemoryStage::MemoryLayout;
     }
 
     object Namespace : Context -> ConcreteStage::Concrete

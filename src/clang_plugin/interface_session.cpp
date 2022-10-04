@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "session.hpp"
 #include "clang_utils.hpp"
 
@@ -31,13 +29,13 @@
 
 #include "llvm/Support/Casting.h"
 
-#include "clang/Sema/Ownership.h"
-#include "clang/Sema/ParsedTemplate.h"
-#include "clang/Sema/Lookup.h"
+//#include "clang/Sema/Ownership.h"
+//#include "clang/Sema/ParsedTemplate.h"
+//#include "clang/Sema/Lookup.h"
 #include "clang/AST/Type.h"
-#include "clang/Lex/Token.h"
+//#include "clang/Lex/Token.h"
 #include "clang/Basic/DiagnosticParse.h"
-#include "clang/Basic/DiagnosticSema.h"
+//#include "clang/Basic/DiagnosticSema.h"
 
 #pragma warning( pop )
 
@@ -52,10 +50,10 @@ class InterfaceSession : public AnalysisSession
 {
     InterfaceAnalysisStage::Database                                    m_database;
     std::map< std::string, ::InterfaceAnalysisStage::Symbols::Symbol* > m_symbols;
-    std::map< int32_t, IContext* >                                      m_contextTypeIDs;
-    std::map< int32_t, DimensionTrait* >                                m_dimensionTypeIDs;
+    std::map< mega::TypeID, IContext* >                                 m_contextTypeIDs;
+    std::map< mega::TypeID, DimensionTrait* >                           m_dimensionTypeIDs;
 
-    using SymbolIDMap = std::map< int32_t, ::InterfaceAnalysisStage::Symbols::Symbol* >;
+    using SymbolIDMap = std::map< mega::TypeID, ::InterfaceAnalysisStage::Symbols::Symbol* >;
     SymbolIDMap m_symbolIDMap;
 
 public:
@@ -379,7 +377,7 @@ public:
         }
         bool bProcess = false;
         {
-            if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+            if ( auto pNamespace = dynamic_database_cast< Namespace >( pContext ) )
             {
                 if ( !pNamespace->get_is_global() )
                 {
@@ -389,7 +387,7 @@ public:
             }
         }
         {
-            if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+            if ( auto pAbstract = dynamic_database_cast< Abstract >( pContext ) )
             {
                 dimensionAnalysis( pAbstract, result.loc, result.pDeclContext );
 
@@ -402,7 +400,7 @@ public:
             }
         }
         {
-            if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+            if ( auto pAction = dynamic_database_cast< Action >( pContext ) )
             {
                 dimensionAnalysis( pAction, result.loc, result.pDeclContext );
 
@@ -420,7 +418,7 @@ public:
             }
         }
         {
-            if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+            if ( auto pEvent = dynamic_database_cast< Event >( pContext ) )
             {
                 dimensionAnalysis( pEvent, result.loc, result.pDeclContext );
 
@@ -438,9 +436,9 @@ public:
             }
         }
         {
-            if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+            if ( auto pFunction = dynamic_database_cast< Function >( pContext ) )
             {
-                CXXRecordDecl* pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
+                auto pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
                 if ( !pCXXRecordDecl )
                 {
                     std::ostringstream os;
@@ -455,7 +453,7 @@ public:
             }
         }
         {
-            if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+            if ( auto pObject = dynamic_database_cast< Object >( pContext ) )
             {
                 dimensionAnalysis( pObject, result.loc, result.pDeclContext );
 
@@ -468,7 +466,7 @@ public:
             }
         }
         {
-            if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+            if ( auto pLink = dynamic_database_cast< Link >( pContext ) )
             {
                 if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
                     return false;

@@ -290,21 +290,8 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
         }
     }
 
-    const TskDesc concreteTypeAnalysis = encode( Task{ eTask_ConcreteTypeAnalysis, manifestFilePath } );
-    dependencies.add( concreteTypeAnalysis, concreteTreeTasks );
-
-    TskDescVec concreteTypeIDRollout;
-    {
-        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
-        {
-            const TskDesc concreteTypeRollout = encode( Task{ eTask_ConcreteTypeRollout, sourceFilePath } );
-            dependencies.add( concreteTypeRollout, TskDescVec{ concreteTypeAnalysis } );
-            concreteTypeIDRollout.push_back( concreteTypeRollout );
-        }
-    }
-
     const TskDesc derivation = encode( Task{ eTask_Derivation, manifestFilePath } );
-    dependencies.add( derivation, concreteTypeIDRollout );
+    dependencies.add( derivation, concreteTreeTasks );
 
     TskDescVec derivationRolloutTasks;
     {
@@ -319,13 +306,29 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     const TskDesc hyperGraph = encode( Task{ eTask_HyperGraph, manifestFilePath } );
     dependencies.add( hyperGraph, derivationRolloutTasks );
 
-    TskDescVec hyperGraphRolloutTasks;
+    TskDescVec memoryTasks;
     {
         for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
         {
             const TskDesc hyperGraphRollout = encode( Task{ eTask_HyperGraphRollout, sourceFilePath } );
+            const TskDesc allocators        = encode( Task{ eTask_Allocators, sourceFilePath } );
+
             dependencies.add( hyperGraphRollout, TskDescVec{ hyperGraph } );
-            hyperGraphRolloutTasks.push_back( hyperGraphRollout );
+            dependencies.add( allocators, TskDescVec{ hyperGraphRollout } );
+            memoryTasks.push_back( allocators );
+        }
+    }
+
+    const TskDesc concreteTypeAnalysis = encode( Task{ eTask_ConcreteTypeAnalysis, manifestFilePath } );
+    dependencies.add( concreteTypeAnalysis, memoryTasks );
+
+    TskDescVec concreteTypeIDRolloutTasks;
+    {
+        for ( const mega::io::megaFilePath& sourceFilePath : manifest.getMegaSourceFiles() )
+        {
+            const TskDesc concreteTypeRollout = encode( Task{ eTask_ConcreteTypeRollout, sourceFilePath } );
+            dependencies.add( concreteTypeRollout, TskDescVec{ concreteTypeAnalysis } );
+            concreteTypeIDRolloutTasks.push_back( concreteTypeRollout );
         }
     }
 
@@ -341,14 +344,12 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                     {
                         for ( const mega::io::megaFilePath& sourceFilePath : pComponent->get_mega_source_files() )
                         {
-                            const TskDesc allocators        = encode( Task{ eTask_Allocators, sourceFilePath } );
                             const TskDesc operations        = encode( Task{ eTask_Operations, sourceFilePath } );
                             const TskDesc operationsPCH     = encode( Task{ eTask_OperationsPCH, sourceFilePath } );
                             const TskDesc implementation    = encode( Task{ eTask_Implementation, sourceFilePath } );
                             const TskDesc implementationObj = encode( Task{ eTask_ImplementationObj, sourceFilePath } );
 
-                            dependencies.add( allocators, hyperGraphRolloutTasks );
-                            dependencies.add( operations, TskDescVec{ allocators } );
+                            dependencies.add( operations, concreteTypeIDRolloutTasks );
                             dependencies.add( operationsPCH, TskDescVec{ operations } );
                             dependencies.add( implementation, TskDescVec{ operationsPCH } );
                             dependencies.add( implementationObj, TskDescVec{ implementation } );
@@ -373,7 +374,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         const TskDesc objectInterfaceAnalysis
                             = encode( Task{ eTask_CPPInterfaceAnalysis, pComponent->get_name() } );
 
-                        dependencies.add( includes, TskDescVec{ hyperGraph } );
+                        dependencies.add( includes, TskDescVec{} );
                         dependencies.add( includePCH, TskDescVec{ includes } );
                         dependencies.add( objectInterfaceGeneration, TskDescVec{ includePCH } );
                         dependencies.add( objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration } );
@@ -385,7 +386,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                             const TskDesc cppObj               = encode( Task{ eTask_CPPObj, sourceFile } );
 
                             dependencies.add( cppPCH, TskDescVec{ objectInterfaceAnalysis } );
-                            dependencies.add( cppCPPImplementation, TskDescVec{ cppPCH } );
+
+                            TskDescVec tasks = concreteTypeIDRolloutTasks;
+                            tasks.push_back( cppPCH );
+                            
+                            dependencies.add( cppCPPImplementation, tasks );
                             dependencies.add( cppObj, TskDescVec{ cppCPPImplementation } );
                             binaryTasks.push_back( cppObj );
                         }

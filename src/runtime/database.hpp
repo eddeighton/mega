@@ -42,7 +42,6 @@ public:
     const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getOperationComponent( mega::TypeID objectType ) const;
-    // mega::U64                                 getTotalDomainSize( mega::TypeID concreteID ) const;
     mega::U64 getLocalDomainSize( mega::TypeID concreteID ) const;
 
 private:
@@ -51,7 +50,7 @@ private:
     FinalStage::Database                                  m_database;
     std::vector< FinalStage::Components::Component* >     m_components;
     FinalStage::Symbols::SymbolTable*                     m_pSymbolTable;
-    std::map< mega::I32, FinalStage::Concrete::Context* > m_concreteIDs;
+    std::map< mega::TypeID, FinalStage::Concrete::Context* > m_concreteIDs;
 };
 
 } // namespace mega::runtime

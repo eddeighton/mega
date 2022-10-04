@@ -59,33 +59,40 @@ namespace Symbols
         // each symbol represents a unique string 
         // and MUST have a unique id
         value< std::string >                      symbol;
-        value< mega::I32 >                        id;
+        value< mega::TypeID >                     id;
         array< ref< Interface::IContext > >       contexts;
         array< ref< Interface::DimensionTrait > > dimensions;
     }
 
     object ConcreteSymbol -> ConcreteTypeAnalysis::ConcreteTable
     {
-        //array< ref< Symbol > >      symbol_sequence;
-        value< std::vector< mega::I32 > > id_sequence;
-        value< mega::I32 >                id;
-        ref< Concrete::Context >             context;
+        value< std::vector< mega::TypeID > >    id_sequence;
+        value< mega::TypeID >                   id;
+
+        opt< ref< Concrete::Context >                    > context;
+        opt< ref< Concrete::Dimensions::User >           > dim_user;
+        opt< ref< Concrete::Dimensions::LinkReference >  > dim_link;
+        opt< ref< Concrete::Dimensions::Allocation >     > dim_allocation;
     }
 
     object SymbolSet -> SymbolAnalysis::SymbolTable
     {
-        map< value< std::string >, ref< Symbol > >                symbols;
-        value< mega::io::megaFilePath >                           source_file;
-        value< mega::U64 >                                      hash_code;
-        map< ref< Interface::IContext >, ref< Symbol > >          context_symbols;
-        map< ref< Interface::DimensionTrait >, ref< Symbol > >    dimension_symbols;
-        map< ref< Interface::IContext >, value< int32_t > >       context_type_ids;
-        map< ref< Interface::DimensionTrait >, value< int32_t > > dimension_type_ids;
+        map< value< std::string >, ref< Symbol > >                          symbols;
+        value< mega::io::megaFilePath >                                     source_file;
+        value< mega::U64 >                                                  hash_code;
+
+        map< ref< Interface::IContext >, ref< Symbol > >                    context_symbols;
+        map< ref< Interface::DimensionTrait >, ref< Symbol > >              dimension_symbols;
+        map< ref< Interface::IContext >, value< mega::TypeID > >            context_type_ids;
+        map< ref< Interface::DimensionTrait >, value< mega::TypeID > >      dimension_type_ids;
 
         // ConcreteTypeAnalysis::ConcreteTable
-        value< mega::U64 >                                                concrete_hash_code -> ConcreteTypeAnalysis::ConcreteTable;
-        map< value< std::vector< mega::I32 > >, ref< ConcreteSymbol > >  concrete_symbols -> ConcreteTypeAnalysis::ConcreteTable;
-        map< ref< Concrete::Context >, value< int32_t > >                   context_concrete_ids -> ConcreteTypeAnalysis::ConcreteTable;
+        value< mega::U64 >                                                          concrete_hash_code -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< std::vector< mega::TypeID > >, ref< ConcreteSymbol > >          concrete_symbols -> ConcreteTypeAnalysis::ConcreteTable;
+        map< ref< Concrete::Context >, value< mega::TypeID > >                      context_concrete_ids -> ConcreteTypeAnalysis::ConcreteTable;
+        map< ref< Concrete::Dimensions::User >, value< mega::TypeID > >             dim_user_concrete_ids -> ConcreteTypeAnalysis::ConcreteTable;
+        map< ref< Concrete::Dimensions::LinkReference >, value< mega::TypeID > >    dim_link_concrete_ids -> ConcreteTypeAnalysis::ConcreteTable;
+        map< ref< Concrete::Dimensions::Allocation >, value< mega::TypeID > >       dim_alloc_concrete_ids -> ConcreteTypeAnalysis::ConcreteTable;
     }
 
     object SymbolTable -> SymbolAnalysis::SymbolTable
@@ -93,14 +100,14 @@ namespace Symbols
         map< value< mega::io::megaFilePath >, ref< SymbolSet > >        symbol_sets;
         map< value< std::string >, ref< Symbol > >                      symbols;
         
-        map< value< mega::I32 >, ref< Interface::IContext > >        context_type_ids;
-        map< value< mega::I32 >, ref< Interface::DimensionTrait > >  dimension_type_ids;
-        map< value< mega::I32 >, ref< Symbol > >                     symbol_id_map;
+        map< value< mega::TypeID >, ref< Interface::IContext > >        context_type_ids;
+        map< value< mega::TypeID >, ref< Interface::DimensionTrait > >  dimension_type_ids;
+        map< value< mega::TypeID >, ref< Symbol > >                     symbol_id_map;
 
         // ConcreteTypeAnalysis::ConcreteTable
-        map< value< std::vector< mega::I32 > >, ref< ConcreteSymbol > >  concrete_symbol_ids -> ConcreteTypeAnalysis::ConcreteTable;
-        map< value< mega::I32 >, ref< ConcreteSymbol > >                 concrete_symbols -> ConcreteTypeAnalysis::ConcreteTable;
-        map< value< mega::I32 >, ref< Concrete::Context > >              concrete_context_map -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< std::vector< mega::TypeID > >, ref< ConcreteSymbol > >  concrete_symbol_ids -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< mega::TypeID >, ref< ConcreteSymbol > >                 concrete_symbols -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< mega::TypeID >, ref< Concrete::Context > >              concrete_context_map -> ConcreteTypeAnalysis::ConcreteTable;
     }
 }
 

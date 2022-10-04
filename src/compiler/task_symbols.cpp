@@ -69,9 +69,9 @@ public:
     }
 
     using SymbolMap               = std::map< std::string, ::SymbolAnalysis::Symbols::Symbol* >;
-    using TypeIDContextMap        = std::map< int32_t, SymbolAnalysis::Interface::IContext* >;
-    using TypeIDDimensionTraitMap = std::map< int32_t, SymbolAnalysis::Interface::DimensionTrait* >;
-    using SymbolIDMap             = std::map< int32_t, ::SymbolAnalysis::Symbols::Symbol* >;
+    using TypeIDContextMap        = std::map< mega::TypeID, SymbolAnalysis::Interface::IContext* >;
+    using TypeIDDimensionTraitMap = std::map< mega::TypeID, SymbolAnalysis::Interface::DimensionTrait* >;
+    using SymbolIDMap             = std::map< mega::TypeID, ::SymbolAnalysis::Symbols::Symbol* >;
 
     struct ContextDimensionSymbolSet
     {
@@ -79,7 +79,7 @@ public:
         SymbolAnalysis::Interface::IContext*       pContext   = nullptr;
         SymbolAnalysis::Interface::DimensionTrait* pDimension = nullptr;
     };
-    using TypeMap = std::multimap< int32_t, ContextDimensionSymbolSet >;
+    using TypeMap = std::multimap< mega::TypeID, ContextDimensionSymbolSet >;
 
     struct SymbolCollector
     {
@@ -141,8 +141,8 @@ public:
             // symbol id are negative
             // type id are positive
 
-            std::set< mega::I32 > symbolLabels;
-            // std::set< mega::I32 > paranoiCheck;
+            std::set< mega::TypeID > symbolLabels;
+            // std::set< mega::TypeID > paranoiCheck;
             for ( SymbolMap::iterator i = symbolMap.begin(); i != symbolMap.end(); ++i )
             {
                 Symbols::Symbol* pSymbol = i->second;
@@ -152,8 +152,8 @@ public:
                     symbolLabels.insert( -pSymbol->get_id() );
                 }
             }
-            std::set< mega::I32 >::iterator labelIter   = symbolLabels.begin();
-            mega::I32                       szNextLabel = 1;
+            std::set< mega::TypeID >::iterator labelIter   = symbolLabels.begin();
+            mega::TypeID                       szNextLabel = 1;
             for ( SymbolMap::iterator i = symbolMap.begin(); i != symbolMap.end(); ++i )
             {
                 Symbols::Symbol* pSymbol = i->second;
@@ -169,10 +169,12 @@ public:
                         {
                             szNextLabel = *labelIter + 1;
                             ++labelIter;
+                            VERIFY_RTE_MSG( szNextLabel > 0, "Type ID overflowed" );
                         }
                     }
                     pSymbol->set_id( -szNextLabel );
                     ++szNextLabel;
+                    VERIFY_RTE_MSG( szNextLabel > 0, "Type ID overflowed" );
                 }
             }
         }
@@ -180,7 +182,7 @@ public:
         {
             using namespace SymbolAnalysis;
 
-            std::set< mega::I32 >                    existingTypeIDs;
+            std::set< mega::TypeID >                    existingTypeIDs;
             std::vector< ContextDimensionSymbolSet > unTyped;
 
             for ( TypeMap::const_iterator i = typeMap.begin(), iEnd = typeMap.end(); i != iEnd; ++i )
@@ -195,8 +197,8 @@ public:
                 }
             }
 
-            std::set< mega::I32 >::iterator labelIter  = existingTypeIDs.begin();
-            mega::I32                       szNextType = 1;
+            std::set< mega::TypeID >::iterator labelIter  = existingTypeIDs.begin();
+            mega::TypeID                       szNextType = 1;
 
             for ( std::vector< ContextDimensionSymbolSet >::iterator i = unTyped.begin(); i != unTyped.end(); ++i )
             {
