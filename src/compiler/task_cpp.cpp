@@ -175,7 +175,8 @@ public:
                                             { "structs", structs },
                                             { "forward_decls", nlohmann::json::array() } } );
 
-            Symbols::SymbolTable* pSymbolTable
+            THROW_TODO;
+            /*Symbols::SymbolTable* pSymbolTable
                 = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
             for ( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbols() )
             {
@@ -194,7 +195,7 @@ public:
                 {
                     interfaceData[ "forward_decls" ].push_back( forwardDecl );
                 }
-            }
+            }*/
 
             std::unique_ptr< boost::filesystem::ofstream > pOStream = m_environment.write( interfaceHeader );
             templateEngine.renderInterface( interfaceData, *pOStream );

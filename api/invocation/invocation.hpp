@@ -71,8 +71,8 @@ using InterfaceVariantVector       = std::vector< OperationsStage::Operations::I
 using InterfaceVariantVectorVector = std::vector< InterfaceVariantVector >;
 
 InterfaceVariantVectorVector
-symbolVectorToInterfaceVariantVector( OperationsStage::Database&                              database,
-                                      const std::vector< OperationsStage::Symbols::Symbol* >& symbols );
+symbolVectorToInterfaceVariantVector( OperationsStage::Database&                                    database,
+                                      const std::vector< OperationsStage::Symbols::SymbolTypeID* >& symbols );
 
 std::vector< OperationsStage::Operations::ElementVector* >
 toElementVector( OperationsStage::Database&          database,

@@ -26,16 +26,16 @@ namespace Interface
     {
         ref< IContext > parent;
         
-        value< mega::TypeID > symbol -> SymbolRollout::PerSourceSymbols;
-        late< value< mega::TypeID > > type_id -> SymbolRollout::PerSourceSymbols;
+        value< mega::TypeID > symbol_id -> SymbolRollout::PerSourceSymbols;
+        value< mega::TypeID > interface_id -> SymbolRollout::PerSourceSymbols;
         
         array< ref< Concrete::Dimensions::User > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
 
-        value< std::string >             canonical_type  -> InterfaceAnalysisStage::Clang;
-        value< mega::U64 >               size            -> InterfaceAnalysisStage::Clang;
-        value< mega::U64 >               alignment       -> InterfaceAnalysisStage::Clang;
-        value< bool >                    simple          -> InterfaceAnalysisStage::Clang;
-        array< ref< Symbols::Symbol > >  symbols         -> InterfaceAnalysisStage::Clang;
+        value< std::string >                    canonical_type  -> InterfaceAnalysisStage::Clang;
+        value< mega::U64 >                      size            -> InterfaceAnalysisStage::Clang;
+        value< mega::U64 >                      alignment       -> InterfaceAnalysisStage::Clang;
+        value< bool >                           simple          -> InterfaceAnalysisStage::Clang;
+        array< ref< Symbols::SymbolTypeID > >   symbols         -> InterfaceAnalysisStage::Clang;
     }
 
     object InheritanceTrait : Parser::Inheritance -> InterfaceStage::Tree
@@ -79,8 +79,10 @@ namespace Interface
         value< std::string > identifier;
         ref< ContextGroup > parent;
         ref< Components::Component > component;
-        value< mega::TypeID > symbol -> SymbolRollout::PerSourceSymbols;
-        late< value< mega::TypeID > > type_id -> SymbolRollout::PerSourceSymbols;
+        
+        value< mega::TypeID > symbol_id     -> SymbolRollout::PerSourceSymbols;
+        value< mega::TypeID > interface_id  -> SymbolRollout::PerSourceSymbols;
+
         array< ref< Concrete::Context > > concrete -> DerivationAnalysisRollout::PerSourceDerivations;
     }
 

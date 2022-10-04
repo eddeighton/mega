@@ -104,7 +104,7 @@ public:
             traitNames.push_back( os.str() );
 
             nlohmann::json trait_struct( { { "name", os.str() },
-                                           { "typeid", pContext->get_type_id() },
+                                           { "typeid", pContext->get_interface_id() },
                                            { "types", traitNames },
                                            { "traits", nlohmann::json::array() } } );
 
@@ -133,7 +133,7 @@ public:
             traitNames.push_back( os.str() );
 
             nlohmann::json trait_struct( { { "name", os.str() },
-                                           { "typeid", pDimensionTrait->get_type_id() },
+                                           { "typeid", pDimensionTrait->get_interface_id() },
                                            { "types", traitNames },
                                            { "traits", nlohmann::json::array() } } );
 
@@ -192,7 +192,7 @@ public:
         traitNames.push_back( os.str() );
 
         nlohmann::json trait_struct( { { "name", os.str() },
-                                       { "typeid", pContext->get_type_id() },
+                                       { "typeid", pContext->get_interface_id() },
                                        { "types", traitNames },
                                        { "traits", nlohmann::json::array() } } );
 
@@ -215,7 +215,7 @@ public:
         traitNames.push_back( os.str() );
 
         nlohmann::json trait_struct( { { "name", os.str() },
-                                       { "typeid", pContext->get_type_id() },
+                                       { "typeid", pContext->get_interface_id() },
                                        { "types", traitNames },
                                        { "traits", nlohmann::json::array() } } );
         {
@@ -239,11 +239,11 @@ public:
         {
             if ( pInterfaceNode->contexts.size() > 1 )
             {
-                id = pFirstContext->get_symbol();
+                id = pFirstContext->get_symbol_id();
             }
             else
             {
-                id = pFirstContext->get_type_id();
+                id = pFirstContext->get_interface_id();
             }
         }
 

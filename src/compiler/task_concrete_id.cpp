@@ -73,7 +73,7 @@ public:
         }
         return srcFiles;
     }
-
+/*
     struct SymbolCollector
     {
         using ConcretePath = std::vector< ConcreteTypeAnalysis::Concrete::Context* >;
@@ -113,10 +113,10 @@ public:
             {
                 IDPathToSymbolMap::iterator iFind = idPathToSymbolMap.find( symbolIDPath );
                 VERIFY_RTE( iFind == idPathToSymbolMap.end() );
-                /*if ( iFind != idPathToSymbolMap.end() )
-                {
-                    pSymbol = iFind->second;
-                }*/
+                //if ( iFind != idPathToSymbolMap.end() )
+                //{
+                //    pSymbol = iFind->second;
+                //}
             }
 
             if ( !pSymbol )
@@ -234,7 +234,7 @@ public:
                 }
             }
         }
-    };
+    };*/
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
@@ -273,7 +273,7 @@ public:
         ConcreteHashCodeGenerator hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
         bool bReusedOldDatabase = false;
-        if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
+        /*if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
             try
             {
@@ -464,7 +464,7 @@ public:
             {
                 bReusedOldDatabase = false;
             }
-        }
+        }*/
 
         if ( !bReusedOldDatabase )
         {
@@ -472,7 +472,7 @@ public:
             using namespace ConcreteTypeAnalysis::Symbols;
 
             Database database( m_environment, manifestFilePath );
-            {
+            /*{
                 Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( manifestFilePath );
                 const SymbolCollector::SymbolSetMap oldSymbolSetsMap = pSymbolTable->get_symbol_sets();
 
@@ -525,7 +525,8 @@ public:
                 // recreate the symbol table
                 database.construct< SymbolTable >(
                     SymbolTable::Args( pSymbolTable, globalIDPathToSymbolMap, idToSymbolMap, idToContextMap ) );
-            }
+            }*/
+            THROW_TODO;
 
             const task::FileHash fileHashCode = database.save_ConcreteTable_to_temp();
             m_environment.setBuildHashCode( symbolCompilationFile, fileHashCode );
@@ -573,22 +574,24 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
-        Symbols::SymbolSet* pSymbolSet = nullptr;
-        {
-            Symbols::SymbolTable* pSymbolTable
-                = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-            std::map< mega::io::megaFilePath, Symbols::SymbolSet* > symbolSets = pSymbolTable->get_symbol_sets();
-            std::map< mega::io::megaFilePath, Symbols::SymbolSet* >::const_iterator iFind
-                = symbolSets.find( m_sourceFilePath );
-            VERIFY_RTE( iFind != symbolSets.end() );
-            pSymbolSet = iFind->second;
-        }
-        // VERIFY_RTE( pSymbolSet->get_hash_code() == determinant.get() );
+    THROW_TODO;
 
-        for ( auto& [ pContext, id ] : pSymbolSet->get_context_concrete_ids() )
-        {
-            database.construct< Concrete::Context >( Concrete::Context::Args{ pContext, id } );
-        }
+        //Symbols::SymbolSet* pSymbolSet = nullptr;
+        //{
+        //    Symbols::SymbolTable* pSymbolTable
+        //        = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+        //    std::map< mega::io::megaFilePath, Symbols::SymbolSet* > symbolSets = pSymbolTable->get_symbol_sets();
+        //    std::map< mega::io::megaFilePath, Symbols::SymbolSet* >::const_iterator iFind
+        //        = symbolSets.find( m_sourceFilePath );
+        //    VERIFY_RTE( iFind != symbolSets.end() );
+        //    pSymbolSet = iFind->second;
+        //}
+        //// VERIFY_RTE( pSymbolSet->get_hash_code() == determinant.get() );
+//
+        //for ( auto& [ pContext, id ] : pSymbolSet->get_context_concrete_ids() )
+        //{
+        //    database.construct< Concrete::Context >( Concrete::Context::Args{ pContext, id } );
+        //}
 
         const task::FileHash fileHashCode = database.save_PerSourceConcreteTable_to_temp();
         m_environment.setBuildHashCode( symbolRolloutFilePath, fileHashCode );

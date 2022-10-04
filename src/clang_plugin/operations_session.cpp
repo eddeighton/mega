@@ -54,7 +54,7 @@ namespace clang
 class OperationsSession : public AnalysisSession
 {
     OperationsStage::Database                                    m_database;
-    std::map< std::string, ::OperationsStage::Symbols::Symbol* > m_symbols;
+    // std::map< std::string, ::OperationsStage::Symbols::Symbol* > m_symbols;
 
     using InvocationsMap = std::map< mega::InvocationID, ::OperationsStage::Operations::Invocation* >;
     InvocationsMap m_invocationsMap;
@@ -74,19 +74,21 @@ public:
 
         Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
-        m_symbols = pSymbolTable->get_symbols();
+        THROW_TODO;
+        //m_symbols = pSymbolTable->get_symbols();
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
     {
-        if ( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )
-        {
-            return true;
-        }
-
-        if ( m_symbols.find( strIdentifier ) != m_symbols.end() )
-            return true;
-        return false;
+        THROW_TODO;
+        // if ( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )
+        // {
+        //     return true;
+        // }
+// 
+        // if ( m_symbols.find( strIdentifier ) != m_symbols.end() )
+        //     return true;
+        // return false;
     }
 
     void getRootPath( OperationsStage::Interface::ContextGroup*                 pContextGroup,

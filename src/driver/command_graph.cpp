@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/archive.hpp"
 #include "database/model/FinalStage.hxx"
 
@@ -52,6 +50,32 @@ namespace driver
 {
 namespace graph
 {
+std::string graphVizEscape( const std::string& str )
+{
+    std::ostringstream os;
+    for ( auto c : str )
+    {
+        switch ( c )
+        {
+            case '<':
+                os << "\\<";
+                break;
+            case '>':
+                os << "\\>";
+                break;
+            case '|':
+                os << "\\|";
+                break;
+            case ':':
+                os << "\\:";
+                break;
+            default:
+                os << c;
+                break;
+        }
+    }
+    return os.str();
+}
 // label = "{{ node.label }}({{ node.concrete_id }},{{ node.type_id }},{{ node.symbol }})
 // {% for base in node.bases %}{% if loop.is_first%} : {% else %}, {% endif %}{{ base.label }}({{ base.type_id }},{{
 // base.symbol }}){% endfor %}
@@ -73,7 +97,8 @@ nlohmann::json make_node( const std::string& strName, const std::string& strLabe
 
 nlohmann::json make_property( const std::string& strName, const std::string& strValue )
 {
-    nlohmann::json property = nlohmann::json::object( { { "name", strName }, { "value", strValue } } );
+    nlohmann::json property
+        = nlohmann::json::object( { { "name", strName }, { "value", graphVizEscape( strValue ) } } );
     return property;
 }
 
@@ -130,7 +155,7 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Interfa
     {
         nlohmann::json property;
         PROP( property, pDimension->get_id()->get_str(),
-              "type_id " << pDimension->get_type_id() << "symbol " << pDimension->get_symbol() << "type "
+              "type_id " << pDimension->get_interface_id() << " symbol " << pDimension->get_symbol_id() << " type "
                          << pDimension->get_type() );
         node[ "properties" ].push_back( property );
     }
@@ -145,8 +170,8 @@ void addProperties( nlohmann::json& node, const std::vector< FinalStage::Concret
     {
         nlohmann::json property;
         PROP( property, pDimension->get_interface_dimension()->get_id()->get_str(),
-              "type_id " << pDimension->get_interface_dimension()->get_type_id() << "symbol "
-                         << pDimension->get_interface_dimension()->get_symbol() << "type "
+              "type_id " << pDimension->get_interface_dimension()->get_interface_id() << " symbol "
+                         << pDimension->get_interface_dimension()->get_symbol_id() << " type "
                          << pDimension->get_interface_dimension()->get_type() );
         node[ "properties" ].push_back( property );
     }
@@ -164,8 +189,8 @@ void addInheritance( const std::optional< ::FinalStage::Interface::InheritanceTr
         {
             nlohmann::json property;
             PROP( property, "Inherited",
-                  "id " << pInherited->get_identifier() << "type_id " << pInherited->get_type_id() << "symbol "
-                        << pInherited->get_symbol() );
+                  "id " << pInherited->get_identifier() << " type_id " << pInherited->get_interface_id() << " symbol "
+                        << pInherited->get_symbol_id() );
             node[ "properties" ].push_back( property );
         }
     }
@@ -186,8 +211,8 @@ void recurse( nlohmann::json& data, FinalStage::Interface::IContext* pContext )
     //     },
     //                                 { "label", "" },
     //                                 { "concrete_id", "" },
-    //                                 { "type_id", pContext->get_type_id() },
-    //                                 { "symbol", pContext->get_symbol() },
+    //                                 { "type_id", pContext->get_interface_id() },
+    //                                 { "symbol", pContext->get_symbol_id() },
     //                                 { "bases", nlohmann::json::array() },
     //                                 { "properties", nlohmann::json::array() } } );
 
@@ -280,8 +305,8 @@ void recurse( nlohmann::json& data, FinalStage::Concrete::Context* pContext )
     // },
     //                                                 { "label", "" },
     //                                                 { "concrete_id", pContext->get_concrete_id() },
-    //                                                 { "type_id", pContext->get_interface()->get_type_id() },
-    //                                                 { "symbol", pContext->get_interface()->get_symbol() },
+    //                                                 { "type_id", pContext->get_interface()->get_interface_id() },
+    //                                                 { "symbol", pContext->get_interface()->get_symbol_id() },
     //                                                 { "bases", nlohmann::json::array() },
     //                                                 { "properties", nlohmann::json::array() } } );
 
@@ -494,7 +519,7 @@ std::string createMemoryNode( FinalStage::Concrete::Object* pObject, nlohmann::j
     nlohmann::json node;
     NODE( node, osName.str(),
           getContextFullTypeName( pObject ) << " concrete_id " << pObject->get_concrete_id() << " type_id "
-                                            << pObject->get_interface()->get_type_id() );
+                                            << pObject->get_interface()->get_interface_id() );
     data[ "nodes" ].push_back( node );
     return osName.str();
 }
@@ -533,26 +558,8 @@ std::string createMemoryNode( FinalStage::MemoryLayout::Buffer* pBuffer, nlohman
     return osName.str();
 }
 
-std::string graphVizEscape( const std::string& str )
-{
-    std::ostringstream os;
-    for( auto c : str )
-    {
-        switch( c )
-        {
-            case '<': os << "\\<"; break;
-            case '>': os << "\\>"; break;
-            case '|': os << "\\|"; break;
-            case ':': os << "\\:"; break;
-            default:
-                os << c;
-                break;
-        }
-    }
-    return os.str();
-}
-
-std::string createMemoryNode( const std::string& strBufferName, FinalStage::MemoryLayout::Part* pPart, nlohmann::json& data )
+std::string createMemoryNode( const std::string& strBufferName, FinalStage::MemoryLayout::Part* pPart,
+                              nlohmann::json& data )
 {
     using namespace FinalStage;
 
@@ -571,8 +578,8 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
     {
         nlohmann::json property;
         PROP( property, p->get_interface_dimension()->get_id()->get_str(),
-              " type_id " << p->get_interface_dimension()->get_type_id() << " type "
-                          << graphVizEscape( p->get_interface_dimension()->get_type() ) << " offset " << p->get_offset() << " size "
+              " type_id " << p->get_interface_dimension()->get_interface_id() << " type "
+                          << p->get_interface_dimension()->get_type() << " offset " << p->get_offset() << " size "
                           << p->get_interface_dimension()->get_size() << " alignment "
                           << p->get_interface_dimension()->get_alignment() );
         node[ "properties" ].push_back( property );
@@ -650,7 +657,7 @@ std::string createMemoryNode( const std::string& strBufferName, FinalStage::Memo
 
         nlohmann::json property;
         PROP( property, pLink->get_link()->get_identifier(),
-              "type_id " << pLink->get_link()->get_type_id() << " offset " << p->get_offset() << " value "
+              "type_id " << pLink->get_link()->get_interface_id() << " offset " << p->get_offset() << " value "
                          << osValue.str() );
         node[ "properties" ].push_back( property );
     }

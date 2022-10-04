@@ -57,30 +57,31 @@ void expandReferences( OperationsStage::Database& database, std::vector< Operati
                         Concrete::Dimensions::User* pConcreteDimension  = pConVar->get_dimension().value();
                         Interface::DimensionTrait*  pInterfaceDimension = pConcreteDimension->get_interface_dimension();
 
-                        if ( bIsToMegaType )
-                        {
-                            bContinue = true;
-                            pName->set_is_reference( true );
-
-                            std::vector< Symbols::Symbol* > symbols = pInterfaceDimension->get_symbols();
-
-                            InterfaceVariantVectorVector interfaceVariantVectorVector
-                                = symbolVectorToInterfaceVariantVector( database, symbols );
-
-                            std::vector< Operations::ElementVector* > elementVector
-                                = toElementVector( database, interfaceVariantVectorVector );
-
-                            for ( Operations::ElementVector* pElementVector : elementVector )
-                            {
-                                for ( Element* pElement : pElementVector->get_elements() )
-                                {
-                                    Name* pChildName = database.construct< Name >(
-                                        Name::Args{ NameRoot::Args{ {} }, pElement, false, false } );
-                                    names.push_back( pChildName );
-                                    pName->push_back_children( pChildName );
-                                }
-                            }
-                        }
+                        THROW_TODO;
+                        // if ( bIsToMegaType )
+                        // {
+                        //     bContinue = true;
+                        //     pName->set_is_reference( true );
+// 
+                        //     std::vector< Symbols::Symbol* > symbols = pInterfaceDimension->get_symbols();
+// 
+                        //     InterfaceVariantVectorVector interfaceVariantVectorVector
+                        //         = symbolVectorToInterfaceVariantVector( database, symbols );
+// 
+                        //     std::vector< Operations::ElementVector* > elementVector
+                        //         = toElementVector( database, interfaceVariantVectorVector );
+// 
+                        //     for ( Operations::ElementVector* pElementVector : elementVector )
+                        //     {
+                        //         for ( Element* pElement : pElementVector->get_elements() )
+                        //         {
+                        //             Name* pChildName = database.construct< Name >(
+                        //                 Name::Args{ NameRoot::Args{ {} }, pElement, false, false } );
+                        //             names.push_back( pChildName );
+                        //             pName->push_back_children( pChildName );
+                        //         }
+                        //     }
+                        // }
                     }
                 }
             }

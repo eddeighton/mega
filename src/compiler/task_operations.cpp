@@ -136,7 +136,7 @@ public:
 
             nlohmann::json operation( { { "return_type", "mega::ActionCoroutine" },
                                         { "body", osBody.str() },
-                                        { "typeID", pAction->get_type_id() },
+                                        { "typeID", pAction->get_interface_id() },
                                         { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },
                                         { "types", types },
@@ -171,7 +171,7 @@ public:
 
             nlohmann::json operation( { { "return_type", pFunction->get_return_type_trait()->get_str() },
                                         { "body", strBody },
-                                        { "typeID", pFunction->get_type_id() },
+                                        { "typeID", pFunction->get_interface_id() },
                                         { "has_namespaces", !namespaces.empty() },
                                         { "namespaces", namespaces },
                                         { "types", types },

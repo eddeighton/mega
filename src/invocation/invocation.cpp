@@ -38,23 +38,28 @@ using namespace OperationsStage::Operations;
 
 struct SymbolMaps
 {
-    using SymbolIDMap  = std::map< mega::TypeID, OperationsStage::Symbols::Symbol* >;
+    using SymbolIDMap  = std::map< mega::TypeID, OperationsStage::Symbols::SymbolTypeID* >;
     using IContextMap  = const std::map< mega::TypeID, Interface::IContext* >;
     using DimensionMap = std::map< mega::TypeID, Interface::DimensionTrait* >;
 
+    SymbolMaps( Symbols::SymbolTable& symbolTable )
+        //: m_symbolIDMap( symbolTable.get_symbol_id_map() )
+        //, m_contextMap( symbolTable.get_context_type_ids() )
+        //, m_dimensionMap( symbolTable.get_dimension_type_ids() )
+    {
+    }
+
+    OperationsStage::Symbols::SymbolTypeID* findSymbolTypeID( mega::TypeID typeID ) const
+    {
+        THROW_TODO;
+    }
+private:
     SymbolIDMap  m_symbolIDMap;
     IContextMap  m_contextMap;
     DimensionMap m_dimensionMap;
-
-    SymbolMaps( Symbols::SymbolTable& symbolTable )
-        : m_symbolIDMap( symbolTable.get_symbol_id_map() )
-        , m_contextMap( symbolTable.get_context_type_ids() )
-        , m_dimensionMap( symbolTable.get_dimension_type_ids() )
-    {
-    }
 };
 
-InterfaceVariantVector symbolToInterfaceVariantVector( Database& database, Symbols::Symbol* pSymbol )
+InterfaceVariantVector symbolToInterfaceVariantVector( Database& database, Symbols::SymbolTypeID* pSymbol )
 {
     InterfaceVariantVector result;
     for ( Interface::IContext* pContext : pSymbol->get_contexts() )
@@ -78,13 +83,12 @@ InterfaceVariantVector symbolIDToInterfaceVariant( Database& database, const Sym
 {
     if ( symbolID < 0 )
     {
-        auto iFind = symbolMaps.m_symbolIDMap.find( symbolID );
-        VERIFY_RTE( iFind != symbolMaps.m_symbolIDMap.end() );
-        return symbolToInterfaceVariantVector( database, iFind->second );
+        return symbolToInterfaceVariantVector( database, symbolMaps.findSymbolTypeID( symbolID ) );
     }
     else
     {
-        auto iFind = symbolMaps.m_contextMap.find( symbolID );
+        THROW_TODO;
+        /*auto iFind = symbolMaps.m_contextMap.find( symbolID );
         if ( iFind != symbolMaps.m_contextMap.end() )
         {
             InterfaceVariantVector result;
@@ -104,16 +108,16 @@ InterfaceVariantVector symbolIDToInterfaceVariant( Database& database, const Sym
                 result.push_back( pInterfaceVariant );
                 return result;
             }
-        }
+        }*/
     }
     THROW_RTE( "Failed to resolve symbol id" );
 }
 
 InterfaceVariantVectorVector symbolVectorToInterfaceVariantVector( Database&                              database,
-                                                                   const std::vector< Symbols::Symbol* >& symbols )
+                                                                   const std::vector< Symbols::SymbolTypeID* >& symbols )
 {
     InterfaceVariantVectorVector result;
-    for ( Symbols::Symbol* pSymbol : symbols )
+    for ( Symbols::SymbolTypeID* pSymbol : symbols )
     {
         InterfaceVariantVector interfaceVariantVector = symbolToInterfaceVariantVector( database, pSymbol );
         result.push_back( interfaceVariantVector );
@@ -675,37 +679,38 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     // rebuild the type path string
     std::ostringstream osTypePathStr;
     {
-        osTypePathStr << mega::EG_TYPE_PATH << "< ";
-        bool bFirst = true;
-        for ( mega::SymbolID symbolID : id.m_type_path )
-        {
-            if ( bFirst )
-                bFirst = false;
-            else
-                osTypePathStr << ", ";
-            if ( symbolID < 0 )
-            {
-                auto iFind = symbolMaps.m_symbolIDMap.find( symbolID );
-                VERIFY_RTE( iFind != symbolMaps.m_symbolIDMap.end() );
-                osTypePathStr << iFind->second->get_symbol();
-            }
-            else
-            {
-                auto iFind = symbolMaps.m_contextMap.find( symbolID );
-                if ( iFind != symbolMaps.m_contextMap.end() )
-                {
-                    printIContextFullType( iFind->second, osTypePathStr );
-                }
-                else
-                {
-                    auto iFind = symbolMaps.m_dimensionMap.find( symbolID );
-                    VERIFY_RTE( iFind != symbolMaps.m_dimensionMap.end() );
-                    printIContextFullType( iFind->second->get_parent(), osTypePathStr );
-                    osTypePathStr << "::" << iFind->second->get_id()->get_str();
-                }
-            }
-        }
-        osTypePathStr << " >";
+        THROW_TODO;
+        // osTypePathStr << mega::EG_TYPE_PATH << "< ";
+        // bool bFirst = true;
+        // for ( mega::SymbolID symbolID : id.m_type_path )
+        // {
+        //     if ( bFirst )
+        //         bFirst = false;
+        //     else
+        //         osTypePathStr << ", ";
+        //     if ( symbolID < 0 )
+        //     {
+        //         auto iFind = symbolMaps.m_symbolIDMap.find( symbolID );
+        //         VERIFY_RTE( iFind != symbolMaps.m_symbolIDMap.end() );
+        //         osTypePathStr << iFind->second->get_symbol();
+        //     }
+        //     else
+        //     {
+        //         auto iFind = symbolMaps.m_contextMap.find( symbolID );
+        //         if ( iFind != symbolMaps.m_contextMap.end() )
+        //         {
+        //             printIContextFullType( iFind->second, osTypePathStr );
+        //         }
+        //         else
+        //         {
+        //             auto iFind = symbolMaps.m_dimensionMap.find( symbolID );
+        //             VERIFY_RTE( iFind != symbolMaps.m_dimensionMap.end() );
+        //             printIContextFullType( iFind->second->get_parent(), osTypePathStr );
+        //             osTypePathStr << "::" << iFind->second->get_id()->get_str();
+        //         }
+        //     }
+        // }
+        // osTypePathStr << " >";
     }
 
     std::ostringstream osName;

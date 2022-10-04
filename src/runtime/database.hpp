@@ -50,7 +50,7 @@ private:
     FinalStage::Database                                  m_database;
     std::vector< FinalStage::Components::Component* >     m_components;
     FinalStage::Symbols::SymbolTable*                     m_pSymbolTable;
-    std::map< mega::TypeID, FinalStage::Concrete::Context* > m_concreteIDs;
+    // std::map< mega::TypeID, FinalStage::Concrete::Context* > m_concreteIDs;
 };
 
 } // namespace mega::runtime

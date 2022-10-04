@@ -149,7 +149,8 @@ public:
 
             Symbols::SymbolTable* pSymbolTable
                 = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-            for ( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbols() )
+            THROW_TODO;
+            /*for ( auto& [ symbolName, pSymbol ] : pSymbolTable->get_symbols() )
             {
                 nlohmann::json forwardDecl( { { "symbol", pSymbol->get_id() }, { "name", symbolName } } );
 
@@ -167,7 +168,7 @@ public:
                     interfaceData[ "forward_decls" ].push_back( forwardDecl );
                 }
             }
-
+*/
             std::unique_ptr< boost::filesystem::ofstream > pOStream = m_environment.write( interfaceHeader );
             templateEngine.renderInterface( interfaceData, *pOStream );
         }
