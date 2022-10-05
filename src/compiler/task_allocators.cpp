@@ -492,13 +492,13 @@ void Task_Allocators::createallocators(
         {
             // range
             pLinkRef = database.construct< Concrete::Dimensions::LinkMany >(
-                Concrete::Dimensions::LinkMany::Args{ Concrete::Dimensions::LinkReference::Args{ pLink } } );
+                Concrete::Dimensions::LinkMany::Args{ Concrete::Dimensions::LinkReference::Args{ pParentContext, pLink } } );
         }
         else
         {
             // singular
             pLinkRef = database.construct< Concrete::Dimensions::LinkSingle >(
-                Concrete::Dimensions::LinkSingle::Args{ Concrete::Dimensions::LinkReference::Args{ pLink } } );
+                Concrete::Dimensions::LinkSingle::Args{ Concrete::Dimensions::LinkReference::Args{ pParentContext, pLink } } );
         }
 
         pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize, pLinkRef } );

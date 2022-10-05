@@ -34,6 +34,8 @@ namespace mega::runtime
 
 class DatabaseInstance
 {
+    using ConcreteTypeIDMap = std::map< mega::TypeID, ::FinalStage::Symbols::ConcreteTypeID* >;
+
 public:
     DatabaseInstance( const boost::filesystem::path& projectDatabasePath );
 
@@ -42,15 +44,15 @@ public:
     const FinalStage::Concrete::Object*       getObject( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getComponent( mega::TypeID objectType ) const;
     const FinalStage::Components::Component*  getOperationComponent( mega::TypeID objectType ) const;
-    mega::U64 getLocalDomainSize( mega::TypeID concreteID ) const;
+    mega::U64                                 getLocalDomainSize( mega::TypeID concreteID ) const;
 
 private:
-    mega::io::ArchiveEnvironment                          m_environment;
-    mega::io::Manifest                                    m_manifest;
-    FinalStage::Database                                  m_database;
-    std::vector< FinalStage::Components::Component* >     m_components;
-    FinalStage::Symbols::SymbolTable*                     m_pSymbolTable;
-    // std::map< mega::TypeID, FinalStage::Concrete::Context* > m_concreteIDs;
+    mega::io::ArchiveEnvironment                      m_environment;
+    mega::io::Manifest                                m_manifest;
+    FinalStage::Database                              m_database;
+    std::vector< FinalStage::Components::Component* > m_components;
+    FinalStage::Symbols::SymbolTable*                 m_pSymbolTable;
+    ConcreteTypeIDMap                                 m_concreteTypeIDs;
 };
 
 } // namespace mega::runtime

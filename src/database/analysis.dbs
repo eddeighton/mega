@@ -73,7 +73,6 @@ namespace Symbols
 
     object ConcreteTypeID -> ConcreteTypeAnalysis::ConcreteTable
     {
-        value< mega::TypeIDSequence >   type_ids;
         value< mega::TypeID >           id;
 
         opt< ref< Concrete::Context >                    > context;
@@ -90,7 +89,11 @@ namespace Symbols
         map< value< mega::TypeIDSequence >, ref< InterfaceTypeID > >  interface_type_id_sequences;
         map< value< mega::TypeID >,         ref< InterfaceTypeID > >  interface_type_ids;
 
-        map< value< mega::TypeID >, ref< ConcreteTypeID > >  concrete_type_ids -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< mega::TypeIDSequence >,     ref< ConcreteTypeID > > concrete_type_id_sequences -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< mega::TypeIDSequence >,     ref< ConcreteTypeID > > concrete_type_id_seq_alloc -> ConcreteTypeAnalysis::ConcreteTable;
+        map< value< mega::TypeIDSequencePair >, ref< ConcreteTypeID > > concrete_type_id_set_link  -> ConcreteTypeAnalysis::ConcreteTable;
+
+        map< value< mega::TypeID >,         ref< ConcreteTypeID > >   concrete_type_ids -> ConcreteTypeAnalysis::ConcreteTable;
     }
 }
 

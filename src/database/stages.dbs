@@ -247,7 +247,11 @@ stage ConcreteTypeAnalysis
     file ConcreteTable;
 
     persource accessor ref< Concrete::Context >;
+    persource accessor ref< Concrete::Dimensions::User >;
+    persource accessor ref< Concrete::Dimensions::LinkReference >;
+    persource accessor ref< Concrete::Dimensions::Allocation >;
     global accessor ref< Symbols::SymbolTable >;
+
 }
 
 stage ConcreteTypeAnalysisView
@@ -267,6 +271,9 @@ stage ConcreteTypeRollout
     file PerSourceConcreteTable;
 
     persource accessor ref< Concrete::Context >;
+    persource accessor ref< Concrete::Dimensions::User >;
+    persource accessor ref< Concrete::Dimensions::LinkReference >;
+    persource accessor ref< Concrete::Dimensions::Allocation >;
     global accessor ref< Symbols::SymbolTable >;
 }
 

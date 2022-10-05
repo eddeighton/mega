@@ -17,6 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include <utility>
+
 #include "base_task.hpp"
 
 #include "database/model/ConcreteTypeAnalysis.hxx"
@@ -73,168 +75,269 @@ public:
         }
         return srcFiles;
     }
-/*
-    struct SymbolCollector
+
+    // template < typename ConcreteTypeID = ConcreteTypeAnalysis::Symbols::ConcreteTypeID,
+    //            typename Context        = ConcreteTypeAnalysis::Concrete::Context,
+    //            typename DimUser        = ConcreteTypeAnalysis::Concrete::Dimensions::User,
+    //            typename DimLink        = ConcreteTypeAnalysis::Concrete::Dimensions::LinkReference,
+    //            typename DimAlloc       = ConcreteTypeAnalysis::Concrete::Dimensions::Allocation >
+
+    // clang-format off
+    template
+    <
+        typename ConcreteTypeID = ConcreteTypeAnalysis::Symbols::ConcreteTypeID,
+        typename IContext       = ConcreteTypeAnalysis::Interface::IContext,
+        typename IDim           = ConcreteTypeAnalysis::Interface::DimensionTrait,
+        typename ILink          = ConcreteTypeAnalysis::Interface::LinkTrait,
+        typename Context        = ConcreteTypeAnalysis::Concrete::Context,
+        typename ContextGroup   = ConcreteTypeAnalysis::Concrete::ContextGroup,
+        typename DimUser        = ConcreteTypeAnalysis::Concrete::Dimensions::User,
+        typename DimLink        = ConcreteTypeAnalysis::Concrete::Dimensions::LinkReference,
+        typename DimAlloc       = ConcreteTypeAnalysis::Concrete::Dimensions::Allocation
+    >
+    // clang-format on
+    struct TypeIDSequenceGen
     {
-        using ConcretePath = std::vector< ConcreteTypeAnalysis::Concrete::Context* >;
-        static ConcretePath getContextPath( ConcreteTypeAnalysis::Concrete::Context* pContext )
+        using CastFunctor = std::function< Context*( ContextGroup* ) >;
+        CastFunctor castFunctor;
+
+        TypeIDSequenceGen( CastFunctor castFunctor )
+            : castFunctor( std::move( castFunctor ) )
         {
-            using namespace ConcreteTypeAnalysis;
-            ConcretePath       result;
-            Concrete::Context* pIter = pContext;
-            while ( pIter )
-            {
-                result.push_back( pIter );
-                pIter = dynamic_database_cast< Concrete::Context >( pIter->get_parent() );
-            }
-            std::reverse( result.begin(), result.end() );
-            return result;
         }
 
-        using SymbolSetMap      = std::map< mega::io::megaFilePath, ConcreteTypeAnalysis::Symbols::SymbolSet* >;
-        using SymbolIDPath      = std::vector< mega::TypeID >;
-        using IDPathToSymbolMap = std::map< SymbolIDPath, ConcreteTypeAnalysis::Symbols::ConcreteSymbol* >;
-        using IDToSymbolMap     = std::map< mega::TypeID, ::ConcreteTypeAnalysis::Symbols::ConcreteSymbol* >;
-        using IDToContextMap    = std::map< mega::TypeID, ::ConcreteTypeAnalysis::Concrete::Context* >;
+        TypeID getTypeID( const IContext* pIContext ) const { return pIContext->get_interface_id(); }
+        TypeID getTypeID( const IDim* pIDim ) const { return pIDim->get_interface_id(); }
 
-        ConcreteTypeAnalysis::Symbols::ConcreteSymbol*
-        findOrCreateSymbol( ConcreteTypeAnalysis::Database&          database,
-                            IDPathToSymbolMap&                       idPathToSymbolMap,
-                            ConcreteTypeAnalysis::Concrete::Context* pContext ) const
+        void recurse( ContextGroup* pContextGroup, TypeIDSequence& sequence ) const
         {
-            using namespace ConcreteTypeAnalysis;
-            using namespace ConcreteTypeAnalysis::Symbols;
-
-            SymbolIDPath symbolIDPath;
-            for ( const Concrete::Context* pContext : getContextPath( pContext ) )
-                symbolIDPath.push_back( pContext->get_interface()->get_symbol() );
-
-            ConcreteSymbol* pSymbol = nullptr;
+            if ( auto pContext = castFunctor( pContextGroup ) )
             {
-                IDPathToSymbolMap::iterator iFind = idPathToSymbolMap.find( symbolIDPath );
-                VERIFY_RTE( iFind == idPathToSymbolMap.end() );
-                //if ( iFind != idPathToSymbolMap.end() )
-                //{
-                //    pSymbol = iFind->second;
-                //}
-            }
-
-            if ( !pSymbol )
-            {
-                // create the symbol in an un-labelled state i.e. with 0 for symbol id
-                pSymbol = database.construct< ConcreteSymbol >(
-                    ConcreteSymbol::Args{ symbolIDPath, 0, std::optional< Concrete::Context* >{ pContext },
-                                          std::optional< Concrete::Dimensions::User* >{},
-                                          std::optional< Concrete::Dimensions::LinkReference* >{},
-                                          std::optional< Concrete::Dimensions::Allocation* >{} } );
-
-                idPathToSymbolMap.insert( std::make_pair( symbolIDPath, pSymbol ) );
-            }
-
-            return pSymbol;
-        }
-
-        void operator()( ConcreteTypeAnalysis::Database& database,
-                         IDPathToSymbolMap&              idPathToSymbolMap,
-                         const mega::io::megaFilePath&   sourceFilePath ) const
-        {
-            using namespace ConcreteTypeAnalysis;
-            for ( Concrete::Context* pContext : database.many< Concrete::Context >( sourceFilePath ) )
-            {
-                Symbols::ConcreteSymbol* pSymbol = findOrCreateSymbol( database, idPathToSymbolMap, pContext );
+                sequence.push_back( getTypeID( pContext->get_interface() ) );
+                recurse( pContext->get_parent(), sequence );
             }
         }
-        void labelNewContexts( IDPathToSymbolMap& globalIDPathToSymbolMap )
+
+        TypeIDSequence operator()( Context* pContext ) const
         {
-            using namespace ConcreteTypeAnalysis;
-            using namespace ConcreteTypeAnalysis::Symbols;
+            // just get the path of interface ID to the root
+            TypeIDSequence sequence{ getTypeID( pContext->get_interface() ) };
+            recurse( pContext->get_parent(), sequence );
+            return sequence;
+        }
+        TypeIDSequence operator()( DimUser* pDimUser ) const
+        {
+            // just get the path of interface ID to the root
+            TypeIDSequence sequence{ getTypeID( pDimUser->get_interface_dimension() ) };
+            recurse( pDimUser->get_parent(), sequence );
+            return sequence;
+        }
+        TypeIDSequencePair operator()( DimLink* pDimLink ) const
+        {
+            // combine the link reference parent path to root with
+            // the link context itself
 
-            bool bFoundRoot = false;
+            TypeIDSequence linkInterfaceIDPath{ getTypeID( pDimLink->get_link()->get_interface() ) };
+            recurse( pDimLink->get_link(), linkInterfaceIDPath );
 
-            std::set< mega::TypeID > symbolLabels;
+            TypeIDSequence linkReferenceIDPath{ getTypeID( pDimLink->get_parent()->get_interface() ) };
+            recurse( pDimLink->get_parent(), linkReferenceIDPath );
+
+            return TypeIDSequencePair{ linkInterfaceIDPath, linkReferenceIDPath };
+        }
+        TypeIDSequence operator()( DimAlloc* pDimAlloc ) const
+        {
+            // get the allocated context path to root
+            auto pAllocatedContext = pDimAlloc->get_part()->get_context();
+
+            TypeIDSequence sequence{ getTypeID( pAllocatedContext->get_interface() ) };
+            recurse( pAllocatedContext->get_parent(), sequence );
+
+            return sequence;
+        }
+    };
+
+    ConcreteTypeAnalysis::Symbols::SymbolTable* calculateSymbolTable(
+        ConcreteTypeAnalysis::Database&             newDatabase,
+        ConcreteTypeAnalysis::Symbols::SymbolTable* pSymbolTable,
+        const std::map< mega::TypeIDSequence, ConcreteTypeAnalysisView::Symbols::ConcreteTypeID* >&
+            oldConcreteTypeIDSequences,
+        const std::map< mega::TypeIDSequence, ConcreteTypeAnalysisView::Symbols::ConcreteTypeID* >& oldAllocIDSequences,
+        const std::map< mega::TypeIDSequencePair, ConcreteTypeAnalysisView::Symbols::ConcreteTypeID* >&
+            oldLinkIDSequences )
+    {
+        namespace New = ConcreteTypeAnalysis;
+
+        using NewTypeIDSequenceMap = std::map< mega::TypeIDSequence, New::Symbols::ConcreteTypeID* >;
+        using NewTypeIDMap         = std::map< mega::TypeID, New::Symbols::ConcreteTypeID* >;
+
+        NewTypeIDSequenceMap                                                new_concrete_type_id_sequences;
+        std::map< mega::TypeIDSequence, New::Symbols::ConcreteTypeID* >     new_concrete_type_id_seq_alloc;
+        std::map< mega::TypeIDSequencePair, New::Symbols::ConcreteTypeID* > new_concrete_type_id_set_link;
+        NewTypeIDMap                                                        new_concrete_type_ids;
+        std::set< TypeID >                                                  usedTypeIDs;
+
+        TypeIDSequenceGen idgen( &New::dynamic_database_cast< New::Concrete::Context, New::Concrete::ContextGroup > );
+
+        for ( const mega::io::megaFilePath& newSourceFile : getSortedSourceFiles() )
+        {
+            for ( New::Concrete::Context* pContext : newDatabase.many< New::Concrete::Context >( newSourceFile ) )
             {
-                for ( IDPathToSymbolMap::iterator i = globalIDPathToSymbolMap.begin();
-                      i != globalIDPathToSymbolMap.end();
-                      ++i )
+                const TypeIDSequence idSeq = idgen( pContext );
+
+                New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
                 {
-                    ConcreteSymbol* pSymbol = i->second;
-
-                    // pSymbol->get_context()->get_interface()
-                    //  if the symbol is the root then set to 1
-
-                    if ( pSymbol->get_context().has_value() )
+                    auto iFind = oldConcreteTypeIDSequences.find( idSeq );
+                    if ( iFind != oldConcreteTypeIDSequences.end() )
                     {
-                        if ( dynamic_database_cast< Interface::Root >(
-                                 pSymbol->get_context().value()->get_interface()->get_parent() ) )
-                        {
-                            if ( pSymbol->get_context().value()->get_interface()->get_identifier() == ROOT_TYPE_NAME )
-                            {
-                                VERIFY_RTE_MSG( !bFoundRoot, "Found duplicate Roots" );
-                                pSymbol->set_id( mega::ROOT_TYPE_ID );
-                                bFoundRoot = true;
-                            }
-                        }
+                        auto         pOldConcreteTypeID = iFind->second;
+                        const TypeID oldTypeID          = pOldConcreteTypeID->get_id();
+                        pNewConcreteSymbol
+                            = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
+                                oldTypeID, pContext, std::nullopt, std::nullopt, std::nullopt } );
+                        new_concrete_type_ids.insert( { oldTypeID, pNewConcreteSymbol } );
+                        VERIFY_RTE( usedTypeIDs.insert( oldTypeID ).second );
                     }
-
-                    if ( pSymbol->get_id() != 0 ) // zero means not set
+                    else
                     {
-                        VERIFY_RTE( !symbolLabels.count( pSymbol->get_id() ) );
-                        symbolLabels.insert( pSymbol->get_id() );
+                        pNewConcreteSymbol
+                            = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
+                                0, pContext, std::nullopt, std::nullopt, std::nullopt } );
                     }
                 }
+                new_concrete_type_id_sequences.insert( { idSeq, pNewConcreteSymbol } );
             }
-            VERIFY_RTE_MSG( bFoundRoot, "Failed to find Root symbol" );
-
-            std::set< mega::TypeID >::iterator labelIter   = symbolLabels.begin();
-            mega::TypeID                       szNextLabel = 2;
-            for ( IDPathToSymbolMap::iterator i = globalIDPathToSymbolMap.begin(); i != globalIDPathToSymbolMap.end();
-                  ++i )
+            for ( New::Concrete::Dimensions::User* pUserDimension :
+                  newDatabase.many< New::Concrete::Dimensions::User >( newSourceFile ) )
             {
-                ConcreteSymbol* pSymbol = i->second;
-                if ( pSymbol->get_id() == 0 )
+                const TypeIDSequence          idSeq              = idgen( pUserDimension );
+                New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
                 {
-                    while ( labelIter != symbolLabels.end() )
+                    auto iFind = oldConcreteTypeIDSequences.find( idSeq );
+                    if ( iFind != oldConcreteTypeIDSequences.end() )
                     {
-                        if ( *labelIter > szNextLabel )
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            szNextLabel = *labelIter + 1;
-                            ++labelIter;
-                        }
-                        VERIFY_RTE_MSG( szNextLabel > 0, "Concrete Type ID overflowed" );
+                        auto         pOldConcreteTypeID = iFind->second;
+                        const TypeID oldTypeID          = pOldConcreteTypeID->get_id();
+                        pNewConcreteSymbol
+                            = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
+                                oldTypeID, std::nullopt, std::nullopt, std::nullopt, std::nullopt } );
+                        new_concrete_type_ids.insert( { oldTypeID, pNewConcreteSymbol } );
+                        VERIFY_RTE( usedTypeIDs.insert( oldTypeID ).second );
                     }
-                    pSymbol->set_id( szNextLabel );
-                    ++szNextLabel;
-                    VERIFY_RTE_MSG( szNextLabel > 0, "Concrete Type ID overflowed" );
+                    else
+                    {
+                        pNewConcreteSymbol
+                            = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
+                                0, std::nullopt, pUserDimension, std::nullopt, std::nullopt } );
+                    }
                 }
+                new_concrete_type_id_sequences.insert( { idSeq, pNewConcreteSymbol } );
+            }
+            for ( New::Concrete::Dimensions::LinkReference* pLinkDimension :
+                  newDatabase.many< New::Concrete::Dimensions::LinkReference >( newSourceFile ) )
+            {
+                const TypeIDSequencePair      idSeqPair          = idgen( pLinkDimension );
+                New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
+                {
+                    auto iFind = oldLinkIDSequences.find( idSeqPair );
+                    if ( iFind != oldLinkIDSequences.end() )
+                    {
+                        auto         pOldConcreteTypeID = iFind->second;
+                        const TypeID oldTypeID          = pOldConcreteTypeID->get_id();
+                        pNewConcreteSymbol
+                            = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
+                                oldTypeID, std::nullopt, std::nullopt, std::nullopt, std::nullopt } );
+                        new_concrete_type_ids.insert( { oldTypeID, pNewConcreteSymbol } );
+                        VERIFY_RTE( usedTypeIDs.insert( oldTypeID ).second );
+                    }
+                    else
+                    {
+                        pNewConcreteSymbol
+                            = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
+                                0, std::nullopt, std::nullopt, pLinkDimension, std::nullopt } );
+                    }
+                }
+                new_concrete_type_id_set_link.insert( { idSeqPair, pNewConcreteSymbol } );
+            }
+            for ( New::Concrete::Dimensions::Allocation* pAllocationDimension :
+                  newDatabase.many< New::Concrete::Dimensions::Allocation >( newSourceFile ) )
+            {
+                // new_concrete_type_id_seq_alloc
+                const TypeIDSequence          idSeq              = idgen( pAllocationDimension );
+                New::Symbols::ConcreteTypeID* pNewConcreteSymbol = nullptr;
+                {
+                    auto iFind = oldAllocIDSequences.find( idSeq );
+                    if ( iFind != oldAllocIDSequences.end() )
+                    {
+                        auto         pOldConcreteTypeID = iFind->second;
+                        const TypeID oldTypeID          = pOldConcreteTypeID->get_id();
+                        pNewConcreteSymbol
+                            = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
+                                oldTypeID, std::nullopt, std::nullopt, std::nullopt, std::nullopt } );
+                        new_concrete_type_ids.insert( { oldTypeID, pNewConcreteSymbol } );
+                        VERIFY_RTE( usedTypeIDs.insert( oldTypeID ).second );
+                    }
+                    else
+                    {
+                        pNewConcreteSymbol
+                            = newDatabase.construct< New::Symbols::ConcreteTypeID >( New::Symbols::ConcreteTypeID::Args{
+                                0, std::nullopt, std::nullopt, std::nullopt, pAllocationDimension } );
+                    }
+                }
+                new_concrete_type_id_seq_alloc.insert( { idSeq, pNewConcreteSymbol } );
             }
         }
-        void collate( const SymbolSetMap&              symbolSetMap,
-                      SymbolCollector::IDToSymbolMap&  idToSymbolMap,
-                      SymbolCollector::IDToContextMap& idToContextMap )
+
+        // generate symbol ids - avoiding existing
+        auto   usedIter      = usedTypeIDs.begin();
+        TypeID typeIDCounter = 1U;
+        for ( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_sequences )
         {
-            using namespace ConcreteTypeAnalysis;
-            using namespace ConcreteTypeAnalysis::Symbols;
-
-            for ( auto& [ filePath, pSymbolSet ] : symbolSetMap )
+            if ( pSymbolTypeID->get_id() == 0 )
             {
-                for ( const auto& [ id, pSymbol ] : pSymbolSet->get_concrete_symbols() )
+                while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
                 {
-                    VERIFY_RTE( pSymbol->get_id() != 0 );
-                    if ( pSymbol->get_context().has_value() )
-                    {
-                        pSymbolSet->insert_context_concrete_ids( pSymbol->get_context().value(), pSymbol->get_id() );
-                        VERIFY_RTE(
-                            idToContextMap.insert( { pSymbol->get_id(), pSymbol->get_context().value() } ).second );
-                    }
-                    VERIFY_RTE( idToSymbolMap.insert( { pSymbol->get_id(), pSymbol } ).second );
+                    ++usedIter;
+                    ++typeIDCounter;
                 }
+                pSymbolTypeID->set_id( typeIDCounter );
+                new_concrete_type_ids.insert( { typeIDCounter, pSymbolTypeID } );
+                ++typeIDCounter;
             }
         }
-    };*/
+        for ( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_set_link )
+        {
+            if ( pSymbolTypeID->get_id() == 0 )
+            {
+                while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
+                {
+                    ++usedIter;
+                    ++typeIDCounter;
+                }
+                pSymbolTypeID->set_id( typeIDCounter );
+                new_concrete_type_ids.insert( { typeIDCounter, pSymbolTypeID } );
+                ++typeIDCounter;
+            }
+        }
+        for ( auto& [ idSequence, pSymbolTypeID ] : new_concrete_type_id_seq_alloc )
+        {
+            if ( pSymbolTypeID->get_id() == 0 )
+            {
+                while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
+                {
+                    ++usedIter;
+                    ++typeIDCounter;
+                }
+                pSymbolTypeID->set_id( typeIDCounter );
+                new_concrete_type_ids.insert( { typeIDCounter, pSymbolTypeID } );
+                ++typeIDCounter;
+            }
+        }
+
+        return newDatabase.construct< New::Symbols::SymbolTable >( New::Symbols::SymbolTable::Args{
+            pSymbolTable, new_concrete_type_id_sequences, new_concrete_type_id_seq_alloc, new_concrete_type_id_set_link,
+            new_concrete_type_ids } );
+    }
 
     virtual void run( mega::pipeline::Progress& taskProgress )
     {
@@ -273,7 +376,7 @@ public:
         ConcreteHashCodeGenerator hashCodeGenerator( m_environment, m_toolChain.toolChainHash );
 
         bool bReusedOldDatabase = false;
-        /*if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
+        if ( boost::filesystem::exists( m_environment.DatabaseArchive() ) )
         {
             try
             {
@@ -282,174 +385,29 @@ public:
                 namespace New = ConcreteTypeAnalysis;
 
                 New::Database newDatabase( m_environment, manifestFilePath );
-                {
-                    New::Symbols::SymbolTable* pSymbolTable
-                        = newDatabase.one< New::Symbols::SymbolTable >( manifestFilePath );
 
-                    // load the archived database
+                New::Symbols::SymbolTable* pSymbolTable
+                    = newDatabase.one< New::Symbols::SymbolTable >( manifestFilePath );
+
+                {
                     io::ArchiveEnvironment archiveEnvironment( m_environment.DatabaseArchive() );
                     Old::Database          oldDatabase( archiveEnvironment, archiveEnvironment.project_manifest() );
 
-                    const Old::Symbols::SymbolTable* pOldAnalysis
+                    Old::Symbols::SymbolTable* pOldSymbolTable
                         = oldDatabase.one< Old::Symbols::SymbolTable >( manifestFilePath );
-                    VERIFY_RTE( pOldAnalysis );
-                    using OldSymbolsMap                = std::map< mega::io::megaFilePath, Old::Symbols::SymbolSet* >;
-                    const OldSymbolsMap oldSymbolsMaps = pOldAnalysis->get_symbol_sets();
-                    const PathSet       sourceFiles    = getSortedSourceFiles();
 
-                    // oldSymbolSetsMap is really the new_old - i.e. the one from the new database but that
-                    // needs to be reconstructed in to the later stage type
-                    const SymbolCollector::SymbolSetMap oldSymbolSetsMap = pSymbolTable->get_symbol_sets();
-                    SymbolCollector::SymbolSetMap       newSymbolSetsMap;
-                    SymbolCollector::IDPathToSymbolMap  globalIDPathToSymbolMap;
+                    const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* > oldConcreteTypeIDSequences
+                        = pOldSymbolTable->get_concrete_type_id_sequences();
+                    const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* > oldAllocIDSequences
+                        = pOldSymbolTable->get_concrete_type_id_seq_alloc();
+                    const std::map< mega::TypeIDSequencePair, Old::Symbols::ConcreteTypeID* > oldLinkIDSequences
+                        = pOldSymbolTable->get_concrete_type_id_set_link();
 
-                    {
-                        struct Compare
-                        {
-                            const mega::io::Environment& env;
-                            Compare( const mega::io::Environment& env )
-                                : env( env )
-                            {
-                            }
-                            bool operator()( OldSymbolsMap::const_iterator i, PathSet::const_iterator j ) const
-                            {
-                                return i->first < *j;
-                            }
-                            bool opposite( OldSymbolsMap::const_iterator i, PathSet::const_iterator j ) const
-                            {
-                                return *j < i->first;
-                            }
-                        } comparator( m_environment );
-
-                        generics::matchGetUpdates(
-                            oldSymbolsMaps.begin(), oldSymbolsMaps.end(), sourceFiles.begin(), sourceFiles.end(),
-                            // const Compare& cmp
-                            comparator,
-
-                            // const Update& shouldUpdate
-                            [ &hashCodeGenerator, &newDatabase, &taskProgress, &oldSymbolSetsMap, &newSymbolSetsMap,
-                              &globalIDPathToSymbolMap ](
-                                OldSymbolsMap::const_iterator i, PathSet::const_iterator j ) -> bool
-                            {
-                                const task::DeterminantHash concreteHash = hashCodeGenerator( *j );
-                                if ( concreteHash.get() == i->second->get_concrete_hash_code() )
-                                {
-                                    // since the code is NOT modified - can re use
-                                    const mega::io::megaFilePath sourceFilePath = *j;
-                                    Old::Symbols::SymbolSet*     pOldSymbolSet  = i->second;
-
-                                    SymbolCollector::IDPathToSymbolMap localSymbolMap;
-                                    for ( auto& [ id, pSymbol ] : pOldSymbolSet->get_concrete_symbols() )
-                                    {
-                                        if ( pSymbol->get_context().has_value() )
-                                        {
-                                            New::Concrete::Context* pNewContext
-                                                = newDatabase.convert< New::Concrete::Context >(
-                                                    pSymbol->get_context().value() );
-
-                                            // converted symbol will retain old concrete id
-                                            VERIFY_RTE( pSymbol->get_id() != 0 );
-                                            New::Symbols::ConcreteSymbol* pNewSymbol
-                                                = newDatabase.construct< New::Symbols::ConcreteSymbol >(
-                                                    New::Symbols::ConcreteSymbol::Args{
-                                                        pSymbol->get_id_sequence(), pSymbol->get_id(), pNewContext,
-                                                        std::nullopt, std::nullopt, std::nullopt } );
-
-                                            VERIFY_RTE( localSymbolMap.insert( { id, pNewSymbol } ).second );
-                                            VERIFY_RTE( globalIDPathToSymbolMap.insert( { id, pNewSymbol } ).second );
-                                        }
-                                    }
-
-                                    auto iFind = oldSymbolSetsMap.find( sourceFilePath );
-                                    VERIFY_RTE( iFind != oldSymbolSetsMap.end() );
-                                    New::Symbols::SymbolSet* pSymbolSet = iFind->second;
-
-                                    pSymbolSet = newDatabase.construct< New::Symbols::SymbolSet >(
-                                        New::Symbols::SymbolSet::Args{
-                                            pSymbolSet, concreteHash.get(), localSymbolMap, {}, {}, {}, {} } );
-                                    VERIFY_RTE( newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } ).second );
-
-                                    // std::ostringstream os;
-                                    // os << "\tPartially reusing symbols for: " << j->path().string();
-                                    // taskProgress.msg( os.str() );
-                                    return false;
-                                }
-                                else
-                                {
-                                    return true;
-                                }
-                            },
-
-                            // const Removal& rem
-                            []( OldSymbolsMap::const_iterator i )
-                            {
-                                // a source file has been removed
-                            },
-
-                            // const Addition& add
-                            [ &env = m_environment, &hashCodeGenerator, &newDatabase, &taskProgress, &oldSymbolSetsMap,
-                              &newSymbolSetsMap, &globalIDPathToSymbolMap ]( PathSet::const_iterator j )
-                            {
-                                // a new source file is added so must analysis from the ground up
-                                const mega::io::megaFilePath sourceFilePath = *j;
-                                const task::DeterminantHash  concreteHash   = hashCodeGenerator( sourceFilePath );
-
-                                SymbolCollector::IDPathToSymbolMap idPathToSymbolMap;
-                                SymbolCollector()( newDatabase, idPathToSymbolMap, sourceFilePath );
-
-                                auto iFind = oldSymbolSetsMap.find( sourceFilePath );
-                                VERIFY_RTE( iFind != oldSymbolSetsMap.end() );
-                                New::Symbols::SymbolSet* pSymbolSet = iFind->second;
-
-                                pSymbolSet
-                                    = newDatabase.construct< New::Symbols::SymbolSet >( New::Symbols::SymbolSet::Args{
-                                        pSymbolSet, concreteHash.get(), idPathToSymbolMap, {}, {}, {}, {} } );
-                                VERIFY_RTE( newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } ).second );
-
-                                for ( auto& [ id, pSymbol ] : idPathToSymbolMap )
-                                {
-                                    VERIFY_RTE(
-                                        globalIDPathToSymbolMap.insert( std::make_pair( id, pSymbol ) ).second );
-                                }
-                            },
-
-                            // const Updated& updatesNeeded
-                            [ &env = m_environment, &hashCodeGenerator, &newDatabase, &taskProgress, &oldSymbolSetsMap,
-                              &newSymbolSetsMap, &globalIDPathToSymbolMap ]( OldSymbolsMap::const_iterator i )
-                            {
-                                // Old::Symbols::SymbolSet* pOldSymbolSet = i->second;
-                                //  a new source file is added so must analysis from the ground up
-                                const mega::io::megaFilePath sourceFilePath = i->first;
-                                const task::DeterminantHash  concreteHash   = hashCodeGenerator( sourceFilePath );
-
-                                SymbolCollector::IDPathToSymbolMap idPathToSymbolMap;
-                                SymbolCollector()( newDatabase, idPathToSymbolMap, sourceFilePath );
-
-                                auto iFind = oldSymbolSetsMap.find( sourceFilePath );
-                                VERIFY_RTE( iFind != oldSymbolSetsMap.end() );
-                                New::Symbols::SymbolSet* pSymbolSet = iFind->second;
-
-                                pSymbolSet
-                                    = newDatabase.construct< New::Symbols::SymbolSet >( New::Symbols::SymbolSet::Args{
-                                        pSymbolSet, concreteHash.get(), idPathToSymbolMap, {}, {}, {}, {} } );
-                                VERIFY_RTE( newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } ).second );
-
-                                for ( auto& [ id, pSymbol ] : idPathToSymbolMap )
-                                {
-                                    VERIFY_RTE(
-                                        globalIDPathToSymbolMap.insert( std::make_pair( id, pSymbol ) ).second );
-                                }
-                            } );
-                    }
-
-                    SymbolCollector::IDToSymbolMap  idToSymbolMap;
-                    SymbolCollector::IDToContextMap idToContextMap;
-
-                    SymbolCollector().labelNewContexts( globalIDPathToSymbolMap );
-                    SymbolCollector().collate( newSymbolSetsMap, idToSymbolMap, idToContextMap );
-
-                    newDatabase.construct< New::Symbols::SymbolTable >( New::Symbols::SymbolTable::Args(
-                        pSymbolTable, globalIDPathToSymbolMap, idToSymbolMap, idToContextMap ) );
+                    calculateSymbolTable( newDatabase,
+                                          pSymbolTable,
+                                          oldConcreteTypeIDSequences,
+                                          oldAllocIDSequences,
+                                          oldLinkIDSequences );
                 }
 
                 const task::FileHash fileHashCode = newDatabase.save_ConcreteTable_to_temp();
@@ -464,7 +422,7 @@ public:
             {
                 bReusedOldDatabase = false;
             }
-        }*/
+        }
 
         if ( !bReusedOldDatabase )
         {
@@ -472,61 +430,16 @@ public:
             using namespace ConcreteTypeAnalysis::Symbols;
 
             Database database( m_environment, manifestFilePath );
-            /*{
+            {
                 Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( manifestFilePath );
-                const SymbolCollector::SymbolSetMap oldSymbolSetsMap = pSymbolTable->get_symbol_sets();
+                namespace Old                      = ConcreteTypeAnalysisView;
+                const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* >     oldConcreteTypeIDSequences;
+                const std::map< mega::TypeIDSequence, Old::Symbols::ConcreteTypeID* >     oldAllocIDSequences;
+                const std::map< mega::TypeIDSequencePair, Old::Symbols::ConcreteTypeID* > oldLinkIDSequences;
 
-                SymbolCollector::SymbolSetMap      newSymbolSetsMap;
-                SymbolCollector::IDPathToSymbolMap globalIDPathToSymbolMap;
-                SymbolCollector::IDToSymbolMap     idToSymbolMap;
-                SymbolCollector::IDToContextMap    idToContextMap;
-                {
-                    for ( const mega::io::megaFilePath& sourceFilePath : getSortedSourceFiles() )
-                    {
-                        const task::DeterminantHash concreteHash = hashCodeGenerator( sourceFilePath );
-
-                        SymbolCollector::IDPathToSymbolMap idPathToSymbolMap;
-                        SymbolCollector()( database, idPathToSymbolMap, sourceFilePath );
-
-                        auto iFind = oldSymbolSetsMap.find( sourceFilePath );
-                        VERIFY_RTE( iFind != oldSymbolSetsMap.end() );
-                        SymbolSet* pSymbolSet = iFind->second;
-
-                        // recreate the symbol set
-                        pSymbolSet = database.construct< SymbolSet >(
-                            SymbolSet::Args{ pSymbolSet, concreteHash.get(), idPathToSymbolMap, {}, {}, {}, {} } );
-                        newSymbolSetsMap.insert( { sourceFilePath, pSymbolSet } );
-                        for ( auto& [ id, pSymbol ] : idPathToSymbolMap )
-                        {
-                            const bool bResult = globalIDPathToSymbolMap.insert( std::make_pair( id, pSymbol ) ).second;
-                            if ( !bResult )
-                            {
-                                if( pSymbol->get_context().has_value() )
-                                {
-                                    const auto         path = SymbolCollector::getContextPath( pSymbol->get_context().value() );
-                                    std::ostringstream os;
-                                    bool               bFirst = true;
-                                    for ( const auto p : path )
-                                    {
-                                        if ( bFirst )
-                                            bFirst = false;
-                                        else
-                                            os << "::";
-                                        os << p->get_interface()->get_identifier();
-                                    }
-                                    THROW_RTE( "Duplicate symbols found: " << os.str() );
-                                }
-                            }
-                        }
-                    }
-                    SymbolCollector().labelNewContexts( globalIDPathToSymbolMap );
-                    SymbolCollector().collate( newSymbolSetsMap, idToSymbolMap, idToContextMap );
-                }
-                // recreate the symbol table
-                database.construct< SymbolTable >(
-                    SymbolTable::Args( pSymbolTable, globalIDPathToSymbolMap, idToSymbolMap, idToContextMap ) );
-            }*/
-            THROW_TODO;
+                calculateSymbolTable(
+                    database, pSymbolTable, oldConcreteTypeIDSequences, oldAllocIDSequences, oldLinkIDSequences );
+            }
 
             const task::FileHash fileHashCode = database.save_ConcreteTable_to_temp();
             m_environment.setBuildHashCode( symbolCompilationFile, fileHashCode );
@@ -574,24 +487,55 @@ public:
 
         Database database( m_environment, m_sourceFilePath );
 
-    THROW_TODO;
+        Symbols::SymbolTable* pSymbolTable = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
-        //Symbols::SymbolSet* pSymbolSet = nullptr;
-        //{
-        //    Symbols::SymbolTable* pSymbolTable
-        //        = database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
-        //    std::map< mega::io::megaFilePath, Symbols::SymbolSet* > symbolSets = pSymbolTable->get_symbol_sets();
-        //    std::map< mega::io::megaFilePath, Symbols::SymbolSet* >::const_iterator iFind
-        //        = symbolSets.find( m_sourceFilePath );
-        //    VERIFY_RTE( iFind != symbolSets.end() );
-        //    pSymbolSet = iFind->second;
-        //}
-        //// VERIFY_RTE( pSymbolSet->get_hash_code() == determinant.get() );
-//
-        //for ( auto& [ pContext, id ] : pSymbolSet->get_context_concrete_ids() )
-        //{
-        //    database.construct< Concrete::Context >( Concrete::Context::Args{ pContext, id } );
-        //}
+        const std::map< mega::TypeIDSequence, Symbols::ConcreteTypeID* > oldConcreteTypeIDSequences
+            = pSymbolTable->get_concrete_type_id_sequences();
+        const std::map< mega::TypeIDSequence, Symbols::ConcreteTypeID* > oldAllocIDSequences
+            = pSymbolTable->get_concrete_type_id_seq_alloc();
+        const std::map< mega::TypeIDSequencePair, Symbols::ConcreteTypeID* > oldLinkIDSequences
+            = pSymbolTable->get_concrete_type_id_set_link();
+
+        Task_ConcreteTypeAnalysis::TypeIDSequenceGen< Symbols::ConcreteTypeID,
+                                                      Interface::IContext,
+                                                      Interface::DimensionTrait,
+                                                      Interface::LinkTrait,
+                                                      Concrete::Context,
+                                                      Concrete::ContextGroup,
+                                                      Concrete::Dimensions::User,
+                                                      Concrete::Dimensions::LinkReference,
+                                                      Concrete::Dimensions::Allocation >
+            idgen( &dynamic_database_cast< Concrete::Context, Concrete::ContextGroup > );
+
+        for ( auto pContext : database.many< Concrete::Context >( m_sourceFilePath ) )
+        {
+            auto iFind = oldConcreteTypeIDSequences.find( idgen( pContext ) );
+            VERIFY_RTE( iFind != oldConcreteTypeIDSequences.end() );
+            database.construct< Concrete::Context >( Concrete::Context::Args{ pContext, iFind->second->get_id() } );
+        }
+        for ( auto pUserDimension : database.many< Concrete::Dimensions::User >( m_sourceFilePath ) )
+        {
+            auto iFind = oldConcreteTypeIDSequences.find( idgen( pUserDimension ) );
+            VERIFY_RTE( iFind != oldConcreteTypeIDSequences.end() );
+            database.construct< Concrete::Dimensions::User >(
+                Concrete::Dimensions::User::Args{ pUserDimension, iFind->second->get_id() } );
+        }
+        for ( auto pLinkDimension : database.many< Concrete::Dimensions::LinkReference >( m_sourceFilePath ) )
+        {
+            const TypeIDSequencePair idSeqPair = idgen( pLinkDimension );
+            auto                     iFind     = oldLinkIDSequences.find( idSeqPair );
+            VERIFY_RTE( iFind != oldLinkIDSequences.end() );
+            database.construct< Concrete::Dimensions::LinkReference >(
+                Concrete::Dimensions::LinkReference::Args{ pLinkDimension, iFind->second->get_id() } );
+        }
+        for ( auto pAllocationDimension : database.many< Concrete::Dimensions::Allocation >( m_sourceFilePath ) )
+        {
+            const TypeIDSequence idSeq = idgen( pAllocationDimension );
+            auto                 iFind = oldAllocIDSequences.find( idSeq );
+            VERIFY_RTE( iFind != oldAllocIDSequences.end() );
+            database.construct< Concrete::Dimensions::Allocation >(
+                Concrete::Dimensions::Allocation::Args{ pAllocationDimension, iFind->second->get_id() } );
+        }
 
         const task::FileHash fileHashCode = database.save_PerSourceConcreteTable_to_temp();
         m_environment.setBuildHashCode( symbolRolloutFilePath, fileHashCode );

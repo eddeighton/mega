@@ -48,13 +48,14 @@ using namespace InterfaceAnalysisStage::Interface;
 
 class InterfaceSession : public AnalysisSession
 {
-    InterfaceAnalysisStage::Database                                          m_database;
-    //std::map< std::string, ::InterfaceAnalysisStage::Symbols::SymbolTypeID* > m_symbols;
-    //std::map< mega::TypeID, IContext* >                                       m_contextTypeIDs;
-    //std::map< mega::TypeID, DimensionTrait* >                                 m_dimensionTypeIDs;
+    InterfaceAnalysisStage::Database m_database;
 
-    //using SymbolIDMap = std::map< mega::TypeID, ::InterfaceAnalysisStage::Symbols::SymbolTypeID* >;
-    //SymbolIDMap m_symbolIDMap;
+    using SymbolTypeIDMap    = std::map< mega::TypeID, Symbols::SymbolTypeID* >;
+    using InterfaceTypeIDMap = std::map< mega::TypeID, Symbols::InterfaceTypeID* >;
+
+    std::map< std::string, Symbols::SymbolTypeID* > m_symbols;
+    SymbolTypeIDMap                                 m_symbolIDs;
+    InterfaceTypeIDMap                              m_interfaceTypeIDs;
 
 public:
     InterfaceSession( ASTContext* pASTContext, Sema* pSema, const char* strSrcDir, const char* strBuildDir,
@@ -62,12 +63,11 @@ public:
         : AnalysisSession( pASTContext, pSema, strSrcDir, strBuildDir, strSourceFile )
         , m_database( m_environment, m_sourceFile )
     {
-        //Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
+        Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
-        // m_symbols          = pSymbolTable->get_symbol_type_ids();
-        // m_contextTypeIDs   = pSymbolTable->get_context_type_ids();
-        // m_dimensionTypeIDs = pSymbolTable->get_dimension_type_ids();
-        // m_symbolIDMap      = pSymbolTable->get_symbol_id_map();
+        m_symbols          = pSymbolTable->get_symbol_names();
+        m_symbolIDs        = pSymbolTable->get_symbol_type_ids();
+        m_interfaceTypeIDs = pSymbolTable->get_interface_type_ids();
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
@@ -77,10 +77,9 @@ public:
             return true;
         }
 
-        THROW_TODO;
-        // if ( m_symbols.find( strIdentifier ) != m_symbols.end() )
-        //     return true;
-        // return false;
+        if ( m_symbols.find( strIdentifier ) != m_symbols.end() )
+            return true;
+        return false;
     }
 
     template < typename TContextType >
@@ -143,107 +142,105 @@ public:
     template < typename TContextType >
     bool dimensionAnalysis( TContextType* pContext, SourceLocation loc, DeclContext* pDeclContext )
     {
-        THROW_TODO;
+        for ( Interface::DimensionTrait* pDimensionTrait : pContext->get_dimension_traits() )
+        {
+            DeclLocType dimensionResult
+                = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pDimensionTrait->get_id()->get_str() );
+            if ( dimensionResult.pDeclContext )
+            {
+                // determine the type
+                std::string                           strCanonicalType;
+                std::vector< Symbols::SymbolTypeID* > symbols;
+                {
+                    QualType typeType
+                        = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
+                    QualType                      typeTypeCanonical = typeType.getCanonicalType();
+                    std::vector< mega::SymbolID > dimensionTypes;
 
-        // for ( Interface::DimensionTrait* pDimensionTrait : pContext->get_dimension_traits() )
-        // {
-        //     DeclLocType dimensionResult
-        //         = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, pDimensionTrait->get_id()->get_str() );
-        //     if ( dimensionResult.pDeclContext )
-        //     {
-        //         // determine the type
-        //         std::string                     strCanonicalType;
-        //         std::vector< Symbols::Symbol* > symbols;
-        //         {
-        //             QualType typeType
-        //                 = getTypeTrait( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc, "Type" );
-        //             QualType                      typeTypeCanonical = typeType.getCanonicalType();
-        //             std::vector< mega::SymbolID > dimensionTypes;
-// 
-        //             // only attempt this is it has a base type identifier
-        //             if ( typeTypeCanonical.getBaseTypeIdentifier() )
-        //             {
-        //                 getContextSymbolIDs( pASTContext, typeTypeCanonical, dimensionTypes );
-        //             }
-        //             if ( dimensionTypes.empty()
-        //                  || ( ( dimensionTypes.size() == 1U ) && ( dimensionTypes.front() == 0 ) ) )
-        //             {
-        //                 strCanonicalType = typeTypeCanonical.getAsString();
-        //             }
-        //             else if ( !dimensionTypes.empty() )
-        //             {
-        //                 for ( mega::SymbolID symbolID : dimensionTypes )
-        //                 {
-        //                     SymbolIDMap::const_iterator iFind = m_symbolIDMap.find( symbolID );
-        //                     if ( iFind != m_symbolIDMap.end() )
-        //                     {
-        //                         Symbols::Symbol* pSymbol = iFind->second;
-        //                         symbols.push_back( pSymbol );
-        //                     }
-        //                     else
-        //                     {
-        //                         // diag
-        //                         std::ostringstream os;
-        //                         os << "Invalid dimension type: " << pDimensionTrait->get_id()->get_str();
-        //                         pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-        //                         return false;
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         if ( strCanonicalType.empty() && symbols.empty() )
-        //         {
-        //             THROW_RTE( "Failed to determine dimension type" );
-        //         }
-// 
-        //         // determine the size
-        //         ::mega::U64 szSize = 0U;
-        //         if ( std::optional< ::mega::U64 > sizeOpt
-        //              = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
-        //                             ::mega::EG_TRAITS_SIZE ) )
-        //         {
-        //             szSize = static_cast< ::mega::U64 >( sizeOpt.value() );
-        //         }
-        //         else
-        //         {
-        //             THROW_RTE( "Error attempting to record dimension size" );
-        //         }
-// 
-        //         // determine the alignment
-        //         ::mega::U64 szAlignment = 0U;
-        //         if ( std::optional< ::mega::U64 > alignmentOpt
-        //              = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
-        //                             ::mega::EG_TRAITS_ALIGNMENT ) )
-        //         {
-        //             szAlignment = static_cast< ::mega::U64 >( alignmentOpt.value() );
-        //         }
-        //         else
-        //         {
-        //             THROW_RTE( "Error attempting to record dimension size" );
-        //         }
-// 
-        //         // determine if the type is simple
-        //         bool bIsSimple = true;
-        //         if ( std::optional< ::mega::U64 > sizeOpt
-        //              = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
-        //                             ::mega::EG_TRAITS_SIMPLE ) )
-        //         {
-        //             bIsSimple = static_cast< bool >( sizeOpt.value() );
-        //         }
-        //         else
-        //         {
-        //             THROW_RTE( "Error attempting to record if dimension is simple" );
-        //         }
-// 
-        //         m_database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args{
-        //             pDimensionTrait, strCanonicalType, szSize, szAlignment, bIsSimple, symbols } );
-        //     }
-        //     else
-        //     {
-        //         THROW_RTE( "Error attempting to resolve dimension type" );
-        //     }
-        // }
-        // return true;
+                    // only attempt this is it has a base type identifier
+                    if ( typeTypeCanonical.getBaseTypeIdentifier() )
+                    {
+                        getContextSymbolIDs( pASTContext, typeTypeCanonical, dimensionTypes );
+                    }
+                    if ( dimensionTypes.empty()
+                         || ( ( dimensionTypes.size() == 1U ) && ( dimensionTypes.front() == 0 ) ) )
+                    {
+                        strCanonicalType = typeTypeCanonical.getAsString();
+                    }
+                    else if ( !dimensionTypes.empty() )
+                    {
+                        for ( mega::SymbolID symbolID : dimensionTypes )
+                        {
+                            auto iFind = m_symbolIDs.find( symbolID );
+                            if ( iFind != m_symbolIDs.end() )
+                            {
+                                Symbols::SymbolTypeID* pSymbol = iFind->second;
+                                symbols.push_back( pSymbol );
+                            }
+                            else
+                            {
+                                // diag
+                                std::ostringstream os;
+                                os << "Invalid dimension type: " << pDimensionTrait->get_id()->get_str();
+                                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                                return false;
+                            }
+                        }
+                    }
+                }
+                if ( strCanonicalType.empty() && symbols.empty() )
+                {
+                    THROW_RTE( "Failed to determine dimension type" );
+                }
+
+                // determine the size
+                ::mega::U64 szSize = 0U;
+                if ( std::optional< ::mega::U64 > sizeOpt
+                     = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
+                                    ::mega::EG_TRAITS_SIZE ) )
+                {
+                    szSize = static_cast< ::mega::U64 >( sizeOpt.value() );
+                }
+                else
+                {
+                    THROW_RTE( "Error attempting to record dimension size" );
+                }
+
+                // determine the alignment
+                ::mega::U64 szAlignment = 0U;
+                if ( std::optional< ::mega::U64 > alignmentOpt
+                     = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
+                                    ::mega::EG_TRAITS_ALIGNMENT ) )
+                {
+                    szAlignment = static_cast< ::mega::U64 >( alignmentOpt.value() );
+                }
+                else
+                {
+                    THROW_RTE( "Error attempting to record dimension size" );
+                }
+
+                // determine if the type is simple
+                bool bIsSimple = true;
+                if ( std::optional< ::mega::U64 > sizeOpt
+                     = getConstant( pASTContext, pSema, dimensionResult.pDeclContext, dimensionResult.loc,
+                                    ::mega::EG_TRAITS_SIMPLE ) )
+                {
+                    bIsSimple = static_cast< bool >( sizeOpt.value() );
+                }
+                else
+                {
+                    THROW_RTE( "Error attempting to record if dimension is simple" );
+                }
+
+                m_database.construct< Interface::DimensionTrait >( Interface::DimensionTrait::Args{
+                    pDimensionTrait, strCanonicalType, szSize, szAlignment, bIsSimple, symbols } );
+            }
+            else
+            {
+                THROW_RTE( "Error attempting to resolve dimension type" );
+            }
+        }
+        return true;
     }
 
     template < typename TContextType >
@@ -276,80 +273,86 @@ public:
     bool inheritanceAnalysis( TContextType* pContext, InheritanceTrait* pInheritanceTrait, SourceLocation loc,
                               DeclContext* pDeclContext )
     {
-        THROW_TODO;
+        VERIFY_RTE( pInheritanceTrait );
 
-        // VERIFY_RTE( pInheritanceTrait );
-// 
-        // std::vector< IContext* > inheritedContexts;
-// 
-        // int iCounter = 0;
-        // for ( const std::string& strBaseType : pInheritanceTrait->get_strings() )
-        // {
-        //     std::string strTraitsType;
-        //     {
-        //         std::ostringstream os;
-        //         os << mega::EG_BASE_PREFIX_TRAIT_TYPE << iCounter++;
-        //         strTraitsType = os.str();
-        //     }
-// 
-        //     DeclLocType traitDecl = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, strTraitsType );
-        //     if ( traitDecl.pDeclContext )
-        //     {
-        //         DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
-        //         QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
-        //         if ( pTypeDeclContext )
-        //         {
-        //             QualType typeTypeCanonical = typeType.getCanonicalType();
-        //             if ( std::optional< mega::SymbolID > inheritanceTypeIDOpt
-        //                  = getEGSymbolID( pASTContext, typeTypeCanonical ) )
-        //             {
-        //                 auto iFind = m_contextTypeIDs.find( inheritanceTypeIDOpt.value() );
-        //                 if ( iFind != m_contextTypeIDs.end() )
-        //                 {
-        //                     inheritedContexts.push_back( iFind->second );
-        //                 }
-        //                 else
-        //                 {
-        //                     // error invalid inheritance type
-        //                     std::ostringstream os;
-        //                     os << "Invalid inheritance type for " << pContext->get_identifier() << "("
-        //                        << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
-        //                     pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-        //                     return false;
-        //                 }
-        //             }
-        //             else
-        //             {
-        //                 std::ostringstream os;
-        //                 os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
-        //                    << pContext->get_interface_id() << ") of: " << strBaseType;
-        //                 pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-        //                 return false;
-        //             }
-        //         }
-        //         else
-        //         {
-        //             std::ostringstream os;
-        //             os << "Failed to resolve inheritance target type for " << pContext->get_identifier() << "("
-        //                << pContext->get_interface_id() << ") of: " << strBaseType;
-        //             pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-        //             return false;
-        //         }
-        //     }
-        //     else
-        //     {
-        //         std::ostringstream os;
-        //         os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
-        //            << pContext->get_interface_id() << ") of: " << strBaseType;
-        //         pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
-        //         return false;
-        //     }
-        // }
-// 
-        // pInheritanceTrait = m_database.construct< InheritanceTrait >(
-        //     InheritanceTrait::Args( pInheritanceTrait, inheritedContexts ) );
-// 
-        // return true;
+        std::vector< IContext* > inheritedContexts;
+
+        int iCounter = 0;
+        for ( const std::string& strBaseType : pInheritanceTrait->get_strings() )
+        {
+            std::string strTraitsType;
+            {
+                std::ostringstream os;
+                os << mega::EG_BASE_PREFIX_TRAIT_TYPE << iCounter++;
+                strTraitsType = os.str();
+            }
+
+            DeclLocType traitDecl = getNestedDeclContext( pASTContext, pSema, pDeclContext, loc, strTraitsType );
+            if ( traitDecl.pDeclContext )
+            {
+                DeclContext* pTypeDeclContext = traitDecl.pDeclContext;
+                QualType     typeType = getTypeTrait( pASTContext, pSema, pTypeDeclContext, traitDecl.loc, "Type" );
+                if ( pTypeDeclContext )
+                {
+                    QualType typeTypeCanonical = typeType.getCanonicalType();
+                    if ( std::optional< mega::SymbolID > inheritanceTypeIDOpt
+                         = getEGSymbolID( pASTContext, typeTypeCanonical ) )
+                    {
+                        auto iFind = m_interfaceTypeIDs.find( inheritanceTypeIDOpt.value() );
+                        if ( iFind != m_interfaceTypeIDs.end() )
+                        {
+                            if ( !iFind->second->get_context().has_value() )
+                            {
+                                std::ostringstream os;
+                                os << "Invalid inherited non-context type " << pContext->get_identifier() << "("
+                                   << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
+                                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                                return false;
+                            }
+                            inheritedContexts.push_back( iFind->second->get_context().value() );
+                        }
+                        else
+                        {
+                            // error invalid inheritance type
+                            std::ostringstream os;
+                            os << "Invalid inheritance type for " << pContext->get_identifier() << "("
+                               << pContext->get_interface_id() << ") of: " << typeTypeCanonical.getAsString();
+                            pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        std::ostringstream os;
+                        os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
+                           << pContext->get_interface_id() << ") of: " << strBaseType;
+                        pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                        return false;
+                    }
+                }
+                else
+                {
+                    std::ostringstream os;
+                    os << "Failed to resolve inheritance target type for " << pContext->get_identifier() << "("
+                       << pContext->get_interface_id() << ") of: " << strBaseType;
+                    pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                    return false;
+                }
+            }
+            else
+            {
+                std::ostringstream os;
+                os << "Failed to resolve inheritance for " << pContext->get_identifier() << "("
+                   << pContext->get_interface_id() << ") of: " << strBaseType;
+                pASTContext->getDiagnostics().Report( clang::diag::err_mega_generic_error ) << os.str();
+                return false;
+            }
+        }
+
+        pInheritanceTrait = m_database.construct< InheritanceTrait >(
+            InheritanceTrait::Args( pInheritanceTrait, inheritedContexts ) );
+
+        return true;
     }
 
     template < typename TContextType >

@@ -25,14 +25,17 @@
 
 #include <vector>
 #include <ostream>
+#include <utility>
 
 namespace mega
 {
 
-using TypeIDSequence = std::vector< TypeID >;
+using TypeIDSequence     = std::vector< TypeID >;
+using TypeIDSequencePair = std::pair< TypeIDSequence, TypeIDSequence >;
 
-}
+} // namespace mega
 
 std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequence& typeIDSequence );
+std::ostream& operator<<( std::ostream& os, const mega::TypeIDSequencePair& typeIDSequencePair );
 
-#endif //GUARD_2022_October_04_type_id
+#endif // GUARD_2022_October_04_type_id

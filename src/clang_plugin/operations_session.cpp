@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "session.hpp"
 #include "clang_utils.hpp"
 
@@ -53,11 +51,13 @@ namespace clang
 
 class OperationsSession : public AnalysisSession
 {
-    OperationsStage::Database                                    m_database;
-    // std::map< std::string, ::OperationsStage::Symbols::Symbol* > m_symbols;
-
+    OperationsStage::Database m_database;
+    // using SymbolTypeIDMap    = std::map< mega::TypeID, OperationsStage::Symbols::SymbolTypeID* >;
+    // using InterfaceTypeIDMap = std::map< mega::TypeID, OperationsStage::Symbols::InterfaceTypeID* >;
     using InvocationsMap = std::map< mega::InvocationID, ::OperationsStage::Operations::Invocation* >;
     InvocationsMap m_invocationsMap;
+
+    std::map< std::string, OperationsStage::Symbols::SymbolTypeID* > m_symbols;
 
 protected:
     bool m_bError = false;
@@ -74,21 +74,19 @@ public:
 
         Symbols::SymbolTable* pSymbolTable = m_database.one< Symbols::SymbolTable >( m_environment.project_manifest() );
 
-        THROW_TODO;
-        //m_symbols = pSymbolTable->get_symbols();
+        m_symbols = pSymbolTable->get_symbol_names();
     }
 
     virtual bool isPossibleEGTypeIdentifier( const std::string& strIdentifier ) const
     {
-        THROW_TODO;
-        // if ( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )
-        // {
-        //     return true;
-        // }
-// 
-        // if ( m_symbols.find( strIdentifier ) != m_symbols.end() )
-        //     return true;
-        // return false;
+        if ( mega::getOperationName( strIdentifier ) != mega::HIGHEST_OPERATION_TYPE )
+        {
+            return true;
+        }
+
+        if ( m_symbols.find( strIdentifier ) != m_symbols.end() )
+            return true;
+        return false;
     }
 
     void getRootPath( OperationsStage::Interface::ContextGroup*                 pContextGroup,
@@ -99,7 +97,7 @@ public:
         while ( pIter )
         {
             path.push_back( pIter );
-            if ( Interface::IContext* pContext = dynamic_database_cast< Interface::IContext >( pIter ) )
+            if ( auto pContext = dynamic_database_cast< Interface::IContext >( pIter ) )
             {
                 pIter = pContext->get_parent();
             }
@@ -123,7 +121,7 @@ public:
 
         for ( Interface::ContextGroup* pContextGroup : path )
         {
-            if ( Interface::IContext* pContext = dynamic_database_cast< Interface::IContext >( pContextGroup ) )
+            if ( auto pContext = dynamic_database_cast< Interface::IContext >( pContextGroup ) )
             {
                 declLocType = clang::getNestedDeclContext(
                     pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, pContext->get_identifier() );
@@ -159,7 +157,7 @@ public:
 
     std::optional< clang::QualType >
     buildContextReturnType( const std::vector< OperationsStage::Interface::IContext* >& returnTypes,
-                            bool bIsFunctionCall,
+                            bool                                                        bIsFunctionCall,
                             clang::DeclContext*                                         pDeclContext,
                             clang::SourceLocation                                       loc )
     {
@@ -214,8 +212,8 @@ public:
                 if ( !returnTypesContext.empty() )
                 {
                     CLANG_PLUGIN_LOG( "buildContextReturnType: " << pInvocation->get_name() );
-                    if ( std::optional< clang::QualType > resultOpt
-                         = buildContextReturnType( returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                    if ( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                             returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
                     {
                         resultType = resultOpt.value();
                     }
@@ -229,8 +227,8 @@ public:
                 {
                     // resultType = clang::getVoidType( pASTContext );
 
-                    if ( std::optional< clang::QualType > resultOpt
-                         = buildContextReturnType( returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                    if ( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                             returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
                     {
                         resultType = resultOpt.value();
                     }
@@ -263,8 +261,8 @@ public:
             break;
             case mega::id_Start:
             {
-                if ( std::optional< clang::QualType > resultOpt
-                     = buildContextReturnType( returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                if ( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                         returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
                 {
                     resultType = resultOpt.value();
                 }
@@ -297,8 +295,8 @@ public:
                 }
                 else
                 {
-                    if ( std::optional< clang::QualType > resultOpt
-                         = buildContextReturnType( returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                    if ( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                             returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
                     {
                         resultType = resultOpt.value();
                     }
@@ -313,8 +311,8 @@ public:
                 }
                 else
                 {
-                    if ( std::optional< clang::QualType > resultOpt
-                         = buildContextReturnType( returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                    if ( std::optional< clang::QualType > resultOpt = buildContextReturnType(
+                             returnTypesContext, pInvocation->get_is_function_call(), pDeclContext, loc ) )
                     {
                         resultType = resultOpt.value();
                     }
@@ -332,7 +330,8 @@ public:
                     if ( pSolution->getRoot()->getMaxRanges() == 1 )
                     {
                         if ( std::optional< clang::QualType > resultOpt
-                             = buildContextReturnType( returnTypes, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                             = buildContextReturnType( returnTypes, pInvocation->get_is_function_call(), pDeclContext,
+                loc ) )
                         {
                             resultType = clang::getIteratorRangeType(
                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
@@ -342,7 +341,8 @@ public:
                     else
                     {
                         if ( std::optional< clang::QualType > resultOpt
-                             = buildContextReturnType( returnTypes, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                             = buildContextReturnType( returnTypes, pInvocation->get_is_function_call(), pDeclContext,
+                loc ) )
                         {
                             resultType = clang::getMultiIteratorRangeType(
                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
@@ -357,7 +357,8 @@ public:
                     if ( pSolution->getRoot()->getMaxRanges() == 1 )
                     {
                         if ( std::optional< clang::QualType > resultOpt
-                             = buildContextReturnType( returnTypes, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                             = buildContextReturnType( returnTypes, pInvocation->get_is_function_call(), pDeclContext,
+                loc ) )
                         {
                             resultType = clang::getIteratorRangeType(
                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
@@ -367,7 +368,8 @@ public:
                     else
                     {
                         if ( std::optional< clang::QualType > resultOpt
-                             = buildContextReturnType( returnTypes, pInvocation->get_is_function_call(), pDeclContext, loc ) )
+                             = buildContextReturnType( returnTypes, pInvocation->get_is_function_call(), pDeclContext,
+                loc ) )
                         {
                             resultType = clang::getMultiIteratorRangeType(
                                 pASTContext, g_pSema, pASTContext->getTranslationUnitDecl(), loc, resultOpt.value(),
@@ -438,8 +440,7 @@ public:
 
                                     using namespace OperationsStage;
 
-                                    const mega::InvocationID id{
-                                        contextSymbolIDs, typePathSymbolIDs, operationTypeID };
+                                    const mega::InvocationID id{ contextSymbolIDs, typePathSymbolIDs, operationTypeID };
 
                                     Operations::Invocation* pInvocation = nullptr;
                                     {

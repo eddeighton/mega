@@ -38,25 +38,58 @@ using namespace OperationsStage::Operations;
 
 struct SymbolMaps
 {
-    using SymbolIDMap  = std::map< mega::TypeID, OperationsStage::Symbols::SymbolTypeID* >;
-    using IContextMap  = const std::map< mega::TypeID, Interface::IContext* >;
-    using DimensionMap = std::map< mega::TypeID, Interface::DimensionTrait* >;
+    using SymbolTypeIDMap    = std::map< mega::TypeID, OperationsStage::Symbols::SymbolTypeID* >;
+    using InterfaceTypeIDMap = std::map< mega::TypeID, OperationsStage::Symbols::InterfaceTypeID* >;
 
     SymbolMaps( Symbols::SymbolTable& symbolTable )
-        //: m_symbolIDMap( symbolTable.get_symbol_id_map() )
-        //, m_contextMap( symbolTable.get_context_type_ids() )
-        //, m_dimensionMap( symbolTable.get_dimension_type_ids() )
+        : m_symbolIDMap( symbolTable.get_symbol_type_ids() )
+        , m_interfaceIDMap( symbolTable.get_interface_type_ids() )
     {
     }
 
     OperationsStage::Symbols::SymbolTypeID* findSymbolTypeID( mega::TypeID typeID ) const
     {
-        THROW_TODO;
+        auto iFind = m_symbolIDMap.find( typeID );
+        VERIFY_RTE( iFind != m_symbolIDMap.end() );
+        return iFind->second;
     }
+
+    OperationsStage::Symbols::SymbolTypeID* maybeFindSymbolTypeID( mega::TypeID typeID ) const
+    {
+        auto iFind = m_symbolIDMap.find( typeID );
+        if ( iFind != m_symbolIDMap.end() )
+        {
+            return iFind->second;
+        }
+        else
+        {
+            return {};
+        }
+    }
+
+    OperationsStage::Symbols::InterfaceTypeID* findInterfaceTypeID( mega::TypeID typeID ) const
+    {
+        auto iFind = m_interfaceIDMap.find( typeID );
+        VERIFY_RTE( iFind != m_interfaceIDMap.end() );
+        return iFind->second;
+    }
+
+    OperationsStage::Symbols::InterfaceTypeID* maybeFindInterfaceTypeID( mega::TypeID typeID ) const
+    {
+        auto iFind = m_interfaceIDMap.find( typeID );
+        if ( iFind != m_interfaceIDMap.end() )
+        {
+            return iFind->second;
+        }
+        else
+        {
+            return {};
+        }
+    }
+
 private:
-    SymbolIDMap  m_symbolIDMap;
-    IContextMap  m_contextMap;
-    DimensionMap m_dimensionMap;
+    SymbolTypeIDMap    m_symbolIDMap;
+    InterfaceTypeIDMap m_interfaceIDMap;
 };
 
 InterfaceVariantVector symbolToInterfaceVariantVector( Database& database, Symbols::SymbolTypeID* pSymbol )
@@ -87,34 +120,33 @@ InterfaceVariantVector symbolIDToInterfaceVariant( Database& database, const Sym
     }
     else
     {
-        THROW_TODO;
-        /*auto iFind = symbolMaps.m_contextMap.find( symbolID );
-        if ( iFind != symbolMaps.m_contextMap.end() )
+        auto pInterfaceTypeID = symbolMaps.findInterfaceTypeID( symbolID );
+        if ( pInterfaceTypeID->get_context().has_value() )
         {
             InterfaceVariantVector result;
-            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >(
-                InterfaceVariant::Args{ iFind->second, std::optional< Interface::DimensionTrait* >() } );
+            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >( InterfaceVariant::Args{
+                pInterfaceTypeID->get_context().value(), std::optional< Interface::DimensionTrait* >() } );
+            result.push_back( pInterfaceVariant );
+            return result;
+        }
+        else if ( pInterfaceTypeID->get_dimension().has_value() )
+        {
+            InterfaceVariantVector result;
+            InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >( InterfaceVariant::Args{
+                std::optional< Interface::IContext* >(), pInterfaceTypeID->get_dimension().value() } );
             result.push_back( pInterfaceVariant );
             return result;
         }
         else
         {
-            auto iFind = symbolMaps.m_dimensionMap.find( symbolID );
-            if ( iFind != symbolMaps.m_dimensionMap.end() )
-            {
-                InterfaceVariantVector result;
-                InterfaceVariant*      pInterfaceVariant = database.construct< InterfaceVariant >(
-                    InterfaceVariant::Args{ std::optional< Interface::IContext* >(), iFind->second } );
-                result.push_back( pInterfaceVariant );
-                return result;
-            }
-        }*/
+            THROW_RTE( "Interface Type ID with no context" );
+        }
     }
     THROW_RTE( "Failed to resolve symbol id" );
 }
 
-InterfaceVariantVectorVector symbolVectorToInterfaceVariantVector( Database&                              database,
-                                                                   const std::vector< Symbols::SymbolTypeID* >& symbols )
+InterfaceVariantVectorVector
+symbolVectorToInterfaceVariantVector( Database& database, const std::vector< Symbols::SymbolTypeID* >& symbols )
 {
     InterfaceVariantVectorVector result;
     for ( Symbols::SymbolTypeID* pSymbol : symbols )
@@ -385,7 +417,7 @@ void build( Database& database, Invocation* pInvocation )
                         using OperationsStage::Invocations::Operations::Call;
                         using OperationsStage::Invocations::Operations::Start;
 
-                        if ( Allocate* pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
+                        if ( auto pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
                         {
                             for ( Element* pElement : nonPolyTargets )
                             {
@@ -396,7 +428,7 @@ void build( Database& database, Invocation* pInvocation )
                                 }
                             }
                         }
-                        else if ( Call* pCall = dynamic_database_cast< Call >( pOperation ) )
+                        else if ( auto pCall = dynamic_database_cast< Call >( pOperation ) )
                         {
                             for ( Element* pElement : nonPolyTargets )
                             {
@@ -407,7 +439,7 @@ void build( Database& database, Invocation* pInvocation )
                                 }
                             }
                         }
-                        else if ( Start* pStart = dynamic_database_cast< Start >( pOperation ) )
+                        else if ( auto pStart = dynamic_database_cast< Start >( pOperation ) )
                         {
                             for ( Element* pElement : nonPolyTargets )
                             {
@@ -466,7 +498,7 @@ void printIContextFullType( OperationsStage::Interface::IContext* pContext, std:
         pContext = dynamic_database_cast< Interface::IContext >( pContext->get_parent() );
     }
     std::reverse( path.begin(), path.end() );
-    for ( IContextVector::const_iterator i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
+    for ( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
     {
         ++iNext;
         if ( iNext == iEnd )
@@ -520,7 +552,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         bool bFound = false;
         if ( !bFound )
         {
-            if ( Allocate* pOp = dynamic_database_cast< Allocate >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Allocate >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Allocate );
                 bFound = true;
@@ -528,7 +560,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Call* pOp = dynamic_database_cast< Call >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Call >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Call );
                 bFound = true;
@@ -536,7 +568,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Start* pOp = dynamic_database_cast< Start >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Start >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Start );
                 bFound = true;
@@ -544,7 +576,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Stop* pOp = dynamic_database_cast< Stop >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Stop >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Stop );
                 bFound = true;
@@ -552,7 +584,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Pause* pOp = dynamic_database_cast< Pause >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Pause >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Pause );
                 bFound = true;
@@ -560,7 +592,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Resume* pOp = dynamic_database_cast< Resume >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Resume >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Resume );
                 bFound = true;
@@ -568,7 +600,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Done* pOp = dynamic_database_cast< Done >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Done >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Done );
                 bFound = true;
@@ -576,7 +608,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( WaitAction* pOp = dynamic_database_cast< WaitAction >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< WaitAction >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_WaitAction );
                 bFound = true;
@@ -584,7 +616,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( WaitDimension* pOp = dynamic_database_cast< WaitDimension >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< WaitDimension >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_WaitDimension );
                 bFound = true;
@@ -592,7 +624,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( GetAction* pOp = dynamic_database_cast< GetAction >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< GetAction >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_GetAction );
                 bFound = true;
@@ -600,7 +632,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( GetDimension* pOp = dynamic_database_cast< GetDimension >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< GetDimension >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_GetDimension );
                 bFound = true;
@@ -608,7 +640,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Read* pOp = dynamic_database_cast< Read >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Read >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Read );
                 bFound = true;
@@ -616,7 +648,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Write* pOp = dynamic_database_cast< Write >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Write >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Write );
                 bFound = true;
@@ -624,7 +656,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( WriteLink* pOp = dynamic_database_cast< WriteLink >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< WriteLink >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Write );
                 bFound = true;
@@ -632,7 +664,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( Range* pOp = dynamic_database_cast< Range >( pOperation ) )
+            if ( auto pOp = dynamic_database_cast< Range >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Range );
                 bFound = true;
@@ -679,38 +711,35 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
     // rebuild the type path string
     std::ostringstream osTypePathStr;
     {
-        THROW_TODO;
-        // osTypePathStr << mega::EG_TYPE_PATH << "< ";
-        // bool bFirst = true;
-        // for ( mega::SymbolID symbolID : id.m_type_path )
-        // {
-        //     if ( bFirst )
-        //         bFirst = false;
-        //     else
-        //         osTypePathStr << ", ";
-        //     if ( symbolID < 0 )
-        //     {
-        //         auto iFind = symbolMaps.m_symbolIDMap.find( symbolID );
-        //         VERIFY_RTE( iFind != symbolMaps.m_symbolIDMap.end() );
-        //         osTypePathStr << iFind->second->get_symbol();
-        //     }
-        //     else
-        //     {
-        //         auto iFind = symbolMaps.m_contextMap.find( symbolID );
-        //         if ( iFind != symbolMaps.m_contextMap.end() )
-        //         {
-        //             printIContextFullType( iFind->second, osTypePathStr );
-        //         }
-        //         else
-        //         {
-        //             auto iFind = symbolMaps.m_dimensionMap.find( symbolID );
-        //             VERIFY_RTE( iFind != symbolMaps.m_dimensionMap.end() );
-        //             printIContextFullType( iFind->second->get_parent(), osTypePathStr );
-        //             osTypePathStr << "::" << iFind->second->get_id()->get_str();
-        //         }
-        //     }
-        // }
-        // osTypePathStr << " >";
+        osTypePathStr << mega::EG_TYPE_PATH << "< ";
+        bool bFirst = true;
+        for ( mega::SymbolID symbolID : id.m_type_path )
+        {
+            if ( bFirst )
+                bFirst = false;
+            else
+                osTypePathStr << ", ";
+            if ( symbolID < 0 )
+            {
+                auto pSymbol = symbolMaps.findSymbolTypeID( symbolID );
+                osTypePathStr << pSymbol->get_symbol();
+            }
+            else
+            {
+                auto pSymbol = symbolMaps.maybeFindInterfaceTypeID( symbolID );
+                VERIFY_RTE( pSymbol );
+                if ( pSymbol->get_context().has_value() )
+                {
+                    printIContextFullType( pSymbol->get_context().value(), osTypePathStr );
+                }
+                else
+                {
+                    printIContextFullType( pSymbol->get_dimension().value()->get_parent(), osTypePathStr );
+                    osTypePathStr << "::" << pSymbol->get_dimension().value()->get_id()->get_str();
+                }
+            }
+        }
+        osTypePathStr << " >";
     }
 
     std::ostringstream osName;
@@ -795,7 +824,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
         bool bNonFunction = false;
         for ( Interface::IContext* pReturnContext : contexts )
         {
-            if ( Interface::Function* pFunctionCall = dynamic_database_cast< Interface::Function >( pReturnContext ) )
+            if ( auto pFunctionCall = dynamic_database_cast< Interface::Function >( pReturnContext ) )
             {
                 if ( strFunctionReturnTypeOpt.has_value() )
                 {

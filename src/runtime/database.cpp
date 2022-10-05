@@ -31,34 +31,33 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
     , m_database( m_environment, m_manifest.getManifestFilePath() )
     , m_components( m_database.many< FinalStage::Components::Component >( m_manifest.getManifestFilePath() ) )
     , m_pSymbolTable( m_database.one< FinalStage::Symbols::SymbolTable >( m_manifest.getManifestFilePath() ) )
-    //, m_concreteIDs( m_pSymbolTable->get_concrete_context_map() )
+    , m_concreteTypeIDs( m_pSymbolTable->get_concrete_type_ids() )
 {
-    THROW_TODO;
     // determine the root concrete type ID
-    //{
-    //    const auto symbols = m_pSymbolTable->get_symbols();
-    //    auto       iFind   = symbols.find( ROOT_TYPE_NAME );
-    //    VERIFY_RTE_MSG( iFind != symbols.end(), "Failed to locate Root symbol" );
-    //    auto pSymbol  = iFind->second;
-    //    auto contexts = pSymbol->get_contexts();
-    //    VERIFY_RTE_MSG( contexts.size() > 0U, "Failed to locate Root symbol" );
-//
-    //    FinalStage::Interface::IContext* pRoot = nullptr;
-    //    for ( auto p : contexts )
-    //    {
-    //        if ( FinalStage::dynamic_database_cast< FinalStage::Interface::Root >( p->get_parent() ) )
-    //        {
-    //            VERIFY_RTE_MSG( !pRoot, "Multiple roots found" );
-    //            pRoot = p;
-    //        }
-    //    }
-    //    VERIFY_RTE_MSG( pRoot, "Failed to locate Root symbol" );
-    //    auto concrete = pRoot->get_concrete();
-    //    VERIFY_RTE_MSG( concrete.size() > 0U, "Failed to locate Root symbol" );
-    //    VERIFY_RTE_MSG( concrete.size() == 1U, "Multiple Root symbols defined" );
-    //    auto pConcrete = concrete.front();
-    //    VERIFY_RTE_MSG( pConcrete->get_concrete_id() == 1, "Concrete Root Type ID is NOT one!" );
-    //}
+    {
+        const auto symbols = m_pSymbolTable->get_symbol_names();
+        auto       iFind   = symbols.find( ROOT_TYPE_NAME );
+        VERIFY_RTE_MSG( iFind != symbols.end(), "Failed to locate Root symbol" );
+        auto pSymbol  = iFind->second;
+        auto contexts = pSymbol->get_contexts();
+        VERIFY_RTE_MSG( contexts.size() > 0U, "Failed to locate Root symbol" );
+
+        FinalStage::Interface::IContext* pRoot = nullptr;
+        for ( auto p : contexts )
+        {
+            if ( FinalStage::dynamic_database_cast< FinalStage::Interface::Root >( p->get_parent() ) )
+            {
+                VERIFY_RTE_MSG( !pRoot, "Multiple roots found" );
+                pRoot = p;
+            }
+        }
+        VERIFY_RTE_MSG( pRoot, "Failed to locate Root symbol" );
+        auto concrete = pRoot->get_concrete();
+        VERIFY_RTE_MSG( concrete.size() > 0U, "Failed to locate Root symbol" );
+        VERIFY_RTE_MSG( concrete.size() == 1U, "Multiple Root symbols defined" );
+        auto pConcrete = concrete.front();
+        VERIFY_RTE_MSG( pConcrete->get_concrete_id() == 1, "Concrete Root Type ID is NOT one!" );
+    }
 }
 
 const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const mega::InvocationID& invocation ) const
@@ -71,7 +70,7 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
         {
             const Operations::Invocations* pInvocations = m_database.one< Operations::Invocations >( sourceFilePath );
             const InvocationMap            invocations  = pInvocations->get_invocations();
-            InvocationMap::const_iterator  iFind        = invocations.find( invocation );
+            auto                           iFind        = invocations.find( invocation );
             if ( iFind != invocations.end() )
             {
                 const Operations::Invocation* pInvocation = iFind->second;
@@ -84,7 +83,7 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
         {
             const Operations::Invocations* pInvocations = m_database.one< Operations::Invocations >( sourceFilePath );
             const InvocationMap            invocations  = pInvocations->get_invocations();
-            InvocationMap::const_iterator  iFind        = invocations.find( invocation );
+            auto                           iFind        = invocations.find( invocation );
             if ( iFind != invocations.end() )
             {
                 const Operations::Invocation* pInvocation = iFind->second;
@@ -97,43 +96,72 @@ const FinalStage::Operations::Invocation* DatabaseInstance::getInvocation( const
 
 mega::TypeID DatabaseInstance::getInterfaceTypeID( mega::TypeID concreteTypeID ) const
 {
-    THROW_TODO;
-    // auto iFind = m_concreteIDs.find( concreteTypeID );
-    // VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
-    // FinalStage::Concrete::Context* pContext = iFind->second;
-    // return pContext->get_interface()->get_interface_id();
+    auto iFind = m_concreteTypeIDs.find( concreteTypeID );
+    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteTypeID );
+    auto pConcreteTypeID = iFind->second;
+
+    if ( pConcreteTypeID->get_context().has_value() )
+    {
+        return pConcreteTypeID->get_context().value()->get_interface()->get_interface_id();
+    }
+    else if ( pConcreteTypeID->get_dim_user().has_value() )
+    {
+        return pConcreteTypeID->get_dim_user().value()->get_interface_dimension()->get_interface_id();
+    }
+    else if ( pConcreteTypeID->get_dim_allocation().has_value() )
+    {
+        THROW_RTE( "Interface ID asked for allocation dimension" );
+    }
+    else if ( pConcreteTypeID->get_dim_link().has_value() )
+    {
+        THROW_RTE( "Interface ID asked for link dimension" );
+    }
+    else
+    {
+        THROW_RTE( "Unreachable" );
+    }
 }
 
 const FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID objectType ) const
 {
-    THROW_TODO;
-    // auto iFind = m_concreteIDs.find( objectType );
-    // VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << objectType );
-    // FinalStage::Concrete::Context* pContext = iFind->second;
-    // FinalStage::Concrete::Object*  pObject
-    //     = FinalStage::dynamic_database_cast< FinalStage::Concrete::Object >( pContext );
-    // VERIFY_RTE_MSG( pObject, "Failed to locate concrete object id: " << objectType );
-    // return pObject;
+    auto iFind = m_concreteTypeIDs.find( objectType );
+    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
+    auto pConcreteTypeID = iFind->second;
+
+    FinalStage::Concrete::Object* pObject = nullptr;
+    if ( pConcreteTypeID->get_context().has_value() )
+    {
+        pObject = FinalStage::dynamic_database_cast< FinalStage::Concrete::Object >(
+            pConcreteTypeID->get_context().value() );
+    }
+    VERIFY_RTE_MSG( pObject, "Failed to locate concrete object id: " << objectType );
+    return pObject;
 }
 
 const FinalStage::Components::Component* DatabaseInstance::getComponent( mega::TypeID objectType ) const
 {
-    THROW_TODO;
-    // auto iFind = m_concreteIDs.find( objectType );
-    // VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << objectType );
-    // FinalStage::Concrete::Context* pContext = iFind->second;
-    // return pContext->get_component();
+    auto iFind = m_concreteTypeIDs.find( objectType );
+    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
+    auto pConcreteTypeID = iFind->second;
+
+    if ( pConcreteTypeID->get_context().has_value() )
+    {
+        return pConcreteTypeID->get_context().value()->get_component();
+    }
+    THROW_RTE( "Unreachable" );
 }
 
 const FinalStage::Components::Component* DatabaseInstance::getOperationComponent( mega::TypeID objectType ) const
 {
-    THROW_TODO;
-    // SPDLOG_TRACE( "RUNTIME: DatabaseInstance::getOperationComponent : {}", objectType );
-    // auto iFind = m_concreteIDs.find( objectType );
-    // VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << objectType );
-    // FinalStage::Concrete::Context*   pContext  = iFind->second;
-    // FinalStage::Interface::IContext* pIContext = pContext->get_interface();
-    // return pIContext->get_component();
+    auto iFind = m_concreteTypeIDs.find( objectType );
+    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << objectType );
+    auto pConcreteTypeID = iFind->second;
+
+    if ( pConcreteTypeID->get_context().has_value() )
+    {
+        return pConcreteTypeID->get_context().value()->get_interface()->get_component();
+    }
+    THROW_RTE( "Unreachable" );
 }
 /*
 mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
@@ -172,33 +200,40 @@ mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
 */
 mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
 {
-    THROW_TODO;
-    // using namespace FinalStage;
-// 
-    // auto iFind = m_concreteIDs.find( concreteID );
-    // VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << concreteID );
-    // FinalStage::Concrete::Context* pContext = iFind->second;
-// 
-    // if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
-    // {
-    //     return 1;
-    // }
-    // else if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
-    // {
-    //     return pEvent->get_local_size();
-    // }
-    // else if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
-    // {
-    //     return pAction->get_local_size();
-    // }
-    // else if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
-    // {
-    //     return 1;
-    // }
-    // else
-    // {
-    //     return 1;
-    // }
+    using namespace FinalStage;
+
+    auto iFind = m_concreteTypeIDs.find( concreteID );
+    VERIFY_RTE_MSG( iFind != m_concreteTypeIDs.end(), "Failed to locate concrete type id: " << concreteID );
+    auto pConcreteTypeID = iFind->second;
+
+    if ( pConcreteTypeID->get_context().has_value() )
+    {
+        auto pContext = pConcreteTypeID->get_context().value();
+        if ( auto pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
+        {
+            return 1;
+        }
+        else if ( auto pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
+        {
+            return pEvent->get_local_size();
+        }
+        else if ( auto pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
+        {
+            return pAction->get_local_size();
+        }
+        else if ( auto pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
+        {
+            return 1;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+    else
+    {
+        THROW_RTE( "Unreachable" );
+    }
 }
 
 } // namespace mega::runtime

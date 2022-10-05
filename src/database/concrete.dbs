@@ -36,6 +36,7 @@ namespace Concrete
         // HyperGraphAnalysis
         object LinkReference -> MemoryStage::MemoryLayout
         {
+            ref< Concrete::Context > parent;
             ref< Link > link;
             late< ref< MemoryLayout::Part > > part;
             late< value< mega::U64 > > offset;
