@@ -57,7 +57,8 @@ class OperationsSession : public AnalysisSession
     using InvocationsMap = std::map< mega::InvocationID, ::OperationsStage::Operations::Invocation* >;
     InvocationsMap m_invocationsMap;
 
-    std::map< std::string, OperationsStage::Symbols::SymbolTypeID* > m_symbols;
+    using SymbolMap = std::map< std::string, OperationsStage::Symbols::SymbolTypeID* >;
+    SymbolMap m_symbols;
 
 protected:
     bool m_bError = false;

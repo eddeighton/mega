@@ -67,7 +67,7 @@ public:
         }
         return sourceFiles;
     }
-    
+
     template < typename SymbolTypeID   = SymbolAnalysis::Symbols::SymbolTypeID,
                typename ContextGroup   = SymbolAnalysis::Interface::ContextGroup,
                typename IContext       = SymbolAnalysis::Interface::IContext,
@@ -126,16 +126,24 @@ public:
         namespace New = SymbolAnalysis;
 
         const PathSet newSourceFiles = getSortedSourceFiles( m_manifest );
-        // const PathSet oldSourceFiles = getSortedSourceFiles( oldManifest );
 
         using NewSymbolNames   = std::map< std::string, New::Symbols::SymbolTypeID* >;
         using NewSymbolTypeIDs = std::map< mega::TypeID, New::Symbols::SymbolTypeID* >;
 
         NewSymbolNames   newSymbolNames;
         NewSymbolTypeIDs newSymbolTypeIDs;
+
         {
-            // construct all symbols - reusing old symbol IDs across whole program
             std::set< TypeID > usedTypeIDs;
+            {
+                // always have root be symbol -1
+                auto pNewSymbol = newDatabase.construct< New::Symbols::SymbolTypeID >(
+                    New::Symbols::SymbolTypeID::Args{ ROOT_TYPE_NAME, -ROOT_TYPE_ID, {}, {} } );
+                VERIFY_RTE( usedTypeIDs.insert( pNewSymbol->get_id() ).second );
+                VERIFY_RTE( newSymbolNames.insert( { pNewSymbol->get_symbol(), pNewSymbol } ).second );
+                VERIFY_RTE( newSymbolTypeIDs.insert( { pNewSymbol->get_id(), pNewSymbol } ).second );
+            }
+            // construct all symbols - reusing old symbol IDs across whole program
             for ( const mega::io::megaFilePath& newSourceFile : newSourceFiles )
             {
                 for ( New::Interface::IContext* pContext :
@@ -160,8 +168,8 @@ public:
                             auto pNewSymbol = newDatabase.construct< New::Symbols::SymbolTypeID >(
                                 New::Symbols::SymbolTypeID::Args{ strSymbol, pOldSymbol->get_id(), { pContext }, {} } );
                             VERIFY_RTE( usedTypeIDs.insert( pOldSymbol->get_id() ).second );
-                            newSymbolNames.insert( { strSymbol, pNewSymbol } );
-                            newSymbolTypeIDs.insert( { pOldSymbol->get_id(), pNewSymbol } );
+                            VERIFY_RTE( newSymbolNames.insert( { strSymbol, pNewSymbol } ).second );
+                            VERIFY_RTE( newSymbolTypeIDs.insert( { pOldSymbol->get_id(), pNewSymbol } ).second );
                         }
                     }
                     else
@@ -176,7 +184,7 @@ public:
                         {
                             auto pNewSymbol = newDatabase.construct< New::Symbols::SymbolTypeID >(
                                 New::Symbols::SymbolTypeID::Args{ strSymbol, 0U, { pContext }, {} } );
-                            newSymbolNames.insert( { strSymbol, pNewSymbol } );
+                            VERIFY_RTE( newSymbolNames.insert( { strSymbol, pNewSymbol } ).second );
                         }
                     }
                 }
@@ -204,8 +212,8 @@ public:
                                 = newDatabase.construct< New::Symbols::SymbolTypeID >( New::Symbols::SymbolTypeID::Args{
                                     strSymbol, pOldSymbol->get_id(), {}, { pDimension } } );
                             VERIFY_RTE( usedTypeIDs.insert( pOldSymbol->get_id() ).second );
-                            newSymbolNames.insert( { strSymbol, pNewSymbol } );
-                            newSymbolTypeIDs.insert( { pOldSymbol->get_id(), pNewSymbol } );
+                            VERIFY_RTE( newSymbolNames.insert( { strSymbol, pNewSymbol } ).second );
+                            VERIFY_RTE( newSymbolTypeIDs.insert( { pOldSymbol->get_id(), pNewSymbol } ).second );
                         }
                     }
                     else
@@ -220,27 +228,35 @@ public:
                         {
                             auto pNewSymbol = newDatabase.construct< New::Symbols::SymbolTypeID >(
                                 New::Symbols::SymbolTypeID::Args{ strSymbol, 0U, {}, { pDimension } } );
-                            newSymbolNames.insert( { strSymbol, pNewSymbol } );
+                            VERIFY_RTE( newSymbolNames.insert( { strSymbol, pNewSymbol } ).second );
                         }
                     }
                 }
             }
 
             // generate symbol ids - avoiding existing
-            auto   usedIter      = usedTypeIDs.begin();
-            TypeID typeIDCounter = 1U;
-            for ( auto& [ strSymbol, pSymbolTypeID ] : newSymbolNames )
+            // ensure symbol ids are negative
             {
-                if ( pSymbolTypeID->get_id() == 0 )
+                std::set< TypeID > usedTypeIDsInverted;
+                for ( TypeID id : usedTypeIDs )
                 {
-                    while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
+                    usedTypeIDsInverted.insert( -id );
+                }
+                auto   usedIter      = usedTypeIDsInverted.begin();
+                TypeID typeIDCounter = 1U;
+                for ( auto& [ strSymbol, pSymbolTypeID ] : newSymbolNames )
+                {
+                    if ( pSymbolTypeID->get_id() == 0 )
                     {
-                        ++usedIter;
+                        while ( ( usedIter != usedTypeIDsInverted.end() ) && ( typeIDCounter == *usedIter ) )
+                        {
+                            ++usedIter;
+                            ++typeIDCounter;
+                        }
+                        pSymbolTypeID->set_id( -typeIDCounter );
+                        VERIFY_RTE( newSymbolTypeIDs.insert( { -typeIDCounter, pSymbolTypeID } ).second );
                         ++typeIDCounter;
                     }
-                    pSymbolTypeID->set_id( typeIDCounter );
-                    newSymbolTypeIDs.insert( { typeIDCounter, pSymbolTypeID } );
-                    ++typeIDCounter;
                 }
             }
         }
@@ -254,37 +270,64 @@ public:
                                                         SymbolAnalysis::Interface::ContextGroup > );
 
             std::set< TypeID > usedTypeIDs;
+
+            {
+                // always have root be symbol 1
+                auto pNewInterfaceSymbol
+                    = newDatabase.construct< New::Symbols::InterfaceTypeID >( New::Symbols::InterfaceTypeID::Args{
+                        { -ROOT_TYPE_ID }, ROOT_TYPE_ID, std::nullopt, std::nullopt } );
+
+                VERIFY_RTE( usedTypeIDs.insert( pNewInterfaceSymbol->get_id() ).second );
+                VERIFY_RTE( newInterfaceTypeIDSequences.insert( { { -ROOT_TYPE_ID }, pNewInterfaceSymbol } ).second );
+                VERIFY_RTE(
+                    newInterfaceTypeIDs.insert( { pNewInterfaceSymbol->get_id(), pNewInterfaceSymbol } ).second );
+            }
+
             for ( const mega::io::megaFilePath& newSourceFile : newSourceFiles )
             {
                 for ( New::Interface::IContext* pContext :
                       newDatabase.many< New::Interface::IContext >( newSourceFile ) )
                 {
                     const TypeIDSequence idSeq = idSequenceGen( pContext );
-                    auto                 iFind = oldInterfaceTypeIDSequences.find( idSeq );
-                    if ( iFind != oldInterfaceTypeIDSequences.end() )
+                    if ( idSeq == TypeIDSequence{ -ROOT_TYPE_ID } )
                     {
-                        Old::Symbols::InterfaceTypeID* pOldInterfaceTypeID = iFind->second;
-
+                        // special case for root
                         auto jFind = newInterfaceTypeIDSequences.find( idSeq );
-                        VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                        "Duplicate Interface Type ID Sequnce found: " << idSeq );
-
-                        auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
-                            New::Symbols::InterfaceTypeID::Args{
-                                idSeq, pOldInterfaceTypeID->get_id(), pContext, std::nullopt } );
-                        VERIFY_RTE( usedTypeIDs.insert( pOldInterfaceTypeID->get_id() ).second );
-                        newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } );
-                        newInterfaceTypeIDs.insert( { pOldInterfaceTypeID->get_id(), pNewInterfaceSymbol } );
+                        VERIFY_RTE( jFind != newInterfaceTypeIDSequences.end() );
+                        New::Symbols::InterfaceTypeID* pRootInterfaceTypeID = jFind->second;
+                        VERIFY_RTE( !pRootInterfaceTypeID->get_context().has_value() );
+                        pRootInterfaceTypeID->set_context( pContext );
                     }
                     else
                     {
-                        auto jFind = newInterfaceTypeIDSequences.find( idSeq );
-                        VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
-                                        "Duplicate Interface Type ID Sequnce found: " << idSeq );
+                        auto iFind = oldInterfaceTypeIDSequences.find( idSeq );
+                        if ( iFind != oldInterfaceTypeIDSequences.end() )
+                        {
+                            Old::Symbols::InterfaceTypeID* pOldInterfaceTypeID = iFind->second;
 
-                        auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
-                            New::Symbols::InterfaceTypeID::Args{ idSeq, 0U, pContext, std::nullopt } );
-                        newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } );
+                            auto jFind = newInterfaceTypeIDSequences.find( idSeq );
+                            VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
+                                            "Duplicate Interface Type ID Sequnce found: " << idSeq );
+
+                            auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
+                                New::Symbols::InterfaceTypeID::Args{
+                                    idSeq, pOldInterfaceTypeID->get_id(), pContext, std::nullopt } );
+                            VERIFY_RTE( usedTypeIDs.insert( pOldInterfaceTypeID->get_id() ).second );
+                            VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
+                            VERIFY_RTE(
+                                newInterfaceTypeIDs.insert( { pOldInterfaceTypeID->get_id(), pNewInterfaceSymbol } )
+                                    .second );
+                        }
+                        else
+                        {
+                            auto jFind = newInterfaceTypeIDSequences.find( idSeq );
+                            VERIFY_RTE_MSG( jFind == newInterfaceTypeIDSequences.end(),
+                                            "Duplicate Interface Type ID Sequnce found: " << idSeq );
+
+                            auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
+                                New::Symbols::InterfaceTypeID::Args{ idSeq, 0U, pContext, std::nullopt } );
+                            VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
+                        }
                     }
                 }
 
@@ -305,8 +348,9 @@ public:
                             New::Symbols::InterfaceTypeID::Args{
                                 idSeq, pOldInterfaceTypeID->get_id(), std::nullopt, pDimension } );
                         VERIFY_RTE( usedTypeIDs.insert( pOldInterfaceTypeID->get_id() ).second );
-                        newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } );
-                        newInterfaceTypeIDs.insert( { pOldInterfaceTypeID->get_id(), pNewInterfaceSymbol } );
+                        VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
+                        VERIFY_RTE( newInterfaceTypeIDs.insert( { pOldInterfaceTypeID->get_id(), pNewInterfaceSymbol } )
+                                        .second );
                     }
                     else
                     {
@@ -316,26 +360,26 @@ public:
 
                         auto pNewInterfaceSymbol = newDatabase.construct< New::Symbols::InterfaceTypeID >(
                             New::Symbols::InterfaceTypeID::Args{ idSeq, 0U, std::nullopt, pDimension } );
-                        newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } );
+                        VERIFY_RTE( newInterfaceTypeIDSequences.insert( { idSeq, pNewInterfaceSymbol } ).second );
                     }
                 }
+            }
 
-                // generate symbol ids - avoiding existing
-                auto   usedIter      = usedTypeIDs.begin();
-                TypeID typeIDCounter = 1U;
-                for ( auto& [ idSequence, pSymbolTypeID ] : newInterfaceTypeIDSequences )
+            // generate symbol ids - avoiding existing
+            auto   usedIter      = usedTypeIDs.begin();
+            TypeID typeIDCounter = 1U;
+            for ( auto& [ idSequence, pSymbolTypeID ] : newInterfaceTypeIDSequences )
+            {
+                if ( pSymbolTypeID->get_id() == 0 )
                 {
-                    if ( pSymbolTypeID->get_id() == 0 )
+                    while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
                     {
-                        while ( ( usedIter != usedTypeIDs.end() ) && ( typeIDCounter == *usedIter ) )
-                        {
-                            ++usedIter;
-                            ++typeIDCounter;
-                        }
-                        pSymbolTypeID->set_id( typeIDCounter );
-                        newInterfaceTypeIDs.insert( { typeIDCounter, pSymbolTypeID } );
+                        ++usedIter;
                         ++typeIDCounter;
                     }
+                    pSymbolTypeID->set_id( typeIDCounter );
+                    VERIFY_RTE( newInterfaceTypeIDs.insert( { typeIDCounter, pSymbolTypeID } ).second );
+                    ++typeIDCounter;
                 }
             }
         }

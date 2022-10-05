@@ -188,6 +188,14 @@ ElementVector* toElementVector( Database& database, const InterfaceVariantVector
         if ( pInterfaceVariant->get_context().has_value() )
         {
             Interface::IContext* pContext = pInterfaceVariant->get_context().value();
+
+            // std::cout << "TEST MSG from toElementVector for: " << pContext->get_identifier() << std::endl;
+            const auto concreteInheritors = pContext->get_concrete();
+            if( concreteInheritors.empty() )
+            {
+                std::cout << "ERROR: no concrete inheritors for: " << pContext->get_identifier() << " id: " << pContext->get_interface_id() << std::endl;
+            }
+
             for ( Concrete::Context* pConcrete : pContext->get_concrete() )
             {
                 InterfaceVariant* pInterfaceVar

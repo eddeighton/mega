@@ -30,6 +30,7 @@
 #include "database/model/DependencyAnalysisView.hxx"
 #include "database/model/DerivationAnalysis.hxx"
 #include "database/model/DerivationAnalysisView.hxx"
+#include "database/model/DerivationAnalysisRollout.hxx"
 #include "database/model/FinalStage.hxx"    
 #include "database/model/HyperGraphAnalysis.hxx"
 #include "database/model/HyperGraphAnalysisView.hxx"
@@ -124,6 +125,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         "HyperGraphAnalysisView\n" << 
         "DerivationAnalysis\n" << 
         "DerivationAnalysisView\n" << 
+        "DerivationAnalysisRollout\n" << 
         "ConcreteTypeAnalysis\n" << 
         "ConcreteTypeAnalysisView\n" << 
         "ConcreteTypeRollout\n" << 
@@ -154,6 +156,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         STAGE_DUMP( HyperGraphAnalysisView )
         STAGE_DUMP( DerivationAnalysis )
         STAGE_DUMP( DerivationAnalysisView )
+        STAGE_DUMP( DerivationAnalysisRollout )
         STAGE_DUMP( ConcreteTypeAnalysis )
         STAGE_DUMP( ConcreteTypeAnalysisView )
         STAGE_DUMP( ConcreteTypeRollout )

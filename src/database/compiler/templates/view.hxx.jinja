@@ -84,10 +84,10 @@ namespace {{ stage.name }}
         {
         protected:
             {{ interface.name }}();
-            {{ interface.name }}( const {{ interface.name }}& ) = delete;
-            {{ interface.name }}& operator=( const {{ interface.name }}& ) = delete;
             virtual ~{{ interface.name }}() = 0;
         public:
+            {{ interface.name }}( const {{ interface.name }}& ) = delete;
+            {{ interface.name }}& operator=( const {{ interface.name }}& ) = delete;
             static constexpr const char* TYPE_NAME = "{{ interface.fullname }}";
 {% if interface.readwrite %}
             struct Args

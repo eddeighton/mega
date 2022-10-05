@@ -403,6 +403,9 @@ public:
                 {
                     concreteInheritors.push_back( i->second );
                 }
+                //VERIFY_RTE_MSG( !concreteInheritors.empty(),
+                //                "Could not find concrete inheritors for context: " << pContext->get_identifier() << " "
+                //                                                                   << pContext->get_interface_id() );
                 // reconstruct
                 database.construct< Interface::IContext >( Interface::IContext::Args{ pContext, concreteInheritors } );
             }
@@ -420,6 +423,9 @@ public:
                 {
                     dimensionInheritors.push_back( i->second );
                 }
+                //VERIFY_RTE_MSG( !dimensionInheritors.empty(),
+                //                "Could not find concrete inheritors for dimension: "
+                //                    << pDimension->get_id()->get_str() << " " << pDimension->get_interface_id() );
                 // reconstruct
                 database.construct< Interface::DimensionTrait >(
                     Interface::DimensionTrait::Args{ pDimension, dimensionInheritors } );

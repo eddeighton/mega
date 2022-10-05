@@ -51,7 +51,8 @@ mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&
                                                   const mega::utilities::ToolChain&    toolChain,
                                                   const mega::pipeline::Configuration& pipelineConfig,
                                                   const std::string& strTaskName, const std::string& strSourceFile,
-                                                  const boost::filesystem::path& inputPipelineResultPath )
+                                                  const boost::filesystem::path& inputPipelineResultPath,
+                                                  bool                           bForceNoStash )
 {
     VERIFY_RTE_MSG( !stashDir.empty(), "Local pipeline execution requires stash directry" );
     task::Stash          stash( stashDir );
@@ -99,9 +100,11 @@ mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&
     {
         task::Stash&          m_stash;
         task::BuildHashCodes& m_buildHashCodes;
-        StashImpl( task::Stash& stash, task::BuildHashCodes& buildHashCodes )
+        bool                  bForceNoStash;
+        StashImpl( task::Stash& stash, task::BuildHashCodes& buildHashCodes, bool bForceNoStash )
             : m_stash( stash )
             , m_buildHashCodes( buildHashCodes )
+            , bForceNoStash( bForceNoStash )
         {
         }
 
@@ -119,9 +122,11 @@ mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&
         }
         virtual bool restore( const boost::filesystem::path& file, task::DeterminantHash code )
         {
+            if ( bForceNoStash )
+                return false;
             return m_stash.restore( file, code );
         }
-    } stashImpl( stash, buildHashCodes );
+    } stashImpl( stash, buildHashCodes, bForceNoStash );
 
     struct Dependencies : public mega::pipeline::DependencyProvider
     {
@@ -177,7 +182,7 @@ mega::network::PipelineResult runPipelineLocally( const boost::filesystem::path&
 void command( bool bHelp, const std::vector< std::string >& args )
 {
     boost::filesystem::path stashDir, pipelineXML, outputPipelineResultPath, inputPipelineResultPath, toolchainXML;
-    bool                    bRunLocally = false;
+    bool                    bRunLocally = false, bForceNoStash = false;
     std::string             strTaskName, strSourceFile;
 
     namespace po = boost::program_options;
@@ -193,6 +198,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
         ( "toolchain_xml",      po::value< boost::filesystem::path >( &toolchainXML ),              "Toolchain XML file ( Local only )" )
         ( "task",               po::value< std::string >( &strTaskName ),                           "Specific task to run. ( Local only )" )
         ( "source",             po::value< std::string >( &strSourceFile ),                         "Source file for specific task. ( Local only )" )
+        ( "force_no_stash",     po::bool_switch( &bForceNoStash ),                                  "Prevent stash restore for specified task. ( Local only )" )
         ;
         // clang-format on
     }
@@ -241,8 +247,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     boost::archive::xml_iarchive ia( *pInStream );
                     ia&                          boost::serialization::make_nvp( "toolchain", toolchain );
                 }
-                pipelineResult = runPipelineLocally(
-                    stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile, inputPipelineResultPath );
+                pipelineResult = runPipelineLocally( stashDir, toolchain, pipelineConfig, strTaskName, strSourceFile,
+                                                     inputPipelineResultPath, bForceNoStash );
             }
             else
             {

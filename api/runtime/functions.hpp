@@ -22,7 +22,9 @@
 
 #include "/workspace/root/src/mega/src/api/mega/common.hpp"
 
-namespace mega::runtime
+namespace mega
+{
+namespace runtime
 {
 using TypeErasedFunction = const void*;
 using GetHeapFunction    = void* ( * )( MachineAddress address );
@@ -61,6 +63,7 @@ struct Allocator
 };
 using SetAllocatorFunction = void ( * )( Allocator* );
 
-} // namespace mega::runtime
+} // namespace runtime
+} // namespace mega
 
 #endif // RUNTIME_FUNCTIONS_17_AUG_2022
