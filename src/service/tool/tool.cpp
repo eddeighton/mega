@@ -196,7 +196,7 @@ public:
     }
     virtual void write( const reference& ref, bool bShared, U64 size, const void* pData ) override
     {
-        //
+        SPDLOG_TRACE( "Tool::write: {} {} {}", ref, bShared, size );
     }
 
     // mega::MPOContext

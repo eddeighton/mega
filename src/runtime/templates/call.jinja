@@ -38,6 +38,9 @@ namespace mega
 {% for copy in copiers %}
     void copy_{{copy}}(const void*,void*);
 {% endfor %}
+{% for event in events %}
+    void event_{{event}}(const reference&,bool,const void*);
+{% endfor %}
 }
 
 mega::runtime::CallResult {{ name }}( mega::reference context )

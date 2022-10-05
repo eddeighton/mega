@@ -435,6 +435,7 @@ static const std::string indent( "    " );
 using PartSet = std::set< const FinalStage::MemoryLayout::Part* >;
 using CallSet = std::set< const FinalStage::Concrete::Context* >;
 using CopySet = std::set< const FinalStage::Interface::DimensionTrait* >;
+using EventSet = std::set< const FinalStage::Interface::DimensionTrait* >;
 
 void generateBufferFPtrCheck( bool bShared, mega::TypeID contextID, std::ostream& os )
 {
@@ -483,7 +484,7 @@ void generateBufferWrite( bool bShared, mega::TypeID contextID, FinalStage::Memo
 
 void generateInstructions( const DatabaseInstance&                             database,
                            FinalStage::Invocations::Instructions::Instruction* pInstruction,
-                           const VariableMap& variables, PartSet& parts, CallSet& calls, CopySet& copiers,
+                           const VariableMap& variables, PartSet& parts, CallSet& calls, CopySet& copiers, EventSet& events,
                            nlohmann::json& data )
 {
     using namespace FinalStage;
@@ -582,7 +583,7 @@ void generateInstructions( const DatabaseInstance&                             d
 
         for ( auto pChildInstruction : pInstructionGroup->get_children() )
         {
-            generateInstructions( database, pChildInstruction, variables, parts, calls, copiers, data );
+            generateInstructions( database, pChildInstruction, variables, parts, calls, copiers, events, data );
         }
     }
     else if ( auto pOperation
@@ -721,6 +722,7 @@ void generateInstructions( const DatabaseInstance&                             d
             const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
 
             copiers.insert( pDimension->get_interface_dimension() );
+            events.insert( pDimension->get_interface_dimension() );
 
             {
                 std::ostringstream os;
@@ -848,12 +850,14 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
     PartSet parts;
     CallSet calls;
     CopySet copiers;
+    EventSet events;
 
     nlohmann::json data( { { "name", strName },
                            { "module_name", strName },
                            { "getters", nlohmann::json::array() },
                            { "calls", nlohmann::json::array() },
                            { "copiers", nlohmann::json::array() },
+                           { "events", nlohmann::json::array() },
                            { "variables", nlohmann::json::array() },
                            { "assignments", nlohmann::json::array() } } );
 
@@ -868,7 +872,7 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
 
         for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            generateInstructions( database, pInstruction, variables, parts, calls, copiers, data );
+            generateInstructions( database, pInstruction, variables, parts, calls, copiers, events, data );
         }
     }
 
@@ -883,6 +887,10 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
     for ( auto pCopy : copiers )
     {
         data[ "copiers" ].push_back( megaMangle( pCopy->get_canonical_type() ) );
+    }
+    for ( auto pEvent : events )
+    {
+        data[ "events" ].push_back( megaMangle( pEvent->get_canonical_type() ) );
     }
     return data;
 }
