@@ -30,8 +30,6 @@
 #include "database/model/manifest.hxx"
 #include "database/model/ComponentListingView.hxx"
 
-#include "database/common/serialisation.hpp"
-#include "database/common/environment_build.hpp"
 #include "database/types/sources.hpp"
 
 #include <common/string.hpp>
@@ -44,6 +42,7 @@
 #include <sstream>
 #include <thread>
 #include <chrono>
+#include <utility>
 #include <variant>
 
 namespace mega::compiler
@@ -79,9 +78,9 @@ struct Task
         : strTaskName( taskTypeToName( taskType ) )
     {
     }
-    Task( mega::compiler::TaskType taskType, const FilePathVar& filePathVar )
+    Task( mega::compiler::TaskType taskType, FilePathVar filePathVar )
         : strTaskName( taskTypeToName( taskType ) )
-        , sourceFilePath( filePathVar )
+        , sourceFilePath( std::move( filePathVar ) )
     {
     }
 
@@ -154,7 +153,7 @@ pipeline::TaskDescriptor encode( const Task& task )
         boost::archive::binary_oarchive oa( os );
         oa&                             task;
     }
-    return pipeline::TaskDescriptor( task.strTaskName, Task::toString( task.sourceFilePath ), os.str() );
+    return { task.strTaskName, Task::toString( task.sourceFilePath ), os.str() };
 }
 
 Task decode( const pipeline::TaskDescriptor& taskDescriptor )
@@ -174,7 +173,7 @@ class CompilerPipeline : public pipeline::Pipeline
     std::optional< mega::utilities::ToolChain > m_toolChain;
 
 public:
-    CompilerPipeline() {}
+    CompilerPipeline() = default;
 
     // pipeline::Pipeline
     virtual pipeline::Schedule getSchedule( pipeline::Progress& progress, pipeline::Stash& stash ) override;
@@ -389,12 +388,11 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                             const TskDesc cppCPPImplementation = encode( Task{ eTask_CPPImplementation, sourceFile } );
                             const TskDesc cppObj               = encode( Task{ eTask_CPPObj, sourceFile } );
 
-                            dependencies.add( cppPCH, TskDescVec{ objectInterfaceAnalysis } );
-
                             TskDescVec tasks = concreteTypeIDRolloutTasks;
-                            tasks.push_back( cppPCH );
+                            tasks.push_back( objectInterfaceAnalysis );
 
-                            dependencies.add( cppCPPImplementation, tasks );
+                            dependencies.add( cppPCH, tasks );
+                            dependencies.add( cppCPPImplementation, TskDescVec{ cppPCH } );
                             dependencies.add( cppObj, TskDescVec{ cppCPPImplementation } );
                             binaryTasks.push_back( cppObj );
                         }
@@ -415,7 +413,7 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
     TskDesc complete = encode( Task{ eTask_Complete, manifestFilePath } );
     dependencies.add( complete, componentTasks );
 
-    return pipeline::Schedule( dependencies );
+    return { dependencies };
 }
 
 void CompilerPipeline::execute( const pipeline::TaskDescriptor& pipelineTask, pipeline::Progress& progress,

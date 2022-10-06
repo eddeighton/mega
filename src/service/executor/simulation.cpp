@@ -98,7 +98,6 @@ void Simulation::error( const reference& ref, const std::string& str )
 void Simulation::write( const reference& ref, bool bShared, U64 size, const void* pData )
 {
     SPDLOG_TRACE( "Simulation::write: {} {} {}", ref, bShared, size );
-
     
 }
 
