@@ -314,15 +314,15 @@ public:
         Database               database( m_environment, m_sourceFilePath );
         Components::Component* pComponent = getComponent< Components::Component >( database, m_sourceFilePath );
 
-        const task::DeterminantHash determinant( { m_toolChain.toolChainHash,
+        const mega::Compilation compilationCMD
+            = mega::Compilation::make_cpp_pch_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath );
+
+        const task::DeterminantHash determinant( { m_toolChain.toolChainHash, compilationCMD.generateCompilationCMD(),
                                                    m_environment.getBuildHashCode( m_environment.IncludePCH(
                                                        pComponent->get_build_dir(), pComponent->get_name() ) ),
                                                    m_environment.getBuildHashCode( m_environment.InterfacePCH(
                                                        pComponent->get_build_dir(), pComponent->get_name() ) ),
                                                    m_environment.FilePath( m_sourceFilePath ) } );
-
-        const mega::Compilation compilationCMD
-            = mega::Compilation::make_cpp_pch_compilation( m_environment, m_toolChain, pComponent, m_sourceFilePath );
 
         bool bRestoredHPP = m_environment.restore( tempHPPFile, determinant );
         if ( bRestoredHPP )

@@ -382,14 +382,14 @@ pipeline::Schedule CompilerPipeline::getSchedule( pipeline::Progress& progress, 
                         dependencies.add( objectInterfaceGeneration, deps );
                         dependencies.add( objectInterfaceAnalysis, TskDescVec{ objectInterfaceGeneration } );
 
+                        TskDescVec tasks = concreteTypeIDRolloutTasks;
+                        tasks.push_back( objectInterfaceAnalysis );
+
                         for ( const mega::io::cppFilePath& sourceFile : pComponent->get_cpp_source_files() )
                         {
                             const TskDesc cppPCH               = encode( Task{ eTask_CPPPCH, sourceFile } );
                             const TskDesc cppCPPImplementation = encode( Task{ eTask_CPPImplementation, sourceFile } );
                             const TskDesc cppObj               = encode( Task{ eTask_CPPObj, sourceFile } );
-
-                            TskDescVec tasks = concreteTypeIDRolloutTasks;
-                            tasks.push_back( objectInterfaceAnalysis );
 
                             dependencies.add( cppPCH, tasks );
                             dependencies.add( cppCPPImplementation, TskDescVec{ cppPCH } );
