@@ -105,6 +105,8 @@ install( EXPORT executorLib NAMESPACE MEGA:: FILE executorLib-config.cmake DESTI
 
 set( EXECUTOR_SOURCE 
     ${MEGA_SRC_DIR}/service/executor/main.cpp 
+
+    ${MEGA_API_DIR}/mega/default_traits.cpp
     )
 
 add_executable( executor ${EXECUTOR_SOURCE}  )
@@ -113,11 +115,11 @@ target_compile_options( executor PUBLIC "-fcoroutines" )
 
 target_link_libraries( executor executorLib )
 
-target_link_libraries( executor 
--Wl,-whole-archive
-runtime
--Wl,-no-whole-archive
-)
+# target_link_libraries( executor 
+# -Wl,-whole-archive
+# runtime
+# -Wl,-no-whole-archive
+# )
 
 set_target_properties( executor PROPERTIES FOLDER driver )
 

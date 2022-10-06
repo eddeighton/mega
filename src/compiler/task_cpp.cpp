@@ -351,12 +351,14 @@ public:
                 if ( common::Hash( tempHppFilePath ) != common::Hash( srcCppFilePath ) )
                 {
                     boost::filesystem::remove( tempHppFilePath );
-                    boost::filesystem::copy( srcCppFilePath, tempHppFilePath );
+                    boost::filesystem::copy_file(
+                        srcCppFilePath, tempHppFilePath, boost::filesystem::copy_options::synchronize );
                 }
             }
             else
             {
-                boost::filesystem::copy( srcCppFilePath, tempHppFilePath );
+                boost::filesystem::copy_file(
+                    srcCppFilePath, tempHppFilePath, boost::filesystem::copy_options::synchronize );
             }
             m_environment.setBuildHashCode( tempHPPFile );
             m_environment.stash( tempHPPFile, determinant );

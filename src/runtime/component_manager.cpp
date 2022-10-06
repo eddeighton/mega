@@ -51,7 +51,7 @@ ComponentManager::ComponentPath ComponentManager::InterfaceComponent::makeTempCo
     }
 
     const boost::filesystem::path tempDllPath = tempDir / osTempFileName.str();
-    boost::filesystem::copy( path, tempDllPath );
+    boost::filesystem::copy_file( path, tempDllPath, boost::filesystem::copy_options::synchronize );
 
     SPDLOG_TRACE( "RUNTIME: ComponentManager created : {}", tempDllPath.string() );
 

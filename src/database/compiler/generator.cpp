@@ -63,7 +63,7 @@ void renderFile( const boost::filesystem::path& basePath, const std::string& fil
         if ( boost::filesystem::exists( oldFile ) )
             boost::filesystem::remove( oldFile );
         boost::filesystem::ensureFoldersExist( oldFile );
-        boost::filesystem::copy( outputFilePath, oldFile );
+        boost::filesystem::copy_file( outputFilePath, oldFile, boost::filesystem::copy_options::synchronize );
     }*/
     if ( boost::filesystem::updateFileIfChanged( outputFilePath, strOutput ) )
     {

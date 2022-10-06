@@ -157,7 +157,8 @@ Pipeline::Ptr Registry::getPipeline( const mega::utilities::ToolChain& toolChain
         }
 
         const boost::filesystem::path tempDllPath = tempDir / osTempFileName.str();
-        boost::filesystem::copy( configuration.getPipelineID(), tempDllPath );
+        boost::filesystem::copy_file(
+            configuration.getPipelineID(), tempDllPath, boost::filesystem::copy_options::synchronize );
 
         boost::dll::fs::path pipelineLibrary( tempDllPath );
 
