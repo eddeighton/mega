@@ -66,6 +66,8 @@ set( RUNTIME_SOURCE
     ${MEGA_SRC_DIR}/runtime/symbol_utils.hpp
     ${MEGA_SRC_DIR}/runtime/indexed_buffer_allocator.hpp
     ${MEGA_SRC_DIR}/runtime/indexed_buffer_allocator.cpp
+
+    ${MEGA_API_DIR}/mega/default_traits.cpp
     
 )
 
@@ -73,6 +75,12 @@ add_library( runtime
     ${RUNTIME_HEADERS} 
     ${RUNTIME_SOURCE}
 )
+
+add_c_preprocessor_command( OUTPUT default_traits.cpp.i SOURCE ${MEGA_API_DIR}/mega/default_traits.cpp TARGET runtime )
+add_custom_target( PreprocessDefaultTraits 
+	SOURCES default_traits.cpp.i
+	COMMENT "Proprocessing default_traits.cpp")
+
 
 target_link_libraries( runtime database )
 target_link_libraries( runtime jit )

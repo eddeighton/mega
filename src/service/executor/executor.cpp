@@ -96,20 +96,29 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
                 currentProject = projectRequest.GetProject();
             }
 
-            if ( !currentProject.isEmpty() && boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+            if ( !currentProject.isEmpty() )
             {
-                network::memory::Request_Encoder memoryRequest(
-                    [ &exe_leaf ]( const network::Message& msg ) { return exe_leaf.ExeDaemon( msg ); }, con.getID() );
-                const mega::network::MemoryConfig memoryConfig = memoryRequest.GetSharedMemoryConfig();
-                mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, currentProject,
-                                                  memoryConfig.getMemory(), memoryConfig.getMutex(),
-                                                  memoryConfig.getMap() );
-                SPDLOG_TRACE(
-                    "Executor runtime initialised with project: {}", currentProject.getProjectInstallPath().string() );
+                if ( boost::filesystem::exists( currentProject.getProjectDatabase() ) )
+                {
+                    network::memory::Request_Encoder  memoryRequest( [ &exe_leaf ]( const network::Message& msg )
+                                                                    { return exe_leaf.ExeDaemon( msg ); },
+                                                                    con.getID() );
+                    const mega::network::MemoryConfig memoryConfig = memoryRequest.GetSharedMemoryConfig();
+                    mega::runtime::initialiseRuntime( thisRef.m_megastructureInstallation, currentProject,
+                                                      memoryConfig.getMemory(), memoryConfig.getMutex(),
+                                                      memoryConfig.getMap() );
+                    SPDLOG_TRACE( "Executor runtime initialised with project: {}",
+                                  currentProject.getProjectInstallPath().string() );
+                }
+                else
+                {
+                    SPDLOG_WARN( "Could not initialised runtime.  Active project: {} has no database",
+                                  currentProject.getProjectInstallPath().string() );
+                }
             }
             else
             {
-                SPDLOG_TRACE( "Could not initialised runtime.  No active project" );
+                SPDLOG_WARN( "Could not initialised runtime.  No active project" );
             }
         };
         conversationInitiated( network::ConversationBase::Ptr( new GenericConversation(

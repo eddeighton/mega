@@ -69,6 +69,7 @@ add_library( executorLib
 				)
 
 target_compile_options( executorLib PUBLIC "-fcoroutines" )
+# target_link_options( executorLib PUBLIC -export-dynamic )
 
 target_link_libraries( executorLib protocol )
 target_link_libraries( executorLib network )
@@ -103,20 +104,20 @@ install( EXPORT executorLib NAMESPACE MEGA:: FILE executorLib-config.cmake DESTI
 ####################################################################
 
 set( EXECUTOR_SOURCE 
-    ${MEGA_API_DIR}/mega/default_traits.cpp
     ${MEGA_SRC_DIR}/service/executor/main.cpp 
     )
 
 add_executable( executor ${EXECUTOR_SOURCE}  )
 
-add_c_preprocessor_command( OUTPUT default_traits.cpp.i SOURCE ${MEGA_API_DIR}/mega/default_traits.cpp TARGET executor )
-add_custom_target( PreprocessDefaultTraits 
-	SOURCES default_traits.cpp.i
-	COMMENT "Proprocessing default_traits.cpp")
-
 target_compile_options( executor PUBLIC "-fcoroutines" )
 
 target_link_libraries( executor executorLib )
+
+target_link_libraries( executor 
+-Wl,-whole-archive
+runtime
+-Wl,-no-whole-archive
+)
 
 set_target_properties( executor PROPERTIES FOLDER driver )
 
