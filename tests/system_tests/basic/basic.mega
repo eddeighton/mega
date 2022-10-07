@@ -1,0 +1,13 @@
+
+
+object Basic
+{
+
+    include( <iostream> );
+
+    function Test() : void
+    {
+        std::cout << "Test function called" << std::endl;
+    }
+
+}

@@ -41,7 +41,7 @@ set( SYSTEM_TESTS
 
 enable_testing()
 
-add_executable( system_tests ${SYSTEM_TESTS}  )
+add_executable( system_tests ${SYSTEM_TESTS} ${SYSTEM_TESTS_DIR}/main.cpp )
 
 # allow access to source folder for tests
 target_include_directories(system_tests PUBLIC ${MEGA_SRC_DIR})
@@ -62,7 +62,7 @@ target_link_libraries( system_tests database_compiler)
 target_link_libraries( system_tests protocol)
 target_link_libraries( system_tests network)
 target_link_libraries( system_tests pipeline)
-target_link_libraries( system_tests executorLib)
+target_link_libraries( system_tests terminal )
 
 gtest_add_tests( TARGET system_tests SOURCES ${MEGA_UNIT_TESTS} )
 
