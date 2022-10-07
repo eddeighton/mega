@@ -311,7 +311,7 @@ public:
     LockTracker                               m_lockTracker;
 };
 
-Tool::Tool()
+Tool::Tool( short daemonPortNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Tool ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
@@ -320,7 +320,7 @@ Tool::Tool()
               m_receiverChannel.run( network::makeProcessName( network::Node::Tool ) );
               return m_receiverChannel.getSender();
           }(),
-          network::Node::Tool )
+          network::Node::Tool, daemonPortNumber )
 {
 }
 

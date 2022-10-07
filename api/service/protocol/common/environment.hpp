@@ -39,6 +39,9 @@ static const char* CFG_BOOST_TOOLSET   = "CFG_BOOST_TOOLSET";
 static const char* CFG_BOOST_B2        = "CFG_BOOST_B2";
 static const char* CFG_BOOST_B2_EXE    = "CFG_BOOST_B2_EXE";
 
+static const char* CFG_DAEMON_PORT     = "CFG_DAEMON_PORT";
+static const char* CFG_ROOT_PORT       = "CFG_ROOT_PORT";
+
 } // namespace mega::environment
 
 #endif // MEGA_ENVIRONMENT_9_SEPT

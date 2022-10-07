@@ -26,6 +26,8 @@
 #include "service/network/server.hpp"
 #include "service/network/conversation_manager.hpp"
 
+#include "service/network/network.hpp"
+
 #include "mega/common.hpp"
 
 #include <boost/asio/io_context.hpp>
@@ -39,7 +41,10 @@ class Daemon : public network::ConversationManager
     friend class DaemonEnrole;
 
 public:
-    Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP );
+    Daemon( boost::asio::io_context& ioContext,
+            const std::string&       strRootIP,
+            short                    rootPortNumber   = mega::network::MegaRootPort(),
+            short                    daemonPortNumber = mega::network::MegaDaemonPort() );
     ~Daemon();
 
     void shutdown();

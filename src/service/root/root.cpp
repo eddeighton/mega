@@ -63,9 +63,9 @@
 namespace mega::service
 {
 
-Root::Root( boost::asio::io_context& ioContext )
+Root::Root( boost::asio::io_context& ioContext, short portNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Root ), ioContext )
-    , m_server( ioContext, *this, network::MegaRootPort() )
+    , m_server( ioContext, *this, portNumber )
     , m_stash( boost::filesystem::current_path() / "stash" )
 {
     loadConfig();

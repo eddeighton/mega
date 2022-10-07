@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 if [ x"${BUILD_PATH}" == "x" ]; then
     echo "BUILD_PATH is not configured"
     exit 1

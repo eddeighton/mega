@@ -21,6 +21,7 @@
 
 #include "daemon.hpp"
 
+#include "service/network/network.hpp"
 #include "service/network/log.hpp"
 
 #include "common/assert_verify.hpp"
@@ -40,6 +41,8 @@ int main( int argc, const char* argv[] )
 
     using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
     NumThreadsType          uiNumThreads       = 1U;
+    short                   rootPortNumber     = mega::network::MegaRootPort();
+    short                   daemonPortNumber   = mega::network::MegaDaemonPort();
     boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
     std::string             strConsoleLogLevel = "warn", strLogFileLevel = "warn";
     {
@@ -50,12 +53,14 @@ int main( int argc, const char* argv[] )
 
         // clang-format off
         options.add_options()
-        ( "help",    po::bool_switch( &bShowHelp ),                     "Show Command Line Help" )
-        ( "ip",      po::value< std::string >( &strIP ),                "Root IP Address" )
-        //( "threads", po::value< NumThreadsType >( &uiNumThreads ),      "Max number of threads" )
-        ( "log",    po::value< boost::filesystem::path >( &logFolder ), "Logging folder" )
-        ( "console", po::value< std::string >( &strConsoleLogLevel ),   "Console logging level" )
-        ( "level", po::value< std::string >( &strLogFileLevel ),        "Log file logging level" )
+        ( "help",       po::bool_switch( &bShowHelp ),                                              "Show Command Line Help" )
+        ( "ip",         po::value< std::string >( &strIP ),                                         "Root IP Address" )
+        //( "threads", po::value< NumThreadsType >( &uiNumThreads ),                                "Max number of threads" )
+        ( "log",        po::value< boost::filesystem::path >( &logFolder ),                         "Logging folder" )
+        ( "console",    po::value< std::string >( &strConsoleLogLevel ),                            "Console logging level" )
+        ( "level",      po::value< std::string >( &strLogFileLevel ),                               "Log file logging level" )
+        ( "root",       po::value< short >( &rootPortNumber )->default_value( rootPortNumber ),     "Root port number" )
+        ( "port",       po::value< short >( &daemonPortNumber )->default_value( daemonPortNumber ), "Daemon port number" )
         ;
         // clang-format on
 
@@ -84,7 +89,7 @@ int main( int argc, const char* argv[] )
 
         boost::asio::io_context ioContext( 1 );
 
-        mega::service::Daemon daemon( ioContext, strIP );
+        mega::service::Daemon daemon( ioContext, strIP, rootPortNumber, daemonPortNumber );
 
         std::vector< std::thread > threads;
         for ( NumThreadsType i = 0; i < uiNumThreads; ++i )

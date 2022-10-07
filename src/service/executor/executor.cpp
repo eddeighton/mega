@@ -58,7 +58,7 @@ public:
     void run( boost::asio::yield_context& yield_ctx ) { m_functor( *this, m_executor.getLeafSender(), yield_ctx ); }
 };
 
-Executor::Executor( boost::asio::io_context& io_context, int numThreads )
+Executor::Executor( boost::asio::io_context& io_context, int numThreads, short daemonPortNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Executor ), io_context )
     , m_io_context( io_context )
     , m_numThreads( numThreads )
@@ -69,7 +69,7 @@ Executor::Executor( boost::asio::io_context& io_context, int numThreads )
               m_receiverChannel.run( network::makeProcessName( network::Node::Executor ) );
               return m_receiverChannel.getSender();
           }(),
-          network::Node::Executor )
+          network::Node::Executor, daemonPortNumber )
 {
     // determine megastructure installation from the root so can load the parser dll
     // initialise the runtime using root active project if there is one

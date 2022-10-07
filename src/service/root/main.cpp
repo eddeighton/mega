@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "root.hpp"
 
 #include "service/network/network.hpp"
@@ -38,9 +36,10 @@
 
 int main( int argc, const char* argv[] )
 {
-    using NumThreadsType                 = decltype( std::thread::hardware_concurrency() );
-    NumThreadsType          uiNumThreads = 1U;
-    boost::filesystem::path logFolder    = boost::filesystem::current_path() / "log";
+    using NumThreadsType                       = decltype( std::thread::hardware_concurrency() );
+    NumThreadsType          uiNumThreads       = 1U;
+    short                   portNumber         = mega::network::MegaRootPort();
+    boost::filesystem::path logFolder          = boost::filesystem::current_path() / "log";
     std::string             strConsoleLogLevel = "warn", strLogFileLevel = "info";
     {
         bool bShowHelp = false;
@@ -50,11 +49,12 @@ int main( int argc, const char* argv[] )
 
         // clang-format off
         options.add_options()
-        ( "help",       po::bool_switch( &bShowHelp ),                          "Show Command Line Help" )
-        //( "threads",    po::value< NumThreadsType >( &uiNumThreads ),       "Max number of threads" )
-        ( "log",        po::value< boost::filesystem::path >( &logFolder ),     "Logging folder" )
-        ( "console",    po::value< std::string >( &strConsoleLogLevel ),        "Console logging level" )
-        ( "level",      po::value< std::string >( &strLogFileLevel ),           "Log file logging level" )
+        ( "help",       po::bool_switch( &bShowHelp ),                                  "Show Command Line Help" )
+        //( "threads",    po::value< NumThreadsType >( &uiNumThreads ),                 "Max number of threads" )
+        ( "log",        po::value< boost::filesystem::path >( &logFolder ),             "Logging folder" )
+        ( "console",    po::value< std::string >( &strConsoleLogLevel ),                "Console logging level" )
+        ( "level",      po::value< std::string >( &strLogFileLevel ),                   "Log file logging level" )
+        ( "port",       po::value< short >( &portNumber )->default_value( portNumber ), "Root port number" )
         ;
         // clang-format on
 
@@ -76,11 +76,11 @@ int main( int argc, const char* argv[] )
     try
     {
         auto logThreads = mega::network::configureLog( logFolder, "root", mega::network::fromStr( strConsoleLogLevel ),
-                                           mega::network::fromStr( strLogFileLevel ) );
+                                                       mega::network::fromStr( strLogFileLevel ) );
 
         boost::asio::io_context ioContext( 1 );
 
-        mega::service::Root root( ioContext );
+        mega::service::Root root( ioContext, portNumber );
 
         std::vector< std::thread > threads;
         for ( int i = 0; i < uiNumThreads; ++i )

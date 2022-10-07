@@ -43,7 +43,7 @@ set( VULKAN_UNIT_TESTS
 
 enable_testing()
 
-add_executable( vulkan_tests ${VULKAN_UNIT_TESTS} ${MEGA_TEST_DIR}/main_test_runner.cpp )
+add_executable( vulkan_tests ${VULKAN_UNIT_TESTS} ${MEGA_TEST_DIR}/unit_tests/main_test_runner.cpp )
 
 target_compile_definitions( vulkan_tests PUBLIC VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1)
 

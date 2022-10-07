@@ -53,10 +53,10 @@ public:
 
 ////////////////////////////////////////////////////////////////
 // Daemon
-Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP )
+Daemon::Daemon( boost::asio::io_context& ioContext, const std::string& strRootIP, short rootPortNumber, short daemonPortNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Daemon ), ioContext )
-    , m_rootClient( ioContext, *this, strRootIP, mega::network::MegaRootServiceName() )
-    , m_server( ioContext, *this, network::MegaDaemonPort() )
+    , m_rootClient( ioContext, *this, strRootIP, rootPortNumber )
+    , m_server( ioContext, *this, daemonPortNumber )
     , m_sharedMemoryManager( m_strProcessName )
 {
     m_server.waitForConnection();

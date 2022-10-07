@@ -43,7 +43,7 @@ class Root : public network::ConversationManager
     friend class RootSimulation;
 
 public:
-    Root( boost::asio::io_context& ioContext );
+    Root( boost::asio::io_context& ioContext, short portNumber );
     void shutdown();
 
     // network::ConversationManager

@@ -45,7 +45,7 @@ class Client : public Sender
 
 public:
     Client( boost::asio::io_context& ioContext, ConversationManager& conversationManager,
-            const std::string& strServiceIP, const std::string& strServiceName );
+            const std::string& strServiceIP, short portNumber );
     ~Client();
 
     boost::asio::io_context& getIOContext() const { return m_ioContext; }

@@ -33,33 +33,39 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 include_directories( ${MEGA_API_DIR} )
 include_directories( ${MEGA_SRC_DIR} )
 
-set( INVOKE_PROTO_DIR ${MEGA_TEST_DIR}/invoke_proto )
+set( SYSTEM_TESTS_DIR ${MEGA_TEST_DIR}/system_tests )
 
-add_executable( invoke_proto 
-    ${INVOKE_PROTO_DIR}/test.cpp 
-    ${INVOKE_PROTO_DIR}/main.cpp 
-)
+set( SYSTEM_TESTS
+
+	)
+
+enable_testing()
+
+add_executable( system_tests ${SYSTEM_TESTS}  )
 
 # allow access to source folder for tests
-target_include_directories(invoke_proto PUBLIC ${MEGA_SRC_DIR})
+target_include_directories(system_tests PUBLIC ${MEGA_SRC_DIR})
 
-set_target_properties( invoke_proto PROPERTIES FOLDER mega )
+set_target_properties( system_tests PROPERTIES FOLDER mega )
 
-link_boost( invoke_proto filesystem )
-link_boost( invoke_proto system )
-link_boost( invoke_proto date_time )
-link_boost( invoke_proto program_options )
-link_boost( invoke_proto iostreams )
-link_boost( invoke_proto atomic )
-#link_gtest( invoke_proto )
+link_boost( system_tests filesystem )
+link_boost( system_tests system )
+link_boost( system_tests date_time )
+link_boost( system_tests program_options )
+link_boost( system_tests iostreams )
+link_boost( system_tests atomic )
+link_gtest( system_tests )
 
-link_common( invoke_proto )
+target_link_libraries( system_tests database )
+target_link_libraries( system_tests utilities )
+target_link_libraries( system_tests database_compiler)
+target_link_libraries( system_tests protocol)
+target_link_libraries( system_tests network)
+target_link_libraries( system_tests pipeline)
+target_link_libraries( system_tests executorLib)
 
-#target_link_libraries( invoke_proto database )
-#target_link_libraries( invoke_proto utilities )
-#target_link_libraries( invoke_proto database_compiler)
-#target_link_libraries( invoke_proto protocol)
-#target_link_libraries( invoke_proto network)
-#target_link_libraries( invoke_proto pipeline)
+gtest_add_tests( TARGET system_tests SOURCES ${MEGA_UNIT_TESTS} )
 
-install( TARGETS invoke_proto DESTINATION bin )
+install( TARGETS system_tests DESTINATION bin )
+
+add_custom_command( TARGET system_tests POST_BUILD COMMAND ctest --output-on-failure )

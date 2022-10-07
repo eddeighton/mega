@@ -25,7 +25,6 @@
 
 #include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
-#include "service/network/network.hpp"
 #include "service/network/end_point.hpp"
 #include "service/network/log.hpp"
 
@@ -39,6 +38,7 @@
 #include "service/protocol/model/project.hxx"
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/sim.hxx"
+
 
 #include "common/requireSemicolon.hpp"
 
@@ -69,7 +69,7 @@ public:
     void run( boost::asio::yield_context& yield_ctx ) { m_functor( *this, m_terminal.getLeafSender(), yield_ctx ); }
 };
 
-Terminal::Terminal( std::optional< const std::string > optName /* = std::nullopt*/ )
+Terminal::Terminal( short daemonPortNumber )
     : network::ConversationManager( network::makeProcessName( network::Node::Terminal ), m_io_context )
     , m_receiverChannel( m_io_context, *this )
     , m_leaf(
@@ -79,7 +79,7 @@ Terminal::Terminal( std::optional< const std::string > optName /* = std::nullopt
               m_receiverChannel.run( network::makeProcessName( network::Node::Terminal ) );
               return m_receiverChannel.getSender();
           }(),
-          network::Node::Terminal )
+          network::Node::Terminal, daemonPortNumber )
 {
 }
 

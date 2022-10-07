@@ -21,8 +21,6 @@ function cleanup_folder {
 
     folder_path=$1
 
-    
-
     if [[ -d "${folder_path}" ]]
     then
         echo "Removing folder: ${folder_path}"

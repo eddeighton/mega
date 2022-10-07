@@ -41,7 +41,7 @@ class Tool : public network::ConversationManager
     friend class ToolRequestConversation;
 
 public:
-    Tool();
+    Tool( short daemonPortNumber );
     ~Tool();
 
     void shutdown();

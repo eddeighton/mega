@@ -42,7 +42,7 @@ class Leaf : public network::ConversationManager, public network::Sender
     friend class LeafEnrole;
 
 public:
-    Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType );
+    Leaf( network::Sender::Ptr pSender, network::Node::Type nodeType, short daemonPortNumber );
     ~Leaf();
     // void shutdown();
     bool running() { return !m_io_context.stopped(); }

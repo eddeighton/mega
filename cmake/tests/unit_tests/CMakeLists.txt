@@ -33,26 +33,28 @@ include( ${WORKSPACE_ROOT_PATH}/src/common/common_include.cmake )
 include_directories( ${MEGA_API_DIR} )
 include_directories( ${MEGA_SRC_DIR} )
 
+set( MEGA_UNIT_TESTS_DIR ${MEGA_TEST_DIR}/unit_tests )
+
 set( MEGA_UNIT_TESTS
-	${MEGA_TEST_DIR}/database_tests.cpp 
-	${MEGA_TEST_DIR}/schema_grammar_tests.cpp
-	${MEGA_TEST_DIR}/io_tests.cpp
-	${MEGA_TEST_DIR}/glob_tests.cpp
-	${MEGA_TEST_DIR}/manifest_tests.cpp
-	${MEGA_TEST_DIR}/protocol_tests.cpp
-	${MEGA_TEST_DIR}/network_tests.cpp
-	${MEGA_TEST_DIR}/pipeline_tests.cpp
-	${MEGA_TEST_DIR}/compiler_pipeline_tests.cpp
-	${MEGA_TEST_DIR}/asio_tests.cpp
-	${MEGA_TEST_DIR}/allocator_tests.cpp
-	${MEGA_TEST_DIR}/sim_state_machine_tests.cpp
-	${MEGA_TEST_DIR}/reference_tests.cpp
-	${MEGA_TEST_DIR}/scheduler_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/database_tests.cpp 
+	${MEGA_UNIT_TESTS_DIR}/schema_grammar_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/io_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/glob_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/manifest_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/protocol_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/network_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/pipeline_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/compiler_pipeline_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/asio_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/allocator_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/sim_state_machine_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/reference_tests.cpp
+	${MEGA_UNIT_TESTS_DIR}/scheduler_tests.cpp
 	)
 
 enable_testing()
 
-add_executable( mega_tests ${MEGA_UNIT_TESTS} ${MEGA_TEST_DIR}/main_test_runner.cpp )
+add_executable( mega_tests ${MEGA_UNIT_TESTS} ${MEGA_UNIT_TESTS_DIR}/main_test_runner.cpp )
 
 # allow access to source folder for tests
 target_include_directories(mega_tests PUBLIC ${MEGA_SRC_DIR})
@@ -78,6 +80,5 @@ target_link_libraries( mega_tests executorLib)
 gtest_add_tests( TARGET mega_tests SOURCES ${MEGA_UNIT_TESTS} )
 
 install( TARGETS mega_tests DESTINATION bin )
-#install( DIRECTORY ${MEGA_TEST_DIR}/data/ DESTINATION tests)
 
 add_custom_command( TARGET mega_tests POST_BUILD COMMAND ctest --output-on-failure )

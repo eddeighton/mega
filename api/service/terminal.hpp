@@ -25,6 +25,8 @@
 #include "pipeline/configuration.hpp"
 #include "pipeline/pipeline.hpp"
 
+#include "service/network/network.hpp"
+
 #include "service/network/conversation_manager.hpp"
 #include "service/protocol/common/header.hpp"
 #include "service/protocol/common/megastructure_installation.hpp"
@@ -47,7 +49,7 @@ class Terminal : public network::ConversationManager
     friend class TerminalRequestConversation;
 
 public:
-    Terminal( std::optional< const std::string > optName = std::nullopt );
+    Terminal( short daemonPortNumber = mega::network::MegaDaemonPort() );
     ~Terminal();
 
     void shutdown();

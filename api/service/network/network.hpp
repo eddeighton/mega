@@ -23,13 +23,8 @@
 namespace mega::network
 {
 
-const char* getVersion();
-short       MegaDaemonPort();
-const char* MegaDaemonServiceName();
-short       MegaRootPort();
-const char* MegaRootServiceName();
-short       MegaExecutorPort();
-const char* MegaExecutorServiceName();
+short MegaDaemonPort();
+short MegaRootPort();
 
 } // namespace mega::network
 

@@ -17,20 +17,12 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
+#include "service/network/network.hpp"
 
-#include "common.hpp"
+#include <gtest/gtest.h>
 
-#include "mega/common.hpp"
 
-#include "common/assert_verify.hpp"
-
-#include <iostream>
-#include <new>
-#include <stdexcept>
-
-int main( int argc, const char* argv[] )
+TEST( Network, Basic )
 {
-    
 
-    return 0;
 }

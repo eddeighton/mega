@@ -19,21 +19,45 @@
 
 #include "service/network/network.hpp"
 
+#include "service/protocol/common/environment.hpp"
+
+#include <cstdlib>
+#include <string>
+#include <sstream>
+
 namespace mega::network
 {
 
-const char* getVersion() { return "0.0.0.0"; }
+short MegaDaemonPort()
+{
+    if ( const char* pEnvValue = std::getenv( mega::environment::CFG_DAEMON_PORT ); pEnvValue )
+    {
+        std::string        str( pEnvValue );
+        std::istringstream is( str );
+        short              port;
+        is >> port;
+        return port;
+    }
+    else
+    {
+        return 4237;
+    }
+}
 
-short MegaDaemonPort() { return 4237; }
-
-const char* MegaDaemonServiceName() { return "megadaemon"; }
-
-short MegaRootPort() { return 4238; }
-
-const char* MegaRootServiceName() { return "megaroot"; }
-
-short MegaExecutorPort() { return 4239; }
-
-const char* MegaExecutorServiceName() { return "megaexecutor"; }
+short MegaRootPort()
+{
+    if ( const char* pEnvValue = std::getenv( mega::environment::CFG_ROOT_PORT ); pEnvValue )
+    {
+        std::string        str( pEnvValue );
+        std::istringstream is( str );
+        short              port;
+        is >> port;
+        return port;
+    }
+    else
+    {
+        return 4238;
+    }
+}
 
 } // namespace mega::network

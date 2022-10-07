@@ -34,19 +34,26 @@ namespace mega::network
 {
 
 Client::Client( boost::asio::io_context& ioContext, ConversationManager& conversationManager,
-                const std::string& strServiceIP, const std::string& strServiceName )
+                const std::string& strServiceIP, short portNumber )
     : m_ioContext( ioContext )
     , m_resolver( ioContext )
     , m_strand( boost::asio::make_strand( ioContext ) )
     , m_socket( m_strand )
-    , m_receiver( conversationManager, m_socket, boost::bind( &Client::disconnected, this ) )
+    , m_receiver( conversationManager, m_socket, [this] { disconnected(); } )
 {
-    boost::asio::ip::tcp::resolver::results_type endpoints = m_resolver.resolve( strServiceIP, strServiceName );
+    std::string strPort;
+    {
+        std::ostringstream os;
+        os << portNumber;
+        strPort = os.str();
+    }
+    boost::asio::ip::tcp::resolver::query        query( strServiceIP, strPort );
+    boost::asio::ip::tcp::resolver::results_type endpoints = m_resolver.resolve( query );
 
     if ( endpoints.empty() )
     {
-        SPDLOG_ERROR( "Failed to resolve: {} on ip: {}", strServiceName, strServiceIP );
-        THROW_RTE( "Failed to resolve " << strServiceName << " service on ip: " << strServiceIP );
+        SPDLOG_ERROR( "Failed to resolve ip: {} port: {}", strServiceIP, portNumber );
+        THROW_RTE( "Failed to resolve ip: " << strServiceIP << " port: " << portNumber );
     }
 
     m_endPoint     = boost::asio::connect( m_socket, endpoints );
@@ -67,6 +74,6 @@ void Client::stop()
 
 void Client::disconnected() { SPDLOG_TRACE( "Client disconnected from: {}", m_connectionID ); }
 
-Client::~Client() {}
+Client::~Client() = default;
 
 } // namespace mega::network
