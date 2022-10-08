@@ -23,6 +23,8 @@
 #include "database/model/FinalStage.hxx"
 #include "service/network/log.hpp"
 
+#include "runtime/context.hpp"
+
 #include "common/file.hpp"
 #include "common/stash.hpp"
 
