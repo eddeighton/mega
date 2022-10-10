@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 #ifndef MEGA_REFERENCE_18_SEPT_2022
 #define MEGA_REFERENCE_18_SEPT_2022
 
@@ -28,12 +25,12 @@
 namespace mega
 {
 
-using Instance       = U16;
-using SymbolID       = I16;
-using TypeID         = I16;
+using Instance = U16;
+using SymbolID = I16;
+using TypeID   = I16;
 
-static constexpr char   ROOT_TYPE_NAME[] = "Root";
-static constexpr TypeID ROOT_TYPE_ID     = 1;
+static constexpr const char* ROOT_TYPE_NAME = "Root";
+static constexpr TypeID      ROOT_TYPE_ID   = 1;
 
 struct TypeInstance
 {
@@ -204,7 +201,7 @@ public:
         archive& mpo_storage;
     }
 
-    MPO() {}
+    MPO() = default;
     MPO( MachineID machineID, ProcessID processID, OwnerID ownerID )
         : mpo{ ownerID, processID, machineID, MACHINE_ADDRESS }
     {

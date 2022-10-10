@@ -20,8 +20,7 @@
 #ifndef ADDRESS_SPACE_4_SEPT_2022
 #define ADDRESS_SPACE_4_SEPT_2022
 
-#include "mega/common.hpp"
-#include "mega/default_traits.hpp"
+#include "mega/reference.hpp"
 
 #include <boost/interprocess/interprocess_fwd.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
@@ -41,7 +40,7 @@ class AddressSpace
     using AddressMappingAllocator = boost::interprocess::allocator< std::pair< const NetworkAddress, reference >,
                                                                     SharedMemoryType::segment_manager >;
     using AddressMapping
-        = boost::interprocess::map< NetworkAddress, reference, std::less< NetworkAddress >, AddressMappingAllocator >;
+        = boost::interprocess::map< NetworkAddress, reference, std::less<  >, AddressMappingAllocator >;
 
 public:
     /*struct AddressSpaceMapLifetime // for the daemon
@@ -63,7 +62,7 @@ public:
         : m_sharedMemory( boost::interprocess::open_or_create, names.memory.c_str(), 1024 * 1024 )
         , m_addressSpaceMutex( boost::interprocess::open_or_create, names.mutex.c_str() )
         , m_addressMapping( *m_sharedMemory.find_or_construct< AddressMapping >( names.map.c_str() )(
-              std::less< AddressStorage >(), AddressMappingAllocator( m_sharedMemory.get_segment_manager() ) ) )
+              std::less<>(), AddressMappingAllocator( m_sharedMemory.get_segment_manager() ) ) )
     {
     }
 

@@ -22,7 +22,6 @@
 #ifndef EG_COMMON_22_04_2019
 #define EG_COMMON_22_04_2019
 
-#include "native_types.hpp"
 #include "reference.hpp"
 
 namespace mega

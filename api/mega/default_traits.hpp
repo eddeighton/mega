@@ -22,11 +22,11 @@
 #ifndef EG_DEFAULT_TRAITS
 #define EG_DEFAULT_TRAITS
 
-#include "common.hpp"
+#include "mega/native_types.hpp"
+#include "mega/reference.hpp"
 
 #include <boost/interprocess/interprocess_fwd.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
-// #include <boost/interprocess/managed_heap_memory.hpp>
 #include <boost/interprocess/segment_manager.hpp>
 #include <boost/interprocess/sync/mutex_family.hpp>
 #include <boost/interprocess/containers/vector.hpp>
