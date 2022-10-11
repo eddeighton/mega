@@ -42,7 +42,6 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/macros.hpp
     ${MEGA_API_DIR}/mega/native_types.hpp
     ${MEGA_API_DIR}/mega/operations.hpp
-    ${MEGA_API_DIR}/mega/record.hpp
     ${MEGA_API_DIR}/mega/reference_io.hpp
     ${MEGA_API_DIR}/mega/reference.hpp
     ${MEGA_API_DIR}/mega/result_type.hpp
