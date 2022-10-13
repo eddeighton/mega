@@ -99,7 +99,7 @@ void getRootPath( Concrete::ContextGroup* pContextGroup, std::list< Concrete::Co
     while ( pIter )
     {
         path.push_front( pIter );
-        if ( Concrete::Context* pContext = dynamic_database_cast< Concrete::Context >( pIter ) )
+        if ( Concrete::Context* pContext = db_cast< Concrete::Context >( pIter ) )
         {
             pIter = pContext->get_parent();
         }
@@ -137,10 +137,10 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
         Concrete::ContextGroup* pCommon = findCommonRoot( pFrom, pTo );
         VERIFY( pCommon, Exception, "Common root derivation failed" );
 
-        if ( Concrete::Root* pRoot = dynamic_database_cast< Concrete::Root >( pCommon ) )
+        if ( Concrete::Root* pRoot = db_cast< Concrete::Root >( pCommon ) )
         {
-            Concrete::Context* pFromContext = dynamic_database_cast< Concrete::Context >( pFrom );
-            Concrete::Context* pToContext   = dynamic_database_cast< Concrete::Context >( pTo );
+            Concrete::Context* pFromContext = db_cast< Concrete::Context >( pFrom );
+            Concrete::Context* pToContext   = db_cast< Concrete::Context >( pTo );
             if ( pFromContext && pToContext )
             {
                 THROW_INVOCATION_EXCEPTION( "Invocation attempts to derive through root. From: "
@@ -165,11 +165,11 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
 
         while ( pFrom != pCommon )
         {
-            Concrete::Context* pFromContext = dynamic_database_cast< Concrete::Context >( pFrom );
+            Concrete::Context* pFromContext = db_cast< Concrete::Context >( pFrom );
             VERIFY( pFromContext, Exception, "" );
             Concrete::ContextGroup* pParentContextGroup = pFromContext->get_parent();
             VERIFY( pParentContextGroup, Exception, "" );
-            Concrete::Context* pParent = dynamic_database_cast< Concrete::Context >( pParentContextGroup );
+            Concrete::Context* pParent = db_cast< Concrete::Context >( pParentContextGroup );
             VERIFY( pParent, Exception, "" );
 
             // generate parent derivation instruction
@@ -188,7 +188,7 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
         while ( pTo != pCommon )
         {
             path.push_back( pTo );
-            Concrete::Context* p = dynamic_database_cast< Concrete::Context >( pTo );
+            Concrete::Context* p = db_cast< Concrete::Context >( pTo );
             VERIFY( p, Exception, "" );
             pTo = p->get_parent();
         }
@@ -201,7 +201,7 @@ void GenericOperationVisitor::commonRootDerivation( Concrete::ContextGroup* pFro
             //    pInstruction = make_failure_ins( m_database, pInstruction );
             //    return;
             //}
-            Concrete::Context* pConcreteContext = dynamic_database_cast< Concrete::Context >( pConcreteContextIter );
+            Concrete::Context* pConcreteContext = db_cast< Concrete::Context >( pConcreteContextIter );
             VERIFY( pConcreteContext, Exception, "" );
 
             Variables::Instance* pInstanceVariable = make_variable< Variables::Instance >(
@@ -234,7 +234,7 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
         Interface::IContext*                           pCurrentInterface = pInterfaceVar->get_context().value();
         Concrete::Context* pCurrentConcrete = current.get_element()->get_concrete()->get_context().value();
 
-        if ( Concrete::Object* pCurrentConcreteObject = dynamic_database_cast< Concrete::Object >( pCurrentConcrete ) )
+        if ( Concrete::Object* pCurrentConcreteObject = db_cast< Concrete::Object >( pCurrentConcrete ) )
         {
             // only operation on actual object is to allocate it.
             using OperationsStage::Invocations::Instructions::Instruction;
@@ -268,14 +268,51 @@ void GenericOperationVisitor::buildOperation( OperationsStage::Operations::Name*
             switch ( m_pInvocation->get_operation() )
             {
                 case id_Imp_NoParams:
+                {
+                    if ( db_cast< Concrete::Action >( pCurrentConcrete ) )
+                    {
+                        using OperationsStage::Invocations::Operations::Start;
+                        Start* pStart = m_database.construct< Start >( Start::Args{ BasicOperation::Args{
+                            Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} }, pCurrentInterface,
+                            pCurrentConcrete } } );
+                        pInstruction->push_back_children( pStart );
+                    }
+                    else if ( db_cast< Concrete::Function >( pCurrentConcrete ) )
+                    {
+                        using OperationsStage::Invocations::Operations::Call;
+                        Call* pCall = m_database.construct< Call >( Call::Args{ BasicOperation::Args{
+                            Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} }, pCurrentInterface,
+                            pCurrentConcrete } } );
+                        pInstruction->push_back_children( pCall );
+                    }
+                    else if ( db_cast< Concrete::Object >( pCurrentConcrete ) )
+                    {
+                        using OperationsStage::Invocations::Operations::Allocate;
+                        Allocate* pAllocate = m_database.construct< Allocate >( Allocate::Args{ BasicOperation::Args{
+                            Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} }, pCurrentInterface,
+                            pCurrentConcrete } } );
+                        pInstruction->push_back_children( pAllocate );
+                    }
+                    else
+                    {
+                        THROW_INVOCATION_EXCEPTION( "Invalid no params implicit call" );
+                    }
+                }
+                break;
                 case id_Imp_Params:
                 {
-                    // only derive the parent for the starter
-                    using OperationsStage::Invocations::Operations::Call;
-                    Call* pCall = m_database.construct< Call >( Call::Args{
-                        BasicOperation::Args{ Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} },
-                                              pCurrentInterface, pCurrentConcrete } } );
-                    pInstruction->push_back_children( pCall );
+                    if ( db_cast< Concrete::Function >( pCurrentConcrete ) )
+                    {
+                        using OperationsStage::Invocations::Operations::Call;
+                        Call* pCall = m_database.construct< Call >( Call::Args{ BasicOperation::Args{
+                            Operation::Args{ Instruction::Args{}, pInstance, { pInterfaceVar }, {} }, pCurrentInterface,
+                            pCurrentConcrete } } );
+                        pInstruction->push_back_children( pCall );
+                    }
+                    else
+                    {
+                        THROW_INVOCATION_EXCEPTION( "Invalid no params implicit call" );
+                    }
                 }
                 break;
                 case id_Start:

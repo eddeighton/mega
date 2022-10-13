@@ -403,4 +403,63 @@ void Runtime::get_call( const char* pszUnitName, const mega::InvocationID& invoc
     os << "N4mega9referenceE";
     *ppFunction = pModule->getCall( os.str() );
 }
+
+void Runtime::get_start( const char* pszUnitName, const mega::InvocationID& invocationID, StartFunction* ppFunction )
+{
+    std::lock_guard< std::recursive_mutex > lock( m_jitMutex );
+
+    SPDLOG_TRACE( "RUNTIME: get_start: {} {}", pszUnitName, invocationID );
+
+    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+
+    JITCompiler::Module::Ptr pModule;
+    {
+        auto iFind = m_invocations.find( invocationID );
+        if ( iFind != m_invocations.end() )
+        {
+            pModule = iFind->second;
+        }
+        else
+        {
+            std::ostringstream osModule;
+            m_codeGenerator.generate_start( m_database, invocationID, osModule );
+            pModule = compile( osModule.str() );
+            m_invocations.insert( std::make_pair( invocationID, pModule ) );
+        }
+    }
+    std::ostringstream os;
+    symbolPrefix( invocationID, os );
+    os << "N4mega9referenceE";
+    *ppFunction = pModule->getStart( os.str() );
+}
+
+void Runtime::get_stop( const char* pszUnitName, const mega::InvocationID& invocationID, StopFunction* ppFunction )
+{
+    std::lock_guard< std::recursive_mutex > lock( m_jitMutex );
+
+    SPDLOG_TRACE( "RUNTIME: get_stop: {} {}", pszUnitName, invocationID );
+
+    m_functionPointers.insert( std::make_pair( pszUnitName, ppFunction ) );
+
+    JITCompiler::Module::Ptr pModule;
+    {
+        auto iFind = m_invocations.find( invocationID );
+        if ( iFind != m_invocations.end() )
+        {
+            pModule = iFind->second;
+        }
+        else
+        {
+            std::ostringstream osModule;
+            m_codeGenerator.generate_stop( m_database, invocationID, osModule );
+            pModule = compile( osModule.str() );
+            m_invocations.insert( std::make_pair( invocationID, pModule ) );
+        }
+    }
+    std::ostringstream os;
+    symbolPrefix( invocationID, os );
+    os << "N4mega9referenceE";
+    *ppFunction = pModule->getStop( os.str() );
+}
+
 } // namespace mega::runtime

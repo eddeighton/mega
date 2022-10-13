@@ -42,13 +42,13 @@ ObjectTypeAllocator::ObjectTypeAllocator( Runtime& runtime, TypeID objectTypeID 
         const Concrete::Object* pObject = m_runtime.m_database.getObject( m_objectTypeID );
         for ( auto pBuffer : pObject->get_buffers() )
         {
-            if ( dynamic_database_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
+            if ( db_cast< MemoryLayout::SimpleBuffer >( pBuffer ) )
             {
                 VERIFY_RTE( m_szSizeShared == 0U );
                 m_szSizeShared  = pBuffer->get_size();
                 m_szAlignShared = pBuffer->get_alignment();
             }
-            else if ( dynamic_database_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
+            else if ( db_cast< MemoryLayout::NonSimpleBuffer >( pBuffer ) )
             {
                 VERIFY_RTE( m_szSizeHeap == 0U );
                 m_szSizeHeap  = pBuffer->get_size();

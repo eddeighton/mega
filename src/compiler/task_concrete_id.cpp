@@ -182,9 +182,9 @@ public:
         NewTypeIDMap                                                        new_concrete_type_ids;
         std::set< TypeID >                                                  usedTypeIDs;
 
-        TypeIDSequenceGen idgen( &New::dynamic_database_cast< New::Concrete::Context, New::Concrete::ContextGroup >,
-                                 &New::dynamic_database_cast< New::Concrete::Dimensions::Allocator,
-                                                              New::Concrete::Dimensions::Allocation > );
+        TypeIDSequenceGen idgen(
+            &New::db_cast< New::Concrete::Context, New::Concrete::ContextGroup >,
+            &New::db_cast< New::Concrete::Dimensions::Allocator, New::Concrete::Dimensions::Allocation > );
 
         {
             auto pNewConcreteSymbol
@@ -534,8 +534,8 @@ public:
                                                       Concrete::Dimensions::LinkReference,
                                                       Concrete::Dimensions::Allocation,
                                                       Concrete::Dimensions::Allocator >
-            idgen( &dynamic_database_cast< Concrete::Context, Concrete::ContextGroup >,
-                   &dynamic_database_cast< Concrete::Dimensions::Allocator, Concrete::Dimensions::Allocation > );
+            idgen( &db_cast< Concrete::Context, Concrete::ContextGroup >,
+                   &db_cast< Concrete::Dimensions::Allocator, Concrete::Dimensions::Allocation > );
 
         for ( auto pContext : database.many< Concrete::Context >( m_sourceFilePath ) )
         {

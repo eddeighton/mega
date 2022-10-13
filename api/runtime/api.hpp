@@ -53,6 +53,8 @@ void get_allocate( const char* pszUnitName, const mega::InvocationID& invocation
 void get_read( const char* pszUnitName, const mega::InvocationID& invocationID, ReadFunction* ppFunction );
 void get_write( const char* pszUnitName, const mega::InvocationID& invocationID, WriteFunction* ppFunction );
 void get_call( const char* pszUnitName, const mega::InvocationID& invocationID, CallFunction* ppFunction );
+void get_start( const char* pszUnitName, const mega::InvocationID& invocationID, StartFunction* ppFunction );
+void get_stop( const char* pszUnitName, const mega::InvocationID& invocationID, StopFunction* ppFunction );
 
 } // namespace mega::runtime
 

@@ -124,7 +124,7 @@ void addType( OperationsStage::Database&        database,
 
                 // determine if pElement is member of pContext
                 {
-                    if ( Concrete::Namespace* pNamespace = dynamic_database_cast< Concrete::Namespace >( pContext ) )
+                    if ( auto pNamespace = db_cast< Concrete::Namespace >( pContext ) )
                     {
                         bFoundType = true;
                         for ( Concrete::Dimensions::User* pDimension : pNamespace->get_dimensions() )
@@ -138,7 +138,7 @@ void addType( OperationsStage::Database&        database,
                     }
                 }
                 {
-                    if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
+                    if ( auto pAction = db_cast< Concrete::Action >( pContext ) )
                     {
                         bFoundType = true;
                         for ( Concrete::Dimensions::User* pDimension : pAction->get_dimensions() )
@@ -152,7 +152,7 @@ void addType( OperationsStage::Database&        database,
                     }
                 }
                 {
-                    if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
+                    if ( auto pEvent = db_cast< Concrete::Event >( pContext ) )
                     {
                         bFoundType = true;
                         for ( Concrete::Dimensions::User* pDimension : pEvent->get_dimensions() )
@@ -166,13 +166,13 @@ void addType( OperationsStage::Database&        database,
                     }
                 }
                 {
-                    if ( Concrete::Function* pFunction = dynamic_database_cast< Concrete::Function >( pContext ) )
+                    if ( auto pFunction = db_cast< Concrete::Function >( pContext ) )
                     {
                         bFoundType = true;
                     }
                 }
                 {
-                    if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
+                    if ( auto pObject = db_cast< Concrete::Object >( pContext ) )
                     {
                         bFoundType = true;
                         for ( Concrete::Dimensions::User* pDimension : pObject->get_dimensions() )
@@ -186,7 +186,7 @@ void addType( OperationsStage::Database&        database,
                     }
                 }
                 {
-                    if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
+                    if ( auto pLink = db_cast< Concrete::Link >( pContext ) )
                     {
                         bFoundType = true;
                     }

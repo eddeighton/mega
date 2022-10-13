@@ -221,6 +221,15 @@ public:
         return getFunctionPtr< mega::runtime::CallFunction >( strSymbol );
     }
 
+    virtual mega::runtime::StartFunction getStart( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::StartFunction >( strSymbol );
+    }
+    virtual mega::runtime::StopFunction getStop( const std::string& strSymbol ) override
+    {
+        return getFunctionPtr< mega::runtime::StopFunction >( strSymbol );
+    }
+
 private:
     const std::string    m_name;
     llvm::orc::LLJIT&    m_jit;

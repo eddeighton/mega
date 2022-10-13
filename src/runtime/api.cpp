@@ -139,4 +139,14 @@ void get_call( const char* pszUnitName, const mega::InvocationID& invocationID, 
     g_pRuntime->get_call( pszUnitName, invocationID, ppFunction );
 }
 
+void get_start( const char* pszUnitName, const mega::InvocationID& invocationID, StartFunction* ppFunction )
+{
+    g_pRuntime->get_start( pszUnitName, invocationID, ppFunction );
+}
+
+void get_stop( const char* pszUnitName, const mega::InvocationID& invocationID, StopFunction* ppFunction )
+{
+    g_pRuntime->get_stop( pszUnitName, invocationID, ppFunction );
+}
+
 } // namespace mega::runtime

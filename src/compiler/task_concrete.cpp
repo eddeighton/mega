@@ -98,12 +98,12 @@ public:
 
         collectContexts( pContext, identifierMap );
 
-        if ( Interface::Namespace* pNamespace = dynamic_database_cast< Interface::Namespace >( pContext ) )
+        if ( auto pNamespace = db_cast< Interface::Namespace >( pContext ) )
         {
             // do nothing
             collectDimensions( database, pNamespace, identifierMap );
         }
-        else if ( Interface::Abstract* pAbstract = dynamic_database_cast< Interface::Abstract >( pContext ) )
+        else if ( auto pAbstract = db_cast< Interface::Abstract >( pContext ) )
         {
             collectDimensions( database, pAbstract, identifierMap );
             if ( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAbstract->get_inheritance_trait() )
@@ -114,7 +114,7 @@ public:
                 }
             }
         }
-        else if ( Interface::Action* pAction = dynamic_database_cast< Interface::Action >( pContext ) )
+        else if ( auto pAction = db_cast< Interface::Action >( pContext ) )
         {
             collectDimensions( database, pAction, identifierMap );
             if ( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pAction->get_inheritance_trait() )
@@ -125,7 +125,7 @@ public:
                 }
             }
         }
-        else if ( Interface::Event* pEvent = dynamic_database_cast< Interface::Event >( pContext ) )
+        else if ( auto pEvent = db_cast< Interface::Event >( pContext ) )
         {
             collectDimensions( database, pEvent, identifierMap );
             if ( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pEvent->get_inheritance_trait() )
@@ -136,11 +136,11 @@ public:
                 }
             }
         }
-        else if ( Interface::Function* pFunction = dynamic_database_cast< Interface::Function >( pContext ) )
+        else if ( auto pFunction = db_cast< Interface::Function >( pContext ) )
         {
             // do nothing
         }
-        else if ( Interface::Object* pObject = dynamic_database_cast< Interface::Object >( pContext ) )
+        else if ( auto pObject = db_cast< Interface::Object >( pContext ) )
         {
             collectDimensions( database, pObject, identifierMap );
             if ( std::optional< Interface::InheritanceTrait* > inheritanceOpt = pObject->get_inheritance_trait() )
@@ -151,10 +151,10 @@ public:
                 }
             }
         }
-        else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
+        else if ( auto pLink = db_cast< Interface::Link >( pContext ) )
         {
             // do nothing
-            if ( Interface::LinkInterface* pLinkInterface = dynamic_database_cast< Interface::LinkInterface >( pLink ) )
+            if ( Interface::LinkInterface* pLinkInterface = db_cast< Interface::LinkInterface >( pLink ) )
             {
                 // do nothing
             }
@@ -163,7 +163,7 @@ public:
                 // do nothing
             }
         }
-        else if ( Interface::Buffer* pBuffer = dynamic_database_cast< Interface::Buffer >( pContext ) )
+        else if ( auto pBuffer = db_cast< Interface::Buffer >( pContext ) )
         {
             collectDimensions( database, pBuffer, identifierMap );
         }
@@ -192,8 +192,7 @@ public:
 
         for ( Interface::DimensionTrait* pInterfaceDimension : inheritedContexts.dimensions )
         {
-            Concrete::Context* pParentConcreteContext
-                = dynamic_database_cast< Concrete::Context >( parentConcreteContextGroup );
+            auto pParentConcreteContext = db_cast< Concrete::Context >( parentConcreteContextGroup );
 
             Dimensions::User* pConcreteDimension = database.construct< Dimensions::User >(
                 Dimensions::User::Args{ pParentConcreteContext, pInterfaceDimension } );
@@ -209,7 +208,7 @@ public:
         using namespace ConcreteStage;
         using namespace ConcreteStage::Concrete;
 
-        if ( Interface::Namespace* pNamespace = dynamic_database_cast< Interface::Namespace >( pContext ) )
+        if ( auto pNamespace = db_cast< Interface::Namespace >( pContext ) )
         {
             Namespace* pConcrete = database.construct< Namespace >( Namespace::Args{
                 Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pNamespace, {} },
@@ -233,12 +232,12 @@ public:
 
             return pConcrete;
         }
-        else if ( Interface::Abstract* pAbstract = dynamic_database_cast< Interface::Abstract >( pContext ) )
+        else if ( auto pAbstract = db_cast< Interface::Abstract >( pContext ) )
         {
             // do nothing
             return nullptr;
         }
-        else if ( Interface::Action* pAction = dynamic_database_cast< Interface::Action >( pContext ) )
+        else if ( auto pAction = db_cast< Interface::Action >( pContext ) )
         {
             if ( bInObjectScope )
             {
@@ -269,7 +268,7 @@ public:
                 return nullptr;
             }
         }
-        else if ( Interface::Event* pEvent = dynamic_database_cast< Interface::Event >( pContext ) )
+        else if ( auto pEvent = db_cast< Interface::Event >( pContext ) )
         {
             if ( bInObjectScope )
             {
@@ -300,7 +299,7 @@ public:
                 return nullptr;
             }
         }
-        else if ( Interface::Function* pFunction = dynamic_database_cast< Interface::Function >( pContext ) )
+        else if ( auto pFunction = db_cast< Interface::Function >( pContext ) )
         {
             if ( bInObjectScope )
             {
@@ -330,7 +329,7 @@ public:
                 return nullptr;
             }
         }
-        else if ( Interface::Object* pObject = dynamic_database_cast< Interface::Object >( pContext ) )
+        else if ( auto pObject = db_cast< Interface::Object >( pContext ) )
         {
             Object* pConcrete = database.construct< Object >(
                 Object::Args{ Context::Args{ ContextGroup::Args{ {} }, pComponent, pParentContextGroup, pObject, {} },
@@ -353,7 +352,7 @@ public:
 
             return pConcrete;
         }
-        else if ( Interface::Link* pLink = dynamic_database_cast< Interface::Link >( pContext ) )
+        else if ( auto pLink = db_cast< Interface::Link >( pContext ) )
         {
             if ( bInObjectScope )
             {
@@ -382,7 +381,7 @@ public:
                 return nullptr;
             }
         }
-        else if ( Interface::Buffer* pBuffer = dynamic_database_cast< Interface::Buffer >( pContext ) )
+        else if ( auto pBuffer = db_cast< Interface::Buffer >( pContext ) )
         {
             if ( bInObjectScope )
             {

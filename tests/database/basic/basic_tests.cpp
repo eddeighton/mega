@@ -261,7 +261,7 @@ TEST_F( BasicDBTest, DatabaseErrors )
         OtherObject* pTestObject = database.one< OtherObject >( m_pEnvironment->project_manifest() );
         TestInherit* pInherited  = database.one< TestInherit >( m_pEnvironment->project_manifest() );
         ASSERT_EQ( pTestObject, pInherited );
-        TestInherit* pOther = dynamic_database_cast< TestInherit >( pTestObject );
+        TestInherit* pOther = db_cast< TestInherit >( pTestObject );
         ASSERT_TRUE( pOther );
         ASSERT_TRUE( pInherited );
         ASSERT_EQ( pOther->_get_object_info().getFileID(), pInherited->_get_object_info().getFileID() );

@@ -184,7 +184,7 @@ public:
                 bool bIsGlobal = false;
                 for ( auto pContext : pSymbol->get_contexts() )
                 {
-                    if ( dynamic_database_cast< Interface::Root >( pContext->get_parent() ) )
+                    if ( db_cast< Interface::Root >( pContext->get_parent() ) )
                     {
                         bIsGlobal = true;
                     }
@@ -493,7 +493,7 @@ public:
                     while ( pIter )
                     {
                         typeNamePath.push_back( pIter->get_identifier() );
-                        pIter = dynamic_database_cast< Interface::IContext >( pIter->get_parent() );
+                        pIter = db_cast< Interface::IContext >( pIter->get_parent() );
                     }
                     std::reverse( typeNamePath.begin(), typeNamePath.end() );
                     std::ostringstream os;

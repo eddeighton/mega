@@ -157,7 +157,7 @@ public:
                 bool bIsGlobal = false;
                 for ( auto pContext : pSymbol->get_contexts() )
                 {
-                    if ( dynamic_database_cast< Interface::Root >( pContext->get_parent() ) )
+                    if ( db_cast< Interface::Root >( pContext->get_parent() ) )
                     {
                         bIsGlobal = true;
                     }

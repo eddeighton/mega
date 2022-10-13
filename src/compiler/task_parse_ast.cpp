@@ -104,7 +104,7 @@ public:
                     }
                     else
                     {
-                        IncludeRoot* pIncludeRoot = dynamic_database_cast< IncludeRoot >( iFind->second );
+                        IncludeRoot* pIncludeRoot = db_cast< IncludeRoot >( iFind->second );
                         VERIFY_RTE( pIncludeRoot );
                         pInclude->set_root( pIncludeRoot );
                     }

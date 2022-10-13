@@ -419,7 +419,7 @@ public:
         Concrete::Root* pConcreteRoot = database.one< Concrete::Root >( m_sourceFilePath );
         for ( Concrete::ContextGroup* pContextGroup : pConcreteRoot->get_children() )
         {
-            if ( Concrete::Context* pContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+            if ( auto pContext = db_cast< Concrete::Context >( pContextGroup ) )
             {
                 std::vector< Concrete::Dimensions::Allocator* > nestedAllocatorDimensions;
                 createallocators( database, nullptr, pContext, 1, nestedAllocatorDimensions );
@@ -428,7 +428,7 @@ public:
         }
         for ( Concrete::ContextGroup* pContextGroup : pConcreteRoot->get_children() )
         {
-            if ( Concrete::Context* pContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+            if ( auto pContext = db_cast< Concrete::Context >( pContextGroup ) )
             {
                 createBuffers( database, nullptr, pContext, nullptr );
             }
@@ -460,30 +460,30 @@ void Task_Allocators::createallocators(
     using namespace MemoryStage::Concrete;
 
     U64 szDomainSize = 0U;
-    if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+    if ( auto pNamespace = db_cast< Namespace >( pContext ) )
     {
     }
-    else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+    else if ( auto pAction = db_cast< Action >( pContext ) )
     {
         szDomainSize = getSizeTraitSize( pAction->get_interface_action() );
         szTotalSize *= szDomainSize;
 
         pAction = database.construct< Action >( Action::Args{ pAction, szDomainSize, szTotalSize } );
     }
-    else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+    else if ( auto pEvent = db_cast< Event >( pContext ) )
     {
         szDomainSize = getSizeTraitSize( pEvent->get_interface_event() );
         szTotalSize *= szDomainSize;
 
         pEvent = database.construct< Event >( Event::Args{ pEvent, szDomainSize, szTotalSize } );
     }
-    else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+    else if ( auto pFunction = db_cast< Function >( pContext ) )
     {
     }
-    else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+    else if ( auto pObject = db_cast< Object >( pContext ) )
     {
     }
-    else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+    else if ( auto pLink = db_cast< Link >( pContext ) )
     {
         HyperGraph::Relation* pRelation = pLink->get_link()->get_relation();
 
@@ -491,19 +491,19 @@ void Task_Allocators::createallocators(
         if ( pRelation->get_source_interface()->get_link_trait()->get_cardinality().maximum().isMany() )
         {
             // range
-            pLinkRef = database.construct< Concrete::Dimensions::LinkMany >(
-                Concrete::Dimensions::LinkMany::Args{ Concrete::Dimensions::LinkReference::Args{ pParentContext, pLink } } );
+            pLinkRef = database.construct< Concrete::Dimensions::LinkMany >( Concrete::Dimensions::LinkMany::Args{
+                Concrete::Dimensions::LinkReference::Args{ pParentContext, pLink } } );
         }
         else
         {
             // singular
-            pLinkRef = database.construct< Concrete::Dimensions::LinkSingle >(
-                Concrete::Dimensions::LinkSingle::Args{ Concrete::Dimensions::LinkReference::Args{ pParentContext, pLink } } );
+            pLinkRef = database.construct< Concrete::Dimensions::LinkSingle >( Concrete::Dimensions::LinkSingle::Args{
+                Concrete::Dimensions::LinkReference::Args{ pParentContext, pLink } } );
         }
 
         pLink = database.construct< Link >( Link::Args{ pLink, szTotalSize, pLinkRef } );
     }
-    else if ( Buffer* pBuffer = dynamic_database_cast< Buffer >( pContext ) )
+    else if ( auto pBuffer = db_cast< Buffer >( pContext ) )
     {
         szDomainSize = 1U;
         pBuffer      = database.construct< Buffer >( Buffer::Args{ pBuffer, szTotalSize } );
@@ -517,7 +517,7 @@ void Task_Allocators::createallocators(
 
     for ( Concrete::ContextGroup* pContextGroup : pContext->get_children() )
     {
-        if ( Concrete::Context* pChildContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+        if ( auto pChildContext = db_cast< Concrete::Context >( pContextGroup ) )
         {
             createallocators( database, pContext, pChildContext, szTotalSize, nestedAllocatorDimensions );
         }
@@ -606,19 +606,19 @@ struct PartDimensions
     {
         using namespace MemoryStage;
 
-        if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
+        if ( auto pObject = db_cast< Concrete::Object >( pContext ) )
         {
             return 1;
         }
-        else if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
+        else if ( auto pEvent = db_cast< Concrete::Event >( pContext ) )
         {
             return pEvent->get_local_size();
         }
-        else if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
+        else if ( auto pAction = db_cast< Concrete::Action >( pContext ) )
         {
             return pAction->get_local_size();
         }
-        else if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
+        else if ( auto pLink = db_cast< Concrete::Link >( pContext ) )
         {
             return 1;
         }
@@ -645,7 +645,7 @@ struct PartDimensions
         {
             p->set_part( pPart );
 
-            if ( dynamic_database_cast< Concrete::Dimensions::LinkSingle >( p ) )
+            if ( db_cast< Concrete::Dimensions::LinkSingle >( p ) )
             {
                 const U64 szAlign = alignof( mega::reference );
                 const U64 szSize  = sizeof( mega::reference );
@@ -654,7 +654,7 @@ struct PartDimensions
                 p->set_offset( result.size );
                 result.size += szSize;
             }
-            else if ( dynamic_database_cast< Concrete::Dimensions::LinkMany >( p ) )
+            else if ( db_cast< Concrete::Dimensions::LinkMany >( p ) )
             {
                 const U64 szAlign = mega::DimensionTraits< mega::ReferenceVector >::Alignment;
                 const U64 szSize  = mega::DimensionTraits< mega::ReferenceVector >::Size;
@@ -674,17 +674,14 @@ struct PartDimensions
         {
             p->set_part( pPart );
 
-            Concrete::Dimensions::Allocator* pAllocationDimension
-                = dynamic_database_cast< Concrete::Dimensions::Allocator >( p );
+            auto pAllocationDimension = db_cast< Concrete::Dimensions::Allocator >( p );
             VERIFY_RTE( pAllocationDimension );
 
-            if ( Allocators::Nothing* pAlloc
-                 = dynamic_database_cast< Allocators::Nothing >( pAllocationDimension->get_allocator() ) )
+            if ( auto pAlloc = db_cast< Allocators::Nothing >( pAllocationDimension->get_allocator() ) )
             {
                 THROW_RTE( "Unreachable" );
             }
-            else if ( Allocators::Singleton* pAlloc
-                      = dynamic_database_cast< Allocators::Singleton >( pAllocationDimension->get_allocator() ) )
+            else if ( auto pAlloc = db_cast< Allocators::Singleton >( pAllocationDimension->get_allocator() ) )
             {
                 const U64 szAlign = alignof( bool );
                 const U64 szSize  = sizeof( bool );
@@ -693,8 +690,7 @@ struct PartDimensions
                 p->set_offset( result.size );
                 result.size += szSize;
             }
-            else if ( Allocators::Range32* pAlloc
-                      = dynamic_database_cast< Allocators::Range32 >( pAllocationDimension->get_allocator() ) )
+            else if ( auto pAlloc = db_cast< Allocators::Range32 >( pAllocationDimension->get_allocator() ) )
             {
                 const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
                 const U64 szSize            = getBitmask32AllocatorSize( szLocalDomainSize );
@@ -704,8 +700,7 @@ struct PartDimensions
                 p->set_offset( result.size );
                 result.size += szSize;
             }
-            else if ( Allocators::Range64* pAlloc
-                      = dynamic_database_cast< Allocators::Range64 >( pAllocationDimension->get_allocator() ) )
+            else if ( auto pAlloc = db_cast< Allocators::Range64 >( pAllocationDimension->get_allocator() ) )
             {
                 const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
                 const U64 szSize            = getBitmask64AllocatorSize( szLocalDomainSize );
@@ -715,8 +710,7 @@ struct PartDimensions
                 p->set_offset( result.size );
                 result.size += szSize;
             }
-            else if ( Allocators::RangeAny* pAlloc
-                      = dynamic_database_cast< Allocators::RangeAny >( pAllocationDimension->get_allocator() ) )
+            else if ( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocationDimension->get_allocator() ) )
             {
                 const U64 szLocalDomainSize = getLocalDomainSize( pAlloc->get_allocated_context() );
                 const U64 szSize            = getRingAllocatorSize( szLocalDomainSize );
@@ -758,7 +752,7 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
 
     U64 szTotalDomainSize;
     {
-        if ( Concrete::Namespace* pNamespace = dynamic_database_cast< Concrete::Namespace >( pContext ) )
+        if ( Concrete::Namespace* pNamespace = db_cast< Concrete::Namespace >( pContext ) )
         {
             szTotalDomainSize = 1U;
             for ( Concrete::Dimensions::User* pDim : pNamespace->get_dimensions() )
@@ -773,7 +767,7 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
                 }
             }
         }
-        else if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
+        else if ( Concrete::Object* pObject = db_cast< Concrete::Object >( pContext ) )
         {
             szTotalDomainSize = 1U;
             for ( Concrete::Dimensions::User* pDim : pObject->get_dimensions() )
@@ -788,7 +782,7 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
                 }
             }
         }
-        else if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
+        else if ( Concrete::Action* pAction = db_cast< Concrete::Action >( pContext ) )
         {
             szTotalDomainSize = pAction->get_total_size();
             for ( Concrete::Dimensions::User* pDim : pAction->get_dimensions() )
@@ -803,7 +797,7 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
                 }
             }
         }
-        else if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
+        else if ( Concrete::Event* pEvent = db_cast< Concrete::Event >( pContext ) )
         {
             szTotalDomainSize = pEvent->get_total_size();
 
@@ -819,16 +813,16 @@ void Task_Allocators::createParts( MemoryStage::Database& database, Concrete::Co
                 }
             }
         }
-        else if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
+        else if ( Concrete::Link* pLink = db_cast< Concrete::Link >( pContext ) )
         {
             szTotalDomainSize = pLink->get_total_size();
             simple.link.push_back( pLink->get_link_reference() );
         }
-        else if ( Concrete::Buffer* pBuffer = dynamic_database_cast< Concrete::Buffer >( pContext ) )
+        else if ( Concrete::Buffer* pBuffer = db_cast< Concrete::Buffer >( pContext ) )
         {
             szTotalDomainSize = pBuffer->get_total_size();
         }
-        else if ( Concrete::Function* pFunction = dynamic_database_cast< Concrete::Function >( pContext ) )
+        else if ( Concrete::Function* pFunction = db_cast< Concrete::Function >( pContext ) )
         {
             szTotalDomainSize = 1U;
         }
@@ -869,14 +863,14 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
     using namespace MemoryStage;
     using namespace MemoryStage::Concrete;
 
-    if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+    if ( Object* pObject = db_cast< Object >( pContext ) )
     {
         Parts parts;
         {
             createParts( database, pObject, &parts );
             for ( Concrete::ContextGroup* pContextGroup : pContext->get_children() )
             {
-                if ( Concrete::Context* pChildContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+                if ( Concrete::Context* pChildContext = db_cast< Concrete::Context >( pContextGroup ) )
                 {
                     createBuffers( database, pContext, pChildContext, &parts );
                 }
@@ -941,25 +935,25 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
     {
         if ( pParts )
         {
-            if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+            if ( auto pNamespace = db_cast< Namespace >( pContext ) )
             {
             }
-            else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+            else if ( auto pAction = db_cast< Action >( pContext ) )
             {
                 createParts( database, pAction, pParts );
             }
-            else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+            else if ( auto pEvent = db_cast< Event >( pContext ) )
             {
                 createParts( database, pEvent, pParts );
             }
-            else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+            else if ( auto pFunction = db_cast< Function >( pContext ) )
             {
             }
-            else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+            else if ( Link* pLink = db_cast< Link >( pContext ) )
             {
                 createParts( database, pLink, pParts );
             }
-            else if ( Buffer* pBuffer = dynamic_database_cast< Buffer >( pContext ) )
+            else if ( auto pBuffer = db_cast< Buffer >( pContext ) )
             {
             }
             else
@@ -970,7 +964,7 @@ void Task_Allocators::createBuffers( MemoryStage::Database& database, MemoryStag
 
         for ( Concrete::ContextGroup* pContextGroup : pContext->get_children() )
         {
-            if ( Concrete::Context* pChildContext = dynamic_database_cast< Concrete::Context >( pContextGroup ) )
+            if ( auto pChildContext = db_cast< Concrete::Context >( pContextGroup ) )
             {
                 createBuffers( database, pContext, pChildContext, pParts );
             }

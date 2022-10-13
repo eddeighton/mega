@@ -49,7 +49,7 @@ public:
             else
             {
                 // check its a namespace
-                Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext );
+                Namespace* pNamespace = db_cast< Namespace >( pContext );
                 VERIFY_RTE_MSG( pNamespace, "Duplicate identifier is not namespace: " << pContext->get_identifier() );
                 pChildNode = iFind->second;
             }
@@ -269,7 +269,7 @@ public:
             bool bFoundType = false;
 
             {
-                if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+                if ( Namespace* pNamespace = db_cast< Namespace >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
@@ -283,7 +283,7 @@ public:
                 }
             }
             {
-                if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+                if ( Abstract* pAbstract = db_cast< Abstract >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
@@ -305,7 +305,7 @@ public:
                 }
             }
             {
-                if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+                if ( Action* pAction = db_cast< Action >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType                     = true;
@@ -335,7 +335,7 @@ public:
                 }
             }
             {
-                if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+                if ( Event* pEvent = db_cast< Event >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
@@ -364,7 +364,7 @@ public:
                 }
             }
             {
-                if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+                if ( Function* pFunction = db_cast< Function >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType                             = true;
@@ -385,7 +385,7 @@ public:
                 }
             }
             {
-                if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+                if ( Object* pObject = db_cast< Object >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;
@@ -407,7 +407,7 @@ public:
                 }
             }
             {
-                if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+                if ( Link* pLink = db_cast< Link >( pContext ) )
                 {
                     VERIFY_RTE( !bFoundType );
                     bFoundType = true;

@@ -98,7 +98,7 @@ public:
         while ( pIter )
         {
             path.push_back( pIter );
-            if ( auto pContext = dynamic_database_cast< Interface::IContext >( pIter ) )
+            if ( auto pContext = db_cast< Interface::IContext >( pIter ) )
             {
                 pIter = pContext->get_parent();
             }
@@ -122,7 +122,7 @@ public:
 
         for ( Interface::ContextGroup* pContextGroup : path )
         {
-            if ( auto pContext = dynamic_database_cast< Interface::IContext >( pContextGroup ) )
+            if ( auto pContext = db_cast< Interface::IContext >( pContextGroup ) )
             {
                 declLocType = clang::getNestedDeclContext(
                     pASTContext, pSema, declLocType.pDeclContext, declLocType.loc, pContext->get_identifier() );

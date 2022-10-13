@@ -45,7 +45,7 @@ DatabaseInstance::DatabaseInstance( const boost::filesystem::path& projectDataba
         FinalStage::Interface::IContext* pRoot = nullptr;
         for ( auto p : contexts )
         {
-            if ( FinalStage::dynamic_database_cast< FinalStage::Interface::Root >( p->get_parent() ) )
+            if ( FinalStage::db_cast< FinalStage::Interface::Root >( p->get_parent() ) )
             {
                 VERIFY_RTE_MSG( !pRoot, "Multiple roots found" );
                 pRoot = p;
@@ -131,7 +131,7 @@ const FinalStage::Concrete::Object* DatabaseInstance::getObject( mega::TypeID ob
     FinalStage::Concrete::Object* pObject = nullptr;
     if ( pConcreteTypeID->get_context().has_value() )
     {
-        pObject = FinalStage::dynamic_database_cast< FinalStage::Concrete::Object >(
+        pObject = FinalStage::db_cast< FinalStage::Concrete::Object >(
             pConcreteTypeID->get_context().value() );
     }
     VERIFY_RTE_MSG( pObject, "Failed to locate concrete object id: " << objectType );
@@ -172,23 +172,23 @@ mega::U64 DatabaseInstance::getTotalDomainSize( mega::TypeID concreteID ) const
     VERIFY_RTE_MSG( iFind != m_concreteIDs.end(), "Failed to locate concrete type id: " << concreteID );
     FinalStage::Concrete::Context* pContext = iFind->second;
 
-    if ( Concrete::Object* pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
+    if ( Concrete::Object* pObject = db_cast< Concrete::Object >( pContext ) )
     {
         return 1;
     }
-    else if ( Concrete::Event* pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
+    else if ( Concrete::Event* pEvent = db_cast< Concrete::Event >( pContext ) )
     {
         return pEvent->get_total_size();
     }
-    else if ( Concrete::Action* pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
+    else if ( Concrete::Action* pAction = db_cast< Concrete::Action >( pContext ) )
     {
         return pAction->get_total_size();
     }
-    else if ( Concrete::Link* pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
+    else if ( Concrete::Link* pLink = db_cast< Concrete::Link >( pContext ) )
     {
         return pLink->get_total_size();
     }
-    else if ( Concrete::Buffer* pBuffer = dynamic_database_cast< Concrete::Buffer >( pContext ) )
+    else if ( Concrete::Buffer* pBuffer = db_cast< Concrete::Buffer >( pContext ) )
     {
         return pBuffer->get_total_size();
     }
@@ -209,19 +209,19 @@ mega::U64 DatabaseInstance::getLocalDomainSize( mega::TypeID concreteID ) const
     if ( pConcreteTypeID->get_context().has_value() )
     {
         auto pContext = pConcreteTypeID->get_context().value();
-        if ( auto pObject = dynamic_database_cast< Concrete::Object >( pContext ) )
+        if ( auto pObject = db_cast< Concrete::Object >( pContext ) )
         {
             return 1;
         }
-        else if ( auto pEvent = dynamic_database_cast< Concrete::Event >( pContext ) )
+        else if ( auto pEvent = db_cast< Concrete::Event >( pContext ) )
         {
             return pEvent->get_local_size();
         }
-        else if ( auto pAction = dynamic_database_cast< Concrete::Action >( pContext ) )
+        else if ( auto pAction = db_cast< Concrete::Action >( pContext ) )
         {
             return pAction->get_local_size();
         }
-        else if ( auto pLink = dynamic_database_cast< Concrete::Link >( pContext ) )
+        else if ( auto pLink = db_cast< Concrete::Link >( pContext ) )
         {
             return 1;
         }

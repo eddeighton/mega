@@ -145,7 +145,7 @@ struct SuperFactory
         {
             TSuper* pSuper = dynamic_cast< TSuper* >( iFind->second.get() );
             VERIFY_RTE( pSuper );
-            TView* pView = {{ stage.name }}::dynamic_database_cast< TView >( pSuper );
+            TView* pView = {{ stage.name }}::db_cast< TView >( pSuper );
             return pSuper;
         }
         else

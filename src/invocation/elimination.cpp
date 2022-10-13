@@ -42,7 +42,7 @@ EliminationResult elimination( OperationsStage::Invocations::Instructions::Instr
 
     using OperationsStage::Invocations::Instructions::InstructionGroup;
 
-    if ( InstructionGroup* pInstructionGroup = dynamic_database_cast< InstructionGroup >( pInstruction ) )
+    if ( InstructionGroup* pInstructionGroup = db_cast< InstructionGroup >( pInstruction ) )
     {
         using OperationsStage::Invocations::Instructions::Elimination;
         using OperationsStage::Invocations::Instructions::Failure;
@@ -53,12 +53,12 @@ EliminationResult elimination( OperationsStage::Invocations::Instructions::Instr
         Vector children = pInstructionGroup->get_children();
         for ( Instruction* pChildInstruction : pInstructionGroup->get_children() )
         {
-            if ( Elimination* pElimination = dynamic_database_cast< Elimination >( pChildInstruction ) )
+            if ( Elimination* pElimination = db_cast< Elimination >( pChildInstruction ) )
             {
                 Vector success, failure, ambiguous;
                 for ( Instruction* pEliminationChild : pElimination->get_children() )
                 {
-                    VERIFY_RTE( !dynamic_database_cast< Elimination >( pEliminationChild ) );
+                    VERIFY_RTE( !db_cast< Elimination >( pEliminationChild ) );
 
                     const EliminationResult nestedResult = elimination( pEliminationChild, functor );
                     switch ( nestedResult )
@@ -100,19 +100,19 @@ EliminationResult elimination( OperationsStage::Invocations::Instructions::Instr
                     children.push_back( pElimination );
                 }
             }
-            else if ( Failure* pFailure = dynamic_database_cast< Failure >( pChildInstruction ) )
+            else if ( auto pFailure = db_cast< Failure >( pChildInstruction ) )
             {
                 if ( eliminationResult != eAmbiguous )
                     eliminationResult = eFailure;
                 children.push_back( pFailure );
             }
-            else if ( Prune* pPrune = dynamic_database_cast< Prune >( pChildInstruction ) )
+            else if ( auto pPrune = db_cast< Prune >( pChildInstruction ) )
             {
                 Vector success, failure;
 
                 for ( Instruction* pPruneChild : pPrune->get_children() )
                 {
-                    VERIFY_RTE( !dynamic_database_cast< Prune >( pPruneChild ) );
+                    VERIFY_RTE( !db_cast< Prune >( pPruneChild ) );
 
                     const EliminationResult nestedResult = elimination( pPruneChild, functor );
                     switch ( nestedResult )
@@ -183,7 +183,7 @@ secondStageElimination( const std::vector< OperationsStage::Invocations::Operati
 
     auto functor = [ &candidateOperations ]( Instruction* pInstruction ) -> bool
     {
-        if ( Operation* pOperation = dynamic_database_cast< Operation >( pInstruction ) )
+        if ( Operation* pOperation = db_cast< Operation >( pInstruction ) )
         {
             auto iFind = std::find( candidateOperations.begin(), candidateOperations.end(), pOperation );
             if ( iFind == candidateOperations.end() )
@@ -205,12 +205,12 @@ getOperations( OperationsStage::Invocations::Instructions::Instruction* pInstruc
 
     std::vector< Operation* > operations;
 
-    if ( Operation* pOperation = dynamic_database_cast< Operation >( pInstruction ) )
+    if ( Operation* pOperation = db_cast< Operation >( pInstruction ) )
     {
         operations.push_back( pOperation );
     }
 
-    if ( InstructionGroup* pInstructionGroup = dynamic_database_cast< InstructionGroup >( pInstruction ) )
+    if ( InstructionGroup* pInstructionGroup = db_cast< InstructionGroup >( pInstruction ) )
     {
         for ( Instruction* pChildInstruction : pInstructionGroup->get_children() )
         {

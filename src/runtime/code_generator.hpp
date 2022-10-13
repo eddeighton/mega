@@ -45,6 +45,8 @@ public:
     void generate_read( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
     void generate_write( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
     void generate_call( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_start( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
+    void generate_stop( const DatabaseInstance& database, const mega::InvocationID& invocationID, std::ostream& os );
 
 private:
     nlohmann::json generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,

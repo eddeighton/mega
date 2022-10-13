@@ -43,6 +43,8 @@ set( JINJA_TEMPLATES
     ${MEGA_SRC_DIR}/runtime/templates/read.jinja 
     ${MEGA_SRC_DIR}/runtime/templates/write.jinja 
     ${MEGA_SRC_DIR}/runtime/templates/call.jinja 
+    ${MEGA_SRC_DIR}/runtime/templates/start.jinja 
+    ${MEGA_SRC_DIR}/runtime/templates/stop.jinja 
 	)
 
 set( RUNTIME_HEADERS

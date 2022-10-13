@@ -40,6 +40,8 @@ using DeAllocationFunction = void ( * )( MachineAddress address );
 using AllocateFunction     = reference ( * )( reference );
 using ReadFunction         = void* ( * )( reference );
 using WriteFunction        = reference ( * )( reference, const void* );
+using StartFunction        = reference ( * )( reference );
+using StopFunction         = reference ( * )( reference );
 
 struct CallResult
 {

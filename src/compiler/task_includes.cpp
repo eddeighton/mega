@@ -84,7 +84,8 @@ public:
                 auto iter = megaDependencies.find( m_sourceFilePath );
                 VERIFY_RTE( iter != megaDependencies.end() );
                 auto                                         megaDep      = iter->second;
-                const std::vector< mega::io::megaFilePath >& dependencies = megaDep->get_mega_source_files();
+                std::vector< mega::io::megaFilePath > dependencies = megaDep->get_mega_source_files();
+                dependencies.push_back( m_sourceFilePath );
 
                 {
                     std::set< mega::io::megaFilePath >  uniqueFiles;

@@ -94,8 +94,20 @@ struct __invoke_impl
 {% endif %}
 {% else if invocation.explicit_operation == "Start" %}
         // Start
+        static mega::runtime::StartFunction g_pRuntimeFunc = nullptr;
+        if( nullptr == g_pRuntimeFunc )
+        {
+            mega::runtime::get_start( g_unit_name, id, &g_pRuntimeFunc );
+        }
+        return g_pRuntimeFunc( context.data );
 {% else if invocation.explicit_operation == "Stop" %}
         // Stop
+        static mega::runtime::StopFunction g_pRuntimeFunc = nullptr;
+        if( nullptr == g_pRuntimeFunc )
+        {
+            mega::runtime::get_stop( g_unit_name, id, &g_pRuntimeFunc );
+        }
+        return g_pRuntimeFunc( context.data );
 {% else if invocation.explicit_operation == "Pause" %}
         // Pause
 {% else if invocation.explicit_operation == "Resume" %}

@@ -136,7 +136,7 @@ public:
                     while ( pIter )
                     {
                         typeNamePath.push_back( pIter->get_identifier() );
-                        pIter = dynamic_database_cast< Interface::IContext >( pIter->get_parent() );
+                        pIter = db_cast< Interface::IContext >( pIter->get_parent() );
                     }
                     std::reverse( typeNamePath.begin(), typeNamePath.end() );
                     std::ostringstream os;

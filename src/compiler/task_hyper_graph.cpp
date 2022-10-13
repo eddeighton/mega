@@ -65,8 +65,7 @@ public:
             using namespace HyperGraphAnalysis::HyperGraph;
 
             // if pLink is an interface link then it IS the pSourceLinkInterface
-            if ( Interface::LinkInterface* pSourceInterfaceLink
-                 = dynamic_database_cast< Interface::LinkInterface >( pLink ) )
+            if ( auto pSourceInterfaceLink = db_cast< Interface::LinkInterface >( pLink ) )
             {
                 return pSourceInterfaceLink;
             }
@@ -75,10 +74,9 @@ public:
                 Interface::IContext* pInterfaceTarget = getLinkTarget( pLink );
                 // otherwise the links target will define its interface link
                 // either it targets a link
-                if ( Interface::Link* pTargetLink = dynamic_database_cast< Interface::Link >( pInterfaceTarget ) )
+                if ( auto pTargetLink = db_cast< Interface::Link >( pInterfaceTarget ) )
                 {
-                    if ( Interface::LinkInterface* pTargetLinkInterface
-                         = dynamic_database_cast< Interface::LinkInterface >( pInterfaceTarget ) )
+                    if ( auto pTargetLinkInterface = db_cast< Interface::LinkInterface >( pInterfaceTarget ) )
                     {
                         // if the target is a link interface than that IS the pSourceLinkInterface
                         return pTargetLinkInterface;
@@ -90,8 +88,7 @@ public:
                     }
                 }
                 // or it targets an object
-                else if ( Interface::Object* pTargetObject
-                          = dynamic_database_cast< Interface::Object >( pInterfaceTarget ) )
+                else if ( auto pTargetObject = db_cast< Interface::Object >( pInterfaceTarget ) )
                 {
                     THROW_RTE( "Link targets to objects unsupported" );
                 }
@@ -114,8 +111,7 @@ public:
             for ( Interface::Link* pSourceLink : database.many< Interface::Link >( sourceFilePath ) )
             {
                 Interface::LinkInterface* pSourceLinkInterface = findLinkInterface( pSourceLink );
-                Interface::Link*          pTargetLink
-                    = dynamic_database_cast< Interface::Link >( getLinkTarget( pSourceLinkInterface ) );
+                auto pTargetLink = db_cast< Interface::Link >( getLinkTarget( pSourceLinkInterface ) );
                 VERIFY_RTE_MSG( pTargetLink, "Invalid link target" );
                 Interface::LinkInterface* pTargetLinkInterface = findLinkInterface( pTargetLink );
                 Relation*                 pRelation            = database.construct< Relation >(
@@ -145,14 +141,14 @@ public:
                 Interface::IContext* pContext  = database.convert< Interface::IContext >( pOldContext );
                 Relation*            pRelation = nullptr;
                 if ( HyperGraphAnalysisView::HyperGraph::SingularRelation* pSingular
-                     = HyperGraphAnalysisView::dynamic_database_cast<
+                     = HyperGraphAnalysisView::db_cast<
                          HyperGraphAnalysisView::HyperGraph::SingularRelation >( pOldRelation ) )
                 {
                     // pRelation = database.construct< SingularRelation >(
                     //     SingularRelation::Args{ Relation::Args{ pLink, pTarget } } );
                 }
                 else if ( HyperGraphAnalysisView::HyperGraph::NonSingularRelation* pNonSingular
-                          = HyperGraphAnalysisView::dynamic_database_cast<
+                          = HyperGraphAnalysisView::db_cast<
                               HyperGraphAnalysisView::HyperGraph::NonSingularRelation >( pOldRelation ) )
                 {
                 }

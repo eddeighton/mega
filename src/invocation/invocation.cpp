@@ -191,9 +191,10 @@ ElementVector* toElementVector( Database& database, const InterfaceVariantVector
 
             // std::cout << "TEST MSG from toElementVector for: " << pContext->get_identifier() << std::endl;
             const auto concreteInheritors = pContext->get_concrete();
-            if( concreteInheritors.empty() )
+            if ( concreteInheritors.empty() )
             {
-                std::cout << "ERROR: no concrete inheritors for: " << pContext->get_identifier() << " id: " << pContext->get_interface_id() << std::endl;
+                std::cout << "ERROR: no concrete inheritors for: " << pContext->get_identifier()
+                          << " id: " << pContext->get_interface_id() << std::endl;
             }
 
             for ( Concrete::Context* pConcrete : pContext->get_concrete() )
@@ -254,7 +255,7 @@ void analyseReturnTypes( Database& database, Invocation* pInvocation )
         using OperationsStage::Invocations::Operations::Write;
         for ( Operation* pOperation : getOperations( pInvocation->get_root_instruction() ) )
         {
-            if ( dynamic_database_cast< Write >( pOperation ) )
+            if ( db_cast< Write >( pOperation ) )
                 bIsWriteOperation = true;
             for ( auto pReturnType : pOperation->get_return_types() )
             {
@@ -313,7 +314,7 @@ void findDuplicate( OperationsStage::Invocations::Instructions::Instruction* pIn
     using namespace OperationsStage::Invocations::Instructions;
     using namespace OperationsStage::Invocations::Operations;
 
-    if ( InstructionGroup* pInstructionGroup = dynamic_database_cast< InstructionGroup >( pInstruction ) )
+    if ( InstructionGroup* pInstructionGroup = db_cast< InstructionGroup >( pInstruction ) )
     {
         auto children = pInstructionGroup->get_children();
         VERIFY_RTE_MSG( children.size() < 2U, "Found duplicate: " << pszMsg );
@@ -376,11 +377,11 @@ void build( Database& database, Invocation* pInvocation )
             std::vector< Concrete::Dimensions::User* > dimensions;
             for ( Operation* pOperation : operations )
             {
-                if ( BasicOperation* pBasicOp = dynamic_database_cast< BasicOperation >( pOperation ) )
+                if ( BasicOperation* pBasicOp = db_cast< BasicOperation >( pOperation ) )
                 {
                     contexts.push_back( pBasicOp->get_concrete_target() );
                 }
-                else if ( DimensionOperation* pDimensionOp = dynamic_database_cast< DimensionOperation >( pOperation ) )
+                else if ( DimensionOperation* pDimensionOp = db_cast< DimensionOperation >( pOperation ) )
                 {
                     dimensions.push_back( pDimensionOp->get_concrete_dimension() );
                 }
@@ -425,7 +426,7 @@ void build( Database& database, Invocation* pInvocation )
                         using OperationsStage::Invocations::Operations::Call;
                         using OperationsStage::Invocations::Operations::Start;
 
-                        if ( auto pAllocate = dynamic_database_cast< Allocate >( pOperation ) )
+                        if ( auto pAllocate = db_cast< Allocate >( pOperation ) )
                         {
                             for ( Element* pElement : nonPolyTargets )
                             {
@@ -436,7 +437,7 @@ void build( Database& database, Invocation* pInvocation )
                                 }
                             }
                         }
-                        else if ( auto pCall = dynamic_database_cast< Call >( pOperation ) )
+                        else if ( auto pCall = db_cast< Call >( pOperation ) )
                         {
                             for ( Element* pElement : nonPolyTargets )
                             {
@@ -447,7 +448,7 @@ void build( Database& database, Invocation* pInvocation )
                                 }
                             }
                         }
-                        else if ( auto pStart = dynamic_database_cast< Start >( pOperation ) )
+                        else if ( auto pStart = db_cast< Start >( pOperation ) )
                         {
                             for ( Element* pElement : nonPolyTargets )
                             {
@@ -503,7 +504,7 @@ void printIContextFullType( OperationsStage::Interface::IContext* pContext, std:
     while ( pContext )
     {
         path.push_back( pContext );
-        pContext = dynamic_database_cast< Interface::IContext >( pContext->get_parent() );
+        pContext = db_cast< Interface::IContext >( pContext->get_parent() );
     }
     std::reverse( path.begin(), path.end() );
     for ( auto i = path.begin(), iNext = path.begin(), iEnd = path.end(); i != iEnd; ++i )
@@ -560,7 +561,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         bool bFound = false;
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Allocate >( pOperation ) )
+            if ( auto pOp = db_cast< Allocate >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Allocate );
                 bFound = true;
@@ -568,7 +569,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Call >( pOperation ) )
+            if ( auto pOp = db_cast< Call >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Call );
                 bFound = true;
@@ -576,7 +577,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Start >( pOperation ) )
+            if ( auto pOp = db_cast< Start >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Start );
                 bFound = true;
@@ -584,7 +585,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Stop >( pOperation ) )
+            if ( auto pOp = db_cast< Stop >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Stop );
                 bFound = true;
@@ -592,7 +593,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Pause >( pOperation ) )
+            if ( auto pOp = db_cast< Pause >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Pause );
                 bFound = true;
@@ -600,7 +601,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Resume >( pOperation ) )
+            if ( auto pOp = db_cast< Resume >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Resume );
                 bFound = true;
@@ -608,7 +609,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Done >( pOperation ) )
+            if ( auto pOp = db_cast< Done >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Done );
                 bFound = true;
@@ -616,7 +617,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< WaitAction >( pOperation ) )
+            if ( auto pOp = db_cast< WaitAction >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_WaitAction );
                 bFound = true;
@@ -624,7 +625,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< WaitDimension >( pOperation ) )
+            if ( auto pOp = db_cast< WaitDimension >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_WaitDimension );
                 bFound = true;
@@ -632,7 +633,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< GetAction >( pOperation ) )
+            if ( auto pOp = db_cast< GetAction >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_GetAction );
                 bFound = true;
@@ -640,7 +641,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< GetDimension >( pOperation ) )
+            if ( auto pOp = db_cast< GetDimension >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_GetDimension );
                 bFound = true;
@@ -648,7 +649,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Read >( pOperation ) )
+            if ( auto pOp = db_cast< Read >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Read );
                 bFound = true;
@@ -656,7 +657,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Write >( pOperation ) )
+            if ( auto pOp = db_cast< Write >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Write );
                 bFound = true;
@@ -664,7 +665,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< WriteLink >( pOperation ) )
+            if ( auto pOp = db_cast< WriteLink >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Write );
                 bFound = true;
@@ -672,7 +673,7 @@ ExplicitOperationID determineExplicitOperationType( Invocation* pInvocation )
         }
         if ( !bFound )
         {
-            if ( auto pOp = dynamic_database_cast< Range >( pOperation ) )
+            if ( auto pOp = db_cast< Range >( pOperation ) )
             {
                 setOrCheck( resultOpt, id_exp_Range );
                 bFound = true;
@@ -832,7 +833,7 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
         bool bNonFunction = false;
         for ( Interface::IContext* pReturnContext : contexts )
         {
-            if ( auto pFunctionCall = dynamic_database_cast< Interface::Function >( pReturnContext ) )
+            if ( auto pFunctionCall = db_cast< Interface::Function >( pReturnContext ) )
             {
                 if ( strFunctionReturnTypeOpt.has_value() )
                 {
@@ -931,6 +932,11 @@ OperationsStage::Operations::Invocation* construct( io::Environment& environment
             break;
             case mega::id_exp_Start:
             case mega::id_exp_Stop:
+            {
+                printContextType( contexts, osReturnTypeStr );
+                osRuntimeReturnType << "mega::reference";
+                break;
+            }
             case mega::id_exp_Pause:
             case mega::id_exp_Resume:
             case mega::id_exp_WaitAction:

@@ -182,7 +182,7 @@ namespace {{ stage.name }}
     };
 
     template< typename TTo, typename TFrom >
-    inline TTo* dynamic_database_cast( TFrom* pFrom )
+    inline TTo* db_cast( TFrom* pFrom )
     {
         return PointerCast< TFrom, TTo >()( pFrom );
     }

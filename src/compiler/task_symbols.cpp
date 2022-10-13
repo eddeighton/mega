@@ -266,7 +266,7 @@ public:
         {
             TypeIDSequenceGen idSequenceGen(
                 newSymbolNames,
-                &SymbolAnalysis::dynamic_database_cast< SymbolAnalysis::Interface::IContext,
+                &SymbolAnalysis::db_cast< SymbolAnalysis::Interface::IContext,
                                                         SymbolAnalysis::Interface::ContextGroup > );
 
             std::set< TypeID > usedTypeIDs;
@@ -521,7 +521,7 @@ public:
                                                 SymbolRollout::Interface::IContext,
                                                 SymbolRollout::Interface::DimensionTrait >
             idSequenceGen( symbolNames,
-                           &SymbolRollout::dynamic_database_cast< SymbolRollout::Interface::IContext,
+                           &SymbolRollout::db_cast< SymbolRollout::Interface::IContext,
                                                                   SymbolRollout::Interface::ContextGroup > );
 
         for ( Interface::IContext* pContext : database.many< Interface::IContext >( m_sourceFilePath ) )

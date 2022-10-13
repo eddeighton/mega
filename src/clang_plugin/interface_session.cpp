@@ -385,7 +385,7 @@ public:
         }
         bool bProcess = false;
         {
-            if ( auto pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+            if ( auto pNamespace = db_cast< Namespace >( pContext ) )
             {
                 if ( !pNamespace->get_is_global() )
                 {
@@ -395,7 +395,7 @@ public:
             }
         }
         {
-            if ( auto pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+            if ( auto pAbstract = db_cast< Abstract >( pContext ) )
             {
                 dimensionAnalysis( pAbstract, result.loc, result.pDeclContext );
 
@@ -408,7 +408,7 @@ public:
             }
         }
         {
-            if ( auto pAction = dynamic_database_cast< Action >( pContext ) )
+            if ( auto pAction = db_cast< Action >( pContext ) )
             {
                 dimensionAnalysis( pAction, result.loc, result.pDeclContext );
 
@@ -426,7 +426,7 @@ public:
             }
         }
         {
-            if ( auto pEvent = dynamic_database_cast< Event >( pContext ) )
+            if ( auto pEvent = db_cast< Event >( pContext ) )
             {
                 dimensionAnalysis( pEvent, result.loc, result.pDeclContext );
 
@@ -444,7 +444,7 @@ public:
             }
         }
         {
-            if ( auto pFunction = dynamic_database_cast< Function >( pContext ) )
+            if ( auto pFunction = db_cast< Function >( pContext ) )
             {
                 auto pCXXRecordDecl = dyn_cast< CXXRecordDecl >( result.pDeclContext );
                 if ( !pCXXRecordDecl )
@@ -461,7 +461,7 @@ public:
             }
         }
         {
-            if ( auto pObject = dynamic_database_cast< Object >( pContext ) )
+            if ( auto pObject = db_cast< Object >( pContext ) )
             {
                 dimensionAnalysis( pObject, result.loc, result.pDeclContext );
 
@@ -474,7 +474,7 @@ public:
             }
         }
         {
-            if ( auto pLink = dynamic_database_cast< Link >( pContext ) )
+            if ( auto pLink = db_cast< Link >( pContext ) )
             {
                 if ( !inheritanceAnalysis( pLink, pLink->get_link_target(), result.loc, result.pDeclContext ) )
                     return false;

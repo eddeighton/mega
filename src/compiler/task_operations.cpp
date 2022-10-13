@@ -92,7 +92,7 @@ public:
         using namespace ConcreteStage;
         using namespace ConcreteStage::Interface;
 
-        if ( Namespace* pNamespace = dynamic_database_cast< Namespace >( pContext ) )
+        if ( auto pNamespace = db_cast< Namespace >( pContext ) )
         {
             /*if ( pNamespace->get_is_global() )
             {
@@ -111,7 +111,7 @@ public:
                 }
             }
         }
-        else if ( Abstract* pAbstract = dynamic_database_cast< Abstract >( pContext ) )
+        else if ( auto pAbstract = db_cast< Abstract >( pContext ) )
         {
             CleverUtility c( types, pAbstract->get_identifier() );
             for ( IContext* pNestedContext : pAbstract->get_children() )
@@ -119,7 +119,7 @@ public:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( Action* pAction = dynamic_database_cast< Action >( pContext ) )
+        else if ( auto pAction = db_cast< Action >( pContext ) )
         {
             CleverUtility c( types, pAction->get_identifier() );
 
@@ -150,10 +150,10 @@ public:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( Event* pEvent = dynamic_database_cast< Event >( pContext ) )
+        else if ( auto pEvent = db_cast< Event >( pContext ) )
         {
         }
-        else if ( Function* pFunction = dynamic_database_cast< Function >( pContext ) )
+        else if ( auto pFunction = db_cast< Function >( pContext ) )
         {
             CleverUtility c( types, pFunction->get_identifier() );
 
@@ -190,7 +190,7 @@ public:
 
             data[ "operations" ].push_back( operation );
         }
-        else if ( Object* pObject = dynamic_database_cast< Object >( pContext ) )
+        else if ( auto pObject = db_cast< Object >( pContext ) )
         {
             CleverUtility c( types, pObject->get_identifier() );
             for ( IContext* pNestedContext : pObject->get_children() )
@@ -198,7 +198,7 @@ public:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( Link* pLink = dynamic_database_cast< Link >( pContext ) )
+        else if ( auto pLink = db_cast< Link >( pContext ) )
         {
             CleverUtility c( types, pLink->get_identifier() );
             for ( IContext* pNestedContext : pLink->get_children() )
@@ -206,7 +206,7 @@ public:
                 recurse( pNestedContext, data, namespaces, types );
             }
         }
-        else if ( Buffer* pBuffer = dynamic_database_cast< Buffer >( pContext ) )
+        else if ( auto pBuffer = db_cast< Buffer >( pContext ) )
         {
         }
         else

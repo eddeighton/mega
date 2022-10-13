@@ -77,7 +77,7 @@ public:
         {
             if ( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
             {
-                pInterfaceContextGroup = dynamic_database_cast< TInterfaceContextType >( pContextGroup );
+                pInterfaceContextGroup = db_cast< TInterfaceContextType >( pContextGroup );
                 VERIFY_PARSER( pInterfaceContextGroup,
                                "IContext definition of identifier: " << name << " with mixed types",
                                pContextDef->get_id() );
@@ -108,11 +108,11 @@ public:
             using namespace InterfaceStage;
             using namespace InterfaceStage::Interface;
 
-            if ( Root* pParentContext = dynamic_database_cast< Root >( pParent ) )
+            if ( Root* pParentContext = db_cast< Root >( pParent ) )
             {
                 return true;
             }
-            else if ( Namespace* pParentNamespace = dynamic_database_cast< Namespace >( pParent ) )
+            else if ( Namespace* pParentNamespace = db_cast< Namespace >( pParent ) )
             {
                 return isGlobalNamespace()( pParentNamespace->get_parent() );
             }
@@ -138,8 +138,7 @@ public:
 
         for ( Parser::Include* pInclude : pContextDef->get_includes() )
         {
-            if ( Parser::MegaIncludeNested* pNestedInclude
-                 = dynamic_database_cast< Parser::MegaIncludeNested >( pInclude ) )
+            if ( Parser::MegaIncludeNested* pNestedInclude = db_cast< Parser::MegaIncludeNested >( pInclude ) )
             {
                 Parser::IncludeRoot* pIncludeRoot       = pNestedInclude->get_root();
                 Parser::ContextDef*  pIncludeContextDef = pIncludeRoot->get_ast();
@@ -151,7 +150,7 @@ public:
                 {
                     if ( Interface::ContextGroup* pContextGroup = findContextGroup( name, namedContexts ) )
                     {
-                        pInterfaceContextGroup = dynamic_database_cast< Namespace >( pContextGroup );
+                        pInterfaceContextGroup = db_cast< Namespace >( pContextGroup );
                         VERIFY_PARSER( pInterfaceContextGroup,
                                        "IContext definition of identifier: " << name << " with mixed types",
                                        pContextDef->get_id() );
@@ -180,8 +179,7 @@ public:
                 }
                 recurse( database, pComponent, pRoot, pInterfaceContextGroup, pIncludeContextDef, name, namedContexts );
             }
-            else if ( Parser::MegaIncludeInline* pInlineInclude
-                      = dynamic_database_cast< Parser::MegaIncludeInline >( pInclude ) )
+            else if ( auto pInlineInclude = db_cast< Parser::MegaIncludeInline >( pInclude ) )
             {
                 Parser::IncludeRoot* pIncludeRoot = pInlineInclude->get_root();
                 recurse( database, pComponent, pRoot, pGroup, pIncludeRoot->get_ast(), currentName, namedContexts );
@@ -190,7 +188,7 @@ public:
 
         for ( Parser::ContextDef* pChildContext : pContextDef->get_children() )
         {
-            if ( Parser::NamespaceDef* pNamespaceDef = dynamic_database_cast< Parser::NamespaceDef >( pChildContext ) )
+            if ( auto pNamespaceDef = db_cast< Parser::NamespaceDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::NamespaceDef, Namespace >(
                     database, pComponent, pRoot, pNamespaceDef, currentName, namedContexts,
@@ -206,8 +204,7 @@ public:
                     []( Namespace* pNamespace, Parser::ContextDef* pNamespaceDef )
                     { pNamespace->push_back_namespace_defs( pNamespaceDef ); } );
             }
-            else if ( Parser::AbstractDef* pAbstractDef
-                      = dynamic_database_cast< Parser::AbstractDef >( pChildContext ) )
+            else if ( auto pAbstractDef = db_cast< Parser::AbstractDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::AbstractDef, Abstract >(
                     database, pComponent, pRoot, pAbstractDef, currentName, namedContexts,
@@ -222,7 +219,7 @@ public:
                     []( Abstract* pAbstract, Parser::AbstractDef* pAbstractDef )
                     { pAbstract->push_back_abstract_defs( pAbstractDef ); } );
             }
-            else if ( Parser::ActionDef* pActionDef = dynamic_database_cast< Parser::ActionDef >( pChildContext ) )
+            else if ( auto pActionDef = db_cast< Parser::ActionDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::ActionDef, Action >(
                     database, pComponent, pRoot, pActionDef, currentName, namedContexts,
@@ -237,7 +234,7 @@ public:
                     []( Action* pAction, Parser::ActionDef* pActionDef )
                     { pAction->push_back_action_defs( pActionDef ); } );
             }
-            else if ( Parser::EventDef* pEventDef = dynamic_database_cast< Parser::EventDef >( pChildContext ) )
+            else if ( auto pEventDef = db_cast< Parser::EventDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::EventDef, Event >(
                     database, pComponent, pRoot, pEventDef, currentName, namedContexts,
@@ -251,8 +248,7 @@ public:
                     },
                     []( Event* pEvent, Parser::EventDef* pEventDef ) { pEvent->push_back_event_defs( pEventDef ); } );
             }
-            else if ( Parser::FunctionDef* pFunctionDef
-                      = dynamic_database_cast< Parser::FunctionDef >( pChildContext ) )
+            else if ( auto pFunctionDef = db_cast< Parser::FunctionDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::FunctionDef, Function >(
                     database, pComponent, pRoot, pFunctionDef, currentName, namedContexts,
@@ -267,7 +263,7 @@ public:
                     []( Function* pFunction, Parser::FunctionDef* pFunctionDef )
                     { pFunction->push_back_function_defs( pFunctionDef ); } );
             }
-            else if ( Parser::ObjectDef* pObjectDef = dynamic_database_cast< Parser::ObjectDef >( pChildContext ) )
+            else if ( auto pObjectDef = db_cast< Parser::ObjectDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::ObjectDef, Object >(
                     database, pComponent, pRoot, pObjectDef, currentName, namedContexts,
@@ -282,8 +278,7 @@ public:
                     []( Object* pObject, Parser::ObjectDef* pObjectDef )
                     { pObject->push_back_object_defs( pObjectDef ); } );
             }
-            else if ( Parser::LinkInterfaceDef* pLinkInterfaceDef
-                      = dynamic_database_cast< Parser::LinkInterfaceDef >( pChildContext ) )
+            else if ( auto pLinkInterfaceDef = db_cast< Parser::LinkInterfaceDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::LinkInterfaceDef, LinkInterface >(
                     database, pComponent, pRoot, pLinkInterfaceDef, currentName, namedContexts,
@@ -299,7 +294,7 @@ public:
                     []( LinkInterface* pLinkInterface, Parser::LinkInterfaceDef* pLinkInterfaceDef )
                     { pLinkInterface->push_back_link_defs( pLinkInterfaceDef ); } );
             }
-            else if ( Parser::LinkDef* pLinkDef = dynamic_database_cast< Parser::LinkDef >( pChildContext ) )
+            else if ( auto pLinkDef = db_cast< Parser::LinkDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::LinkDef, Link >(
                     database, pComponent, pRoot, pLinkDef, currentName, namedContexts,
@@ -313,7 +308,7 @@ public:
                     },
                     []( Link* pLink, Parser::LinkDef* pLinkDef ) { pLink->push_back_link_defs( pLinkDef ); } );
             }
-            else if ( Parser::BufferDef* pBufferDef = dynamic_database_cast< Parser::BufferDef >( pChildContext ) )
+            else if ( auto pBufferDef = db_cast< Parser::BufferDef >( pChildContext ) )
             {
                 constructOrAggregate< Parser::BufferDef, Buffer >(
                     database, pComponent, pRoot, pBufferDef, currentName, namedContexts,
@@ -341,7 +336,7 @@ public:
     {
         using namespace InterfaceStage;
 
-        for ( Parser::Dimension* pParserDim : pDef->get_dimensions() )
+        for ( auto pParserDim : pDef->get_dimensions() )
         {
             for ( Parser::Dimension* pExistingDimension : dimensions )
             {
@@ -532,10 +527,9 @@ public:
             VERIFY_PARSER( pDef->get_dimensions().empty(), "Link has dimensions", pDef->get_id() );
             VERIFY_PARSER( pDef->get_body().empty(), "Link has body", pDef->get_id() );
 
-            if ( Parser::LinkInterfaceDef* pLinkInterfaceDef
-                 = dynamic_database_cast< Parser::LinkInterfaceDef >( pDef ) )
+            if ( Parser::LinkInterfaceDef* pLinkInterfaceDef = db_cast< Parser::LinkInterfaceDef >( pDef ) )
             {
-                Interface::LinkInterface* pLinkInterface = dynamic_database_cast< Interface::LinkInterface >( pLink );
+                Interface::LinkInterface* pLinkInterface = db_cast< Interface::LinkInterface >( pLink );
                 VERIFY_PARSER( pLinkInterface, "Invalid link interface definition", pLinkInterfaceDef->get_id() );
                 Interface::LinkTrait* pLinkTrait = database.construct< Interface::LinkTrait >(
                     Interface::LinkTrait::Args{ pLinkInterfaceDef->get_link_interface() } );
