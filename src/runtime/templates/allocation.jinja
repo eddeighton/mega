@@ -24,11 +24,11 @@
 
 namespace mega
 {
-{% for allocator in allocators %}
-    void new_{{allocator}}(void*,void*);
+{% for newer in news %}
+    void new_{{newer}}(void*,void*);
 {% endfor %}
-{% for deallocator in deallocators %}
-    void delete_{{deallocator}}(void*);
+{% for deleter in deleters %}
+    void delete_{{deleter}}(void*);
 {% endfor %}
 }
 

@@ -53,6 +53,8 @@ private:
                              std::string& strName ) const;
     void compileToIR( const boost::filesystem::path& sourcePath, const boost::filesystem::path& irPath ) const;
 
+
+
 private:
     std::shared_ptr< Pimpl > m_pPimpl;
 };

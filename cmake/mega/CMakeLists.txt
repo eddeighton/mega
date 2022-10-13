@@ -32,6 +32,7 @@ set( MEGA_LIBRARY
     ${MEGA_API_DIR}/mega/coroutine.hpp
     ${MEGA_API_DIR}/mega/default_traits.hpp
     ${MEGA_API_DIR}/mega/default_traits.hxx
+    ${MEGA_API_DIR}/mega/allocator_traits.hxx
     ${MEGA_API_DIR}/mega/default_traits.cpp
     ${MEGA_API_DIR}/mega/eg_common_strings.hpp
     ${MEGA_API_DIR}/mega/event.hpp

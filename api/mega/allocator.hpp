@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #ifndef EG_ALLOCATORS_GUARD_20_JULY_2020
 #define EG_ALLOCATORS_GUARD_20_JULY_2020
 
@@ -62,8 +60,15 @@ public:
 
     inline Instance nextFree() const
     {
+        const mega::U64 mask = m_bitset.to_ulong();
+        
+#ifdef __gnu_linux__
+        return ffsll( mask );
+#endif
+
+#ifdef _WIN32
         unsigned long index;
-        if ( _BitScanForward( &index, m_bitset.to_ulong() ) )
+        if ( _BitScanForward( &index, mask ) )
         {
             return index;
         }
@@ -71,12 +76,18 @@ public:
         {
             return Size;
         }
+#endif
+
     }
 
+    inline Instance allocate()
+    {
+        const Instance next = nextFree();
+        allocate( next );
+        return next;
+    }
     inline void allocate( Instance instance ) { m_bitset.reset( instance ); }
-
     inline void free( Instance instance ) { m_bitset.set( instance ); }
-
     inline bool empty() const { return m_bitset.all(); }
     inline bool full() const { return m_bitset.none(); }
 
@@ -94,8 +105,8 @@ public:
 
     inline Bitmask64Allocator()
     {
-        static_assert( Size > sizeof( mega::U32 ) * 8 );
-        static_assert( Size <= sizeof( mega::U64 ) * 8 );
+        static_assert( Size >= 32 );
+        static_assert( Size < 64 );
         m_bitset.set();
     }
 
@@ -128,10 +139,14 @@ public:
 #endif
     }
 
+    inline Instance allocate()
+    {
+        Instance next = nextFree();
+        allocate( next );
+        return next;
+    }
     inline void allocate( Instance instance ) { m_bitset.reset( instance ); }
-
     inline void free( Instance instance ) { m_bitset.set( instance ); }
-
     inline bool empty() const { return m_bitset.all(); }
     inline bool full() const { return m_bitset.none(); }
 
@@ -145,7 +160,7 @@ class RingAllocator
     friend struct mega::DimensionTraits< mega::RingAllocator< TInstanceType, _Size > >;
 
 public:
-    using FreeList = boost::circular_buffer< TInstanceType >;
+    using FreeList                  = boost::circular_buffer< TInstanceType >;
     using InstanceType              = TInstanceType;
     static const TInstanceType Size = _Size;
 
@@ -164,8 +179,9 @@ public:
         }
     }
 
-    inline bool empty() const { return m_free.full(); }
-    inline bool full() const { return m_free.empty(); }
+    inline bool     empty() const { return m_free.full(); }
+    inline bool     full() const { return m_free.empty(); }
+    const FreeList& getFree() const { return m_free; }
 
     inline InstanceType allocate()
     {
@@ -174,16 +190,14 @@ public:
         return result;
     }
 
-    inline void free( InstanceType instance ) 
-    { 
-        m_free.push_front( instance ); 
-    }
-
-    const FreeList& getFree() const { return m_free; }
+    inline void free( InstanceType instance ) { m_free.push_front( instance ); }
 
 private:
     FreeList m_free;
 };
+
+template < Instance _Size >
+using InstanceAllocator = RingAllocator< Instance, _Size >;
 
 } // namespace mega
 

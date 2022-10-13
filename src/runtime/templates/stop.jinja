@@ -36,6 +36,14 @@ namespace mega
 {% for event in events %}
     void event_{{event}}(const reference&,bool,const void*);
 {% endfor %}
+
+{% for allocate in allocators %}
+    Instance allocate_{{allocate}}(void*);
+{% endfor %}
+{% for free in freers %}
+    void free_{{free}}(void*,Instance);
+{% endfor %}
+
 }
 
 mega::reference {{ name }}( mega::reference context )

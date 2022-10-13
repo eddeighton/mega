@@ -66,9 +66,8 @@ void event_( const mega::reference& ref, bool bShared, const void* p )
     mega::log::Storage& log = mega::MPOContext::get()->getLog();
 
     log.record( mega::log::RecordTrackType::SIM_Writes,
-                mega::log::MemoryRecord( ref, bShared, std::string_view( reinterpret_cast< const char* >( p ), sizeof( T ) ) ) );
-    
-
+                mega::log::MemoryRecord(
+                    ref, bShared, std::string_view( reinterpret_cast< const char* >( p ), sizeof( T ) ) ) );
 }
 
 /*
@@ -128,6 +127,35 @@ namespace mega
 #include "default_traits.hxx"
 #undef SIMPLETYPE
 
+#define ALLOCATOR( manged_name, type )                                                \
+    void new_##manged_name( void* p, void* pMemory )                                  \
+    {                                                                                 \
+        new_< type >( p );                                                            \
+    }                                                                                 \
+    void delete_##manged_name( void* p )                                              \
+    {                                                                                 \
+        delete_< type >( p );                                                         \
+    }                                                                                 \
+    void store_##manged_name( void* p, void* pArchive )                               \
+    {                                                                                 \
+        store_< type >( p, pArchive );                                                \
+    }                                                                                 \
+    void load_##manged_name( void* p, void* pArchive )                                \
+    {                                                                                 \
+        load_< type >( p, pArchive );                                                 \
+    }                                                                                 \
+    void copy_##manged_name( const void* pFrom, void* pTo )                           \
+    {                                                                                 \
+        copy_< type >( pFrom, pTo );                                                  \
+    }                                                                                 \
+    void event_##manged_name( const reference& ref, bool bShared, const void* pData ) \
+    {                                                                                 \
+        event_< type >( ref, bShared, pData );                                        \
+    }
+
+#include "allocator_traits.hxx"
+#undef ALLOCATOR
+
 // std::vector< int >
 void new_classstd00vector3int4( void* p, void* pMemory ) { new_< std::vector< int > >( p ); }
 void delete_classstd00vector3int4( void* p ) { delete_< std::vector< int > >( p ); }
@@ -148,5 +176,43 @@ void delete_mega00ReferenceVector( void* p ) { delete_< mega::ReferenceVector >(
 void store_mega00ReferenceVector( void* p, void* pArchive ) { store_< mega::ReferenceVector >( p, pArchive ); }
 void load_mega00ReferenceVector( void* p, void* pArchive ) { load_< mega::ReferenceVector >( p, pArchive ); }
 void copy_mega00ReferenceVector( const void* pFrom, void* pTo ) { copy_< mega::ReferenceVector >( pFrom, pTo ); }
+
+// allocator routines
+Instance allocate_bool( void* p )
+{
+    bool* pBool = reinterpret_cast< bool* >( p );
+    *pBool      = true;
+    return 0;
+}
+void free_bool( void* p, Instance )
+{
+    bool* pBool = reinterpret_cast< bool* >( p );
+    *pBool      = false;
+}
+
+template < typename TAllocator >
+inline Instance allocate_( TAllocator& allocator )
+{
+    return allocator.allocate();
+}
+
+template < typename TAllocator >
+inline void free_( TAllocator& allocator, Instance instance )
+{
+    allocator.free( instance );
+}
+
+#define ALLOCATOR( manged_name, type )                               \
+    Instance allocate_##manged_name( void* p )                       \
+    {                                                                \
+        return allocate_< type >( *reinterpret_cast< type* >( p ) ); \
+    }                                                                \
+    void free_##manged_name( void* p, Instance instance )            \
+    {                                                                \
+        free_< type >( *reinterpret_cast< type* >( p ), instance );  \
+    }
+
+#include "allocator_traits.hxx"
+#undef ALLOCATOR
 
 } // namespace mega

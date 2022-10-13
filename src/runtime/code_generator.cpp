@@ -46,6 +46,62 @@ namespace mega::runtime
 namespace
 {
 
+static const std::string indent( "    " );
+
+using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
+
+inline std::string get( const VariableMap& varMap, const FinalStage::Invocations::Variables::Variable* pVar )
+{
+    auto iFind = varMap.find( pVar );
+    VERIFY_RTE( iFind != varMap.end() );
+    return iFind->second;
+}
+
+using PartSet      = std::set< const FinalStage::MemoryLayout::Part* >;
+using CallSet      = std::set< const FinalStage::Concrete::Context* >;
+using CopySet      = std::set< const FinalStage::Interface::DimensionTrait* >;
+using EventSet     = std::set< std::string >;
+using AllocatorSet = std::set< std::string >;
+using FreerSet     = std::set< std::string >;
+
+std::string allocatorTypeName( const DatabaseInstance&                      database,
+                               FinalStage::Concrete::Dimensions::Allocator* pAllocDim )
+{
+    using namespace FinalStage;
+
+    std::ostringstream     osTypeName;
+    Allocators::Allocator* pAllocator = pAllocDim->get_allocator();
+    if ( auto pAlloc = db_cast< Allocators::Nothing >( pAllocator ) )
+    {
+        // do nothing
+        THROW_RTE( "Unreachable" );
+    }
+    else if ( auto pAlloc = db_cast< Allocators::Singleton >( pAllocator ) )
+    {
+        osTypeName << "bool";
+    }
+    else if ( auto pAlloc = db_cast< Allocators::Range32 >( pAllocator ) )
+    {
+        osTypeName << "mega::Bitmask32Allocator< "
+                   << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
+    }
+    else if ( auto pAlloc = db_cast< Allocators::Range64 >( pAllocator ) )
+    {
+        osTypeName << "mega::Bitmask64Allocator< "
+                   << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
+    }
+    else if ( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocator ) )
+    {
+        osTypeName << "mega::RingAllocator< mega::Instance, "
+                   << database.getLocalDomainSize( pAlloc->get_allocated_context()->get_concrete_id() ) << " >";
+    }
+    else
+    {
+        THROW_RTE( "Unknown allocator type" );
+    }
+    return osTypeName.str();
+}
+
 void runCompilation( const std::string& strCmd )
 {
     SPDLOG_DEBUG( "Compiling: {}", strCmd );
@@ -235,6 +291,520 @@ public:
             boost::filesystem::loadAsciiFile( irFilePath, osIR );
         }
     }
+
+    std::string render( const std::string& strTemplate, const nlohmann::json& data )
+    {
+        return m_injaEnvironment.render( strTemplate, data );
+    }
+
+    void generateBufferFPtrCheck( bool bShared, mega::TypeID contextID, std::ostream& os )
+    {
+        const std::string strType = bShared ? "shared" : "heap";
+        os << indent << "if( _fptr_get_" << strType << "_" << contextID << " == nullptr ) "
+           << "mega::runtime::get_getter_" << strType << "( g_pszModuleName, " << contextID << ", &_fptr_get_"
+           << strType << "_" << contextID << " );\n";
+    }
+    void generateReferenceCheck( bool bShared, mega::TypeID contextID, const std::string& strInstanceVar,
+                                 std::ostream& os )
+    {
+        os << indent << "if( " << strInstanceVar << ".isNetwork() ) " << strInstanceVar
+           << " = mega::runtime::networkToMachine( " << contextID << ", " << strInstanceVar << ".network );\n";
+    }
+
+    void generateUserDimRead( bool bShared, mega::TypeID contextID, FinalStage::MemoryLayout::Part* pPart,
+                              const std::string&                            strInstanceVar,
+                              const FinalStage::Concrete::Dimensions::User* pDimension, std::ostream& os )
+    {
+        const std::string strType = bShared ? "shared" : "heap";
+        os << indent << "return reinterpret_cast< char* >(_fptr_get_" << strType << "_" << contextID << "( "
+           << strInstanceVar << " ) )"
+           << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar
+           << ".instance ) + " << pDimension->get_offset() << ";\n";
+    }
+
+    void generateAllocate( const std::string& strAllocatorMangledType, bool bShared, mega::TypeID contextID,
+                           FinalStage::MemoryLayout::Part* pPart, const std::string& strInstanceVar,
+                           const FinalStage::Concrete::Dimensions::Allocator* pAllocator, std::ostream& os )
+    {
+        // clang-format off
+static const char* szTemplate =
+R"TEMPLATE(
+    {
+        char* pAllocator
+            = reinterpret_cast< char* >( 
+                _fptr_get_{{ memory_type }}_{{ context_type_id }}( {{ instance_var }} ) ) + 
+                    {{ part_offset }} + 
+                    ( {{ part_size }} * {{ instance_var }}.instance ) + 
+                    {{ allocator_offset }};
+
+        mega::Instance newInstance = mega::allocate_{{ allocator_type }}( pAllocator );
+
+        mega::reference allocated( mega::TypeInstance( newInstance, 1 ), {{ instance_var }} );
+
+        // generate memory record
+        event_{{ allocator_type }}( mega::reference( mega::TypeInstance( {{ instance_var }}.instance, {{ allocator_type_id }} ), var_Root_1 ), false, pAllocator );
+
+        // generate scheduling record
+        // schedule_start( allocated );
+
+        return allocated;
+    }
+)TEMPLATE";
+
+        nlohmann::json data( 
+          { { "memory_type",        bShared ? "shared" : "heap" },
+            { "context_type_id",    contextID },
+            { "instance_var",       strInstanceVar },
+            { "part_offset",        pPart->get_offset() },
+            { "part_size",          pPart->get_size() },
+            { "allocator_type",     strAllocatorMangledType },
+            { "allocator_offset",   pAllocator->get_offset() },
+            { "allocator_type_id",  pAllocator->get_concrete_id() } } );
+
+        // clang-format on
+        os << render( szTemplate, data );
+    }
+    
+    void generateFreeDimRead( const std::string& strFreer, const std::string& strFreeInstanceVar, bool bShared,
+                              mega::TypeID contextID, FinalStage::MemoryLayout::Part* pPart,
+                              const std::string&                                 strInstanceVar,
+                              const FinalStage::Concrete::Dimensions::Allocator* pAllocator, std::ostream& os )
+    {
+        const std::string strType = bShared ? "shared" : "heap";
+        os << indent << "mega::free_" << strFreer << "( reinterpret_cast< char* >(_fptr_get_" << strType << "_"
+           << contextID << "( " << strInstanceVar << " ) )"
+           << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar
+           << ".instance ) + " << pAllocator->get_offset() << ", " << strFreeInstanceVar << ") ;\n";
+    }
+
+    void generateBufferWrite( bool bShared, mega::TypeID contextID, FinalStage::MemoryLayout::Part* pPart,
+                              const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
+                              std::ostream& os )
+    {
+        const std::string strMegaMangledTypeName
+            = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
+
+        const std::string strType    = bShared ? "shared" : "heap";
+        const std::string strBShared = bShared ? "true" : "false";
+
+        os << indent << "{\n";
+        os << indent << indent << "char* p = reinterpret_cast< char* >( _fptr_get_" << strType << "_" << contextID
+           << "( " << strInstanceVar << " ) ) "
+           << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar
+           << ".instance ) + " << pDimension->get_offset() << ";\n";
+        os << indent << indent << "::mega::copy_" << strMegaMangledTypeName << "( pData, p );\n";
+        os << indent << indent << "::mega::event_" << strMegaMangledTypeName
+           << "( mega::reference( mega::TypeInstance( " << strInstanceVar << ".instance, "
+           << pDimension->get_concrete_id() << "), " << strInstanceVar << " ), " << strBShared << ", p );\n";
+        os << indent << "}\n";
+    }
+
+    void generateInstructions( const DatabaseInstance&                             database,
+                               FinalStage::Invocations::Instructions::Instruction* pInstruction,
+                               const VariableMap& variables, PartSet& parts, CallSet& calls, CopySet& copiers,
+                               EventSet& events, AllocatorSet& allocators, FreerSet& freers, nlohmann::json& data )
+    {
+        using namespace FinalStage;
+        using namespace FinalStage::Invocations;
+
+        if ( auto pInstructionGroup = db_cast< Instructions::InstructionGroup >( pInstruction ) )
+        {
+            if ( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
+            {
+                std::ostringstream os;
+                os << indent << "// ParentDerivation\n";
+
+                const Variables::Instance* pFrom = pParentDerivation->get_from();
+                const Variables::Instance* pTo   = pParentDerivation->get_to();
+
+                const std::string  s           = get( variables, pFrom );
+                const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
+                const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
+
+                if ( szLocalSize > 1 )
+                {
+                    os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
+                       << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ", " << s
+                       << ".pointer };";
+                }
+                else
+                {
+                    os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
+                       << ".instance, " << targetType << " }, " << s << ", " << s << ".pointer };";
+                }
+
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pChildDerivation = db_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
+            {
+                std::ostringstream os;
+                os << indent << "// ChildDerivation\n";
+
+                const Variables::Instance* pFrom = pParentDerivation->get_from();
+                const Variables::Instance* pTo   = pParentDerivation->get_to();
+
+                const std::string  s           = get( variables, pFrom );
+                const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
+                const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
+
+                os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
+                   << ".instance, " << targetType << " }, " << s << ", " << s << ".process };";
+
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
+            {
+                std::ostringstream os;
+                os << indent << "// EnumDerivation\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pEnumeration = db_cast< Instructions::Enumeration >( pInstructionGroup ) )
+            {
+                std::ostringstream os;
+                os << indent << "// Enumeration\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pDimensionReferenceRead
+                      = db_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
+            {
+                std::ostringstream os;
+                os << indent << "// DimensionReferenceRead\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pMonoReference = db_cast< Instructions::MonoReference >( pInstructionGroup ) )
+            {
+                const Variables::Instance*  pInstance  = pMonoReference->get_instance();
+                const Variables::Reference* pReference = pMonoReference->get_reference();
+
+                std::ostringstream os;
+                os << indent << "// MonoReference\n";
+                os << indent << get( variables, pInstance ) << " = " << get( variables, pReference ) << ";";
+
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pPolyReference = db_cast< Instructions::PolyReference >( pInstructionGroup ) )
+            {
+                std::ostringstream os;
+                os << indent << "// PolyReference\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
+            {
+                std::ostringstream os;
+                os << indent << "// PolyCase\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else
+            {
+                THROW_RTE( "Unknown instruction type" );
+            }
+
+            for ( auto pChildInstruction : pInstructionGroup->get_children() )
+            {
+                generateInstructions(
+                    database, pChildInstruction, variables, parts, calls, copiers, events, allocators, freers, data );
+            }
+        }
+        else if ( auto pOperation = db_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
+        {
+            using namespace FinalStage::Invocations::Operations;
+
+            if ( auto pAllocate = db_cast< Allocate >( pOperation ) )
+            {
+                // Note how no events are needed when allocate a new object
+                Variables::Instance* pInstance       = pAllocate->get_instance();
+                Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
+
+                std::ostringstream os;
+                os << indent << "// Allocate\n";
+                generateReferenceCheck(
+                    false, pInstance->get_concrete()->get_concrete_id(), get( variables, pInstance ), os );
+
+                os << indent
+                   << "const mega::NetworkAddress networkAddress = mega::runtime::allocateNetworkAddress( "
+                      "context, "
+                   << pConcreteTarget->get_concrete_id() << " );\n";
+                os << indent << "mega::reference result = mega::runtime::allocateMachineAddress( context, "
+                   << pConcreteTarget->get_concrete_id() << ", networkAddress );\n";
+                os << indent << "return result;\n";
+
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pCall = db_cast< Call >( pOperation ) )
+            {
+                Concrete::Context*   pConcreteTarget = pCall->get_concrete_target();
+                Variables::Instance* pInstance       = pCall->get_instance();
+
+                std::ostringstream os;
+                {
+                    os << indent << "// Call Operation\n";
+                    generateReferenceCheck(
+                        false, pInstance->get_concrete()->get_concrete_id(), get( variables, pInstance ), os );
+
+                    std::ostringstream osCall;
+                    osCall << "_fptr_call_" << pConcreteTarget->get_concrete_id();
+
+                    os << indent << "if( " << osCall.str() << " == nullptr )\n";
+                    os << indent << "{\n";
+                    os << indent << "    mega::runtime::get_getter_call( g_pszModuleName, "
+                       << pConcreteTarget->get_concrete_id() << ", &" << osCall.str() << " );\n";
+                    os << indent << "}\n";
+                    os << indent << "return mega::runtime::CallResult{" << osCall.str() << ", "
+                       << get( variables, pInstance ) << " };\n";
+                }
+
+                calls.insert( pConcreteTarget );
+
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pStart = db_cast< Start >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// Start\n";
+
+                Concrete::Context*   pConcreteTarget = pStart->get_concrete_target();
+                Variables::Instance* pInstance       = pStart->get_instance();
+
+                auto optAllocDim = pConcreteTarget->get_allocator()->get_dimension();
+                ASSERT( optAllocDim.has_value() );
+
+                Concrete::Dimensions::Allocator* pAllocationDimension = optAllocDim.value();
+                Allocators::Allocator*           pAllocator           = pAllocationDimension->get_allocator();
+
+                const std::string strAllocatorTypeName = allocatorTypeName( database, pAllocationDimension );
+                const std::string strMangle            = megaMangle( strAllocatorTypeName );
+
+                allocators.insert( strMangle );
+
+                MemoryLayout::Part* pPart     = pAllocationDimension->get_part();
+                const mega::TypeID  contextID = pPart->get_context()->get_concrete_id();
+
+                {
+                    generateBufferFPtrCheck( true, contextID, os );
+                    generateReferenceCheck( true, contextID, get( variables, pInstance ), os );
+                    generateAllocate(
+                        strMangle, true, contextID, pPart, get( variables, pInstance ), pAllocationDimension, os );
+                }
+
+                data[ "assignments" ].push_back( os.str() );
+
+                events.insert( strMangle );
+
+                parts.insert( pAllocationDimension->get_part() );
+            }
+            else if ( auto pStop = db_cast< Stop >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// Stop\n";
+
+                Concrete::Context*   pConcreteTarget = pStart->get_concrete_target();
+                Variables::Instance* pInstance       = pStart->get_instance();
+
+                auto optAllocDim = pConcreteTarget->get_allocator()->get_dimension();
+                ASSERT( optAllocDim.has_value() );
+
+                Concrete::Dimensions::Allocator* pAllocationDimension = optAllocDim.value();
+                Allocators::Allocator*           pAllocator           = pAllocationDimension->get_allocator();
+
+                const std::string strAllocatorTypeName = allocatorTypeName( database, pAllocationDimension );
+                const std::string strMangle            = megaMangle( strAllocatorTypeName );
+
+                MemoryLayout::Part* pPart     = pAllocationDimension->get_part();
+                const mega::TypeID  contextID = pPart->get_context()->get_concrete_id();
+
+                {
+                    generateBufferFPtrCheck( true, contextID, os );
+                    generateReferenceCheck( true, contextID, get( variables, pInstance ), os );
+                    generateFreeDimRead( strMangle, get( variables, pInstance ), true, contextID, pPart,
+                                         get( variables, pInstance ), pAllocationDimension, os );
+                }
+
+                data[ "assignments" ].push_back( os.str() );
+
+                parts.insert( pAllocationDimension->get_part() );
+            }
+            else if ( auto pPause = db_cast< Pause >( pOperation ) )
+            {
+                THROW_RTE( "Not implemented" );
+            }
+            else if ( auto pResume = db_cast< Resume >( pOperation ) )
+            {
+                THROW_RTE( "Not implemented" );
+            }
+            else if ( auto pDone = db_cast< Done >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// Done\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pWaitAction = db_cast< WaitAction >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// WaitAction\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pWaitDimension = db_cast< WaitDimension >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// WaitDimension\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pGetAction = db_cast< GetAction >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// GetAction\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pGetDimension = db_cast< GetDimension >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// GetDimension\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pRead = db_cast< Read >( pOperation ) )
+            {
+                Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
+                Variables::Instance*        pInstance  = pRead->get_instance();
+                MemoryLayout::Part*         pPart      = pDimension->get_part();
+                const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
+                const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
+
+                {
+                    std::ostringstream os;
+                    os << indent << "// Read Operation\n";
+                    generateBufferFPtrCheck( bSimple, contextID, os );
+                    generateReferenceCheck( bSimple, contextID, get( variables, pInstance ), os );
+                    generateUserDimRead( bSimple, contextID, pPart, get( variables, pInstance ), pDimension, os );
+                    data[ "assignments" ].push_back( os.str() );
+                }
+
+                parts.insert( pDimension->get_part() );
+            }
+            else if ( auto pWrite = db_cast< Write >( pOperation ) )
+            {
+                Concrete::Dimensions::User* pDimension = pWrite->get_concrete_dimension();
+                Variables::Instance*        pInstance  = pWrite->get_instance();
+                MemoryLayout::Part*         pPart      = pDimension->get_part();
+                const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
+                const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
+
+                copiers.insert( pDimension->get_interface_dimension() );
+                events.insert( megaMangle( pDimension->get_interface_dimension()->get_canonical_type() ) );
+
+                {
+                    std::ostringstream os;
+                    os << indent << "// Write Operation\n";
+                    generateBufferFPtrCheck( bSimple, contextID, os );
+                    generateReferenceCheck( bSimple, contextID, get( variables, pInstance ), os );
+                    generateBufferWrite( bSimple, contextID, pPart, get( variables, pInstance ), pDimension, os );
+                    os << indent << "return " << get( variables, pInstance ) << ";\n";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+
+                parts.insert( pDimension->get_part() );
+            }
+            else if ( auto pWriteLink = db_cast< WriteLink >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// WriteLink\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else if ( auto pRange = db_cast< Range >( pOperation ) )
+            {
+                std::ostringstream os;
+                os << indent << "// Range\n";
+                data[ "assignments" ].push_back( os.str() );
+            }
+            else
+            {
+                THROW_RTE( "Unknown operation type" );
+            }
+        }
+        else
+        {
+            THROW_RTE( "Unknown instruction type" );
+        }
+    }
+
+    VariableMap
+    generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
+                       ::FinalStage::Invocations::Variables::Context*                        pRootContext,
+                       nlohmann::json&                                                       data )
+    {
+        using namespace FinalStage;
+        using namespace FinalStage::Invocations;
+
+        VariableMap variables;
+
+        int iVariableCounter = 0;
+        for ( auto pVariable : invocationVariables )
+        {
+            if ( auto pInstanceVar = db_cast< Variables::Instance >( pVariable ) )
+            {
+                std::ostringstream osName;
+                {
+                    osName << "var_" << pInstanceVar->get_concrete()->get_interface()->get_identifier() << "_"
+                           << iVariableCounter++;
+                }
+                variables.insert( { pVariable, osName.str() } );
+
+                std::ostringstream osVar;
+                {
+                    osVar << indent << "mega::reference " << osName.str() << ";";
+                }
+                data[ "variables" ].push_back( osVar.str() );
+            }
+            else if ( auto pDimensionVar = db_cast< Variables::Dimension >( pVariable ) )
+            {
+                auto types = pDimensionVar->get_types();
+                VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
+                Concrete::Context* pContext = types.front();
+
+                std::ostringstream osName;
+                {
+                    osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
+                }
+                variables.insert( { pVariable, osName.str() } );
+
+                std::ostringstream osVar;
+                {
+                    osVar << indent << "mega::reference " << osName.str() << ";";
+                }
+                data[ "variables" ].push_back( osVar.str() );
+            }
+            else if ( auto pContextVar = db_cast< Variables::Context >( pVariable ) )
+            {
+                auto types = pContextVar->get_types();
+                VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
+                Concrete::Context* pContext = types.front();
+
+                std::ostringstream osName;
+                {
+                    osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
+                }
+                variables.insert( { pVariable, osName.str() } );
+                std::ostringstream osVar;
+                {
+                    osVar << indent << "mega::reference " << osName.str() << ";";
+                }
+                data[ "variables" ].push_back( osVar.str() );
+
+                if ( pRootContext == pContextVar )
+                {
+                    // generate initial assignment
+                    std::ostringstream os;
+                    os << indent << osName.str() << " = context;";
+                    data[ "assignments" ].push_back( os.str() );
+                }
+            }
+            else
+            {
+                THROW_RTE( "Unknown variable type" );
+            }
+        }
+        return variables;
+    }
+
 };
 
 CodeGenerator::CodeGenerator( const mega::network::MegastructureInstallation& megastructureInstallation,
@@ -242,6 +812,7 @@ CodeGenerator::CodeGenerator( const mega::network::MegastructureInstallation& me
     : m_pPimpl( std::make_shared< Pimpl >( megastructureInstallation, project ) )
 {
 }
+
 void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega::TypeID objectTypeID, std::ostream& os )
 {
     SPDLOG_TRACE( "RUNTIME: generate_allocation: {}", objectTypeID );
@@ -254,10 +825,10 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
     nlohmann::json data( { { "objectTypeID", osObjectTypeID.str() },
                            { "shared_parts", nlohmann::json::array() },
                            { "heap_parts", nlohmann::json::array() },
-                           { "allocators", nlohmann::json::array() },
-                           { "deallocators", nlohmann::json::array() } } );
+                           { "news", nlohmann::json::array() },
+                           { "deleters", nlohmann::json::array() } } );
 
-    std::set< std::string > allocators, deallocators;
+    std::set< std::string > newers, deleters;
     {
         using namespace FinalStage;
         for ( auto pBuffer : pObject->get_buffers() )
@@ -290,8 +861,8 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                                              { "name", pUserDim->get_interface_dimension()->get_id()->get_str() },
                                              { "offset", pUserDim->get_offset() } } );
                     part[ "members" ].push_back( member );
-                    allocators.insert( strMangle );
-                    deallocators.insert( strMangle );
+                    newers.insert( strMangle );
+                    deleters.insert( strMangle );
                 }
                 for ( auto pLinkDim : pPart->get_link_dimensions() )
                 {
@@ -305,8 +876,8 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkMany->get_offset() } } );
                         part[ "members" ].push_back( member );
-                        allocators.insert( strMangle );
-                        deallocators.insert( strMangle );
+                        newers.insert( strMangle );
+                        deleters.insert( strMangle );
                     }
                     else if ( auto pLinkSingle = db_cast< Concrete::Dimensions::LinkSingle >( pLinkDim ) )
                     {
@@ -318,8 +889,8 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                                                  { "name", osLinkName.str() },
                                                  { "offset", pLinkSingle->get_offset() } } );
                         part[ "members" ].push_back( member );
-                        allocators.insert( strMangle );
-                        deallocators.insert( strMangle );
+                        newers.insert( strMangle );
+                        deleters.insert( strMangle );
                     }
                     else
                     {
@@ -330,84 +901,21 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
                 {
                     if ( auto pAllocator = db_cast< Concrete::Dimensions::Allocator >( pAllocDim ) )
                     {
-                        Allocators::Allocator* pAllocBase = pAllocator->get_allocator();
+                        const std::string strAllocatorTypeName = allocatorTypeName( database, pAllocator );
+                        const std::string strMangle            = megaMangle( strAllocatorTypeName );
 
-                        if ( auto pAlloc = db_cast< Allocators::Nothing >( pAllocBase ) )
-                        {
-                            // do nothing
-                        }
-                        else if ( auto pAlloc = db_cast< Allocators::Singleton >( pAllocBase ) )
-                        {
-                            const std::string  strMangle = megaMangle( "bool" );
-                            std::ostringstream osAllocName;
-                            osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
-                            nlohmann::json member( { { "type", "bool" },
-                                                     { "mangle", strMangle },
-                                                     { "name", osAllocName.str() },
-                                                     { "offset", pAllocator->get_offset() } } );
-                            part[ "members" ].push_back( member );
-                            allocators.insert( strMangle );
-                            deallocators.insert( strMangle );
-                        }
-                        else if ( auto pAlloc = db_cast< Allocators::Range32 >( pAllocBase ) )
-                        {
-                            std::ostringstream osAllocName;
-                            osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
+                        std::ostringstream osAllocName;
+                        osAllocName << "alloc_"
+                                    << pAllocator->get_allocator()->get_allocated_context()->get_concrete_id();
 
-                            std::ostringstream osTypeName;
-                            osTypeName << "mega::Bitmask32Allocator< "
-                                       << database.getLocalDomainSize(
-                                              pAlloc->get_allocated_context()->get_concrete_id() )
-                                       << " >";
-                            const std::string strMangle = megaMangle( osTypeName.str() );
-                            nlohmann::json    member( { { "type", osTypeName.str() },
-                                                        { "mangle", strMangle },
-                                                        { "name", osAllocName.str() },
-                                                        { "offset", pAllocator->get_offset() } } );
-                            part[ "members" ].push_back( member );
-                            allocators.insert( strMangle );
-                            deallocators.insert( strMangle );
-                        }
-                        else if ( auto pAlloc = db_cast< Allocators::Range64 >( pAllocBase ) )
-                        {
-                            std::ostringstream osAllocName;
-                            osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
-                            std::ostringstream osTypeName;
-                            osTypeName << "mega::Bitmask64Allocator< "
-                                       << database.getLocalDomainSize(
-                                              pAlloc->get_allocated_context()->get_concrete_id() )
-                                       << " >";
-                            const std::string strMangle = megaMangle( osTypeName.str() );
-                            nlohmann::json    member( { { "type", osTypeName.str() },
-                                                        { "mangle", strMangle },
-                                                        { "name", osAllocName.str() },
-                                                        { "offset", pAllocator->get_offset() } } );
-                            part[ "members" ].push_back( member );
-                            allocators.insert( strMangle );
-                            deallocators.insert( strMangle );
-                        }
-                        else if ( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocBase ) )
-                        {
-                            std::ostringstream osAllocName;
-                            osAllocName << "alloc_" << pAlloc->get_allocated_context()->get_concrete_id();
-                            std::ostringstream osTypeName;
-                            osTypeName << "mega::RingAllocator< mega::Instance, "
-                                       << database.getLocalDomainSize(
-                                              pAlloc->get_allocated_context()->get_concrete_id() )
-                                       << " >";
-                            const std::string strMangle = megaMangle( osTypeName.str() );
-                            nlohmann::json    member( { { "type", osTypeName.str() },
-                                                        { "mangle", strMangle },
-                                                        { "name", osAllocName.str() },
-                                                        { "offset", pAllocator->get_offset() } } );
-                            part[ "members" ].push_back( member );
-                            allocators.insert( strMangle );
-                            deallocators.insert( strMangle );
-                        }
-                        else
-                        {
-                            THROW_RTE( "Unknown allocator type" );
-                        }
+                        newers.insert( strMangle );
+                        deleters.insert( strMangle );
+
+                        nlohmann::json member( { { "type", strAllocatorTypeName },
+                                                 { "mangle", strMangle },
+                                                 { "name", osAllocName.str() },
+                                                 { "offset", pAllocator->get_offset() } } );
+                        part[ "members" ].push_back( member );
                     }
                     else
                     {
@@ -423,479 +931,18 @@ void CodeGenerator::generate_allocation( const DatabaseInstance& database, mega:
         }
     }
 
-    for ( const auto& str : allocators )
+    for ( const auto& str : newers )
     {
-        data[ "allocators" ].push_back( str );
+        data[ "news" ].push_back( str );
     }
-    for ( const auto& str : deallocators )
+    for ( const auto& str : deleters )
     {
-        data[ "deallocators" ].push_back( str );
+        data[ "deleters" ].push_back( str );
     }
 
     std::ostringstream osCPPCode;
     m_pPimpl->render_allocation( data, osCPPCode );
     m_pPimpl->compileToLLVMIR( osObjectTypeID.str(), osCPPCode.str(), os, pComponent );
-}
-
-using VariableMap = std::map< const FinalStage::Invocations::Variables::Variable*, std::string >;
-
-inline std::string get( const VariableMap& varMap, const FinalStage::Invocations::Variables::Variable* pVar )
-{
-    auto iFind = varMap.find( pVar );
-    VERIFY_RTE( iFind != varMap.end() );
-    return iFind->second;
-}
-
-static const std::string indent( "    " );
-
-using PartSet  = std::set< const FinalStage::MemoryLayout::Part* >;
-using CallSet  = std::set< const FinalStage::Concrete::Context* >;
-using CopySet  = std::set< const FinalStage::Interface::DimensionTrait* >;
-using EventSet = std::set< const FinalStage::Interface::DimensionTrait* >;
-
-void generateBufferFPtrCheck( bool bShared, mega::TypeID contextID, std::ostream& os )
-{
-    const std::string strType = bShared ? "shared" : "heap";
-    os << indent << "if( _fptr_get_" << strType << "_" << contextID << " == nullptr ) "
-       << "mega::runtime::get_getter_" << strType << "( g_pszModuleName, " << contextID << ", &_fptr_get_" << strType
-       << "_" << contextID << " );\n";
-}
-void generateReferenceCheck( bool bShared, mega::TypeID contextID, const std::string& strInstanceVar, std::ostream& os )
-{
-    os << indent << "if( " << strInstanceVar << ".isNetwork() ) " << strInstanceVar
-       << " = mega::runtime::networkToMachine( " << contextID << ", " << strInstanceVar << ".network );\n";
-}
-void generateBufferRead( bool bShared, mega::TypeID contextID, FinalStage::MemoryLayout::Part* pPart,
-                         const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
-                         std::ostream& os )
-{
-    const std::string strType = bShared ? "shared" : "heap";
-    os << indent << "return reinterpret_cast< char* >(_fptr_get_" << strType << "_" << contextID << "( "
-       << strInstanceVar << " ) )"
-       << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
-       << pDimension->get_offset() << ";\n";
-}
-
-void generateBufferWrite( bool bShared, mega::TypeID contextID, FinalStage::MemoryLayout::Part* pPart,
-                          const std::string& strInstanceVar, FinalStage::Concrete::Dimensions::User* pDimension,
-                          std::ostream& os )
-{
-    const std::string strMegaMangledTypeName
-        = megaMangle( pDimension->get_interface_dimension()->get_canonical_type() );
-
-    const std::string strType    = bShared ? "shared" : "heap";
-    const std::string strBShared = bShared ? "true" : "false";
-
-    os << indent << "{\n";
-    os << indent << indent << "char* p = reinterpret_cast< char* >( _fptr_get_" << strType << "_" << contextID << "( "
-       << strInstanceVar << " ) ) "
-       << " + " << pPart->get_offset() << " + ( " << pPart->get_size() << " * " << strInstanceVar << ".instance ) + "
-       << pDimension->get_offset() << ";\n";
-    os << indent << indent << "::mega::copy_" << strMegaMangledTypeName << "( pData, p );\n";
-    os << indent << indent << "::mega::event_" << strMegaMangledTypeName << "( mega::reference( mega::TypeInstance( "
-       << strInstanceVar << ".instance, " << pDimension->get_concrete_id() << "), " << strInstanceVar << " ), "
-       << strBShared << ", p );\n";
-    os << indent << "}\n";
-}
-
-void generateInstructions( const DatabaseInstance&                             database,
-                           FinalStage::Invocations::Instructions::Instruction* pInstruction,
-                           const VariableMap& variables, PartSet& parts, CallSet& calls, CopySet& copiers,
-                           EventSet& events, nlohmann::json& data )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    if ( auto pInstructionGroup = db_cast< Instructions::InstructionGroup >( pInstruction ) )
-    {
-        if ( auto pParentDerivation = db_cast< Instructions::ParentDerivation >( pInstructionGroup ) )
-        {
-            std::ostringstream os;
-            os << indent << "// ParentDerivation\n";
-
-            const Variables::Instance* pFrom = pParentDerivation->get_from();
-            const Variables::Instance* pTo   = pParentDerivation->get_to();
-
-            const std::string  s           = get( variables, pFrom );
-            const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
-            const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
-
-            if ( szLocalSize > 1 )
-            {
-                os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ", " << s << ".pointer };";
-            }
-            else
-            {
-                os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance, " << targetType << " }, " << s << ", " << s << ".pointer };";
-            }
-
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pChildDerivation = db_cast< Instructions::ChildDerivation >( pInstructionGroup ) )
-        {
-            std::ostringstream os;
-            os << indent << "// ChildDerivation\n";
-
-            const Variables::Instance* pFrom = pParentDerivation->get_from();
-            const Variables::Instance* pTo   = pParentDerivation->get_to();
-
-            const std::string  s           = get( variables, pFrom );
-            const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
-            const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
-
-            os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s << ".instance, "
-               << targetType << " }, " << s << ", " << s << ".process };";
-
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pEnumDerivation = db_cast< Instructions::EnumDerivation >( pInstructionGroup ) )
-        {
-            std::ostringstream os;
-            os << indent << "// EnumDerivation\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pEnumeration = db_cast< Instructions::Enumeration >( pInstructionGroup ) )
-        {
-            std::ostringstream os;
-            os << indent << "// Enumeration\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pDimensionReferenceRead = db_cast< Instructions::DimensionReferenceRead >( pInstructionGroup ) )
-        {
-            std::ostringstream os;
-            os << indent << "// DimensionReferenceRead\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pMonoReference = db_cast< Instructions::MonoReference >( pInstructionGroup ) )
-        {
-            const Variables::Instance*  pInstance  = pMonoReference->get_instance();
-            const Variables::Reference* pReference = pMonoReference->get_reference();
-
-            std::ostringstream os;
-            os << indent << "// MonoReference\n";
-            os << indent << get( variables, pInstance ) << " = " << get( variables, pReference ) << ";";
-
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pPolyReference = db_cast< Instructions::PolyReference >( pInstructionGroup ) )
-        {
-            std::ostringstream os;
-            os << indent << "// PolyReference\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pPolyCase = db_cast< Instructions::PolyCase >( pInstructionGroup ) )
-        {
-            std::ostringstream os;
-            os << indent << "// PolyCase\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else
-        {
-            THROW_RTE( "Unknown instruction type" );
-        }
-
-        for ( auto pChildInstruction : pInstructionGroup->get_children() )
-        {
-            generateInstructions( database, pChildInstruction, variables, parts, calls, copiers, events, data );
-        }
-    }
-    else if ( auto pOperation = db_cast< FinalStage::Invocations::Operations::Operation >( pInstruction ) )
-    {
-        using namespace FinalStage::Invocations::Operations;
-
-        if ( auto pAllocate = db_cast< Allocate >( pOperation ) )
-        {
-            // Note how no events are needed when allocate a new object
-            Variables::Instance* pInstance       = pAllocate->get_instance();
-            Concrete::Context*   pConcreteTarget = pAllocate->get_concrete_target();
-
-            std::ostringstream os;
-            os << indent << "// Allocate\n";
-            generateReferenceCheck(
-                false, pInstance->get_concrete()->get_concrete_id(), get( variables, pInstance ), os );
-
-            os << indent
-               << "const mega::NetworkAddress networkAddress = mega::runtime::allocateNetworkAddress( "
-                  "context, "
-               << pConcreteTarget->get_concrete_id() << " );\n";
-            os << indent << "mega::reference result = mega::runtime::allocateMachineAddress( context, "
-               << pConcreteTarget->get_concrete_id() << ", networkAddress );\n";
-            os << indent << "return result;\n";
-
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pCall = db_cast< Call >( pOperation ) )
-        {
-            Concrete::Context*   pConcreteTarget = pCall->get_concrete_target();
-            Variables::Instance* pInstance       = pCall->get_instance();
-
-            std::ostringstream os;
-            {
-                os << indent << "// Call Operation\n";
-                generateReferenceCheck(
-                    false, pInstance->get_concrete()->get_concrete_id(), get( variables, pInstance ), os );
-
-                std::ostringstream osCall;
-                osCall << "_fptr_call_" << pConcreteTarget->get_concrete_id();
-
-                os << indent << "if( " << osCall.str() << " == nullptr )\n";
-                os << indent << "{\n";
-                os << indent << "    mega::runtime::get_getter_call( g_pszModuleName, "
-                   << pConcreteTarget->get_concrete_id() << ", &" << osCall.str() << " );\n";
-                os << indent << "}\n";
-                os << indent << "return mega::runtime::CallResult{" << osCall.str() << ", "
-                   << get( variables, pInstance ) << " };\n";
-            }
-
-            calls.insert( pConcreteTarget );
-
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pStart = db_cast< Start >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// Start\n";
-
-            Concrete::Context*   pConcreteTarget = pStart->get_concrete_target();
-            Variables::Instance* pInstance       = pStart->get_instance();
-
-            // pConcreteTarget->get_allocator()->get_dimension()
-
-            auto optAllocDim = pConcreteTarget->get_allocator()->get_dimension();
-            ASSERT( optAllocDim.has_value() );
-
-            Concrete::Dimensions::Allocator* pAllocationDimension = optAllocDim.value();
-            // Concrete::Context* pAllocatorDimParent = pAllocationDimension->get_parent();
-
-            if ( auto pAlloc = db_cast< Allocators::Nothing >( pAllocationDimension->get_allocator() ) )
-            {
-                THROW_RTE( "Unreachable" );
-            }
-            else if ( auto pAlloc = db_cast< Allocators::Singleton >( pAllocationDimension->get_allocator() ) )
-            {
-            }
-            else if ( auto pAlloc = db_cast< Allocators::Range32 >( pAllocationDimension->get_allocator() ) )
-            {
-            }
-            else if ( auto pAlloc = db_cast< Allocators::Range64 >( pAllocationDimension->get_allocator() ) )
-            {
-            }
-            else if ( auto pAlloc = db_cast< Allocators::RangeAny >( pAllocationDimension->get_allocator() ) )
-            {
-            }
-            else
-            {
-                THROW_RTE( "Unknown allocator type" );
-            }
-
-            /*const Variables::Instance* pFrom = pInstance;
-            const Variables::Instance* pTo   = pParentDerivation->get_to();
-
-            const std::string  s           = get( variables, pFrom );
-            const mega::TypeID targetType  = pFrom->get_concrete()->get_concrete_id();
-            const mega::U64    szLocalSize = database.getLocalDomainSize( targetType );
-
-            if ( szLocalSize > 1 )
-            {
-                os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance / " << szLocalSize << ", " << targetType << " }, " << s << ", " << s << ".pointer };";
-            }
-            else
-            {
-                os << indent << get( variables, pTo ) << " = mega::reference{ mega::TypeInstance{ " << s
-                   << ".instance, " << targetType << " }, " << s << ", " << s << ".pointer };";
-            }*/
-
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pStop = db_cast< Stop >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// Stop\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pPause = db_cast< Pause >( pOperation ) )
-        {
-            THROW_RTE( "Not implemented" );
-        }
-        else if ( auto pResume = db_cast< Resume >( pOperation ) )
-        {
-            THROW_RTE( "Not implemented" );
-        }
-        else if ( auto pDone = db_cast< Done >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// Done\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pWaitAction = db_cast< WaitAction >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// WaitAction\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pWaitDimension = db_cast< WaitDimension >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// WaitDimension\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pGetAction = db_cast< GetAction >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// GetAction\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pGetDimension = db_cast< GetDimension >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// GetDimension\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pRead = db_cast< Read >( pOperation ) )
-        {
-            Concrete::Dimensions::User* pDimension = pRead->get_concrete_dimension();
-            Variables::Instance*        pInstance  = pRead->get_instance();
-            MemoryLayout::Part*         pPart      = pDimension->get_part();
-            const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
-            const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
-
-            {
-                std::ostringstream os;
-                os << indent << "// Read Operation\n";
-                generateBufferFPtrCheck( bSimple, contextID, os );
-                generateReferenceCheck( bSimple, contextID, get( variables, pInstance ), os );
-                generateBufferRead( bSimple, contextID, pPart, get( variables, pInstance ), pDimension, os );
-                data[ "assignments" ].push_back( os.str() );
-            }
-
-            parts.insert( pDimension->get_part() );
-        }
-        else if ( auto pWrite = db_cast< Write >( pOperation ) )
-        {
-            Concrete::Dimensions::User* pDimension = pWrite->get_concrete_dimension();
-            Variables::Instance*        pInstance  = pWrite->get_instance();
-            MemoryLayout::Part*         pPart      = pDimension->get_part();
-            const mega::TypeID          contextID  = pPart->get_context()->get_concrete_id();
-            const bool                  bSimple    = pDimension->get_interface_dimension()->get_simple();
-
-            copiers.insert( pDimension->get_interface_dimension() );
-            events.insert( pDimension->get_interface_dimension() );
-
-            {
-                std::ostringstream os;
-                os << indent << "// Write Operation\n";
-                generateBufferFPtrCheck( bSimple, contextID, os );
-                generateReferenceCheck( bSimple, contextID, get( variables, pInstance ), os );
-                generateBufferWrite( bSimple, contextID, pPart, get( variables, pInstance ), pDimension, os );
-                os << indent << "return " << get( variables, pInstance ) << ";\n";
-                data[ "assignments" ].push_back( os.str() );
-            }
-
-            parts.insert( pDimension->get_part() );
-        }
-        else if ( auto pWriteLink = db_cast< WriteLink >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// WriteLink\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else if ( auto pRange = db_cast< Range >( pOperation ) )
-        {
-            std::ostringstream os;
-            os << indent << "// Range\n";
-            data[ "assignments" ].push_back( os.str() );
-        }
-        else
-        {
-            THROW_RTE( "Unknown operation type" );
-        }
-    }
-    else
-    {
-        THROW_RTE( "Unknown instruction type" );
-    }
-}
-
-VariableMap
-generateVariables( const std::vector< ::FinalStage::Invocations::Variables::Variable* >& invocationVariables,
-                   ::FinalStage::Invocations::Variables::Context*                        pRootContext,
-                   nlohmann::json&                                                       data )
-{
-    using namespace FinalStage;
-    using namespace FinalStage::Invocations;
-
-    VariableMap variables;
-
-    int iVariableCounter = 0;
-    for ( auto pVariable : invocationVariables )
-    {
-        if ( auto pInstanceVar = db_cast< Variables::Instance >( pVariable ) )
-        {
-            std::ostringstream osName;
-            {
-                osName << "var_" << pInstanceVar->get_concrete()->get_interface()->get_identifier() << "_"
-                       << iVariableCounter++;
-            }
-            variables.insert( { pVariable, osName.str() } );
-
-            std::ostringstream osVar;
-            {
-                osVar << indent << "mega::reference " << osName.str() << ";";
-            }
-            data[ "variables" ].push_back( osVar.str() );
-        }
-        else if ( auto pDimensionVar = db_cast< Variables::Dimension >( pVariable ) )
-        {
-            auto types = pDimensionVar->get_types();
-            VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
-            Concrete::Context* pContext = types.front();
-
-            std::ostringstream osName;
-            {
-                osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
-            }
-            variables.insert( { pVariable, osName.str() } );
-
-            std::ostringstream osVar;
-            {
-                osVar << indent << "mega::reference " << osName.str() << ";";
-            }
-            data[ "variables" ].push_back( osVar.str() );
-        }
-        else if ( auto pContextVar = db_cast< Variables::Context >( pVariable ) )
-        {
-            auto types = pContextVar->get_types();
-            VERIFY_RTE_MSG( types.size() == 1U, "Multiple typed contexts not implemented!" );
-            Concrete::Context* pContext = types.front();
-
-            std::ostringstream osName;
-            {
-                osName << "var_" << pContext->get_interface()->get_identifier() << "_" << iVariableCounter++;
-            }
-            variables.insert( { pVariable, osName.str() } );
-            std::ostringstream osVar;
-            {
-                osVar << indent << "mega::reference " << osName.str() << ";";
-            }
-            data[ "variables" ].push_back( osVar.str() );
-
-            if ( pRootContext == pContextVar )
-            {
-                // generate initial assignment
-                std::ostringstream os;
-                os << indent << osName.str() << " = context;";
-                data[ "assignments" ].push_back( os.str() );
-            }
-        }
-        else
-        {
-            THROW_RTE( "Unknown variable type" );
-        }
-    }
-    return variables;
 }
 
 nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const mega::InvocationID& invocationID,
@@ -907,10 +954,12 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
         strName = osName.str();
     }
 
-    PartSet  parts;
-    CallSet  calls;
-    CopySet  copiers;
-    EventSet events;
+    PartSet      parts;
+    CallSet      calls;
+    CopySet      copiers;
+    EventSet     events;
+    AllocatorSet allocators;
+    FreerSet     freers;
 
     nlohmann::json data( { { "name", strName },
                            { "module_name", strName },
@@ -918,6 +967,8 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
                            { "calls", nlohmann::json::array() },
                            { "copiers", nlohmann::json::array() },
                            { "events", nlohmann::json::array() },
+                           { "allocators", nlohmann::json::array() },
+                           { "freers", nlohmann::json::array() },
                            { "variables", nlohmann::json::array() },
                            { "assignments", nlohmann::json::array() } } );
 
@@ -927,12 +978,13 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
 
         const FinalStage::Operations::Invocation* pInvocation = database.getInvocation( invocationID );
 
-        const VariableMap variables = generateVariables(
+        const VariableMap variables = m_pPimpl->generateVariables(
             pInvocation->get_variables(), pInvocation->get_root_instruction()->get_context(), data );
 
         for ( auto pInstruction : pInvocation->get_root_instruction()->get_children() )
         {
-            generateInstructions( database, pInstruction, variables, parts, calls, copiers, events, data );
+            m_pPimpl->generateInstructions(
+                database, pInstruction, variables, parts, calls, copiers, events, allocators, freers, data );
         }
     }
 
@@ -948,9 +1000,17 @@ nlohmann::json CodeGenerator::generate( const DatabaseInstance& database, const 
     {
         data[ "copiers" ].push_back( megaMangle( pCopy->get_canonical_type() ) );
     }
-    for ( auto pEvent : events )
+    for ( auto event : events )
     {
-        data[ "events" ].push_back( megaMangle( pEvent->get_canonical_type() ) );
+        data[ "events" ].push_back( event );
+    }
+    for ( auto allocator : allocators )
+    {
+        data[ "allocators" ].push_back( allocator );
+    }
+    for ( auto freer : freers )
+    {
+        data[ "freers" ].push_back( freer );
     }
     return data;
 }

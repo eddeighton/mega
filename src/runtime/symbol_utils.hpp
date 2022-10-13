@@ -88,7 +88,6 @@ static std::string megaMangle( const std::string& strCanonicalTypeName )
                 case '&':
                     os << '9';
                     break;
-                    break;
                 default:
                     THROW_RTE( "Unexpected character in typename: " << strCanonicalTypeName );
             }
