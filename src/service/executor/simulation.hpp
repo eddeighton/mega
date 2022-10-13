@@ -32,6 +32,8 @@
 #include "runtime/api.hpp"
 #include "runtime/context.hpp"
 
+#include "log/log.hpp"
+
 #include "mega/reference.hpp"
 
 namespace mega::service
@@ -83,10 +85,7 @@ public:
     virtual F32       dt() override { return m_clock.dt(); }
 
     // log
-    virtual void info( const reference& ref, const std::string& str ) override;
-    virtual void warn( const reference& ref, const std::string& str ) override;
-    virtual void error( const reference& ref, const std::string& str ) override;
-    virtual void write( const reference& ref, bool bShared, U64 size, const void* pData ) override;
+    virtual log::Storage& getLog() override { return m_log; }
 
     // mega::MPOContext - runtime internal interface
     virtual std::string    acquireMemory( MPO mpo ) override;
@@ -119,6 +118,7 @@ private:
     LockTracker                                          m_lockTracker;
     StateMachine::MsgVector                              m_messageQueue;
     mega::Clock                                          m_clock;
+    log::Storage                                         m_log;
 };
 
 } // namespace mega::service

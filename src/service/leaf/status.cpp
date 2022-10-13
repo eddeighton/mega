@@ -33,9 +33,14 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
     network::Status status{ childNodeStatus };
     {
         std::vector< network::ConversationID > conversations;
-        for ( const auto& [ id, pCon ] : m_leaf.m_conversations )
         {
-            conversations.push_back( id );
+            for ( const auto& [ id, pCon ] : m_leaf.m_conversations )
+            {
+                if ( id != getID() )
+                {
+                    conversations.push_back( id );
+                }
+            }
         }
         status.setConversationID( conversations );
         status.setMP( m_leaf.m_mp );

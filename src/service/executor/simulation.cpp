@@ -32,12 +32,22 @@
 #include "service/protocol/model/messages.hxx"
 #include "service/protocol/model/enrole.hxx"
 
+#include <boost/filesystem/operations.hpp>
+
 namespace mega::service
 {
+
+boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )
+{
+    std::ostringstream os;
+    os << "log_" << conversationID;
+    return boost::filesystem::current_path() / os.str();
+}
 
 Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
     , m_timer( executor.m_io_context )
+    , m_log( makeLogDirectory( conversationID ) )
 {
 }
 
@@ -81,25 +91,6 @@ MPO Simulation::constructMPO( MP machineProcess )
 }
 mega::reference Simulation::getRoot( MPO mpo ) { return mega::runtime::get_root( mpo ); }
 mega::reference Simulation::getThisRoot() { return m_pExecutionRoot->root(); }
-
-// log
-void Simulation::info( const reference& ref, const std::string& str )
-{
-    //
-}
-void Simulation::warn( const reference& ref, const std::string& str )
-{
-    //
-}
-void Simulation::error( const reference& ref, const std::string& str )
-{
-    //
-}
-void Simulation::write( const reference& ref, bool bShared, U64 size, const void* pData )
-{
-    SPDLOG_TRACE( "Simulation::write: {} {} {}", ref, bShared, size );
-    
-}
 
 // mega::MPOContext
 std::string Simulation::acquireMemory( MPO mpo )
@@ -188,8 +179,6 @@ void Simulation::cycleComplete()
 {
     VERIFY_RTE( m_pYieldContext );
 
-    
-
     for ( MPO writeLock : m_lockTracker.getWrites() )
     {
         VERIFY_RTE( m_pYieldContext );
@@ -219,7 +208,7 @@ void Simulation::issueClock()
 {
     Simulation* pThis = this;
     using namespace std::chrono_literals;
-    m_timer.expires_from_now( 200ms );
+    m_timer.expires_from_now( 15ms );
     m_timer.async_wait( [ pThis ]( boost::system::error_code ec ) { pThis->clock(); } );
 }
 
@@ -263,9 +252,16 @@ void Simulation::runSimulation( boost::asio::yield_context& yield_ctx )
             {
                 case StateMachine::SIM:
                 {
-                    SPDLOG_TRACE( "SIM: SIM {} {} {}", getID(), m_mpo.value(), getElapsedTime() );
-                    cycleComplete();
+                    std::ostringstream osLog;
+                    osLog << "SIM: " << getID() << " " << m_mpo.value();
+                    // << " " << getElapsedTime();
+                    // SPDLOG_TRACE( "SIM: SIM {} {} {}", getID(), m_mpo.value(), getElapsedTime() );
+
                     m_scheduler.cycle();
+                    m_log.log( log::LogMsg( log::LogMsg::eInfo, osLog.str() ) );
+                    m_log.cycle();
+
+                    cycleComplete();
                 }
                 break;
                 case StateMachine::READ:
@@ -458,7 +454,19 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
         status.setConversationID( { getID() } );
         status.setMPO( m_mpo.value() );
         std::ostringstream os;
-        os << "Simulation";
+        os << "Simulation: " << m_log.getTimeStamp();
+        status.setLogIterator( m_log.getIterator() );
+
+        using MPOVec = std::vector< mega::MPO >;
+        if ( const auto& reads = m_lockTracker.getReads(); !reads.empty() )
+            status.setReads( MPOVec{ reads.begin(), reads.end() } );
+        if ( const auto& writes = m_lockTracker.getWrites(); !writes.empty() )
+            status.setWrites( MPOVec{ writes.begin(), writes.end() } );
+        if ( const auto& readers = m_stateMachine.reads(); !readers.empty() )
+            status.setReaders( MPOVec{ readers.begin(), readers.end() } );
+        if ( const auto& writer = m_stateMachine.writer(); writer.has_value() )
+            status.setWriter( writer.value() );
+
         status.setDescription( os.str() );
     }
 

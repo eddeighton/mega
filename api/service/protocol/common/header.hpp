@@ -87,6 +87,8 @@ inline bool operator==( const ConversationID& left, const ConversationID& right 
     return ( left.getConnectionID() == right.getConnectionID() ) && ( left.getID() == right.getID() );
 }
 
+inline bool operator!=( const ConversationID& left, const ConversationID& right ) { return !( left == right ); }
+
 inline bool operator<( const ConversationID& left, const ConversationID& right )
 {
     return ( left.getConnectionID() != right.getConnectionID() ) ? ( left.getConnectionID() < right.getConnectionID() )

@@ -95,6 +95,7 @@ target_link_libraries( executorLib pipeline )
 target_link_libraries( executorLib database )
 target_link_libraries( executorLib jit )
 target_link_libraries( executorLib runtime )
+target_link_libraries( executorLib log )
 
 install( FILES ${EXECUTOR_LIB_API} DESTINATION include/service )
 install( TARGETS executorLib EXPORT executorLib DESTINATION bin)

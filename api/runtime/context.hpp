@@ -27,6 +27,10 @@
 
 namespace mega
 {
+namespace log
+{
+class Storage;
+}
 
 class Context
 {
@@ -50,10 +54,7 @@ public:
     virtual F32       dt()    = 0;
 
     // log
-    virtual void info( const reference& ref, const std::string& str )  = 0;
-    virtual void warn( const reference& ref, const std::string& str )  = 0;
-    virtual void error( const reference& ref, const std::string& str ) = 0;
-    virtual void write( const reference& ref, bool bShared, U64 size, const void* pData ) = 0;
+    virtual log::Storage& getLog() = 0;
 
     static Context* get();
 };

@@ -38,6 +38,8 @@
 #include "service/protocol/model/enrole.hxx"
 #include "service/protocol/model/project.hxx"
 
+#include "log/log.hpp"
+
 #include "common/requireSemicolon.hpp"
 
 #include <spdlog/spdlog.h>
@@ -48,11 +50,19 @@
 namespace mega::service
 {
 
+boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )
+{
+    std::ostringstream os;
+    os << "log_" << conversationID;
+    return boost::filesystem::current_path() / os.str();
+}
+
 template < typename TConversationFunctor >
 class GenericConversation : public ToolRequestConversation, public mega::MPOContext, public network::sim::Impl
 {
     Tool&                m_tool;
     TConversationFunctor m_functor;
+    log::Storage         m_log;
 
 public:
     GenericConversation( Tool& tool, const network::ConversationID& conversationID,
@@ -60,6 +70,7 @@ public:
         : ToolRequestConversation( tool, conversationID, originatingConnectionID )
         , m_tool( tool )
         , m_functor( functor )
+        , m_log( makeLogDirectory( conversationID ) )
     {
     }
 
@@ -182,22 +193,7 @@ public:
     virtual F32       dt() override { return F32{}; }
 
     // log
-    virtual void info( const reference& ref, const std::string& str ) override
-    {
-        //
-    }
-    virtual void warn( const reference& ref, const std::string& str ) override
-    {
-        //
-    }
-    virtual void error( const reference& ref, const std::string& str ) override
-    {
-        //
-    }
-    virtual void write( const reference& ref, bool bShared, U64 size, const void* pData ) override
-    {
-        SPDLOG_TRACE( "Tool::write: {} {} {}", ref, bShared, size );
-    }
+    virtual log::Storage& getLog() override { return m_log; }
 
     // mega::MPOContext
     virtual std::string acquireMemory( MPO mpo ) override

@@ -80,6 +80,7 @@ target_link_libraries( tool leaf )
 target_link_libraries( tool database )
 target_link_libraries( tool jit )
 target_link_libraries( tool runtime )
+target_link_libraries( tool log )
 
 install( FILES ${TOOL_LIB_API} DESTINATION include/service )
 install( TARGETS tool EXPORT tool DESTINATION bin)

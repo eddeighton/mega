@@ -23,6 +23,9 @@
 #include "mega/reference.hpp"
 #include "service/protocol/common/header.hpp"
 
+#include "log/record.hpp"
+
+#include <utility>
 #include <vector>
 #include <ostream>
 #include <optional>
@@ -35,17 +38,25 @@ class Status
 public:
     using StatusVector = std::vector< Status >;
 
-    Status() {}
-    Status( const StatusVector& children )
-        : m_childStatus( children )
+    Status() = default;
+
+    Status( StatusVector children )
+        : m_childStatus( std::move( children ) )
     {
     }
 
     const std::optional< mega::MP >&              getMP() const { return m_mp; }
     const std::optional< mega::MPO >&             getMPO() const { return m_mpo; }
     const std::vector< network::ConversationID >& getConversations() const { return m_conversationIDs; }
-    const std::string&                            getDescription() const { return m_description; }
-    const StatusVector&                           getChildren() const { return m_childStatus; }
+    const std::optional< log::IndexRecord >&      getLogIterator() const { return m_logIterator; }
+
+    const std::optional< std::vector< mega::MPO > >& getReads() const { return m_reads; }
+    const std::optional< std::vector< mega::MPO > >& getWrites() const { return m_writes; }
+    const std::optional< std::vector< mega::MPO > >& getReaders() const { return m_readers; }
+    const std::optional< mega::MPO >&                getWriter() const { return m_writer; }
+
+    const std::string&  getDescription() const { return m_description; }
+    const StatusVector& getChildren() const { return m_childStatus; }
 
     void setMP( mega::MP mp ) { m_mp = mp; }
     void setMPO( mega::MPO mpo ) { m_mpo = mpo; }
@@ -53,6 +64,13 @@ public:
     {
         m_conversationIDs = conversations;
     }
+    void setLogIterator( const log::IndexRecord& iterator ) { m_logIterator = iterator; }
+
+    void setReads( const std::optional< std::vector< mega::MPO > >& value ) { m_reads = value; }
+    void setWrites( const std::optional< std::vector< mega::MPO > >& value ) { m_writes = value; }
+    void setReaders( const std::optional< std::vector< mega::MPO > >& value ) { m_readers = value; }
+    void setWriter( const std::optional< mega::MPO >& value ) { m_writer = value; }
+
     void setDescription( const std::string& strDescription ) { m_description = strDescription; }
 
     template < class Archive >
@@ -61,6 +79,13 @@ public:
         archive& m_mp;
         archive& m_mpo;
         archive& m_conversationIDs;
+        archive& m_logIterator;
+
+        archive& m_reads;
+        archive& m_writes;
+        archive& m_readers;
+        archive& m_writer;
+
         archive& m_description;
         archive& m_childStatus;
     }
@@ -69,8 +94,15 @@ private:
     std::optional< mega::MP >              m_mp;
     std::optional< mega::MPO >             m_mpo;
     std::vector< network::ConversationID > m_conversationIDs;
-    std::string                            m_description;
-    StatusVector                           m_childStatus;
+    std::optional< log::IndexRecord >      m_logIterator;
+
+    std::optional< std::vector< mega::MPO > > m_reads;
+    std::optional< std::vector< mega::MPO > > m_writes;
+    std::optional< std::vector< mega::MPO > > m_readers;
+    std::optional< mega::MPO >                m_writer;
+
+    std::string  m_description;
+    StatusVector m_childStatus;
 };
 
 std::ostream& operator<<( std::ostream& os, const Status& conversationID );

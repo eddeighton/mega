@@ -64,6 +64,7 @@ set( DRIVER_SOURCES
 		${DRIVER_SOURCE_DIR}/command_sim.cpp
 		${DRIVER_SOURCE_DIR}/command_status.cpp
 		${DRIVER_SOURCE_DIR}/command_stash.cpp
+		${DRIVER_SOURCE_DIR}/command_log.cpp
 		
 		${DRIVER_SOURCE_DIR}/main.cpp
 
@@ -86,6 +87,7 @@ target_link_libraries( mega utilities )
 target_link_libraries( mega protocol )
 target_link_libraries( mega network )
 target_link_libraries( mega terminal )
+target_link_libraries( mega log )
 
 set_target_properties( mega PROPERTIES FOLDER driver )
 

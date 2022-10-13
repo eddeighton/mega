@@ -69,8 +69,11 @@ public:
     {
         return ( m_state == TERM ) && m_activeReads.empty() && ( !m_activeWrite.has_value() ) && m_acks.empty();
     }
-    const AckVector& acks() const { return m_acks; }
-    void             resetAcks() { m_acks.clear(); }
+    const AckVector&    acks() const { return m_acks; }
+    const IDSet&        reads() const { return m_activeReads; }
+    std::optional< ID > writer() const { return m_activeWrite; }
+
+    void resetAcks() { m_acks.clear(); }
 
     using Read    = network::sim::MSG_SimLockRead_Request;
     using Write   = network::sim::MSG_SimLockWrite_Request;

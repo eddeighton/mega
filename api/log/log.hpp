@@ -80,45 +80,19 @@ private:
     mutable FilePtrMap             m_files;
 };
 
-enum class TrackType : U8
-{
-    LOG,
-    SIM_Writes,
-    SIM_Scheduler,
-    GUI_Writes,
-    GUI_Scheduler,
-    DEV_Writes,
-    DEV_Scheduler,
-    RES,
-    TOTAL
-};
-
-inline constexpr typename std::underlying_type< TrackType >::type to_int( TrackType e ) noexcept
-{
-    return static_cast< typename std::underlying_type< TrackType >::type >( e );
-}
-
-const std::string& toName( TrackType trackType );
-
 class Index : public FileSequence
 {
 public:
     using Ptr = std::unique_ptr< Index >;
 
+    static const char* INDEX_TRACE_NAME;
+
     Index( const boost::filesystem::path& folderPath )
-        : FileSequence( folderPath, "index" )
+        : FileSequence( folderPath, INDEX_TRACE_NAME )
     {
     }
 
-    struct Record
-    {
-        static_assert( to_int( TrackType::TOTAL ) == 8, "Unexpected number of tracks" );
-        std::array< Offset, to_int( TrackType::TOTAL ) > m_offsets;
-
-        const Offset& get( TrackType track ) const { return m_offsets[ to_int( track ) ]; }
-        Offset&       get( TrackType track ) { return m_offsets[ to_int( track ) ]; }
-    };
-    static constexpr U64 RecordSize = sizeof( Record );
+    static constexpr U64 RecordSize = sizeof( IndexRecord );
     static_assert( RecordSize == 64U, "Unexpected record size" );
     static constexpr auto RecordsPerFile = LogFileSize / RecordSize;
 
@@ -151,7 +125,7 @@ class Iterator
         {
             m_pFile = m_track.getFile( m_position );
         }
-        VERIFY_RTE( m_pFile );
+        ASSERT( m_pFile );
         const void* pData = m_pFile->read( m_position );
 
         // if there is no space for nullsize or nullsize is present
@@ -208,17 +182,17 @@ private:
 
 class Storage
 {
-    using TrackArray = std::array< Track, to_int( TrackType::TOTAL ) >;
+    using TrackArray = std::array< Track, toInt( TrackType::TOTAL ) >;
 
     inline const Track& getTrack( TrackType trackType ) const
     {
-        ASSERT( to_int( trackType ) < to_int( TrackType::TOTAL ) );
-        return m_tracks[ to_int( trackType ) ];
+        ASSERT( toInt( trackType ) < toInt( TrackType::TOTAL ) );
+        return m_tracks[ toInt( trackType ) ];
     }
     inline Track& getTrack( TrackType trackType )
     {
-        ASSERT( to_int( trackType ) < to_int( TrackType::TOTAL ) );
-        return m_tracks[ to_int( trackType ) ];
+        ASSERT( toInt( trackType ) < toInt( TrackType::TOTAL ) );
+        return m_tracks[ toInt( trackType ) ];
     }
 
     template < typename MsgType >
@@ -242,12 +216,20 @@ class Storage
     }
 
 public:
-    Storage( const boost::filesystem::path& folderPath );
+    Storage( const boost::filesystem::path& folderPath, bool bLoad = false );
     ~Storage();
 
     void cycle();
 
     inline void log( const LogMsg& logMsg ) { write( logMsg, TrackType::LOG ); }
+    inline void record( RecordTrackType recordType, const MemoryRecord& record )
+    {
+        write( record, toTrackType( recordType ) );
+    }
+    inline void record( SchedulerTrackType schedType, const SchedulerRecord& record )
+    {
+        write( record, toTrackType( schedType ) );
+    }
 
     Offset get( TrackType track ) const;
     Offset get( TrackType track, TimeStamp timestamp ) const;
@@ -259,14 +241,41 @@ public:
     }
     inline Iterator< LogMsgRead > logEnd() const { return { getTrack( TrackType::LOG ), get( TrackType::LOG ) }; }
 
-    TimeStamp getTimeStamp() const { return m_timestamp; }
+    inline Iterator< MemoryRecordRead > recordBegin( RecordTrackType recordType ) const
+    {
+        return { getTrack( toTrackType( recordType ) ) };
+    }
+    inline Iterator< MemoryRecordRead > recordBegin( RecordTrackType recordType, TimeStamp timestamp ) const
+    {
+        return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ), timestamp ) };
+    }
+    inline Iterator< MemoryRecordRead > recordEnd( RecordTrackType recordType ) const
+    {
+        return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ) ) };
+    }
+
+    inline Iterator< SchedulerRecordRead > schedBegin( SchedulerTrackType recordType ) const
+    {
+        return { getTrack( toTrackType( recordType ) ) };
+    }
+    inline Iterator< SchedulerRecordRead > schedBegin( SchedulerTrackType recordType, TimeStamp timestamp ) const
+    {
+        return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ), timestamp ) };
+    }
+    inline Iterator< SchedulerRecordRead > schedEnd( SchedulerTrackType recordType ) const
+    {
+        return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ) ) };
+    }
+
+    TimeStamp          getTimeStamp() const { return m_timestamp; }
+    const IndexRecord& getIterator() const { return m_iterator; }
 
 private:
     const boost::filesystem::path m_folderPath;
     Index                         m_index;
     TrackArray                    m_tracks;
     TimeStamp                     m_timestamp;
-    Index::Record                 m_iterator;
+    IndexRecord                   m_iterator;
 };
 
 } // namespace mega::log

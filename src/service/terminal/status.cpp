@@ -32,7 +32,17 @@ network::Status TerminalRequestConversation::GetStatus( const std::vector< netwo
 
     network::Status status{ childNodeStatus };
     {
-        status.setConversationID( m_terminal.reportConversations() );
+        std::vector< network::ConversationID > conversations;
+        {
+            for ( const auto& id : m_terminal.reportConversations() )
+            {
+                if ( id != getID() )
+                {
+                    conversations.push_back( id );
+                }
+            }
+        }
+        status.setConversationID( conversations );
         status.setDescription( m_terminal.m_strProcessName );
     }
 

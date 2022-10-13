@@ -26,19 +26,11 @@
 #include <boost/filesystem.hpp>
 
 #include <string>
+#include <optional>
+#include <map>
 
 namespace mega::log
 {
-
-const std::string& toName( TrackType trackType )
-{
-    using namespace std::string_literals;
-    static const std::array< std::string, to_int( TrackType::TOTAL ) > strings
-        = { "SIM_Writes"s, "SIM_Scheduler"s, "GUI_Writes"s, "GUI_Scheduler"s,
-            "DEV_Writes"s, "DEV_Scheduler"s, "LOG"s,        "RES"s };
-    VERIFY_RTE( to_int( trackType ) < to_int( TrackType::TOTAL ) );
-    return strings[ to_int( trackType ) ];
-}
 
 boost::filesystem::path File::constructLogFile( const boost::filesystem::path& logFolderPath,
                                                 const std::string& strFileType, FileIndex fileIndex )
@@ -88,6 +80,7 @@ InterFileOffset File::write( const void* pData, U64 size )
     m_iterator = InterFileOffset{ m_iterator.get() + size };
     return m_iterator;
 }
+
 void File::terminate()
 {
     if ( m_iterator.get() + sizeof( U64 ) <= LogFileSize )
@@ -110,23 +103,6 @@ File* FileSequence::getFile( FileIndex fileIndex )
     {
         return iFind->second.get();
     }
-    // test disk
-    /*for ( boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator( m_folderPath ) )
-    {
-        const boost::filesystem::path& filePath = entry.path();
-        std::string                    diskFileName;
-        FileIndex                      diskFileIndex;
-        if ( fromFilePath( filePath, diskFileName, diskFileIndex ) )
-        {
-            if ( diskFileName == m_strName && diskFileIndex == fileIndex)
-            {
-                File::Ptr pFile = std::make_unique< File >( m_folderPath, m_strName, fileIndex );
-                auto ib = m_files.insert( { fileIndex, std::move( pFile ) } );
-                VERIFY_RTE( ib.second );
-                return ib.first->second.get();
-            }
-        }
-    }*/
 
     // create new file
     {
@@ -155,13 +131,15 @@ const File* FileSequence::getFile( FileIndex fileIndex ) const
 
 FileSequence::~FileSequence() {}
 
-Storage::Storage( const boost::filesystem::path& folderPath )
+const char* Index::INDEX_TRACE_NAME = "index";
+
+Storage::Storage( const boost::filesystem::path& folderPath, bool bLoad )
     : m_folderPath( folderPath )
     , m_index( m_folderPath )
-    , m_tracks{ Track{ m_folderPath, TrackType::SIM_Writes }, Track{ m_folderPath, TrackType::SIM_Scheduler },
-                Track{ m_folderPath, TrackType::GUI_Writes }, Track{ m_folderPath, TrackType::GUI_Scheduler },
-                Track{ m_folderPath, TrackType::DEV_Writes }, Track{ m_folderPath, TrackType::DEV_Scheduler },
-                Track{ m_folderPath, TrackType::LOG },        Track{ m_folderPath, TrackType::RES } }
+    , m_tracks{ Track{ m_folderPath, TrackType( 0 ) }, Track{ m_folderPath, TrackType( 1 ) },
+                Track{ m_folderPath, TrackType( 2 ) }, Track{ m_folderPath, TrackType( 3 ) },
+                Track{ m_folderPath, TrackType( 4 ) }, Track{ m_folderPath, TrackType( 5 ) },
+                Track{ m_folderPath, TrackType( 6 ) }, Track{ m_folderPath, TrackType( 7 ) } }
     , m_timestamp( 0U )
 {
     if ( !boost::filesystem::is_directory( m_folderPath ) )
@@ -173,10 +151,59 @@ Storage::Storage( const boost::filesystem::path& folderPath )
         }
     }
 
-    // create first cycle at timestamp 0
-    File*                 pFile  = m_index.getFile( m_index.toFileIndex( m_timestamp ) );
-    const InterFileOffset offset = pFile->write( &m_iterator, Index::RecordSize );
-    ASSERT( offset.get() == Index::RecordSize );
+    if ( bLoad )
+    {
+        // collect all index files in order of FileIndex
+        std::map< FileIndex, std::string > files;
+        {
+            for ( boost::filesystem::directory_entry& entry : boost::filesystem::directory_iterator( m_folderPath ) )
+            {
+                const boost::filesystem::path& filePath = entry.path();
+                std::string                    diskFileName;
+                FileIndex                      diskFileIndex;
+                if ( fromFilePath( filePath, diskFileName, diskFileIndex ) )
+                {
+                    if ( diskFileName == Index::INDEX_TRACE_NAME )
+                    {
+                        ASSERT( files.insert( { diskFileIndex, diskFileName } ).second );
+                    }
+                }
+            }
+        }
+
+        // now iterator through all index files in order and attempt to determine the
+        // first point a cycle record was not written
+        FileIndex nextFileIndex;
+        bool      bFoundLastCycle = false;
+        for ( auto i = files.begin(), iEnd = files.end(); i != iEnd && !bFoundLastCycle; ++i )
+        {
+            if ( i->first != nextFileIndex )
+                break;
+            nextFileIndex = FileIndex( nextFileIndex.get() + 1 );
+
+            File::Ptr pFile = std::make_unique< File >( m_folderPath, i->second, i->first );
+
+            m_timestamp = Index::RecordsPerFile * i->first.get();
+            for ( InterFileOffset offset = 0; offset != InterFileOffset{ LogFileSize }; offset += Index::RecordSize )
+            {
+                auto pRecord = reinterpret_cast< const IndexRecord* >( pFile->read( offset ) );
+                if ( *pRecord < m_iterator )
+                {
+                    bFoundLastCycle = true;
+                    break;
+                }
+                ++m_timestamp;
+                m_iterator = *pRecord;
+            }
+        }
+    }
+    else
+    {
+        // create first cycle at timestamp 0
+        File*                 pFile  = m_index.getFile( m_index.toFileIndex( m_timestamp ) );
+        const InterFileOffset offset = pFile->write( &m_iterator, Index::RecordSize );
+        ASSERT( offset.get() == Index::RecordSize );
+    }
 }
 
 Storage::~Storage()
@@ -197,10 +224,10 @@ void Storage::cycle()
     ASSERT( ( m_timestamp % Index::RecordsPerFile ) + 1 == ( offset.get() / Index::RecordSize ) );
 }
 
-Offset Storage::get( TrackType track ) const 
-{ 
+Offset Storage::get( TrackType track ) const
+{
     //
-    return m_iterator.get( track ); 
+    return m_iterator.get( track );
 }
 
 Offset Storage::get( TrackType track, TimeStamp timestamp ) const
@@ -209,7 +236,7 @@ Offset Storage::get( TrackType track, TimeStamp timestamp ) const
     {
         const File* pFile   = m_index.getFile( m_index.toFileIndex( timestamp ) );
         const void* pData   = pFile->read( ( timestamp % Index::RecordsPerFile ) * Index::RecordSize );
-        auto        pRecord = reinterpret_cast< const Index::Record* >( pData );
+        auto        pRecord = reinterpret_cast< const IndexRecord* >( pData );
         return pRecord->get( track );
     }
     else

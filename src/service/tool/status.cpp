@@ -31,8 +31,17 @@ network::Status ToolRequestConversation::GetStatus( const std::vector< network::
 
     network::Status status{ childNodeStatus };
     {
-        // mega::runtime::getRuntimeStatus();
-        status.setConversationID( m_tool.reportConversations() );
+        std::vector< network::ConversationID > conversations;
+        {
+            for ( const auto& id : m_tool.reportConversations() )
+            {
+                if ( id != getID() )
+                {
+                    conversations.push_back( id );
+                }
+            }
+        }
+        status.setConversationID( conversations );
         status.setMPO( m_tool.getMPO() );
         status.setDescription( m_tool.m_strProcessName );
     }

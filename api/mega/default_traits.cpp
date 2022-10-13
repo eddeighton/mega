@@ -22,6 +22,8 @@
 
 #include "runtime/context.hpp"
 
+#include "log/log.hpp"
+
 #include <vector>
 
 namespace
@@ -61,9 +63,36 @@ void copy_( const void* pFrom, void* pTo )
 template < typename T >
 void event_( const mega::reference& ref, bool bShared, const void* p )
 {
-    const T* pT = reinterpret_cast< const T* >( p );
-    mega::MPOContext::get()->write( ref, bShared, sizeof( T ), pT );
+    mega::log::Storage& log = mega::MPOContext::get()->getLog();
+
+    log.record( mega::log::RecordTrackType::SIM_Writes,
+                mega::log::MemoryRecord( ref, bShared, std::string_view( reinterpret_cast< const char* >( p ), sizeof( T ) ) ) );
+    
+
 }
+
+/*
+template < typename T >
+void event_nonSimple( const mega::reference& ref, bool bShared, const T& value )
+{
+    using Buffer = std::vector< char >;
+    boost::interprocess::basic_vectorbuf< Buffer > os;
+    {
+        boost::archive::binary_oarchive oa( os );
+        oa&                             value;
+    }
+}
+
+template < typename T >
+void read_nonSimple( std::vector< char >& buffer )
+{
+    using Buffer = std::vector< char >;
+    T                                              data;
+    boost::interprocess::basic_vectorbuf< Buffer > is( buffer );
+    boost::archive::binary_iarchive                ia( is );
+    ia&                                            data;
+}
+*/
 
 } // namespace
 

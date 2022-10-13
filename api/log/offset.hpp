@@ -46,6 +46,7 @@ public:
 
     inline bool operator<( const FileIndex& cmp ) const { return m_index < cmp.m_index; }
     inline bool operator==( const FileIndex& cmp ) const { return m_index == cmp.m_index; }
+    inline bool operator!=( const FileIndex& cmp ) const { return !this->operator==( cmp ); }
 
     struct Hash
     {
@@ -70,6 +71,11 @@ public:
 
     inline bool operator<( const InterFileOffset& cmp ) const { return m_index < cmp.m_index; }
     inline bool operator==( const InterFileOffset& cmp ) const { return m_index == cmp.m_index; }
+    inline bool operator!=( const InterFileOffset& cmp ) const { return !this->operator==( cmp ); }
+
+    inline InterFileOffset operator++() { return ++m_index; }
+    inline InterFileOffset operator++( int ) { return m_index++; }
+    inline InterFileOffset operator+=( InterFileOffset amt ) { return m_index += amt.get(); }
 
 private:
     U64 m_index = 0U;
@@ -93,6 +99,12 @@ public:
     inline bool operator!=( const Offset& cmp ) const { return !this->operator==( cmp ); }
 
     inline U64 get() const { return m_offset; }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int )
+    {
+        archive& m_offset;
+    }
 
 private:
     U64 m_offset = 0U;
