@@ -71,8 +71,8 @@ public:
 
     network::sim::Request_Encoder getSimRequest( MPO mpo )
     {
-        return { [ rootRequest = getMPRequest() ]( const network::Message& msg ) mutable
-                 { return rootRequest.MPRoot( msg, mega::MP{} ); },
+        return { [ mpo, mpoRequest = getMPRequest() ]( const network::Message& msg ) mutable
+                 { return mpoRequest.MPOUp( msg, mpo ); },
                  m_conversationIDRef };
     }
 
@@ -90,7 +90,7 @@ public:
     virtual mega::reference getThisRoot() override { return m_pExecutionRoot->root(); }
 
     // log
-    virtual log::Storage&   getLog() override { return m_log; }
+    virtual log::Storage& getLog() override { return m_log; }
 
     // MPOContext
     // simulation locks
@@ -129,14 +129,11 @@ public:
         for ( auto iEnd = m_log.schedEnd(); m_schedulerIter != iEnd; ++m_schedulerIter )
         {
             const log::SchedulerRecordRead& record = *m_schedulerIter;
-
         }
 
         for ( auto iEnd = m_log.memoryEnd( log::MemoryTrackType::Simulation ); m_memoryIter != iEnd; ++m_memoryIter )
         {
             const log::MemoryRecordRead& record = *m_memoryIter;
-
-
         }
 
         for ( MPO writeLock : m_lockTracker.getWrites() )

@@ -47,8 +47,7 @@ Simulation::Simulation( Executor& executor, const network::ConversationID& conve
 network::Message Simulation::dispatchRequest( const network::Message& msg, boost::asio::yield_context& yield_ctx )
 {
     network::Message result;
-    result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx );
-    if ( result )
+    if ( result = network::leaf_exe::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }

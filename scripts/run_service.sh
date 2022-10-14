@@ -10,17 +10,17 @@ if [ x"${CFG_TUPLE}" == "x" ]; then
     exit 1
 fi
 
-./root --level info --console error &
+${BUILD_PATH}/${CFG_TUPLE}/mega/install/bin/root --level info --console error &
 
 sleep 1
 
-./daemon --level info --console error &
+${BUILD_PATH}/${CFG_TUPLE}/mega/install/bin/daemon --level info --console error &
 
 sleep 1
 
-./executor --level info --console error &
+${BUILD_PATH}/${CFG_TUPLE}/mega/install/bin/executor --level info --console error &
 
 #tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|warn|error" --color=none
 #tail -f ./log/root* | egrep -h "SUCCESS|CACHE|FAIL|MSG|warn|error" --color=none
 
-tail -f ./log/root*
+tail -f ./log/*
