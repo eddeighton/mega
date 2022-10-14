@@ -63,7 +63,8 @@ void ExecutorRequestConversation::dispatchResponse( const network::ConnectionID&
     {
         m_executor.getLeafSender().send( msg, yield_ctx );
     }
-    else if ( network::ConversationBase::Ptr pConversation = m_executor.findExistingConversation( msg.receiver ) )
+    else if ( network::ConversationBase::Ptr pConversation
+              = m_executor.findExistingConversation( msg.getReceiverID() ) )
     {
         SPDLOG_TRACE( "Found response conversation within executor" );
         pConversation->send( network::ReceivedMsg{ connectionID, msg } );
@@ -114,15 +115,15 @@ network::Message ExecutorRequestConversation::RootAllBroadcast( const network::M
         m_executor.getSimulations( simulations );
         for ( Simulation::Ptr pSimulation : simulations )
         {
-            switch ( getMsgID( request ) )
+            switch ( request.getID() )
             {
                 case network::status::MSG_GetStatus_Request::ID:
                 {
                     auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
                     network::status::Request_Sender rq( *this, pSimulation->getID(), *pSimulation, yield_ctx );
-                    auto response = network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) };
-                    const network::Message responseWrapper
-                        = network::status::MSG_GetStatus_Response::make( request.receiver, request.sender, response );
+                    const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
+                        request.getReceiverID(), request.getSenderID(),
+                        network::status::MSG_GetStatus_Response{ rq.GetStatus( msg.status ) } );
                     responses.push_back( responseWrapper );
                 }
                 break;

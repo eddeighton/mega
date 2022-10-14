@@ -40,9 +40,13 @@ public:
     using MPOVector              = std::vector< MPO >;
 
     // native code interface
+
+    // queries
     virtual MachineIDVector        getMachines()                       = 0;
     virtual MachineProcessIDVector getProcesses( MachineID machineID ) = 0;
     virtual MPOVector              getMPO( MP machineProcess )         = 0;
+
+    // mpo management
     virtual MPO                    getThisMPO()                        = 0;
     virtual MPO                    constructMPO( MP machineProcess )   = 0;
     virtual reference              getRoot( MPO mpo )                  = 0;
@@ -64,17 +68,23 @@ class MPOContext : public Context
 public:
     static void        resume( MPOContext* pMPOContext );
     static void        suspend();
-    static MPOContext* get();
+    static MPOContext* getMPOContext();
 
 public:
     // runtime internal interface
+
+    // memory management
     virtual std::string    acquireMemory( MPO mpo )                                           = 0;
     virtual MPO            getNetworkAddressMPO( NetworkAddress networkAddress )              = 0;
     virtual NetworkAddress getRootNetworkAddress( MPO mpo )                                   = 0;
     virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID )             = 0;
     virtual void           deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) = 0;
+
+    // stash
     virtual void           stash( const std::string& filePath, mega::U64 determinant )        = 0;
     virtual bool           restore( const std::string& filePath, mega::U64 determinant )      = 0;
+
+    // simulation locks
     virtual bool           readLock( MPO mpo )                                                = 0;
     virtual bool           writeLock( MPO mpo )                                               = 0;
     virtual void           cycleComplete()                                                    = 0;
@@ -83,11 +93,11 @@ public:
 class Cycle
 {
 public:
-    ~Cycle() { mega::MPOContext::get()->cycleComplete(); }
+    ~Cycle() { mega::MPOContext::getMPOContext()->cycleComplete(); }
 };
 
-#define SUSPEND_MPO_CONTEXT()                      \
-    MPOContext* _pMPOContext_ = MPOContext::get(); \
+#define SUSPEND_MPO_CONTEXT()                                \
+    MPOContext* _pMPOContext_ = MPOContext::getMPOContext(); \
     MPOContext::suspend()
 
 #define RESUME_MPO_CONTEXT() MPOContext::resume( _pMPOContext_ )

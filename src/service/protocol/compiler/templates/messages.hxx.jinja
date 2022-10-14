@@ -54,11 +54,31 @@
 namespace mega::network
 {
 
-struct Message
+class Message
 {
-    MessageID index = 0; // MSG_Error_Dispatch
+    friend const void* getData( const Message& message );
+    friend void* getData( Message& message );
+    friend void    encode( boost::archive::binary_oarchive& archive, const Message& message );
+    friend Message decode( boost::archive::binary_iarchive& archive );
+
+    MessageID      index = 0; // MSG_Error_Dispatch
     ConversationID sender, receiver;
-    std::any msg;
+    std::shared_ptr< void > data;
+
+public:
+    Message() = default;
+    Message( MessageID index, ConversationID sender, ConversationID receiver, std::shared_ptr< void > data )
+        : index( index )
+        , sender( std::move( sender ) )
+        , receiver( std::move( receiver ) )
+        , data( std::move( data ) )
+    {
+    }
+
+    MessageID             getID() const { return index; }
+    const ConversationID& getReceiverID() const { return receiver; }
+    const ConversationID& getSenderID() const { return sender; }
+    const char*           getName() const;
 
     operator bool() const { return index != 0; }
 
@@ -88,8 +108,8 @@ struct {{ message.name }}
 {%for member in message.members%}
     {{ member.type }} {{ member.name }}; 
 {%endfor%}
-    static Message make( const ConversationID& sender, const ConversationID& receiver, const {{ message.name }}& msg );
-    static inline Message make( const ConversationID& sender, const {{ message.name }}& msg ) { return make( sender, sender, msg ); }
+    static Message make( const ConversationID& sender, const ConversationID& receiver, {{ message.name }}&& msg );
+    static inline Message make( const ConversationID& sender, {{ message.name }}&& msg ) { return make( sender, sender, std::move( msg ) ); }
     static const {{ message.name }}& get( const Message& msg );
 };
 
@@ -115,12 +135,7 @@ void Message::load( Archive& ar, const unsigned int version )
     *this = decode( ar );
 }
 
-const char* getMsgName( const Message& msg );
 std::ostream& operator<<( std::ostream& os, const Message& msg );
-MessageID getMsgID( const Message& msg );
-const char* getMsgNameFromID( MessageID id );
-inline const ConversationID& getMsgSender( const Message& msg ) { return msg.sender; }
-inline const ConversationID& getMsgReceiver( const Message& msg ) { return msg.receiver; }
 
 void aggregate( Message& request, const std::vector< Message >& responses );
 

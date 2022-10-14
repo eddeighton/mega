@@ -140,7 +140,7 @@ network::ConversationBase::Ptr Executor::joinConversation( const network::Connec
                                                            const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new ExecutorRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
+        new ExecutorRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 /*
 void Executor::reportSimulations( network::Status& status ) const

@@ -30,6 +30,8 @@ static mega::runtime::GetSharedFunction _fptr_get_shared_{{ getter }} = nullptr;
 
 namespace mega
 {
+    void schedule_stop(const reference&);
+
 {% for copy in copiers %}
     void copy_{{copy}}(const void*,void*);
 {% endfor %}

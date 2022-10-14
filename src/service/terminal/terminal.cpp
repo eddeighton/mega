@@ -95,7 +95,7 @@ network::ConversationBase::Ptr Terminal::joinConversation( const network::Connec
                                                            const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new TerminalRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
+        new TerminalRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
 network::Message Terminal::routeGenericRequest( const network::ConversationID& conversationID,
@@ -115,7 +115,7 @@ network::Message Terminal::routeGenericRequest( const network::ConversationID& c
             , m_message( msg )
             , m_result( result )
         {
-            SPDLOG_TRACE( "Terminal::rootRequest::RootConversation::ctor {}", network::getMsgName( m_message ) );
+            SPDLOG_TRACE( "Terminal::rootRequest::RootConversation::ctor {}", m_message );
         }
         void run( boost::asio::yield_context& yield_ctx )
         {

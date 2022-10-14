@@ -269,7 +269,7 @@ public:
     void compileToLLVMIR( const std::string& strName, const std::string& strCPPCode, std::ostream& osIR,
                           std::optional< const FinalStage::Components::Component* > pComponent )
     {
-        MPOContext* pMPOContext = MPOContext::get();
+        MPOContext* pMPOContext = MPOContext::getMPOContext();
         VERIFY_RTE( pMPOContext );
 
         const boost::filesystem::path irFilePath = m_tempDir / ( strName + ".ir" );
@@ -342,10 +342,11 @@ R"TEMPLATE(
         mega::reference allocated( mega::TypeInstance( newInstance, 1 ), {{ instance_var }} );
 
         // generate memory record
-        event_{{ allocator_type }}( mega::reference( mega::TypeInstance( {{ instance_var }}.instance, {{ allocator_type_id }} ), var_Root_1 ), false, pAllocator );
+        mega::event_{{ allocator_type }}( mega::reference( mega::TypeInstance( {{ instance_var }}.instance, 
+            {{ allocator_type_id }} ), var_Root_1 ), false, pAllocator );
 
         // generate scheduling record
-        // schedule_start( allocated );
+        mega::schedule_start( allocated );
 
         return allocated;
     }

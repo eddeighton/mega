@@ -118,7 +118,7 @@ network::ConversationBase::Ptr Daemon::joinConversation( const network::Connecti
                                                          const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new DaemonRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
+        new DaemonRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
 } // namespace mega::service

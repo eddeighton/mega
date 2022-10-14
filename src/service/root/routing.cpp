@@ -38,7 +38,7 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
                                                            boost::asio::yield_context& yield_ctx )
 {
     SPDLOG_TRACE(
-        "RootRequestConversation::dispatchRequest {}", network::getMsgNameFromID( network::getMsgID( msg ) ) );
+        "RootRequestConversation::dispatchRequest {}", msg );
     network::Message result;
     if ( result = network::daemon_root::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
@@ -56,7 +56,7 @@ network::Message RootRequestConversation::dispatchRequest( const network::Messag
         return result;
     if ( result = network::job::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "RootRequestConversation::dispatchRequest failed: " << network::getMsgName( msg ) );
+    THROW_RTE( "RootRequestConversation::dispatchRequest failed: " << msg );
 }
 
 void RootRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,

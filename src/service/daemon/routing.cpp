@@ -48,7 +48,7 @@ network::Message DaemonRequestConversation::dispatchRequest( const network::Mess
         return result;
     if ( result = network::memory::Impl::dispatchRequest( msg, yield_ctx ); result )
         return result;
-    THROW_RTE( "DaemonRequestConversation::dispatchRequest failed: " << network::getMsgName( msg ) );
+    THROW_RTE( "DaemonRequestConversation::dispatchRequest failed: " << msg.getName() );
 }
 
 void DaemonRequestConversation::dispatchResponse( const network::ConnectionID& connectionID,

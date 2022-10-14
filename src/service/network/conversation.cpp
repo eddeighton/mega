@@ -131,7 +131,7 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
                 {
                     SPDLOG_ERROR(
                         "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
-                    const ReceivedMsg rMsg{ m_stack.back(), make_error_msg( msg.msg.receiver, "Disconnection" ) };
+                    const ReceivedMsg rMsg{ m_stack.back(), make_error_msg( msg.msg.getReceiverID(), "Disconnection" ) };
                     send( rMsg );
                 }
             }
@@ -141,7 +141,7 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
             break;
         }
     }
-    if ( getMsgID( msg.msg ) == MSG_Error_Response::ID )
+    if ( msg.msg.getID() == MSG_Error_Response::ID )
     {
         throw std::runtime_error( MSG_Error_Response::get( msg.msg ).what );
     }
@@ -150,7 +150,7 @@ Message Conversation::dispatchRequestsUntilResponse( boost::asio::yield_context&
 
 void Conversation::dispatchRequestImpl( const ReceivedMsg& msg, boost::asio::yield_context& yield_ctx )
 {
-    ConversationBase::RequestStack stack( getMsgName( msg.msg ), *this, msg.connectionID );
+    ConversationBase::RequestStack stack( msg.msg.getName(), *this, msg.connectionID );
     try
     {
         ASSERT( isRequest( msg.msg ) );

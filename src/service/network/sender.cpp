@@ -93,7 +93,7 @@ public:
                                     const std::string&          strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        Message msg = make_error_msg( receivedMsg.msg.receiver, strErrorMsg );
+        Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
         if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );
@@ -153,7 +153,7 @@ public:
                                     const std::string&          strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        Message msg = make_error_msg( receivedMsg.msg.receiver, strErrorMsg );
+        Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
         if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );
@@ -214,7 +214,7 @@ public:
                                     const std::string&          strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        Message msg = make_error_msg( receivedMsg.msg.receiver, strErrorMsg );
+        Message msg = make_error_msg( receivedMsg.msg.getReceiverID(), strErrorMsg );
         if ( const boost::system::error_code ec = send( msg, yield_ctx ) )
         {
             THROW_RTE( "Error sending: " << ec.what() );

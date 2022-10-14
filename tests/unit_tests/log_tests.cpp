@@ -109,10 +109,10 @@ TEST_F( BasicLogTest, Cycles )
     using namespace mega::log;
 
     // fill first log file
-    for ( int i = 0; i < Index::RecordsPerFile * 3; ++i )
+    for ( int i = 0; i < impl::Index::RecordsPerFile * 3; ++i )
     {
         ASSERT_EQ( log.getTimeStamp(), i );
-        ASSERT_EQ( log.get( TrackType::LOG ), Offset{} );
+        ASSERT_EQ( log.get( TrackType::Log ), Offset{} );
         log.cycle();
     }
 }
@@ -174,12 +174,12 @@ TEST_F( BasicLogTest, LogMsgMany_ )
         if ( ( iCounter != 0 ) && ( iCounter % msgsPerCycle == 0 ) )
         {
             const mega::TimeStamp   lastCycle         = log.getTimeStamp();
-            const mega::log::Offset oldOffset         = log.get( mega::log::TrackType::LOG, lastCycle );
-            const mega::log::Offset expectedNewOffset = log.get( mega::log::TrackType::LOG );
+            const mega::log::Offset oldOffset         = log.get( mega::log::TrackType::Log, lastCycle );
+            const mega::log::Offset expectedNewOffset = log.get( mega::log::TrackType::Log );
 
             log.cycle();
             const mega::TimeStamp   newCycle  = log.getTimeStamp();
-            const mega::log::Offset newOffset = log.get( mega::log::TrackType::LOG, newCycle );
+            const mega::log::Offset newOffset = log.get( mega::log::TrackType::Log, newCycle );
 
             ASSERT_EQ( newOffset, expectedNewOffset )
                 << "iCounter:" << iCounter << " lastCycle:" << lastCycle << " newCycle:" << newCycle
@@ -215,7 +215,7 @@ TEST_F( BasicLogTest, LogMsgMany_ )
     }
 
     {
-        auto            iIter          = testMsgs.begin();
+        auto iIter = testMsgs.begin();
         for ( mega::TimeStamp timeStamp = 0; timeStamp != finalTimeStamp; timeStamp++ )
         {
             int  iCounter = 0;

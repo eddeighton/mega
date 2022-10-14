@@ -26,6 +26,31 @@
 
 namespace mega::network
 {
+namespace 
+{
+    const char* getMsgNameFromID( MessageID id )
+    {
+        switch( id )
+        {
+{%for message in messages%}
+            case {{ message.id }}: return "{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}";
+{% endfor %}
+            default: 
+            {
+                THROW_RTE( "Unknown message type: " << id );
+            }
+        }
+    }
+}
+
+const void* getData( const Message& message )
+{
+    return message.data.get();
+}
+void* getData( Message& message )
+{
+    return message.data.get();
+}
 
 {%for message in messages%}
 {%for namespace in message.namespaces%}
@@ -33,15 +58,16 @@ namespace mega::network
 {%endfor%}{# for namespace in message.namespaces #}
 {%if message.has_namespace%} { {%endif%}
 
-Message {{ message.name }}::make( const ConversationID& sender, const ConversationID& receiver, const {{ message.name }}& msg )
+Message {{ message.name }}::make( const ConversationID& sender, const ConversationID& receiver, {{ message.name }}&& msg )
 {
-    return Message{ ID, sender, receiver, msg };
+    return Message{ ID, sender, receiver, std::shared_ptr< void >( new {{ message.name }}{ std::move( msg ) }, []( {{ message.name }}* p ){ delete p; } ) };
 }
 
 const {{ message.name }}& {{ message.name }}::get( const Message& msg )
 {
-    VERIFY_RTE_MSG( getMsgID( msg ) == ID, "Expected message type: " << getMsgNameFromID( ID ) << " but got: " << getMsgNameFromID( getMsgID( msg ) ) );
-    return *std::any_cast< {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }} >( &msg.msg );
+    VERIFY_RTE_MSG( msg.getID() == ID, "Expected message type: " << getMsgNameFromID( ID ) << " but got: " << msg );
+    using Type = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }};
+    return *reinterpret_cast< const Type* >( getData( msg ) );
 }
 
 {%if message.has_namespace%} } {%endif%} 
@@ -49,12 +75,13 @@ const {{ message.name }}& {{ message.name }}::get( const Message& msg )
 
 Message make_error_msg( const ConversationID& receiver, const std::string& strErrorMsg )
 {
-    return Message{ MSG_Error_Response::ID, receiver, receiver, MSG_Error_Response{ strErrorMsg } };
+    return Message{ MSG_Error_Response::ID, receiver, receiver, 
+        std::shared_ptr< void >( new MSG_Error_Response{ strErrorMsg }, []( MSG_Error_Response* p ){ delete p; } ) };
 }
 
 bool isRequest( const Message& message )
 {
-    switch( message.index )
+    switch( message.getID() )
     {
 {%for message in messages%}
         case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID: 
@@ -66,7 +93,7 @@ bool isRequest( const Message& message )
 {% endfor %} 
         default:
         {
-            THROW_RTE( "Unknown message: " << getMsgName( message ) );
+            THROW_RTE( "Unknown message: " << message.getName() );
         }
     }
 }
@@ -86,13 +113,14 @@ Message decode( boost::archive::binary_iarchive& archive )
 {%for member in message.members%}
             archive& msg.{{ member.name }}; 
 {%endfor%}
-            return {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::make( header.sender, header.receiver, msg );
+            return {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::make( 
+                header.sender, header.receiver, std::move( msg ) );
         }
         break;
 {%endfor%}
         default:
         {
-            THROW_RTE( "Error decoding message: " << getMsgName( header ) );
+            THROW_RTE( "Error decoding message: " << header.getName() );
         }
     }
 }
@@ -107,8 +135,8 @@ void encode( boost::archive::binary_oarchive& archive, const Message& message )
 {%for message in messages%}
         case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
         {
-            const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg = 
-                {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::get( message );
+            using Type = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }};
+            const Type& msg = *reinterpret_cast< const Type* >( getData( message ) );
 {%for member in message.members%}
             archive& msg.{{ member.name }}; 
 {%endfor%}
@@ -117,56 +145,37 @@ void encode( boost::archive::binary_oarchive& archive, const Message& message )
 {% endfor %}
         default:
         {
-            THROW_RTE( "Error decoding message: " << getMsgName( message ) );
+            THROW_RTE( "Error decoding message: " << message.getName() );
         }
     }
 }
 
 std::ostream& operator<<( std::ostream& os, const Message& msg )
 {
-    return os << getMsgName( msg );
+    return os << msg.getName();
 }
 
-MessageID getMsgID( const Message& msg )
+const char* Message::getName() const
 {
-    return msg.index;
-}
-
-const char* getMsgNameFromID( MessageID id )
-{
-    switch( id )
-    {
-{%for message in messages%}
-        case {{ message.id }}: return "{%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}";
-{% endfor %}
-        default: 
-        {
-            THROW_RTE( "Unknown message type: " << id );
-        }
-    }
-}
-
-const char* getMsgName( const Message& msg )
-{
-    return getMsgNameFromID( getMsgID( msg ) );
+    return getMsgNameFromID( getID() );
 }
 
 void aggregate( Message& request, const std::vector< Message >& responses )
 {
-    switch( request.index )
+    switch( request.getID() )
     {
 {%for message in messages%}
 {% if message.is_broadcast %}
         case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
         {
-            {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}& msg = 
-                *std::any_cast< {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }} >( &request.msg );
+            using Type = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }};
+            Type& msg = *reinterpret_cast< Type* >( getData( request ) );
 {%for member in message.members%}
 {% if loop.is_last %}
             for( const Message& response : responses )
             {
-                const {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.response_name }}& responseMsg =
-                    *std::any_cast< {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.response_name }} >( &response.msg );
+                using ResponseType = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.response_name }};
+                const ResponseType& responseMsg = *reinterpret_cast< const ResponseType* >( getData( response ) );
                 msg.{{ member.name }}.push_back( responseMsg.{{ message.response_member }} );
             }
 {% endif %}
@@ -177,7 +186,7 @@ void aggregate( Message& request, const std::vector< Message >& responses )
 {% endfor %}
         default:
         {
-            THROW_RTE( "Error decoding message: " << getMsgName( request ) );
+            THROW_RTE( "Error decoding message: " << request.getName() );
         }
     }
 }

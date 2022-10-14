@@ -26,8 +26,10 @@
 #include "mega/reference.hpp"
 #include "mega/event.hpp"
 
+#include <utility>
 #include <vector>
 #include <string_view>
+#include <string>
 
 namespace mega::log
 {
@@ -47,7 +49,7 @@ public:
     inline U64 size() const { return sizeof( m_reference ) + sizeof( U64 ) + sizeof( bool ) + m_data.size(); }
 
     template < typename FileType >
-    auto write( FileType& file ) const
+    inline auto write( FileType& file ) const
     {
         const U64 sz = size();
         file.write( &sz, sizeof( sz ) );
@@ -64,7 +66,8 @@ private:
 
 class MemoryRecordRead
 {
-    MemoryRecordRead( const void* pData )
+public:
+    inline MemoryRecordRead( const void* pData )
     {
         const char* p = reinterpret_cast< const char* >( pData );
 
@@ -77,13 +80,13 @@ class MemoryRecordRead
         m_data = std::string_view{ reinterpret_cast< const char* >( p ), size };
     }
 
-    bool operator==( const MemoryRecord& cmp ) const
+    inline bool operator==( const MemoryRecord& cmp ) const
     {
         return ( *m_pReference == cmp.m_reference ) && m_data == cmp.m_data;
     }
 
-    const mega::reference& getReference() const { return *m_pReference; }
-    std::string_view       getData() const { return m_data; }
+    inline const mega::reference& getReference() const { return *m_pReference; }
+    inline std::string_view       getData() const { return m_data; }
 
     inline operator Event() const { return Event{ getReference() }; }
 
@@ -99,32 +102,40 @@ class SchedulerRecord
     using Buffer = std::vector< char >;
 
 public:
-    inline SchedulerRecord( reference ref )
+    enum Type : U8
+    {
+        Start,
+        Stop
+    };
+
+    inline SchedulerRecord( reference ref, Type type )
         : m_reference( ref )
+        , m_type( type )
     {
     }
 
-    const reference& getReference() const { return m_reference; }
-    const Buffer&    getBuffer() const { return m_buffer; }
-    inline U64       size() const { return sizeof( m_reference ) + sizeof( U64 ) + m_buffer.size(); }
+    inline const reference& getReference() const { return m_reference; }
+    inline const Type       getType() const { return m_type; }
+    inline U64              size() const { return sizeof( m_reference ) + sizeof( U64 ) + sizeof( Type ); }
 
     template < typename FileType >
-    auto write( FileType& file ) const
+    inline auto write( FileType& file ) const
     {
         const U64 sz = size();
         file.write( &sz, sizeof( sz ) );
         file.write( &m_reference, sizeof( m_reference ) );
-        return file.write( m_buffer.data(), m_buffer.size() );
+        return file.write( &m_type, sizeof( m_type ) );
     }
 
 private:
     mega::reference m_reference;
-    Buffer          m_buffer;
+    Type            m_type;
 };
 
 class SchedulerRecordRead
 {
-    SchedulerRecordRead( const void* pData )
+public:
+    inline SchedulerRecordRead( const void* pData )
     {
         const char* p = reinterpret_cast< const char* >( pData );
 
@@ -134,21 +145,20 @@ class SchedulerRecordRead
         m_pReference = reinterpret_cast< const mega::reference* >( p );
         p += sizeof( mega::reference );
 
-        m_data = std::string_view{ reinterpret_cast< const char* >( p ), size };
+        m_pType = reinterpret_cast< const SchedulerRecord::Type* >( p );
     }
 
-    bool operator==( const SchedulerRecord& cmp ) const
+    inline bool operator==( const SchedulerRecord& cmp ) const
     {
-        return ( *m_pReference == cmp.m_reference ) && ( m_data.size() == cmp.m_buffer.size() )
-               && ( memcmp( m_data.data(), cmp.m_buffer.data(), m_data.size() ) == 0 );
+        return getReference() == cmp.getReference() && getType() == cmp.getType();
     }
 
-    const mega::reference& getReference() const { return *m_pReference; }
-    std::string_view       getData() const { return m_data; }
+    inline const mega::reference& getReference() const { return *m_pReference; }
+    inline SchedulerRecord::Type  getType() const { return *m_pType; }
 
 private:
-    const mega::reference* m_pReference;
-    std::string_view       m_data;
+    const mega::reference*       m_pReference;
+    const SchedulerRecord::Type* m_pType;
 };
 
 class LogMsg
@@ -168,16 +178,16 @@ public:
 
     LogMsg() = default;
 
-    LogMsg( Type type, const std::string& str )
+    inline LogMsg( Type type, std::string str )
         : m_type( type )
-        , m_msg( str )
+        , m_msg( std::move( str ) )
     {
     }
 
     inline U64 size() const { return sizeof( Type ) + sizeof( U64 ) + m_msg.size() + 1; }
 
     template < typename FileType >
-    auto write( FileType& file ) const
+    inline auto write( FileType& file ) const
     {
         const U64 sz = size();
         file.write( &sz, sizeof( sz ) );
@@ -195,7 +205,7 @@ private:
 class LogMsgRead
 {
 public:
-    LogMsgRead( const void* pData )
+    inline LogMsgRead( const void* pData )
     {
         const char* p = reinterpret_cast< const char* >( pData );
 
@@ -208,10 +218,10 @@ public:
         m_msg = std::string_view( p, size - ( sizeof( U64 ) + sizeof( LogMsg::Type ) + 1 ) );
     }
 
-    bool operator==( const LogMsg& cmp ) const { return m_type == cmp.m_type && m_msg == cmp.m_msg; }
+    inline bool operator==( const LogMsg& cmp ) const { return m_type == cmp.m_type && m_msg == cmp.m_msg; }
 
-    LogMsg::Type            getType() const { return m_type; }
-    const std::string_view& getMsg() const { return m_msg; }
+    inline LogMsg::Type            getType() const { return m_type; }
+    inline const std::string_view& getMsg() const { return m_msg; }
 
 private:
     LogMsg::Type     m_type;
@@ -220,14 +230,14 @@ private:
 
 enum class TrackType : U8
 {
-    LOG,
-    SIM_Writes,
-    SIM_Scheduler,
-    GUI_Writes,
-    GUI_Scheduler,
-    DEV_Writes,
-    DEV_Scheduler,
-    RES,
+    Log,
+    Scheduler,
+    Simulation,
+    UserInterface,
+    Analysis,
+    Resources,
+    Graphics,
+    Audio,
     TOTAL
 };
 
@@ -236,26 +246,17 @@ inline constexpr typename std::underlying_type< TrackType >::type toInt( TrackTy
     return static_cast< typename std::underlying_type< TrackType >::type >( e );
 }
 
-enum class RecordTrackType : U8
+enum class MemoryTrackType : U8
 {
-    SIM_Writes = toInt( TrackType::SIM_Writes ),
-    GUI_Writes = toInt( TrackType::GUI_Writes ),
-    DEV_Writes = toInt( TrackType::DEV_Writes )
+    Simulation    = toInt( TrackType::Simulation ),
+    UserInterface = toInt( TrackType::UserInterface ),
+    Analysis      = toInt( TrackType::Analysis ),
+    Resources     = toInt( TrackType::Resources ),
+    Graphics      = toInt( TrackType::Graphics ),
+    Audio         = toInt( TrackType::Audio )
 };
 
-inline TrackType toTrackType( RecordTrackType e ) noexcept
-{
-    return TrackType{ static_cast< typename std::underlying_type< TrackType >::type >( e ) };
-}
-
-enum class SchedulerTrackType : U8
-{
-    SIM_Scheduler = toInt( TrackType::SIM_Scheduler ),
-    GUI_Scheduler = toInt( TrackType::GUI_Scheduler ),
-    DEV_Scheduler = toInt( TrackType::DEV_Scheduler )
-};
-
-inline TrackType toTrackType( SchedulerTrackType e ) noexcept
+inline TrackType toTrackType( MemoryTrackType e ) noexcept
 {
     return TrackType{ static_cast< typename std::underlying_type< TrackType >::type >( e ) };
 }
@@ -266,28 +267,30 @@ inline const std::string& toName( TrackType trackType )
     static const std::array< std::string, toInt( TrackType::TOTAL ) > strings
         // clang-format off
     = { 
-        "LOG"s,        
-        "SIM_Writes"s, 
-        "SIM_Scheduler"s, 
-        "GUI_Writes"s, 
-        "GUI_Scheduler"s,
-        "DEV_Writes"s, 
-        "DEV_Scheduler"s, 
-        "RES"s 
+        "Log"s,
+        "Scheduler"s,
+        "Simulation"s,
+        "UserInterface"s,
+        "Analysis"s,
+        "Resources"s,
+        "Graphics"s,
+        "Audio"s
     };
     // clang-format on
     return strings[ toInt( trackType ) ];
 }
 
-struct IndexRecord
+class IndexRecord
 {
     static_assert( toInt( TrackType::TOTAL ) == 8, "Unexpected number of tracks" );
-    std::array< Offset, toInt( TrackType::TOTAL ) > m_offsets;
 
-    const Offset& get( TrackType track ) const { return m_offsets[ toInt( track ) ]; }
-    Offset&       get( TrackType track ) { return m_offsets[ toInt( track ) ]; }
+public:
+    inline const Offset& get( TrackType track ) const { return m_offsets[ toInt( track ) ]; }
+    inline Offset&       get( TrackType track ) { return m_offsets[ toInt( track ) ]; }
 
-    bool operator<( const IndexRecord& cmp ) const { return m_offsets < cmp.m_offsets; }
+    inline bool operator==( const IndexRecord& cmp ) const { return m_offsets == cmp.m_offsets; }
+    inline bool operator!=( const IndexRecord& cmp ) const { return m_offsets != cmp.m_offsets; }
+    inline bool operator<( const IndexRecord& cmp ) const { return m_offsets < cmp.m_offsets; }
 
     template < class Archive >
     inline void serialize( Archive& archive, const unsigned int )
@@ -297,6 +300,9 @@ struct IndexRecord
             archive& m_offsets[ i ];
         }
     }
+
+private:
+    std::array< Offset, toInt( TrackType::TOTAL ) > m_offsets;
 };
 
 } // namespace mega::log

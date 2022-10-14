@@ -49,7 +49,7 @@ ManagedSharedMemory& Runtime::getSharedMemoryManager( mega::MPO mpo )
     }
     else
     {
-        MPOContext* pMPOContext = MPOContext::get();
+        MPOContext* pMPOContext = MPOContext::getMPOContext();
         ASSERT( pMPOContext );
         const std::string  strMemoryName = pMPOContext->acquireMemory( mpo );
         MPOSharedMemoryPtr pMemoryPtr
@@ -64,7 +64,7 @@ NetworkAddress Runtime::allocateNetworkAddress( MPO mpo, TypeID objectTypeID )
 {
     SPDLOG_TRACE( "RUNTIME: allocateNetworkAddress: {} {}", mpo, objectTypeID );
 
-    MPOContext* pMPOContext = MPOContext::get();
+    MPOContext* pMPOContext = MPOContext::getMPOContext();
     ASSERT( pMPOContext );
     return pMPOContext->allocateNetworkAddress( mpo, objectTypeID );
 }
@@ -90,7 +90,7 @@ reference Runtime::allocateMachineAddress( MPO mpo, TypeID objectTypeID, Network
 {
     SPDLOG_TRACE( "RUNTIME: allocateMachineAddress: {} {} {}", mpo, objectTypeID, networkAddress );
 
-    MPOContext* pMPOContext = MPOContext::get();
+    MPOContext* pMPOContext = MPOContext::getMPOContext();
     ASSERT( pMPOContext );
     if ( pMPOContext->getThisMPO() != mpo )
     {
@@ -139,7 +139,7 @@ reference Runtime::networkToMachine( TypeID objectTypeID, NetworkAddress network
     }
     else
     {
-        MPOContext* pMPOContext = MPOContext::get();
+        MPOContext* pMPOContext = MPOContext::getMPOContext();
         ASSERT( pMPOContext );
         const MPO thisMPO = pMPOContext->getThisMPO();
         const MPO mpo     = pMPOContext->getNetworkAddressMPO( networkAddress );
@@ -184,7 +184,7 @@ mega::reference Runtime::getRoot( const mega::MPO& mpo )
     }
     else
     {
-        MPOContext* pMPOContext = MPOContext::get();
+        MPOContext* pMPOContext = MPOContext::getMPOContext();
         ASSERT( pMPOContext );
         const MPO thisMPO = pMPOContext->getThisMPO();
         SPDLOG_TRACE( "RUNTIME: getRoot: {} from {}", mpo, thisMPO );
@@ -219,15 +219,6 @@ void Runtime::deAllocateRoot( const mega::MPO& mpo )
         pAllocator->deAllocate( ref );
         m_executionContextRoot.erase( iFind );
     }
-}
-
-
-void Runtime::onWrite( reference dimension )
-{
-    MPOContext* pMPOContext = MPOContext::get();
-    ASSERT( pMPOContext );
-
-
 }
 
 void Runtime::get_getter_shared( const char* pszUnitName, mega::TypeID objectTypeID, GetSharedFunction* ppFunction )

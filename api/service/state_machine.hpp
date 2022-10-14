@@ -81,7 +81,7 @@ public:
     using Destroy = network::sim::MSG_SimDestroy_Request;
     using Clock   = network::sim::MSG_SimClock_Request;
 
-    static network::MessageID getMsgID( const Msg& msg ) { return network::getMsgID( msg.msg ); }
+    static network::MessageID getMsgID( const Msg& msg ) { return msg.msg.getID(); }
     static const mega::MPO&   getSimID( const Msg& msg )
     {
         switch ( getMsgID( msg ) )

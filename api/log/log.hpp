@@ -37,6 +37,8 @@
 
 namespace mega::log
 {
+namespace impl
+{
 
 class File
 {
@@ -116,11 +118,16 @@ private:
     TrackType m_trackType;
 };
 
+} // namespace impl
+
 template < typename RecordType >
 class Iterator
 {
+    friend class Storage;
+
     const void* get() const
     {
+        using namespace impl;
         if ( !m_pFile )
         {
             m_pFile = m_track.getFile( m_position );
@@ -141,17 +148,17 @@ class Iterator
         return pData;
     }
 
-public:
-    Iterator( const Track& track )
+    Iterator( const impl::Track& track )
         : m_track( track )
     {
     }
-    Iterator( const Track& track, Offset offset )
+    Iterator( const impl::Track& track, Offset offset )
         : m_track( track )
         , m_position( offset )
     {
     }
 
+public:
     bool operator==( const Iterator& cmp ) const { return m_position == cmp.m_position; }
     bool operator!=( const Iterator& cmp ) const { return !this->operator==( cmp ); }
 
@@ -175,21 +182,21 @@ public:
     const Offset& position() const { return m_position; }
 
 private:
-    const Track&        m_track;
-    mutable const File* m_pFile    = nullptr;
-    mutable Offset      m_position = Offset{};
+    const impl::Track&        m_track;
+    mutable const impl::File* m_pFile    = nullptr;
+    mutable Offset            m_position = Offset{};
 };
 
 class Storage
 {
-    using TrackArray = std::array< Track, toInt( TrackType::TOTAL ) >;
+    using TrackArray = std::array< impl::Track, toInt( TrackType::TOTAL ) >;
 
-    inline const Track& getTrack( TrackType trackType ) const
+    inline const impl::Track& getTrack( TrackType trackType ) const
     {
         ASSERT( toInt( trackType ) < toInt( TrackType::TOTAL ) );
         return m_tracks[ toInt( trackType ) ];
     }
-    inline Track& getTrack( TrackType trackType )
+    inline impl::Track& getTrack( TrackType trackType )
     {
         ASSERT( toInt( trackType ) < toInt( TrackType::TOTAL ) );
         return m_tracks[ toInt( trackType ) ];
@@ -198,6 +205,7 @@ class Storage
     template < typename MsgType >
     inline void write( const MsgType& msg, TrackType trackType )
     {
+        using namespace impl;
         Offset&   offset    = m_iterator.get( trackType );
         FileIndex fileIndex = offset;
 
@@ -216,63 +224,58 @@ class Storage
     }
 
 public:
+    using LogMsgIter    = Iterator< LogMsgRead >;
+    using MemoryIter    = Iterator< MemoryRecordRead >;
+    using SchedulerIter = Iterator< SchedulerRecordRead >;
+
     Storage( const boost::filesystem::path& folderPath, bool bLoad = false );
     ~Storage();
 
     void cycle();
 
-    inline void log( const LogMsg& logMsg ) { write( logMsg, TrackType::LOG ); }
-    inline void record( RecordTrackType recordType, const MemoryRecord& record )
+    inline void log( const LogMsg& logMsg ) { write( logMsg, TrackType::Log ); }
+    inline void record( MemoryTrackType recordType, const MemoryRecord& record )
     {
         write( record, toTrackType( recordType ) );
     }
-    inline void record( SchedulerTrackType schedType, const SchedulerRecord& record )
-    {
-        write( record, toTrackType( schedType ) );
-    }
+    inline void record( const SchedulerRecord& record ) { write( record, TrackType::Scheduler ); }
 
     Offset get( TrackType track ) const;
     Offset get( TrackType track, TimeStamp timestamp ) const;
 
-    inline Iterator< LogMsgRead > logBegin() const { return { getTrack( TrackType::LOG ) }; }
-    inline Iterator< LogMsgRead > logBegin( TimeStamp timestamp ) const
+    inline LogMsgIter logBegin() const { return { getTrack( TrackType::Log ) }; }
+    inline LogMsgIter logBegin( TimeStamp timestamp ) const
     {
-        return { getTrack( TrackType::LOG ), get( TrackType::LOG, timestamp ) };
+        return { getTrack( TrackType::Log ), get( TrackType::Log, timestamp ) };
     }
-    inline Iterator< LogMsgRead > logEnd() const { return { getTrack( TrackType::LOG ), get( TrackType::LOG ) }; }
+    inline LogMsgIter logEnd() const { return { getTrack( TrackType::Log ), get( TrackType::Log ) }; }
 
-    inline Iterator< MemoryRecordRead > recordBegin( RecordTrackType recordType ) const
+    inline MemoryIter memoryBegin( MemoryTrackType recordType ) const
     {
         return { getTrack( toTrackType( recordType ) ) };
     }
-    inline Iterator< MemoryRecordRead > recordBegin( RecordTrackType recordType, TimeStamp timestamp ) const
+    inline MemoryIter memoryBegin( MemoryTrackType recordType, TimeStamp timestamp ) const
     {
         return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ), timestamp ) };
     }
-    inline Iterator< MemoryRecordRead > recordEnd( RecordTrackType recordType ) const
+    inline MemoryIter memoryEnd( MemoryTrackType recordType ) const
     {
         return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ) ) };
     }
 
-    inline Iterator< SchedulerRecordRead > schedBegin( SchedulerTrackType recordType ) const
+    inline SchedulerIter schedBegin() const { return { getTrack( TrackType::Scheduler ) }; }
+    inline SchedulerIter schedBegin( TimeStamp timestamp ) const
     {
-        return { getTrack( toTrackType( recordType ) ) };
+        return { getTrack( TrackType::Scheduler ), get( TrackType::Scheduler, timestamp ) };
     }
-    inline Iterator< SchedulerRecordRead > schedBegin( SchedulerTrackType recordType, TimeStamp timestamp ) const
-    {
-        return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ), timestamp ) };
-    }
-    inline Iterator< SchedulerRecordRead > schedEnd( SchedulerTrackType recordType ) const
-    {
-        return { getTrack( toTrackType( recordType ) ), get( toTrackType( recordType ) ) };
-    }
+    inline SchedulerIter schedEnd() const { return { getTrack( TrackType::Scheduler ), get( TrackType::Scheduler ) }; }
 
     TimeStamp          getTimeStamp() const { return m_timestamp; }
     const IndexRecord& getIterator() const { return m_iterator; }
 
 private:
     const boost::filesystem::path m_folderPath;
-    Index                         m_index;
+    impl::Index                   m_index;
     TrackArray                    m_tracks;
     TimeStamp                     m_timestamp;
     IndexRecord                   m_iterator;

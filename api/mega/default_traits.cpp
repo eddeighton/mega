@@ -63,9 +63,9 @@ void copy_( const void* pFrom, void* pTo )
 template < typename T >
 void event_( const mega::reference& ref, bool bShared, const void* p )
 {
-    mega::log::Storage& log = mega::MPOContext::get()->getLog();
+    mega::log::Storage& log = mega::MPOContext::getMPOContext()->getLog();
 
-    log.record( mega::log::RecordTrackType::SIM_Writes,
+    log.record( mega::log::MemoryTrackType::Simulation,
                 mega::log::MemoryRecord(
                     ref, bShared, std::string_view( reinterpret_cast< const char* >( p ), sizeof( T ) ) ) );
 }
@@ -214,5 +214,17 @@ inline void free_( TAllocator& allocator, Instance instance )
 
 #include "allocator_traits.hxx"
 #undef ALLOCATOR
+
+void schedule_start( const reference& ref )
+{
+    mega::log::Storage& log = mega::MPOContext::getMPOContext()->getLog();
+    log.record( log::SchedulerRecord( ref, log::SchedulerRecord::Start ) );
+}
+
+void schedule_stop( const reference& ref )
+{
+    mega::log::Storage& log = mega::MPOContext::getMPOContext()->getLog();
+    log.record( log::SchedulerRecord( ref, log::SchedulerRecord::Stop ) );
+}
 
 } // namespace mega

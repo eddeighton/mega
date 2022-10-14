@@ -77,8 +77,6 @@ public:
     reference getRoot( const MPO& mpo );
     void      deAllocateRoot( const MPO& mpo );
 
-    void onWrite( reference dimension );
-
     void get_getter_shared( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
     void get_getter_heap( const char* pszUnitName, TypeID objectTypeID, GetSharedFunction* ppFunction );
     void get_getter_call( const char* pszUnitName, TypeID objectTypeID, TypeErasedFunction* ppFunction );

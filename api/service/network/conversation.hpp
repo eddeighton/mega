@@ -127,7 +127,7 @@ public:
     virtual void sendErrorResponse( const network::ReceivedMsg& msg, const std::string& strErrorMsg,
                                     boost::asio::yield_context& yield_ctx )
     {
-        const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.receiver, strErrorMsg ) };
+        const ReceivedMsg rMsg{ getConnectionID(), make_error_msg( msg.msg.getReceiverID(), strErrorMsg ) };
         send( rMsg );
     }
 

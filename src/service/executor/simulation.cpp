@@ -37,17 +37,10 @@
 namespace mega::service
 {
 
-boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )
-{
-    std::ostringstream os;
-    os << "log_" << conversationID;
-    return boost::filesystem::current_path() / os.str();
-}
-
 Simulation::Simulation( Executor& executor, const network::ConversationID& conversationID )
     : ExecutorRequestConversation( executor, conversationID, std::nullopt )
+    , MPOContextImpl( conversationID )
     , m_timer( executor.m_io_context )
-    , m_log( makeLogDirectory( conversationID ) )
 {
 }
 
@@ -60,6 +53,15 @@ network::Message Simulation::dispatchRequest( const network::Message& msg, boost
     return ExecutorRequestConversation::dispatchRequest( msg, yield_ctx );
 }
 
+// MPOContextImpl
+network::mpo::Request_Sender Simulation::getMPRequest()
+{
+    VERIFY_RTE( m_pYieldContext );
+    return ExecutorRequestConversation::getMPRequest( *m_pYieldContext );
+}
+
+// mega::MPOContext - native code interface
+// queries
 MPOContext::MachineIDVector Simulation::getMachines()
 {
     VERIFY_RTE( m_pYieldContext );
@@ -75,24 +77,9 @@ MPOContext::MPOVector Simulation::getMPO( MP machineProcess )
     VERIFY_RTE( m_pYieldContext );
     return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetMPO( machineProcess );
 }
-MPO Simulation::getThisMPO()
-{
-    ASSERT( m_mpo.has_value() );
-    return m_mpo.value();
-}
-MPO Simulation::constructMPO( MP machineProcess )
-{
-    SPDLOG_TRACE( "Tool constructMPO: {}", machineProcess );
-    network::sim::Request_Encoder request(
-        [ mpoRequest = getMPRequest( *m_pYieldContext ), machineProcess ]( const network::Message& msg ) mutable
-        { return mpoRequest.MPRoot( msg, machineProcess ); },
-        getID() );
-    return request.SimCreate();
-}
-mega::reference Simulation::getRoot( MPO mpo ) { return mega::runtime::get_root( mpo ); }
-mega::reference Simulation::getThisRoot() { return m_pExecutionRoot->root(); }
 
 // mega::MPOContext
+// memory management
 std::string Simulation::acquireMemory( MPO mpo )
 {
     VERIFY_RTE( m_pYieldContext );
@@ -123,6 +110,8 @@ void Simulation::deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddres
         .DeAllocateNetworkAddress( mpo, networkAddress );
 }
 
+// mega::MPOContext
+// stash
 void Simulation::stash( const std::string& filePath, mega::U64 determinant )
 {
     VERIFY_RTE( m_pYieldContext );
@@ -133,75 +122,6 @@ bool Simulation::restore( const std::string& filePath, mega::U64 determinant )
 {
     VERIFY_RTE( m_pYieldContext );
     return getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext ).StashRestore( filePath, determinant );
-}
-
-bool Simulation::readLock( MPO mpo )
-{
-    VERIFY_RTE( m_pYieldContext );
-
-    network::sim::Request_Encoder request(
-        [ mpoRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
-        { return mpoRequest.MPOUp( msg, mpo ); },
-        getID() );
-
-    if ( request.SimLockRead( m_mpo.value() ) )
-    {
-        m_lockTracker.onRead( mpo );
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-bool Simulation::writeLock( MPO mpo )
-{
-    VERIFY_RTE( m_pYieldContext );
-
-    network::sim::Request_Encoder request(
-        [ mpoRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
-        { return mpoRequest.MPOUp( msg, mpo ); },
-        getID() );
-
-    if ( request.SimLockWrite( m_mpo.value() ) )
-    {
-        m_lockTracker.onWrite( mpo );
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-void Simulation::cycleComplete()
-{
-    VERIFY_RTE( m_pYieldContext );
-
-    for ( MPO writeLock : m_lockTracker.getWrites() )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        network::sim::Request_Encoder request(
-            [ mpoRequest = getMPRequest( *m_pYieldContext ), writeLock ]( const network::Message& msg ) mutable
-            { return mpoRequest.MPOUp( msg, writeLock ); },
-            getID() );
-        request.SimLockRelease( m_mpo.value() );
-        m_lockTracker.onRelease( writeLock );
-    }
-
-    for ( MPO writeLock : m_lockTracker.getReads() )
-    {
-        VERIFY_RTE( m_pYieldContext );
-        network::sim::Request_Encoder request(
-            [ mpoRequest = getMPRequest( *m_pYieldContext ), writeLock ]( const network::Message& msg ) mutable
-            { return mpoRequest.MPOUp( msg, writeLock ); },
-            getID() );
-        request.SimLockRelease( m_mpo.value() );
-        m_lockTracker.onRelease( writeLock );
-    }
-
-    m_lockTracker.reset();
 }
 
 void Simulation::issueClock()
@@ -359,7 +279,7 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
         // simulation is running so process as normal
         if ( isRequest( msg.msg ) )
         {
-            if ( m_mpo.has_value() || ( getMsgID( msg.msg ) == network::leaf_exe::MSG_RootSimRun_Request::ID ) )
+            if ( m_mpo.has_value() || ( msg.msg.getID() == network::leaf_exe::MSG_RootSimRun_Request::ID ) )
             {
                 dispatchRequestImpl( msg, yield_ctx );
 
@@ -372,7 +292,7 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
                         SPDLOG_ERROR(
                             "Generating disconnect on conversation: {} for connection: {}", getID(), m_stack.back() );
                         const network::ReceivedMsg rMsg{
-                            m_stack.back(), network::make_error_msg( msg.msg.receiver, "Disconnection" ) };
+                            m_stack.back(), network::make_error_msg( msg.msg.getReceiverID(), "Disconnection" ) };
                         send( rMsg );
                     }
                 }
@@ -389,7 +309,7 @@ network::Message Simulation::dispatchRequestsUntilResponse( boost::asio::yield_c
             break;
         }
     }
-    if ( getMsgID( msg.msg ) == network::MSG_Error_Response::ID )
+    if ( msg.msg.getID() == network::MSG_Error_Response::ID )
     {
         throw std::runtime_error( network::MSG_Error_Response::get( msg.msg ).what );
     }
@@ -400,7 +320,7 @@ void Simulation::run( boost::asio::yield_context& yield_ctx )
 {
     // send request to root to start - will get request back to run
     network::sim::Request_Encoder request(
-        [ rootRequest = getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
+        [ rootRequest = ExecutorRequestConversation::getMPRequest( yield_ctx ) ]( const network::Message& msg ) mutable
         { return rootRequest.MPRoot( msg, mega::MP{} ); },
         getID() );
     request.SimStart();

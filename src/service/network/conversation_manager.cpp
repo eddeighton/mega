@@ -149,20 +149,15 @@ ConversationBase::Ptr ConversationManager::findExistingConversation( const Conve
 
 void ConversationManager::dispatch( const ReceivedMsg& msg )
 {
-    ConversationBase::Ptr pConversation = findExistingConversation( getMsgReceiver( msg.msg ) );
+    ConversationBase::Ptr pConversation = findExistingConversation( msg.msg.getReceiverID() );
     if ( !pConversation )
     {
         pConversation = joinConversation( msg.connectionID, msg.msg );
         conversationJoined( pConversation );
-        // SPDLOG_TRACE( "Received msg {}. Started new conversation {}.",
-        //               getMsgNameFromID( header.getMessageID() ),
-        //               pConversation->getID() );
     }
     else
     {
-        // SPDLOG_TRACE( "Received msg: {}. Resumed existing conversation: {}.",
-        //               getMsgNameFromID( header.getMessageID() ),
-        //               pConversation->getID() );
+        //
     }
     pConversation->send( msg );
 }

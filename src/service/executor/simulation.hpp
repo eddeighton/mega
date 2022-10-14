@@ -30,7 +30,7 @@
 #include "service/protocol/common/header.hpp"
 
 #include "runtime/api.hpp"
-#include "runtime/context.hpp"
+#include "runtime/mpo_context.hpp"
 
 #include "log/log.hpp"
 
@@ -41,7 +41,7 @@ namespace mega::service
 
 class Executor;
 
-class Simulation : public ExecutorRequestConversation, public mega::MPOContext
+class Simulation : public ExecutorRequestConversation, public mega::MPOContextImpl
 {
 public:
     using Ptr = std::shared_ptr< Simulation >;
@@ -53,6 +53,10 @@ public:
 
     virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
     virtual void             run( boost::asio::yield_context& yield_ctx ) override;
+
+
+    // MPOContextImpl
+    virtual network::mpo::Request_Sender getMPRequest() override;
 
     // network::sim::Impl
     virtual bool      SimLockRead( const mega::MPO&, boost::asio::yield_context& ) override;
@@ -71,33 +75,30 @@ public:
     virtual std::string     Ping( boost::asio::yield_context& yield_ctx ) override;
 
     // mega::MPOContext - native code interface
+    // queries
     virtual MPOContext::MachineIDVector        getMachines() override;
     virtual MPOContext::MachineProcessIDVector getProcesses( MachineID machineID ) override;
     virtual MPOContext::MPOVector              getMPO( MP machineProcess ) override;
-    virtual MPO                                getThisMPO() override;
-    virtual MPO                                constructMPO( MP machineProcess ) override;
-    virtual mega::reference                    getRoot( MPO mpo ) override;
-    virtual mega::reference                    getThisRoot() override;
 
-    // mega::MPOContext - clock
+    // mega::MPOContext
+    // clock
     virtual TimeStamp cycle() override { return m_clock.cycle(); }
     virtual F32       ct() override { return m_clock.ct(); }
     virtual F32       dt() override { return m_clock.dt(); }
 
-    // log
-    virtual log::Storage& getLog() override { return m_log; }
-
-    // mega::MPOContext - runtime internal interface
+    // mega::MPOContext
+    // memory management
     virtual std::string    acquireMemory( MPO mpo ) override;
     virtual MPO            getNetworkAddressMPO( NetworkAddress networkAddress ) override;
     virtual NetworkAddress getRootNetworkAddress( MPO mpo ) override;
     virtual NetworkAddress allocateNetworkAddress( MPO mpo, TypeID objectTypeID ) override;
     virtual void           deAllocateNetworkAddress( MPO mpo, NetworkAddress networkAddress ) override;
+
+    // mega::MPOContext
+    // stash
     virtual void           stash( const std::string& filePath, mega::U64 determinant ) override;
     virtual bool           restore( const std::string& filePath, mega::U64 determinant ) override;
-    virtual bool           readLock( MPO mpo ) override;
-    virtual bool           writeLock( MPO mpo ) override;
-    virtual void           cycleComplete() override;
+
 
 private:
     void issueClock();
@@ -108,17 +109,12 @@ private:
 
 private:
     network::Sender::Ptr                                 m_pRequestChannelSender;
-    boost::asio::yield_context*                          m_pYieldContext = nullptr;
-    std::optional< mega::MPO >                           m_mpo;
-    std::shared_ptr< mega::runtime::MPORoot >            m_pExecutionRoot;
     mega::Scheduler                                      m_scheduler;
     StateMachine                                         m_stateMachine;
     boost::asio::steady_timer                            m_timer;
     std::chrono::time_point< std::chrono::steady_clock > m_startTime = std::chrono::steady_clock::now();
-    LockTracker                                          m_lockTracker;
     StateMachine::MsgVector                              m_messageQueue;
     mega::Clock                                          m_clock;
-    log::Storage                                         m_log;
 };
 
 } // namespace mega::service

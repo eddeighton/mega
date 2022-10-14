@@ -109,7 +109,7 @@ network::ConversationBase::Ptr Leaf::joinConversation( const network::Connection
         case network::Node::Tool:
         case network::Node::Executor:
             return network::ConversationBase::Ptr(
-                new LeafRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
+                new LeafRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
             break;
         case network::Node::Daemon:
         case network::Node::Root:

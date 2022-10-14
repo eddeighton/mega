@@ -177,7 +177,7 @@ network::Message LeafRequestConversation::MPDown( const network::Message& reques
 network::Message LeafRequestConversation::MPUp( const network::Message& request, const mega::MP& mp,
                                                 boost::asio::yield_context& yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::MPUp: {} {}", mp, network::getMsgName( request ) );
+    SPDLOG_TRACE( "LeafRequestConversation::MPUp: {} {}", mp, request.getName() );
     if ( m_leaf.m_mp == mp )
     {
         return dispatchRequest( request, yield_ctx );

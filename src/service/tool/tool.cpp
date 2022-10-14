@@ -21,10 +21,8 @@
 
 #include "request.hpp"
 
-#include "runtime/api.hpp"
-#include "runtime/context.hpp"
+#include "runtime/mpo_context.hpp"
 
-#include "service/lock_tracker.hpp"
 #include "service/network/conversation.hpp"
 #include "service/network/conversation_manager.hpp"
 #include "service/network/log.hpp"
@@ -50,36 +48,25 @@
 namespace mega::service
 {
 
-boost::filesystem::path makeLogDirectory( const network::ConversationID& conversationID )
-{
-    std::ostringstream os;
-    os << "log_" << conversationID;
-    return boost::filesystem::current_path() / os.str();
-}
-
 template < typename TConversationFunctor >
-class GenericConversation : public ToolRequestConversation, public mega::MPOContext, public network::sim::Impl
+class GenericConversation : public ToolRequestConversation, public mega::MPOContextImpl
 {
-    Tool&                m_tool;
-    TConversationFunctor m_functor;
-    log::Storage         m_log;
+    Tool&                       m_tool;
+    TConversationFunctor        m_functor;
 
 public:
     GenericConversation( Tool& tool, const network::ConversationID& conversationID,
                          const network::ConnectionID& originatingConnectionID, TConversationFunctor&& functor )
         : ToolRequestConversation( tool, conversationID, originatingConnectionID )
+        , mega::MPOContextImpl( conversationID )
         , m_tool( tool )
         , m_functor( functor )
-        , m_log( makeLogDirectory( conversationID ) )
     {
     }
 
     virtual network::Message dispatchRequest( const network::Message&     msg,
                                               boost::asio::yield_context& yield_ctx ) override
     {
-        network::Message result;
-        if ( result = network::sim::Impl::dispatchRequest( msg, yield_ctx ); result )
-            return result;
         return ToolRequestConversation::dispatchRequest( msg, yield_ctx );
     }
 
@@ -90,6 +77,11 @@ public:
     network::mpo::Request_Sender getMPRequest( boost::asio::yield_context& yield_ctx )
     {
         return network::mpo::Request_Sender( *this, m_tool.getLeafSender(), yield_ctx );
+    }
+    virtual network::mpo::Request_Sender getMPRequest() override
+    {
+        VERIFY_RTE( m_pYieldContext );
+        return getMPRequest( *m_pYieldContext );
     }
 
     void run( boost::asio::yield_context& yield_ctx ) override
@@ -137,28 +129,30 @@ public:
 
     virtual void RootSimRun( const mega::MPO& mpo, boost::asio::yield_context& yield_ctx ) override
     {
+        m_mpo = mpo;
         m_tool.setMPO( mpo );
 
         MPOContext::resume( this );
         m_pYieldContext = &yield_ctx;
 
         // note the runtime will query getThisMPO while creating the root
-        SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", m_tool.getMPO() );
+        SPDLOG_TRACE( "TOOL: Acquired mpo context: {}", mpo );
         {
-            m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( m_tool.getMPO() );
+            m_pExecutionRoot = std::make_shared< mega::runtime::MPORoot >( mpo );
             {
                 m_functor( yield_ctx );
             }
             m_pExecutionRoot.reset();
         }
-        SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", m_tool.getMPO() );
+        SPDLOG_TRACE( "TOOL: Releasing mpo context: {}", mpo );
 
         m_pYieldContext = nullptr;
         MPOContext::suspend();
     }
 
     //////////////////////////
-    // mega::MPOContext
+    // mega::MPOContext 
+    // queries
     virtual MPOContext::MachineIDVector getMachines() override
     {
         VERIFY_RTE( m_pYieldContext );
@@ -174,34 +168,20 @@ public:
         VERIFY_RTE( m_pYieldContext );
         return getRootRequest< network::enrole::Request_Encoder >( *m_pYieldContext ).EnroleGetMPO( machineProcess );
     }
-    virtual MPO getThisMPO() override { return m_tool.getMPO(); }
-    virtual MPO constructMPO( MP machineProcess ) override
-    {
-        SPDLOG_TRACE( "Tool constructMPO: {}", machineProcess );
-        network::sim::Request_Encoder request(
-            [ mpoRequest = getMPRequest( *m_pYieldContext ), machineProcess ]( const network::Message& msg ) mutable
-            { return mpoRequest.MPRoot( msg, machineProcess ); },
-            getID() );
-        return request.SimCreate();
-    }
-    virtual mega::reference getRoot( MPO mpo ) override { return mega::runtime::get_root( mpo ); }
-    virtual mega::reference getThisRoot() override { return m_pExecutionRoot->root(); }
 
+    // mega::MPOContext
     // clock
     virtual TimeStamp cycle() override { return TimeStamp{}; }
     virtual F32       ct() override { return F32{}; }
     virtual F32       dt() override { return F32{}; }
 
-    // log
-    virtual log::Storage& getLog() override { return m_log; }
-
     // mega::MPOContext
+    // memory management
     virtual std::string acquireMemory( MPO mpo ) override
     {
         VERIFY_RTE( m_pYieldContext );
         return getDaemonRequest< network::memory::Request_Encoder >( *m_pYieldContext ).AcquireSharedMemory( mpo );
     }
-
     virtual MPO getNetworkAddressMPO( NetworkAddress networkAddress ) override
     {
         VERIFY_RTE( m_pYieldContext );
@@ -225,6 +205,9 @@ public:
         getRootRequest< network::address::Request_Encoder >( *m_pYieldContext )
             .DeAllocateNetworkAddress( mpo, networkAddress );
     }
+
+    // mega::MPOContext
+    // stash
     virtual void stash( const std::string& filePath, mega::U64 determinant ) override
     {
         VERIFY_RTE( m_pYieldContext );
@@ -236,75 +219,6 @@ public:
         return getRootRequest< network::stash::Request_Encoder >( *m_pYieldContext )
             .StashRestore( filePath, determinant );
     }
-
-    virtual bool readLock( MPO mpo ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-
-        network::sim::Request_Encoder request(
-            [ mpoRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
-            { return mpoRequest.MPOUp( msg, mpo ); },
-            getID() );
-
-        if ( request.SimLockRead( m_tool.getMPO() ) )
-        {
-            m_lockTracker.onRead( mpo );
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    virtual bool writeLock( MPO mpo ) override
-    {
-        VERIFY_RTE( m_pYieldContext );
-
-        network::sim::Request_Encoder request(
-            [ mpoRequest = getMPRequest( *m_pYieldContext ), mpo ]( const network::Message& msg ) mutable
-            { return mpoRequest.MPOUp( msg, mpo ); },
-            getID() );
-
-        if ( request.SimLockWrite( m_tool.getMPO() ) )
-        {
-            m_lockTracker.onWrite( mpo );
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    virtual void cycleComplete() override
-    {
-        for ( MPO writeLock : m_lockTracker.getWrites() )
-        {
-            VERIFY_RTE( m_pYieldContext );
-            network::sim::Request_Encoder request(
-                [ mpoRequest = getMPRequest( *m_pYieldContext ), writeLock ]( const network::Message& msg ) mutable
-                { return mpoRequest.MPOUp( msg, writeLock ); },
-                getID() );
-            request.SimLockRelease( m_tool.getMPO() );
-            m_lockTracker.onRelease( writeLock );
-        }
-
-        for ( MPO writeLock : m_lockTracker.getReads() )
-        {
-            VERIFY_RTE( m_pYieldContext );
-            network::sim::Request_Encoder request(
-                [ mpoRequest = getMPRequest( *m_pYieldContext ), writeLock ]( const network::Message& msg ) mutable
-                { return mpoRequest.MPOUp( msg, writeLock ); },
-                getID() );
-            request.SimLockRelease( m_tool.getMPO() );
-            m_lockTracker.onRelease( writeLock );
-        }
-    }
-
-    boost::asio::yield_context*               m_pYieldContext = nullptr;
-    std::shared_ptr< mega::runtime::MPORoot > m_pExecutionRoot;
-    LockTracker                               m_lockTracker;
 };
 
 Tool::Tool( short daemonPortNumber )
@@ -336,7 +250,7 @@ network::ConversationBase::Ptr Tool::joinConversation( const network::Connection
                                                        const network::Message&      msg )
 {
     return network::ConversationBase::Ptr(
-        new ToolRequestConversation( *this, network::getMsgReceiver( msg ), originatingConnectionID ) );
+        new ToolRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
 void Tool::run( Tool::Functor& function )

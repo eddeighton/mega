@@ -31,6 +31,7 @@
 
 namespace mega::log
 {
+using namespace impl;
 
 boost::filesystem::path File::constructLogFile( const boost::filesystem::path& logFolderPath,
                                                 const std::string& strFileType, FileIndex fileIndex )

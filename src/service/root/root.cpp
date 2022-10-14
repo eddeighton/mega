@@ -132,17 +132,17 @@ network::MegastructureInstallation Root::getMegastructureInstallation()
 network::ConversationBase::Ptr Root::joinConversation( const network::ConnectionID& originatingConnectionID,
                                                        const network::Message&      msg )
 {
-    SPDLOG_TRACE( "Root::joinConversation {}", network::getMsgNameFromID( network::getMsgID( msg ) ) );
-    switch ( network::getMsgID( msg ) )
+    SPDLOG_TRACE( "Root::joinConversation {}", msg );
+    switch ( msg.getID() )
     {
         case network::mpo::MSG_MPRoot_Request::ID:
         {
             const network::mpo::MSG_MPRoot_Request& actualMsg = network::mpo::MSG_MPRoot_Request::get( msg );
-            switch ( actualMsg.request.index )
+            switch ( actualMsg.request.getID() )
             {
                 case network::sim::MSG_SimStart_Request::ID:
                     return network::ConversationBase::Ptr(
-                        new RootSimulation( *this, getMsgReceiver( msg ), originatingConnectionID, actualMsg.mp ) );
+                        new RootSimulation( *this, msg.getReceiverID(), originatingConnectionID, actualMsg.mp ) );
             }
         }
         break;
@@ -150,11 +150,11 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
         {
             const network::daemon_root::MSG_ExeRoot_Request& actualMsg
                 = network::daemon_root::MSG_ExeRoot_Request::get( msg );
-            switch ( actualMsg.request.index )
+            switch ( actualMsg.request.getID() )
             {
                 case network::job::MSG_JobReadyForWork_Request::ID:
                     return network::ConversationBase::Ptr(
-                        new RootJobConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
+                        new RootJobConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
             }
         }
         break;
@@ -162,17 +162,17 @@ network::ConversationBase::Ptr Root::joinConversation( const network::Connection
         {
             const network::daemon_root::MSG_TermRoot_Request& actualMsg
                 = network::daemon_root::MSG_TermRoot_Request::get( msg );
-            switch ( actualMsg.request.index )
+            switch ( actualMsg.request.getID() )
             {
                 case network::pipeline::MSG_PipelineRun_Request::ID:
                     return network::ConversationBase::Ptr(
-                        new RootPipelineConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
+                        new RootPipelineConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
             }
         }
         break;
     }
     return network::ConversationBase::Ptr(
-        new RootRequestConversation( *this, getMsgReceiver( msg ), originatingConnectionID ) );
+        new RootRequestConversation( *this, msg.getReceiverID(), originatingConnectionID ) );
 }
 
 } // namespace mega::service

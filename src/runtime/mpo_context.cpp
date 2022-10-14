@@ -38,6 +38,6 @@ void MPOContext::resume( MPOContext* pMPOContext )
 void MPOContext::suspend() { g_pMPOContext = nullptr; }
 
 Context*    Context::get() { return g_pMPOContext; }
-MPOContext* MPOContext::get() { return g_pMPOContext; }
+MPOContext* MPOContext::getMPOContext() { return g_pMPOContext; }
 
 } // namespace mega

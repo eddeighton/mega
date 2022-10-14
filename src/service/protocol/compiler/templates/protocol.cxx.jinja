@@ -127,8 +127,8 @@ Request_Sender::Request_Sender( ConversationBase& conversation,
     }
 
     const Message msg = m_conversation.dispatchRequestsUntilResponse( m_yield_ctx );
-    VERIFY_RTE_MSG( getMsgID( msg ) == {{ filename }}::MSG_{{ request.name }}_Response::ID,
-        "Unexpected reponse of type: " << getMsgNameFromID( getMsgID( msg ) ) << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
+    VERIFY_RTE_MSG( msg.getID() == {{ filename }}::MSG_{{ request.name }}_Response::ID,
+        "Unexpected reponse of type: " << msg << " instead of: {{ filename }}::MSG_{{ request.name }}_Response" );
     RESUME_MPO_CONTEXT();
 {%if request.return_type != "void" %}
     return {{ filename }}::MSG_{{ request.name }}_Response::get( msg ).{{ request.return_msg_member }};
@@ -139,7 +139,7 @@ Request_Sender::Request_Sender( ConversationBase& conversation,
 
 Message Impl::dispatchRequest( const Message& message, boost::asio::yield_context& yield_ctx )
 {
-    switch( getMsgID( message ) )
+    switch( message.getID() )
     {
        
 {% for request in requests %}
@@ -156,13 +156,13 @@ Message Impl::dispatchRequest( const Message& message, boost::asio::yield_contex
             );
             return MSG_{{ request.name }}_Response::make
             (
-                message.receiver, message.sender,
+                message.getReceiverID(), message.getSenderID(),
                 MSG_{{ request.name }}_Response{}
             );
 {% else %}
             return MSG_{{ request.name }}_Response::make
             (
-                message.receiver, message.sender,
+                message.getReceiverID(), message.getSenderID(),
                 MSG_{{ request.name }}_Response
                 {
                     {{ request.name }}
