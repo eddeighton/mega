@@ -34,6 +34,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/operations.hpp>
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
 #include <fstream>
 
 namespace mega::io
@@ -44,7 +47,7 @@ namespace mega::io
     { 
         std::unique_ptr< std::istream > pIfStream =
             environment.read( filepath );
-        InputArchiveType ia( *pIfStream );
+        boost::archive::xml_iarchive ia( *pIfStream );
         ia >> boost::serialization::make_nvp( "manifest", *this );
         initialiseLookupTables();
     }
@@ -81,7 +84,7 @@ namespace mega::io
                 {
                     THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
                 }
-                InputArchiveType ia( inputFileStream );
+                boost::archive::xml_iarchive ia( inputFileStream );
                 ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
             }
 
@@ -255,7 +258,7 @@ namespace mega::io
         {
             std::unique_ptr< std::ostream > pOfStream =
                 environment.write_temp( manifestFilePath, tempFilePath );
-            OutputArchiveType oa( *pOfStream );
+            boost::archive::xml_oarchive oa( *pOfStream );
             oa << boost::serialization::make_nvp( "manifest", *this );
         }
         return task::FileHash( tempFilePath );

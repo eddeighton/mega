@@ -17,8 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/common/environment_build.hpp"
@@ -32,7 +30,9 @@
 #include <boost/process/environment.hpp>
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/archive/text_oarchive.hpp>
+
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 #include <string>
 #include <vector>
@@ -125,8 +125,8 @@ void command( bool bHelp, const std::vector< std::string >& args )
                 THROW_RTE( "Unknown component type" );
         }
 
-        const mega::io::ComponentInfo componentInfo( componentType, strComponentName, componentFilePath, cppFlags, cppDefines,
-                                                     componentSrcDir, componentBuildDir, inputSourceFiles,
+        const mega::io::ComponentInfo componentInfo( componentType, strComponentName, componentFilePath, cppFlags,
+                                                     cppDefines, componentSrcDir, componentBuildDir, inputSourceFiles,
                                                      dependencySourceFiles, includeDirectories );
 
         const mega::io::ComponentListingFilePath componentListingFilePath
@@ -134,11 +134,11 @@ void command( bool bHelp, const std::vector< std::string >& args )
         {
             boost::filesystem::path         tempFile;
             std::unique_ptr< std::ostream > pOfstream = environment.write_temp( componentListingFilePath, tempFile );
-            mega::OutputArchiveType         oa( *pOfstream );
+            boost::archive::xml_oarchive    oa( *pOfstream );
             oa << boost::serialization::make_nvp( "componentInfo", componentInfo );
         }
         environment.temp_to_real( componentListingFilePath );
     }
 }
-} // namespace list
+} // namespace component_listing
 } // namespace driver

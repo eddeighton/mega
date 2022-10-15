@@ -17,24 +17,20 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 msg GetProject
 {
     request();
-    response(mega::network::Project project);
+    response( mega::network::Project project );
 }
 
 msg SetProject
 {
-    request(mega::network::Project project);
+    request( mega::network::Project project );
     response();
 }
 
 msg GetMegastructureInstallation
 {
     request();
-    response(mega::network::MegastructureInstallation install);
+    response( mega::network::MegastructureInstallation install );
 }

@@ -34,6 +34,7 @@
 #include "service/protocol/common/project.hpp"
 #include "service/protocol/common/status.hpp"
 #include "service/protocol/common/memory_config.hpp"
+#include "service/protocol/common/transaction.hpp"
 
 #include "utilities/serialization_helpers.hpp"
 
@@ -42,6 +43,8 @@
 #include "mega/common.hpp"
 
 #include <boost/filesystem/path.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 
 #include <vector>
 #include <map>

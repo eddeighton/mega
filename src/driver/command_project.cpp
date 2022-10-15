@@ -85,7 +85,7 @@ void command( bool bHelp, const std::vector< std::string >& args )
                     osProject << "Project Install:    " << project.getProjectInstallPath().string() << "\n";
                     osProject << "Project Bin:        " << project.getProjectBin().string() << "\n";
                     osProject << "Project Database:   " << project.getProjectDatabase().string() << "\n";
-                    osProject << "Project Termp Dir:  " << project.getProjectTempDir().string() << "\n";
+                    osProject << "Project Temp Dir:   " << project.getProjectTempDir().string() << "\n";
                 }
             }
 

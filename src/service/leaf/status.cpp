@@ -28,7 +28,7 @@ namespace mega::service
 network::Status LeafRequestConversation::GetStatus( const std::vector< network::Status >& childNodeStatus,
                                                     boost::asio::yield_context&           yield_ctx )
 {
-    SPDLOG_TRACE( "LeafRequestConversation::GetVersion" );
+    SPDLOG_TRACE( "LeafRequestConversation::GetStatus" );
 
     network::Status status{ childNodeStatus };
     {
@@ -45,7 +45,7 @@ network::Status LeafRequestConversation::GetStatus( const std::vector< network::
         status.setConversationID( conversations );
         status.setMP( m_leaf.m_mp );
         std::ostringstream os;
-        os << mega::network::Node::toStr( m_leaf.m_nodeType ) << ": " << m_leaf.getProcessName();
+        os << m_leaf.getProcessName() << " of type: " << mega::network::Node::toStr( m_leaf.m_nodeType );
         status.setDescription( os.str() );
     }
 

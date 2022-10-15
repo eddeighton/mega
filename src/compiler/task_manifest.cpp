@@ -30,6 +30,9 @@
 
 #include <common/stash.hpp>
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
 namespace mega::compiler
 {
 
@@ -128,7 +131,7 @@ public:
                 {
                     THROW_RTE( "Failed to open file: " << componentInfoPath.string() );
                 }
-                InputArchiveType ia( inputFileStream );
+                boost::archive::xml_iarchive ia( inputFileStream );
                 ia >> boost::serialization::make_nvp( "componentInfo", componentInfo );
             };
 

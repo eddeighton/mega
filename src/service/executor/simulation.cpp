@@ -333,9 +333,22 @@ bool Simulation::SimLockWrite( const mega::MPO&, boost::asio::yield_context& )
 {
     return !m_stateMachine.isTerminating();
 }
-void Simulation::SimLockRelease( const mega::MPO&, boost::asio::yield_context& )
+void Simulation::SimLockRelease( const mega::MPO&,
+                                 const network::Transaction& transaction,
+                                 boost::asio::yield_context& )
 {
-    // Do nothing just return
+    for ( const auto& shedulingRecord : transaction.getSchedulingRecords() )
+    {
+        SPDLOG_INFO( "Got scheduling record: {} {}", shedulingRecord.first, shedulingRecord.second );
+    }
+
+    for ( auto i = 0; i != log::toInt( log::TrackType::TOTAL ); ++i )
+    {
+        for ( const auto& memoryRecord : transaction.getMemoryRecords( log::MemoryTrackType( i ) ) )
+        {
+            SPDLOG_INFO( "Got memory record: {} {}", memoryRecord.first, memoryRecord.second );
+        }
+    }
 }
 void Simulation::SimClock( boost::asio::yield_context& ) { m_clock.nextCycle(); }
 
@@ -369,7 +382,6 @@ network::Status Simulation::GetStatus( const std::vector< network::Status >& chi
 
     network::Status status{ childNodeStatus };
     {
-        std::vector< network::ConversationID > conversations;
         status.setConversationID( { getID() } );
         status.setMPO( m_mpo.value() );
         std::ostringstream os;

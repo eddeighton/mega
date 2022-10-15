@@ -24,15 +24,11 @@
 #include "clock.hpp"
 #include "scheduler.hpp"
 
-#include "service/lock_tracker.hpp"
 #include "service/state_machine.hpp"
 #include "service/network/sender.hpp"
 #include "service/protocol/common/header.hpp"
 
-#include "runtime/api.hpp"
 #include "runtime/mpo_context.hpp"
-
-#include "log/log.hpp"
 
 #include "mega/reference.hpp"
 
@@ -54,15 +50,14 @@ public:
     virtual network::Message dispatchRequestsUntilResponse( boost::asio::yield_context& yield_ctx ) override;
     virtual void             run( boost::asio::yield_context& yield_ctx ) override;
 
-
     // MPOContextImpl
     virtual network::mpo::Request_Sender getMPRequest() override;
 
     // network::sim::Impl
-    virtual bool      SimLockRead( const mega::MPO&, boost::asio::yield_context& ) override;
-    virtual bool      SimLockWrite( const mega::MPO&, boost::asio::yield_context& ) override;
-    virtual void      SimLockRelease( const mega::MPO&, boost::asio::yield_context& ) override;
-    virtual void      SimClock( boost::asio::yield_context& ) override;
+    virtual bool SimLockRead( const mega::MPO&, boost::asio::yield_context& ) override;
+    virtual bool SimLockWrite( const mega::MPO&, boost::asio::yield_context& ) override;
+    virtual void SimLockRelease( const mega::MPO&, const network::Transaction&, boost::asio::yield_context& ) override;
+    virtual void SimClock( boost::asio::yield_context& ) override;
     virtual mega::MPO SimCreate( boost::asio::yield_context& ) override;
     virtual void      SimDestroy( boost::asio::yield_context& ) override;
 
@@ -96,9 +91,8 @@ public:
 
     // mega::MPOContext
     // stash
-    virtual void           stash( const std::string& filePath, mega::U64 determinant ) override;
-    virtual bool           restore( const std::string& filePath, mega::U64 determinant ) override;
-
+    virtual void stash( const std::string& filePath, mega::U64 determinant ) override;
+    virtual bool restore( const std::string& filePath, mega::U64 determinant ) override;
 
 private:
     void issueClock();

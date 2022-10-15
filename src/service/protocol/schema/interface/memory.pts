@@ -17,16 +17,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 msg AcquireSharedMemory
 {
-    request(MPO mpo);
-    response(std::string strSharedMemoryName);
+    request( MPO mpo );
+    response( std::string strSharedMemoryName );
 }
 
 msg ReleaseSharedMemory
 {
-    request(MPO mpo);
+    request( MPO mpo );
     response();
 }
 

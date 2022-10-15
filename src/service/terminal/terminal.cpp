@@ -39,7 +39,6 @@
 #include "service/protocol/model/stash.hxx"
 #include "service/protocol/model/sim.hxx"
 
-
 #include "common/requireSemicolon.hpp"
 
 #include <spdlog/spdlog.h>
@@ -235,7 +234,7 @@ bool Terminal::SimWrite( const mega::MPO& from, const mega::MPO& to )
 }
 void Terminal::SimRelease( const mega::MPO& from, const mega::MPO& to )
 {
-    return getMPORequest< network::sim::Request_Encoder >( to ).SimLockRelease( from );
+    return getMPORequest< network::sim::Request_Encoder >( to ).SimLockRelease( from, network::Transaction{} );
 }
 
 std::string Terminal::PingMP( const mega::MP& mp )

@@ -60,13 +60,17 @@ void* getData( Message& message )
 
 Message {{ message.name }}::make( const ConversationID& sender, const ConversationID& receiver, {{ message.name }}&& msg )
 {
-    return Message{ ID, sender, receiver, std::shared_ptr< void >( new {{ message.name }}{ std::move( msg ) }, []( {{ message.name }}* p ){ delete p; } ) };
+    if( sizeof( {{ message.name }} ) )
+        return Message{ ID, sender, receiver, std::shared_ptr< void >( new {{ message.name }}{ std::move( msg ) }, []( {{ message.name }}* p ){ delete p; } ) };
+    else
+        return Message{ ID, sender, receiver, std::shared_ptr< void >{} };
 }
 
 const {{ message.name }}& {{ message.name }}::get( const Message& msg )
 {
     VERIFY_RTE_MSG( msg.getID() == ID, "Expected message type: " << getMsgNameFromID( ID ) << " but got: " << msg );
     using Type = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }};
+    ASSERT( sizeof( Type ) );
     return *reinterpret_cast< const Type* >( getData( msg ) );
 }
 
@@ -136,10 +140,13 @@ void encode( boost::archive::binary_oarchive& archive, const Message& message )
         case {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }}::ID:
         {
             using Type = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.name }};
-            const Type& msg = *reinterpret_cast< const Type* >( getData( message ) );
+            if( sizeof( Type ) )
+            {
+                const Type& msg = *reinterpret_cast< const Type* >( getData( message ) );
 {%for member in message.members%}
-            archive& msg.{{ member.name }}; 
+                archive& msg.{{ member.name }}; 
 {%endfor%}
+            }
         }
         break;
 {% endfor %}
@@ -172,6 +179,7 @@ void aggregate( Message& request, const std::vector< Message >& responses )
             Type& msg = *reinterpret_cast< Type* >( getData( request ) );
 {%for member in message.members%}
 {% if loop.is_last %}
+            msg.{{ member.name }}.clear();
             for( const Message& response : responses )
             {
                 using ResponseType = {%for namespace in message.namespaces%}{{namespace}}::{%endfor%}{{ message.response_name }};

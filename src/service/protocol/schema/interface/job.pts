@@ -17,32 +17,28 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 msg JobStart
 {
-    broadcast(    mega::utilities::ToolChain toolChain, 
-                mega::pipeline::Configuration configuration, 
-                network::ConversationID rootConversationID );
-    response(std::vector< network::ConversationID > jobs);
+    broadcast( mega::utilities::ToolChain    toolChain,
+               mega::pipeline::Configuration configuration,
+               network::ConversationID       rootConversationID );
+    response( std::vector< network::ConversationID > jobs );
 }
 
 msg JobReadyForWork
 {
-    request(network::ConversationID rootConversationID);
+    request( network::ConversationID rootConversationID );
     response();
 }
 
 msg JobProgress
 {
-    request(std::string message);
+    request( std::string message );
     response();
 }
 
 msg JobStartTask
 {
-    request(mega::pipeline::TaskDescriptor task);
-    response(network::PipelineResult result);
+    request( mega::pipeline::TaskDescriptor task );
+    response( network::PipelineResult result );
 }

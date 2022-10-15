@@ -107,7 +107,7 @@ public:
                 mega::runtime::initialiseRuntime( megaStructureInstallation, currentProject, memoryConfig.getMemory(),
                                                   memoryConfig.getMutex(), memoryConfig.getMap() );
                 SPDLOG_TRACE(
-                    "Executor runtime initialised with project: {}", currentProject.getProjectInstallPath().string() );
+                    "Tool runtime initialised with project: {}", currentProject.getProjectInstallPath().string() );
             }
             else
             {

@@ -67,7 +67,7 @@ network::Message ExecutorRequestConversation::MPODown( const network::Message& r
             {
                 auto&                        msg = network::sim::MSG_SimLockRelease_Request::get( request );
                 network::sim::Request_Sender rq( *this, pSim->getID(), *pSim, yield_ctx );
-                rq.SimLockRelease( msg.requestingMPO );
+                rq.SimLockRelease( msg.requestingMPO, msg.transaction );
                 return network::sim::MSG_SimLockRelease_Response::make(
                     request.getReceiverID(), request.getSenderID(), network::sim::MSG_SimLockRelease_Response{} );
             }

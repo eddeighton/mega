@@ -23,6 +23,9 @@
 #include "common/assert_verify.hpp"
 #include "common/file.hpp"
 
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
+
 #include <cstdlib>
 
 namespace mega::network

@@ -69,7 +69,7 @@ public:
                                                              mega::io::ComponentInfo::PathArray{} );
                 const boost::filesystem::path componentInfoPath = m_tempDir / "test.txt";
                 std::ofstream                 of( componentInfoPath.native() );
-                mega::OutputArchiveType       oa( of );
+                boost::archive::xml_oarchive       oa( of );
                 oa << boost::serialization::make_nvp( "componentInfo", componentInfo );
                 componentInfoPaths.push_back( componentInfoPath );
             }

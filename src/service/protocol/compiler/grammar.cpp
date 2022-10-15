@@ -128,7 +128,7 @@ public:
         using namespace boost::spirit;
         using namespace boost::spirit::qi;
         using namespace boost::phoenix;
-        m_main_rule = lexeme[ char_( "a-zA-Z" )[ push_back( _val, qi::_1 ) ]
+        m_main_rule = lexeme[ char_( "a-zA-Z0-9" )[ push_back( _val, qi::_1 ) ]
                               >> *( char_( "a-zA-Z0-9_" )[ push_back( _val, qi::_1 ) ] ) ];
     }
 

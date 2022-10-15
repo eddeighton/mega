@@ -17,12 +17,14 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 #include "database/common/component_info.hpp"
 #include "database/common/serialisation.hpp"
 #include "database/types/component_type.hpp"
 
 #include <gtest/gtest.h>
+
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 #include <utility>
 #include <sstream>
@@ -37,12 +39,12 @@ TEST( MegaIO, SourceListing_Empty )
 
     std::stringstream ss;
     {
-        mega::OutputArchiveType archive( ss );
-        archive&                boost::serialization::make_nvp( "test", componentInfoFrom );
+        boost::archive::xml_oarchive archive( ss );
+        archive&                     boost::serialization::make_nvp( "test", componentInfoFrom );
     }
     {
-        mega::InputArchiveType archive( ss );
-        archive&               boost::serialization::make_nvp( "test", componentInfoTo );
+        boost::archive::xml_iarchive archive( ss );
+        archive&                     boost::serialization::make_nvp( "test", componentInfoTo );
     }
 
     ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );
@@ -56,17 +58,17 @@ TEST( MegaIO, SourceListing_Single )
 {
     ComponentInfo::PathArray paths = { "/a/b/c/test.txt" };
     ComponentInfo            componentInfoFrom(
-                   mega::ComponentType{}, "test", "test", {}, {}, {}, "some/where", paths, {}, ComponentInfo::PathArray{} );
+        mega::ComponentType{}, "test", "test", {}, {}, {}, "some/where", paths, {}, ComponentInfo::PathArray{} );
     ComponentInfo componentInfoTo;
 
     std::stringstream ss;
     {
-        mega::OutputArchiveType archive( ss );
-        archive&                boost::serialization::make_nvp( "test", componentInfoFrom );
+        boost::archive::xml_oarchive archive( ss );
+        archive&                     boost::serialization::make_nvp( "test", componentInfoFrom );
     }
     {
-        mega::InputArchiveType archive( ss );
-        archive&               boost::serialization::make_nvp( "test", componentInfoTo );
+        boost::archive::xml_iarchive archive( ss );
+        archive&                     boost::serialization::make_nvp( "test", componentInfoTo );
     }
 
     ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );
@@ -81,17 +83,17 @@ TEST( MegaIO, SourceListing_Multi )
     ComponentInfo::PathArray paths    = { "/a/b/c/test.txt", "/d/f/g/test.txt", "/c/foobar.txt" };
     ComponentInfo::PathArray includes = { "somewhere/place", "/other/place" };
     ComponentInfo            componentInfoFrom(
-                   mega::ComponentType{}, "test", "test", {}, {}, {}, "some/where", paths, {}, ComponentInfo::PathArray{} );
+        mega::ComponentType{}, "test", "test", {}, {}, {}, "some/where", paths, {}, ComponentInfo::PathArray{} );
     ComponentInfo componentInfoTo;
 
     std::stringstream ss;
     {
-        mega::OutputArchiveType archive( ss );
-        archive&                boost::serialization::make_nvp( "test", componentInfoFrom );
+        boost::archive::xml_oarchive archive( ss );
+        archive&                     boost::serialization::make_nvp( "test", componentInfoFrom );
     }
     {
-        mega::InputArchiveType archive( ss );
-        archive&               boost::serialization::make_nvp( "test", componentInfoTo );
+        boost::archive::xml_iarchive archive( ss );
+        archive&                     boost::serialization::make_nvp( "test", componentInfoTo );
     }
 
     ASSERT_EQ( componentInfoFrom.getName(), componentInfoTo.getName() );

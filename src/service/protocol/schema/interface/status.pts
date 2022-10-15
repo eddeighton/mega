@@ -17,21 +17,20 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
 msg GetStatus
 {
     broadcast();
-    response(mega::network::Status status);
+    response( mega::network::Status status );
 }
 
 msg GetNetworkStatus
 {
     request();
-    response(mega::network::Status status);
+    response( mega::network::Status status );
 }
 
 msg Ping
 {
     request();
-    response(std::string ping);
+    response( std::string ping );
 }

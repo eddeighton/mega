@@ -45,7 +45,10 @@ network::Status ExecutorRequestConversation::GetStatus( const std::vector< netwo
             }
         }
         status.setConversationID( conversations );
-        // m_executor.reportSimulations( status );
+
+        std::ostringstream os;
+        os << "Executor with threads: " << m_executor.getNumThreads();
+        status.setDescription( os.str() );
     }
 
     return status;

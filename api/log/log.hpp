@@ -250,6 +250,14 @@ public:
     }
     inline LogMsgIter logEnd() const { return { getTrack( TrackType::Log ), get( TrackType::Log ) }; }
 
+    using MemoryIters = std::array< log::Storage::MemoryIter, log::toInt( log::TrackType::TOTAL ) >;
+    inline MemoryIters memoryBegin() const
+    {
+        return { getTrack( TrackType( 0 ) ), getTrack( TrackType( 1 ) ), getTrack( TrackType( 2 ) ),
+                 getTrack( TrackType( 3 ) ), getTrack( TrackType( 4 ) ), getTrack( TrackType( 5 ) ),
+                 getTrack( TrackType( 6 ) ), getTrack( TrackType( 7 ) ) };
+    }
+
     inline MemoryIter memoryBegin( MemoryTrackType recordType ) const
     {
         return { getTrack( toTrackType( recordType ) ) };

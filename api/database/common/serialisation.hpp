@@ -28,28 +28,16 @@
 
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/path_traits.hpp>
+
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
-
-// #include <boost/archive/text_oarchive.hpp>
-// #include <boost/archive/text_iarchive.hpp>
 
 #include <optional>
 #include <type_traits>
 #include <set>
-
-namespace mega
-{
-using InputArchiveType  = boost::archive::xml_iarchive;
-using OutputArchiveType = boost::archive::xml_oarchive;
-// using InputArchiveType = boost::archive::text_iarchive;
-// using OutputArchiveType = boost::archive::text_oarchive;
-} // namespace mega
 
 namespace boost
 {

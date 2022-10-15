@@ -25,10 +25,15 @@
 #include "runtime/api.hpp"
 
 #include "service/lock_tracker.hpp"
+
+#include "service/network/log.hpp"
+
 #include "service/protocol/common/header.hpp"
 
 #include "service/protocol/model/sim.hxx"
 #include "service/protocol/model/mpo.hxx"
+
+#include "service/protocol/common/transaction.hpp"
 
 #include "log/log.hpp"
 
@@ -53,7 +58,7 @@ protected:
     std::optional< mega::MPO >                m_mpo;
     log::Storage                              m_log;
     log::Storage::SchedulerIter               m_schedulerIter;
-    log::Storage::MemoryIter                  m_memoryIter;
+    log::Storage::MemoryIters                 m_memoryIters;
     std::shared_ptr< mega::runtime::MPORoot > m_pExecutionRoot;
     mega::service::LockTracker                m_lockTracker;
     boost::asio::yield_context*               m_pYieldContext = nullptr;
@@ -63,7 +68,7 @@ public:
         : m_conversationIDRef( conversationID )
         , m_log( makeLogDirectory( conversationID ) )
         , m_schedulerIter( m_log.schedBegin() )
-        , m_memoryIter( m_log.memoryBegin( log::MemoryTrackType::Simulation ) )
+        , m_memoryIters( m_log.memoryBegin() )
     {
     }
 
@@ -92,10 +97,12 @@ public:
     // log
     virtual log::Storage& getLog() override { return m_log; }
 
+private:
     // MPOContext
     // simulation locks
     virtual bool readLock( MPO mpo ) override
     {
+        SPDLOG_TRACE( "readLock from: {} to: {}", m_mpo.value(), mpo );
         network::sim::Request_Encoder request = getSimRequest( mpo );
 
         if ( request.SimLockRead( m_mpo.value() ) )
@@ -111,6 +118,7 @@ public:
 
     virtual bool writeLock( MPO mpo ) override
     {
+        SPDLOG_TRACE( "writeLock from: {} to: {}", m_mpo.value(), mpo );
         network::sim::Request_Encoder request = getSimRequest( mpo );
 
         if ( request.SimLockWrite( m_mpo.value() ) )
@@ -124,31 +132,132 @@ public:
         }
     }
 
+    // define temp data structures as members to reuse memory and avoid allocations
+    using ShedulingMap   = std::map< MPO, std::vector< log::SchedulerRecordRead > >;
+    using MemoryMap      = std::map< reference, std::string_view >;
+    using MemoryMapArray = std::array< MemoryMap, log::toInt( log::TrackType::TOTAL ) >;
+    ShedulingMap               m_schedulingMap;
+    MemoryMapArray             m_memoryMaps;
+    mega::network::Transaction m_transaction;
+
+protected:
     virtual void cycleComplete() override
     {
-        for ( auto iEnd = m_log.schedEnd(); m_schedulerIter != iEnd; ++m_schedulerIter )
+        SPDLOG_TRACE( "cycleComplete {}", m_mpo.value() );
+
+        U32 expectedSchedulingCount = 0;
+        U32 expectedMemoryCount     = 0;
         {
-            const log::SchedulerRecordRead& record = *m_schedulerIter;
+            m_schedulingMap.clear();
+            for ( auto iEnd = m_log.schedEnd(); m_schedulerIter != iEnd; ++m_schedulerIter )
+            {
+                const log::SchedulerRecordRead& record = *m_schedulerIter;
+                m_schedulingMap[ record.getReference() ].push_back( record );
+                SPDLOG_TRACE( "cycleComplete {} found scheduling record", m_mpo.value() );
+                ++expectedSchedulingCount;
+            }
+
+            {
+                for ( auto iTrack = 0; iTrack != log::toInt( log::TrackType::TOTAL ); ++iTrack )
+                {
+                    if ( iTrack == log::toInt( log::TrackType::Log )
+                         || iTrack == log::toInt( log::TrackType::Scheduler ) )
+                        continue;
+
+                    MemoryMap& memoryMap = m_memoryMaps[ iTrack ];
+                    memoryMap.clear();
+                    for ( auto &iter = m_memoryIters[ iTrack ],
+                               iEnd  = m_log.memoryEnd( log::MemoryTrackType( iTrack ) );
+                          iter != iEnd;
+                          ++iter )
+                    {
+                        SPDLOG_TRACE( "cycleComplete {} found memory record", m_mpo.value() );
+                        const log::MemoryRecordRead& record = *iter;
+                        // only record the last write for each reference
+                        auto ib = memoryMap.insert( { record.getReference(), record.getData() } );
+                        if ( ib.second )
+                        {
+                            ++expectedMemoryCount;
+                        }
+                        else
+                        {
+                            ib.first->second = record.getData();
+                        }
+                    }
+                }
+            }
         }
 
-        for ( auto iEnd = m_log.memoryEnd( log::MemoryTrackType::Simulation ); m_memoryIter != iEnd; ++m_memoryIter )
+        U32 schedulingCount = 0;
+        U32 memoryCount     = 0;
         {
-            const log::MemoryRecordRead& record = *m_memoryIter;
+            for ( MPO writeLock : m_lockTracker.getWrites() )
+            {
+                m_transaction.reset(); // reuse memory
+
+                {
+                    auto iFind = m_schedulingMap.find( writeLock );
+                    if ( iFind != m_schedulingMap.end() )
+                    {
+                        SPDLOG_TRACE( "cycleComplete: {} sending: {} scheduling records to: {}", m_mpo.value(),
+                                      iFind->second.size(), writeLock );
+                        m_transaction.addSchedulingRecords( iFind->second );
+                        schedulingCount += iFind->second.size();
+                    }
+                }
+
+                for ( auto iTrack = 0; iTrack != log::toInt( log::TrackType::TOTAL ); ++iTrack )
+                {
+                    if ( iTrack == log::toInt( log::TrackType::Log )
+                         || iTrack == log::toInt( log::TrackType::Scheduler ) )
+                        continue;
+
+                    MemoryMap& memoryMap = m_memoryMaps[ iTrack ];
+                    int        iCounter  = 0;
+                    for ( auto i = memoryMap.lower_bound(
+                              reference( TypeInstance{}, MachineAddress{ ObjectAddress{}, writeLock } ) );
+                          i != memoryMap.end();
+                          ++i )
+                    {
+                        if ( i->first.getMachineID() != writeLock.getMachineID()
+                             || i->first.getProcessID() != writeLock.getProcessID()
+                             || i->first.getOwnerID() != writeLock.getOwnerID() )
+                        {
+                            break;
+                        }
+                        m_transaction.addMemoryRecord( i->first, log::MemoryTrackType( iTrack ), i->second );
+                        ++memoryCount;
+                        ++iCounter;
+                    }
+                    SPDLOG_TRACE( "cycleComplete: {} sending: {} track: {} memory records to: {}", m_mpo.value(),
+                                  iCounter, iTrack, writeLock );
+                }
+
+                network::sim::Request_Encoder request = getSimRequest( writeLock );
+                request.SimLockRelease( m_mpo.value(), m_transaction );
+            }
         }
 
-        for ( MPO writeLock : m_lockTracker.getWrites() )
+        if ( expectedMemoryCount != memoryCount )
         {
-            network::sim::Request_Encoder request = getSimRequest( writeLock );
-            request.SimLockRelease( m_mpo.value() );
-            m_lockTracker.onRelease( writeLock );
+            SPDLOG_WARN( "Expected memory records: {} not equal to actual: {} for: {}", expectedMemoryCount,
+                         memoryCount, m_mpo.value() );
+        }
+        if ( expectedSchedulingCount != schedulingCount )
+        {
+            SPDLOG_WARN( "Expected scheduling records: {} not equal to actual: {} for: {}", expectedSchedulingCount,
+                         schedulingCount, m_mpo.value() );
         }
 
         for ( MPO readLock : m_lockTracker.getReads() )
         {
+            SPDLOG_TRACE( "cycleComplete: {} sending: read release to: {}", m_mpo.value(), readLock );
+            m_transaction.reset();
             network::sim::Request_Encoder request = getSimRequest( readLock );
-            request.SimLockRelease( m_mpo.value() );
-            m_lockTracker.onRelease( readLock );
+            request.SimLockRelease( m_mpo.value(), m_transaction );
         }
+
+        m_lockTracker.reset();
     }
 };
 

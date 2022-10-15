@@ -17,9 +17,6 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 msg GetNetworkAddressMPO
 {
     request( mega::NetworkAddress networkAddress );
@@ -43,4 +40,3 @@ msg DeAllocateNetworkAddress
     request( MPO mpo, NetworkAddress networkAddress );
     response();
 }
-

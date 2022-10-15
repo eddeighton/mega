@@ -17,14 +17,15 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
 #include "database/model/file_info.hxx"
 #include "database/model/manifest.hxx"
 
 #include "database/common/serialisation.hpp"
 
 #include <gtest/gtest.h>
+
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
 #include <utility>
 #include <sstream>
@@ -37,14 +38,14 @@ TEST( MegaManifest, Manifest_Empty )
 
     std::stringstream ss;
     {
-        mega::OutputArchiveType oa( ss );
-        oa & boost::serialization::make_nvp( "manifest", manifestFrom );
+        boost::archive::xml_oarchive oa( ss );
+        oa&                          boost::serialization::make_nvp( "manifest", manifestFrom );
     }
 
     Manifest manifestTo;
     {
-        mega::InputArchiveType ia( ss );
-        ia & boost::serialization::make_nvp( "manifest", manifestTo );
+        boost::archive::xml_iarchive ia( ss );
+        ia&                          boost::serialization::make_nvp( "manifest", manifestTo );
     }
 
     std::vector< FileInfo > fileInfosFrom, fileInfosTo;

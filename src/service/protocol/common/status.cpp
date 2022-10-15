@@ -55,7 +55,7 @@ struct StatusPrinter
 
         if ( !status.getDescription().empty() )
         {
-            line( iCurrentDepth ) << status.getDescription() << "\n";
+            line( iCurrentDepth ) << "NODE[ " << status.getDescription() << " ]\n";
         }
 
         // generate padding

@@ -17,22 +17,19 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
 msg SimLockRead
 {
-    request(mega::MPO requestingMPO);
-    response(bool bSuccess);
+    request( mega::MPO requestingMPO );
+    response( bool bSuccess );
 }
 msg SimLockWrite
 {
-    request(mega::MPO requestingMPO);
-    response(bool bSuccess);
+    request( mega::MPO requestingMPO );
+    response( bool bSuccess );
 }
 msg SimLockRelease
 {
-    request(mega::MPO requestingMPO);
+    request( mega::MPO requestingMPO, mega::network::Transaction transaction );
     response();
 }
 msg SimClock
@@ -43,7 +40,7 @@ msg SimClock
 msg SimCreate
 {
     request();
-    response(mega::MPO mpo);
+    response( mega::MPO mpo );
 }
 msg SimStart
 {

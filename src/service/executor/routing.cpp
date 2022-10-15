@@ -99,16 +99,17 @@ void ExecutorRequestConversation::error( const network::ReceivedMsg& msg, const 
 
 network::exe_leaf::Request_Sender ExecutorRequestConversation::getLeafRequest( boost::asio::yield_context& yield_ctx )
 {
-    return network::exe_leaf::Request_Sender( *this, m_executor.getLeafSender(), yield_ctx );
+    return { *this, m_executor.getLeafSender(), yield_ctx };
 }
 network::mpo::Request_Sender ExecutorRequestConversation::getMPRequest( boost::asio::yield_context& yield_ctx )
 {
-    return network::mpo::Request_Sender( *this, m_executor.getLeafSender(), yield_ctx );
+    return { *this, m_executor.getLeafSender(), yield_ctx };
 }
 
 network::Message ExecutorRequestConversation::RootAllBroadcast( const network::Message&     request,
                                                                 boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "ExecutorRequestConversation::RootAllBroadcast" );
     std::vector< network::Message > responses;
     {
         std::vector< Simulation::Ptr > simulations;
@@ -119,6 +120,7 @@ network::Message ExecutorRequestConversation::RootAllBroadcast( const network::M
             {
                 case network::status::MSG_GetStatus_Request::ID:
                 {
+                    SPDLOG_TRACE( "ExecutorRequestConversation::RootAllBroadcast to sim: {}", pSimulation->getID() );
                     auto&                           msg = network::status::MSG_GetStatus_Request::get( request );
                     network::status::Request_Sender rq( *this, pSimulation->getID(), *pSimulation, yield_ctx );
                     const network::Message          responseWrapper = network::status::MSG_GetStatus_Response::make(
@@ -135,7 +137,9 @@ network::Message ExecutorRequestConversation::RootAllBroadcast( const network::M
         }
     }
 
-    network::Message aggregateRequest = request;
+    SPDLOG_TRACE( "ExecutorRequestConversation::RootAllBroadcast got: {} responses", responses.size() );
+
+    network::Message aggregateRequest = std::move( request );
     network::aggregate( aggregateRequest, responses );
 
     // dispatch to this

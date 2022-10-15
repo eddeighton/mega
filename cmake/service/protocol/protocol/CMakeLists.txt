@@ -116,6 +116,7 @@ set( MEGA_PROTOCOL_COMMON_HEADERS
     ${MEGA_API_DIR}/service/protocol/common/root_config.hpp
     ${MEGA_API_DIR}/service/protocol/common/status.hpp
     ${MEGA_API_DIR}/service/protocol/common/memory_config.hpp
+    ${MEGA_API_DIR}/service/protocol/common/transaction.hpp
 	)
 
 set( MEGA_PROTOCOL_COMMON_SOURCE

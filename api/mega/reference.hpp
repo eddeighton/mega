@@ -253,6 +253,13 @@ struct MachineAddress : ObjectAddress, MPO
     {
         return ObjectAddress::operator!=( cmp ) ? ObjectAddress::operator<( cmp ) : MPO::operator<( cmp );
     }
+
+    template < class Archive >
+    inline void serialize( Archive& archive, const unsigned int version )
+    {
+        archive& static_cast< ObjectAddress& >( *this );
+        archive& static_cast< MPO& >( *this );
+    }
 };
 static_assert( sizeof( MachineAddress ) == 4U, "Invalid MachineAddress Size" );
 

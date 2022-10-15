@@ -21,8 +21,6 @@
 
 #include "service/network/log.hpp"
 
-#include "mega/reference_io.hpp"
-
 namespace mega::service
 {
 
@@ -93,27 +91,27 @@ void LeafRequestConversation::error( const network::ReceivedMsg& msg, const std:
 
 network::leaf_daemon::Request_Sender LeafRequestConversation::getDaemonSender( boost::asio::yield_context& yield_ctx )
 {
-    return network::leaf_daemon::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
+    return { *this, m_leaf.getDaemonSender(), yield_ctx };
 }
 network::leaf_exe::Request_Sender LeafRequestConversation::getExeSender( boost::asio::yield_context& yield_ctx )
 {
-    return network::leaf_exe::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+    return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
 network::leaf_tool::Request_Sender LeafRequestConversation::getToolSender( boost::asio::yield_context& yield_ctx )
 {
-    return network::leaf_tool::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+    return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
 network::leaf_term::Request_Sender LeafRequestConversation::getTermSender( boost::asio::yield_context& yield_ctx )
 {
-    return network::leaf_term::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+    return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
 network::mpo::Request_Sender LeafRequestConversation::getMPOUpSender( boost::asio::yield_context& yield_ctx )
 {
-    return network::mpo::Request_Sender( *this, m_leaf.getDaemonSender(), yield_ctx );
+    return { *this, m_leaf.getDaemonSender(), yield_ctx };
 }
 network::mpo::Request_Sender LeafRequestConversation::getMPODownSender( boost::asio::yield_context& yield_ctx )
 {
-    return network::mpo::Request_Sender( *this, m_leaf.getNodeChannelSender(), yield_ctx );
+    return { *this, m_leaf.getNodeChannelSender(), yield_ctx };
 }
 // network::term_leaf::Impl
 network::Message LeafRequestConversation::TermRoot( const network::Message&     request,
@@ -224,26 +222,24 @@ network::Message LeafRequestConversation::MPOUp( const network::Message& request
 network::Message LeafRequestConversation::RootAllBroadcast( const network::Message&     request,
                                                             boost::asio::yield_context& yield_ctx )
 {
+    SPDLOG_TRACE( "LeafRequestConversation::RootAllBroadcast" );
     std::vector< network::Message > responses;
     {
         switch ( m_leaf.m_nodeType )
         {
             case network::Node::Executor:
             {
-                const network::Message response = getExeSender( yield_ctx ).RootAllBroadcast( request );
-                responses.push_back( response );
+                responses.push_back( getExeSender( yield_ctx ).RootAllBroadcast( request ) );
             }
             break;
             case network::Node::Terminal:
             {
-                const network::Message response = getTermSender( yield_ctx ).RootAllBroadcast( request );
-                responses.push_back( response );
+                responses.push_back( getTermSender( yield_ctx ).RootAllBroadcast( request ) );
             }
             break;
             case network::Node::Tool:
             {
-                const network::Message response = getToolSender( yield_ctx ).RootAllBroadcast( request );
-                responses.push_back( response );
+                responses.push_back( getToolSender( yield_ctx ).RootAllBroadcast( request ) );
             }
             break;
             case network::Node::Daemon:
@@ -256,7 +252,7 @@ network::Message LeafRequestConversation::RootAllBroadcast( const network::Messa
         }
     }
 
-    network::Message aggregateRequest = request;
+    network::Message aggregateRequest = std::move( request );
     network::aggregate( aggregateRequest, responses );
 
     // dispatch to this

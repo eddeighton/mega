@@ -17,12 +17,8 @@
 //  NEGLIGENCE) OR STRICT LIABILITY, EVEN IF COPYRIGHT OWNERS ARE ADVISED
 //  OF THE POSSIBILITY OF SUCH DAMAGES.
 
-
-
-
-
 msg PipelineRun
 {
-    request(mega::pipeline::Configuration configuration);
-    response(mega::network::PipelineResult result);
+    request( mega::pipeline::Configuration configuration );
+    response( mega::network::PipelineResult result );
 }
